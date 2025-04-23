@@ -1,16 +1,6 @@
-import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
-import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/abstract/utils";
-import { ConfidentialAmount, ConfidentialKeyRotation, ConfidentialKeyRotationSigmaProof, ConfidentialNormalization, ConfidentialNormalizationSigmaProof, ConfidentialTransfer, ConfidentialTransferRangeProof, ConfidentialTransferSigmaProof, ConfidentialWithdraw, ConfidentialWithdrawSigmaProof, ed25519modN, RangeProofExecutor, toTwistedEd25519PrivateKey, TwistedEd25519PrivateKey } from "../../src";
-import { generateRangeZKP, verifyRangeZKP } from "../helpers/wasmRangeProof";
+import { ConfidentialAmount, ConfidentialKeyRotation, ConfidentialKeyRotationSigmaProof, ConfidentialNormalization, ConfidentialNormalizationSigmaProof, ConfidentialTransfer, ConfidentialTransferRangeProof, ConfidentialTransferSigmaProof, ConfidentialWithdraw, ConfidentialWithdrawSigmaProof, toTwistedEd25519PrivateKey, TwistedEd25519PrivateKey } from "../../src";
 import { preloadTables } from "../helpers/wasmPollardKangaroo";
 import { longTestTimeout } from "../helpers";
-
-/** !important: for testing purposes */
-RangeProofExecutor.setGenerateRangeZKP(generateRangeZKP);
-RangeProofExecutor.setVerifyRangeZKP(verifyRangeZKP);
-
-const toValidHex = (outsideHex: string) =>
-  bytesToHex(numberToBytesLE(ed25519modN(bytesToNumberLE(hexToBytes(outsideHex))), 32));
 
 describe("Generate 'confidential coin' proofs", () => {
   it(
@@ -23,9 +13,7 @@ describe("Generate 'confidential coin' proofs", () => {
 
   const ALICE_BALANCE = 18446744073709551716n;
 
-  const aliceConfidentialDecryptionKey: TwistedEd25519PrivateKey = new TwistedEd25519PrivateKey(
-    toValidHex("8f4bccf304a539586382e249b662790924aa7cb38effa824a4c88a420ffd3b08"),
-  );
+  const aliceConfidentialDecryptionKey: TwistedEd25519PrivateKey = TwistedEd25519PrivateKey.generate();
   const bobConfidentialDecryptionKey: TwistedEd25519PrivateKey = TwistedEd25519PrivateKey.generate();
 
   const aliceConfidentialAmount = ConfidentialAmount.fromAmount(ALICE_BALANCE);

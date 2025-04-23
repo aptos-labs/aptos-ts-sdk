@@ -24,7 +24,7 @@ export type ConfidentialBalance = {
   actual: TwistedElGamalCiphertext[];
 };
 
-const CONFIDENTIAL_COIN_MODULE_ADDRESS = "0xcbd21318a3fe6eb6c01f3c371d9aca238a6cd7201d3fc75627767b11b87dcbf5";
+const CONFIDENTIAL_COIN_MODULE_ADDRESS = "0xd4aa5d2b93935bae55ef5aee8043e78e09e91ad1d31ea9532963a036b1cd5df1";
 const MODULE_NAME = "confidential_asset";
 
 /**

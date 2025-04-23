@@ -4,8 +4,6 @@ import { preloadTables } from "../helpers/wasmPollardKangaroo";
 describe("Deposit", () => {
   const alice = getTestAccount();
 
-  console.log(alice.accountAddress.toString());
-
   it(
     "Pre load wasm table map",
     async () => {

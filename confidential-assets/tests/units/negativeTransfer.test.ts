@@ -3,18 +3,18 @@ import {
   aptos,
   confidentialAsset,
   getBalances,
+  getTestConfidentialAccount,
   longTestTimeout,
   sendAndWaitTx,
 } from "../helpers";
 import { numberToBytesLE, bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { bytesToHex } from "@noble/hashes/utils";
-import { TwistedEd25519PrivateKey, ed25519modN, TwistedEd25519PublicKey } from "../../src";
+import { ed25519modN, TwistedEd25519PublicKey } from "../../src";
 import { preloadTables } from "../helpers/wasmPollardKangaroo";
 
 describe("Transfer", () => {
   const alice = Account.generate();
-  //   const aliceConfidential = getTestConfidentialAccount(alice);
-  const aliceConfidential = new TwistedEd25519PrivateKey("b761042f60932886fe0bb8677349ab9afc9bae40fdd108666a446d8434d1780b");
+  const aliceConfidential = getTestConfidentialAccount(alice);
 
   const coinType = "0x1::aptos_coin::AptosCoin";
   const tokenAddress = '0x000000000000000000000000000000000000000000000000000000000000000a';

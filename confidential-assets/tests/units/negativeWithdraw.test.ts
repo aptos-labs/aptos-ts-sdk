@@ -1,20 +1,21 @@
-import { Account, AccountAddress } from "@aptos-labs/ts-sdk";
+import { AccountAddress } from "@aptos-labs/ts-sdk";
 import {
   aptos,
   confidentialAsset,
   getBalances,
+  getTestAccount,
+  getTestConfidentialAccount,
   longTestTimeout,
   sendAndWaitTx,
 } from "../helpers";
 import { numberToBytesLE, bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { bytesToHex } from "@noble/hashes/utils";
-import { TwistedEd25519PrivateKey, ed25519modN } from "../../src";
+import { ed25519modN } from "../../src";
 import { preloadTables } from "../helpers/wasmPollardKangaroo";
 
-describe("Transfer", () => {
-  const alice = Account.generate();
-  //   const aliceConfidential = getTestConfidentialAccount(alice);
-  const aliceConfidential = new TwistedEd25519PrivateKey("b761042f60932886fe0bb8677349ab9afc9bae40fdd108666a446d8434d1780b");
+describe("Negative withdraw", () => {
+  const alice = getTestAccount();
+  const aliceConfidential = getTestConfidentialAccount(alice)
 
   const coinType = "0x1::aptos_coin::AptosCoin";
   const tokenAddress = '0x000000000000000000000000000000000000000000000000000000000000000a';
@@ -55,7 +56,7 @@ describe("Transfer", () => {
     console.log("gas used:", aliceTxResp.gas_used);
   })
 
-  it.skip("should deposit money to Alice's account", async () => {
+  it("should deposit money to Alice's account", async () => {
     const depositTx = await confidentialAsset.depositCoin({
       sender: alice.accountAddress,
       coinType,
@@ -67,7 +68,7 @@ describe("Transfer", () => {
     console.log("gas used:", resp.gas_used);
   })
 
-  it("should transfer money from Alice actual to pending balance", async () => {
+  it("should throw error withdrawing money from Alice actual balance", async () => {
     const balances = await getBalances(aliceConfidential, alice.accountAddress, tokenAddress);
 
     const recipientEncKey = await confidentialAsset.getEncryptionByAddr({
@@ -85,14 +86,8 @@ describe("Transfer", () => {
       amountToWithdraw: withdrawAmount,
     });
 
-    const txResp = await sendAndWaitTx(withdrawTx, alice);
+    const txRespPromise = sendAndWaitTx(withdrawTx, alice);
 
-    console.log("gas used:", txResp.gas_used);
-
-    const balancesAfterTransfer = await getBalances(aliceConfidential, alice.accountAddress, tokenAddress);
-
-    console.log(balancesAfterTransfer.actual)
-
-    expect(txResp.success).toBeTruthy();
+    expect(txRespPromise).rejects.toThrow();
   });
 });
