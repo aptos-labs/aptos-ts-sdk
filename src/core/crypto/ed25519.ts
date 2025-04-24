@@ -383,7 +383,7 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    * @category Serialization
    */
   toString(): string {
-    return this.toHexString();
+    return this.toAIP80String();
   }
 
   /**
