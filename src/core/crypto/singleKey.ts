@@ -149,7 +149,7 @@ export class AnyPublicKey extends AccountPublicKey {
    * @group Implementation
    * @category Serialization
    */
-  toUint8Array() {
+  toUint8Array(): Uint8Array {
     return this.bcsToBytes();
   }
 
@@ -289,7 +289,7 @@ export class AnySignature extends Signature {
 
   // region AccountSignature
 
-  toUint8Array() {
+  toUint8Array(): Uint8Array {
     // TODO: keep this warning around for a bit, and eventually change this to return `this.signature.toUint8Array()`.
     // eslint-disable-next-line no-console
     console.warn(
