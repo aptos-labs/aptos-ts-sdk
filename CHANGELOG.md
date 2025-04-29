@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Unreleased
 
+# 1.38.1 (2025-04-29)
+
 - Define the return type for `toUint8Array()` in the `SingleKey.ts` file to not break `tsc` build
 
 # 1.38.0 (2025-04-02)
