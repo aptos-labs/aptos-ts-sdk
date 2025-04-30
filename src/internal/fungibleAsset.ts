@@ -196,7 +196,7 @@ export async function transferFungibleAsset(args: {
 }
 
 /**
- * Transfers a specified amount of a fungible asset from a (secondary) fungible store to another (secondary) fungible store.
+ * Transfers a specified amount of a fungible asset from any (primary or secondary) fungible store to any (primary or secondary) fungible store.
  * This function helps facilitate the transfer of digital assets between fungible stores on the Aptos blockchain.
  *
  * @param args - The parameters for the transfer operation.
