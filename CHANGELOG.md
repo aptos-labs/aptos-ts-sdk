@@ -6,6 +6,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Add a `transferFungibleAssetBetweenStores` function to transfer Fungible Assets between any (primary or secondary) fungible stores.
 - Include an example file `transfer_between_fungible_stores.ts` which uses a new example Move module `secondary_store.move`.
+- Define the return type for `toUint8Array()` in the `SingleKey.ts` file to not break `tsc` build
 
 # 1.38.0 (2025-04-02)
 
