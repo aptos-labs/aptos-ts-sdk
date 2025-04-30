@@ -206,7 +206,7 @@ async function main() {
 
     // Transfer from primary to secondary store
     console.log("\n=== Transferring from primary to secondary store ===");
-    const transferToSecondaryTxn = await aptos.transferToFungibleStore({
+    const transferToSecondaryTxn = await aptos.transferFungibleAssetBetweenStores({
       sender: bob,
       fromStore: bobPrimaryStoreAddress,
       toStore: bobSecondaryStore,
@@ -223,7 +223,7 @@ async function main() {
 
     // Transfer between secondary stores
     console.log("\n=== Transferring between secondary stores ===");
-    const transferBetweenSecondaryTxn = await aptos.transferToFungibleStore({
+    const transferBetweenSecondaryTxn = await aptos.transferFungibleAssetBetweenStores({
       sender: bob,
       fromStore: bobSecondaryStore,
       toStore: charlieSecondaryStore,
@@ -240,7 +240,7 @@ async function main() {
 
     // Transfer from secondary store to primary store
     console.log("\n=== Transferring from secondary to primary store ===");
-    const transferFromSecondaryTxn = await aptos.transferToFungibleStore({
+    const transferFromSecondaryTxn = await aptos.transferFungibleAssetBetweenStores({
       sender: charlie,
       fromStore: charlieSecondaryStore,
       toStore: bobPrimaryStoreAddress,
