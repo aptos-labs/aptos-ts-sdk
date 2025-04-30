@@ -4,7 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Unreleased
 
-- Add a function to TS SDK to transfer Fungible Assets between (secondary) fungible stores. Includes an example file `transfer_secondary_store.ts` which uses a new example Move module `secondary_store.move`.
+- Add a `transferFungibleAssetBetweenStores` function to transfer Fungible Assets between any (primary or secondary) fungible stores.
+- Include an example file `transfer_between_fungible_stores.ts` which uses a new example Move module `secondary_store.move`.
 
 # 1.38.0 (2025-04-02)
 

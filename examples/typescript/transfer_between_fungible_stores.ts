@@ -21,7 +21,7 @@ import { compilePackage, getPackageBytesToPublish } from "./utils";
  * Before running this example, we should compile the package locally:
  * 1. Acquire the Aptos CLI, see https://aptos.dev/tools/aptos-cli/
  * 2. cd `~/aptos-ts-sdk/examples/typescript`
- * 3. Run `pnpm run transfer_secondary_store`
+ * 3. Run `pnpm run transfer_between_fungible_stores`
  */
 
 // Set up the client

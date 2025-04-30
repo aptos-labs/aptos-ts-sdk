@@ -318,7 +318,7 @@ export class FungibleAsset {
   }
 
   /**
-   * Transfer a specified amount of fungible asset from the sender's (secondary) fungible store to another (secondary) fungible store.
+   * Transfer a specified amount of fungible asset from the sender's any (primary or secondary) fungible store to any (primary or secondary) fungible store.
    * This method allows you to transfer any fungible asset, including fungible tokens.
    *
    * @param args - The arguments for the transfer operation.
