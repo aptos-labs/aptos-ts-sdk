@@ -14,7 +14,7 @@ import {
   getFungibleAssetActivities,
   getFungibleAssetMetadata,
   transferFungibleAsset,
-  transferToFungibleStore,
+  transferFungibleAssetBetweenStores,
 } from "../internal/fungibleAsset";
 import {
   CurrentFungibleAssetBalancesBoolExp,
@@ -344,50 +344,28 @@ export class FungibleAsset {
    * const aptos = new Aptos(config);
    *
    * async function transferAssets() {
-   *   // Initialize sender and recipient accounts
-   *   const sender = Account.fromPrivateKey("0x..."); // Replace with actual private key
-   *
-   *   // Define store addresses
-   *   const senderStore = "0x123..."; // Replace with actual sender store address
-   *   const recipientStore = "0x456..."; // Replace with actual recipient store address
-   *
-   *   // Transfer 100 units of the asset
-   *   const transaction = await aptos.transferToFungibleStore({
-   *     sender,
-   *     fromStore: senderStore,
-   *     toStore: recipientStore,
-   *     amount: 100,
-   *     options: {
-   *       maxGasAmount: 1000,
-   *       gasUnitPrice: 100
-   *     }
+   *   // Transfer 100 units of the asset from senderStore to recipientStore
+   *   const transaction = await aptos.transferFungibleAssetBetweenStores({
+   *     sender: Account.generate(), // replace with a real sender account
+   *     fromStore: "0x123", // replace with a real fungible store address
+   *     toStore: "0x456", // replace with a real fungible store address
+   *     amount: 100
    *   });
    *
-   *   // Submit the transaction
-   *   const pendingTransaction = await aptos.signAndSubmitTransaction({
-   *     signer: sender,
-   *     transaction
-   *   });
-   *
-   *   // Wait for confirmation
-   *   const response = await aptos.waitForTransaction({
-   *     transactionHash: pendingTransaction.hash
-   *   });
-   *
-   *   console.log("Transfer completed:", response);
+   *   console.log(transaction);
    * }
    *
    * transferAssets().catch(console.error);
    * ```
    * @group FungibleAsset
    */
-  async transferToFungibleStore(args: {
+  async transferFungibleAssetBetweenStores(args: {
     sender: Account;
     fromStore: AccountAddressInput;
     toStore: AccountAddressInput;
     amount: AnyNumber;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    return transferToFungibleStore({ aptosConfig: this.config, ...args });
+    return transferFungibleAssetBetweenStores({ aptosConfig: this.config, ...args });
   }
 }

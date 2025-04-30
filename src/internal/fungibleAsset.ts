@@ -210,7 +210,7 @@ export async function transferFungibleAsset(args: {
  * @throws Error if the transaction generation fails or if the input parameters are invalid.
  * @group Implementation
  */
-export async function transferToFungibleStore(args: {
+export async function transferFungibleAssetBetweenStores(args: {
   aptosConfig: AptosConfig;
   sender: Account;
   fromStore: AccountAddressInput;

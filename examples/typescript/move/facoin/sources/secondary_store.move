@@ -1,6 +1,7 @@
-/// A 2-in-1 module that combines managed_fungible_asset and coin_example into one module that when deployed, the
-/// deployer will be creating a new managed fungible asset with the hardcoded supply config, name, symbol, and decimals.
-/// The address of the asset can be obtained via get_metadata(). As a simple version, it only deals with primary stores.
+/// A module that enables the creation and management of secondary fungible asset stores.
+/// This module allows users to create additional stores for their fungible assets beyond the primary store,
+/// enabling more complex asset management scenarios. Users can create multiple secondary stores for different
+/// fungible assets, and the module maintains a mapping of these stores for each user.
 module FACoin::secondary_store {
     use aptos_framework::fungible_asset::{Self, Metadata, FungibleStore};
     use aptos_framework::object::{Self, Object};
@@ -58,11 +59,13 @@ module FACoin::secondary_store {
         // Store the mapping
         table::add(stores, metadata_addr, store);
 
-        event::emit(SecondaryStoreCreated {
-            user: user_addr,
-            metadata: metadata_addr,
-            secondary_store: store
-        });
+        event::emit(
+            SecondaryStoreCreated {
+                user: user_addr,
+                metadata: metadata_addr,
+                secondary_store: store
+            }
+        );
     }
 
     #[view]
@@ -71,7 +74,10 @@ module FACoin::secondary_store {
         user_addr: address, metadata: Object<Metadata>
     ): Object<FungibleStore> acquires UserSecondaryStores {
         let metadata_addr = object::object_address(&metadata);
-        assert!(exists<UserSecondaryStores>(user_addr), EUSER_SECONDARY_STORES_DOES_NOT_EXIST);
+        assert!(
+            exists<UserSecondaryStores>(user_addr),
+            EUSER_SECONDARY_STORES_DOES_NOT_EXIST
+        );
 
         let stores = &borrow_global<UserSecondaryStores>(user_addr).stores;
         assert!(table::contains(stores, metadata_addr), ESTORE_DOES_NOT_EXIST);
@@ -97,7 +103,9 @@ module FACoin::secondary_store {
         let metadata_object_signer = object::generate_signer(constructor_ref);
 
         let metadata =
-            object::address_to_object<Metadata>(signer::address_of(&metadata_object_signer));
+            object::address_to_object<Metadata>(
+                signer::address_of(&metadata_object_signer)
+            );
 
         // Create secondary store
         create_secondary_store(creator, metadata);
@@ -105,5 +113,4 @@ module FACoin::secondary_store {
         // Verify store exists
         get_secondary_store(creator_addr, metadata);
     }
-
 }
