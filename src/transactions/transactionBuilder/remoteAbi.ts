@@ -45,7 +45,7 @@ import {
   throwTypeMismatch,
   convertNumber,
 } from "./helpers";
-import { CallArgument, MoveFunction, MoveModule } from "../../types";
+import { MoveFunction, MoveModule } from "../../types";
 
 const TEXT_ENCODER = new TextEncoder();
 
@@ -226,31 +226,6 @@ export async function fetchViewFunctionAbi(
     parameters: params,
     returnTypes,
   };
-}
-
-/**
- * @deprecated Handle this inline
- *
- * @example
- * ```typescript
- * const callArgument = argument instanceof CallArgument ? argument : CallArgument.newBytes(
- *   convertArgument(functionName, functionAbi, argument, position, genericTypeParams).bcsToBytes()
- * );
- * ```
- */
-export function convertCallArgument(
-  argument: CallArgument | EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes,
-  functionName: string,
-  functionAbi: FunctionABI,
-  position: number,
-  genericTypeParams: Array<TypeTag>,
-): CallArgument {
-  if (argument instanceof CallArgument) {
-    return argument;
-  }
-  return CallArgument.newBytes(
-    convertArgument(functionName, functionAbi, argument, position, genericTypeParams).bcsToBytes(),
-  );
 }
 
 /**

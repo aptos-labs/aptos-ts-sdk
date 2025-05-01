@@ -2,54 +2,7 @@
 
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## Unreleased
-
-- Define the return type for `toUint8Array()` in the `SingleKey.ts` file to not break `tsc` build
-
-# 1.38.0 (2025-04-02)
-
-- Adds and default implementation of `verifySignatureAsync` to `PublicKey`.
-- Implement derivable abstracted account
-- Fix: Reverts experimental binary view functions, which caused `Buffer is undefined` errors in browsers.
-
-# 1.37.1 (2025-03-24)
-
-- Upgrade min versions of @noble/curves and @noble/hashes to 1.6.0 and 1.5.0 respectively as they are required to use keyless signature verification.
-
-# 1.37.0 (2025-03-24)
-
-- Upgrade tsup to v8.4.0
-- Export the `crypto/abstraction.ts` file that includes the `AbstractSignature` and `AbstractPublicKey` classes.
-- Adds `verifySignatureAsync` to support signature verification that requires fetching chain state.
-- Adds support for keyless signature verification.
-- Implements signature verification for MultiKey.
-- Override @babel/runtime and @babel/helpers to use an updated version
-- Fix pagination of AccountResources and AccountModules
-- Add API for `getResourcesPage` and `getModulesPage` to support manual pagination
-- Added `pairedFaMetadataAddress` function to calculate the paired fungible asset metadata address for a given coin type, with enhanced support for various address formats (short form, long form, with leading zeros)
-
-# 1.36.0 (2025-03-14)
-
-- Upgrade rotateAuthKey API to allow for unverified auth key rotations.
-- Upgrade rotateAuthKey API to support Account types other than Ed25519.
-- Update simulation for MultiKeyAccount to use signatures of the same type as the corresponding public key.
-- Add `truncateAddress` helper function to truncate an address at the middle with an ellipsis.
-- Fix scriptComposer addBatchedCalls more typeArguments error
-- Add support for skipping struct type tag validation.
-- Add support for known enum structs: DelegationKey and RateLimiter.
-- Deprecated `fetchMoveFunctionAbi` and `convertCallArgument`
-- Bump `aptos-client` to 1.1.0
-
-# 1.35.0 (2025-02-11)
-
-- Add `MultiEd25519Account` to support the legacy MultiEd25519 authentication scheme.
-
-# 1.34.0 (2025-02-06)
-
-- Add new `scriptComposer` api in `transactionSubmission` api to allow SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.
-- Add support for vectors as string as a valid argument
-- Add `AbstractedAccount` class to support account abstraction with custom signers.
-- Add `aptos.abstraction` namespace to support account abstraction APIs. Notable functions are: `isAccountAbstractionEnabled`, `enableAccountAbstractionTransaction`, and `disableAccountAbstractionTransaction`.
+# Unreleased
 
 # 1.33.2 (2025-01-22)
 
@@ -76,6 +29,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # 1.32.1 (2024-11-11)
 
 - Add support for Firebase issuers in the `updateFederatedKeylessJwkSetTransaction` function
+- [`Breaking`] Revert new `scriptComposer` api in transactionSubmission api to allow SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.
 
 # 1.32.0 (2024-11-08)
 
