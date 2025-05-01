@@ -1,5 +1,4 @@
 import {
-  aptos,
   confidentialAsset,
   getBalances,
   getTestAccount,
@@ -7,8 +6,8 @@ import {
   longTestTimeout,
   sendAndWaitTx,
   TOKEN_ADDRESS,
-} from "../helpers";
-import { preloadTables } from "../helpers/wasmPollardKangaroo";
+} from "../../helpers";
+import { preloadTables } from "../../helpers/wasmPollardKangaroo";
 
 describe("Normalize", () => {
   const alice = getTestAccount();

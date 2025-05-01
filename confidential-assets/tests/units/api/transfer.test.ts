@@ -1,7 +1,6 @@
 import { AccountAddress } from "@aptos-labs/ts-sdk";
-import { TwistedEd25519PublicKey } from "../../src";
+import { TwistedEd25519PublicKey } from "../../../src";
 import {
-  aptos,
   confidentialAsset,
   getBalances,
   getTestAccount,
@@ -9,8 +8,8 @@ import {
   longTestTimeout,
   sendAndWaitTx,
   TOKEN_ADDRESS,
-} from "../helpers";
-import { preloadTables } from "../helpers/wasmPollardKangaroo";
+} from "../../helpers";
+import { preloadTables } from "../../helpers/wasmPollardKangaroo";
 
 describe("Transfer", () => {
   const alice = getTestAccount();

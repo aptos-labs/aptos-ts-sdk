@@ -1,28 +1,28 @@
-import { Account, AccountAddress } from "@aptos-labs/ts-sdk";
+import { AccountAddress } from "@aptos-labs/ts-sdk";
 import {
   aptos,
   confidentialAsset,
   getBalances,
+  getTestAccount,
   getTestConfidentialAccount,
   longTestTimeout,
-  sendAndWaitBatchTxs,
   sendAndWaitTx,
-} from "../helpers";
+} from "../../helpers";
 import { numberToBytesLE, bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { bytesToHex } from "@noble/hashes/utils";
-import { ed25519modN, ConfidentialAmount } from "../../src";
-import { preloadTables } from "../helpers/wasmPollardKangaroo";
+import { ed25519modN } from "../../../src";
+import { preloadTables } from "../../helpers/wasmPollardKangaroo";
 
-describe("Transfer", () => {
-  const alice = Account.generate();
-  const aliceConfidential = getTestConfidentialAccount(alice);
+describe("Negative withdraw", () => {
+  const alice = getTestAccount();
+  const aliceConfidential = getTestConfidentialAccount(alice)
 
   const coinType = "0x1::aptos_coin::AptosCoin";
   const tokenAddress = '0x000000000000000000000000000000000000000000000000000000000000000a';
   const fundAmount = 1 * 10 ** 8;
   const depositAmount = 0.5 * 10 ** 8;
   const recipientAccAddr = "0x82094619a5e8621f2bf9e6479a62ed694dca9b8fd69b0383fce359a3070aa0d4";
-  const normalizeAmount = -BigInt(depositAmount);
+  const withdrawAmount = BigInt(0.1 * 10 ** 8);
 
   console.log("pk", alice.privateKey.toString())
   console.log("dk", aliceConfidential.toString())
@@ -68,27 +68,8 @@ describe("Transfer", () => {
     console.log("gas used:", resp.gas_used);
   })
 
-  it("Should rollover the balance", async () => {
-    const rolloverTxs = await confidentialAsset.safeRolloverPendingCB({
-      sender: alice.accountAddress,
-      tokenAddress,
-      decryptionKey: aliceConfidential,
-    })
-
-    const txResponses = await sendAndWaitBatchTxs(rolloverTxs, alice);
-
-    console.log("gas used:", txResponses.map((el) => `${el.hash} - ${el.gas_used}`).join("\n"));
-
-    expect(txResponses.every((el) => el.success)).toBeTruthy();
-  })
-
-  it("should transfer money from Alice actual to pending balance", async () => {
+  it("should throw error withdrawing money from Alice actual balance", async () => {
     const balances = await getBalances(aliceConfidential, alice.accountAddress, tokenAddress);
-
-    console.log({ balances })
-
-    const fakeBalance = ConfidentialAmount.fromAmount(normalizeAmount)
-    fakeBalance.encrypt(aliceConfidential.publicKey());
 
     const recipientEncKey = await confidentialAsset.getEncryptionByAddr({
       accountAddress: AccountAddress.from(recipientAccAddr),
@@ -97,23 +78,16 @@ describe("Transfer", () => {
 
     console.log({ recipientEncKey: recipientEncKey.toString() })
 
-    const normalizeTx = await confidentialAsset.normalizeUserBalance({
+    const withdrawTx = await confidentialAsset.withdraw({
+      sender: alice.accountAddress,
       tokenAddress,
       decryptionKey: aliceConfidential,
-      unnormalizedEncryptedBalance: fakeBalance.amountEncrypted!,
-      balanceAmount: fakeBalance.amount,
-
-      sender: alice.accountAddress,
+      encryptedActualBalance: balances.actual.amountEncrypted!,
+      amountToWithdraw: withdrawAmount,
     });
 
-    const txResp = await sendAndWaitTx(normalizeTx, alice);
+    const txRespPromise = sendAndWaitTx(withdrawTx, alice);
 
-    console.log("gas used:", txResp.gas_used);
-
-    const balancesAfterTransfer = await getBalances(aliceConfidential, alice.accountAddress, tokenAddress);
-
-    console.log(balancesAfterTransfer.actual)
-
-    expect(txResp.success).toBeTruthy();
+    expect(txRespPromise).rejects.toThrow();
   });
 });

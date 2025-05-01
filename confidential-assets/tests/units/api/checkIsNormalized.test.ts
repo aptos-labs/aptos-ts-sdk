@@ -1,4 +1,4 @@
-import { confidentialAsset, getTestAccount, TOKEN_ADDRESS } from "../helpers";
+import { confidentialAsset, getTestAccount, TOKEN_ADDRESS } from "../../helpers";
 
 describe("Check is normalized", () => {
   const alice = getTestAccount();

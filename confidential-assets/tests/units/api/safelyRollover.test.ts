@@ -1,5 +1,5 @@
-import { confidentialAsset, getTestAccount, getTestConfidentialAccount, longTestTimeout, sendAndWaitBatchTxs, TOKEN_ADDRESS } from "../helpers";
-import { preloadTables } from "../helpers/wasmPollardKangaroo";
+import { confidentialAsset, getTestAccount, getTestConfidentialAccount, longTestTimeout, sendAndWaitBatchTxs, TOKEN_ADDRESS } from "../../helpers";
+import { preloadTables } from "../../helpers/wasmPollardKangaroo";
 
 describe("Safely Rollover", () => {
   const alice = getTestAccount();

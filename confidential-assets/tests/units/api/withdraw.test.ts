@@ -6,8 +6,8 @@ import {
   longTestTimeout,
   sendAndWaitTx,
   TOKEN_ADDRESS,
-} from "../helpers";
-import { preloadTables } from "../helpers/wasmPollardKangaroo";
+} from "../../helpers";
+import { preloadTables } from "../../helpers/wasmPollardKangaroo";
 
 describe("Withdraw", () => {
   const alice = getTestAccount();

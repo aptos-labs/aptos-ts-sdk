@@ -1,4 +1,4 @@
-import { TwistedEd25519PrivateKey } from "../../src";
+import { TwistedEd25519PrivateKey } from "../../../src";
 import {
   confidentialAsset,
   getBalances,
@@ -7,8 +7,8 @@ import {
   longTestTimeout,
   sendAndWaitTx,
   TOKEN_ADDRESS,
-} from "../helpers";
-import { preloadTables } from "../helpers/wasmPollardKangaroo";
+} from "../../helpers";
+import { preloadTables } from "../../helpers/wasmPollardKangaroo";
 
 describe("Transfer with auditor", () => {
   const alice = getTestAccount();

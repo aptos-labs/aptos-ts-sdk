@@ -42,6 +42,9 @@ To run a specific test file:
 pnpm jest path/to/test/file.test.ts
 ```
 
+### !important
+`./tests/units/api` - is not for CI or e2e testing. Use these test only when you want to test specific behaviour of each operation.
+
 ## Test Coverage
 
 After running tests, coverage reports will be generated in the `coverage` directory. You can view detailed coverage information by opening `coverage/lcov-report/index.html` in your browser.

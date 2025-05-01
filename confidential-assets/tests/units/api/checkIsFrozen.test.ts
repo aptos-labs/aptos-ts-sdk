@@ -1,4 +1,4 @@
-import { confidentialAsset, getTestAccount, TOKEN_ADDRESS } from "../helpers";
+import { confidentialAsset, getTestAccount, TOKEN_ADDRESS } from "../../helpers";
 
 describe("should check if user confidential account is frozen", () => {
   const alice = getTestAccount();

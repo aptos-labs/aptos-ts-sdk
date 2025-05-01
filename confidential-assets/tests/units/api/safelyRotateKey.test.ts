@@ -1,4 +1,4 @@
-import { TwistedEd25519PrivateKey } from "../../src";
+import { TwistedEd25519PrivateKey } from "../../../src";
 import {
   addNewContentLineToFile,
   aptos,
@@ -8,8 +8,8 @@ import {
   getTestConfidentialAccount,
   longTestTimeout,
   TOKEN_ADDRESS,
-} from "../helpers";
-import { preloadTables } from "../helpers/wasmPollardKangaroo";
+} from "../../helpers";
+import { preloadTables } from "../../helpers/wasmPollardKangaroo";
 
 describe("Safely rotate Alice's confidential balance key", () => {
   const alice = getTestAccount();

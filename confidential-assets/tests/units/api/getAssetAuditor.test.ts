@@ -1,4 +1,4 @@
-import { confidentialAsset, TOKEN_ADDRESS } from "../helpers";
+import { confidentialAsset, TOKEN_ADDRESS } from "../../helpers";
 
 describe("Global auditor", () => {
   it("it should get global auditor", async () => {

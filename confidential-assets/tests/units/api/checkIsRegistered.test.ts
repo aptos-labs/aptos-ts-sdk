@@ -1,4 +1,4 @@
-import { confidentialAsset, getTestAccount, TOKEN_ADDRESS } from "../helpers";
+import { confidentialAsset, getTestAccount, TOKEN_ADDRESS } from "../../helpers";
 
 describe("Check Registration status", () => {
   const alice = getTestAccount();
