@@ -8,7 +8,8 @@
  * it to another server (for example, backend) to deserialize and signs as the sponsor,
  * then sends it back to the other server (the frontend server) to submit the transaction.
  */
-
+import dotenv from "dotenv";
+dotenv.config();
 import {
   Account,
   AccountAuthenticator,
