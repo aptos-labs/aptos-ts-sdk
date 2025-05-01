@@ -34,6 +34,14 @@ runs:
         # This runs all the tests, both unit and e2e.
         command: pnpm run test
 
+    # Move to the Confidential Assets directory.
+    - run: cd confidential-assets
+      shell: bash
+    
+    # Install the dependencies for the Confidential Assets tests.
+    - run: pnpm install --frozen-lockfile
+      shell: bash
+
     # Run the Confidential Assets tests.
     - uses: nick-fields/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c # pin@v2
       name: confidential-assets-pnpm-test
