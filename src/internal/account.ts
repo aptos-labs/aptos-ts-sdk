@@ -768,6 +768,7 @@ export async function getAccountOwnedObjects(args: {
  * @param args.privateKey - The private key used to derive the account.
  * @throws Error if the account cannot be derived from the private key.
  * @group Implementation
+ * @deprecated Note that more inspection is needed by the user to determine which account exists on-chain
  */
 export async function deriveAccountFromPrivateKey(args: {
   aptosConfig: AptosConfig;
@@ -784,6 +785,15 @@ export async function deriveAccountFromPrivateKey(args: {
   }
 
   if (privateKey instanceof Ed25519PrivateKey) {
+    // lookup legacy ed25519
+    const legacyAuthKey = AuthenticationKey.fromPublicKey({
+      publicKey: publicKey.publicKey as Ed25519PublicKey,
+    });
+    const isLegacyEd25519 = await isAccountExist({ authKey: legacyAuthKey, aptosConfig });
+    if (isLegacyEd25519) {
+      const address = legacyAuthKey.derivedAddress();
+      return Account.fromPrivateKey({ privateKey, address, legacy: true });
+    }
     // lookup single sender ed25519
     const singleSenderTransactionAuthenticatorAuthKey = AuthenticationKey.fromPublicKey({
       publicKey,
@@ -795,15 +805,6 @@ export async function deriveAccountFromPrivateKey(args: {
     if (isSingleSenderTransactionAuthenticator) {
       const address = singleSenderTransactionAuthenticatorAuthKey.derivedAddress();
       return Account.fromPrivateKey({ privateKey, address, legacy: false });
-    }
-    // lookup legacy ed25519
-    const legacyAuthKey = AuthenticationKey.fromPublicKey({
-      publicKey: publicKey.publicKey as Ed25519PublicKey,
-    });
-    const isLegacyEd25519 = await isAccountExist({ authKey: legacyAuthKey, aptosConfig });
-    if (isLegacyEd25519) {
-      const address = legacyAuthKey.derivedAddress();
-      return Account.fromPrivateKey({ privateKey, address, legacy: true });
     }
   }
   // if we are here, it means we couldn't find an address with an
