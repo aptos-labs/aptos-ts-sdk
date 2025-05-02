@@ -975,6 +975,7 @@ export class Account {
    * runExample().catch(console.error);
    * ```
    * @group Account
+   * @deprecated Note that more inspection is needed by the user to determine which account exists on-chain
    */
   async deriveAccountFromPrivateKey(args: { privateKey: PrivateKey }): Promise<AccountModule> {
     return deriveAccountFromPrivateKey({ aptosConfig: this.config, ...args });
