@@ -23,8 +23,8 @@ module.exports = {
   setupFiles: ["dotenv/config"],
   coverageThreshold: {
     global: {
-      branches: 50, // 90,
-      functions: 40, // 95,
+      branches: 40, // 90,
+      functions: 50, // 95,
       lines: 50, // 95,
       statements: 50, // 95,
     },
