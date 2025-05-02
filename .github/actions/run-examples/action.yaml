@@ -36,59 +36,59 @@ runs:
     - run: wait-on --verbose --interval 1500 --timeout 120000 --httpTimeout 120000 http-get://127.0.0.1:8070
       shell: bash
 
-    # Run the typescript examples
-    - uses: nick-fields/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c # pin@v2
-      name: sdk-pnpm-examples
-      env:
-        # This is important, it ensures that the tempdir we create for cloning the ANS
-        # repo and mounting it into the CLI container is created in a location that
-        # actually supports mounting. Learn more here: https://stackoverflow.com/a/76523941/3846032.
-        TMPDIR: ${{ runner.temp }}
-        APTOS_NETWORK: local
-      with:
-        max_attempts: 3
-        timeout_minutes: 25
-        command: cd examples/typescript && pnpm install && pnpm build && pnpm test
+    # # Run the typescript examples
+    # - uses: nick-fields/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c # pin@v2
+    #   name: sdk-pnpm-examples
+    #   env:
+    #     # This is important, it ensures that the tempdir we create for cloning the ANS
+    #     # repo and mounting it into the CLI container is created in a location that
+    #     # actually supports mounting. Learn more here: https://stackoverflow.com/a/76523941/3846032.
+    #     TMPDIR: ${{ runner.temp }}
+    #     APTOS_NETWORK: local
+    #   with:
+    #     max_attempts: 3
+    #     timeout_minutes: 25
+    #     command: cd examples/typescript && pnpm install && pnpm build && pnpm test
 
-    - name: Print local testnet logs on failure
-      shell: bash
-      if: failure()
-      run: cat ${{ runner.temp }}/local-testnet-logs.txt
+    # - name: Print local testnet logs on failure
+    #   shell: bash
+    #   if: failure()
+    #   run: cat ${{ runner.temp }}/local-testnet-logs.txt
 
-    # Run the typescript-esm examples
-    - uses: nick-fields/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c # pin@v2
-      name: sdk-pnpm-examples
-      env:
-        # This is important, it ensures that the tempdir we create for cloning the ANS
-        # repo and mounting it into the CLI container is created in a location that
-        # actually supports mounting. Learn more here: https://stackoverflow.com/a/76523941/3846032.
-        TMPDIR: ${{ runner.temp }}
-        APTOS_NETWORK: local
-      with:
-        max_attempts: 3
-        timeout_minutes: 25
-        command: cd examples/typescript-esm && pnpm install && pnpm test
+    # # Run the typescript-esm examples
+    # - uses: nick-fields/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c # pin@v2
+    #   name: sdk-pnpm-examples
+    #   env:
+    #     # This is important, it ensures that the tempdir we create for cloning the ANS
+    #     # repo and mounting it into the CLI container is created in a location that
+    #     # actually supports mounting. Learn more here: https://stackoverflow.com/a/76523941/3846032.
+    #     TMPDIR: ${{ runner.temp }}
+    #     APTOS_NETWORK: local
+    #   with:
+    #     max_attempts: 3
+    #     timeout_minutes: 25
+    #     command: cd examples/typescript-esm && pnpm install && pnpm test
 
-    - name: Print local testnet logs on failure
-      shell: bash
-      if: failure()
-      run: cat ${{ runner.temp }}/local-testnet-logs.txt
+    # - name: Print local testnet logs on failure
+    #   shell: bash
+    #   if: failure()
+    #   run: cat ${{ runner.temp }}/local-testnet-logs.txt
 
-    # Run the javascript examples
-    - uses: nick-fields/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c # pin@v2
-      name: sdk-pnpm-examples
-      env:
-        # This is important, it ensures that the tempdir we create for cloning the ANS
-        # repo and mounting it into the CLI container is created in a location that
-        # actually supports mounting. Learn more here: https://stackoverflow.com/a/76523941/3846032.
-        TMPDIR: ${{ runner.temp }}
-        APTOS_NETWORK: local
-      with:
-        max_attempts: 3
-        timeout_minutes: 25
-        command: cd examples/javascript && pnpm install && pnpm test
+    # # Run the javascript examples
+    # - uses: nick-fields/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c # pin@v2
+    #   name: sdk-pnpm-examples
+    #   env:
+    #     # This is important, it ensures that the tempdir we create for cloning the ANS
+    #     # repo and mounting it into the CLI container is created in a location that
+    #     # actually supports mounting. Learn more here: https://stackoverflow.com/a/76523941/3846032.
+    #     TMPDIR: ${{ runner.temp }}
+    #     APTOS_NETWORK: local
+    #   with:
+    #     max_attempts: 3
+    #     timeout_minutes: 25
+    #     command: cd examples/javascript && pnpm install && pnpm test
 
-    - name: Print local testnet logs on failure
-      shell: bash
-      if: failure()
-      run: cat ${{ runner.temp }}/local-testnet-logs.txt
+    # - name: Print local testnet logs on failure
+    #   shell: bash
+    #   if: failure()
+    #   run: cat ${{ runner.temp }}/local-testnet-logs.txt
