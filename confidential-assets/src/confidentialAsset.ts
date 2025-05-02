@@ -92,12 +92,13 @@ export class ConfidentialAsset {
     args: {
       tokenAddress: string;
       publicKey: HexInput | TwistedEd25519PublicKey;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig">,
+      withFeePayer?: boolean;
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
   ): Promise<SimpleTransaction> {
     const pkU8 = publicKeyToU8(args.publicKey);
     return this.client.transaction.build.simple({
       ...args,
-      withFeePayer: Boolean(args.feePayerAddress),
+      withFeePayer: args.withFeePayer,
       data: {
         function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::register`,
         functionArguments: [args.tokenAddress, pkU8],
@@ -109,12 +110,14 @@ export class ConfidentialAsset {
     args: {
       tokenAddress: string;
       amount: AnyNumber;
+      /** If not set we will use the sender's address. */
       to?: AccountAddress;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig">,
+      withFeePayer?: boolean;
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
   ): Promise<SimpleTransaction> {
     return this.client.transaction.build.simple({
       ...args,
-      withFeePayer: Boolean(args.feePayerAddress),
+      withFeePayer: args.withFeePayer,
       sender: args.sender,
       data: {
         function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::deposit_to`,
@@ -128,12 +131,14 @@ export class ConfidentialAsset {
     args: {
       coinType: MoveStructId;
       amount: AnyNumber;
+      /** If not set we will use the sender's address. */
       to?: AccountAddress;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig">,
+      withFeePayer?: boolean;
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
   ) {
     return this.client.transaction.build.simple({
       ...args,
-      withFeePayer: Boolean(args.feePayerAddress),
+      withFeePayer: args.withFeePayer,
       sender: args.sender,
       data: {
         function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::deposit_coins_to`,
@@ -146,9 +151,11 @@ export class ConfidentialAsset {
 
   async withdraw(
     args: CreateConfidentialWithdrawOpArgs & {
-      to?: AccountAddressInput;
       tokenAddress: string;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig">,
+      /** If not set we will use the sender's address. */
+      to?: AccountAddressInput;
+      withFeePayer?: boolean;
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
   ): Promise<SimpleTransaction> {
     const confidentialWithdraw = await ConfidentialWithdraw.create({
       decryptionKey: toTwistedEd25519PrivateKey(args.decryptionKey),
@@ -162,7 +169,7 @@ export class ConfidentialAsset {
 
     return this.client.transaction.build.simple({
       ...args,
-      withFeePayer: Boolean(args.feePayerAddress),
+      withFeePayer: args.withFeePayer,
       sender: args.sender,
       data: {
         function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::withdraw_to`,
@@ -179,12 +186,14 @@ export class ConfidentialAsset {
     });
   }
 
+  /** Do not forget to set `confidentialAssetModuleAddress` if not using the default. */
   static buildRolloverPendingBalanceTxPayload(
     args: {
       tokenAddress: string;
       withFreezeBalance?: boolean;
       confidentialAssetModuleAddress?: string;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig">,
+      withFeePayer?: boolean;
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
   ): InputGenerateTransactionPayloadData {
     const moduleAddress = args.confidentialAssetModuleAddress || DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS;
     const method = args.withFreezeBalance ? "rollover_pending_balance_and_freeze" : "rollover_pending_balance";
@@ -198,11 +207,12 @@ export class ConfidentialAsset {
     args: {
       tokenAddress: string;
       withFreezeBalance?: boolean;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig">,
+      withFeePayer?: boolean;
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
   ): Promise<SimpleTransaction> {
     return this.client.transaction.build.simple({
       ...args,
-      withFeePayer: Boolean(args.feePayerAddress),
+      withFeePayer: args.withFeePayer,
       sender: args.sender,
       data: ConfidentialAsset.buildRolloverPendingBalanceTxPayload(args),
       options: args.options,
@@ -213,9 +223,10 @@ export class ConfidentialAsset {
     args: {
       sender: AccountAddressInput;
       tokenAddress: string;
-      withFreezeBalance?: boolean;
       decryptionKey: TwistedEd25519PrivateKey;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig">,
+      withFreezeBalance?: boolean;
+      withFeePayer?: boolean;
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
   ): Promise<InputGenerateTransactionPayloadData[]> {
     const txPayloadsList: InputGenerateTransactionPayloadData[] = [];
 
@@ -263,7 +274,8 @@ export class ConfidentialAsset {
     args: CreateConfidentialTransferOpArgs & {
       recipientAddress: AccountAddressInput;
       tokenAddress: string;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig">,
+      withFeePayer?: boolean;
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
   ): Promise<SimpleTransaction> {
     const [{ vec: globalAuditorPubKey }] = await this.getAssetAuditor({
       tokenAddress: args.tokenAddress,
@@ -301,7 +313,7 @@ export class ConfidentialAsset {
 
     return this.client.transaction.build.simple({
       ...args,
-      withFeePayer: Boolean(args.feePayerAddress),
+      withFeePayer: args.withFeePayer,
       data: {
         function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::confidential_transfer`,
         functionArguments: [
@@ -332,6 +344,7 @@ export class ConfidentialAsset {
     return isFrozen;
   }
 
+  /** Do not forget to set `confidentialAssetModuleAddress` if not using the default. */
   static async buildRotateCBKeyTxPayload(
     args: CreateConfidentialKeyRotationOpArgs & {
       tokenAddress: string;
@@ -370,13 +383,13 @@ export class ConfidentialAsset {
   async rotateCBKey(
     args: CreateConfidentialKeyRotationOpArgs & {
       tokenAddress: string;
-
       withUnfreezeBalance: boolean;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig">,
+      withFeePayer?: boolean;
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
   ): Promise<SimpleTransaction> {
     return this.client.transaction.build.simple({
       ...args,
-      withFeePayer: Boolean(args.feePayerAddress),
+      withFeePayer: args.withFeePayer,
       sender: args.sender,
       data: await ConfidentialAsset.buildRotateCBKeyTxPayload(args),
       options: args.options,
@@ -389,7 +402,8 @@ export class ConfidentialAsset {
     args: CreateConfidentialKeyRotationOpArgs & {
       tokenAddress: string;
       withUnfreezeBalance: boolean;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig">,
+      withFeePayer?: boolean;
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
   ): Promise<CommittedTransactionResponse> {
     const isFrozen = await this.isBalanceFrozen({
       accountAddress: AccountAddress.from(args.sender),
@@ -403,6 +417,7 @@ export class ConfidentialAsset {
         sender: args.sender,
         tokenAddress: args.tokenAddress,
         withFreezeBalance: true,
+        withFeePayer: args.withFeePayer,
       });
 
       const pendingTxResponse = await aptosClient.signAndSubmitTransaction({
@@ -430,6 +445,7 @@ export class ConfidentialAsset {
     const rotateKeyTxBody = await this.rotateCBKey({
       ...args,
       currEncryptedBalance,
+      withFeePayer: args.withFeePayer,
     });
 
     const pendingTxResponse = await aptosClient.signAndSubmitTransaction({
@@ -473,6 +489,7 @@ export class ConfidentialAsset {
     return isNormalized;
   }
 
+  /** Do not forget to set `confidentialAssetModuleAddress` if not using the default. */
   static async buildNormalizationTxPayload(
     args: CreateConfidentialNormalizationOpArgs & {
       tokenAddress: string;
@@ -504,11 +521,12 @@ export class ConfidentialAsset {
   async normalizeUserBalance(
     args: CreateConfidentialNormalizationOpArgs & {
       tokenAddress: string;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig">,
+      withFeePayer?: boolean;
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
   ) {
     return this.client.transaction.build.simple({
       ...args,
-      withFeePayer: Boolean(args.feePayerAddress),
+      withFeePayer: args.withFeePayer,
       sender: args.sender,
       data: await ConfidentialAsset.buildNormalizationTxPayload(args),
       options: args.options,
