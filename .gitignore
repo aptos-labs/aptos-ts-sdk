@@ -19,3 +19,7 @@ examples/typescript/facoin/facoin.json
 # Vim swap files
 *.swp
 /.fleet
+
+.env
+.env.*
+*.tgz
