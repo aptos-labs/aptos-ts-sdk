@@ -6,6 +6,7 @@ import { ConfidentialAmount } from "../../src/confidentialAmount";
 import { ConfidentialAsset } from "../../src/confidentialAsset";
 import { RangeProofExecutor } from "../../src/rangeProof";
 import { TwistedEd25519PrivateKey } from "../../src/twistedEd25519";
+import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS } from "../../src";
 
 export const longTestTimeout = 120 * 1000;
 
@@ -117,7 +118,7 @@ export const mintFungibleTokens = async (account: Account) => {
     const transaction = await aptos.transaction.build.simple({
         sender: account.accountAddress,
         data: {
-            function: `${ConfidentialAsset.CONFIDENTIAL_COIN_MODULE_ADDRESS}::mock_token::mint_to`,
+            function: `${DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS}::mock_token::mint_to`,
             functionArguments: [500],
         },
     });

@@ -11,6 +11,7 @@ import { ConfidentialAmount } from "./confidentialAmount";
 import { CreateConfidentialTransferOpArgs, ConfidentialTransfer } from "./confidentialTransfer";
 import { CreateConfidentialWithdrawOpArgs, ConfidentialWithdraw } from "./confidentialWithdraw";
 import { TwistedEd25519PublicKey, TwistedEd25519PrivateKey } from "./twistedEd25519";
+import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS, MODULE_NAME } from "./consts";
 
 export type ConfidentialBalanceResponse = {
   chunks: {
@@ -24,23 +25,16 @@ export type ConfidentialBalance = {
   actual: TwistedElGamalCiphertext[];
 };
 
-const CONFIDENTIAL_COIN_MODULE_ADDRESS = "0xd4aa5d2b93935bae55ef5aee8043e78e09e91ad1d31ea9532963a036b1cd5df1";
-const MODULE_NAME = "confidential_asset";
-
 /**
  * A class to handle confidential balance operations
  */
 export class ConfidentialAsset {
   client: Aptos;
+  confidentialAssetModuleAddress: string;
 
-  constructor(readonly config: AptosConfig) {
+  constructor(readonly config: AptosConfig, options: { confidentialAssetModuleAddress?: string } = {}) {
     this.client = new Aptos(config);
-  }
-
-  static CONFIDENTIAL_COIN_MODULE_ADDRESS = CONFIDENTIAL_COIN_MODULE_ADDRESS;
-
-  static setConfidentialAssetModuleAddress(addr: string) {
-    this.CONFIDENTIAL_COIN_MODULE_ADDRESS = addr;
+    this.confidentialAssetModuleAddress = options.confidentialAssetModuleAddress || DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS;
   }
 
   async getBalance(args: {
@@ -52,7 +46,7 @@ export class ConfidentialAsset {
     const [[chunkedPendingBalance], [chunkedActualBalances]] = await Promise.all([
       this.client.view<ConfidentialBalanceResponse>({
         payload: {
-          function: `${ConfidentialAsset.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::pending_balance`,
+          function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::pending_balance`,
           typeArguments: [],
           functionArguments: [accountAddress, tokenAddress],
         },
@@ -60,7 +54,7 @@ export class ConfidentialAsset {
       }),
       this.client.view<ConfidentialBalanceResponse>({
         payload: {
-          function: `${ConfidentialAsset.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::actual_balance`,
+          function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::actual_balance`,
           typeArguments: [],
           functionArguments: [accountAddress, tokenAddress],
         },
@@ -86,7 +80,7 @@ export class ConfidentialAsset {
     const [{ point }] = await this.client.view<[{ point: { data: string } }]>({
       options: args.options,
       payload: {
-        function: `${ConfidentialAsset.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::encryption_key`,
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::encryption_key`,
         functionArguments: [args.accountAddress, args.tokenAddress],
       },
     });
@@ -105,7 +99,7 @@ export class ConfidentialAsset {
       ...args,
       withFeePayer: Boolean(args.feePayerAddress),
       data: {
-        function: `${ConfidentialAsset.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::register`,
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::register`,
         functionArguments: [args.tokenAddress, pkU8],
       },
     });
@@ -123,7 +117,7 @@ export class ConfidentialAsset {
       withFeePayer: Boolean(args.feePayerAddress),
       sender: args.sender,
       data: {
-        function: `${ConfidentialAsset.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::deposit_to`,
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::deposit_to`,
         functionArguments: [args.tokenAddress, args.to || args.sender, String(args.amount)],
       },
       options: args.options,
@@ -142,7 +136,7 @@ export class ConfidentialAsset {
       withFeePayer: Boolean(args.feePayerAddress),
       sender: args.sender,
       data: {
-        function: `${ConfidentialAsset.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::deposit_coins_to`,
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::deposit_coins_to`,
         functionArguments: [args.to || args.sender, String(args.amount)],
         typeArguments: [args.coinType],
       },
@@ -171,7 +165,7 @@ export class ConfidentialAsset {
       withFeePayer: Boolean(args.feePayerAddress),
       sender: args.sender,
       data: {
-        function: `${ConfidentialAsset.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::withdraw_to`,
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::withdraw_to`,
         functionArguments: [
           args.tokenAddress,
           args.to || AccountAddress.from(args.sender),
@@ -189,12 +183,13 @@ export class ConfidentialAsset {
     args: {
       tokenAddress: string;
       withFreezeBalance?: boolean;
+      confidentialAssetModuleAddress?: string;
     } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig">,
   ): InputGenerateTransactionPayloadData {
+    const moduleAddress = args.confidentialAssetModuleAddress || DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS;
     const method = args.withFreezeBalance ? "rollover_pending_balance_and_freeze" : "rollover_pending_balance";
-
     return {
-      function: `${ConfidentialAsset.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::${method}`,
+      function: `${moduleAddress}::${MODULE_NAME}::${method}`,
       functionArguments: [args.tokenAddress],
     };
   }
@@ -258,7 +253,7 @@ export class ConfidentialAsset {
     return this.client.view<[{ vec: Uint8Array }]>({
       options: args.options,
       payload: {
-        function: `${ConfidentialAsset.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::get_auditor`,
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::get_auditor`,
         functionArguments: [args.tokenAddress],
       },
     });
@@ -308,7 +303,7 @@ export class ConfidentialAsset {
       ...args,
       withFeePayer: Boolean(args.feePayerAddress),
       data: {
-        function: `${ConfidentialAsset.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::confidential_transfer`,
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::confidential_transfer`,
         functionArguments: [
           args.tokenAddress,
           args.recipientAddress,
@@ -328,7 +323,7 @@ export class ConfidentialAsset {
     const [isFrozen] = await this.client.view<[boolean]>({
       options: args.options,
       payload: {
-        function: `${ConfidentialAsset.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::is_frozen`,
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::is_frozen`,
         typeArguments: [],
         functionArguments: [args.accountAddress, args.tokenAddress],
       },
@@ -340,8 +335,8 @@ export class ConfidentialAsset {
   static async buildRotateCBKeyTxPayload(
     args: CreateConfidentialKeyRotationOpArgs & {
       tokenAddress: string;
-
       withUnfreezeBalance: boolean;
+      confidentialAssetModuleAddress?: string;
     },
   ): Promise<InputGenerateTransactionPayloadData> {
     const confidentialKeyRotation = await ConfidentialKeyRotation.create({
@@ -357,10 +352,11 @@ export class ConfidentialAsset {
 
     const serializedNewBalance = concatBytes(...newCB.map((el) => [el.C.toRawBytes(), el.D.toRawBytes()]).flat());
 
+    const moduleAddress = args.confidentialAssetModuleAddress || DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS;
     const method = args.withUnfreezeBalance ? "rotate_encryption_key_and_unfreeze" : "rotate_encryption_key";
 
     return {
-      function: `${ConfidentialAsset.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::${method}`,
+      function: `${moduleAddress}::${MODULE_NAME}::${method}`,
       functionArguments: [
         args.tokenAddress,
         newPublicKeyU8,
@@ -450,7 +446,7 @@ export class ConfidentialAsset {
   async hasUserRegistered(args: { accountAddress: AccountAddress; tokenAddress: string; options?: LedgerVersionArg }) {
     const [isRegister] = await this.client.view<[boolean]>({
       payload: {
-        function: `${ConfidentialAsset.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::has_confidential_asset_store`,
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::has_confidential_asset_store`,
         typeArguments: [],
         functionArguments: [args.accountAddress, args.tokenAddress],
       },
@@ -467,7 +463,7 @@ export class ConfidentialAsset {
   }) {
     const [isNormalized] = await this.client.view<[boolean]>({
       payload: {
-        function: `${ConfidentialAsset.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::is_normalized`,
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::is_normalized`,
         typeArguments: [],
         functionArguments: [args.accountAddress, args.tokenAddress],
       },
@@ -480,6 +476,7 @@ export class ConfidentialAsset {
   static async buildNormalizationTxPayload(
     args: CreateConfidentialNormalizationOpArgs & {
       tokenAddress: string;
+      confidentialAssetModuleAddress?: string;
     },
   ): Promise<InputGenerateTransactionPayloadData> {
     const confidentialNormalization = await ConfidentialNormalization.create({
@@ -491,8 +488,10 @@ export class ConfidentialAsset {
 
     const [{ sigmaProof, rangeProof }, normalizedCB] = await confidentialNormalization.authorizeNormalization();
 
+    const moduleAddress = args.confidentialAssetModuleAddress || DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS;
+
     return {
-      function: `${ConfidentialAsset.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::normalize`,
+      function: `${moduleAddress}::${MODULE_NAME}::normalize`,
       functionArguments: [
         args.tokenAddress,
         concatBytes(...normalizedCB.map((el) => el.serialize()).flat()),
