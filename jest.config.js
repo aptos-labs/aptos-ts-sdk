@@ -16,6 +16,7 @@ module.exports = {
     "./src/internal/queries/",
     "./src/types/generated",
     "./tests/e2e/ans/publishANSContracts.ts",
+    "./confidential-assets/*",
   ],
   testPathIgnorePatterns: ["dist/*", "examples/*"],
   collectCoverage: true,
