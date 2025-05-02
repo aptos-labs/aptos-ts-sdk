@@ -5,7 +5,8 @@
  * on one server (for example, frontend) and have it serialized and send
  * it to another server (for example, backend) to deserialize and submit.
  */
-
+import dotenv from "dotenv";
+dotenv.config();
 import {
   Account,
   AccountAuthenticator,

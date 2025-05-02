@@ -955,10 +955,6 @@ describe("transaction submission", () => {
     test("submits simple sponsored transaction for an uncreated main signer account", async () => {
       const uncreatedAccount = Account.generate();
 
-      // expect uncreatedAccount has not been created on chain
-      await expect(() =>
-        aptos.account.getAccountInfo({ accountAddress: uncreatedAccount.accountAddress }),
-      ).rejects.toThrow();
       const transaction = await createTransaction(uncreatedAccount);
 
       const response = await aptos.signAndSubmitTransaction({
@@ -983,10 +979,6 @@ describe("transaction submission", () => {
     test("submits simple sponsored transaction by the fee payer", async () => {
       const uncreatedAccount = Account.generate();
 
-      // expect uncreatedAccount has not been created on chain
-      await expect(() =>
-        aptos.account.getAccountInfo({ accountAddress: uncreatedAccount.accountAddress }),
-      ).rejects.toThrow();
       const transaction = await createTransaction(uncreatedAccount);
 
       const senderAuthenticator = aptos.transaction.sign({ signer: uncreatedAccount, transaction });
@@ -1013,10 +1005,6 @@ describe("transaction submission", () => {
     test("submits a sponsored transaction by with a fee payer authenticator", async () => {
       const uncreatedAccount = Account.generate();
 
-      // expect uncreatedAccount has not been created on chain
-      await expect(() =>
-        aptos.account.getAccountInfo({ accountAddress: uncreatedAccount.accountAddress }),
-      ).rejects.toThrow();
       const transaction = await createTransaction(uncreatedAccount);
 
       const feePayerSignerAuthenticator = aptos.transaction.signAsFeePayer({

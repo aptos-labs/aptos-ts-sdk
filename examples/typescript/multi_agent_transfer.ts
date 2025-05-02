@@ -4,7 +4,6 @@
 /**
  * This example shows how to use the Aptos client to create accounts, fund them, and transfer between them.
  */
-import "dotenv";
 import {
   Account,
   AccountAddress,
@@ -14,11 +13,13 @@ import {
   parseTypeTag,
   Network,
   NetworkToNetworkName,
+  InputViewFunctionJsonData,
 } from "@aptos-labs/ts-sdk";
+import dotenv from "dotenv";
+dotenv.config();
 
 // TODO: There currently isn't a way to use the APTOS_COIN in the COIN_STORE due to a regex
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
-const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100_000_000;
 const TRANSFER_AMOUNT = 10;
@@ -34,15 +35,15 @@ const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ??
  *
  */
 const balance = async (aptos: Aptos, name: string, address: AccountAddress): Promise<any> => {
-  type Coin = { coin: { value: string } };
-  const resource = await aptos.getAccountResource<Coin>({
-    accountAddress: address,
-    resourceType: COIN_STORE,
-  });
-  const amount = Number(resource.coin.value);
+  const payload: InputViewFunctionJsonData = {
+    function: "0x1::coin::balance",
+    typeArguments: ["0x1::aptos_coin::AptosCoin"],
+    functionArguments: [address.toString()],
+  };
+  const [balance] = await aptos.viewJson<[number]>({ payload: payload });
 
-  console.log(`${name}'s balance is: ${amount}`);
-  return amount;
+  console.log(`${name}'s balance is: ${balance}`);
+  return Number(balance);
 };
 
 const CREATE_OBJECT_SCRIPT =

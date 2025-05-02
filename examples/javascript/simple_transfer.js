@@ -1,7 +1,8 @@
 /**
  * This example shows how to use the Aptos client to create accounts, fund them, and transfer between them.
  */
-
+const dotenv = require("dotenv");
+dotenv.config();
 const {
   Account,
   Aptos,
@@ -14,7 +15,6 @@ const {
 } = require("@aptos-labs/ts-sdk");
 
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
-const COIN_STORE = `0x1::coin::CoinStore<${APTOS_COIN}>`;
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 100;
@@ -29,9 +29,14 @@ const APTOS_NETWORK = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network
  *
  */
 const balance = async (sdk, name, address) => {
-  let balance = await sdk.getAccountResource({ accountAddress: address, resourceType: COIN_STORE });
+  const payload = {
+    function: "0x1::coin::balance",
+    typeArguments: ["0x1::aptos_coin::AptosCoin"],
+    functionArguments: [address.toString()],
+  };
+  const [balance] = await sdk.viewJson({ payload: payload });
 
-  let amount = Number(balance.coin.value);
+  let amount = Number(balance);
 
   console.log(`${name}'s balance is: ${amount}`);
   return amount;
