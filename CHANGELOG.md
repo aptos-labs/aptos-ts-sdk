@@ -5,6 +5,9 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 ## Unreleased
 
 - Define the return type for `toUint8Array()` in the `SingleKey.ts` file to not break `tsc` build
+- Fix `deriveAccountFromPrivateKey` to use the "legacy" derivation path for Ed25519 keys first.
+- Deprecate `deriveAccountFromPrivateKey` as more inspection is needed from the user to determine the correct address.
+- Fix internal and example tests in regards to the change to zero state accounts
 
 # 1.38.0 (2025-04-02)
 

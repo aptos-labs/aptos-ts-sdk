@@ -6,6 +6,8 @@
  */
 
 import { Account, AccountAddress, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
+import dotenv from "dotenv";
+dotenv.config();
 
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 0;

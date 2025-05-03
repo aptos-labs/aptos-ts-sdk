@@ -386,7 +386,8 @@ describe("account api", () => {
         await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100 });
 
         const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
-        expect(derivedAccount).toStrictEqual(account);
+        // Note, this will now always return the legacy account
+        expect(derivedAccount.accountAddress.equals(account.accountAddress)).toEqual(false);
       });
       test("single sender secp256k1", async () => {
         const config = new AptosConfig({ network: Network.LOCAL });

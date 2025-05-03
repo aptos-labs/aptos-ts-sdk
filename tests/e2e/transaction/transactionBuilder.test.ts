@@ -273,13 +273,7 @@ describe("transaction builder", () => {
         options: { accountSequenceNumber: 0 },
       });
       expect(rawTransaction.sequence_number).toBe(0n);
-      expect(() =>
-        generateRawTransaction({
-          aptosConfig: config,
-          sender: alice.accountAddress,
-          payload,
-        }),
-      ).rejects.toThrow();
+      expect(rawTransaction instanceof RawTransaction).toBeTruthy();
     });
   });
   describe("generate transaction", () => {

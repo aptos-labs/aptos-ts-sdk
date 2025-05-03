@@ -3,6 +3,8 @@
 /**
  * This example shows an example of how one might send transactions elsewhere to be signed outside the SDK.
  */
+import dotenv from "dotenv";
+dotenv.config();
 import { ed25519 } from "@noble/curves/ed25519";
 import {
   Account,
@@ -17,10 +19,10 @@ import {
   NetworkToNetworkName,
   Ed25519Account,
   SimpleTransaction,
+  InputViewFunctionJsonData,
 } from "@aptos-labs/ts-sdk";
 
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
-const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
 const COLD_INITIAL_BALANCE = 100_000_000;
 const HOT_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 100;
@@ -28,16 +30,16 @@ const TRANSFER_AMOUNT = 100;
 // Default to devnet, but allow for overriding
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 
-const balance = async (aptos: Aptos, account: Account, name: string): Promise<number> => {
-  type Coin = { coin: { value: string } };
-  const resource = await aptos.getAccountResource<Coin>({
-    accountAddress: account.accountAddress,
-    resourceType: COIN_STORE,
-  });
-  const amount = Number(resource.coin.value);
+const balance = async (aptos: Aptos, account: Account, name: string): Promise<any> => {
+  const payload: InputViewFunctionJsonData = {
+    function: "0x1::coin::balance",
+    typeArguments: ["0x1::aptos_coin::AptosCoin"],
+    functionArguments: [account.accountAddress.toString()],
+  };
+  const [balance] = await aptos.viewJson<[number]>({ payload: payload });
 
-  console.log(`${name}'s balance is: ${amount}`);
-  return amount;
+  console.log(`${name}'s balance is: ${balance}`);
+  return Number(balance);
 };
 
 /**

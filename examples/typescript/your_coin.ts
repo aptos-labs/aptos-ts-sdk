@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 /* eslint-disable max-len */
-
+import dotenv from "dotenv";
+dotenv.config();
 import { Account, AccountAddress, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils";
 
