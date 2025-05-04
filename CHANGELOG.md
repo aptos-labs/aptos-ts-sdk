@@ -8,6 +8,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Fix `deriveAccountFromPrivateKey` to use the "legacy" derivation path for Ed25519 keys first.
 - Deprecate `deriveAccountFromPrivateKey` as more inspection is needed from the user to determine the correct address.
 - Fix internal and example tests in regards to the change to zero state accounts
+- Remove `scriptComposer` api due to increase in the sdk bundle size
 
 # 1.38.0 (2025-04-02)
 
@@ -89,6 +90,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Includes the address in the `AbstractKeylessAccount` serialization to prevent information loss for key rotated accounts.
 - [`Breaking`] Deprecate `serializeOptionStr` and `deserializeOptionStr` in favor of `serializeOption` and `deserializeOption`.
 - [`Breaking`] Renames `KeylessConfiguration.verficationKey` to `verificationKey`
+- Add a new `scriptComposer` api in transactionSubmission api to allower SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.
 
 # 1.31.0 (2024-10-24)
 
