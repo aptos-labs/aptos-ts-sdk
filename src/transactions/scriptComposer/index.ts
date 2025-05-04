@@ -51,6 +51,7 @@ export class AptosScriptComposer {
   // The function would also return a list of `CallArgument` that can be passed on to future calls.
   async addBatchedCalls(input: InputBatchedFunctionData): Promise<CallArgument[]> {
     const { moduleAddress, moduleName, functionName } = getFunctionParts(input.function);
+    const module = input.module;
     const nodeUrl = this.config.getRequestUrl(AptosApiType.FULLNODE);
 
     // Load the calling module into the builder.
@@ -63,9 +64,14 @@ export class AptosScriptComposer {
       }
     }
     const typeArguments = standardizeTypeTags(input.typeArguments);
-    const moduleAbi = await fetchModuleAbi(moduleAddress, moduleName, this.config);
-    if (!moduleAbi) {
-      throw new Error(`Could not find module ABI for '${moduleAddress}::${moduleName}'`);
+    let moduleAbi = null;
+    if (!module) {
+      moduleAbi = await fetchModuleAbi(moduleAddress, moduleName, this.config);
+      if (!moduleAbi) {
+        throw new Error(`Could not find module ABI for '${moduleAddress}::${moduleName}'`);
+      }
+    }else {
+      moduleAbi = module;
     }
 
     // Check the type argument count against the ABI
@@ -73,7 +79,7 @@ export class AptosScriptComposer {
     if (!functionAbi) {
       throw new Error(`Could not find function ABI for '${moduleAddress}::${moduleName}::${functionName}'`);
     }
-
+    
     if (typeArguments.length !== functionAbi.generic_type_params.length) {
       throw new Error(
         `Type argument count mismatch, expected ${functionAbi?.generic_type_params.length}, received ${typeArguments.length}`,
