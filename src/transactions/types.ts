@@ -16,7 +16,7 @@ import {
   TransactionPayloadMultiSig,
   TransactionPayloadScript,
 } from "./instances";
-import { AnyNumber, HexInput, MoveFunctionGenericTypeParam, MoveFunctionId, MoveStructId, MoveValue } from "../types";
+import { AnyNumber, HexInput, MoveFunctionGenericTypeParam, MoveFunctionId, MoveModule, MoveStructId, MoveValue } from "../types";
 import { TypeTag } from "./typeTag";
 import { AccountAuthenticator } from "./authenticator/account";
 import { SimpleTransaction } from "./instances/simpleTransaction";
@@ -201,6 +201,7 @@ export type InputBatchedFunctionData = {
   function: MoveFunctionId;
   typeArguments?: Array<TypeArgument>;
   functionArguments: Array<EntryFunctionArgumentTypes | CallArgument | SimpleEntryFunctionArgumentTypes>;
+  module?: MoveModule;
 };
 
 /**
