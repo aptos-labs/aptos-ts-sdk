@@ -75,7 +75,7 @@ export class AptosScriptComposer {
     }
 
     // Check the type argument count against the ABI
-    const functionAbi = moduleAbi?.exposed_functions.find((func) => func.name === functionName);
+    const functionAbi = moduleAbi.exposed_functions.find((func) => func.name === functionName);
     if (!functionAbi) {
       throw new Error(`Could not find function ABI for '${moduleAddress}::${moduleName}::${functionName}'`);
     }
