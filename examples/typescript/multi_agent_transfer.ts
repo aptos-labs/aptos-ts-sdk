@@ -109,7 +109,11 @@ const example = async () => {
     accountAddress: alice.accountAddress,
     minimumLedgerVersion: BigInt(response.version),
   });
-  const objectAddress = objects[0].object_address;
+
+  // getAccountOwnedObjects returns ALL objects owned by the account, including the fungible asset store object.
+  // Until indexer returns an indication of the fungible asset store object, we need to filter it out.
+  const objectAddress = objects.find((object) => object.allow_ungated_transfer)?.object_address;
+  if (!objectAddress) throw new Error("Object address not found");
 
   console.log(`Created object ${objectAddress} with transaction: ${pendingObjectTxn.hash}`);
 
