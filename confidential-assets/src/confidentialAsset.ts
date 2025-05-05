@@ -32,9 +32,9 @@ export class ConfidentialAsset {
   client: Aptos;
   confidentialAssetModuleAddress: string;
 
-  constructor(readonly config: AptosConfig, options: { confidentialAssetModuleAddress?: string } = {}) {
+  constructor(readonly config: AptosConfig, { confidentialAssetModuleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS }: { confidentialAssetModuleAddress?: string } = {}) {
     this.client = new Aptos(config);
-    this.confidentialAssetModuleAddress = options.confidentialAssetModuleAddress || DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS;
+    this.confidentialAssetModuleAddress = confidentialAssetModuleAddress;
   }
 
   async getBalance(args: {
@@ -186,19 +186,22 @@ export class ConfidentialAsset {
     });
   }
 
-  /** Do not forget to set `confidentialAssetModuleAddress` if not using the default. */
+  /**
+   * If you wish to use the default for the module address, just set
+   * `confidentialAssetModuleAddress` to the default:
+   * `DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS`.
+   */
   static buildRolloverPendingBalanceTxPayload(
     args: {
       tokenAddress: string;
+      confidentialAssetModuleAddress: string;
       withFreezeBalance?: boolean;
-      confidentialAssetModuleAddress?: string;
       withFeePayer?: boolean;
     } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
   ): InputGenerateTransactionPayloadData {
-    const moduleAddress = args.confidentialAssetModuleAddress || DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS;
     const method = args.withFreezeBalance ? "rollover_pending_balance_and_freeze" : "rollover_pending_balance";
     return {
-      function: `${moduleAddress}::${MODULE_NAME}::${method}`,
+      function: `${args.confidentialAssetModuleAddress}::${MODULE_NAME}::${method}`,
       functionArguments: [args.tokenAddress],
     };
   }
@@ -214,7 +217,10 @@ export class ConfidentialAsset {
       ...args,
       withFeePayer: args.withFeePayer,
       sender: args.sender,
-      data: ConfidentialAsset.buildRolloverPendingBalanceTxPayload(args),
+      data: ConfidentialAsset.buildRolloverPendingBalanceTxPayload({
+        ...args,
+        confidentialAssetModuleAddress: this.confidentialAssetModuleAddress,
+      }),
       options: args.options,
     });
   }
@@ -249,11 +255,15 @@ export class ConfidentialAsset {
         tokenAddress: args.tokenAddress,
         unnormalizedEncryptedBalance: accountBalance.actual,
         balanceAmount: accountCB.amount,
+        confidentialAssetModuleAddress: this.confidentialAssetModuleAddress,
       });
       txPayloadsList.push(normalizationTxPayload);
     }
 
-    const rolloverTx = ConfidentialAsset.buildRolloverPendingBalanceTxPayload(args);
+    const rolloverTx = ConfidentialAsset.buildRolloverPendingBalanceTxPayload({
+      ...args,
+      confidentialAssetModuleAddress: this.confidentialAssetModuleAddress,
+    });
 
     txPayloadsList.push(rolloverTx);
 
@@ -344,12 +354,16 @@ export class ConfidentialAsset {
     return isFrozen;
   }
 
-  /** Do not forget to set `confidentialAssetModuleAddress` if not using the default. */
+  /**
+   * If you wish to use the default for the module address, just set
+   * `confidentialAssetModuleAddress` to the default:
+   * `DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS`.
+   */
   static async buildRotateCBKeyTxPayload(
     args: CreateConfidentialKeyRotationOpArgs & {
       tokenAddress: string;
       withUnfreezeBalance: boolean;
-      confidentialAssetModuleAddress?: string;
+      confidentialAssetModuleAddress: string;
     },
   ): Promise<InputGenerateTransactionPayloadData> {
     const confidentialKeyRotation = await ConfidentialKeyRotation.create({
@@ -365,11 +379,10 @@ export class ConfidentialAsset {
 
     const serializedNewBalance = concatBytes(...newCB.map((el) => [el.C.toRawBytes(), el.D.toRawBytes()]).flat());
 
-    const moduleAddress = args.confidentialAssetModuleAddress || DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS;
     const method = args.withUnfreezeBalance ? "rotate_encryption_key_and_unfreeze" : "rotate_encryption_key";
 
     return {
-      function: `${moduleAddress}::${MODULE_NAME}::${method}`,
+      function: `${args.confidentialAssetModuleAddress}::${MODULE_NAME}::${method}`,
       functionArguments: [
         args.tokenAddress,
         newPublicKeyU8,
@@ -391,7 +404,10 @@ export class ConfidentialAsset {
       ...args,
       withFeePayer: args.withFeePayer,
       sender: args.sender,
-      data: await ConfidentialAsset.buildRotateCBKeyTxPayload(args),
+      data: await ConfidentialAsset.buildRotateCBKeyTxPayload({
+        ...args,
+        confidentialAssetModuleAddress: this.confidentialAssetModuleAddress,
+      }),
       options: args.options,
     });
   }
@@ -489,11 +505,15 @@ export class ConfidentialAsset {
     return isNormalized;
   }
 
-  /** Do not forget to set `confidentialAssetModuleAddress` if not using the default. */
+  /**
+   * If you wish to use the default for the module address, just set
+   * `confidentialAssetModuleAddress` to the default:
+   * `DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS`.
+   */
   static async buildNormalizationTxPayload(
     args: CreateConfidentialNormalizationOpArgs & {
       tokenAddress: string;
-      confidentialAssetModuleAddress?: string;
+      confidentialAssetModuleAddress: string;
     },
   ): Promise<InputGenerateTransactionPayloadData> {
     const confidentialNormalization = await ConfidentialNormalization.create({
@@ -505,10 +525,8 @@ export class ConfidentialAsset {
 
     const [{ sigmaProof, rangeProof }, normalizedCB] = await confidentialNormalization.authorizeNormalization();
 
-    const moduleAddress = args.confidentialAssetModuleAddress || DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS;
-
     return {
-      function: `${moduleAddress}::${MODULE_NAME}::normalize`,
+      function: `${args.confidentialAssetModuleAddress}::${MODULE_NAME}::normalize`,
       functionArguments: [
         args.tokenAddress,
         concatBytes(...normalizedCB.map((el) => el.serialize()).flat()),
@@ -528,7 +546,10 @@ export class ConfidentialAsset {
       ...args,
       withFeePayer: args.withFeePayer,
       sender: args.sender,
-      data: await ConfidentialAsset.buildNormalizationTxPayload(args),
+      data: await ConfidentialAsset.buildNormalizationTxPayload({
+        ...args,
+        confidentialAssetModuleAddress: this.confidentialAssetModuleAddress,
+      }),
       options: args.options,
     });
   }
