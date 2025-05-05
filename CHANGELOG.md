@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Unreleased
 
+- Fix ANS api functions overwriting user provided `where` clauses
+
 # 1.39.0 (2025-04-02)
 
 - Add a `transferFungibleAssetBetweenStores` function to transfer Fungible Assets between any (primary or secondary) fungible stores.
