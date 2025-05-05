@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Unreleased
 
+- Add a `transferFungibleAssetBetweenStores` function to transfer Fungible Assets between any (primary or secondary) fungible stores.
+- Include an example file `transfer_between_fungible_stores.ts` which uses a new example Move module `secondary_store.move`.
 - Define the return type for `toUint8Array()` in the `SingleKey.ts` file to not break `tsc` build
 - Fix `deriveAccountFromPrivateKey` to use the "legacy" derivation path for Ed25519 keys first.
 - Deprecate `deriveAccountFromPrivateKey` as more inspection is needed from the user to determine the correct address.

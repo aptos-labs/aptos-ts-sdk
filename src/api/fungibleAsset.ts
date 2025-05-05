@@ -14,6 +14,7 @@ import {
   getFungibleAssetActivities,
   getFungibleAssetMetadata,
   transferFungibleAsset,
+  transferFungibleAssetBetweenStores,
 } from "../internal/fungibleAsset";
 import {
   CurrentFungibleAssetBalancesBoolExp,
@@ -276,7 +277,7 @@ export class FungibleAsset {
    *
    * @param args - The arguments for the transfer operation.
    * @param args.sender - The sender account.
-   * @param args.fungibleAssetMetadataAddress - The fungible asset account address. For example, if you’re transferring USDT,
+   * @param args.fungibleAssetMetadataAddress - The fungible asset account address. For example, if you're transferring USDT,
    * this would be the USDT address.
    * @param args.recipient - The recipient account address.
    * @param args.amount - The number of assets to transfer.
@@ -314,5 +315,57 @@ export class FungibleAsset {
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     return transferFungibleAsset({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Transfer a specified amount of fungible asset from the sender's any (primary or secondary) fungible store to any (primary or secondary) fungible store.
+   * This method allows you to transfer any fungible asset, including fungible tokens.
+   *
+   * @param args - The arguments for the transfer operation.
+   * @param args.sender - The sender account initiating the transfer.
+   * @param args.fromStore - The fungible store address initiating the transfer.
+   * @param args.toStore - The fungible store address receiving the asset.
+   * @param args.amount - The number of assets to transfer. Must be a positive number.
+   * @param args.options - Optional parameters for generating the transaction.
+   *
+   * @returns A SimpleTransaction that can be simulated or submitted to the chain.
+   *
+   * @throws Error if:
+   * - The sender account is invalid
+   * - The store addresses are invalid
+   * - The amount is negative or zero
+   * - The transaction fails to generate
+   *
+   * @example
+   * ```typescript
+   * import { Aptos, AptosConfig, Network, Account } from "@aptos-labs/ts-sdk";
+   *
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   *
+   * async function transferAssets() {
+   *   // Transfer 100 units of the asset from senderStore to recipientStore
+   *   const transaction = await aptos.transferFungibleAssetBetweenStores({
+   *     sender: Account.generate(), // replace with a real sender account
+   *     fromStore: "0x123", // replace with a real fungible store address
+   *     toStore: "0x456", // replace with a real fungible store address
+   *     amount: 100
+   *   });
+   *
+   *   console.log(transaction);
+   * }
+   *
+   * transferAssets().catch(console.error);
+   * ```
+   * @group FungibleAsset
+   */
+  async transferFungibleAssetBetweenStores(args: {
+    sender: Account;
+    fromStore: AccountAddressInput;
+    toStore: AccountAddressInput;
+    amount: AnyNumber;
+    options?: InputGenerateTransactionOptions;
+  }): Promise<SimpleTransaction> {
+    return transferFungibleAssetBetweenStores({ aptosConfig: this.config, ...args });
   }
 }
