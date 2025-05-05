@@ -55,8 +55,8 @@ async function main() {
   const accountModules = await aptos.getAccountModules({
     accountAddress: alice.accountAddress,
   });
-  // published 2 modules
-  assert(accountModules.length === 3);
+  // published 4 modules
+  assert(accountModules.length === 4);
   // first account's module bytecode equals the published bytecode
   assert(accountModules[0].bytecode === `${Hex.fromHexInput(byteCode[0]).toString()}`);
   // second account's module bytecode equals the published bytecode
