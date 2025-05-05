@@ -98,5 +98,5 @@
     "typedoc-plugin-missing-exports": "^4.0.0",
     "typescript": "^5.8.2"
   },
-  "version": "1.38.0"
+  "version": "1.39.0"
 }
