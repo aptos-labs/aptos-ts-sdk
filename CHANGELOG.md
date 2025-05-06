@@ -8,6 +8,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - [`Breaking`] Custom networks now need to set the `network` field in the client config to the correct network type. This is needed to reduce network calls.
 - Add info message if using `CUSTOM` network
 
+- Fix ANS api functions overwriting user provided `where` clauses
+
 # 1.39.0 (2025-04-02)
 
 - Add a `transferFungibleAssetBetweenStores` function to transfer Fungible Assets between any (primary or secondary) fungible stores.
