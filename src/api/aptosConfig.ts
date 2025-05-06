@@ -134,6 +134,15 @@ export class AptosConfig {
    * @group Client
    */
   constructor(settings?: AptosSettings) {
+    // If there are any endpoint overrides, they are custom networks, keep that in mind
+    if (settings?.fullnode || settings?.indexer || settings?.faucet || settings?.pepper || settings?.prover) {
+      if (settings?.network === Network.CUSTOM) {
+        console.info("Note: using CUSTOM network will require queries to lookup ChainId");
+      } else if (!settings?.network) {
+        throw new Error("Custom endpoints require a network to be specified");
+      }
+    }
+
     this.network = settings?.network ?? Network.DEVNET;
     this.fullnode = settings?.fullnode;
     this.faucet = settings?.faucet;
