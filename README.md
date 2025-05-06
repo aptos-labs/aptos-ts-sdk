@@ -223,7 +223,9 @@ If neither of these describes what you would like to contribute, check out the [
 
 ## Running unit tests
 
-To run a unit test in this repo, for example, the keyless end-to-end unit test in `tests/e2e/api/keyless.test.ts`:
+To run a unit test in this repo, first make sure you [have the latest CLI installed](https://aptos.dev/en/build/cli/install-cli/install-cli-mac).
+
+Then, for example, the keyless end-to-end unit test in `tests/e2e/api/keyless.test.ts`:
 ```
 pnpm jest keyless.test.ts
 ```

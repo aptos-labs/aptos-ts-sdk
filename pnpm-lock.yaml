@@ -14,6 +14,9 @@ dependencies:
   '@aptos-labs/aptos-client':
     specifier: ^0.1.1
     version: 0.1.1
+  '@aptos-labs/ts-sdk':
+    specifier: ^1.33.1
+    version: 1.33.1
   '@noble/curves':
     specifier: ^1.4.0
     version: 1.6.0
@@ -163,6 +166,25 @@ packages:
     dependencies:
       axios: 1.7.4
       got: 11.8.6
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
+  /@aptos-labs/ts-sdk@1.33.1:
+    resolution: {integrity: sha512-d6nWtUI//fyEN8DeLjm3+ro87Ad6+IKwR9pCqfrs/Azahso1xR1Llxd/O6fj/m1DDsuDj/HAsCsy5TC/aKD6Eg==}
+    engines: {node: '>=11.0.0'}
+    dependencies:
+      '@aptos-labs/aptos-cli': 1.0.2
+      '@aptos-labs/aptos-client': 0.1.1
+      '@noble/curves': 1.6.0
+      '@noble/hashes': 1.5.0
+      '@scure/bip32': 1.5.0
+      '@scure/bip39': 1.4.0
+      eventemitter3: 5.0.1
+      form-data: 4.0.1
+      js-base64: 3.7.7
+      jwt-decode: 4.0.0
+      poseidon-lite: 0.2.1
     transitivePeerDependencies:
       - debug
     dev: false
