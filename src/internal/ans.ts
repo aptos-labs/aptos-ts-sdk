@@ -184,6 +184,9 @@ export async function getOwnerAddress(args: {
  * @param sender - The account initiating the name registration.
  * @param name - The name to be registered.
  * @param expiration - The expiration policy for the name registration.
+ * @param transferable - Whether the name can be transferred to another owner.
+ * @param toAddress - The address that will be set as the owner_address of the name.
+ * @param targetAddress - The address that this name will resolve to.
  * @group Implementation
  */
 export interface RegisterNameParameters {
@@ -209,10 +212,10 @@ export interface RegisterNameParameters {
  * @param args.expiration - The expiration details for the registration.
  * @param args.name - The name to be registered, which can be a domain or subdomain.
  * @param args.sender - The account details of the sender initiating the registration.
- * @param args.targetAddress - The target address for the registration.
- * @param args.toAddress - The address to which the registration is associated.
+ * @param args.targetAddress - The target address for the registration, which is the address the name will resolve to.
+ * @param args.toAddress - The address that will be set as the owner_address in records, defaults to sender if not provided.
  * @param args.options - Additional options for the registration process.
- * @param args.transferable - Indicates whether the registered name is transferable.
+ * @param args.transferable - Indicates whether the registered name is transferable to another account.
  *
  * @throws Error if the provided expiration policy is invalid for subdomains.
  * @throws Error if the domain does not exist.
@@ -414,6 +417,8 @@ export async function setPrimaryName(args: {
 
 /**
  * Retrieves the target address associated with a given domain name and subdomain name.
+ * The target address is different from the owner address - it's the address this name
+ * resolves to, which may be different from who owns the name.
  *
  * @param args - The arguments for retrieving the target address.
  * @param args.aptosConfig - The Aptos configuration object.
@@ -542,7 +547,8 @@ export interface GetAccountNamesArgs extends QueryNamesOptions {
 }
 
 /**
- * Retrieves the current Aptos names associated with a specific account address.
+ * Retrieves all the current Aptos names owned by an account. This uses the
+ * owner_address field, not the registered_address field.
  *
  * @param args - The arguments for retrieving account names.
  * @param args.aptosConfig - The configuration object for Aptos.
@@ -595,7 +601,8 @@ export interface GetAccountDomainsArgs extends QueryNamesOptions {
 }
 
 /**
- * Retrieves the list of top-level domains owned by a specified account.
+ * Retrieves the list of top-level domains owned by a specified account,
+ * using the owner_address field.
  *
  * @param args - The arguments for retrieving account domains.
  * @param args.aptosConfig - The Aptos configuration object.
@@ -651,8 +658,8 @@ export interface GetAccountSubdomainsArgs extends QueryNamesOptions {
 }
 
 /**
- * Retrieves a list of subdomains owned by a specified account address.
- * This function helps you identify all subdomains associated with a given account.
+ * Retrieves a list of subdomains owned by a specified account address, determined
+ * by the owner_address field.
  *
  * @param args - The arguments for retrieving account subdomains.
  * @param args.aptosConfig - The configuration object for Aptos.
@@ -707,7 +714,11 @@ export interface GetDomainSubdomainsArgs extends QueryNamesOptions {
 }
 
 /**
- * Retrieve the active subdomains associated with a specified domain.
+ * Retrieve the active subdomains associated with a specified domain,
+ * regardless of who is in possession of the domain.
+ *
+ * This function queries by domain name only, not by owner, so it will return
+ * all subdomains of a domain even if they're owned by different accounts.
  *
  * @param args - The arguments for retrieving subdomains.
  * @param args.aptosConfig - The configuration settings for Aptos.
