@@ -4,13 +4,15 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Unreleased
 
+# 2.0.0 (2025-05-06)
+
 - Remove `scriptComposer` api due to increase in the sdk bundle size, If you wish to continue using it, please use version 1.39.0: [https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.39.0](https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.39.0)
 - [`Breaking`] Ed25519 and Secp256k1 private keys will now default to the AIP-80 format when calling `toString()`.
 - [`Breaking`] Custom networks now need to set the `network` field in the client config to the correct network type. This is needed to reduce network calls.
 - Add info message if using `CUSTOM` network
 - Update `@aptos-labs/aptos-client` to version `2.0.0`
 
-# 1.39.0 (2025-04-02)
+# 1.39.0 (2025-05-05)
 
 - Add a `transferFungibleAssetBetweenStores` function to transfer Fungible Assets between any (primary or secondary) fungible stores.
 - Include an example file `transfer_between_fungible_stores.ts` which uses a new example Move module `secondary_store.move`.
