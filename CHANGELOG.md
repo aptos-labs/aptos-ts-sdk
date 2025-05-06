@@ -12,8 +12,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Fix `deriveAccountFromPrivateKey` to use the "legacy" derivation path for Ed25519 keys first.
 - Deprecate `deriveAccountFromPrivateKey` as more inspection is needed from the user to determine the correct address.
 - Fix internal and example tests in regards to the change to zero state accounts
-- Remove `scriptComposer` api due to increase in the sdk bundle size, If you wish to continue using it, please use version 1.39.0: [https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.39.0](https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.38.0)
-
+- Remove `scriptComposer` api due to increase in the sdk bundle size, If you wish to continue using it, please use version 1.39.0: [https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.39.0](https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.39.0)
 
 # 1.38.0 (2025-04-02)
 
@@ -85,7 +84,6 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # 1.32.1 (2024-11-11)
 
 - Add support for Firebase issuers in the `updateFederatedKeylessJwkSetTransaction` function
-- [`Breaking`] Revert new `scriptComposer` api in transactionSubmission api to allow SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.
 
 # 1.32.0 (2024-11-08)
 
