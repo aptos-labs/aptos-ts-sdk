@@ -159,7 +159,6 @@ packages:
     resolution: {integrity: sha512-pBlIAT/W+Qa0TOr/318U8r0Gxw/jfyRLcvDGMEXgcVrPqO9Qhwsmozw6LPPIZ963FB7smwIaMeexWFDs3zijcg==}
     engines: {node: '>=15.10.0'}
     peerDependencies:
-      axios: ^1.8.4
       got: ^11.8.6
 
   '@aptos-labs/aptos-dynamic-transaction-composer@0.1.3':

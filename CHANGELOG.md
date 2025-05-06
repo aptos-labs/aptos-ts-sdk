@@ -7,6 +7,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - [`Breaking`] Ed25519 and Secp256k1 private keys will now default to the AIP-80 format when calling `toString()`.
 - [`Breaking`] Custom networks now need to set the `network` field in the client config to the correct network type. This is needed to reduce network calls.
 - Add info message if using `CUSTOM` network
+- Update `@aptos-labs/aptos-client` to version `2.0.0`
 
 # 1.39.0 (2025-04-02)
 
