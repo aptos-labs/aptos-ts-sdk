@@ -1,4 +1,4 @@
-import { confidentialAsset, getTestAccount, TOKEN_ADDRESS } from "../../helpers";
+import { confidentialAsset, getTestAccount, MOCK_TOKEN_DATA } from "../helpers/e2e";
 
 describe("Check Registration status", () => {
   const alice = getTestAccount();
@@ -6,7 +6,7 @@ describe("Check Registration status", () => {
   it("should return true if the user is registered", async () => {
     const isAliceRegistered = await confidentialAsset.hasUserRegistered({
       accountAddress: alice.accountAddress,
-      tokenAddress: TOKEN_ADDRESS,
+      tokenAddress: MOCK_TOKEN_DATA.address,
     });
 
     expect(isAliceRegistered).toBeTruthy();

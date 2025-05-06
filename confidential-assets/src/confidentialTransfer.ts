@@ -182,14 +182,11 @@ export class ConfidentialTransfer {
 
     const alpha1List = baseProofArray.slice(0, half);
     const alpha2 = baseProofArray[half];
-    const alpha3List = baseProofArray.slice(
-      half + 1,
-      half + 1 + ConfidentialAmount.CHUNKS_COUNT,
-    )
+    const alpha3List = baseProofArray.slice(half + 1, half + 1 + ConfidentialAmount.CHUNKS_COUNT);
     const alpha4List = baseProofArray.slice(
       half + 1 + ConfidentialAmount.CHUNKS_COUNT,
       half + 1 + ConfidentialAmount.CHUNKS_COUNT * 2,
-    )
+    );
     const alpha5 = baseProofArray[half + 1 + ConfidentialAmount.CHUNKS_COUNT * 2];
 
     const X1 = baseProofArray[half + 1 + ConfidentialAmount.CHUNKS_COUNT * 3];
@@ -270,11 +267,11 @@ export class ConfidentialTransfer {
       ed25519modN(
         x1List.reduce((acc, el, i) => {
           const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
-          const x1i = el * coef
+          const x1i = el * coef;
 
-          return acc + x1i
-        }, 0n)
-      )
+          return acc + x1i;
+        }, 0n),
+      ),
     )
       .add(DBal.multiply(x2))
       .subtract(DNewBal.multiply(x2))
@@ -298,7 +295,7 @@ export class ConfidentialTransfer {
       const x1iG = RistrettoPoint.BASE.multiply(el);
       const x3iH = H_RISTRETTO.multiply(x3List[idx]);
 
-      return x1iG.add(x3iH).toRawBytes()
+      return x1iG.add(x3iH).toRawBytes();
     });
 
     const X7List =
@@ -329,7 +326,9 @@ export class ConfidentialTransfer {
     const sLE = bytesToNumberLE(this.senderDecryptionKey.toUint8Array());
     const invertSLE = ed25519InvertN(sLE);
 
-    const alpha1List = x1List.map((x1, idx) => ed25519modN(x1 - ed25519modN(p * this.confidentialAmountAfterTransfer.amountChunks[idx])));
+    const alpha1List = x1List.map((x1, idx) =>
+      ed25519modN(x1 - ed25519modN(p * this.confidentialAmountAfterTransfer.amountChunks[idx])),
+    );
     const alpha2 = ed25519modN(x2 - p * sLE);
     const alpha3List = x3List.map((el, idx) => ed25519modN(BigInt(el) - BigInt(p) * BigInt(this.randomness[idx])));
     const alpha4List = x4List
@@ -438,8 +437,8 @@ export class ConfidentialTransfer {
           const a1i = curr * coef;
 
           return acc + a1i;
-        }, 0n)
-      )
+        }, 0n),
+      ),
     )
       .add(oldDSum.multiply(alpha2LE))
       .subtract(newDSum.multiply(alpha2LE))

@@ -1,5 +1,6 @@
-import { getBalances, getTestAccount, getTestConfidentialAccount, longTestTimeout } from "../../helpers";
-import { preloadTables } from "../../helpers/wasmPollardKangaroo";
+import { getBalances, getTestAccount, getTestConfidentialAccount } from "../helpers/e2e";
+import { preloadTables } from "../helpers/wasmPollardKangaroo";
+import { longTestTimeout } from "../helpers";
 
 describe("Check balance", () => {
   const alice = getTestAccount();

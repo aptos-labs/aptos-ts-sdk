@@ -1,5 +1,6 @@
-import { confidentialAsset, getTestAccount, longTestTimeout, mintFungibleTokens, sendAndWaitTx, TOKEN_ADDRESS } from "../../helpers";
-import { preloadTables } from "../../helpers/wasmPollardKangaroo";
+import { confidentialAsset, getTestAccount, mintFungibleTokens, sendAndWaitTx, MOCK_TOKEN_DATA } from "../helpers/e2e";
+import { preloadTables } from "../helpers/wasmPollardKangaroo";
+import { longTestTimeout } from "../helpers";
 
 describe("Deposit", () => {
   const alice = getTestAccount();
@@ -18,7 +19,7 @@ describe("Deposit", () => {
 
     const depositTx = await confidentialAsset.deposit({
       sender: alice.accountAddress,
-      tokenAddress: TOKEN_ADDRESS,
+      tokenAddress: MOCK_TOKEN_DATA.address,
       amount: DEPOSIT_AMOUNT,
     });
     const resp = await sendAndWaitTx(depositTx, alice);

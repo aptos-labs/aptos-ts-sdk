@@ -1,13 +1,13 @@
+import { longTestTimeout } from "../helpers";
 import {
   confidentialAsset,
   getBalances,
   getTestAccount,
   getTestConfidentialAccount,
-  longTestTimeout,
   sendAndWaitTx,
-  TOKEN_ADDRESS,
-} from "../../helpers";
-import { preloadTables } from "../../helpers/wasmPollardKangaroo";
+  MOCK_TOKEN_DATA,
+} from "../helpers/e2e";
+import { preloadTables } from "../helpers/wasmPollardKangaroo";
 
 describe("Normalize", () => {
   const alice = getTestAccount();
@@ -27,7 +27,7 @@ describe("Normalize", () => {
       const balances = await getBalances(aliceConfidential, alice.accountAddress);
 
       const normalizeTx = await confidentialAsset.normalizeUserBalance({
-        tokenAddress: TOKEN_ADDRESS,
+        tokenAddress: MOCK_TOKEN_DATA.address,
         decryptionKey: aliceConfidential,
         unnormalizedEncryptedBalance: balances.actual.amountEncrypted!,
         balanceAmount: balances.actual.amount,

@@ -4,7 +4,20 @@
 import { ed25519, RistrettoPoint } from "@noble/curves/ed25519";
 import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/abstract/utils";
 import { ed25519InvertN, ed25519modN } from "./utils";
-import { HexInput, Hex, Serializable, isValidHardenedPath, mnemonicToSeed, Ed25519Signature, HARDENED_OFFSET, deriveKey, splitPath, CKDPriv, Serializer, Deserializer } from "@aptos-labs/ts-sdk";
+import {
+  HexInput,
+  Hex,
+  Serializable,
+  isValidHardenedPath,
+  mnemonicToSeed,
+  Ed25519Signature,
+  HARDENED_OFFSET,
+  deriveKey,
+  splitPath,
+  CKDPriv,
+  Serializer,
+  Deserializer,
+} from "@aptos-labs/ts-sdk";
 
 export { RistrettoPoint } from "@noble/curves/ed25519";
 export type RistPoint = InstanceType<typeof RistrettoPoint>;

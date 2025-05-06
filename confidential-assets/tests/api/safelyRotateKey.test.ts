@@ -1,15 +1,14 @@
-import { TwistedEd25519PrivateKey } from "../../../src";
+import { TwistedEd25519PrivateKey } from "../../src";
 import {
-  addNewContentLineToFile,
   aptos,
   confidentialAsset,
   getBalances,
   getTestAccount,
   getTestConfidentialAccount,
-  longTestTimeout,
-  TOKEN_ADDRESS,
-} from "../../helpers";
-import { preloadTables } from "../../helpers/wasmPollardKangaroo";
+  MOCK_TOKEN_DATA,
+} from "../helpers/e2e";
+import { preloadTables } from "../helpers/wasmPollardKangaroo";
+import { addNewContentLineToFile, longTestTimeout } from "../helpers";
 
 describe("Safely rotate Alice's confidential balance key", () => {
   const alice = getTestAccount();
@@ -36,7 +35,7 @@ describe("Safely rotate Alice's confidential balance key", () => {
       currEncryptedBalance: balances.actual.amountEncrypted!,
 
       withUnfreezeBalance: true,
-      tokenAddress: TOKEN_ADDRESS,
+      tokenAddress: MOCK_TOKEN_DATA.address,
     });
 
     console.log("gas used:", keyRotationAndUnfreezeTxResponse.gas_used);
