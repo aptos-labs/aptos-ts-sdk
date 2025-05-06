@@ -3,10 +3,12 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
+
 - Remove `scriptComposer` api due to increase in the sdk bundle size, If you wish to continue using it, please use version 1.39.0: [https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.39.0](https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.39.0)
 - [`Breaking`] Ed25519 and Secp256k1 private keys will now default to the AIP-80 format when calling `toString()`.
 - [`Breaking`] Custom networks now need to set the `network` field in the client config to the correct network type. This is needed to reduce network calls.
 - Add info message if using `CUSTOM` network
+- Update `@aptos-labs/aptos-client` to version `2.0.0`
 
 # 1.39.0 (2025-04-02)
 
