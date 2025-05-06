@@ -1,5 +1,12 @@
-import { confidentialAsset, getTestAccount, getTestConfidentialAccount, longTestTimeout, sendAndWaitBatchTxs, TOKEN_ADDRESS } from "../../helpers";
-import { preloadTables } from "../../helpers/wasmPollardKangaroo";
+import { longTestTimeout } from "../helpers";
+import {
+  confidentialAsset,
+  getTestAccount,
+  getTestConfidentialAccount,
+  sendAndWaitBatchTxs,
+  MOCK_TOKEN_DATA,
+} from "../helpers/e2e";
+import { preloadTables } from "../helpers/wasmPollardKangaroo";
 
 describe("Safely Rollover", () => {
   const alice = getTestAccount();
@@ -16,7 +23,7 @@ describe("Safely Rollover", () => {
   it("Should safely rollover Alice confidential balance", async () => {
     const rolloverTxPayloads = await confidentialAsset.safeRolloverPendingCB({
       sender: alice.accountAddress,
-      tokenAddress: TOKEN_ADDRESS,
+      tokenAddress: MOCK_TOKEN_DATA.address,
       withFreezeBalance: false,
       decryptionKey: aliceConfidential,
     });

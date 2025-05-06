@@ -1,14 +1,14 @@
-import { TwistedEd25519PrivateKey } from "../../../src";
+import { TwistedEd25519PrivateKey } from "../../src";
 import {
   confidentialAsset,
   getBalances,
   getTestAccount,
   getTestConfidentialAccount,
-  longTestTimeout,
   sendAndWaitTx,
-  TOKEN_ADDRESS,
-} from "../../helpers";
-import { preloadTables } from "../../helpers/wasmPollardKangaroo";
+  MOCK_TOKEN_DATA,
+} from "../helpers/e2e";
+import { preloadTables } from "../helpers/wasmPollardKangaroo";
+import { longTestTimeout } from "../helpers";
 
 describe("Transfer with auditor", () => {
   const alice = getTestAccount();
@@ -33,7 +33,7 @@ describe("Transfer with auditor", () => {
       encryptedActualBalance: balances.actual.amountEncrypted!,
       amountToTransfer: TRANSFER_AMOUNT,
       sender: alice.accountAddress,
-      tokenAddress: TOKEN_ADDRESS,
+      tokenAddress: MOCK_TOKEN_DATA.address,
       recipientAddress: alice.accountAddress,
       auditorEncryptionKeys: [AUDITOR.publicKey()],
     });
