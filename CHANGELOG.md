@@ -5,6 +5,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 ## Unreleased
 - Remove `scriptComposer` api due to increase in the sdk bundle size, If you wish to continue using it, please use version 1.39.0: [https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.39.0](https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.39.0)
 
+- [`Breaking`] Ed25519 and Secp256k1 private keys will now default to the AIP-80 format when calling `toString()`.
+
 # 1.39.0 (2025-04-02)
 
 - Add a `transferFungibleAssetBetweenStores` function to transfer Fungible Assets between any (primary or secondary) fungible stores.
