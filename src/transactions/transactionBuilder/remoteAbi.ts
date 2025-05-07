@@ -326,6 +326,7 @@ export function checkOrConvertArgument(
   return parseArg(arg, param, position, genericTypeParams, moduleAbi, options);
 }
 
+// TODO: refactor using bcs/simple.ts
 /**
  * Parses a non-BCS encoded argument into a BCS encoded argument recursively.
  * This function helps convert various types of input arguments into their corresponding BCS encoded formats based on the
