@@ -35,6 +35,7 @@
   "scripts": {
     "build:clean": "rm -rf dist",
     "build": "pnpm build:clean && tsup",
+    "prepare": "pnpm run build",
     "prepublishOnly": "pnpm run build",
     "_fmt": "prettier 'src/**/*.ts' 'tests/**/*.ts' 'examples/**/*.js' 'examples/**/*.ts' 'eslint.config.cjs'",
     "fmt": "pnpm _fmt --write",
@@ -98,5 +99,5 @@
     "typedoc-plugin-missing-exports": "^4.0.0",
     "typescript": "^5.8.2"
   },
-  "version": "1.39.0"
+  "version": "1.38.0"
 }
