@@ -846,13 +846,25 @@ export async function isAccountExist(args: { aptosConfig: AptosConfig; authKey: 
   return doesAccountExistAtAddress({ aptosConfig, accountAddress });
 }
 
+/**
+ * Checks if an account exists at a given address.
+ *
+ * @param args - The arguments for checking account existence.
+ * @param args.aptosConfig - The configuration for the Aptos client.
+ * @param args.accountAddress - The address of the account to check.
+ * @param args.options.withAuthKey - An optional authentication key which will also be checked against if provided.
+ * @returns A promise that resolves to a boolean indicating whether the account exists.
+ * @group Implementation
+ */
 async function doesAccountExistAtAddress(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddress;
-  options?: { authKey?: AuthenticationKey };
+  options?: { withAuthKey?: AuthenticationKey };
 }): Promise<boolean> {
   const { aptosConfig, accountAddress, options } = args;
   try {
+    // Get the account resources and the balance of the account.  We need to check both because
+    // an account resource can exist with 0 balance and a balance can exist without an account resource (light accounts).
     const [resources, [balanceStr]] = await Promise.all([
       getResources({
         aptosConfig,
@@ -872,16 +884,18 @@ async function doesAccountExistAtAddress(args: {
       (r) => r.type === "0x1::account::Account",
     ) as MoveResource<{ authentication_key: string }> | undefined;
 
+    // If the account resource is not found and the balance is 0, then the account does not exist.
     if (!accountResource && balance === 0) {
       return false;
     }
 
     // If no auth key is provided as an argument, return true.
-    if (!options?.authKey) {
+    if (!options?.withAuthKey) {
       return true;
     }
 
-    // Get the auth key from the account resource or the getInfo function.
+    // Get the auth key from the account resource if it exists. If the account resource does not exist,
+    // then the auth key is the account address by default.
     let authKey;
     if (accountResource) {
       authKey = accountResource.data.authentication_key;
@@ -889,10 +903,11 @@ async function doesAccountExistAtAddress(args: {
       authKey = accountAddress.toStringLong();
     }
 
-    if (authKey !== options.authKey.toString()) {
+    if (authKey !== options.withAuthKey.toString()) {
       return false;
     }
 
+    // Else the account exists and the auth key matches.
     return true;
   } catch (error: any) {
     // account not found
@@ -1482,7 +1497,7 @@ async function getDefaultAccountInfoForPublicKey(args: {
     doesAccountExistAtAddress({
       aptosConfig,
       accountAddress: derivedAddress,
-      options: { authKey: publicKey.authKey() },
+      options: { withAuthKey: publicKey.authKey() },
     }),
   ]);
   if (exists) {
