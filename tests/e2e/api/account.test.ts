@@ -41,17 +41,43 @@ describe("account api", () => {
       expect(data.length).toBeGreaterThan(0);
     });
 
-    test("it fetches account modules with pagination", async () => {
+    test("it fetches account modules with a limit", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const data = await aptos.getAccountModules({
         accountAddress: "0x1",
         options: {
-          offset: 1,
           limit: 1,
         },
       });
       expect(data.length).toEqual(1);
+    });
+
+    test("it fetches account modules with pagination", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
+      const aptos = new Aptos(config);
+      let { modules, cursor } = await aptos.getAccountModulesPage({
+        accountAddress: "0x1",
+        options: {
+          limit: 1,
+        },
+      });
+      expect(modules.length).toEqual(1);
+      expect(cursor).toBeDefined();
+      while (true) {
+        const { modules: modules2, cursor: cursor2 } = await aptos.getAccountModulesPage({
+          accountAddress: "0x1",
+          options: {
+            cursor,
+          },
+        });
+        expect(modules2.length).toBeGreaterThan(0);
+        expect(modules2).not.toContain(modules[0]);
+        if (cursor2 === undefined) {
+          break;
+        }
+        cursor = cursor2;
+      }
     });
 
     test("it fetches an account module", async () => {
@@ -73,17 +99,39 @@ describe("account api", () => {
       expect(data.length).toBeGreaterThan(0);
     });
 
-    test("it fetches account resources with pagination", async () => {
+    test("it fetches account resources with a limit", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const data = await aptos.getAccountResources({
         accountAddress: "0x1",
         options: {
-          offset: 1,
           limit: 1,
         },
       });
       expect(data.length).toEqual(1);
+    });
+
+    test("it fetches account resources with pagination", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
+      const aptos = new Aptos(config);
+      const { resources, cursor } = await aptos.getAccountResourcesPage({
+        accountAddress: "0x1",
+        options: {
+          limit: 1,
+        },
+      });
+      expect(resources.length).toEqual(1);
+      expect(cursor).toBeDefined();
+
+      const { resources: resources2, cursor: cursor2 } = await aptos.getAccountResourcesPage({
+        accountAddress: "0x1",
+        options: {
+          cursor,
+        },
+      });
+      expect(resources2.length).toBeGreaterThan(0);
+      expect(cursor2).toBeUndefined();
+      expect(resources2).not.toContain(resources[0]);
     });
 
     test("it fetches an account resource without a type", async () => {
@@ -338,7 +386,8 @@ describe("account api", () => {
         await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100 });
 
         const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
-        expect(derivedAccount).toStrictEqual(account);
+        // Note, this will now always return the legacy account
+        expect(derivedAccount.accountAddress.equals(account.accountAddress)).toEqual(false);
       });
       test("single sender secp256k1", async () => {
         const config = new AptosConfig({ network: Network.LOCAL });

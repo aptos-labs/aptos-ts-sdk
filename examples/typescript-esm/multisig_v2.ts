@@ -15,7 +15,8 @@
  * - fetch multi sig account info
  *
  */
-
+import dotenv from "dotenv";
+dotenv.config();
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import {
   Account,
@@ -31,6 +32,7 @@ import {
   InputViewFunctionData,
   SimpleTransaction,
   generateTransactionPayload,
+  InputViewFunctionJsonData,
 } from "@aptos-labs/ts-sdk";
 
 // Default to devnet, but allow for overriding
@@ -202,12 +204,14 @@ const executeMultiSigTransferTransaction = async () => {
 };
 
 const checkBalance = async () => {
-  const accountResource = await aptos.getAccountResource<{ coin: { value: number } }>({
-    accountAddress: recipient.accountAddress,
-    resourceType: "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>",
-  });
+  const payload: InputViewFunctionJsonData = {
+    function: "0x1::coin::balance",
+    typeArguments: ["0x1::aptos_coin::AptosCoin"],
+    functionArguments: [recipient.accountAddress.toString()],
+  };
+  const [balance] = await aptos.viewJson<[number]>({ payload: payload });
 
-  console.log("Recipient's balance after transfer", accountResource.coin.value);
+  console.log("Recipient's balance after transfer", balance);
 };
 
 const createMultiSigTransferTransactionWithPayloadHash = async () => {

@@ -253,6 +253,16 @@ export interface PaginationArgs {
 }
 
 /**
+ * Defines the parameters for paginating query results, including the starting position and maximum number of items to return.
+ * @param cursor Specifies the starting position of the query result. Default is at the beginning if undefined.  This is not a number and must come from the API.
+ * @param limit Specifies the maximum number of items to return. Default is 25.
+ */
+export interface CursorPaginationArgs {
+  cursor?: string;
+  limit?: number;
+}
+
+/**
  * Represents the arguments for specifying a token standard.
  *
  * @param tokenStandard - Optional standard of the token.
@@ -317,7 +327,6 @@ export interface ClientRequest<Req> {
   originMethod?: string;
   body?: Req;
   contentType?: string;
-  acceptType?: string;
   params?: any;
   overrides?: ClientConfig & FullNodeConfig & IndexerConfig & FaucetConfig;
   headers?: Record<string, any>;
@@ -349,23 +358,6 @@ export interface Client {
    * @param requestOptions.overrides - Optional configuration overrides for the request.
    */
   provider<Req, Res>(requestOptions: ClientRequest<Req>): Promise<ClientResponse<Res>>;
-
-  /**
-   * Sends a request to the specified URL with the given options, that returns a binary response
-   *
-   * @experimental
-   * @param requestOptions - The options for the request.
-   * @param requestOptions.url - The URL to send the request to.
-   * @param requestOptions.method - The HTTP method to use, either "GET" or "POST".
-   * @param requestOptions.path - An optional path to append to the URL.
-   * @param requestOptions.body - The body of the request, applicable for POST requests.
-   * @param requestOptions.contentType - The content type of the request body.
-   * @param requestOptions.acceptType - The expected content type of the response.
-   * @param requestOptions.params - Optional parameters to include in the request.
-   * @param requestOptions.originMethod - An optional method to specify the origin of the request.
-   * @param requestOptions.overrides - Optional configuration overrides for the request.
-   */
-  binaryProvider?: <Req>(requestOptions: ClientRequest<Req>) => Promise<ClientResponse<Buffer>>;
 }
 
 /**
@@ -376,8 +368,6 @@ export interface Client {
  * @param endpoint (optional) - the endpoint to make the request to, i.e. transactions
  * @param body (optional) - the body of the request
  * @param contentType (optional) - the content type to set the `content-type` header to,
- * by default is set to `application/json`
- * @param acceptType (optional) - the content type to set the `accept-type` header to,
  * by default is set to `application/json`
  * @param params (optional) - query params to add to the request
  * @param originMethod (optional) - the local method the request came from

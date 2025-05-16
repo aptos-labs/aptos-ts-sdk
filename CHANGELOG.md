@@ -2,20 +2,62 @@
 
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-# Unreleased
+## Unreleased
+
+# 2.0.0 (2025-05-06)
+
+- Remove `scriptComposer` api due to increase in the sdk bundle size, If you wish to continue using it, please use version 1.39.0: [https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.39.0](https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.39.0)
+- [`Breaking`] Ed25519 and Secp256k1 private keys will now default to the AIP-80 format when calling `toString()`.
+- [`Breaking`] Custom networks now need to set the `network` field in the client config to the correct network type. This is needed to reduce network calls.
+- Add info message if using `CUSTOM` network
+- Update `@aptos-labs/aptos-client` to version `2.0.0`
+
+# 1.39.0 (2025-05-05)
+
+- Add a `transferFungibleAssetBetweenStores` function to transfer Fungible Assets between any (primary or secondary) fungible stores.
+- Include an example file `transfer_between_fungible_stores.ts` which uses a new example Move module `secondary_store.move`.
+- Define the return type for `toUint8Array()` in the `SingleKey.ts` file to not break `tsc` build
+- Fix `deriveAccountFromPrivateKey` to use the "legacy" derivation path for Ed25519 keys first.
+- Deprecate `deriveAccountFromPrivateKey` as more inspection is needed from the user to determine the correct address.
+- Fix internal and example tests in regards to the change to zero state accounts
+
+# 1.38.0 (2025-04-02)
+
+- Adds and default implementation of `verifySignatureAsync` to `PublicKey`.
+- Implement derivable abstracted account
+- Fix: Reverts experimental binary view functions, which caused `Buffer is undefined` errors in browsers.
+
+# 1.37.1 (2025-03-24)
+
+- Upgrade min versions of @noble/curves and @noble/hashes to 1.6.0 and 1.5.0 respectively as they are required to use keyless signature verification.
+
+# 1.37.0 (2025-03-24)
+
+- Upgrade tsup to v8.4.0
+- Export the `crypto/abstraction.ts` file that includes the `AbstractSignature` and `AbstractPublicKey` classes.
+- Adds `verifySignatureAsync` to support signature verification that requires fetching chain state.
+- Adds support for keyless signature verification.
+- Implements signature verification for MultiKey.
+- Override @babel/runtime and @babel/helpers to use an updated version
+- Fix pagination of AccountResources and AccountModules
+- Add API for `getResourcesPage` and `getModulesPage` to support manual pagination
+- Added `pairedFaMetadataAddress` function to calculate the paired fungible asset metadata address for a given coin type, with enhanced support for various address formats (short form, long form, with leading zeros)
+
+# 1.36.0 (2025-03-14)
 
 - Upgrade rotateAuthKey API to allow for unverified auth key rotations.
 - Upgrade rotateAuthKey API to support Account types other than Ed25519.
 - Update simulation for MultiKeyAccount to use signatures of the same type as the corresponding public key.
 - Add `truncateAddress` helper function to truncate an address at the middle with an ellipsis.
 - Fix scriptComposer addBatchedCalls more typeArguments error
+- Add support for skipping struct type tag validation.
+- Add support for known enum structs: DelegationKey and RateLimiter.
+- Deprecated `fetchMoveFunctionAbi` and `convertCallArgument`
+- Bump `aptos-client` to 1.1.0
 
 # 1.35.0 (2025-02-11)
 
 - Add `MultiEd25519Account` to support the legacy MultiEd25519 authentication scheme.
-- Add `experimental` section to SDK
-- Add experimental BCS support for view function outputs
-- Upgrade to aptos-client 1.0.0 / remove override for cross-spawn
 
 # 1.34.0 (2025-02-06)
 

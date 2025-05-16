@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account } from "../../../src";
+import { Account, InputViewFunctionJsonData } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 
@@ -14,12 +14,12 @@ describe("Faucet", () => {
     await aptos.fundAccount({ accountAddress: testAccount.accountAddress, amount: FUND_AMOUNT });
 
     // Check the balance
-    type Coin = { coin: { value: string } };
-    const resource = await aptos.getAccountResource<Coin>({
-      accountAddress: testAccount.accountAddress,
-      resourceType: "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>",
-    });
-    const amount = Number(resource.coin.value);
-    expect(amount).toBe(FUND_AMOUNT);
+    const payload: InputViewFunctionJsonData = {
+      function: "0x1::coin::balance",
+      typeArguments: ["0x1::aptos_coin::AptosCoin"],
+      functionArguments: [testAccount.accountAddress.toString()],
+    };
+    const [balance] = await aptos.viewJson<[number]>({ payload: payload });
+    expect(Number(balance)).toBe(FUND_AMOUNT);
   });
 });

@@ -9,11 +9,17 @@
  * @group Implementation
  */
 import { AptosConfig } from "../api/aptosConfig";
-import { getAptosFullNode, paginateWithCursor, paginateWithObfuscatedCursor } from "../client";
+import {
+  getAptosFullNode,
+  getPageWithObfuscatedCursor,
+  paginateWithCursor,
+  paginateWithObfuscatedCursor,
+} from "../client";
 import {
   AccountData,
   anyPublicKeyVariantToString,
   CommittedTransactionResponse,
+  CursorPaginationArgs,
   GetAccountAddressesForAuthKeyResponse,
   GetAccountCoinsDataResponse,
   GetAccountCollectionsWithOwnedTokenResponse,
@@ -60,7 +66,7 @@ import {
   Secp256k1PublicKey,
 } from "../core/crypto";
 import { queryIndexer } from "./general";
-import { getModules as getModulesUtil, getModule as getModuleUtil, getInfo as getInfoUtil } from "./utils";
+import { getModule as getModuleUtil, getInfo as getInfoUtil } from "./utils";
 import {
   GetAccountCoinsCountQuery,
   GetAccountCoinsDataQuery,
@@ -127,9 +133,50 @@ export async function getInfo(args: {
 export async function getModules(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
-  options?: PaginationArgs & LedgerVersionArg;
+  options?: { limit?: number } & LedgerVersionArg;
 }): Promise<MoveModuleBytecode[]> {
-  return getModulesUtil(args);
+  const { aptosConfig, accountAddress, options } = args;
+  return paginateWithObfuscatedCursor<{}, MoveModuleBytecode[]>({
+    aptosConfig,
+    originMethod: "getModules",
+    path: `accounts/${AccountAddress.from(accountAddress).toString()}/modules`,
+    params: {
+      ledger_version: options?.ledgerVersion,
+      limit: options?.limit ?? 1000,
+    },
+  });
+}
+
+/**
+ * Retrieves the modules associated with a specified account address.
+ *
+ * @param args - The arguments for retrieving modules.
+ * @param args.aptosConfig - The configuration for connecting to the Aptos blockchain.
+ * @param args.accountAddress - The address of the account whose modules are to be retrieved.
+ * @param args.options - Optional parameters for pagination and ledger version.
+ * @param args.options.cursor - The starting point for pagination.  Note, this is obfuscated and is not an index.
+ * @param args.options.limit - The maximum number of modules to retrieve (default is 100).
+ * @param args.options.ledgerVersion - The specific ledger version to query.
+ * @group Implementation
+ */
+export async function getModulesPage(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: AccountAddressInput;
+  options?: CursorPaginationArgs & LedgerVersionArg;
+}): Promise<{ modules: MoveModuleBytecode[]; cursor: string | undefined }> {
+  const { aptosConfig, accountAddress, options } = args;
+  const { response, cursor } = await getPageWithObfuscatedCursor<{}, MoveModuleBytecode[]>({
+    aptosConfig,
+    originMethod: "getModulesPage",
+    path: `accounts/${AccountAddress.from(accountAddress).toString()}/modules`,
+    params: {
+      ledger_version: options?.ledgerVersion,
+      cursor: options?.cursor,
+      limit: options?.limit ?? 100,
+    },
+  });
+
+  return { modules: response.data, cursor };
 }
 
 /**
@@ -187,7 +234,6 @@ export async function getTransactions(args: {
  * @param args.aptosConfig - The configuration settings for Aptos.
  * @param args.accountAddress - The address of the account to fetch resources for.
  * @param args.options - Optional pagination and ledger version parameters.
- * @param args.options.offset - The starting point for pagination.  Note, this is obfuscated and is not an index.
  * @param args.options.limit - The maximum number of resources to retrieve (default is 999).
  * @param args.options.ledgerVersion - The specific ledger version to query.
  * @group Implementation
@@ -195,7 +241,7 @@ export async function getTransactions(args: {
 export async function getResources(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
-  options?: PaginationArgs & LedgerVersionArg;
+  options?: { limit?: number } & LedgerVersionArg;
 }): Promise<MoveResource[]> {
   const { aptosConfig, accountAddress, options } = args;
   return paginateWithObfuscatedCursor<{}, MoveResource[]>({
@@ -204,10 +250,41 @@ export async function getResources(args: {
     path: `accounts/${AccountAddress.from(accountAddress).toString()}/resources`,
     params: {
       ledger_version: options?.ledgerVersion,
-      offset: options?.offset,
       limit: options?.limit ?? 999,
     },
   });
+}
+
+/**
+ * Retrieves a page of resources associated with a specific account address.
+ *
+ * @param args - The arguments for retrieving resources.
+ * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.accountAddress - The address of the account to fetch resources for.
+ * @param args.options - Optional pagination and ledger version parameters.
+ * @param args.options.cursor - The starting point for pagination.  Note, this is obfuscated and is not an index.
+ * @param args.options.limit - The maximum number of resources to retrieve (default is 100).
+ * @param args.options.ledgerVersion - The specific ledger version to query.
+ * @group Implementation
+ */
+export async function getResourcesPage(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: AccountAddressInput;
+  options?: CursorPaginationArgs & LedgerVersionArg;
+}): Promise<{ resources: MoveResource[]; cursor: string | undefined }> {
+  const { aptosConfig, accountAddress, options } = args;
+  const { response, cursor } = await getPageWithObfuscatedCursor<{}, MoveResource[]>({
+    aptosConfig,
+    originMethod: "getResourcesPage",
+    path: `accounts/${AccountAddress.from(accountAddress).toString()}/resources`,
+    params: {
+      ledger_version: options?.ledgerVersion,
+      cursor: options?.cursor,
+      limit: options?.limit ?? 100,
+    },
+  });
+
+  return { resources: response.data, cursor };
 }
 
 /**
@@ -725,6 +802,7 @@ export async function getAccountOwnedObjects(args: {
  * @param args.privateKey - The private key used to derive the account.
  * @throws Error if the account cannot be derived from the private key.
  * @group Implementation
+ * @deprecated Note that more inspection is needed by the user to determine which account exists on-chain
  */
 export async function deriveAccountFromPrivateKey(args: {
   aptosConfig: AptosConfig;

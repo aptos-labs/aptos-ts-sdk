@@ -146,10 +146,8 @@ export class Hex {
    * @category Serialization
    */
   static fromHexInput(hexInput: HexInput): Hex {
-    if (hexInput instanceof Buffer) return new Hex(new Uint8Array(hexInput));
     if (hexInput instanceof Uint8Array) return new Hex(hexInput);
-    if (typeof hexInput === "string") return Hex.fromHexString(hexInput);
-    throw new Error(`Invalid hex input type: ${typeof hexInput}`);
+    return Hex.fromHexString(hexInput);
   }
 
   /**

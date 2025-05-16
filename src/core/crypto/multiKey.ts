@@ -1,10 +1,11 @@
-import { SigningScheme as AuthenticationKeyScheme } from "../../types";
+import { SigningScheme as AuthenticationKeyScheme, HexInput } from "../../types";
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializer } from "../../bcs/serializer";
 import { AuthenticationKey } from "../authenticationKey";
-import { AccountPublicKey, PublicKey, VerifySignatureArgs } from "./publicKey";
+import { AccountPublicKey, PublicKey, VerifySignatureAsyncArgs } from "./publicKey";
 import { Signature } from "./signature";
 import { AnyPublicKey, AnySignature } from "./singleKey";
+import { AptosConfig } from "../../api";
 
 /**
  * Counts the number of set bits (1s) in a byte.
@@ -175,15 +176,70 @@ export class MultiKey extends AbstractMultiKey {
    * Verifies the provided signature against the given message.
    * This function helps ensure the integrity and authenticity of the message by checking if the signature is valid.
    *
+   * Note: This function will fail if a keyless signature is used.  Use `verifySignatureAsync` instead.
+   *
    * @param args - The arguments for verifying the signature.
    * @param args.message - The message that was signed.
    * @param args.signature - The signature to verify.
    * @group Implementation
    * @category Serialization
    */
-  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
-  verifySignature(args: VerifySignatureArgs): boolean {
-    throw new Error("not implemented");
+  verifySignature(args: { message: HexInput; signature: MultiKeySignature }): boolean {
+    const { message, signature } = args;
+    if (signature.signatures.length !== this.signaturesRequired) {
+      throw new Error("The number of signatures does not match the number of required signatures");
+    }
+    const signerIndices = signature.bitMapToSignerIndices();
+    for (let i = 0; i < signature.signatures.length; i += 1) {
+      const singleSignature = signature.signatures[i];
+      const publicKey = this.publicKeys[signerIndices[i]];
+      if (!publicKey.verifySignature({ message, signature: singleSignature })) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Verifies the provided signature against the given message.
+   * This function helps ensure the integrity and authenticity of the message by checking if the signature is valid.
+   *
+   * @param args - The arguments for verifying the signature.
+   * @param args.aptosConfig - The Aptos configuration to use
+   * @param args.message - The message that was signed.
+   * @param args.signature - The signature to verify.
+   * @group Implementation
+   * @category Serialization
+   */
+  async verifySignatureAsync(args: {
+    aptosConfig: AptosConfig;
+    message: HexInput;
+    signature: Signature;
+    options?: { throwErrorWithReason?: boolean };
+  }): Promise<boolean> {
+    const { signature } = args;
+    try {
+      if (!(signature instanceof MultiKeySignature)) {
+        throw new Error("Signature is not a MultiKeySignature");
+      }
+      if (signature.signatures.length !== this.signaturesRequired) {
+        throw new Error("The number of signatures does not match the number of required signatures");
+      }
+      const signerIndices = signature.bitMapToSignerIndices();
+      for (let i = 0; i < signature.signatures.length; i += 1) {
+        const singleSignature = signature.signatures[i];
+        const publicKey = this.publicKeys[signerIndices[i]];
+        if (!(await publicKey.verifySignatureAsync({ ...args, signature: singleSignature }))) {
+          return false;
+        }
+      }
+      return true;
+    } catch (error) {
+      if (args.options?.throwErrorWithReason) {
+        throw error;
+      }
+      return false;
+    }
   }
 
   /**
@@ -384,6 +440,31 @@ export class MultiKeySignature extends Signature {
     });
 
     return bitmap;
+  }
+
+  /**
+   * Converts the bitmap to an array of signer indices.
+   *
+   * Example:
+   *
+   * bitmap: [0b10001000, 0b01000000, 0b00000000, 0b00000000]
+   * signerIndices: [0, 4, 9]
+   *
+   * @returns An array of signer indices.
+   * @group Implementation
+   * @category Serialization
+   */
+  bitMapToSignerIndices(): number[] {
+    const signerIndices: number[] = [];
+    for (let i = 0; i < this.bitmap.length; i += 1) {
+      const byte = this.bitmap[i];
+      for (let bit = 0; bit < 8; bit += 1) {
+        if ((byte & (128 >> bit)) !== 0) {
+          signerIndices.push(i * 8 + bit);
+        }
+      }
+    }
+    return signerIndices;
   }
 
   // region Serializable

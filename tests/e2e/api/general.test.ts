@@ -1,17 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-  Network,
-  GraphqlQuery,
-  ProcessorType,
-  InputViewFunctionData,
-  InputViewFunctionJsonData,
-  MoveVector,
-  U64,
-  Deserializer,
-  AuthenticationKey,
-} from "../../../src";
+import { Network, GraphqlQuery, ProcessorType, InputViewFunctionData, InputViewFunctionJsonData } from "../../../src";
 import { getAptosClient } from "../helper";
 
 describe("general api", () => {
@@ -57,15 +47,6 @@ describe("general api", () => {
       const exists = (await aptos.view<[boolean]>({ payload }))[0];
 
       expect(exists).toBe(true);
-
-      const payload2: InputViewFunctionData = {
-        function: "0x1::account::exists_at",
-        functionArguments: ["0xc"],
-      };
-
-      const exists2 = (await aptos.view<[boolean]>({ payload: payload2 }))[0];
-
-      expect(exists2).toBe(false);
     });
 
     test("it fetches view function with address input and different output types", async () => {
@@ -86,43 +67,6 @@ describe("general api", () => {
       const authKey = (await aptos.view<[string]>({ payload: payload2 }))[0];
 
       expect(authKey).toEqual("0x0000000000000000000000000000000000000000000000000000000000000001");
-    });
-
-    test("it fetches view function with address input and different output types and BCS", async () => {
-      const payload: InputViewFunctionData = {
-        function: "0x1::account::get_sequence_number",
-        functionArguments: ["0x1"],
-      };
-
-      // First try with manual deserialization, deserialize the array of outputs
-      const sequenceNumberBytes = await aptos.experimental.viewBinary({ payload });
-      const deserializer = new Deserializer(sequenceNumberBytes);
-      const vector = MoveVector.deserialize<U64>(deserializer, U64);
-      expect(vector.values[0].value).toEqual(BigInt(0));
-
-      const payload2: InputViewFunctionData = {
-        function: "0x1::account::get_authentication_key",
-        functionArguments: ["0x1"],
-      };
-
-      // Try with a callback
-      const authKey = await aptos.experimental.viewBinary({
-        payload: payload2,
-        options: {
-          convert: (input) => {
-            const des = new Deserializer(input);
-            // Remove vector wrapper, it should be 1 element because there's only one return value
-            expect(des.deserializeUleb128AsU32()).toEqual(1);
-            // Remove the authentication key wrapper
-            expect(des.deserializeUleb128AsU32()).toEqual(32);
-            return AuthenticationKey.deserialize(des);
-          },
-        },
-      });
-
-      expect(authKey).toEqual(
-        new AuthenticationKey({ data: "0x0000000000000000000000000000000000000000000000000000000000000001" }),
-      );
     });
 
     test("it fetches view functions with generics", async () => {
@@ -150,15 +94,6 @@ describe("general api", () => {
 
       const supply = (await aptos.view<[{ vec: [string] }]>({ payload: payload3 }))[0].vec[0];
       expect(BigInt(supply)).toBeGreaterThan(BigInt(0));
-    });
-
-    test("view functions that fail in the VM fail here", async () => {
-      const payload: InputViewFunctionData = {
-        function: "0x1::account::get_sequence_number",
-        functionArguments: ["0xc"],
-      };
-
-      await expect(() => aptos.view<[string]>({ payload })).rejects.toThrow("VMError");
     });
   });
   describe("View json functions", () => {
@@ -191,15 +126,6 @@ describe("general api", () => {
       const exists = (await aptos.viewJson<[boolean]>({ payload }))[0];
 
       expect(exists).toBe(true);
-
-      const payload2: InputViewFunctionJsonData = {
-        function: "0x1::account::exists_at",
-        functionArguments: ["0x12345"],
-      };
-
-      const exists2 = (await aptos.viewJson<[boolean]>({ payload: payload2 }))[0];
-
-      expect(exists2).toBe(false);
     });
 
     test("it fetches view function with address input and different output types", async () => {
@@ -247,15 +173,6 @@ describe("general api", () => {
 
       const supply = (await aptos.viewJson<[{ vec: [string] }]>({ payload: payload3 }))[0].vec[0];
       expect(BigInt(supply)).toBeGreaterThan(BigInt(0));
-    });
-
-    test("view functions that fail in the VM fail here", async () => {
-      const payload: InputViewFunctionJsonData = {
-        function: "0x1::account::get_sequence_number",
-        functionArguments: ["0x123456"],
-      };
-
-      await expect(() => aptos.viewJson<[string]>({ payload })).rejects.toThrow("VMError");
     });
   });
 

@@ -3,7 +3,7 @@
 /**
  * Example to demonstrate how one can config the SDK to use a custom client.
  *
- * The SDK by default supports axios client on web environment and go client on node environment
+ * The SDK by default supports fetch client on web environment and got client on node environment
  * with http2 support.
  *
  * Need to provide a function with the signature
@@ -11,42 +11,13 @@
  *
  */
 import { Aptos, AptosConfig, ClientResponse, ClientRequest, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
+import dotenv from "dotenv";
+dotenv.config();
 // eslint-disable-next-line import/no-commonjs
 const superagent = require("superagent");
 
 // Default to devnet, but allow for overriding
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
-
-export async function fetchCustomClient<Req, Res>(requestOptions: ClientRequest<Req>): Promise<ClientResponse<Res>> {
-  const { params, method, url, headers, body } = requestOptions;
-
-  const customHeaders: any = {
-    ...headers,
-    customClient: true,
-  };
-
-  const request = {
-    headers: customHeaders,
-    body: JSON.stringify(body),
-    method,
-  };
-
-  let path = url;
-  if (params) {
-    path = `${url}?${params}`;
-  }
-
-  const response = await fetch(path, request);
-  const data = await response.json();
-  return {
-    status: response.status,
-    statusText: response.statusText,
-    data,
-    headers: response.headers,
-    config: response,
-    request,
-  };
-}
 
 export async function superagentCustomClient<Req, Res>(
   requestOptions: ClientRequest<Req>,
@@ -93,22 +64,8 @@ const example = async () => {
     console.log(`${chainInfo}`);
   }
 
-  async function withFetchClient() {
-    const config = new AptosConfig({ network: APTOS_NETWORK, client: { provider: fetchCustomClient } });
-    const aptos = new Aptos(config);
-
-    console.log(`\nclient being used ${config.client.provider.name}`);
-
-    const chainInfo = await aptos.getLedgerInfo();
-    console.log(`${JSON.stringify(chainInfo)}`);
-
-    const latestVersion = await aptos.getIndexerLastSuccessVersion();
-    console.log(`Latest indexer version: ${latestVersion}`);
-  }
-
-  // Call the inner functions
+  // Call the inner function
   await withSuperagentClient();
-  await withFetchClient();
 };
 
 example();

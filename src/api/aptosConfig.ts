@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import aptosClient, { bcsRequest } from "@aptos-labs/aptos-client";
+import aptosClient from "@aptos-labs/aptos-client";
 import { AptosSettings, ClientConfig, Client, FullNodeConfig, IndexerConfig, FaucetConfig } from "../types";
 import {
   NetworkToNodeAPI,
@@ -134,13 +134,22 @@ export class AptosConfig {
    * @group Client
    */
   constructor(settings?: AptosSettings) {
+    // If there are any endpoint overrides, they are custom networks, keep that in mind
+    if (settings?.fullnode || settings?.indexer || settings?.faucet || settings?.pepper || settings?.prover) {
+      if (settings?.network === Network.CUSTOM) {
+        console.info("Note: using CUSTOM network will require queries to lookup ChainId");
+      } else if (!settings?.network) {
+        throw new Error("Custom endpoints require a network to be specified");
+      }
+    }
+
     this.network = settings?.network ?? Network.DEVNET;
     this.fullnode = settings?.fullnode;
     this.faucet = settings?.faucet;
     this.pepper = settings?.pepper;
     this.prover = settings?.prover;
     this.indexer = settings?.indexer;
-    this.client = settings?.client ?? { provider: aptosClient, binaryProvider: bcsRequest };
+    this.client = settings?.client ?? { provider: aptosClient };
     this.clientConfig = settings?.clientConfig ?? {};
     this.fullnodeConfig = settings?.fullnodeConfig ?? {};
     this.indexerConfig = settings?.indexerConfig ?? {};

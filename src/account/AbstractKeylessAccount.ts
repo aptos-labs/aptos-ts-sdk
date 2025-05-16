@@ -13,9 +13,10 @@ import {
   EphemeralCertificate,
   ZeroKnowledgeSig,
   ZkProof,
-  getKeylessJWKs,
   MoveJWK,
   getKeylessConfig,
+  fetchJWK,
+  KeylessConfiguration,
 } from "../core/crypto";
 
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
@@ -428,12 +429,22 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
     return this.sign(signMess);
   }
 
+  getSigningMessage(transaction: AnyRawTransaction): Uint8Array {
+    if (this.proof === undefined) {
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.PROOF_NOT_FOUND,
+        details: "Proof not found - make sure to call `await account.checkKeylessAccountValidity()` before signing.",
+      });
+    }
+    const raw = deriveTransactionType(transaction);
+    const txnAndProof = new TransactionAndProof(raw, this.proof.proof);
+    return txnAndProof.hash();
+  }
+
   /**
    * Note - This function is currently incomplete and should only be used to verify ownership of the KeylessAccount
    *
    * Verifies a signature given the message.
-   *
-   * TODO: Groth16 proof verification
    *
    * @param args.message the message that was signed.
    * @param args.signature the KeylessSignature to verify
@@ -441,15 +452,24 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
    * @group Implementation
    * @category Account (On-Chain Model)
    */
-  verifySignature(args: { message: HexInput; signature: KeylessSignature }): boolean {
-    const { message, signature } = args;
-    if (this.isExpired()) {
-      return false;
-    }
-    if (!this.ephemeralKeyPair.getPublicKey().verifySignature({ message, signature: signature.ephemeralSignature })) {
-      return false;
-    }
-    return true;
+  verifySignature(args: {
+    message: HexInput;
+    signature: KeylessSignature;
+    jwk: MoveJWK;
+    keylessConfig: KeylessConfiguration;
+  }): boolean {
+    return this.publicKey.verifySignature(args);
+  }
+
+  async verifySignatureAsync(args: {
+    aptosConfig: AptosConfig;
+    message: HexInput;
+    signature: KeylessSignature;
+    options?: { throwErrorWithReason?: boolean };
+  }): Promise<boolean> {
+    return this.publicKey.verifySignatureAsync({
+      ...args,
+    });
   }
 
   /**
@@ -465,43 +485,7 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
     publicKey: KeylessPublicKey | FederatedKeylessPublicKey;
     kid: string;
   }): Promise<MoveJWK> {
-    const { aptosConfig, publicKey, kid } = args;
-    const keylessPubKey = publicKey instanceof KeylessPublicKey ? publicKey : publicKey.keylessPublicKey;
-    const { iss } = keylessPubKey;
-
-    let allJWKs: Map<string, MoveJWK[]>;
-    const jwkAddr = publicKey instanceof FederatedKeylessPublicKey ? publicKey.jwkAddress : undefined;
-    try {
-      allJWKs = await getKeylessJWKs({ aptosConfig, jwkAddr });
-    } catch (error) {
-      throw KeylessError.fromErrorType({
-        type: KeylessErrorType.FULL_NODE_JWKS_LOOKUP_ERROR,
-        error,
-        details: `Failed to fetch ${jwkAddr ? "Federated" : "Patched"}JWKs ${jwkAddr ? `for address ${jwkAddr}` : "0x1"}`,
-      });
-    }
-
-    // Find the corresponding JWK set by `iss`
-    const jwksForIssuer = allJWKs.get(iss);
-
-    if (jwksForIssuer === undefined) {
-      throw KeylessError.fromErrorType({
-        type: KeylessErrorType.INVALID_JWT_ISS_NOT_RECOGNIZED,
-        details: `JWKs for issuer ${iss} not found.`,
-      });
-    }
-
-    // Find the corresponding JWK by `kid`
-    const jwk = jwksForIssuer.find((key) => key.kid === kid);
-
-    if (jwk === undefined) {
-      throw KeylessError.fromErrorType({
-        type: KeylessErrorType.INVALID_JWT_JWK_NOT_FOUND,
-        details: `JWK with kid '${kid}' for issuer '${iss}' not found.`,
-      });
-    }
-
-    return jwk;
+    return fetchJWK(args);
   }
 }
 

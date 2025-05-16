@@ -9,9 +9,10 @@ import { Hex } from "../hex";
 import { HexInput, PrivateKeyVariants } from "../../types";
 import { isValidBIP44Path, mnemonicToSeed } from "./hdKey";
 import { PrivateKey } from "./privateKey";
-import { PublicKey, VerifySignatureArgs } from "./publicKey";
+import { PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { convertSigningMessage } from "./utils";
+import { AptosConfig } from "../../api";
 
 /**
  * Represents a Secp256k1 ECDSA public key.
@@ -69,13 +70,35 @@ export class Secp256k1PublicKey extends PublicKey {
    * @group Implementation
    * @category Serialization
    */
-  verifySignature(args: VerifySignatureArgs): boolean {
+  verifySignature(args: { message: HexInput; signature: Secp256k1Signature }): boolean {
     const { message, signature } = args;
     const messageToVerify = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
     const messageSha3Bytes = sha3_256(messageBytes);
     const signatureBytes = signature.toUint8Array();
     return secp256k1.verify(signatureBytes, messageSha3Bytes, this.key.toUint8Array(), { lowS: true });
+  }
+
+  /**
+   * Note: Secp256k1Signatures can be verified syncronously.
+   *
+   * Verifies the provided signature against the given message.
+   * This function helps ensure the integrity and authenticity of the message by confirming that the signature is valid.
+   *
+   * @param args - The arguments for signature verification.
+   * @param args.aptosConfig - The configuration object for connecting to the Aptos network
+   * @param args.message - The message that was signed.
+   * @param args.signature - The signature to verify, which must be an instance of Secp256k1Signature.
+   * @returns A boolean indicating whether the signature is valid for the given message.
+   * @group Implementation
+   * @category Serialization
+   */
+  async verifySignatureAsync(args: {
+    aptosConfig: AptosConfig;
+    message: HexInput;
+    signature: Secp256k1Signature;
+  }): Promise<boolean> {
+    return this.verifySignature(args);
   }
 
   /**
@@ -301,7 +324,7 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    * @category Serialization
    */
   toString(): string {
-    return this.toHexString();
+    return this.toAIP80String();
   }
 
   /**
