@@ -158,6 +158,7 @@ export class ConfidentialTransfer {
       sigmaProof.X5,
       ...sigmaProof.X6List,
       ...(sigmaProof.X7List ?? []),
+      ...sigmaProof.X8List,
     );
   }
 
@@ -364,10 +365,10 @@ export class ConfidentialTransfer {
       this.recipientEncryptionKeyU8,
       ...this.auditorsU8EncryptionKeys,
       ...this.encryptedActualBalance.map((el) => el.serialize()).flat(),
-      ...this.confidentialAmountAfterTransfer.amountEncrypted!.map((el) => el.serialize()).flat(),
       ...this.encryptedAmountByRecipient.map((el) => el.serialize()).flat(),
-      ...this.confidentialAmountToTransfer.amountEncrypted!.map(({ D }) => D.toRawBytes()).flat(),
       ...(this.auditorsCBList?.flat()?.map(({ D }) => D.toRawBytes()) ?? []),
+      ...this.confidentialAmountToTransfer.amountEncrypted!.map(({ D }) => D.toRawBytes()).flat(),
+      ...this.confidentialAmountAfterTransfer.amountEncrypted!.map((el) => el.serialize()).flat(),
       X1,
       ...X2List,
       ...X3List,
@@ -444,11 +445,10 @@ export class ConfidentialTransfer {
       recipientPublicKeyU8,
       ...auditorPKs,
       ...opts.encryptedActualBalance.map((el) => el.serialize()).flat(),
-      ...opts.encryptedActualBalanceAfterTransfer.map((el) => el.serialize()).flat(),
       ...opts.encryptedTransferAmountByRecipient.map((el) => el.serialize()).flat(),
-      ...opts.encryptedTransferAmountBySender.map(({ D }) => D.toRawBytes()).flat(),
       ...(opts.auditors?.auditorsCBList?.flat().map(({ D }) => D.toRawBytes()) || []),
-
+      ...opts.encryptedTransferAmountBySender.map(({ D }) => D.toRawBytes()).flat(),
+      ...opts.encryptedActualBalanceAfterTransfer.map((el) => el.serialize()).flat(),
       opts.sigmaProof.X1,
       ...opts.sigmaProof.X2List,
       ...opts.sigmaProof.X3List,

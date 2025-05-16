@@ -15,8 +15,6 @@ describe("Transfer", () => {
   const alice = getTestAccount();
   const aliceConfidential = getTestConfidentialAccount(alice);
 
-  console.log(aliceConfidential.publicKey().toString());
-
   const TRANSFER_AMOUNT = 2n;
   it(
     "Pre load wasm table map",
@@ -35,8 +33,6 @@ describe("Transfer", () => {
       accountAddress: AccountAddress.from(recipientAccAddr),
       tokenAddress: TOKEN_ADDRESS,
     });
-
-    console.log("recipientEncKey", recipientEncKey);
 
     const transferTx = await confidentialAsset.transferCoin({
       senderDecryptionKey: aliceConfidential,
