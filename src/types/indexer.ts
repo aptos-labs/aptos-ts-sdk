@@ -34,7 +34,6 @@ import {
   GetNamesQuery,
   GetTableItemsDataQuery,
   GetTableItemsMetadataQuery,
-  GetSignaturesQuery,
   GetAccountAddressesForAuthKeyQuery,
 } from "./generated/operations";
 
@@ -194,13 +193,6 @@ export type GetTableItemsDataResponse = GetTableItemsDataQuery["table_items"];
  * @category Types
  */
 export type GetTableItemsMetadataResponse = GetTableItemsMetadataQuery["table_metadatas"];
-
-/**
- * The response containing the account transactions for an account.
- * @group Implementation
- * @category Types
- */
-export type GetSignaturesResponse = GetSignaturesQuery["signatures"][0];
 
 /**
  * The response containing the current Aptos names from the GetNamesQuery.

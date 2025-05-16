@@ -6,7 +6,6 @@ import {
   AccountAddress,
   AccountAddressInput,
   createObjectAddress,
-  AccountPublicKey,
   BaseAccountPublicKey,
   PrivateKeyInput,
 } from "../core";
@@ -43,7 +42,6 @@ import {
   getInfo,
   getModule,
   getModules,
-  getPublicKeyFromAccountAddress,
   getResource,
   getResources,
   getTransactions,
