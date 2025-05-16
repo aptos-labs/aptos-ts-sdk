@@ -4,11 +4,11 @@
 import { Account as AccountModule } from "../account";
 import {
   AccountAddress,
-  PrivateKey,
   AccountAddressInput,
   createObjectAddress,
   AccountPublicKey,
-  PublicKey,
+  BaseAccountPublicKey,
+  PrivateKeyInput,
 } from "../core";
 import {
   AccountData,
@@ -48,6 +48,7 @@ import {
   getResources,
   getTransactions,
   lookupOriginalAccountAddress,
+  deriveOwnedAccountsFromSigner,
 } from "../internal/account";
 import { APTOS_COIN, APTOS_FA, ProcessorType } from "../utils/const";
 import { AptosConfig } from "./aptosConfig";
@@ -905,41 +906,98 @@ export class Account {
    * ```
    * @group Account
    */
-  async deriveAccountFromPrivateKey(args: { privateKey: PrivateKey }): Promise<AccountModule> {
+  async deriveAccountFromPrivateKey(args: { privateKey: PrivateKeyInput }): Promise<AccountModule> {
     return deriveAccountFromPrivateKey({ aptosConfig: this.config, ...args });
   }
 
-  async getPublicKeyFromAccountAddress(args: {
-    accountAddress: AccountAddressInput;
+  /**
+   * Derives all accounts owned by a signer. This function takes a signer (either an Account or PrivateKey)
+   * and returns all accounts that can be derived from it, ordered by the most recently used account first.
+   *
+   * Note, this function will not return accounts that require more than one signer to be used.
+   *
+   * @param args - The arguments for deriving owned accounts
+   * @param args.signer - The signer to derive accounts from (Account or PrivateKey)
+   * @param args.minimumLedgerVersion - The minimum ledger version to wait for before querying
+   * @param args.options.verified - Whether to only return accounts that have been verified to be used with the signer.  Default is true.
+   * @returns Promise resolving to an array of derived Account objects
+   *
+   * @example
+   * ```typescript
+   * import { Aptos, AptosConfig, Network, Ed25519Account } from "@aptos-labs/ts-sdk";
+   *
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   *
+   * async function getOwnedAccounts() {
+   *   const signer = Ed25519Account.generate();
+   *   const accounts = await aptos.deriveOwnedAccountsFromSigner({
+   *     signer
+   *   });
+   *   const account = accounts[0];
+   *   console.log(account);
+   * }
+   * ```
+   * @group Account
+   */
+  async deriveOwnedAccountsFromSigner(args: {
+    signer: AccountModule | PrivateKeyInput;
     minimumLedgerVersion?: AnyNumber;
-  }): Promise<PublicKey> {
+    options?: { verified?: boolean };
+  }): Promise<AccountModule[]> {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
       processorType: ProcessorType.DEFAULT,
     });
-    return getPublicKeyFromAccountAddress({
-      aptosConfig: this.config,
-      ...args,
-    });
+    return deriveOwnedAccountsFromSigner({ aptosConfig: this.config, ...args });
   }
 
+  /**
+   * Gets all account info (address, account public key, last transaction version) that have are associated with a public key.
+   *
+   * For a given public key, it will query all multikeys that the public key is part of.  Then for the provided public key and
+   * any multikeys found in the previous step, it will query for any accounts that have an auth key that matches any of the
+   * public keys.
+   *
+   * @param args - The arguments for getting accounts for a public key
+   * @param args.publicKey - The public key to look up accounts for
+   * @param args.minimumLedgerVersion - The minimum ledger version to wait for before querying
+   * @param args.options.verified - Whether to only return accounts that have been verified to use the public key. Default is true.
+   * @returns Promise resolving to an array of account addresses and their associated public keys
+   *
+   * @example
+   * ```typescript
+   * import { Aptos, AptosConfig, Network, Ed25519PrivateKey } from "@aptos-labs/ts-sdk";
+   *
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   *
+   * async function getAccounts() {
+   *   const privateKey = Ed25519PrivateKey.generate();
+   *   const publicKey = privateKey.publicKey();
+   *   const accounts = await aptos.getAccountsForPublicKey({
+   *     publicKey
+   *   });
+   *   console.log(accounts);
+   * }
+   * ```
+   * @group Account
+   */
   async getAccountsForPublicKey(args: {
-    publicKey: AccountPublicKey;
+    publicKey: BaseAccountPublicKey;
     minimumLedgerVersion?: AnyNumber;
     options?: { verified?: boolean };
   }): Promise<
     {
       accountAddress: AccountAddress;
-      publicKey: PublicKey;
-      verified: boolean;
-      lastTransactionVersion: number;
+      publicKey: BaseAccountPublicKey;
     }[]
   > {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorType: ProcessorType.DEFAULT,
+      processorType: ProcessorType.ACCOUNT_RESTORATION_PROCESSOR,
     });
     return getAccountsForPublicKey({
       aptosConfig: this.config,

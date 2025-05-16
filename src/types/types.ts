@@ -128,6 +128,21 @@ export enum AnyPublicKeyVariant {
   FederatedKeyless = 4,
 }
 
+export function anyPublicKeyVariantToString(variant: AnyPublicKeyVariant): string {
+  switch (variant) {
+    case AnyPublicKeyVariant.Ed25519:
+      return "ed25519";
+    case AnyPublicKeyVariant.Secp256k1:
+      return "secp256k1";
+    case AnyPublicKeyVariant.Keyless:
+      return "keyless";
+    case AnyPublicKeyVariant.FederatedKeyless:
+      return "federated_keyless";
+    default:
+      throw new Error("Unknown public key variant");
+  }
+}
+
 /**
  * Variants of signature types used for cryptographic operations.
  */

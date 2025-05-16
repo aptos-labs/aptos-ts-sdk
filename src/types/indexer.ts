@@ -34,8 +34,8 @@ import {
   GetNamesQuery,
   GetTableItemsDataQuery,
   GetTableItemsMetadataQuery,
-  GetMultiKeyForAuthKeyQuery,
   GetSignaturesQuery,
+  GetAccountAddressesForAuthKeyQuery,
 } from "./generated/operations";
 
 /**
@@ -81,6 +81,13 @@ export type GetAccountCollectionsWithOwnedTokenResponse =
  * @category Types
  */
 export type GetAccountCoinsDataResponse = GetAccountCoinsDataQuery["current_fungible_asset_balances"];
+
+/**
+ * The account addresses for an authentication key.
+ * @group Implementation
+ * @category Types
+ */
+export type GetAccountAddressesForAuthKeyResponse = GetAccountAddressesForAuthKeyQuery["auth_key_account_addresses"];
 
 /**
  * The response structure for retrieving user transactions from the top of the blockchain.
@@ -187,13 +194,6 @@ export type GetTableItemsDataResponse = GetTableItemsDataQuery["table_items"];
  * @category Types
  */
 export type GetTableItemsMetadataResponse = GetTableItemsMetadataQuery["table_metadatas"];
-
-/**
- * The response containing the multikey for an authentication key.
- * @group Implementation
- * @category Types
- */
-export type GetMultiKeyForAuthKeyResponse = GetMultiKeyForAuthKeyQuery["auth_key_multikey_layout"][0];
 
 /**
  * The response containing the account transactions for an account.

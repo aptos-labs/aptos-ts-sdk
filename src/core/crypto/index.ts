@@ -14,3 +14,4 @@ export * from "./publicKey";
 export * from "./secp256k1";
 export * from "./signature";
 export * from "./singleKey";
+export * from "./types";

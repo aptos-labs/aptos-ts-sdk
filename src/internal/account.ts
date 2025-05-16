@@ -12,12 +12,13 @@ import { AptosConfig } from "../api/aptosConfig";
 import { getAptosFullNode, paginateWithCursor, paginateWithObfuscatedCursor } from "../client";
 import {
   AccountData,
-  AnyPublicKeyVariant,
+  anyPublicKeyVariantToString,
+  CommittedTransactionResponse,
+  GetAccountAddressesForAuthKeyResponse,
   GetAccountCoinsDataResponse,
   GetAccountCollectionsWithOwnedTokenResponse,
   GetAccountOwnedTokensFromCollectionResponse,
   GetAccountOwnedTokensQueryResponse,
-  GetMultiKeyForAuthKeyResponse,
   GetObjectDataQueryResponse,
   isEd25519Signature,
   isMultiEd25519Signature,
@@ -31,21 +32,30 @@ import {
   PaginationArgs,
   PendingTransactionResponse,
   TokenStandardArg,
-  TransactionResponse,
   WhereArg,
 } from "../types";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { Account, Ed25519Account, MultiEd25519Account } from "../account";
+import {
+  Account,
+  Ed25519Account,
+  FederatedKeylessAccount,
+  KeylessAccount,
+  MultiEd25519Account,
+  MultiKeyAccount,
+  SingleKeyAccount,
+} from "../account";
 import {
   AbstractMultiKey,
   AccountPublicKey,
   AnyPublicKey,
+  BaseAccountPublicKey,
   Ed25519PublicKey,
   FederatedKeylessPublicKey,
+  getKeylessConfig,
   KeylessPublicKey,
   MultiEd25519PublicKey,
   MultiKey,
-  PrivateKey,
+  PrivateKeyInput,
   PublicKey,
   Secp256k1PublicKey,
 } from "../core/crypto";
@@ -60,7 +70,6 @@ import {
   GetAccountOwnedTokensQuery,
   GetAccountTokensCountQuery,
   GetAccountTransactionsCountQuery,
-  GetMultiKeyForAuthKeyQuery,
   GetAuthKeysForPublicKeyQuery,
   GetAccountAddressesForAuthKeyQuery,
 } from "../types/generated/operations";
@@ -73,7 +82,6 @@ import {
   GetAccountOwnedTokensFromCollection,
   GetAccountTokensCount,
   GetAccountTransactionsCount,
-  GetMultiKeyForAuthKey,
   GetAuthKeysForPublicKey,
   GetAccountAddressesForAuthKey,
 } from "../types/generated/queries";
@@ -162,9 +170,9 @@ export async function getTransactions(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
   options?: PaginationArgs;
-}): Promise<TransactionResponse[]> {
+}): Promise<CommittedTransactionResponse[]> {
   const { aptosConfig, accountAddress, options } = args;
-  return paginateWithCursor<{}, TransactionResponse[]>({
+  return paginateWithCursor<{}, CommittedTransactionResponse[]>({
     aptosConfig,
     originMethod: "getTransactions",
     path: `accounts/${AccountAddress.from(accountAddress).toString()}/transactions`,
@@ -709,7 +717,7 @@ export async function getAccountOwnedObjects(args: {
  *
  * NOTE: There is a potential issue once the unified single signer scheme is adopted by the community.
  * Because one could create two accounts with the same private key with this new authenticator type,
- * we’ll need to determine the order in which we look up the accounts: first unified scheme and then legacy scheme,
+ * we'll need to determine the order in which we look up the accounts: first unified scheme and then legacy scheme,
  * or first legacy scheme and then unified scheme.
  *
  * @param args - The arguments for deriving the account.
@@ -720,44 +728,15 @@ export async function getAccountOwnedObjects(args: {
  */
 export async function deriveAccountFromPrivateKey(args: {
   aptosConfig: AptosConfig;
-  privateKey: PrivateKey;
+  privateKey: PrivateKeyInput;
 }): Promise<Account> {
   const { aptosConfig, privateKey } = args;
-  const publicKey = new AnyPublicKey(privateKey.publicKey());
 
-  if (privateKey instanceof Secp256k1PrivateKey) {
-    // private key is secp256k1, therefore we know it for sure uses a single signer key
-    const authKey = AuthenticationKey.fromPublicKey({ publicKey });
-    const address = authKey.derivedAddress();
-    return Account.fromPrivateKey({ privateKey, address });
+  const accounts = await deriveOwnedAccountsFromPrivateKey({ aptosConfig, privateKey });
+  if (accounts.length === 0) {
+    throw new Error(`Can't derive account from private key ${privateKey}`);
   }
-
-  if (privateKey instanceof Ed25519PrivateKey) {
-    // lookup single sender ed25519
-    const singleSenderTransactionAuthenticatorAuthKey = AuthenticationKey.fromPublicKey({
-      publicKey,
-    });
-    const isSingleSenderTransactionAuthenticator = await isAccountExist({
-      authKey: singleSenderTransactionAuthenticatorAuthKey,
-      aptosConfig,
-    });
-    if (isSingleSenderTransactionAuthenticator) {
-      const address = singleSenderTransactionAuthenticatorAuthKey.derivedAddress();
-      return Account.fromPrivateKey({ privateKey, address, legacy: false });
-    }
-    // lookup legacy ed25519
-    const legacyAuthKey = AuthenticationKey.fromPublicKey({
-      publicKey: publicKey.publicKey as Ed25519PublicKey,
-    });
-    const isLegacyEd25519 = await isAccountExist({ authKey: legacyAuthKey, aptosConfig });
-    if (isLegacyEd25519) {
-      const address = legacyAuthKey.derivedAddress();
-      return Account.fromPrivateKey({ privateKey, address, legacy: true });
-    }
-  }
-  // if we are here, it means we couldn't find an address with an
-  // auth key that matches the provided private key
-  throw new Error(`Can't derive account from private key ${privateKey}`);
+  return accounts[0];
 }
 
 /**
@@ -778,12 +757,38 @@ export async function isAccountExist(args: { aptosConfig: AptosConfig; authKey: 
     authenticationKey: authKey.derivedAddress(),
   });
 
+  return doesAccountExistAtAddress({ aptosConfig, accountAddress });
+}
+
+async function doesAccountExistAtAddress(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: AccountAddress;
+  options?: { authKey?: AuthenticationKey };
+}): Promise<boolean> {
+  const { aptosConfig, accountAddress, options } = args;
   try {
-    await getInfo({
+    const resources = await getResources({
       aptosConfig,
       accountAddress,
     });
-    return true;
+
+    const accountResource: MoveResource<{ authentication_key: string }> | undefined = resources.find(
+      (r) => r.type === "0x1::account::Account",
+    ) as MoveResource<{ authentication_key: string }> | undefined;
+    if (!accountResource) {
+      return false;
+    }
+
+    // If no auth key is provided as an argument, return true.
+    if (!options?.authKey) {
+      return true;
+    }
+
+    if (accountResource.data.authentication_key === options.authKey.toString()) {
+      return true;
+    }
+
+    return false;
   } catch (error: any) {
     // account not found
     if (error.status === 404) {
@@ -984,246 +989,224 @@ async function rotateAuthKeyUnverified(args: {
   });
 }
 
-async function getMultiKeysForAuthenticationKeys(args: {
+export async function deriveOwnedAccountsFromSigner(args: {
   aptosConfig: AptosConfig;
-  authKeys: AuthenticationKey[];
-}): Promise<{ authKey: AuthenticationKey; publicKey: MultiKey | MultiEd25519PublicKey }[]> {
-  const { aptosConfig, authKeys } = args;
-  if (authKeys.length === 0) {
-    throw new Error("No authentication keys provided");
+  signer: Account | PrivateKeyInput;
+  options?: { verified?: boolean };
+}): Promise<Account[]> {
+  const { aptosConfig, signer, options } = args;
+
+  if (signer instanceof Ed25519PrivateKey || signer instanceof Secp256k1PrivateKey) {
+    return deriveOwnedAccountsFromPrivateKey({ aptosConfig, privateKey: signer, options });
   }
 
-  const whereCondition: { auth_key: { _in: string[] } } = {
-    auth_key: { _in: authKeys.map((authKey) => authKey.toString()) },
-  };
+  if (signer instanceof Ed25519Account || signer instanceof SingleKeyAccount) {
+    return deriveOwnedAccountsFromPrivateKey({ aptosConfig, privateKey: signer.privateKey, options });
+  }
 
-  const graphqlQuery = {
-    query: GetMultiKeyForAuthKey,
-    variables: {
-      where_condition: whereCondition,
-    },
-  };
-  const { auth_key_multikey_layout: data } = await queryIndexer<GetMultiKeyForAuthKeyQuery>({
-    aptosConfig,
-    query: graphqlQuery,
-    originMethod: "getMultiKeysForAuthenticationKeys",
-  });
+  if (signer instanceof KeylessAccount || signer instanceof FederatedKeylessAccount) {
+    return deriveOwnedAccountsFromKeylessSigner({ aptosConfig, keylessAccount: signer, options });
+  }
 
-  const authKeyToMultiKey = new Map(data.map((entry) => [entry.auth_key, entry]));
-
-  const result: { authKey: AuthenticationKey; publicKey: MultiKey | MultiEd25519PublicKey }[] = [];
-  for (let i = 0; i < authKeys.length; i += 1) {
-    const entry = authKeyToMultiKey.get(authKeys[i].toString());
-    if (!entry) {
-      throw new Error(`Failed to find multikey for authentication key ${authKeys[i]}`);
+  if (signer instanceof MultiKeyAccount) {
+    if (signer.signers.length === 1) {
+      return deriveOwnedAccountsFromSigner({ aptosConfig, signer: signer.signers[0], options });
     }
-    const publicKey = extractMultiKeyFromData(entry);
-    result.push({ authKey: authKeys[i], publicKey });
   }
 
-  return result;
+  if (signer instanceof MultiEd25519Account) {
+    if (signer.signers.length === 1) {
+      return deriveOwnedAccountsFromPrivateKey({ aptosConfig, privateKey: signer.signers[0], options });
+    }
+  }
+
+  throw new Error("Unknown signer type");
 }
 
-function extractMultiKeyFromData(data: GetMultiKeyForAuthKeyResponse): MultiKey | MultiEd25519PublicKey {
-  const signaturesRequired = data.signatures_required;
-  const multikeyLayout = data.multikey_layout_with_prefixes;
-  const multikeyType = data.multikey_type;
+async function deriveOwnedAccountsFromKeylessSigner(args: {
+  aptosConfig: AptosConfig;
+  keylessAccount: KeylessAccount | FederatedKeylessAccount;
+  options?: { verified?: boolean };
+}): Promise<Account[]> {
+  const { aptosConfig, keylessAccount, options } = args;
+  const addressesAndPublicKeys = await getAccountsForPublicKey({
+    aptosConfig,
+    publicKey: keylessAccount.getAnyPublicKey(),
+    options,
+  });
 
-  if (multikeyType === "multi_ed25519") {
-    const ed25519PublicKeys: Array<Ed25519PublicKey> = [];
-    for (const key of multikeyLayout) {
-      ed25519PublicKeys.push(new Ed25519PublicKey(key));
-    }
-    return new MultiEd25519PublicKey({
-      publicKeys: ed25519PublicKeys,
-      threshold: signaturesRequired,
-    });
-  }
-  if (multikeyType === "multi_key") {
-    const publicKeys: Array<PublicKey> = [];
-    for (const key of multikeyLayout) {
-      const deserializer = Deserializer.fromHex(key);
-      const variantIndex = deserializer.deserializeUleb128AsU32();
-      let publicKey: PublicKey;
-      switch (variantIndex) {
-        case AnyPublicKeyVariant.Ed25519:
-          publicKey = new Ed25519PublicKey(deserializer.deserializeFixedBytes(32));
-          break;
-        case AnyPublicKeyVariant.Secp256k1:
-          publicKey = new Secp256k1PublicKey(deserializer.deserializeFixedBytes(65));
-          break;
-        case AnyPublicKeyVariant.Keyless:
-          publicKey = KeylessPublicKey.deserialize(deserializer);
-          break;
-        case AnyPublicKeyVariant.FederatedKeyless:
-          publicKey = FederatedKeylessPublicKey.deserialize(deserializer);
-          break;
-        default:
-          throw new Error(`Unknown variant index for AnyPublicKey: ${variantIndex}`);
+  const keylessAccountParams = {
+    proof: keylessAccount.proofOrPromise,
+    jwt: keylessAccount.jwt,
+    ephemeralKeyPair: keylessAccount.ephemeralKeyPair,
+    pepper: keylessAccount.pepper,
+    verificationKeyHash: keylessAccount.verificationKeyHash,
+  };
+
+  const accounts: Account[] = [];
+  for (const { accountAddress, publicKey } of addressesAndPublicKeys) {
+    if (publicKey instanceof AbstractMultiKey) {
+      if (publicKey.getSignaturesRequired() > 1) {
+        continue;
       }
-      publicKeys.push(new AnyPublicKey(publicKey));
+      if (publicKey instanceof MultiEd25519PublicKey) {
+        throw new Error("Keyless authentication cannot be used for multi-ed25519 accounts. This should never happen.");
+      } else if (publicKey instanceof MultiKey) {
+        accounts.push(new MultiKeyAccount({ multiKey: publicKey, signers: [keylessAccount], address: accountAddress }));
+      }
+    } else {
+      if (keylessAccount instanceof FederatedKeylessAccount) {
+        accounts.push(
+          FederatedKeylessAccount.create({
+            ...keylessAccountParams,
+            address: accountAddress,
+            jwkAddress: keylessAccount.publicKey.jwkAddress,
+          }),
+        );
+      } else {
+        accounts.push(
+          KeylessAccount.create({
+            ...keylessAccountParams,
+            address: accountAddress,
+          }),
+        );
+      }
     }
-    return new MultiKey({
-      publicKeys,
-      signaturesRequired,
-    });
   }
-  throw new Error("Unknown multikey type");
+  return accounts;
 }
 
-async function getAuthKeysForPublicKey(args: {
+async function deriveOwnedAccountsFromPrivateKey(args: {
   aptosConfig: AptosConfig;
-  publicKey: Exclude<AccountPublicKey, AbstractMultiKey>;
+  privateKey: Ed25519PrivateKey | Secp256k1PrivateKey;
   options?: { verified?: boolean };
-}): Promise<AuthenticationKey[]> {
-  const { aptosConfig, publicKey, options } = args;
-  const verified = options?.verified ?? true;
-  let baseKey: PublicKey = publicKey;
-  if (publicKey instanceof AnyPublicKey) {
-    baseKey = publicKey.publicKey;
-  }
-  const whereCondition: any = {
-    public_key: { _eq: baseKey.toString() },
-    verified: { _eq: verified },
-  };
-  const graphqlQuery = {
-    query: GetAuthKeysForPublicKey,
-    variables: {
-      where_condition: whereCondition,
-    },
-  };
-  const { public_key_auth_keys: data } = await queryIndexer<GetAuthKeysForPublicKeyQuery>({
+}): Promise<Account[]> {
+  const { aptosConfig, privateKey, options } = args;
+  const singleKeyAccount = Account.fromPrivateKey({ privateKey, legacy: false });
+  const addressesAndPublicKeys = await getAccountsForPublicKey({
     aptosConfig,
-    query: graphqlQuery,
-    originMethod: "getAuthKeysForPublicKey",
+    publicKey: new AnyPublicKey(privateKey.publicKey()),
+    options,
   });
 
-  const sortedData = data.sort((a, b) => Number(b.last_transaction_version) - Number(a.last_transaction_version));
-  const authKeys = sortedData.map((entry) => new AuthenticationKey({ data: entry.auth_key }));
-  return authKeys;
-}
+  const accounts: Account[] = [];
 
-async function getLastestTransactionVersionForAddress(args: {
-  aptosConfig: AptosConfig;
-  accountAddress: AccountAddressInput;
-}): Promise<number> {
-  const { aptosConfig, accountAddress } = args;
-  const address = AccountAddress.from(accountAddress).toString();
-  const whereCondition: any = {
-    address: { _eq: address.toString() },
-    verified: { _eq: true },
-  };
-
-  const graphqlQuery = {
-    query: GetAccountAddressesForAuthKey,
-    variables: {
-      where_condition: whereCondition,
-    },
-  };
-  const { auth_key_account_addresses: data } = await queryIndexer<GetAccountAddressesForAuthKeyQuery>({
-    aptosConfig,
-    query: graphqlQuery,
-    originMethod: "getAccountAddressesForAuthKeys",
-  });
-  if (data.length !== 1) {
-    throw new Error(`Expected 1 account address for address ${address}, got ${data.length}`);
+  // Iterate through the addressesAndPublicKeys and construct the accounts.
+  for (const { accountAddress, publicKey } of addressesAndPublicKeys) {
+    if (publicKey instanceof AbstractMultiKey) {
+      // Skip multi-key accounts with more than 1 signature required as the user does not have full ownership with just 1 private key.
+      if (publicKey.getSignaturesRequired() > 1) {
+        continue;
+      }
+      // Construct the appropriate multi-key type.
+      if (publicKey instanceof MultiEd25519PublicKey) {
+        accounts.push(
+          new MultiEd25519Account({ publicKey, signers: [privateKey as Ed25519PrivateKey], address: accountAddress }),
+        );
+      } else if (publicKey instanceof MultiKey) {
+        accounts.push(
+          new MultiKeyAccount({ multiKey: publicKey, signers: [singleKeyAccount], address: accountAddress }),
+        );
+      }
+    } else {
+      // Check if the public key is a legacy Ed25519PublicKey, if so, we need to use the legacy account constructor.
+      const isLegacy = publicKey instanceof Ed25519PublicKey;
+      accounts.push(Account.fromPrivateKey({ privateKey, address: accountAddress, legacy: isLegacy }));
+    }
   }
-  return Number(data[0].last_transaction_version);
-}
-
-async function getAccountAddressesForAuthKeys(args: {
-  aptosConfig: AptosConfig;
-  authKeys: AuthenticationKey[];
-  options?: { verified?: boolean };
-}): Promise<
-  { authKey: AuthenticationKey; accountAddress: AccountAddress; verified: boolean; lastTransactionVersion: number }[]
-> {
-  const { aptosConfig, options, authKeys } = args;
-  const verified = options?.verified ?? true;
-  if (authKeys.length === 0) {
-    throw new Error("No authentication keys provided");
-  }
-
-  const whereCondition: any = {
-    auth_key: { _in: authKeys.map((authKey) => authKey.toString()) },
-    verified: { _eq: verified },
-  };
-
-  const graphqlQuery = {
-    query: GetAccountAddressesForAuthKey,
-    variables: {
-      where_condition: whereCondition,
-    },
-  };
-  const { auth_key_account_addresses: data } = await queryIndexer<GetAccountAddressesForAuthKeyQuery>({
-    aptosConfig,
-    query: graphqlQuery,
-    originMethod: "getAccountAddressesForAuthKeys",
-  });
-  return data.map((entry) => ({
-    authKey: new AuthenticationKey({ data: entry.auth_key }),
-    accountAddress: new AccountAddress(Hex.hexInputToUint8Array(entry.address)),
-    verified: entry.verified,
-    lastTransactionVersion: Number(entry.last_transaction_version),
-  }));
+  return accounts;
 }
 
 export async function getAccountsForPublicKey(args: {
   aptosConfig: AptosConfig;
-  publicKey: AccountPublicKey;
+  publicKey: BaseAccountPublicKey;
+  options?: { verified?: boolean };
 }): Promise<
-  { accountAddress: AccountAddress; publicKey: PublicKey; verified: boolean; lastTransactionVersion: number }[]
+  {
+    accountAddress: AccountAddress;
+    publicKey: BaseAccountPublicKey;
+    lastTransactionVersion: number;
+  }[]
 > {
-  const { aptosConfig, publicKey } = args;
+  const { aptosConfig, publicKey, options } = args;
+  const allPublicKeys: BaseAccountPublicKey[] = [publicKey];
 
-  let baseKey: PublicKey = publicKey;
-  if (publicKey instanceof AnyPublicKey) {
-    baseKey = publicKey.publicKey;
+  // For Ed25519, we add the both the legacy Ed25519PublicKey and the new AnyPublicKey form.
+  if (publicKey instanceof AnyPublicKey && publicKey.publicKey instanceof Ed25519PublicKey) {
+    allPublicKeys.push(publicKey.publicKey);
+  } else if (publicKey instanceof Ed25519PublicKey) {
+    allPublicKeys.push(new AnyPublicKey(publicKey));
   }
-  const singleKeyPublicKeys: AccountPublicKey[] = [];
-  if (baseKey instanceof Ed25519PublicKey) {
-    singleKeyPublicKeys.push(baseKey);
-  }
-  const anyPublicKey = new AnyPublicKey(baseKey);
-  singleKeyPublicKeys.push(anyPublicKey);
 
-  const singleKeyAuthKeyPublicKeyPairs = singleKeyPublicKeys.map((pubKey) => {
-    const authKey = pubKey.authKey();
-    return { authKey, publicKey: pubKey };
-  });
-
-  const multiKeyAuthKeys = await getAuthKeysForPublicKey({ aptosConfig, publicKey });
-
-  const [multiKeyPairs, authKeyAccountAddressPairs] = await Promise.all([
-    getMultiKeysForAuthenticationKeys({ aptosConfig, authKeys: multiKeyAuthKeys }),
-    getAccountAddressesForAuthKeys({
-      aptosConfig,
-      authKeys: multiKeyAuthKeys.concat(singleKeyAuthKeyPublicKeyPairs.map((pair) => pair.publicKey.authKey())),
-    }),
+  // Run both operations in parallel
+  const [defaultAccountData, multiPublicKeys] = await Promise.all([
+    // Check the provided public key for the default account. In the case of Ed25519, this will check both the legacy Ed25519PublicKey
+    // and the AnyPublicKey form and may an existing account for each.
+    Promise.all(
+      allPublicKeys.map(async (publicKey) => {
+        const addressAndLastTxnVersion = await getDefaultAccountInfoForPublicKey({ aptosConfig, publicKey });
+        if (addressAndLastTxnVersion) {
+          return { ...addressAndLastTxnVersion, publicKey };
+        }
+        return undefined;
+      }),
+    ),
+    // Get multi-keys for the provided public key if not already a multi-key.
+    !(publicKey instanceof AbstractMultiKey)
+      ? getMultiKeysForPublicKey({ aptosConfig, publicKey })
+      : Promise.resolve([]),
   ]);
-
-  const authKeyPublicKeyPairs = singleKeyAuthKeyPublicKeyPairs.concat(multiKeyPairs);
 
   const result: {
     accountAddress: AccountAddress;
-    publicKey: PublicKey;
-    verified: boolean;
+    publicKey: BaseAccountPublicKey;
     lastTransactionVersion: number;
   }[] = [];
-  const authKeyToPublicKey = new Map(authKeyPublicKeyPairs.map((pair) => [pair.authKey.toString(), pair.publicKey]));
+
+  // Add any default accounts that exist to the result.
+  for (const data of defaultAccountData) {
+    if (data) {
+      result.push(data);
+    }
+  }
+
+  // Add any multi-keys to allPublicKeys
+  allPublicKeys.push(...multiPublicKeys);
+
+  // Get a map of the auth key to the public key for all public keys.
+  const authKeyToPublicKey = new Map(allPublicKeys.map((key) => [key.authKey().toString(), key]));
+
+  // Get the account addresses for the auth keys.
+  const authKeyAccountAddressPairs = await getAccountAddressesForAuthKeys({
+    aptosConfig,
+    authKeys: allPublicKeys.map((key) => key.authKey()),
+    options: {
+      orderBy: [{ last_transaction_version: "desc" }],
+      verified: options?.verified,
+    },
+  });
+
   for (const authKeyAccountAddressPair of authKeyAccountAddressPairs) {
-    if (!authKeyToPublicKey.has(authKeyAccountAddressPair.authKey.toString())) {
-      throw new Error(`No publicKey found for authentication key ${authKeyAccountAddressPair.authKey}.`);
+    // Skip if the account address is already in the result.
+    // This can happen in the rare edge case where the default account has been rotated but has been rotated back to the original auth key.
+    if (result.find((r) => r.accountAddress === authKeyAccountAddressPair.accountAddress)) {
+      continue;
+    }
+    // Get the public key for the auth key using the map we created earlier.
+    const publicKey = authKeyToPublicKey.get(authKeyAccountAddressPair.authKey.toString());
+    if (!publicKey) {
+      throw new Error(
+        `No publicKey found for authentication key ${authKeyAccountAddressPair.authKey}. This should never happen.`,
+      );
     }
     result.push({
       accountAddress: authKeyAccountAddressPair.accountAddress,
-      publicKey: authKeyToPublicKey.get(authKeyAccountAddressPair.authKey.toString()) as PublicKey,
-      verified: authKeyAccountAddressPair.verified,
+      publicKey,
       lastTransactionVersion: authKeyAccountAddressPair.lastTransactionVersion,
     });
   }
-
-  return result;
+  // Sort the result by the last transaction version in descending order (most recent first).
+  return result.sort((a, b) => b.lastTransactionVersion - a.lastTransactionVersion);
 }
 
 export async function getPublicKeyFromAccountAddress(args: {
@@ -1232,9 +1215,21 @@ export async function getPublicKeyFromAccountAddress(args: {
 }): Promise<PublicKey> {
   const { aptosConfig, accountAddress } = args;
 
-  const accountData = await getInfo({ aptosConfig, accountAddress });
+  const resources = await getResources({
+    aptosConfig,
+    accountAddress,
+  });
+  const accountResource: MoveResource<{ authentication_key: string }> | undefined = resources.find(
+    (r) => r.type === "0x1::account::Account",
+  ) as MoveResource<{ authentication_key: string }> | undefined;
 
-  const lastTransactionVersion = await getLastestTransactionVersionForAddress({
+  if (!accountResource) {
+    throw new Error("Account does not exist");
+  }
+
+  const authenticationKey = new AuthenticationKey({ data: accountResource.data.authentication_key });
+
+  const lastTransactionVersion = await getLatestTransactionVersionForAddress({
     aptosConfig,
     accountAddress,
   });
@@ -1261,6 +1256,9 @@ export async function getPublicKeyFromAccountAddress(args: {
     if (signature.public_key.type === "keyless") {
       const deserializer = Deserializer.fromHex(signature.public_key.value);
       publicKey = new AnyPublicKey(KeylessPublicKey.deserialize(deserializer));
+    } else if (signature.public_key.type === "federated_keyless") {
+      const deserializer = Deserializer.fromHex(signature.public_key.value);
+      publicKey = new AnyPublicKey(FederatedKeylessPublicKey.deserialize(deserializer));
     } else if (signature.public_key.type === "ed25519") {
       publicKey = new AnyPublicKey(new Ed25519PublicKey(signature.public_key.value));
     } else if (signature.public_key.type === "secp256k1_ecdsa") {
@@ -1271,29 +1269,175 @@ export async function getPublicKeyFromAccountAddress(args: {
   } else {
     throw new Error("Unknown signature type");
   }
-  if (publicKey.authKey().toString() !== accountData.authentication_key) {
+  if (publicKey.authKey().toString() !== authenticationKey.toString()) {
+    // Derived public key does not match authentication key. This can happen if the account in the most recent transaction.
     throw new Error(
-      "Derived public key does not match authentication key. The most recent signature was likely a key rotation.",
+      "Derived public key does not match authentication key. This can happen if the account in the most recent transaction.",
     );
   }
   return publicKey;
 }
 
-export async function getMultiKeyFromAuthenticationKey(args: {
+/**
+ * Gets the multi-keys for a given public key.
+ *
+ * This function retrieves the multi-keys that contain the provided public key.
+ * It performs the following steps:
+ * 1. Constructs a where condition for the public key where the public key matches the provided public key.
+ * 2. Queries the indexer for the multi-keys.
+ * 3. Returns the multi-keys.
+ *
+ * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.publicKey - The public key to get the multi-keys for. This public key cannot itself be a multi-key.
+ * @returns The multi-keys (MultiKey or MultiEd25519PublicKey) that contain the given public key.
+ */
+async function getMultiKeysForPublicKey(args: {
   aptosConfig: AptosConfig;
-  authKey: AuthenticationKey;
-}): Promise<MultiKey | MultiEd25519PublicKey> {
-  const { aptosConfig, authKey } = args;
-
-  const result = await getMultiKeysForAuthenticationKeys({ aptosConfig, authKeys: [authKey] });
-
-  if (result.length === 0) {
-    throw new Error(`No multikey found for the given authentication key ${authKey}`);
+  publicKey: Ed25519PublicKey | AnyPublicKey;
+  options?: { verified?: boolean };
+}): Promise<(MultiKey | MultiEd25519PublicKey)[]> {
+  const { aptosConfig, publicKey, options } = args;
+  if (publicKey instanceof AbstractMultiKey) {
+    throw new Error("Public key is a multi-key.");
   }
-  if (result.length > 1) {
-    // This should never happen. Rows are uniquely keyed by auth key.
-    throw new Error(`More than one multikey found for the given authentication key ${authKey}`);
-  }
+  const verified = options?.verified ?? true;
+  const anyPublicKey = publicKey instanceof AnyPublicKey ? publicKey : new AnyPublicKey(publicKey);
+  const baseKey = anyPublicKey.publicKey;
+  const variant = anyPublicKeyVariantToString(anyPublicKey.variant);
 
-  return result[0].publicKey;
+  const whereCondition: any = {
+    public_key: { _eq: baseKey.toString() },
+    public_key_type: { _eq: variant },
+    is_public_key_used: { _eq: verified },
+  };
+
+  const graphqlQuery = {
+    query: GetAuthKeysForPublicKey,
+    variables: {
+      where_condition: whereCondition,
+    },
+  };
+
+  const { public_key_auth_keys: data } = await queryIndexer<GetAuthKeysForPublicKeyQuery>({
+    aptosConfig,
+    query: graphqlQuery,
+    originMethod: "getAuthKeysForPublicKey",
+  });
+
+  const authKeys = data.map((entry) => {
+    switch (entry.signature_type) {
+      case "multi_ed25519_signature":
+        return MultiEd25519PublicKey.deserializeWithoutLength(Deserializer.fromHex(entry.account_public_key!));
+      case "multi_key_signature":
+        return MultiKey.deserialize(Deserializer.fromHex(entry.account_public_key!));
+      default:
+        throw new Error(`Unknown multi-signature type: ${entry.signature_type}`);
+    }
+  });
+  return authKeys;
+}
+
+/**
+ * Gets the account addresses for the given authentication keys.
+ *
+ * This function retrieves the account addresses that are associated with the provided authentication keys.
+ * It performs the following steps:
+ * 1. Constructs a where condition for the authentication keys where auth key matches any of the provided auth keys.
+ * 2. Queries the indexer for the account addresses.
+ * 3. Returns the account addresses.
+ *
+ * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.authKeys - The authentication keys to get the account addresses for.
+ * @param args.options.verified - Whether to only include addresses that are verified, meaning the account has
+ * proved ownership of the auth key. Default is true.
+ * @param args.options.orderBy - The order by clause for the query.
+ * @returns The account addresses associated with the given authentication keys.
+ */
+async function getAccountAddressesForAuthKeys(args: {
+  aptosConfig: AptosConfig;
+  authKeys: AuthenticationKey[];
+  options?: { verified?: boolean } & OrderByArg<GetAccountAddressesForAuthKeyResponse[0]>;
+}): Promise<{ authKey: AuthenticationKey; accountAddress: AccountAddress; lastTransactionVersion: number }[]> {
+  const { aptosConfig, authKeys, options } = args;
+  const verified = options?.verified ?? true;
+  if (authKeys.length === 0) {
+    throw new Error("No authentication keys provided");
+  }
+  const whereCondition: any = {
+    auth_key: { _in: authKeys.map((authKey) => authKey.toString()) },
+    is_auth_key_used: { _eq: verified },
+  };
+
+  const graphqlQuery = {
+    query: GetAccountAddressesForAuthKey,
+    variables: {
+      where_condition: whereCondition,
+      order_by: options?.orderBy,
+    },
+  };
+  const { auth_key_account_addresses: data } = await queryIndexer<GetAccountAddressesForAuthKeyQuery>({
+    aptosConfig,
+    query: graphqlQuery,
+    originMethod: "getAccountAddressesForAuthKeys",
+  });
+  return data.map((entry) => ({
+    authKey: new AuthenticationKey({ data: entry.auth_key }),
+    accountAddress: new AccountAddress(Hex.hexInputToUint8Array(entry.account_address)),
+    lastTransactionVersion: Number(entry.last_transaction_version),
+  }));
+}
+
+/**
+ * Returns the last transaction version that was signed by an account.
+ *
+ * If an account was created but has not signed any transactions, the last transaction version will be 0.
+ *
+ * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.accountAddress - The account address to get the latest transaction version for.
+ * @returns The last transaction version that was signed by the account.
+ */
+async function getLatestTransactionVersionForAddress(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: AccountAddressInput;
+}): Promise<number> {
+  const { aptosConfig, accountAddress } = args;
+  const transactions = await getTransactions({ aptosConfig, accountAddress, options: { limit: 1 } });
+  if (transactions.length === 0) {
+    return 0;
+  }
+  return Number(transactions[0].version);
+}
+
+/**
+ * Gets the default account info for a given public key. 'Default account' means the account
+ * is address is the same as the auth key derived from the public key and the account auth key has
+ * not been rotated.
+ *
+ * @param args - The arguments for getting the default account info for a given public key.
+ * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.publicKey - The public key to use to derive the address.
+ * @returns An object containing the account address and the last transaction version, or undefined if the account does not exist.
+ */
+async function getDefaultAccountInfoForPublicKey(args: {
+  aptosConfig: AptosConfig;
+  publicKey: AccountPublicKey;
+}): Promise<{ accountAddress: AccountAddress; lastTransactionVersion: number } | undefined> {
+  const { aptosConfig, publicKey } = args;
+  const derivedAddress = publicKey.authKey().derivedAddress();
+
+  const [lastTransactionVersion, exists] = await Promise.all([
+    getLatestTransactionVersionForAddress({
+      aptosConfig,
+      accountAddress: derivedAddress,
+    }),
+    doesAccountExistAtAddress({
+      aptosConfig,
+      accountAddress: derivedAddress,
+      options: { authKey: publicKey.authKey() },
+    }),
+  ]);
+  if (exists) {
+    return { accountAddress: derivedAddress, lastTransactionVersion };
+  }
+  return undefined;
 }

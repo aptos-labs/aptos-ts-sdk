@@ -83,12 +83,12 @@ export const CurrentTokenOwnershipFieldsFragmentDoc = `
 }
     `;
 export const GetAccountAddressesForAuthKey = `
-    query getAccountAddressesForAuthKey($where_condition: auth_key_account_addresses_bool_exp) {
-  auth_key_account_addresses(where: $where_condition) {
+    query getAccountAddressesForAuthKey($where_condition: auth_key_account_addresses_bool_exp, $order_by: [auth_key_account_addresses_order_by!]) {
+  auth_key_account_addresses(where: $where_condition, order_by: $order_by) {
     auth_key
-    address
+    account_address
     last_transaction_version
-    verified
+    is_auth_key_used
   }
 }
     `;
@@ -231,13 +231,15 @@ export const GetAccountTransactionsCount = `
 }
     `;
 export const GetAuthKeysForPublicKey = `
-    query getAuthKeysForPublicKey($where_condition: public_key_auth_keys_bool_exp) {
-  public_key_auth_keys(where: $where_condition) {
+    query getAuthKeysForPublicKey($where_condition: public_key_auth_keys_bool_exp, $order_by: [public_key_auth_keys_order_by!]) {
+  public_key_auth_keys(where: $where_condition, order_by: $order_by) {
     public_key
     public_key_type
     auth_key
+    account_public_key
     last_transaction_version
-    verified
+    is_public_key_used
+    signature_type
   }
 }
     `;
@@ -375,17 +377,6 @@ export const GetFungibleAssetMetadata = `
     token_standard
     supply_v2
     maximum_v2
-  }
-}
-    `;
-export const GetMultiKeyForAuthKey = `
-    query getMultiKeyForAuthKey($where_condition: auth_key_multikey_layout_bool_exp) {
-  auth_key_multikey_layout(where: $where_condition) {
-    auth_key
-    last_transaction_version
-    multikey_layout_with_prefixes
-    multikey_type
-    signatures_required
   }
 }
     `;
@@ -813,21 +804,6 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
             ...wrappedRequestHeaders,
           }),
         "getFungibleAssetMetadata",
-        "query",
-        variables,
-      );
-    },
-    getMultiKeyForAuthKey(
-      variables?: Types.GetMultiKeyForAuthKeyQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<Types.GetMultiKeyForAuthKeyQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<Types.GetMultiKeyForAuthKeyQuery>(GetMultiKeyForAuthKey, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "getMultiKeyForAuthKey",
         "query",
         variables,
       );

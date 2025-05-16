@@ -94,6 +94,8 @@ export abstract class AbstractMultiKey extends AccountPublicKey {
     }
     throw new Error(`Public key ${publicKey} not found in multi key set ${this.publicKeys}`);
   }
+
+  abstract getSignaturesRequired(): number;
 }
 
 /**
@@ -159,6 +161,10 @@ export class MultiKey extends AbstractMultiKey {
     );
 
     this.signaturesRequired = signaturesRequired;
+  }
+
+  getSignaturesRequired(): number {
+    return this.signaturesRequired;
   }
 
   // endregion

@@ -79,14 +79,15 @@ export type CurrentTokenOwnershipFieldsFragment = {
 
 export type GetAccountAddressesForAuthKeyQueryVariables = Types.Exact<{
   where_condition?: Types.InputMaybe<Types.AuthKeyAccountAddressesBoolExp>;
+  order_by?: Types.InputMaybe<Array<Types.AuthKeyAccountAddressesOrderBy> | Types.AuthKeyAccountAddressesOrderBy>;
 }>;
 
 export type GetAccountAddressesForAuthKeyQuery = {
   auth_key_account_addresses: Array<{
     auth_key: string;
-    address: string;
+    account_address: string;
     last_transaction_version: any;
-    verified: boolean;
+    is_auth_key_used: boolean;
   }>;
 };
 
@@ -361,6 +362,7 @@ export type GetAccountTransactionsCountQuery = {
 
 export type GetAuthKeysForPublicKeyQueryVariables = Types.Exact<{
   where_condition?: Types.InputMaybe<Types.PublicKeyAuthKeysBoolExp>;
+  order_by?: Types.InputMaybe<Array<Types.PublicKeyAuthKeysOrderBy> | Types.PublicKeyAuthKeysOrderBy>;
 }>;
 
 export type GetAuthKeysForPublicKeyQuery = {
@@ -368,8 +370,10 @@ export type GetAuthKeysForPublicKeyQuery = {
     public_key: string;
     public_key_type: string;
     auth_key: string;
+    account_public_key?: string | null;
     last_transaction_version: any;
-    verified: boolean;
+    is_public_key_used: boolean;
+    signature_type: string;
   }>;
 };
 
@@ -519,20 +523,6 @@ export type GetFungibleAssetMetadataQuery = {
     token_standard: string;
     supply_v2?: any | null;
     maximum_v2?: any | null;
-  }>;
-};
-
-export type GetMultiKeyForAuthKeyQueryVariables = Types.Exact<{
-  where_condition?: Types.InputMaybe<Types.AuthKeyMultikeyLayoutBoolExp>;
-}>;
-
-export type GetMultiKeyForAuthKeyQuery = {
-  auth_key_multikey_layout: Array<{
-    auth_key: string;
-    last_transaction_version: any;
-    multikey_layout_with_prefixes: any;
-    multikey_type: string;
-    signatures_required: any;
   }>;
 };
 

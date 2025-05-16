@@ -92,6 +92,10 @@ export class MultiEd25519PublicKey extends AbstractMultiKey {
     this.threshold = threshold;
   }
 
+  getSignaturesRequired(): number {
+    return this.threshold;
+  }
+
   // region AccountPublicKey
 
   /**
@@ -198,6 +202,28 @@ export class MultiEd25519PublicKey extends AbstractMultiKey {
    */
   static deserialize(deserializer: Deserializer): MultiEd25519PublicKey {
     const bytes = deserializer.deserializeBytes();
+    const threshold = bytes[bytes.length - 1];
+
+    const keys: Ed25519PublicKey[] = [];
+
+    for (let i = 0; i < bytes.length - 1; i += Ed25519PublicKey.LENGTH) {
+      const begin = i;
+      keys.push(new Ed25519PublicKey(bytes.subarray(begin, begin + Ed25519PublicKey.LENGTH)));
+    }
+    return new MultiEd25519PublicKey({ publicKeys: keys, threshold });
+  }
+
+  /**
+   * Deserializes a MultiEd25519Signature from the provided deserializer.
+   * This function helps in reconstructing a MultiEd25519Signature object from its serialized byte representation.
+   *
+   * @param deserializer - The deserializer instance used to read the serialized data.
+   * @group Implementation
+   * @category Serialization
+   */
+  static deserializeWithoutLength(deserializer: Deserializer): MultiEd25519PublicKey {
+    const length = deserializer.remaining();
+    const bytes = deserializer.deserializeFixedBytes(length);
     const threshold = bytes[bytes.length - 1];
 
     const keys: Ed25519PublicKey[] = [];
