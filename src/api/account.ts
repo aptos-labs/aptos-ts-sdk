@@ -998,7 +998,10 @@ export class Account {
    * @param args - The arguments for deriving owned accounts
    * @param args.signer - The signer to derive accounts from (Account or PrivateKey)
    * @param args.minimumLedgerVersion - The minimum ledger version to wait for before querying
-   * @param args.options.verified - Whether to only return accounts that have been verified to be used with the signer.  Default is true.
+   * @param args.options.includeUnverified - Whether to include unverified accounts in the results. Unverified accounts
+   * are accounts that can be authenticated with the signer, but there is no history of the signer using the account.
+   * Default is false.
+   * @param args.options.noMultiKey - If true, do not include multi-key accounts in the results. Default is false.
    * @returns Promise resolving to an array of derived Account objects
    *
    * @example
@@ -1022,7 +1025,7 @@ export class Account {
   async deriveOwnedAccountsFromSigner(args: {
     signer: AccountModule | PrivateKeyInput;
     minimumLedgerVersion?: AnyNumber;
-    options?: { verified?: boolean };
+    options?: { includeUnverified?: boolean; noMultiKey?: boolean };
   }): Promise<AccountModule[]> {
     await waitForIndexerOnVersion({
       config: this.config,
@@ -1042,7 +1045,10 @@ export class Account {
    * @param args - The arguments for getting accounts for a public key
    * @param args.publicKey - The public key to look up accounts for
    * @param args.minimumLedgerVersion - The minimum ledger version to wait for before querying
-   * @param args.options.verified - Whether to only return accounts that have been verified to use the public key. Default is true.
+   * @param args.options.includeUnverified - Whether to include unverified accounts in the results. Unverified accounts
+   * are accounts that can be authenticated with the signer, but there is no history of the signer using the account. Default
+   * is false.
+   * @param args.options.noMultiKey - Whether to exclude multi-key accounts in the results. Default is false.
    * @returns Promise resolving to an array of account addresses and their associated public keys
    *
    * @example
@@ -1066,7 +1072,7 @@ export class Account {
   async getAccountsForPublicKey(args: {
     publicKey: BaseAccountPublicKey;
     minimumLedgerVersion?: AnyNumber;
-    options?: { verified?: boolean };
+    options?: { includeUnverified?: boolean; noMultiKey?: boolean };
   }): Promise<
     {
       accountAddress: AccountAddress;

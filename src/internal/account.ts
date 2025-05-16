@@ -789,8 +789,11 @@ export async function getAccountOwnedObjects(args: {
 
 /**
  * Derives an account from the provided private key and Aptos configuration.
- * This function helps in obtaining the account details associated with a given private key,
- * considering both unified and legacy authentication schemes.
+ *
+ * This function queries all owned accounts for the provided private key and returns the most
+ * recently used account. If no account is found, it will throw an error unless `throwIfNoAccountFound` is set to false.
+ *
+ * If `throwIfNoAccountFound` is set to false, the function will return the default account for the private key via `Account.fromPrivateKey`.
  *
  * NOTE: There is a potential issue once the unified single signer scheme is adopted by the community.
  * Because one could create two accounts with the same private key with this new authenticator type,
@@ -800,6 +803,7 @@ export async function getAccountOwnedObjects(args: {
  * @param args - The arguments for deriving the account.
  * @param args.aptosConfig - The Aptos configuration used for account lookup.
  * @param args.privateKey - The private key used to derive the account.
+ * @param args.options.throwIfNoAccountFound - If true, throw an error if no existing account is found on chain. Default is true.
  * @throws Error if the account cannot be derived from the private key.
  * @group Implementation
  * @deprecated Note that more inspection is needed by the user to determine which account exists on-chain
@@ -807,12 +811,20 @@ export async function getAccountOwnedObjects(args: {
 export async function deriveAccountFromPrivateKey(args: {
   aptosConfig: AptosConfig;
   privateKey: PrivateKeyInput;
+  options?: {
+    throwIfNoAccountFound?: boolean;
+  };
 }): Promise<Account> {
-  const { aptosConfig, privateKey } = args;
+  const { aptosConfig, privateKey, options } = args;
+  const throwIfNoAccountFound = options?.throwIfNoAccountFound ?? true;
 
   const accounts = await deriveOwnedAccountsFromPrivateKey({ aptosConfig, privateKey });
   if (accounts.length === 0) {
-    throw new Error(`Can't derive account from private key ${privateKey}`);
+    if (throwIfNoAccountFound) {
+      throw new Error(`No existing account found for private key.`);
+    }
+    // If no account is found, return the default account. This is a legacy account for Ed25519 private keys.
+    return Account.fromPrivateKey({ privateKey });
   }
   return accounts[0];
 }
@@ -1070,7 +1082,7 @@ async function rotateAuthKeyUnverified(args: {
 export async function getAccountsForPublicKey(args: {
   aptosConfig: AptosConfig;
   publicKey: BaseAccountPublicKey;
-  options?: { verified?: boolean };
+  options?: { includeUnverified?: boolean; noMultiKey?: boolean };
 }): Promise<
   {
     accountAddress: AccountAddress;
@@ -1079,6 +1091,10 @@ export async function getAccountsForPublicKey(args: {
   }[]
 > {
   const { aptosConfig, publicKey, options } = args;
+  const noMultiKey = options?.noMultiKey ?? false;
+  if (noMultiKey && publicKey instanceof AbstractMultiKey) {
+    throw new Error("Multi-key accounts are not supported when noMultiKey is true.");
+  }
   const allPublicKeys: BaseAccountPublicKey[] = [publicKey];
 
   // For Ed25519, we add the both the legacy Ed25519PublicKey and the new AnyPublicKey form.
@@ -1102,8 +1118,8 @@ export async function getAccountsForPublicKey(args: {
       }),
     ),
     // Get multi-keys for the provided public key if not already a multi-key.
-    !(publicKey instanceof AbstractMultiKey)
-      ? getMultiKeysForPublicKey({ aptosConfig, publicKey })
+    !(publicKey instanceof AbstractMultiKey) && !noMultiKey
+      ? getMultiKeysForPublicKey({ aptosConfig, publicKey, options })
       : Promise.resolve([]),
   ]);
 
@@ -1130,10 +1146,7 @@ export async function getAccountsForPublicKey(args: {
   const authKeyAccountAddressPairs = await getAccountAddressesForAuthKeys({
     aptosConfig,
     authKeys: allPublicKeys.map((key) => key.authKey()),
-    options: {
-      orderBy: [{ last_transaction_version: "desc" }],
-      verified: options?.verified,
-    },
+    options,
   });
 
   for (const authKeyAccountAddressPair of authKeyAccountAddressPairs) {
@@ -1162,7 +1175,7 @@ export async function getAccountsForPublicKey(args: {
 export async function deriveOwnedAccountsFromSigner(args: {
   aptosConfig: AptosConfig;
   signer: Account | PrivateKeyInput;
-  options?: { verified?: boolean };
+  options?: { includeUnverified?: boolean; noMultiKey?: boolean };
 }): Promise<Account[]> {
   const { aptosConfig, signer, options } = args;
 
@@ -1196,7 +1209,7 @@ export async function deriveOwnedAccountsFromSigner(args: {
 async function deriveOwnedAccountsFromKeylessSigner(args: {
   aptosConfig: AptosConfig;
   keylessAccount: KeylessAccount | FederatedKeylessAccount;
-  options?: { verified?: boolean };
+  options?: { includeUnverified?: boolean; noMultiKey?: boolean };
 }): Promise<Account[]> {
   const { aptosConfig, keylessAccount, options } = args;
   const addressesAndPublicKeys = await getAccountsForPublicKey({
@@ -1249,7 +1262,7 @@ async function deriveOwnedAccountsFromKeylessSigner(args: {
 async function deriveOwnedAccountsFromPrivateKey(args: {
   aptosConfig: AptosConfig;
   privateKey: Ed25519PrivateKey | Secp256k1PrivateKey;
-  options?: { verified?: boolean };
+  options?: { includeUnverified?: boolean; noMultiKey?: boolean };
 }): Promise<Account[]> {
   const { aptosConfig, privateKey, options } = args;
   const singleKeyAccount = Account.fromPrivateKey({ privateKey, legacy: false });
@@ -1303,13 +1316,13 @@ async function deriveOwnedAccountsFromPrivateKey(args: {
 async function getMultiKeysForPublicKey(args: {
   aptosConfig: AptosConfig;
   publicKey: Ed25519PublicKey | AnyPublicKey;
-  options?: { verified?: boolean };
+  options?: { includeUnverified?: boolean };
 }): Promise<(MultiKey | MultiEd25519PublicKey)[]> {
   const { aptosConfig, publicKey, options } = args;
   if (publicKey instanceof AbstractMultiKey) {
     throw new Error("Public key is a multi-key.");
   }
-  const verified = options?.verified ?? true;
+  const includeUnverified = options?.includeUnverified ?? false;
   const anyPublicKey = publicKey instanceof AnyPublicKey ? publicKey : new AnyPublicKey(publicKey);
   const baseKey = anyPublicKey.publicKey;
   const variant = anyPublicKeyVariantToString(anyPublicKey.variant);
@@ -1317,7 +1330,7 @@ async function getMultiKeysForPublicKey(args: {
   const whereCondition: any = {
     public_key: { _eq: baseKey.toString() },
     public_key_type: { _eq: variant },
-    is_public_key_used: { _eq: verified },
+    ...(includeUnverified ? {} : { is_public_key_used: { _eq: true } }),
   };
 
   const graphqlQuery = {
@@ -1352,36 +1365,36 @@ async function getMultiKeysForPublicKey(args: {
  * This function retrieves the account addresses that are associated with the provided authentication keys.
  * It performs the following steps:
  * 1. Constructs a where condition for the authentication keys where auth key matches any of the provided auth keys.
- * 2. Queries the indexer for the account addresses.
+ * 2. Queries the indexer for the account addresses and gets the results ordered by the last transaction version (most recent first).
  * 3. Returns the account addresses.
  *
  * @param args.aptosConfig - The configuration settings for the Aptos network.
  * @param args.authKeys - The authentication keys to get the account addresses for.
- * @param args.options.verified - Whether to only include addresses that are verified, meaning the account has
- * proved ownership of the auth key. Default is true.
- * @param args.options.orderBy - The order by clause for the query.
+ * @param args.options.includeUnverified - Whether to include unverified accounts in the results. Unverified accounts
+ * are accounts that can be authenticated with the signer, but there is no history of the signer using the account.
+ * Default is false.
  * @returns The account addresses associated with the given authentication keys.
  */
 async function getAccountAddressesForAuthKeys(args: {
   aptosConfig: AptosConfig;
   authKeys: AuthenticationKey[];
-  options?: { verified?: boolean } & OrderByArg<GetAccountAddressesForAuthKeyResponse[0]>;
+  options?: { includeUnverified?: boolean };
 }): Promise<{ authKey: AuthenticationKey; accountAddress: AccountAddress; lastTransactionVersion: number }[]> {
   const { aptosConfig, authKeys, options } = args;
-  const verified = options?.verified ?? true;
+  const includeUnverified = options?.includeUnverified ?? false;
   if (authKeys.length === 0) {
     throw new Error("No authentication keys provided");
   }
   const whereCondition: any = {
     auth_key: { _in: authKeys.map((authKey) => authKey.toString()) },
-    is_auth_key_used: { _eq: verified },
+    ...(includeUnverified ? {} : { is_auth_key_used: { _eq: true } }),
   };
 
   const graphqlQuery = {
     query: GetAccountAddressesForAuthKey,
     variables: {
       where_condition: whereCondition,
-      order_by: options?.orderBy,
+      order_by: [{ last_transaction_version: "desc" }],
     },
   };
   const { auth_key_account_addresses: data } = await queryIndexer<GetAccountAddressesForAuthKeyQuery>({
