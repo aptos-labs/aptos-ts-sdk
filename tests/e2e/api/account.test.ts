@@ -379,31 +379,48 @@ describe("account api", () => {
     });
 
     describe("it derives an account from a private key", () => {
+      const config = new AptosConfig({
+        network: Network.DEVNET,
+      });
+      const aptos = new Aptos(config);
+
       test("single sender ed25519", async () => {
-        const config = new AptosConfig({ network: Network.LOCAL });
-        const aptos = new Aptos(config);
         const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
         await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100 });
 
         const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
-        // Note, this will now always return the legacy account
-        expect(derivedAccount.accountAddress.equals(account.accountAddress)).toEqual(false);
-      });
+        expect(derivedAccount.accountAddress.equals(account.accountAddress)).toEqual(true);
+      }, 15000);
       test("single sender secp256k1", async () => {
-        const config = new AptosConfig({ network: Network.LOCAL });
-        const aptos = new Aptos(config);
         const account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
+        await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100 });
 
         const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
         expect(derivedAccount).toStrictEqual(account);
       });
       test("legacy ed25519", async () => {
-        const config = new AptosConfig({ network: Network.LOCAL });
-        const aptos = new Aptos(config);
         const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
         await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100 });
 
         const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
+        expect(derivedAccount).toStrictEqual(account);
+      });
+      test("fails when account not created/funded and throwIfNoAccountFound is true", async () => {
+        const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+
+        expect(async () => {
+          await aptos.deriveAccountFromPrivateKey({
+            privateKey: account.privateKey,
+            options: { throwIfNoAccountFound: true },
+          });
+        }).rejects.toThrow("No existing account found for private key.");
+      });
+      test("returns default legacy ed25519 account if no account exists", async () => {
+        const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+
+        const derivedAccount = await aptos.deriveAccountFromPrivateKey({
+          privateKey: account.privateKey,
+        });
         expect(derivedAccount).toStrictEqual(account);
       });
     });

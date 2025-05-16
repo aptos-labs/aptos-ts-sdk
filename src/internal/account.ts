@@ -20,16 +20,11 @@ import {
   anyPublicKeyVariantToString,
   CommittedTransactionResponse,
   CursorPaginationArgs,
-  GetAccountAddressesForAuthKeyResponse,
   GetAccountCoinsDataResponse,
   GetAccountCollectionsWithOwnedTokenResponse,
   GetAccountOwnedTokensFromCollectionResponse,
   GetAccountOwnedTokensQueryResponse,
   GetObjectDataQueryResponse,
-  isEd25519Signature,
-  isMultiEd25519Signature,
-  isSingleSenderSignature,
-  isUserTransactionResponse,
   LedgerVersionArg,
   MoveModuleBytecode,
   MoveResource,
@@ -56,14 +51,9 @@ import {
   AnyPublicKey,
   BaseAccountPublicKey,
   Ed25519PublicKey,
-  FederatedKeylessPublicKey,
-  getKeylessConfig,
-  KeylessPublicKey,
   MultiEd25519PublicKey,
   MultiKey,
   PrivateKeyInput,
-  PublicKey,
-  Secp256k1PublicKey,
 } from "../core/crypto";
 import { queryIndexer } from "./general";
 import { getModule as getModuleUtil, getInfo as getInfoUtil } from "./utils";
@@ -97,11 +87,11 @@ import { getTableItem } from "./table";
 import { APTOS_COIN } from "../utils";
 import { AptosApiError } from "../errors";
 import { Deserializer } from "../bcs";
-import { getTransactionByVersion } from "./transaction";
 import { signAndSubmitTransaction, generateTransaction } from "./transactionSubmission";
 import { EntryFunctionABI, RotationProofChallenge, TypeTagU8, TypeTagVector } from "../transactions";
 import { U8, MoveVector } from "../bcs";
 import { waitForTransaction } from "./transaction";
+import { view } from "./view";
 
 /**
  * Retrieves account information for a specified account address.
@@ -803,7 +793,7 @@ export async function getAccountOwnedObjects(args: {
  * @param args - The arguments for deriving the account.
  * @param args.aptosConfig - The Aptos configuration used for account lookup.
  * @param args.privateKey - The private key used to derive the account.
- * @param args.options.throwIfNoAccountFound - If true, throw an error if no existing account is found on chain. Default is true.
+ * @param args.options.throwIfNoAccountFound - If true, throw an error if no existing account is found on chain. Default is false.
  * @throws Error if the account cannot be derived from the private key.
  * @group Implementation
  * @deprecated Note that more inspection is needed by the user to determine which account exists on-chain
@@ -816,7 +806,7 @@ export async function deriveAccountFromPrivateKey(args: {
   };
 }): Promise<Account> {
   const { aptosConfig, privateKey, options } = args;
-  const throwIfNoAccountFound = options?.throwIfNoAccountFound ?? true;
+  const throwIfNoAccountFound = options?.throwIfNoAccountFound ?? false;
 
   const accounts = await deriveOwnedAccountsFromPrivateKey({ aptosConfig, privateKey });
   if (accounts.length === 0) {
@@ -857,15 +847,26 @@ async function doesAccountExistAtAddress(args: {
 }): Promise<boolean> {
   const { aptosConfig, accountAddress, options } = args;
   try {
-    const resources = await getResources({
-      aptosConfig,
-      accountAddress,
-    });
-
+    const [resources, [balanceStr]] = await Promise.all([
+      getResources({
+        aptosConfig,
+        accountAddress,
+      }),
+      view<[string]>({
+        aptosConfig,
+        payload: {
+          function: "0x1::coin::balance",
+          typeArguments: ["0x1::aptos_coin::AptosCoin"],
+          functionArguments: [accountAddress],
+        },
+      }),
+    ]);
+    const balance = parseInt(balanceStr, 10);
     const accountResource: MoveResource<{ authentication_key: string }> | undefined = resources.find(
       (r) => r.type === "0x1::account::Account",
     ) as MoveResource<{ authentication_key: string }> | undefined;
-    if (!accountResource) {
+
+    if (!accountResource && balance === 0) {
       return false;
     }
 
@@ -874,11 +875,19 @@ async function doesAccountExistAtAddress(args: {
       return true;
     }
 
-    if (accountResource.data.authentication_key === options.authKey.toString()) {
-      return true;
+    // Get the auth key from the account resource or the getInfo function.
+    let authKey;
+    if (accountResource) {
+      authKey = accountResource.data.authentication_key;
+    } else {
+      authKey = accountAddress.toStringLong();
     }
 
-    return false;
+    if (authKey !== options.authKey.toString()) {
+      return false;
+    }
+
+    return true;
   } catch (error: any) {
     // account not found
     if (error.status === 404) {

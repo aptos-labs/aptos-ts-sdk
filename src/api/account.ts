@@ -985,7 +985,18 @@ export class Account {
    * @group Account
    * @deprecated Note that more inspection is needed by the user to determine which account exists on-chain
    */
-  async deriveAccountFromPrivateKey(args: { privateKey: PrivateKeyInput }): Promise<AccountModule> {
+  async deriveAccountFromPrivateKey(args: {
+    privateKey: PrivateKeyInput;
+    minimumLedgerVersion?: AnyNumber;
+    options?: {
+      throwIfNoAccountFound?: boolean;
+    };
+  }): Promise<AccountModule> {
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.ACCOUNT_RESTORATION_PROCESSOR,
+    });
     return deriveAccountFromPrivateKey({ aptosConfig: this.config, ...args });
   }
 
@@ -1030,7 +1041,7 @@ export class Account {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorType: ProcessorType.DEFAULT,
+      processorType: ProcessorType.ACCOUNT_RESTORATION_PROCESSOR,
     });
     return deriveOwnedAccountsFromSigner({ aptosConfig: this.config, ...args });
   }
