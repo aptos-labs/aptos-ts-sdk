@@ -167,11 +167,11 @@ export class ConfidentialWithdraw {
 
     const p = genFiatShamirChallenge(
       utf8ToBytes(ConfidentialWithdraw.FIAT_SHAMIR_SIGMA_DST),
-      concatBytes(...this.confidentialAmountToWithdraw.amountChunks.map((a) => numberToBytesLE(a, 32))),
-      this.decryptionKey.publicKey().toUint8Array(),
-      concatBytes(...this.encryptedActualBalanceAmount.map((el) => el.serialize()).flat()),
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
+      this.decryptionKey.publicKey().toUint8Array(),
+      concatBytes(...this.confidentialAmountToWithdraw.amountChunks.slice(0, ConfidentialAmount.CHUNKS_COUNT / 2).map((a) => numberToBytesLE(a, 32))),
+      concatBytes(...this.encryptedActualBalanceAmount.map((el) => el.serialize()).flat()),
       X1.toRawBytes(),
       X2.toRawBytes(),
       ...X3List.map((el) => el.toRawBytes()),
@@ -226,11 +226,11 @@ export class ConfidentialWithdraw {
 
     const p = genFiatShamirChallenge(
       utf8ToBytes(ConfidentialWithdraw.FIAT_SHAMIR_SIGMA_DST),
-      ...confidentialAmountToWithdraw.amountChunks.map((a) => numberToBytesLE(a, 32)),
-      publicKeyU8,
-      ...opts.encryptedActualBalance.map((el) => el.serialize()).flat(),
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
+      publicKeyU8,
+      ...confidentialAmountToWithdraw.amountChunks.slice(0, ConfidentialAmount.CHUNKS_COUNT / 2).map((a) => numberToBytesLE(a, 32)),
+      ...opts.encryptedActualBalance.map((el) => el.serialize()).flat(),
       opts.sigmaProof.X1,
       opts.sigmaProof.X2,
       ...opts.sigmaProof.X3List,
