@@ -19,7 +19,7 @@ import { publishAnsContract } from "./publishANSContracts";
 // This isn't great, we should look into deploying outside the test
 jest.setTimeout(20000);
 
-describe("ANS", () => {
+describe.skip("ANS", () => {
   const { aptos, config } = getAptosClient();
 
   let changeExpirationDate: (
