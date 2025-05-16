@@ -583,26 +583,6 @@ export type GetProcessorStatusQuery = {
   processor_status: Array<{ last_success_version: any; processor: string; last_updated: any }>;
 };
 
-export type GetSignaturesQueryVariables = Types.Exact<{
-  where_condition?: Types.InputMaybe<Types.SignaturesBoolExp>;
-  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
-  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
-  order_by?: Types.InputMaybe<Array<Types.SignaturesOrderBy> | Types.SignaturesOrderBy>;
-}>;
-
-export type GetSignaturesQuery = {
-  signatures: Array<{
-    signature: string;
-    public_key: string;
-    public_key_indices: any;
-    type: string;
-    signer: string;
-    transaction_version: any;
-    threshold: any;
-    is_sender_primary: boolean;
-  }>;
-};
-
 export type GetTableItemsDataQueryVariables = Types.Exact<{
   where_condition: Types.TableItemsBoolExp;
   offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;

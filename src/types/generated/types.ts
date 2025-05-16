@@ -10311,8 +10311,9 @@ export type UserTransactions = {
   gas_unit_price: Scalars["numeric"]["output"];
   max_gas_amount: Scalars["numeric"]["output"];
   parent_signature_type: Scalars["String"]["output"];
+  replay_protection_nonce?: Maybe<Scalars["numeric"]["output"]>;
   sender: Scalars["String"]["output"];
-  sequence_number: Scalars["bigint"]["output"];
+  sequence_number?: Maybe<Scalars["bigint"]["output"]>;
   timestamp: Scalars["timestamp"]["output"];
   version: Scalars["bigint"]["output"];
 };
@@ -10332,6 +10333,7 @@ export type UserTransactionsBoolExp = {
   gas_unit_price?: InputMaybe<NumericComparisonExp>;
   max_gas_amount?: InputMaybe<NumericComparisonExp>;
   parent_signature_type?: InputMaybe<StringComparisonExp>;
+  replay_protection_nonce?: InputMaybe<NumericComparisonExp>;
   sender?: InputMaybe<StringComparisonExp>;
   sequence_number?: InputMaybe<BigintComparisonExp>;
   timestamp?: InputMaybe<TimestampComparisonExp>;
@@ -10350,6 +10352,7 @@ export type UserTransactionsOrderBy = {
   gas_unit_price?: InputMaybe<OrderBy>;
   max_gas_amount?: InputMaybe<OrderBy>;
   parent_signature_type?: InputMaybe<OrderBy>;
+  replay_protection_nonce?: InputMaybe<OrderBy>;
   sender?: InputMaybe<OrderBy>;
   sequence_number?: InputMaybe<OrderBy>;
   timestamp?: InputMaybe<OrderBy>;
@@ -10378,6 +10381,8 @@ export enum UserTransactionsSelectColumn {
   MaxGasAmount = "max_gas_amount",
   /** column name */
   ParentSignatureType = "parent_signature_type",
+  /** column name */
+  ReplayProtectionNonce = "replay_protection_nonce",
   /** column name */
   Sender = "sender",
   /** column name */
@@ -10408,6 +10413,7 @@ export type UserTransactionsStreamCursorValueInput = {
   gas_unit_price?: InputMaybe<Scalars["numeric"]["input"]>;
   max_gas_amount?: InputMaybe<Scalars["numeric"]["input"]>;
   parent_signature_type?: InputMaybe<Scalars["String"]["input"]>;
+  replay_protection_nonce?: InputMaybe<Scalars["numeric"]["input"]>;
   sender?: InputMaybe<Scalars["String"]["input"]>;
   sequence_number?: InputMaybe<Scalars["bigint"]["input"]>;
   timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;

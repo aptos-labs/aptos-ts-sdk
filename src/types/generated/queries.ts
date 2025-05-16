@@ -427,25 +427,6 @@ export const GetProcessorStatus = `
   }
 }
     `;
-export const GetSignatures = `
-    query getSignatures($where_condition: signatures_bool_exp, $offset: Int, $limit: Int, $order_by: [signatures_order_by!]) {
-  signatures(
-    where: $where_condition
-    offset: $offset
-    limit: $limit
-    order_by: $order_by
-  ) {
-    signature
-    public_key
-    public_key_indices
-    type
-    signer
-    transaction_version
-    threshold
-    is_sender_primary
-  }
-}
-    `;
 export const GetTableItemsData = `
     query getTableItemsData($where_condition: table_items_bool_exp!, $offset: Int, $limit: Int, $order_by: [table_items_order_by!]) {
   table_items(
@@ -861,21 +842,6 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
             ...wrappedRequestHeaders,
           }),
         "getProcessorStatus",
-        "query",
-        variables,
-      );
-    },
-    getSignatures(
-      variables?: Types.GetSignaturesQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<Types.GetSignaturesQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<Types.GetSignaturesQuery>(GetSignatures, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "getSignatures",
         "query",
         variables,
       );
