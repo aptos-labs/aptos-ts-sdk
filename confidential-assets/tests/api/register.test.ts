@@ -1,5 +1,12 @@
-import { confidentialAsset, getTestAccount, getTestConfidentialAccount, longTestTimeout, sendAndWaitTx, TOKEN_ADDRESS } from "../../helpers";
-import { preloadTables } from "../../helpers/wasmPollardKangaroo";
+import {
+  confidentialAsset,
+  getTestAccount,
+  getTestConfidentialAccount,
+  sendAndWaitTx,
+  MOCK_TOKEN_DATA,
+} from "../helpers/e2e";
+import { preloadTables } from "../helpers/wasmPollardKangaroo";
+import { longTestTimeout } from "../helpers";
 
 describe("Register", () => {
   const alice = getTestAccount();
@@ -18,7 +25,7 @@ describe("Register", () => {
     async () => {
       const aliceRegisterVBTxBody = await confidentialAsset.registerBalance({
         sender: alice.accountAddress,
-        tokenAddress: TOKEN_ADDRESS,
+        tokenAddress: MOCK_TOKEN_DATA.address,
         publicKey: aliceConfidential.publicKey(),
       });
 

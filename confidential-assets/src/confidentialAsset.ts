@@ -1,7 +1,21 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, AccountAddress, AccountAddressInput, AnyNumber, Aptos, AptosConfig, CommittedTransactionResponse, HexInput, InputGenerateSingleSignerRawTransactionArgs, InputGenerateTransactionPayloadData, LedgerVersionArg, MoveStructId, SimpleTransaction } from "@aptos-labs/ts-sdk";
+import {
+  Account,
+  AccountAddress,
+  AccountAddressInput,
+  AnyNumber,
+  Aptos,
+  AptosConfig,
+  CommittedTransactionResponse,
+  HexInput,
+  InputGenerateSingleSignerRawTransactionArgs,
+  InputGenerateTransactionPayloadData,
+  LedgerVersionArg,
+  MoveStructId,
+  SimpleTransaction,
+} from "@aptos-labs/ts-sdk";
 import { TwistedElGamalCiphertext } from "./twistedElGamal";
 import { ConfidentialNormalization, CreateConfidentialNormalizationOpArgs } from "./confidentialNormalization";
 import { ConfidentialKeyRotation, CreateConfidentialKeyRotationOpArgs } from "./confidentialKeyRotation";
@@ -11,7 +25,10 @@ import { ConfidentialAmount } from "./confidentialAmount";
 import { CreateConfidentialTransferOpArgs, ConfidentialTransfer } from "./confidentialTransfer";
 import { CreateConfidentialWithdrawOpArgs, ConfidentialWithdraw } from "./confidentialWithdraw";
 import { TwistedEd25519PublicKey, TwistedEd25519PrivateKey } from "./twistedEd25519";
-import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS, MODULE_NAME } from "./consts";
+
+/** For now we only deploy to devnet as part of aptos-experimental, which lives at 0x7. */
+const DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS = "0x7";
+const MODULE_NAME = "confidential_asset";
 
 export type ConfidentialBalanceResponse = {
   chunks: {
@@ -32,7 +49,12 @@ export class ConfidentialAsset {
   client: Aptos;
   confidentialAssetModuleAddress: string;
 
-  constructor(readonly config: AptosConfig, { confidentialAssetModuleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS }: { confidentialAssetModuleAddress?: string } = {}) {
+  constructor(
+    readonly config: AptosConfig,
+    {
+      confidentialAssetModuleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS,
+    }: { confidentialAssetModuleAddress?: string } = {},
+  ) {
     this.client = new Aptos(config);
     this.confidentialAssetModuleAddress = confidentialAssetModuleAddress;
   }
