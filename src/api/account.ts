@@ -1047,11 +1047,13 @@ export class Account {
   }
 
   /**
-   * Gets all account info (address, account public key, last transaction version) that have are associated with a public key.
-   *
+   * Gets all account info (address, account public key, last transaction version) that have are associated with a public key and **related public keys**
+   * 
    * For a given public key, it will query all multikeys that the public key is part of.  Then for the provided public key and
    * any multikeys found in the previous step, it will query for any accounts that have an auth key that matches any of the
    * public keys.
+   * 
+   * Note: If an Ed25519PublicKey or an AnyPublicKey that wraps Ed25519PublicKey is passed in, it will query for both legacy and single singer cases.
    *
    * @param args - The arguments for getting accounts for a public key
    * @param args.publicKey - The public key to look up accounts for
