@@ -6,7 +6,6 @@ import { ConfidentialAmount } from "../../src/confidentialAmount";
 import { ConfidentialAsset } from "../../src/confidentialAsset";
 import { RangeProofExecutor } from "../../src/rangeProof";
 import { TwistedEd25519PrivateKey } from "../../src/twistedEd25519";
-import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS } from "../../src";
 
 export const longTestTimeout = 120 * 1000;
 
@@ -14,11 +13,12 @@ export const longTestTimeout = 120 * 1000;
  * Address of the mocked fungible token on the testnet
  */
 export const TOKEN_ADDRESS = "0x8b4dd7ebf8150f349675dde8bd2e9daa66461107b181a67e764de85d82bbac21";
-// export const TOKEN_ADDRESS = "0xb63fe2a70847e0b34b309eab304fc8854b482a2e8eb2ebfb8080c511def0dacf";
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[Network.DEVNET];
 const config = new AptosConfig({ network: APTOS_NETWORK });
-export const confidentialAsset = new ConfidentialAsset(config);
+export const confidentialAsset = new ConfidentialAsset(config, {
+    confidentialAssetModuleAddress: "0xd4aa5d2b93935bae55ef5aee8043e78e09e91ad1d31ea9532963a036b1cd5df1"
+});
 export const aptos = new Aptos(config);
 
 const rootDir = path.resolve(__dirname, "../../../");
@@ -118,7 +118,7 @@ export const mintFungibleTokens = async (account: Account) => {
     const transaction = await aptos.transaction.build.simple({
         sender: account.accountAddress,
         data: {
-            function: `${DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS}::mock_token::mint_to`,
+            function: `${confidentialAsset.confidentialAssetModuleAddress}::mock_token::mint_to`,
             functionArguments: [500],
         },
     });
