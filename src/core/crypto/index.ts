@@ -4,6 +4,7 @@
 export * from "./abstraction";
 export * from "./ed25519";
 export * from "./ephemeral";
+export * from "./deserializationUtils";
 export * from "./federatedKeyless";
 export * from "./hdKey";
 export * from "./keyless";

@@ -100,6 +100,19 @@ export class Deserializer {
   }
 
   /**
+   * Asserts that the buffer has no remaining bytes.
+   *
+   * @throws {Error} Throws an error if there are remaining bytes in the buffer.
+   * @group Implementation
+   * @category BCS
+   */
+  assertFinished(): void {
+    if (this.remaining() !== 0) {
+      throw new Error("Buffer has remaining bytes");
+    }
+  }
+
+  /**
    * Deserializes a UTF-8 encoded string from a byte array. It first reads the length of the string in bytes,
    * followed by the actual byte content, and decodes it into a string.
    *
