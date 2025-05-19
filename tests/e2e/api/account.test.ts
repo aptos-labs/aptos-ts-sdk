@@ -746,7 +746,6 @@ describe("account api", () => {
         minimumLedgerVersion: Number(txn!.version),
       });
       checkAccountsMatch(accounts, defaultAccounts.reverse());
-
     }, 20000);
 
     test("it doesn't return default account if it is rotated", async () => {
