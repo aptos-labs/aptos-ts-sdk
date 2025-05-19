@@ -4,7 +4,6 @@
 export * from "./abstraction";
 export * from "./ed25519";
 export * from "./ephemeral";
-export * from "./deserializationUtils";
 export * from "./federatedKeyless";
 export * from "./hdKey";
 export * from "./keyless";
@@ -16,3 +15,4 @@ export * from "./publicKey";
 export * from "./secp256k1";
 export * from "./signature";
 export * from "./singleKey";
+export * from "./deserializationUtils";

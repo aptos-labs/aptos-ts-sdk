@@ -7,6 +7,7 @@ import {
   FederatedKeylessPublicKey,
   Secp256k1PublicKey,
   Signature,
+  PublicKey,
   Ed25519Signature,
   Secp256k1Signature,
   KeylessSignature,
@@ -16,7 +17,6 @@ import {
 } from "..";
 import { Deserializer } from "../../bcs/deserializer";
 import { HexInput } from "../../types";
-import { PublicKey } from "./publicKey";
 
 const MULTIPLE_DESERIALIZATIONS_ERROR_MSG = "Multiple possible deserializations found";
 
