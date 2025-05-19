@@ -565,7 +565,7 @@ describe("account api", () => {
   });
 
   describe("Account Derivation APIs", () => {
-    const config = new AptosConfig({ network: Network.DEVNET });
+    const config = new AptosConfig({ network: Network.LOCAL });
     const aptos = new Aptos(config);
 
     const minterAccount = Account.generate();
@@ -692,7 +692,7 @@ describe("account api", () => {
       // Check the noMultiKey works.
       accounts = await aptos.deriveOwnedAccountsFromSigner({ signer: account1, options: { noMultiKey: true } });
       checkAccountsMatch(accounts, [account1, account2]);
-    }, 10000);
+    }, 20000);
 
     test("it derives account that has been rotated", async () => {
       const account1 = Account.generate({ scheme: SigningSchemeInput.Ed25519 });
@@ -723,7 +723,60 @@ describe("account api", () => {
       expect(accounts.length).toBe(2);
       expect(accounts[0].accountAddress.equals(account2.accountAddress)).toEqual(true);
       expect(accounts[1].accountAddress.equals(account1.accountAddress)).toEqual(true);
-    }, 10000);
+    }, 20000);
+
+    test("it returns both legacy and single-signer accounts by default for ed25519", async () => {
+      const key = Ed25519PrivateKey.generate();
+      const legacyAccount = Account.fromPrivateKey({
+        privateKey: key,
+        legacy: true,
+      });
+      const singleSignerAccount = Account.fromPrivateKey({
+        privateKey: key,
+        legacy: false,
+      });
+      let txn: CommittedTransactionResponse;
+      const defaultAccounts = [legacyAccount, singleSignerAccount];
+      for (const account of [legacyAccount, singleSignerAccount]) {
+        txn = await createAccount(account);
+      }
+
+      let accounts = await aptos.deriveOwnedAccountsFromSigner({
+        signer: key,
+        minimumLedgerVersion: Number(txn!.version),
+      });
+      checkAccountsMatch(accounts, defaultAccounts.reverse());
+
+    }, 20000);
+
+    test("it doesn't return default account if it is rotated", async () => {
+      const account1 = Account.generate({ scheme: SigningSchemeInput.Ed25519 });
+      const account2 = Account.generate({ scheme: SigningSchemeInput.Ed25519 });
+
+      for (const account of [account1, account2]) {
+        await createAccount(account);
+      }
+
+      let accounts = await aptos.deriveOwnedAccountsFromSigner({ signer: account1 });
+      expect(accounts.length).toBe(1);
+      expect(accounts[0].accountAddress.equals(account1.accountAddress)).toEqual(true);
+
+      // Verified rotation. Should be derivable immediately.
+      const rotateTxn = await aptos.rotateAuthKey({
+        fromAccount: account1,
+        toNewPrivateKey: Ed25519PrivateKey.generate(),
+        options: {
+          maxGasAmount: DEFAULT_MAX_GAS_AMOUNT,
+        },
+      });
+      const response = await aptos.waitForTransaction({ transactionHash: rotateTxn.hash });
+
+      accounts = await aptos.deriveOwnedAccountsFromSigner({
+        signer: account1,
+        minimumLedgerVersion: BigInt(response.version),
+      });
+      expect(accounts.length).toBe(0);
+    }, 20000);
 
     test("getAccountsFromPublicKey returns accounts", async () => {
       const account1 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
@@ -775,6 +828,6 @@ describe("account api", () => {
         },
       });
       checkAccountsMatch(accounts, [multiEdAccount, multiKeyAccount, account2, account1]);
-    }, 10000);
+    }, 20000);
   });
 });
