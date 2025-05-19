@@ -1385,7 +1385,7 @@ async function getMultiKeysForPublicKey(args: {
   const { public_key_auth_keys: data } = await queryIndexer<GetAuthKeysForPublicKeyQuery>({
     aptosConfig,
     query: graphqlQuery,
-    originMethod: "getAuthKeysForPublicKey",
+    originMethod: "getMultiKeysForPublicKey",
   });
 
   const authKeys = data.map((entry) => {
