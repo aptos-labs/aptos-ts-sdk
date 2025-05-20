@@ -56,7 +56,6 @@ export class ConfidentialNormalization {
     const randomness = args.randomness ?? ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
 
     const normalizedConfidentialAmount = ConfidentialAmount.fromAmount(args.balanceAmount);
-    normalizedConfidentialAmount.encrypt(args.decryptionKey.publicKey(), randomness);
 
     return new ConfidentialNormalization({
       decryptionKey: args.decryptionKey,
@@ -174,7 +173,7 @@ export class ConfidentialNormalization {
       H_RISTRETTO.toRawBytes(),
       this.decryptionKey.publicKey().toUint8Array(),
       ...this.unnormalizedEncryptedBalance.map((el) => el.serialize()).flat(),
-      ...this.normalizedConfidentialAmount.amountEncrypted!.map((el) => el.serialize()).flat(),
+      ...this.normalizedConfidentialAmount.getAmountEncrypted(this.decryptionKey.publicKey(), this.randomness).map((el) => el.serialize()).flat(),
       X1.toRawBytes(),
       X2.toRawBytes(),
       ...X3List.map((X3) => X3.toRawBytes()),
@@ -316,6 +315,6 @@ export class ConfidentialNormalization {
     const sigmaProof = await this.genSigmaProof();
     const rangeProof = await this.genRangeProof();
 
-    return [{ sigmaProof, rangeProof }, this.normalizedConfidentialAmount.amountEncrypted!];
+    return [{ sigmaProof, rangeProof }, this.normalizedConfidentialAmount.getAmountEncrypted(this.decryptionKey.publicKey(), this.randomness)];
   }
 }

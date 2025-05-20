@@ -37,7 +37,7 @@ describe("Transfer", () => {
     const transferTx = await confidentialAsset.transferCoin({
       senderDecryptionKey: aliceConfidential,
       recipientEncryptionKey: new TwistedEd25519PublicKey(recipientEncKey),
-      encryptedActualBalance: balances.actual.amountEncrypted!,
+      encryptedActualBalance: balances.actual.getAmountEncrypted(aliceConfidential.publicKey()),
       amountToTransfer: TRANSFER_AMOUNT,
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
