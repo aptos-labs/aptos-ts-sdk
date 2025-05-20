@@ -96,16 +96,9 @@ export class ConfidentialNormalization {
     const alpha1List = proofArr.slice(0, 3);
     const alpha2 = proofArr[3];
     const alpha3 = proofArr[4];
-    const alpha4List = proofArr.slice(
-      5,
-      5 + ConfidentialAmount.CHUNKS_COUNT,
-    );
-    const X1 = proofArr[
-      5 + 2 * ConfidentialAmount.CHUNKS_COUNT
-    ];
-    const X2 = proofArr[
-      5 + 2 * ConfidentialAmount.CHUNKS_COUNT + 1
-    ];
+    const alpha4List = proofArr.slice(5, 5 + ConfidentialAmount.CHUNKS_COUNT);
+    const X1 = proofArr[5 + 2 * ConfidentialAmount.CHUNKS_COUNT];
+    const X2 = proofArr[5 + 2 * ConfidentialAmount.CHUNKS_COUNT + 1];
     const X3List = proofArr.slice(
       5 + 2 * ConfidentialAmount.CHUNKS_COUNT + 2,
       5 + 3 * ConfidentialAmount.CHUNKS_COUNT + 2,
@@ -142,11 +135,11 @@ export class ConfidentialNormalization {
       ed25519modN(
         x1List.reduce((acc, el, i) => {
           const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
-          const x1i = el * coef
+          const x1i = el * coef;
 
-          return acc + x1i
-        }, 0n)
-      )
+          return acc + x1i;
+        }, 0n),
+      ),
     ).add(
       this.unnormalizedEncryptedBalance
         .reduce(
@@ -161,7 +154,7 @@ export class ConfidentialNormalization {
 
       const x4iH = H_RISTRETTO.multiply(x4List[index]);
 
-      return x1iG.add(x4iH)
+      return x1iG.add(x4iH);
     });
     const X4List = x4List.map((el) =>
       RistrettoPoint.fromHex(this.decryptionKey.publicKey().toUint8Array()).multiply(el),
@@ -173,7 +166,10 @@ export class ConfidentialNormalization {
       H_RISTRETTO.toRawBytes(),
       this.decryptionKey.publicKey().toUint8Array(),
       ...this.unnormalizedEncryptedBalance.map((el) => el.serialize()).flat(),
-      ...this.normalizedConfidentialAmount.getAmountEncrypted(this.decryptionKey.publicKey(), this.randomness).map((el) => el.serialize()).flat(),
+      ...this.normalizedConfidentialAmount
+        .getAmountEncrypted(this.decryptionKey.publicKey(), this.randomness)
+        .map((el) => el.serialize())
+        .flat(),
       X1.toRawBytes(),
       X2.toRawBytes(),
       ...X3List.map((X3) => X3.toRawBytes()),
@@ -196,7 +192,7 @@ export class ConfidentialNormalization {
     const alpha4List = x4List.map((el, i) => {
       const pri = ed25519modN(p * this.randomness[i]);
 
-      return ed25519modN(el - pri)
+      return ed25519modN(el - pri);
     });
 
     return {
@@ -260,8 +256,10 @@ export class ConfidentialNormalization {
           const alpha1i = el * coef;
           return acc + alpha1i;
         }, 0n),
-      )
-    ).add(alpha2D).add(pBalOld);
+      ),
+    )
+      .add(alpha2D)
+      .add(pBalOld);
     const X2 = alpha3H.add(pP);
     const X3List = alpha1LEList.map((el, i) => {
       const a1iG = RistrettoPoint.BASE.multiply(el);
@@ -271,9 +269,9 @@ export class ConfidentialNormalization {
     });
     const X4List = alpha4LEList.map((el, i) => {
       const a4iP = RistrettoPoint.fromHex(publicKeyU8).multiply(el);
-      const pDnew = opts.normalizedEncryptedBalance[i].D.multiply(p)
+      const pDnew = opts.normalizedEncryptedBalance[i].D.multiply(p);
 
-      return a4iP.add(pDnew)
+      return a4iP.add(pDnew);
     });
 
     return (
@@ -315,6 +313,9 @@ export class ConfidentialNormalization {
     const sigmaProof = await this.genSigmaProof();
     const rangeProof = await this.genRangeProof();
 
-    return [{ sigmaProof, rangeProof }, this.normalizedConfidentialAmount.getAmountEncrypted(this.decryptionKey.publicKey(), this.randomness)];
+    return [
+      { sigmaProof, rangeProof },
+      this.normalizedConfidentialAmount.getAmountEncrypted(this.decryptionKey.publicKey(), this.randomness),
+    ];
   }
 }

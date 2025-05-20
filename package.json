@@ -36,7 +36,7 @@
     "build:clean": "rm -rf dist",
     "build": "pnpm build:clean && tsup",
     "prepublishOnly": "pnpm run build",
-    "_fmt": "prettier 'src/**/*.ts' 'tests/**/*.ts' 'examples/**/*.js' 'examples/**/*.ts' 'eslint.config.cjs'",
+    "_fmt": "prettier 'src/**/*.ts' 'tests/**/*.ts' 'examples/**/*.js' 'examples/**/*.ts' 'confidential-assets/**/*.ts' 'eslint.config.cjs'",
     "fmt": "pnpm _fmt --write",
     "lint": "eslint '**/*.{cts,mts,ts}'",
     "test": "pnpm jest",

@@ -107,26 +107,12 @@ export class ConfidentialKeyRotation {
     const alpha2 = proofArr[3];
     const alpha3 = proofArr[4];
     const alpha4 = proofArr[5];
-    const alpha5List = proofArr.slice(
-      6,
-      6 + ConfidentialAmount.CHUNKS_COUNT,
-    );
-    const X1 = proofArr[
-      6 + ConfidentialAmount.CHUNKS_COUNT
-    ];
-    const X2 = proofArr[
-      7 + ConfidentialAmount.CHUNKS_COUNT
-    ];
-    const X3 = proofArr[
-      8 + ConfidentialAmount.CHUNKS_COUNT
-    ];
-    const X4List = proofArr.slice(
-      8 + ConfidentialAmount.CHUNKS_COUNT,
-      8 + 2 * ConfidentialAmount.CHUNKS_COUNT,
-    );
-    const X5List = proofArr.slice(
-      8 + 2 * ConfidentialAmount.CHUNKS_COUNT,
-    );
+    const alpha5List = proofArr.slice(6, 6 + ConfidentialAmount.CHUNKS_COUNT);
+    const X1 = proofArr[6 + ConfidentialAmount.CHUNKS_COUNT];
+    const X2 = proofArr[7 + ConfidentialAmount.CHUNKS_COUNT];
+    const X3 = proofArr[8 + ConfidentialAmount.CHUNKS_COUNT];
+    const X4List = proofArr.slice(8 + ConfidentialAmount.CHUNKS_COUNT, 8 + 2 * ConfidentialAmount.CHUNKS_COUNT);
+    const X5List = proofArr.slice(8 + 2 * ConfidentialAmount.CHUNKS_COUNT);
 
     return {
       alpha1List,
@@ -158,11 +144,11 @@ export class ConfidentialKeyRotation {
       ed25519modN(
         x1List.reduce((acc, el, i) => {
           const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
-          const x1i = el * coef
+          const x1i = el * coef;
 
           return acc + x1i;
-        }, 0n)
-      )
+        }, 0n),
+      ),
     ).add(
       this.currEncryptedBalance
         .reduce(
@@ -177,11 +163,11 @@ export class ConfidentialKeyRotation {
       const x1iG = RistrettoPoint.BASE.multiply(el);
       const x5iH = H_RISTRETTO.multiply(x5List[index]);
 
-      return x1iG.add(x5iH)
+      return x1iG.add(x5iH);
     });
     const X5List = x5List.map((el) => {
-      const Pnew = RistrettoPoint.fromHex(this.newDecryptionKey.publicKey().toUint8Array())
-      return Pnew.multiply(el)
+      const Pnew = RistrettoPoint.fromHex(this.newDecryptionKey.publicKey().toUint8Array());
+      return Pnew.multiply(el);
     });
 
     const p = genFiatShamirChallenge(
@@ -191,7 +177,10 @@ export class ConfidentialKeyRotation {
       this.currDecryptionKey.publicKey().toUint8Array(),
       this.newDecryptionKey.publicKey().toUint8Array(),
       ...this.currEncryptedBalance.map((el) => el.serialize()).flat(),
-      ...this.newConfidentialAmount.getAmountEncrypted(this.newDecryptionKey.publicKey()).map((el) => el.serialize()).flat(),
+      ...this.newConfidentialAmount
+        .getAmountEncrypted(this.newDecryptionKey.publicKey())
+        .map((el) => el.serialize())
+        .flat(),
       X1.toRawBytes(),
       X2.toRawBytes(),
       X3.toRawBytes(),
@@ -215,7 +204,7 @@ export class ConfidentialKeyRotation {
     const alpha5List = x5List.map((el, i) => {
       const pri = ed25519modN(p * this.randomness[i]);
 
-      return ed25519modN(el - pri)
+      return ed25519modN(el - pri);
     });
 
     return {
@@ -281,10 +270,11 @@ export class ConfidentialKeyRotation {
           const a1i = el * coef;
 
           return acc + a1i;
-        }, 0n)
-      )
+        }, 0n),
+      ),
     )
-      .add(DOldSum.multiply(alpha2LE)).add(COldSum.multiply(p));
+      .add(DOldSum.multiply(alpha2LE))
+      .add(COldSum.multiply(p));
     const X2 = H_RISTRETTO.multiply(alpha3LE).add(pkOldRist.multiply(p));
     const X3 = H_RISTRETTO.multiply(alpha4LE).add(pkNewRist.multiply(p));
     const X4List = alpha1LEList.map((el, i) => {
