@@ -309,7 +309,7 @@ export class ConfidentialAsset {
     ] = await confidentialTransfer.authorizeTransfer();
 
     const newBalance = encryptedAmountAfterTransfer.map((el) => el.serialize()).flat();
-    const amountBySender = confidentialTransfer.confidentialAmountToTransfer.amountEncrypted!.map((el) => el.serialize()).flat();
+    const amountBySender = confidentialTransfer.confidentialAmountToTransfer.getAmountEncrypted(args.senderDecryptionKey.publicKey()).map((el) => el.serialize()).flat();
     const amountByRecipient = encryptedAmountByRecipient.map((el) => el.serialize()).flat();
     const auditorEks = confidentialTransfer.auditorsU8EncryptionKeys;
     const auditorBalances = auditorsCBList

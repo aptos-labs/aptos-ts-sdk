@@ -88,7 +88,6 @@ describe("Transfer", () => {
     console.log({ balances })
 
     const fakeBalance = ConfidentialAmount.fromAmount(normalizeAmount)
-    fakeBalance.encrypt(aliceConfidential.publicKey());
 
     const recipientEncKey = await confidentialAsset.getEncryptionByAddr({
       accountAddress: AccountAddress.from(recipientAccAddr),
@@ -100,7 +99,7 @@ describe("Transfer", () => {
     const normalizeTx = await confidentialAsset.normalizeUserBalance({
       tokenAddress,
       decryptionKey: aliceConfidential,
-      unnormalizedEncryptedBalance: fakeBalance.amountEncrypted!,
+      unnormalizedEncryptedBalance: fakeBalance.getAmountEncrypted(aliceConfidential.publicKey()),
       balanceAmount: fakeBalance.amount,
 
       sender: alice.accountAddress,

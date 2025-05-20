@@ -17,7 +17,6 @@ describe("Generate 'confidential coin' proofs", () => {
   const bobConfidentialDecryptionKey: TwistedEd25519PrivateKey = TwistedEd25519PrivateKey.generate();
 
   const aliceConfidentialAmount = ConfidentialAmount.fromAmount(ALICE_BALANCE);
-  aliceConfidentialAmount.encrypt(aliceConfidentialDecryptionKey.publicKey());
 
   const WITHDRAW_AMOUNT = 2n ** 16n;
   let confidentialWithdraw: ConfidentialWithdraw;
@@ -25,7 +24,7 @@ describe("Generate 'confidential coin' proofs", () => {
   test("Generate withdraw sigma proof", async () => {
     confidentialWithdraw = await ConfidentialWithdraw.create({
       decryptionKey: toTwistedEd25519PrivateKey(aliceConfidentialDecryptionKey),
-      encryptedActualBalance: aliceConfidentialAmount.amountEncrypted!,
+      encryptedActualBalance: aliceConfidentialAmount.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
       amountToWithdraw: WITHDRAW_AMOUNT,
     });
 
@@ -38,7 +37,7 @@ describe("Generate 'confidential coin' proofs", () => {
     const isValid = ConfidentialWithdraw.verifySigmaProof({
       publicKey: aliceConfidentialDecryptionKey.publicKey(),
       encryptedActualBalance: confidentialWithdraw.encryptedActualBalanceAmount,
-      encryptedActualBalanceAfterWithdraw: confidentialWithdraw.confidentialAmountAfterWithdraw!.amountEncrypted!,
+      encryptedActualBalanceAfterWithdraw: confidentialWithdraw.confidentialAmountAfterWithdraw.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
       amountToWithdraw: WITHDRAW_AMOUNT,
       sigmaProof: confidentialWithdrawSigmaProof,
     });
@@ -53,7 +52,7 @@ describe("Generate 'confidential coin' proofs", () => {
   test("Verify withdraw range proof", async () => {
     const isValid = ConfidentialWithdraw.verifyRangeProof({
       rangeProof: confidentialWithdrawRangeProof,
-      encryptedActualBalanceAfterWithdraw: confidentialWithdraw.confidentialAmountAfterWithdraw!.amountEncrypted!,
+      encryptedActualBalanceAfterWithdraw: confidentialWithdraw.confidentialAmountAfterWithdraw.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
     });
 
     expect(isValid).toBeTruthy();
@@ -65,7 +64,7 @@ describe("Generate 'confidential coin' proofs", () => {
   test("Generate transfer sigma proof", async () => {
     confidentialTransfer = await ConfidentialTransfer.create({
       senderDecryptionKey: aliceConfidentialDecryptionKey,
-      encryptedActualBalance: aliceConfidentialAmount.amountEncrypted!,
+      encryptedActualBalance: aliceConfidentialAmount.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
       amountToTransfer: TRANSFER_AMOUNT,
       recipientEncryptionKey: bobConfidentialDecryptionKey.publicKey(),
     });
@@ -79,9 +78,9 @@ describe("Generate 'confidential coin' proofs", () => {
     const isValid = ConfidentialTransfer.verifySigmaProof({
       senderPrivateKey: aliceConfidentialDecryptionKey,
       recipientPublicKey: bobConfidentialDecryptionKey.publicKey(),
-      encryptedActualBalance: aliceConfidentialAmount.amountEncrypted!,
-      encryptedTransferAmountBySender: confidentialTransfer.confidentialAmountToTransfer.amountEncrypted!,
-      encryptedActualBalanceAfterTransfer: confidentialTransfer.confidentialAmountAfterTransfer?.amountEncrypted!,
+      encryptedActualBalance: aliceConfidentialAmount.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
+      encryptedTransferAmountBySender: confidentialTransfer.confidentialAmountToTransfer.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
+      encryptedActualBalanceAfterTransfer: confidentialTransfer.confidentialAmountAfterTransfer?.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
       encryptedTransferAmountByRecipient: confidentialTransfer.encryptedAmountByRecipient,
       sigmaProof: confidentialTransferSigmaProof,
     });
@@ -96,7 +95,7 @@ describe("Generate 'confidential coin' proofs", () => {
   test("Verify transfer range proofs", async () => {
     const isValid = await ConfidentialTransfer.verifyRangeProof({
       encryptedAmountByRecipient: confidentialTransfer.encryptedAmountByRecipient,
-      encryptedActualBalanceAfterTransfer: confidentialTransfer.confidentialAmountAfterTransfer!.amountEncrypted!,
+        encryptedActualBalanceAfterTransfer: confidentialTransfer.confidentialAmountAfterTransfer!.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
       rangeProofAmount: confidentialTransferRangeProofs.rangeProofAmount,
       rangeProofNewBalance: confidentialTransferRangeProofs.rangeProofNewBalance,
     });
@@ -110,7 +109,7 @@ describe("Generate 'confidential coin' proofs", () => {
   test("Generate transfer with auditors sigma proof", async () => {
     confidentialTransferWithAuditors = await ConfidentialTransfer.create({
       senderDecryptionKey: aliceConfidentialDecryptionKey,
-      encryptedActualBalance: aliceConfidentialAmount.amountEncrypted!,
+      encryptedActualBalance: aliceConfidentialAmount.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
       amountToTransfer: TRANSFER_AMOUNT,
       recipientEncryptionKey: bobConfidentialDecryptionKey.publicKey(),
       auditorEncryptionKeys: [auditor.publicKey()],
@@ -124,11 +123,11 @@ describe("Generate 'confidential coin' proofs", () => {
     const isValid = ConfidentialTransfer.verifySigmaProof({
       senderPrivateKey: aliceConfidentialDecryptionKey,
       recipientPublicKey: bobConfidentialDecryptionKey.publicKey(),
-      encryptedActualBalance: aliceConfidentialAmount.amountEncrypted!,
+      encryptedActualBalance: aliceConfidentialAmount.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
       encryptedActualBalanceAfterTransfer:
-        confidentialTransferWithAuditors.confidentialAmountAfterTransfer!.amountEncrypted!,
+        confidentialTransferWithAuditors.confidentialAmountAfterTransfer!.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
       encryptedTransferAmountByRecipient: confidentialTransferWithAuditors.encryptedAmountByRecipient,
-      encryptedTransferAmountBySender: confidentialTransferWithAuditors.confidentialAmountToTransfer.amountEncrypted!,
+      encryptedTransferAmountBySender: confidentialTransferWithAuditors.confidentialAmountToTransfer.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
       sigmaProof: confidentialTransferWithAuditorsSigmaProof,
       auditors: {
         publicKeys: [auditor.publicKey()],
@@ -144,11 +143,11 @@ describe("Generate 'confidential coin' proofs", () => {
     const isValid = ConfidentialTransfer.verifySigmaProof({
       senderPrivateKey: aliceConfidentialDecryptionKey,
       recipientPublicKey: bobConfidentialDecryptionKey.publicKey(),
-      encryptedActualBalance: aliceConfidentialAmount.amountEncrypted!,
+      encryptedActualBalance: aliceConfidentialAmount.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
       encryptedActualBalanceAfterTransfer:
-        confidentialTransferWithAuditors.confidentialAmountAfterTransfer!.amountEncrypted!,
+        confidentialTransferWithAuditors.confidentialAmountAfterTransfer!.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
       encryptedTransferAmountByRecipient: confidentialTransferWithAuditors.encryptedAmountByRecipient,
-      encryptedTransferAmountBySender: confidentialTransferWithAuditors.confidentialAmountToTransfer.amountEncrypted!,
+      encryptedTransferAmountBySender: confidentialTransferWithAuditors.confidentialAmountToTransfer.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
       sigmaProof: confidentialTransferWithAuditorsSigmaProof,
       auditors: {
         publicKeys: [invalidAuditor.publicKey()],
@@ -169,7 +168,7 @@ describe("Generate 'confidential coin' proofs", () => {
     const isValid = await ConfidentialTransfer.verifyRangeProof({
       encryptedAmountByRecipient: confidentialTransferWithAuditors.encryptedAmountByRecipient,
       encryptedActualBalanceAfterTransfer:
-        confidentialTransferWithAuditors.confidentialAmountAfterTransfer!.amountEncrypted!,
+        confidentialTransferWithAuditors.confidentialAmountAfterTransfer!.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
       rangeProofAmount: confidentialTransferWithAuditorsRangeProofs.rangeProofAmount,
       rangeProofNewBalance: confidentialTransferWithAuditorsRangeProofs.rangeProofNewBalance,
     });
@@ -183,7 +182,7 @@ describe("Generate 'confidential coin' proofs", () => {
   test("Generate key rotation sigma proof", async () => {
     confidentialKeyRotation = await ConfidentialKeyRotation.create({
       currDecryptionKey: aliceConfidentialDecryptionKey,
-      currEncryptedBalance: aliceConfidentialAmount.amountEncrypted!,
+      currEncryptedBalance: aliceConfidentialAmount.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
       newDecryptionKey: newAliceConfidentialPrivateKey,
     });
 
@@ -196,8 +195,8 @@ describe("Generate 'confidential coin' proofs", () => {
       sigmaProof: confidentialKeyRotationSigmaProof,
       currPublicKey: aliceConfidentialDecryptionKey.publicKey(),
       newPublicKey: newAliceConfidentialPrivateKey.publicKey(),
-      currEncryptedBalance: aliceConfidentialAmount.amountEncrypted!,
-      newEncryptedBalance: confidentialKeyRotation.newConfidentialAmount.amountEncrypted!,
+      currEncryptedBalance: aliceConfidentialAmount.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
+      newEncryptedBalance: confidentialKeyRotation.newConfidentialAmount.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
     });
 
     expect(isValid).toBeTruthy();
@@ -212,7 +211,7 @@ describe("Generate 'confidential coin' proofs", () => {
   test("Verify key rotation range proof", async () => {
     const isValid = ConfidentialKeyRotation.verifyRangeProof({
       rangeProof: confidentialKeyRotationRangeProof,
-      newEncryptedBalance: confidentialKeyRotation.newConfidentialAmount!.amountEncrypted!,
+      newEncryptedBalance: confidentialKeyRotation.newConfidentialAmount!.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
     });
 
     expect(isValid).toBeTruthy();
@@ -230,14 +229,13 @@ describe("Generate 'confidential coin' proofs", () => {
     ...Array.from({ length: ConfidentialAmount.CHUNKS_COUNT - 1 }, () => 2n ** ConfidentialAmount.CHUNK_BITS_BI + 100n),
     0n,
   ]);
-  unnormalizedAliceConfidentialAmount.encrypt(aliceConfidentialDecryptionKey.publicKey());
 
   let confidentialNormalization: ConfidentialNormalization;
   let confidentialNormalizationSigmaProof: ConfidentialNormalizationSigmaProof;
   test("Generate normalization sigma proof", async () => {
     confidentialNormalization = await ConfidentialNormalization.create({
       decryptionKey: aliceConfidentialDecryptionKey,
-      unnormalizedEncryptedBalance: unnormalizedAliceConfidentialAmount.amountEncrypted!,
+      unnormalizedEncryptedBalance: unnormalizedAliceConfidentialAmount.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
       balanceAmount: unnormalizedAliceConfidentialAmount.amount,
     });
 
@@ -249,8 +247,8 @@ describe("Generate 'confidential coin' proofs", () => {
     const isValid = ConfidentialNormalization.verifySigmaProof({
       publicKey: aliceConfidentialDecryptionKey.publicKey(),
       sigmaProof: confidentialNormalizationSigmaProof,
-      unnormalizedEncryptedBalance: unnormalizedAliceConfidentialAmount.amountEncrypted!,
-      normalizedEncryptedBalance: confidentialNormalization.normalizedConfidentialAmount!.amountEncrypted!,
+      unnormalizedEncryptedBalance: unnormalizedAliceConfidentialAmount.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
+      normalizedEncryptedBalance: confidentialNormalization.normalizedConfidentialAmount!.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
     });
 
     expect(isValid).toBeTruthy();
@@ -264,7 +262,7 @@ describe("Generate 'confidential coin' proofs", () => {
   test("Verify normalization range proof", async () => {
     const isValid = ConfidentialNormalization.verifyRangeProof({
       rangeProof: confidentialNormalizationRangeProof,
-      normalizedEncryptedBalance: confidentialNormalization.normalizedConfidentialAmount!.amountEncrypted!,
+      normalizedEncryptedBalance: confidentialNormalization.normalizedConfidentialAmount!.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey()),
     });
 
     expect(isValid).toBeTruthy();

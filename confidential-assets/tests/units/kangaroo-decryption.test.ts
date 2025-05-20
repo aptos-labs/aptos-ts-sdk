@@ -62,10 +62,9 @@ const executionBalance = async (
     const newAlice = TwistedEd25519PrivateKey.generate();
 
     const confidentialAmount = ConfidentialAmount.fromAmount(balance);
-    confidentialAmount.encrypt(newAlice.publicKey());
 
     const startMainTime = performance.now();
-    const decryptedBalance = await ConfidentialAmount.fromEncrypted(confidentialAmount.amountEncrypted!, newAlice);
+    const decryptedBalance = await ConfidentialAmount.fromEncrypted(confidentialAmount.getAmountEncrypted(newAlice.publicKey()), newAlice);
     const endMainTime = performance.now();
 
     const elapsedMainTime = endMainTime - startMainTime;

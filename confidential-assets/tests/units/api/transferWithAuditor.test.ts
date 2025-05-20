@@ -30,7 +30,7 @@ describe("Transfer with auditor", () => {
     const transferTx = await confidentialAsset.transferCoin({
       senderDecryptionKey: aliceConfidential,
       recipientEncryptionKey: aliceConfidential.publicKey(),
-      encryptedActualBalance: balances.actual.amountEncrypted!,
+      encryptedActualBalance: balances.actual.getAmountEncrypted(aliceConfidential.publicKey()),
       amountToTransfer: TRANSFER_AMOUNT,
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,

@@ -29,7 +29,7 @@ describe("Withdraw", () => {
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       decryptionKey: aliceConfidential,
-      encryptedActualBalance: balances.actual.amountEncrypted!,
+      encryptedActualBalance: balances.actual.getAmountEncrypted(aliceConfidential.publicKey()),
       amountToWithdraw: WITHDRAW_AMOUNT,
     });
     const txResp = await sendAndWaitTx(withdrawTx, alice);

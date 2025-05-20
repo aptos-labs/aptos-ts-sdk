@@ -65,7 +65,6 @@ export class ConfidentialKeyRotation {
     const currentBalance = await ConfidentialAmount.fromEncrypted(args.currEncryptedBalance, args.currDecryptionKey);
 
     const newBalance = ConfidentialAmount.fromAmount(currentBalance.amount);
-    newBalance.encrypt(args.newDecryptionKey.publicKey(), randomness);
 
     return new ConfidentialKeyRotation({
       currDecryptionKey: args.currDecryptionKey,
@@ -192,7 +191,7 @@ export class ConfidentialKeyRotation {
       this.currDecryptionKey.publicKey().toUint8Array(),
       this.newDecryptionKey.publicKey().toUint8Array(),
       ...this.currEncryptedBalance.map((el) => el.serialize()).flat(),
-      ...this.newConfidentialAmount.amountEncrypted!.map((el) => el.serialize()).flat(),
+      ...this.newConfidentialAmount.getAmountEncrypted(this.newDecryptionKey.publicKey()).map((el) => el.serialize()).flat(),
       X1.toRawBytes(),
       X2.toRawBytes(),
       X3.toRawBytes(),
@@ -340,7 +339,7 @@ export class ConfidentialKeyRotation {
         sigmaProof,
         rangeProof,
       },
-      this.newConfidentialAmount.amountEncrypted!,
+      this.newConfidentialAmount.getAmountEncrypted(this.newDecryptionKey.publicKey()),
     ];
   }
 

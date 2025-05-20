@@ -66,7 +66,6 @@ export class ConfidentialWithdraw {
     const confidentialAmountAfterWithdraw = ConfidentialAmount.fromAmount(
       actualBalance.amount - confidentialAmountToWithdraw.amount,
     );
-    confidentialAmountAfterWithdraw.encrypt(args.decryptionKey.publicKey(), randomness);
 
     return new ConfidentialWithdraw({
       decryptionKey: args.decryptionKey,
@@ -310,7 +309,7 @@ export class ConfidentialWithdraw {
     const sigmaProof = await this.genSigmaProof();
     const rangeProof = await this.genRangeProof();
 
-    return [{ sigmaProof, rangeProof }, this.confidentialAmountAfterWithdraw.amountEncrypted!];
+    return [{ sigmaProof, rangeProof }, this.confidentialAmountAfterWithdraw.getAmountEncrypted(this.decryptionKey.publicKey(), this.randomness)];
   }
 
   static async verifyRangeProof(opts: {

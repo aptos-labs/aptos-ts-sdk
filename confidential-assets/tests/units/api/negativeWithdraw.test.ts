@@ -82,7 +82,7 @@ describe("Negative withdraw", () => {
       sender: alice.accountAddress,
       tokenAddress,
       decryptionKey: aliceConfidential,
-      encryptedActualBalance: balances.actual.amountEncrypted!,
+      encryptedActualBalance: balances.actual.getAmountEncrypted(aliceConfidential.publicKey()),
       amountToWithdraw: withdrawAmount,
     });
 

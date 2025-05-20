@@ -33,7 +33,7 @@ describe("Safely rotate Alice's confidential balance key", () => {
       currDecryptionKey: aliceConfidential,
       newDecryptionKey: ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY,
 
-      currEncryptedBalance: balances.actual.amountEncrypted!,
+      currEncryptedBalance: balances.actual.getAmountEncrypted(aliceConfidential.publicKey()),
 
       withUnfreezeBalance: true,
       tokenAddress: TOKEN_ADDRESS,
