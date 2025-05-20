@@ -186,11 +186,6 @@ export class ConfidentialAsset {
     });
   }
 
-  /**
-   * If you wish to use the default for the module address, just set
-   * `confidentialAssetModuleAddress` to the default:
-   * `DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS`.
-   */
   static buildRolloverPendingBalanceTxPayload(
     args: {
       tokenAddress: string;
@@ -314,7 +309,8 @@ export class ConfidentialAsset {
     ] = await confidentialTransfer.authorizeTransfer();
 
     const newBalance = encryptedAmountAfterTransfer.map((el) => el.serialize()).flat();
-    const transferBalance = encryptedAmountByRecipient.map((el) => el.serialize()).flat();
+    const amountBySender = confidentialTransfer.confidentialAmountToTransfer.amountEncrypted!.map((el) => el.serialize()).flat();
+    const amountByRecipient = encryptedAmountByRecipient.map((el) => el.serialize()).flat();
     const auditorEks = confidentialTransfer.auditorsU8EncryptionKeys;
     const auditorBalances = auditorsCBList
       .flat()
@@ -330,7 +326,8 @@ export class ConfidentialAsset {
           args.tokenAddress,
           args.recipientAddress,
           concatBytes(...newBalance),
-          concatBytes(...transferBalance),
+          concatBytes(...amountBySender.flat()),
+          concatBytes(...amountByRecipient.flat()),
           concatBytes(...auditorEks),
           concatBytes(...auditorBalances),
           rangeProofNewBalance,

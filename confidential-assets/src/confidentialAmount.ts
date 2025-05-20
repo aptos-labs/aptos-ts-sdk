@@ -20,7 +20,8 @@ export class ConfidentialAmount {
 
   chunkBits = CHUNK_BITS;
 
-  amountEncrypted?: TwistedElGamalCiphertext[];
+  /** We keep this just as an optimization. */
+  private amountEncrypted?: TwistedElGamalCiphertext[];
 
   static CHUNKS_COUNT = CHUNKS_COUNT;
 
@@ -154,11 +155,18 @@ export class ConfidentialAmount {
     });
   }
 
-  encrypt(publicKey: TwistedEd25519PublicKey, randomness?: bigint[]): TwistedElGamalCiphertext[] {
+  private encrypt(publicKey: TwistedEd25519PublicKey, randomness?: bigint[]): TwistedElGamalCiphertext[] {
     this.amountEncrypted = this.amountChunks.map((chunk, i) =>
       TwistedElGamal.encryptWithPK(chunk, publicKey, randomness?.[i]),
     );
 
     return this.amountEncrypted;
+  }
+
+  public getAmountEncrypted(publicKey: TwistedEd25519PublicKey, randomness?: bigint[]): TwistedElGamalCiphertext[] {
+    if (!this.amountEncrypted) {
+      this.encrypt(publicKey, randomness);
+    }
+    return this.amountEncrypted!;
   }
 }

@@ -80,6 +80,7 @@ describe("Generate 'confidential coin' proofs", () => {
       senderPrivateKey: aliceConfidentialDecryptionKey,
       recipientPublicKey: bobConfidentialDecryptionKey.publicKey(),
       encryptedActualBalance: aliceConfidentialAmount.amountEncrypted!,
+      encryptedTransferAmountBySender: confidentialTransfer.confidentialAmountToTransfer.amountEncrypted!,
       encryptedActualBalanceAfterTransfer: confidentialTransfer.confidentialAmountAfterTransfer?.amountEncrypted!,
       encryptedTransferAmountByRecipient: confidentialTransfer.encryptedAmountByRecipient,
       sigmaProof: confidentialTransferSigmaProof,
@@ -127,6 +128,7 @@ describe("Generate 'confidential coin' proofs", () => {
       encryptedActualBalanceAfterTransfer:
         confidentialTransferWithAuditors.confidentialAmountAfterTransfer!.amountEncrypted!,
       encryptedTransferAmountByRecipient: confidentialTransferWithAuditors.encryptedAmountByRecipient,
+      encryptedTransferAmountBySender: confidentialTransferWithAuditors.confidentialAmountToTransfer.amountEncrypted!,
       sigmaProof: confidentialTransferWithAuditorsSigmaProof,
       auditors: {
         publicKeys: [auditor.publicKey()],
@@ -146,6 +148,7 @@ describe("Generate 'confidential coin' proofs", () => {
       encryptedActualBalanceAfterTransfer:
         confidentialTransferWithAuditors.confidentialAmountAfterTransfer!.amountEncrypted!,
       encryptedTransferAmountByRecipient: confidentialTransferWithAuditors.encryptedAmountByRecipient,
+      encryptedTransferAmountBySender: confidentialTransferWithAuditors.confidentialAmountToTransfer.amountEncrypted!,
       sigmaProof: confidentialTransferWithAuditorsSigmaProof,
       auditors: {
         publicKeys: [invalidAuditor.publicKey()],
