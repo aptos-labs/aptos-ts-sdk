@@ -186,11 +186,6 @@ export class ConfidentialAsset {
     });
   }
 
-  /**
-   * If you wish to use the default for the module address, just set
-   * `confidentialAssetModuleAddress` to the default:
-   * `DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS`.
-   */
   static buildRolloverPendingBalanceTxPayload(
     args: {
       tokenAddress: string;
