@@ -1,8 +1,25 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { ConfidentialBalance, ConfidentialAmount, TwistedEd25519PublicKey, TwistedEd25519PrivateKey, TwistedElGamalCiphertext } from "../../src";
-import { getTestAccount, getTestConfidentialAccount, aptos, TOKEN_ADDRESS, sendAndWaitTx, mintFungibleTokens, sendAndWaitBatchTxs, addNewContentLineToFile, longTestTimeout, confidentialAsset } from "../helpers";
+import {
+  ConfidentialBalance,
+  ConfidentialAmount,
+  TwistedEd25519PublicKey,
+  TwistedEd25519PrivateKey,
+  TwistedElGamalCiphertext,
+} from "../../src";
+import {
+  getTestAccount,
+  getTestConfidentialAccount,
+  aptos,
+  TOKEN_ADDRESS,
+  sendAndWaitTx,
+  mintFungibleTokens,
+  sendAndWaitBatchTxs,
+  addNewContentLineToFile,
+  longTestTimeout,
+  confidentialAsset,
+} from "../helpers";
 import { preloadTables } from "../helpers/wasmPollardKangaroo";
 
 describe("Confidential balance api", () => {

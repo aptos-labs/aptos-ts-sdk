@@ -64,7 +64,10 @@ const executionBalance = async (
     const confidentialAmount = ConfidentialAmount.fromAmount(balance);
 
     const startMainTime = performance.now();
-    const decryptedBalance = await ConfidentialAmount.fromEncrypted(confidentialAmount.getAmountEncrypted(newAlice.publicKey()), newAlice);
+    const decryptedBalance = await ConfidentialAmount.fromEncrypted(
+      confidentialAmount.getAmountEncrypted(newAlice.publicKey()),
+      newAlice,
+    );
     const endMainTime = performance.now();
 
     const elapsedMainTime = endMainTime - startMainTime;
