@@ -193,7 +193,7 @@ describe("Confidential balance api", () => {
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         decryptionKey: aliceConfidential,
-        encryptedActualBalance: aliceConfidentialAmount.amountEncrypted!,
+        encryptedActualBalance: aliceConfidentialAmount.getAmountEncrypted(aliceConfidential.publicKey()),
         amountToWithdraw: WITHDRAW_AMOUNT,
       });
       const txResp = await sendAndWaitTx(withdrawTx, alice);

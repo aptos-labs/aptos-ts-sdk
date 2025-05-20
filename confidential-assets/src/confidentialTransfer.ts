@@ -103,7 +103,6 @@ export class ConfidentialTransfer {
     const confidentialAmountToTransfer = ConfidentialAmount.fromAmount(args.amountToTransfer, {
       chunksCount: ConfidentialAmount.CHUNKS_COUNT / 2,
     });
-    confidentialAmountToTransfer.encrypt(args.senderDecryptionKey.publicKey(), randomness);
 
     const encryptedAmountByRecipient = confidentialAmountToTransfer.amountChunks.map((chunk, i) =>
       TwistedElGamal.encryptWithPK(chunk, new TwistedEd25519PublicKey(recipientPublicKeyU8), randomness[i]),
@@ -123,7 +122,6 @@ export class ConfidentialTransfer {
     const confidentialAmountAfterTransfer = ConfidentialAmount.fromAmount(
       actualBalance.amount - confidentialAmountToTransfer.amount,
     );
-    confidentialAmountAfterTransfer.encrypt(args.senderDecryptionKey.publicKey(), newBalanceRandomness);
 
     return new ConfidentialTransfer({
       senderDecryptionKey: args.senderDecryptionKey,
@@ -324,7 +322,7 @@ export class ConfidentialTransfer {
         )).multiply(x2)
       )
       .subtract(
-        this.confidentialAmountAfterTransfer.amountEncrypted!.reduce(
+        this.confidentialAmountAfterTransfer.getAmountEncrypted(this.senderDecryptionKey.publicKey(), this.newBalanceRandomness).reduce(
           (acc, { D }, idx) => acc.add(D.multiply(2n ** (BigInt(idx) * ConfidentialAmount.CHUNK_BITS_BI))),
           RistrettoPoint.ZERO,
         ).multiply(x2)
@@ -367,8 +365,8 @@ export class ConfidentialTransfer {
       ...this.encryptedActualBalance.map((el) => el.serialize()).flat(),
       ...this.encryptedAmountByRecipient.map((el) => el.serialize()).flat(),
       ...(this.auditorsCBList?.flat()?.map(({ D }) => D.toRawBytes()) ?? []),
-      ...this.confidentialAmountToTransfer.amountEncrypted!.map(({ D }) => D.toRawBytes()).flat(),
-      ...this.confidentialAmountAfterTransfer.amountEncrypted!.map((el) => el.serialize()).flat(),
+      ...this.confidentialAmountToTransfer.getAmountEncrypted(this.senderDecryptionKey.publicKey(), this.randomness).map(({ D }) => D.toRawBytes()).flat(),
+      ...this.confidentialAmountAfterTransfer.getAmountEncrypted(this.senderDecryptionKey.publicKey(), this.newBalanceRandomness).map((el) => el.serialize()).flat(),
       X1,
       ...X2List,
       ...X3List,
@@ -615,15 +613,12 @@ export class ConfidentialTransfer {
 
     const rangeProof = await this.genRangeProof();
 
-    if (!this.confidentialAmountAfterTransfer?.amountEncrypted)
-      throw new TypeError("this.confidentialAmountAfterTransfer.encryptedAmount is not defined");
-
     return [
       {
         sigmaProof,
         rangeProof,
       },
-      this.confidentialAmountAfterTransfer.amountEncrypted,
+      this.confidentialAmountAfterTransfer.getAmountEncrypted(this.senderDecryptionKey.publicKey(), this.newBalanceRandomness),
       this.encryptedAmountByRecipient,
       this.auditorsCBList,
     ];

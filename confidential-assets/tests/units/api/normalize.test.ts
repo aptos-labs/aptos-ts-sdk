@@ -29,7 +29,7 @@ describe("Normalize", () => {
       const normalizeTx = await confidentialAsset.normalizeUserBalance({
         tokenAddress: TOKEN_ADDRESS,
         decryptionKey: aliceConfidential,
-        unnormalizedEncryptedBalance: balances.actual.amountEncrypted!,
+        unnormalizedEncryptedBalance: balances.actual.getAmountEncrypted(aliceConfidential.publicKey()),
         balanceAmount: balances.actual.amount,
 
         sender: alice.accountAddress,
