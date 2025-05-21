@@ -12,25 +12,31 @@
       ]
     }
   },
-  "main": "./dist/cjs/index.js",
+  "main": "dist/common/index.js",
   "browser": "./dist/esm/index.js",
   "module": "./dist/esm/index.js",
   "node": "./dist/cjs/index.js",
   "types": "index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
-      "require": "./dist/cjs/index.js",
-      "node": "./dist/cjs/index.js",
-      "import": "./dist/esm/index.js",
-      "default": "./dist/esm/index.js"
+      "source": "./src/index.ts",
+      "require": {
+        "types": "./dist/common/index.d.ts",
+        "default": "./dist/common/index.js"
+      },
+      "import": {
+        "types": "./dist/esm/index.d.mts",
+        "default": "./dist/esm/index.mjs"
+      }
     },
-    "./protobufs/*": {
-      "types": "./dist/types/protobufs/*.d.ts",
-      "require": "./dist/cjs/protobufs/*.js",
-      "import": "./dist/esm/protobufs/*.js"
-    }
+    "./dist/common/cli/index.js": "./dist/common/cli/index.js",
+    "./dist/esm/cli/index.mjs": "./dist/esm/cli/index.mjs",
+    "./package.json": "./package.json"
   },
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build:clean": "rm -rf dist",
     "build": "pnpm build:clean && tsup",
