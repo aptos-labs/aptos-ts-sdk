@@ -34,6 +34,9 @@ devDependencies:
   '@types/node':
     specifier: ^22.14.1
     version: 22.15.3
+  dotenv:
+    specifier: ^16.4.7
+    version: 16.5.0
   jest:
     specifier: ^29.7.0
     version: 29.7.0(@types/node@22.15.3)(ts-node@10.9.2)
@@ -1942,6 +1945,11 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       path-type: 4.0.0
+    dev: true
+
+  /dotenv@16.5.0:
+    resolution: {integrity: sha512-m/C+AwOAr9/W1UOIZUo232ejMNnJAJtYQjUbHoNTBNTJSvqzzDh7vnrei3o3r3m9blf6ZoDkvcw0VmozNRFJxg==}
+    engines: {node: '>=12'}
     dev: true
 
   /dunder-proto@1.0.1:
