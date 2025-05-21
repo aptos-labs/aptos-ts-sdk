@@ -1,6 +1,6 @@
-name: "Run SDK E2E tests"
+name: "Run Confidential Assets tests"
 description: |
-  Run the SDK E2E tests against a local testnet from the latest Aptos CLI
+  Run the Confidential Assets SDK tests against a local testnet from the latest Aptos CLI
 
 # Currently no indexer tests or tests against local testnets from production branches,
 # we just use whatever is in the latest CLI.
@@ -14,6 +14,25 @@ runs:
         node-version-file: .node-version
         registry-url: "https://registry.npmjs.org"
     - uses: pnpm/action-setup@v4
+
+    # Run package install. If install fails, it probably means the updated lockfile was
+    # not included in the commit.
+    - run: pnpm install --frozen-lockfile
+      shell: bash
+
+    # Run the TS SDK tests.
+    - uses: nick-fields/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c # pin@v2
+      name: sdk-pnpm-test
+      env:
+        # This is important, it ensures that the tempdir we create for cloning the ANS
+        # repo and mounting it into the CLI container is created in a location that
+        # actually supports mounting. Learn more here: https://stackoverflow.com/a/76523941/3846032.
+        TMPDIR: ${{ runner.temp }}
+      with:
+        max_attempts: 3
+        timeout_minutes: 25
+        # This runs all the tests, both unit and e2e.
+        command: pnpm run test
 
     # Move to the Confidential Assets directory.
     - run: cd confidential-assets
@@ -35,7 +54,7 @@ runs:
         max_attempts: 3
         timeout_minutes: 25
         # This runs all the tests, both unit and e2e.
-        command: pnpm test
+        command: pnpm run test
 
     - name: Print local testnet logs on failure
       shell: bash
