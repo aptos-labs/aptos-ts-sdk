@@ -6,6 +6,9 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add account derivation APIs, `getAccountsForPublicKey` and `deriveOwnedAccountsFromSigner` which handle multi-key accounts and key rotations 
 - Update the deprecated function deriveAccountFromPrivateKey to use the new account derivation API
 
+# 2.0.1 (2025-05-21)
+- Adds `deserializePublicKey` and `deserializeSignature` which takes in `HexInput` and will try all possible ways to deserialize so callers no longer need to derive a proper type before deserializing.
+
 # 2.0.0 (2025-05-06)
 
 - Remove `scriptComposer` api due to increase in the sdk bundle size, If you wish to continue using it, please use version 1.39.0: [https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.39.0](https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.39.0)
