@@ -15,6 +15,10 @@ runs:
         registry-url: "https://registry.npmjs.org"
     - uses: pnpm/action-setup@v4
 
+    # Run package install at root. This sets up the parent jest config.
+    - run: pnpm install --frozen-lockfile
+      shell: bash
+
     # Install the dependencies for the Confidential Assets tests
     - run: cd confidential-assets && pnpm install --frozen-lockfile
       shell: bash
