@@ -32,11 +32,12 @@
     }
   },
   "scripts": {
-    "build": "rm -rf dist && pnpm build:types && pnpm build:cjs && pnpm build:esm && node ./postbuild.cjs",
+    "build:clean": "rm -rf dist",
+    "build": "pnpm build:clean && tsup",
     "build:types": "tsc -p tsconfig.build.json --outDir ./dist/types --declaration --emitDeclarationOnly",
     "build:cjs": "npx swc src -d ./dist/cjs --config-file .swcrc -C module.type=commonjs --strip-leading-paths --copy-files",
     "build:esm": "npx swc src -d ./dist/esm --config-file .swcrc -C module.type=es6 isModule=true --strip-leading-paths --copy-files",
-    "test": "pnpm jest ./tests/**/*.test.ts --testPathIgnorePatterns={./tests/units/api,./tests/e2e} --passWithNoTests"
+    "test": "pnpm jest"
   },
   "dependencies": {
     "@aptos-labs/confidential-asset-wasm-bindings": "^0.0.2",
@@ -56,6 +57,7 @@
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.2",
     "tslib": "^2.8.1",
+    "tsup": "^8.4.0",
     "typescript": "^5.8.2"
   }
 }
