@@ -15,12 +15,8 @@ runs:
         registry-url: "https://registry.npmjs.org"
     - uses: pnpm/action-setup@v4
 
-    # Move to the Confidential Assets directory.
-    - run: cd confidential-assets && pnpm install --frozen-lockfile && pwd
-      shell: bash
-    
-    # Install the dependencies for the Confidential Assets tests.
-    - run: pwd
+    # Install the dependencies for the Confidential Assets tests
+    - run: cd confidential-assets && pnpm install --frozen-lockfile
       shell: bash
 
     # Run the Confidential Assets tests.
@@ -35,7 +31,7 @@ runs:
         max_attempts: 3
         timeout_minutes: 25
         # This runs all the tests, both unit and e2e.
-        command: pnpm test
+        command: cd confidential-assets && pnpm test
 
     - name: Print local testnet logs on failure
       shell: bash
