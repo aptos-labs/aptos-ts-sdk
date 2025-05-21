@@ -58,7 +58,11 @@ export class ConfidentialTransfer {
 
   confidentialAmountToTransfer: ConfidentialAmount;
 
-  confidentialAmountAfterTransfer: ConfidentialAmount;
+  encryptedAmountToTransfer: TwistedElGamalCiphertext[];
+
+  confidentialBalanceAfterTransfer: ConfidentialAmount;
+
+  encryptedBalanceAfterTransfer: TwistedElGamalCiphertext[];
 
   encryptedAmountByRecipient: TwistedElGamalCiphertext[];
 
@@ -89,10 +93,19 @@ export class ConfidentialTransfer {
     this.encryptedActualBalance = args.encryptedActualBalance;
     this.confidentialAmountToTransfer = args.confidentialAmountToTransfer;
 
-    this.confidentialAmountAfterTransfer = args.confidentialAmountAfterTransfer;
+    this.confidentialBalanceAfterTransfer = args.confidentialAmountAfterTransfer;
     this.encryptedAmountByRecipient = args.encryptedAmountByRecipient;
     this.randomness = args.randomness;
     this.newBalanceRandomness = args.newBalanceRandomness;
+
+    this.encryptedAmountToTransfer = this.confidentialAmountToTransfer.getAmountEncrypted(
+      args.senderDecryptionKey.publicKey(),
+      this.randomness,
+    );
+    this.encryptedBalanceAfterTransfer = this.confidentialBalanceAfterTransfer.getAmountEncrypted(
+      args.senderDecryptionKey.publicKey(),
+      this.newBalanceRandomness,
+    );
   }
 
   static async create(args: CreateConfidentialTransferOpArgs) {
@@ -314,8 +327,7 @@ export class ConfidentialTransfer {
           .multiply(x2),
       )
       .subtract(
-        this.confidentialAmountAfterTransfer
-          .getAmountEncrypted(this.senderDecryptionKey.publicKey(), this.newBalanceRandomness)
+        this.encryptedBalanceAfterTransfer
           .reduce(
             (acc, { D }, idx) => acc.add(D.multiply(2n ** (BigInt(idx) * ConfidentialAmount.CHUNK_BITS_BI))),
             RistrettoPoint.ZERO,
@@ -360,14 +372,8 @@ export class ConfidentialTransfer {
       ...this.encryptedActualBalance.map((el) => el.serialize()).flat(),
       ...this.encryptedAmountByRecipient.map((el) => el.serialize()).flat(),
       ...(this.auditorsCBList?.flat()?.map(({ D }) => D.toRawBytes()) ?? []),
-      ...this.confidentialAmountToTransfer
-        .getAmountEncrypted(this.senderDecryptionKey.publicKey(), this.randomness)
-        .map(({ D }) => D.toRawBytes())
-        .flat(),
-      ...this.confidentialAmountAfterTransfer
-        .getAmountEncrypted(this.senderDecryptionKey.publicKey(), this.newBalanceRandomness)
-        .map((el) => el.serialize())
-        .flat(),
+      ...this.encryptedAmountToTransfer.map(({ D }) => D.toRawBytes()).flat(),
+      ...this.encryptedBalanceAfterTransfer.map((el) => el.serialize()).flat(),
       X1,
       ...X2List,
       ...X3List,
@@ -382,7 +388,7 @@ export class ConfidentialTransfer {
     const invertSLE = ed25519InvertN(sLE);
 
     const alpha1List = x1List.map((x1, idx) =>
-      ed25519modN(x1 - ed25519modN(p * this.confidentialAmountAfterTransfer.amountChunks[idx])),
+      ed25519modN(x1 - ed25519modN(p * this.confidentialBalanceAfterTransfer.amountChunks[idx])),
     );
     const alpha2 = ed25519modN(x2 - p * sLE);
     const alpha3List = x3List.map((el, idx) => ed25519modN(BigInt(el) - p * BigInt(this.randomness[idx])));
@@ -592,7 +598,7 @@ export class ConfidentialTransfer {
     });
 
     const rangeProofNewBalance = await RangeProofExecutor.genBatchRangeZKP({
-      v: this.confidentialAmountAfterTransfer.amountChunks,
+      v: this.confidentialBalanceAfterTransfer.amountChunks,
       rs: this.newBalanceRandomness.map((el) => numberToBytesLE(el, 32)),
       val_base: RistrettoPoint.BASE.toRawBytes(),
       rand_base: H_RISTRETTO.toRawBytes(),
@@ -622,7 +628,7 @@ export class ConfidentialTransfer {
         sigmaProof,
         rangeProof,
       },
-      this.confidentialAmountAfterTransfer.getAmountEncrypted(
+      this.confidentialBalanceAfterTransfer.getAmountEncrypted(
         this.senderDecryptionKey.publicKey(),
         this.newBalanceRandomness,
       ),

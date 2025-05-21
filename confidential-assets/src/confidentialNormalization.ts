@@ -34,7 +34,9 @@ export class ConfidentialNormalization {
 
   balanceAmount: bigint;
 
-  normalizedConfidentialAmount: ConfidentialAmount;
+  normalizedConfidentialBalance: ConfidentialAmount;
+
+  normalizedEncryptedBalance: TwistedElGamalCiphertext[];
 
   randomness: bigint[];
 
@@ -48,8 +50,12 @@ export class ConfidentialNormalization {
     this.decryptionKey = args.decryptionKey;
     this.unnormalizedEncryptedBalance = args.unnormalizedEncryptedBalance;
     this.balanceAmount = args.balanceAmount;
-    this.normalizedConfidentialAmount = args.normalizedConfidentialAmount;
+    this.normalizedConfidentialBalance = args.normalizedConfidentialAmount;
     this.randomness = args.randomness;
+    this.normalizedEncryptedBalance = this.normalizedConfidentialBalance.getAmountEncrypted(
+      this.decryptionKey.publicKey(),
+      this.randomness,
+    );
   }
 
   static async create(args: CreateConfidentialNormalizationOpArgs) {
@@ -166,10 +172,7 @@ export class ConfidentialNormalization {
       H_RISTRETTO.toRawBytes(),
       this.decryptionKey.publicKey().toUint8Array(),
       ...this.unnormalizedEncryptedBalance.map((el) => el.serialize()).flat(),
-      ...this.normalizedConfidentialAmount
-        .getAmountEncrypted(this.decryptionKey.publicKey(), this.randomness)
-        .map((el) => el.serialize())
-        .flat(),
+      ...this.normalizedEncryptedBalance.map((el) => el.serialize()).flat(),
       X1.toRawBytes(),
       X2.toRawBytes(),
       ...X3List.map((X3) => X3.toRawBytes()),
@@ -183,7 +186,7 @@ export class ConfidentialNormalization {
     const psInvert = ed25519modN(p * invertSLE);
 
     const alpha1List = x1List.map((x1, i) => {
-      const pChunk = ed25519modN(p * this.normalizedConfidentialAmount.amountChunks[i]);
+      const pChunk = ed25519modN(p * this.normalizedConfidentialBalance.amountChunks[i]);
 
       return ed25519modN(x1 - pChunk);
     });
@@ -284,7 +287,7 @@ export class ConfidentialNormalization {
 
   async genRangeProof(): Promise<Uint8Array> {
     const rangeProof = await RangeProofExecutor.genBatchRangeZKP({
-      v: this.normalizedConfidentialAmount.amountChunks,
+      v: this.normalizedConfidentialBalance.amountChunks,
       rs: this.randomness.map((el) => numberToBytesLE(el, 32)),
       val_base: RistrettoPoint.BASE.toRawBytes(),
       rand_base: H_RISTRETTO.toRawBytes(),
@@ -313,9 +316,6 @@ export class ConfidentialNormalization {
     const sigmaProof = await this.genSigmaProof();
     const rangeProof = await this.genRangeProof();
 
-    return [
-      { sigmaProof, rangeProof },
-      this.normalizedConfidentialAmount.getAmountEncrypted(this.decryptionKey.publicKey(), this.randomness),
-    ];
+    return [{ sigmaProof, rangeProof }, this.normalizedEncryptedBalance];
   }
 }

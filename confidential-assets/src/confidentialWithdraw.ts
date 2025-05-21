@@ -34,7 +34,9 @@ export class ConfidentialWithdraw {
 
   confidentialAmountToWithdraw: ConfidentialAmount;
 
-  confidentialAmountAfterWithdraw: ConfidentialAmount;
+  confidentialBalanceAfterWithdraw: ConfidentialAmount;
+
+  encryptedBalanceAfterWithdraw: TwistedElGamalCiphertext[];
 
   randomness: bigint[];
 
@@ -52,7 +54,12 @@ export class ConfidentialWithdraw {
 
     this.randomness = args.randomness;
 
-    this.confidentialAmountAfterWithdraw = args.confidentialAmountAfterWithdraw;
+    this.confidentialBalanceAfterWithdraw = args.confidentialAmountAfterWithdraw;
+
+    this.encryptedBalanceAfterWithdraw = this.confidentialBalanceAfterWithdraw.getAmountEncrypted(
+      this.decryptionKey.publicKey(),
+      this.randomness,
+    );
   }
 
   static async create(args: CreateConfidentialWithdrawOpArgs) {
@@ -187,7 +194,7 @@ export class ConfidentialWithdraw {
     const psInvert = ed25519modN(p * invertSLE);
 
     const alpha1List = x1List.map((el, i) => {
-      const pChunk = ed25519modN(p * this.confidentialAmountAfterWithdraw.amountChunks[i]);
+      const pChunk = ed25519modN(p * this.confidentialBalanceAfterWithdraw.amountChunks[i]);
       return ed25519modN(el - pChunk);
     });
     const alpha2 = ed25519modN(x2 - ps);
@@ -291,7 +298,7 @@ export class ConfidentialWithdraw {
 
   async genRangeProof() {
     const rangeProof = await RangeProofExecutor.genBatchRangeZKP({
-      v: this.confidentialAmountAfterWithdraw.amountChunks.map((chunk) => chunk),
+      v: this.confidentialBalanceAfterWithdraw.amountChunks.map((chunk) => chunk),
       rs: this.randomness.map((chunk) => numberToBytesLE(chunk, 32)),
       val_base: RistrettoPoint.BASE.toRawBytes(),
       rand_base: H_RISTRETTO.toRawBytes(),
@@ -313,10 +320,7 @@ export class ConfidentialWithdraw {
     const sigmaProof = await this.genSigmaProof();
     const rangeProof = await this.genRangeProof();
 
-    return [
-      { sigmaProof, rangeProof },
-      this.confidentialAmountAfterWithdraw.getAmountEncrypted(this.decryptionKey.publicKey(), this.randomness),
-    ];
+    return [{ sigmaProof, rangeProof }, this.encryptedBalanceAfterWithdraw];
   }
 
   static async verifyRangeProof(opts: {
