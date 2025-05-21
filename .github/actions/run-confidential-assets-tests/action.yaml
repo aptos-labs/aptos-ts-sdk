@@ -16,11 +16,11 @@ runs:
     - uses: pnpm/action-setup@v4
 
     # Move to the Confidential Assets directory.
-    - run: cd confidential-assets
+    - run: cd confidential-assets && pnpm install --frozen-lockfile && pwd
       shell: bash
     
     # Install the dependencies for the Confidential Assets tests.
-    - run: pnpm install --frozen-lockfile
+    - run: pwd
       shell: bash
 
     # Run the Confidential Assets tests.
