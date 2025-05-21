@@ -103,7 +103,6 @@ export class ConfidentialTransfer {
     const confidentialAmountToTransfer = ConfidentialAmount.fromAmount(args.amountToTransfer, {
       chunksCount: ConfidentialAmount.CHUNKS_COUNT / 2,
     });
-    confidentialAmountToTransfer.encrypt(args.senderDecryptionKey.publicKey(), randomness);
 
     const encryptedAmountByRecipient = confidentialAmountToTransfer.amountChunks.map((chunk, i) =>
       TwistedElGamal.encryptWithPK(chunk, new TwistedEd25519PublicKey(recipientPublicKeyU8), randomness[i]),
@@ -123,7 +122,6 @@ export class ConfidentialTransfer {
     const confidentialAmountAfterTransfer = ConfidentialAmount.fromAmount(
       actualBalance.amount - confidentialAmountToTransfer.amount,
     );
-    confidentialAmountAfterTransfer.encrypt(args.senderDecryptionKey.publicKey(), newBalanceRandomness);
 
     return new ConfidentialTransfer({
       senderDecryptionKey: args.senderDecryptionKey,
@@ -195,48 +193,39 @@ export class ConfidentialTransfer {
 
     const alpha1List = baseProofArray.slice(0, half);
     const alpha2 = baseProofArray[half];
-    const alpha3List = baseProofArray.slice(
-      half + 1,
-      half + 1 + ConfidentialAmount.CHUNKS_COUNT,
-    )
+    const alpha3List = baseProofArray.slice(half + 1, half + 1 + ConfidentialAmount.CHUNKS_COUNT);
     const alpha4List = baseProofArray.slice(
       half + 1 + ConfidentialAmount.CHUNKS_COUNT,
-      (half + 1 + ConfidentialAmount.CHUNKS_COUNT) + ConfidentialAmount.CHUNKS_COUNT,
-    )
-    const alpha5 = baseProofArray[
-      (half + 1 + ConfidentialAmount.CHUNKS_COUNT) + ConfidentialAmount.CHUNKS_COUNT
-    ];
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT + ConfidentialAmount.CHUNKS_COUNT,
+    );
+    const alpha5 = baseProofArray[half + 1 + ConfidentialAmount.CHUNKS_COUNT + ConfidentialAmount.CHUNKS_COUNT];
     const alpha6List = baseProofArray.slice(
-      (half + 1 + ConfidentialAmount.CHUNKS_COUNT) + ConfidentialAmount.CHUNKS_COUNT + 1,
-      (half + 1 + ConfidentialAmount.CHUNKS_COUNT * 2) + 1,
-    )
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT + ConfidentialAmount.CHUNKS_COUNT + 1,
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 2 + 1,
+    );
 
-    const X1 = baseProofArray[
-      (half + 1 + ConfidentialAmount.CHUNKS_COUNT * 2) + 1
-    ];
+    const X1 = baseProofArray[half + 1 + ConfidentialAmount.CHUNKS_COUNT * 2 + 1];
     const X2List = baseProofArray.slice(
-      (half + 1 + ConfidentialAmount.CHUNKS_COUNT * 2) + 1 + 1,
-      (half + 1 + ConfidentialAmount.CHUNKS_COUNT * 3) + 1,
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 2 + 1 + 1,
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 3 + 1,
     );
     const X3List = baseProofArray.slice(
-      (half + 1 + ConfidentialAmount.CHUNKS_COUNT * 3) + 1,
-      (half + 1 + ConfidentialAmount.CHUNKS_COUNT * 4) + 1,
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 3 + 1,
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 4 + 1,
     );
     const X4List = baseProofArray.slice(
-      (half + 1 + ConfidentialAmount.CHUNKS_COUNT * 4) + 1,
-      (half + 1 + ConfidentialAmount.CHUNKS_COUNT * 5) + 1,
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 4 + 1,
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 5 + 1,
     );
-    const X5 = baseProofArray[
-      (half + 1 + ConfidentialAmount.CHUNKS_COUNT * 5) + 1
-    ];
+    const X5 = baseProofArray[half + 1 + ConfidentialAmount.CHUNKS_COUNT * 5 + 1];
     const X6List = baseProofArray.slice(
-      (half + 1 + ConfidentialAmount.CHUNKS_COUNT * 5) + 1 + 1,
-      (half + 1 + ConfidentialAmount.CHUNKS_COUNT * 6) + 1,
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 5 + 1 + 1,
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 6 + 1,
     );
     const X8List = baseProofArray.slice(
-      (half + 1 + ConfidentialAmount.CHUNKS_COUNT * 6) + 1,
-      (half + 1 + ConfidentialAmount.CHUNKS_COUNT * 7) + 1,
-    )
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 6 + 1,
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 7 + 1,
+    );
 
     return {
       alpha1List,
@@ -287,47 +276,51 @@ export class ConfidentialTransfer {
       ed25519modN(
         x1List.reduce((acc, el, i) => {
           const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
-          const x1i = el * coef
+          const x1i = el * coef;
 
-          return acc + x1i
-        }, 0n)
-      )
+          return acc + x1i;
+        }, 0n),
+      ),
     )
       .add(
         H_RISTRETTO.multiply(
           ed25519modN(
             x6List.reduce((acc, el, i) => {
               const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
-              const x6i = el * coef
+              const x6i = el * coef;
 
-              return acc + x6i
-            }, 0n)
-          )
-        )
-          .subtract(
-            H_RISTRETTO.multiply(
-              ed25519modN(
-                x3List.reduce((acc, el, i) => {
-                  const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
-                  const x3i = el * coef
+              return acc + x6i;
+            }, 0n),
+          ),
+        ).subtract(
+          H_RISTRETTO.multiply(
+            ed25519modN(
+              x3List.reduce((acc, el, i) => {
+                const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
+                const x3i = el * coef;
 
-                  return acc + x3i
-                }, 0n)
-              )
-            )
-          )
+                return acc + x3i;
+              }, 0n),
+            ),
+          ),
+        ),
       )
       .add(
-        (this.encryptedActualBalance.reduce(
-          (acc, { D }, idx) => acc.add(D.multiply(2n ** (BigInt(idx) * ConfidentialAmount.CHUNK_BITS_BI))),
-          RistrettoPoint.ZERO,
-        )).multiply(x2)
+        this.encryptedActualBalance
+          .reduce(
+            (acc, { D }, idx) => acc.add(D.multiply(2n ** (BigInt(idx) * ConfidentialAmount.CHUNK_BITS_BI))),
+            RistrettoPoint.ZERO,
+          )
+          .multiply(x2),
       )
       .subtract(
-        this.confidentialAmountAfterTransfer.amountEncrypted!.reduce(
-          (acc, { D }, idx) => acc.add(D.multiply(2n ** (BigInt(idx) * ConfidentialAmount.CHUNK_BITS_BI))),
-          RistrettoPoint.ZERO,
-        ).multiply(x2)
+        this.confidentialAmountAfterTransfer
+          .getAmountEncrypted(this.senderDecryptionKey.publicKey(), this.newBalanceRandomness)
+          .reduce(
+            (acc, { D }, idx) => acc.add(D.multiply(2n ** (BigInt(idx) * ConfidentialAmount.CHUNK_BITS_BI))),
+            RistrettoPoint.ZERO,
+          )
+          .multiply(x2),
       )
       // .add(
       //   lastHalfIndexesOfChunksCount.reduce(
@@ -349,13 +342,13 @@ export class ConfidentialTransfer {
       const x1iG = RistrettoPoint.BASE.multiply(el);
       const x6iH = H_RISTRETTO.multiply(x6List[idx]);
 
-      return x1iG.add(x6iH).toRawBytes()
+      return x1iG.add(x6iH).toRawBytes();
     });
     const X7List =
       this.auditorsU8EncryptionKeys?.map((pk) =>
         x3List.slice(0, j).map((el) => RistrettoPoint.fromHex(pk).multiply(el).toRawBytes()),
       ) ?? [];
-    const X8List = x3List.map(el => senderPKRistretto.multiply(el).toRawBytes());
+    const X8List = x3List.map((el) => senderPKRistretto.multiply(el).toRawBytes());
 
     const p = genFiatShamirChallenge(
       utf8ToBytes(ConfidentialTransfer.FIAT_SHAMIR_SIGMA_DST),
@@ -367,8 +360,14 @@ export class ConfidentialTransfer {
       ...this.encryptedActualBalance.map((el) => el.serialize()).flat(),
       ...this.encryptedAmountByRecipient.map((el) => el.serialize()).flat(),
       ...(this.auditorsCBList?.flat()?.map(({ D }) => D.toRawBytes()) ?? []),
-      ...this.confidentialAmountToTransfer.amountEncrypted!.map(({ D }) => D.toRawBytes()).flat(),
-      ...this.confidentialAmountAfterTransfer.amountEncrypted!.map((el) => el.serialize()).flat(),
+      ...this.confidentialAmountToTransfer
+        .getAmountEncrypted(this.senderDecryptionKey.publicKey(), this.randomness)
+        .map(({ D }) => D.toRawBytes())
+        .flat(),
+      ...this.confidentialAmountAfterTransfer
+        .getAmountEncrypted(this.senderDecryptionKey.publicKey(), this.newBalanceRandomness)
+        .map((el) => el.serialize())
+        .flat(),
       X1,
       ...X2List,
       ...X3List,
@@ -382,14 +381,16 @@ export class ConfidentialTransfer {
     const sLE = bytesToNumberLE(this.senderDecryptionKey.toUint8Array());
     const invertSLE = ed25519InvertN(sLE);
 
-    const alpha1List = x1List.map((x1, idx) => ed25519modN(x1 - ed25519modN(p * this.confidentialAmountAfterTransfer.amountChunks[idx])));
+    const alpha1List = x1List.map((x1, idx) =>
+      ed25519modN(x1 - ed25519modN(p * this.confidentialAmountAfterTransfer.amountChunks[idx])),
+    );
     const alpha2 = ed25519modN(x2 - p * sLE);
     const alpha3List = x3List.map((el, idx) => ed25519modN(BigInt(el) - p * BigInt(this.randomness[idx])));
     const alpha4List = x4List
       .slice(0, j)
       .map((el, idx) => ed25519modN(el - p * this.confidentialAmountToTransfer.amountChunks[idx]));
     const alpha5 = ed25519modN(x5 - p * invertSLE);
-    const alpha6List = x6List.map((el, idx) => ed25519modN(el - p * this.newBalanceRandomness[idx]))
+    const alpha6List = x6List.map((el, idx) => ed25519modN(el - p * this.newBalanceRandomness[idx]));
 
     return {
       alpha1List: alpha1List.map((a) => numberToBytesLE(a, 32)),
@@ -494,37 +495,36 @@ export class ConfidentialTransfer {
           const a1i = curr * coef;
 
           return acc + a1i;
-        }, 0n)
-      )
+        }, 0n),
+      ),
     )
       .add(
         H_RISTRETTO.multiply(
           ed25519modN(
             alpha6LEList.reduce((acc, el, i) => {
               const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
-              const a6i = el * coef
+              const a6i = el * coef;
 
-              return acc + a6i
-            }, 0n)
-          )
-        )
-          .subtract(
-            H_RISTRETTO.multiply(
-              ed25519modN(
-                alpha3LEList.reduce((acc, el, i) => {
-                  const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
-                  const a3i = el * coef
+              return acc + a6i;
+            }, 0n),
+          ),
+        ).subtract(
+          H_RISTRETTO.multiply(
+            ed25519modN(
+              alpha3LEList.reduce((acc, el, i) => {
+                const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
+                const a3i = el * coef;
 
-                  return acc + a3i
-                }, 0n)
-              )
-            )
-          )
+                return acc + a3i;
+              }, 0n),
+            ),
+          ),
+        ),
       )
       .add(oldDSum.multiply(alpha2LE))
       .subtract(newDSum.multiply(alpha2LE))
       .add(oldCSum.multiply(p))
-      .subtract(amountCSum.multiply(p))
+      .subtract(amountCSum.multiply(p));
     // .add(
     //   lastHalfIndexesOfChunksCount.reduce(
     //     (acc, curr) =>
@@ -536,7 +536,9 @@ export class ConfidentialTransfer {
     //     RistrettoPoint.ZERO,
     //   ),
     // )
-    const X2List = alpha6LEList.map((el, i) => senderPKRistretto.multiply(el).add(opts.encryptedActualBalanceAfterTransfer[i].D.multiply(p)));
+    const X2List = alpha6LEList.map((el, i) =>
+      senderPKRistretto.multiply(el).add(opts.encryptedActualBalanceAfterTransfer[i].D.multiply(p)),
+    );
     const X3List = alpha3LEList
       .slice(0, j)
       .map((a3, i) => recipientPKRistretto.multiply(a3).add(opts.encryptedTransferAmountByRecipient[i].D.multiply(p)));
@@ -615,15 +617,15 @@ export class ConfidentialTransfer {
 
     const rangeProof = await this.genRangeProof();
 
-    if (!this.confidentialAmountAfterTransfer?.amountEncrypted)
-      throw new TypeError("this.confidentialAmountAfterTransfer.encryptedAmount is not defined");
-
     return [
       {
         sigmaProof,
         rangeProof,
       },
-      this.confidentialAmountAfterTransfer.amountEncrypted,
+      this.confidentialAmountAfterTransfer.getAmountEncrypted(
+        this.senderDecryptionKey.publicKey(),
+        this.newBalanceRandomness,
+      ),
       this.encryptedAmountByRecipient,
       this.auditorsCBList,
     ];

@@ -110,7 +110,6 @@ export class ConfidentialAmount {
     },
   ): ConfidentialAmount {
     const amountChunks = ConfidentialAmount.amountToChunks(amount, opts?.chunksCount, opts?.chunkBits);
-
     return new ConfidentialAmount({ amount, amountChunks, ...opts });
   }
 
@@ -164,9 +163,9 @@ export class ConfidentialAmount {
   }
 
   public getAmountEncrypted(publicKey: TwistedEd25519PublicKey, randomness?: bigint[]): TwistedElGamalCiphertext[] {
-    if (!this.amountEncrypted) {
-      this.encrypt(publicKey, randomness);
+    if (this.amountEncrypted === undefined) {
+      return this.encrypt(publicKey, randomness);
     }
-    return this.amountEncrypted!;
+    return this.amountEncrypted;
   }
 }

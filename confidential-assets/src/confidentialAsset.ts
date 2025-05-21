@@ -1,7 +1,21 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, AccountAddress, AccountAddressInput, AnyNumber, Aptos, AptosConfig, CommittedTransactionResponse, HexInput, InputGenerateSingleSignerRawTransactionArgs, InputGenerateTransactionPayloadData, LedgerVersionArg, MoveStructId, SimpleTransaction } from "@aptos-labs/ts-sdk";
+import {
+  Account,
+  AccountAddress,
+  AccountAddressInput,
+  AnyNumber,
+  Aptos,
+  AptosConfig,
+  CommittedTransactionResponse,
+  HexInput,
+  InputGenerateSingleSignerRawTransactionArgs,
+  InputGenerateTransactionPayloadData,
+  LedgerVersionArg,
+  MoveStructId,
+  SimpleTransaction,
+} from "@aptos-labs/ts-sdk";
 import { TwistedElGamalCiphertext } from "./twistedElGamal";
 import { ConfidentialNormalization, CreateConfidentialNormalizationOpArgs } from "./confidentialNormalization";
 import { ConfidentialKeyRotation, CreateConfidentialKeyRotationOpArgs } from "./confidentialKeyRotation";
@@ -32,7 +46,12 @@ export class ConfidentialAsset {
   client: Aptos;
   confidentialAssetModuleAddress: string;
 
-  constructor(readonly config: AptosConfig, { confidentialAssetModuleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS }: { confidentialAssetModuleAddress?: string } = {}) {
+  constructor(
+    readonly config: AptosConfig,
+    {
+      confidentialAssetModuleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS,
+    }: { confidentialAssetModuleAddress?: string } = {},
+  ) {
     this.client = new Aptos(config);
     this.confidentialAssetModuleAddress = confidentialAssetModuleAddress;
   }
@@ -309,7 +328,10 @@ export class ConfidentialAsset {
     ] = await confidentialTransfer.authorizeTransfer();
 
     const newBalance = encryptedAmountAfterTransfer.map((el) => el.serialize()).flat();
-    const amountBySender = confidentialTransfer.confidentialAmountToTransfer.amountEncrypted!.map((el) => el.serialize()).flat();
+    const amountBySender = confidentialTransfer.confidentialAmountToTransfer
+      .getAmountEncrypted(args.senderDecryptionKey.publicKey())
+      .map((el) => el.serialize())
+      .flat();
     const amountByRecipient = encryptedAmountByRecipient.map((el) => el.serialize()).flat();
     const auditorEks = confidentialTransfer.auditorsU8EncryptionKeys;
     const auditorBalances = auditorsCBList

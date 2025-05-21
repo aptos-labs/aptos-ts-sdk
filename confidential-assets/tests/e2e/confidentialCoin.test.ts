@@ -1,8 +1,25 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { ConfidentialBalance, ConfidentialAmount, TwistedEd25519PublicKey, TwistedEd25519PrivateKey, TwistedElGamalCiphertext } from "../../src";
-import { getTestAccount, getTestConfidentialAccount, aptos, TOKEN_ADDRESS, sendAndWaitTx, mintFungibleTokens, sendAndWaitBatchTxs, addNewContentLineToFile, longTestTimeout, confidentialAsset } from "../helpers";
+import {
+  ConfidentialBalance,
+  ConfidentialAmount,
+  TwistedEd25519PublicKey,
+  TwistedEd25519PrivateKey,
+  TwistedElGamalCiphertext,
+} from "../../src";
+import {
+  getTestAccount,
+  getTestConfidentialAccount,
+  aptos,
+  TOKEN_ADDRESS,
+  sendAndWaitTx,
+  mintFungibleTokens,
+  sendAndWaitBatchTxs,
+  addNewContentLineToFile,
+  longTestTimeout,
+  confidentialAsset,
+} from "../helpers";
 import { preloadTables } from "../helpers/wasmPollardKangaroo";
 
 describe("Confidential balance api", () => {
@@ -193,7 +210,7 @@ describe("Confidential balance api", () => {
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         decryptionKey: aliceConfidential,
-        encryptedActualBalance: aliceConfidentialAmount.amountEncrypted!,
+        encryptedActualBalance: aliceConfidentialAmount.getAmountEncrypted(aliceConfidential.publicKey()),
         amountToWithdraw: WITHDRAW_AMOUNT,
       });
       const txResp = await sendAndWaitTx(withdrawTx, alice);

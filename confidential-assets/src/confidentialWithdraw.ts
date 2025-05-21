@@ -66,7 +66,6 @@ export class ConfidentialWithdraw {
     const confidentialAmountAfterWithdraw = ConfidentialAmount.fromAmount(
       actualBalance.amount - confidentialAmountToWithdraw.amount,
     );
-    confidentialAmountAfterWithdraw.encrypt(args.decryptionKey.publicKey(), randomness);
 
     return new ConfidentialWithdraw({
       decryptionKey: args.decryptionKey,
@@ -144,21 +143,20 @@ export class ConfidentialWithdraw {
           const x1i = el * coef;
 
           return acc + x1i;
-        }, 0n)
-      )
-    )
-      .add(
-        this.encryptedActualBalanceAmount.reduce((acc, el, i) => {
-          const { D } = el;
-          const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
+        }, 0n),
+      ),
+    ).add(
+      this.encryptedActualBalanceAmount.reduce((acc, el, i) => {
+        const { D } = el;
+        const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
 
-          const DCoef = D.multiply(coef);
+        const DCoef = D.multiply(coef);
 
-          const DCoefX2 = DCoef.multiply(x2);
+        const DCoefX2 = DCoef.multiply(x2);
 
-          return acc.add(DCoefX2);
-        }, RistrettoPoint.ZERO),
-      );
+        return acc.add(DCoefX2);
+      }, RistrettoPoint.ZERO),
+    );
     const X2 = H_RISTRETTO.multiply(x3);
     const X3List = x1List.map((item, idx) => RistrettoPoint.BASE.multiply(item).add(H_RISTRETTO.multiply(x4List[idx])));
     const X4List = x4List.map((item) =>
@@ -170,7 +168,11 @@ export class ConfidentialWithdraw {
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
       this.decryptionKey.publicKey().toUint8Array(),
-      concatBytes(...this.confidentialAmountToWithdraw.amountChunks.slice(0, ConfidentialAmount.CHUNKS_COUNT / 2).map((a) => numberToBytesLE(a, 32))),
+      concatBytes(
+        ...this.confidentialAmountToWithdraw.amountChunks
+          .slice(0, ConfidentialAmount.CHUNKS_COUNT / 2)
+          .map((a) => numberToBytesLE(a, 32)),
+      ),
       concatBytes(...this.encryptedActualBalanceAmount.map((el) => el.serialize()).flat()),
       X1.toRawBytes(),
       X2.toRawBytes(),
@@ -185,8 +187,8 @@ export class ConfidentialWithdraw {
     const psInvert = ed25519modN(p * invertSLE);
 
     const alpha1List = x1List.map((el, i) => {
-      const pChunk = ed25519modN(p * this.confidentialAmountAfterWithdraw.amountChunks[i])
-      return ed25519modN(el - pChunk)
+      const pChunk = ed25519modN(p * this.confidentialAmountAfterWithdraw.amountChunks[i]);
+      return ed25519modN(el - pChunk);
     });
     const alpha2 = ed25519modN(x2 - ps);
     const alpha3 = ed25519modN(x3 - psInvert);
@@ -229,7 +231,9 @@ export class ConfidentialWithdraw {
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
       publicKeyU8,
-      ...confidentialAmountToWithdraw.amountChunks.slice(0, ConfidentialAmount.CHUNKS_COUNT / 2).map((a) => numberToBytesLE(a, 32)),
+      ...confidentialAmountToWithdraw.amountChunks
+        .slice(0, ConfidentialAmount.CHUNKS_COUNT / 2)
+        .map((a) => numberToBytesLE(a, 32)),
       ...opts.encryptedActualBalance.map((el) => el.serialize()).flat(),
       opts.sigmaProof.X1,
       opts.sigmaProof.X2,
@@ -255,8 +259,8 @@ export class ConfidentialWithdraw {
           const elCoef = el * coef;
 
           return acc + elCoef;
-        }, 0n)
-      )
+        }, 0n),
+      ),
     )
       .add(DOldSum.multiply(alpha2LE))
       .add(COldSum.multiply(p))
@@ -270,13 +274,12 @@ export class ConfidentialWithdraw {
       return a1iG.add(a4iH).add(pC);
     });
     const X4List = alpha4LEList.map((el, i) => {
-      const a4iP = RistrettoPoint.fromHex(publicKeyU8).multiply(el)
+      const a4iP = RistrettoPoint.fromHex(publicKeyU8).multiply(el);
 
-      const pDNew = opts.encryptedActualBalanceAfterWithdraw[i].D.multiply(p)
+      const pDNew = opts.encryptedActualBalanceAfterWithdraw[i].D.multiply(p);
 
-      return a4iP.add(pDNew)
-    },
-    );
+      return a4iP.add(pDNew);
+    });
 
     return (
       X1.equals(RistrettoPoint.fromHex(opts.sigmaProof.X1)) &&
@@ -310,7 +313,10 @@ export class ConfidentialWithdraw {
     const sigmaProof = await this.genSigmaProof();
     const rangeProof = await this.genRangeProof();
 
-    return [{ sigmaProof, rangeProof }, this.confidentialAmountAfterWithdraw.amountEncrypted!];
+    return [
+      { sigmaProof, rangeProof },
+      this.confidentialAmountAfterWithdraw.getAmountEncrypted(this.decryptionKey.publicKey(), this.randomness),
+    ];
   }
 
   static async verifyRangeProof(opts: {

@@ -1,4 +1,11 @@
-import { confidentialAsset, getTestAccount, getTestConfidentialAccount, longTestTimeout, sendAndWaitTx, TOKEN_ADDRESS } from "../../helpers";
+import {
+  confidentialAsset,
+  getTestAccount,
+  getTestConfidentialAccount,
+  longTestTimeout,
+  sendAndWaitTx,
+  TOKEN_ADDRESS,
+} from "../../helpers";
 import { preloadTables } from "../../helpers/wasmPollardKangaroo";
 
 describe("Register", () => {
