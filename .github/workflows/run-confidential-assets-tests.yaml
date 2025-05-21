@@ -16,4 +16,4 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ env.GIT_SHA }}
-      - uses: ./.github/actions/run-tests
+      - uses: ./.github/actions/run-confidential-assets-tests
