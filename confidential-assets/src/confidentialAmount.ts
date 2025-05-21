@@ -1,5 +1,6 @@
 import { TwistedElGamal, TwistedElGamalCiphertext } from "./twistedElGamal";
 import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
+import { ed25519GenRandom } from "./utils";
 
 /**
  * Number of chunks for confidential balance
@@ -21,7 +22,7 @@ export class ConfidentialAmount {
   chunkBits = CHUNK_BITS;
 
   /** We keep this just as an optimization. */
-  private amountEncrypted?: TwistedElGamalCiphertext[];
+  private amountEncryptedAndRandomnessForPublicKey: Map<TwistedEd25519PublicKey, [ TwistedElGamalCiphertext[], bigint[] ]> = new Map();
 
   static CHUNKS_COUNT = CHUNKS_COUNT;
 
@@ -33,15 +34,18 @@ export class ConfidentialAmount {
     amount: bigint;
     amountChunks: bigint[];
     encryptedAmount?: TwistedElGamalCiphertext[];
+    publicKey?: TwistedEd25519PublicKey;
     chunksCount?: number;
     chunkBits?: number;
   }) {
     this.amount = args.amount;
     this.amountChunks = args.amountChunks;
 
-    if (args.encryptedAmount) {
-      this.amountEncrypted = args.encryptedAmount;
-    }
+    if (args.encryptedAmount && args.publicKey) {
+      this.amountEncryptedAndRandomnessForPublicKey.set(args.publicKey, [args.encryptedAmount, []]);
+    } else if (args.encryptedAmount !== undefined || args.publicKey !== undefined) {
+      throw new Error("Both publicKey and encryptedAmount must be provided together or neither should be provided");
+    } 
 
     if (args.chunksCount) {
       this.chunksCount = args.chunksCount;
@@ -149,23 +153,32 @@ export class ConfidentialAmount {
       amount,
       amountChunks: decryptedAmountChunks,
       encryptedAmount: encrypted,
+      publicKey: privateKey.publicKey(),
       chunksCount,
       chunkBits,
     });
   }
 
   private encrypt(publicKey: TwistedEd25519PublicKey, randomness?: bigint[]): TwistedElGamalCiphertext[] {
-    this.amountEncrypted = this.amountChunks.map((chunk, i) =>
-      TwistedElGamal.encryptWithPK(chunk, publicKey, randomness?.[i]),
+    // Generate a unique random value for each chunk if randomness is not provided
+    const randomnessToUse: bigint[] = randomness ?? Array(this.amountChunks.length)
+      .fill(0)
+      .map(() => ed25519GenRandom());
+    const amountEncrypted = this.amountChunks.map((chunk, i) =>
+      TwistedElGamal.encryptWithPK(chunk, publicKey, randomnessToUse[i]),
     );
-
-    return this.amountEncrypted;
+    this.amountEncryptedAndRandomnessForPublicKey.set(publicKey, [amountEncrypted, randomnessToUse]);
+    return amountEncrypted;
   }
 
   public getAmountEncrypted(publicKey: TwistedEd25519PublicKey, randomness?: bigint[]): TwistedElGamalCiphertext[] {
-    if (this.amountEncrypted === undefined) {
+    const cached = this.amountEncryptedAndRandomnessForPublicKey.get(publicKey);
+    if (cached === undefined) {
       return this.encrypt(publicKey, randomness);
     }
-    return this.amountEncrypted;
+    if (randomness !== undefined && cached[1] !== randomness) {
+      throw new Error("Randomness has already been set for this public key");
+    }
+    return cached[0];
   }
 }
