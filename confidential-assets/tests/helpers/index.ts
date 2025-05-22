@@ -16,6 +16,7 @@ import {
   PrivateKey,
   PrivateKeyVariants,
   Ed25519Account,
+  AptosApiType,
 } from "@aptos-labs/ts-sdk";
 import { ConfidentialAmount } from "../../src/confidentialAmount";
 import { ConfidentialAsset } from "../../src/confidentialAsset";
@@ -29,10 +30,37 @@ export const longTestTimeout = 120 * 1000;
  */
 export const TOKEN_ADDRESS = "0x8b4dd7ebf8150f349675dde8bd2e9daa66461107b181a67e764de85d82bbac21";
 
-const APTOS_NETWORK: Network = NetworkToNetworkName[Network.DEVNET];
-const config = new AptosConfig({ network: APTOS_NETWORK });
+/**
+ * This handles the nonsense where we have to use network = custom if we want to use
+ * the faucet on testnet with a token.
+ */
+function getConfig(networkRaw: Network, apiKey: string | undefined, faucetToken: string | undefined) {
+  const network = faucetToken !== undefined ? Network.CUSTOM : networkRaw;
+  let customSettings = undefined;
+  if (network === Network.CUSTOM) {
+    const baseConfig = new AptosConfig({ network: Network.TESTNET });
+    const tempAptos = new Aptos(baseConfig);
+    customSettings = {
+      fullnode: tempAptos.config.getRequestUrl(AptosApiType.FULLNODE),
+      faucet: "https://faucet.testnet.aptoslabs.com",
+      indexer: tempAptos.config.getRequestUrl(AptosApiType.INDEXER),
+    };
+  }
+  return new AptosConfig({
+    network,
+    clientConfig: { API_KEY: apiKey },
+    faucetConfig: { AUTH_TOKEN: faucetToken },
+    ...(customSettings ?? {}),
+  });
+}
+
+// We have to use a custom network if we have a faucet token to make the SDK happy.
+const API_KEY = process.env.APTOS_API_KEY;
+export const FAUCET_TOKEN = process.env.FAUCET_TOKEN;
+const APTOS_NETWORK: Network = FAUCET_TOKEN ? Network.CUSTOM : NetworkToNetworkName[Network.TESTNET];
+const config = getConfig(APTOS_NETWORK, API_KEY, FAUCET_TOKEN);
 export const confidentialAsset = new ConfidentialAsset(config, {
-  confidentialAssetModuleAddress: "0xd4aa5d2b93935bae55ef5aee8043e78e09e91ad1d31ea9532963a036b1cd5df1",
+  confidentialAssetModuleAddress: "0xbe14a545c8e1f0024a1665f39fc1227c066727a70236e784fb203ec619fedf4c",
 });
 export const aptos = new Aptos(config);
 

@@ -18,7 +18,7 @@ module.exports = {
     "./tests/e2e/ans/publishANSContracts.ts",
     "./confidential-assets/*",
   ],
-  testPathIgnorePatterns: ["dist/*", "examples/*", "confidential-assets/*"],
+  testPathIgnorePatterns: ["dist/*", "examples/*"],
   collectCoverage: true,
   setupFiles: ["dotenv/config"],
   coverageThreshold: {
