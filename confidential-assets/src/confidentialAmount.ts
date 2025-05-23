@@ -22,7 +22,10 @@ export class ConfidentialAmount {
   chunkBits = CHUNK_BITS;
 
   /** We keep this just as an optimization. */
-  private amountEncryptedAndRandomnessForPublicKey: Map<TwistedEd25519PublicKey, [ TwistedElGamalCiphertext[], bigint[] ]> = new Map();
+  private amountEncryptedAndRandomnessForPublicKey: Map<
+    TwistedEd25519PublicKey,
+    [TwistedElGamalCiphertext[], bigint[]]
+  > = new Map();
 
   static CHUNKS_COUNT = CHUNKS_COUNT;
 
@@ -45,7 +48,7 @@ export class ConfidentialAmount {
       this.amountEncryptedAndRandomnessForPublicKey.set(args.publicKey, [args.encryptedAmount, []]);
     } else if (args.encryptedAmount !== undefined || args.publicKey !== undefined) {
       throw new Error("Both publicKey and encryptedAmount must be provided together or neither should be provided");
-    } 
+    }
 
     if (args.chunksCount) {
       this.chunksCount = args.chunksCount;
@@ -161,9 +164,11 @@ export class ConfidentialAmount {
 
   private encrypt(publicKey: TwistedEd25519PublicKey, randomness?: bigint[]): TwistedElGamalCiphertext[] {
     // Generate a unique random value for each chunk if randomness is not provided
-    const randomnessToUse: bigint[] = randomness ?? Array(this.amountChunks.length)
-      .fill(0)
-      .map(() => ed25519GenRandom());
+    const randomnessToUse: bigint[] =
+      randomness ??
+      Array(this.amountChunks.length)
+        .fill(0)
+        .map(() => ed25519GenRandom());
     const amountEncrypted = this.amountChunks.map((chunk, i) =>
       TwistedElGamal.encryptWithPK(chunk, publicKey, randomnessToUse[i]),
     );
