@@ -44,13 +44,13 @@ export class ConfidentialNormalization {
     decryptionKey: TwistedEd25519PrivateKey;
     unnormalizedEncryptedBalance: TwistedElGamalCiphertext[];
     balanceAmount: bigint;
-    normalizedConfidentialAmount: ConfidentialAmount;
+    normalizedConfidentialBalance: ConfidentialAmount;
     randomness: bigint[];
   }) {
     this.decryptionKey = args.decryptionKey;
     this.unnormalizedEncryptedBalance = args.unnormalizedEncryptedBalance;
     this.balanceAmount = args.balanceAmount;
-    this.normalizedConfidentialBalance = args.normalizedConfidentialAmount;
+    this.normalizedConfidentialBalance = args.normalizedConfidentialBalance;
     this.randomness = args.randomness;
     this.normalizedEncryptedBalance = this.normalizedConfidentialBalance.getAmountEncrypted(
       this.decryptionKey.publicKey(),
@@ -61,13 +61,13 @@ export class ConfidentialNormalization {
   static async create(args: CreateConfidentialNormalizationOpArgs) {
     const randomness = args.randomness ?? ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
 
-    const normalizedConfidentialAmount = ConfidentialAmount.fromAmount(args.balanceAmount);
+    const normalizedConfidentialBalance = ConfidentialAmount.fromAmount(args.balanceAmount);
 
     return new ConfidentialNormalization({
       decryptionKey: args.decryptionKey,
       unnormalizedEncryptedBalance: args.unnormalizedEncryptedBalance,
       balanceAmount: args.balanceAmount,
-      normalizedConfidentialAmount,
+      normalizedConfidentialBalance,
       randomness,
     });
   }

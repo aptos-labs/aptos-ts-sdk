@@ -96,7 +96,7 @@ describe("Generate 'confidential coin' proofs", () => {
     async () => {
       confidentialTransfer = await ConfidentialTransfer.create({
         senderDecryptionKey: aliceConfidentialDecryptionKey,
-        encryptedActualBalance: aliceEncryptedBalance,
+        encryptedSenderBalance: aliceEncryptedBalance,
         amountToTransfer: TRANSFER_AMOUNT,
         recipientEncryptionKey: bobConfidentialDecryptionKey.publicKey(),
       });
@@ -157,7 +157,7 @@ describe("Generate 'confidential coin' proofs", () => {
     async () => {
       confidentialTransferWithAuditors = await ConfidentialTransfer.create({
         senderDecryptionKey: aliceConfidentialDecryptionKey,
-        encryptedActualBalance: aliceEncryptedBalance,
+        encryptedSenderBalance: aliceEncryptedBalance,
         amountToTransfer: TRANSFER_AMOUNT,
         recipientEncryptionKey: bobConfidentialDecryptionKey.publicKey(),
         auditorEncryptionKeys: [auditor.publicKey()],

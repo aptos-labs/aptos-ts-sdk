@@ -307,14 +307,14 @@ export class ConfidentialAsset {
 
     const confidentialTransfer = await ConfidentialTransfer.create({
       senderDecryptionKey: toTwistedEd25519PrivateKey(args.senderDecryptionKey),
-      encryptedActualBalance: args.encryptedActualBalance,
+      encryptedSenderBalance: args.encryptedSenderBalance,
       amountToTransfer: args.amountToTransfer,
       recipientEncryptionKey: toTwistedEd25519PublicKey(args.recipientEncryptionKey),
       auditorEncryptionKeys: [
         ...(globalAuditorPubKey?.length ? [toTwistedEd25519PublicKey(globalAuditorPubKey)] : []),
         ...(args.auditorEncryptionKeys?.map((el) => toTwistedEd25519PublicKey(el)) || []),
       ],
-      randomness: args.randomness,
+      transferAmountRandomness: args.transferAmountRandomness,
     });
 
     const [
@@ -328,10 +328,7 @@ export class ConfidentialAsset {
     ] = await confidentialTransfer.authorizeTransfer();
 
     const newBalance = encryptedAmountAfterTransfer.map((el) => el.serialize()).flat();
-    const amountBySender = confidentialTransfer.confidentialAmountToTransfer
-      .getAmountEncrypted(args.senderDecryptionKey.publicKey())
-      .map((el) => el.serialize())
-      .flat();
+    const amountBySender = confidentialTransfer.encryptedAmountToTransfer.map((el) => el.serialize()).flat();
     const amountByRecipient = encryptedAmountByRecipient.map((el) => el.serialize()).flat();
     const auditorEks = confidentialTransfer.auditorsU8EncryptionKeys;
     const auditorBalances = auditorsCBList
