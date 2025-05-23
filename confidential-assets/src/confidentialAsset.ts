@@ -178,7 +178,7 @@ export class ConfidentialAsset {
   ): Promise<SimpleTransaction> {
     const confidentialWithdraw = await ConfidentialWithdraw.create({
       decryptionKey: toTwistedEd25519PrivateKey(args.decryptionKey),
-      encryptedActualBalance: args.encryptedActualBalance,
+      encryptedCurrentBalance: args.encryptedCurrentBalance,
       amountToWithdraw: args.amountToWithdraw,
       randomness: args.randomness,
     });

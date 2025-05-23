@@ -40,7 +40,7 @@ describe("Generate 'confidential coin' proofs", () => {
     async () => {
       confidentialWithdraw = await ConfidentialWithdraw.create({
         decryptionKey: toTwistedEd25519PrivateKey(aliceConfidentialDecryptionKey),
-        encryptedActualBalance: aliceEncryptedBalance,
+        encryptedCurrentBalance: aliceEncryptedBalance,
         amountToWithdraw: WITHDRAW_AMOUNT,
       });
 
@@ -56,8 +56,8 @@ describe("Generate 'confidential coin' proofs", () => {
     async () => {
       const isValid = ConfidentialWithdraw.verifySigmaProof({
         publicKey: aliceConfidentialDecryptionKey.publicKey(),
-        encryptedActualBalance: confidentialWithdraw.encryptedActualBalanceAmount,
-        encryptedActualBalanceAfterWithdraw: confidentialWithdraw.encryptedBalanceAfterWithdraw,
+        encryptedCurrentBalance: confidentialWithdraw.encryptedCurrentBalance,
+        encryptedBalanceAfterWithdrawal: confidentialWithdraw.encryptedBalanceAfterWithdrawal,
         amountToWithdraw: WITHDRAW_AMOUNT,
         sigmaProof: confidentialWithdrawSigmaProof,
       });
@@ -80,7 +80,7 @@ describe("Generate 'confidential coin' proofs", () => {
     async () => {
       const isValid = ConfidentialWithdraw.verifyRangeProof({
         rangeProof: confidentialWithdrawRangeProof,
-        encryptedActualBalanceAfterWithdraw: confidentialWithdraw.encryptedBalanceAfterWithdraw,
+        encryptedBalanceAfterWithdrawal: confidentialWithdraw.encryptedBalanceAfterWithdrawal,
       });
 
       expect(isValid).toBeTruthy();
