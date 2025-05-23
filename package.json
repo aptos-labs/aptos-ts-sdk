@@ -1,5 +1,5 @@
 {
-  "name": "@aptos-labs/ts-sdk",
+  "name": "aptos-local-abi-ts-sdk",
   "description": "Aptos TypeScript SDK",
   "packageManager": "pnpm@8.15.1",
   "license": "Apache-2.0",
