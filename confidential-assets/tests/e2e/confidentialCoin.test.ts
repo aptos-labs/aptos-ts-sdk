@@ -210,7 +210,7 @@ describe("Confidential balance api", () => {
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         decryptionKey: aliceConfidential,
-        encryptedActualBalance: aliceConfidentialAmount.getAmountEncrypted(aliceConfidential.publicKey()),
+        encryptedCurrentBalance: aliceConfidentialAmount.getAmountEncrypted(aliceConfidential.publicKey()),
         amountToWithdraw: WITHDRAW_AMOUNT,
       });
       const txResp = await sendAndWaitTx(withdrawTx, alice);
@@ -259,7 +259,7 @@ describe("Confidential balance api", () => {
       const transferTx = await confidentialAsset.transferCoin({
         senderDecryptionKey: aliceConfidential,
         recipientEncryptionKey: aliceConfidential.publicKey(),
-        encryptedActualBalance: aliceConfidentialBalances.actual,
+        encryptedSenderBalance: aliceConfidentialBalances.actual,
         amountToTransfer: TRANSFER_AMOUNT,
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
@@ -298,7 +298,7 @@ describe("Confidential balance api", () => {
       const transferTx = await confidentialAsset.transferCoin({
         senderDecryptionKey: aliceConfidential,
         recipientEncryptionKey: aliceConfidential.publicKey(),
-        encryptedActualBalance: aliceConfidentialBalances.actual,
+        encryptedSenderBalance: aliceConfidentialBalances.actual,
         amountToTransfer: TRANSFER_AMOUNT,
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,

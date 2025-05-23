@@ -34,11 +34,11 @@ export type ConfidentialTransferRangeProof = {
 
 export type CreateConfidentialTransferOpArgs = {
   senderDecryptionKey: TwistedEd25519PrivateKey;
-  encryptedActualBalance: TwistedElGamalCiphertext[];
+  encryptedSenderBalance: TwistedElGamalCiphertext[];
   amountToTransfer: bigint;
   recipientEncryptionKey: TwistedEd25519PublicKey;
   auditorEncryptionKeys?: TwistedEd25519PublicKey[];
-  randomness?: bigint[];
+  transferAmountRandomness?: bigint[];
 };
 
 export class ConfidentialTransfer {
@@ -46,95 +46,113 @@ export class ConfidentialTransfer {
 
   recipientEncryptionKey: TwistedEd25519PublicKey;
 
-  recipientEncryptionKeyU8: Uint8Array;
-
   auditorEncryptionKeys: TwistedEd25519PublicKey[];
 
-  auditorsU8EncryptionKeys: Uint8Array[];
+  transferAmountEncryptedByAuditors: TwistedElGamalCiphertext[][];
 
-  auditorsCBList: TwistedElGamalCiphertext[][];
+  /**
+   * The encrypted actual balance, which is the on-chain representation of the balance of the sender before the transfer.
+   * This is can be decrypted with the sender decryption key.
+   */
+  encryptedSenderBalance: TwistedElGamalCiphertext[];
 
-  encryptedActualBalance: TwistedElGamalCiphertext[];
+  amountToTransfer: ConfidentialAmount;
 
-  confidentialAmountToTransfer: ConfidentialAmount;
+  /**
+   * The encrypted amount being transferred, which is the amount to be transferred encrypted with the public key of senderDecryptionKey
+   * and transferAmountRandomness.
+   */
+  transferAmountEncryptedBySender: TwistedElGamalCiphertext[];
 
-  confidentialAmountAfterTransfer: ConfidentialAmount;
+  senderBalanceAfterTransfer: ConfidentialAmount;
 
-  encryptedAmountByRecipient: TwistedElGamalCiphertext[];
+  /**
+   * The encrypted balance remaining after the transfer. It is the computed by encrypting confidentialBalanceAfterTransfer
+   * with the public key of senderDecryptionKey and newBalanceRandomness.
+   **/
+  encryptedSenderBalanceAfterTransfer: TwistedElGamalCiphertext[];
 
-  randomness: bigint[];
+  /**
+   * The encrypted amount being transferred, which is the amount to be transferred encrypted with recipientEncryptionKey
+   * and transferAmountRandomness.
+   */
+  transferAmountEncryptedByRecipient: TwistedElGamalCiphertext[];
 
+  /**
+   * The randomness used to encrypt the amount to be transferred.
+   */
+  transferAmountRandomness: bigint[];
+
+  /**
+   * The randomness used to encrypt the balance after the transfer.
+   */
   newBalanceRandomness: bigint[];
 
   constructor(args: {
     senderDecryptionKey: TwistedEd25519PrivateKey;
     recipientEncryptionKey: TwistedEd25519PublicKey;
-    recipientEncryptionKeyU8: Uint8Array;
     auditorEncryptionKeys: TwistedEd25519PublicKey[];
-    auditorsU8EncryptionKeys: Uint8Array[];
-    auditorsCBList: TwistedElGamalCiphertext[][];
-    encryptedActualBalance: TwistedElGamalCiphertext[];
-    confidentialAmountToTransfer: ConfidentialAmount;
-    confidentialAmountAfterTransfer: ConfidentialAmount;
-    encryptedAmountByRecipient: TwistedElGamalCiphertext[];
-    randomness: bigint[];
+    senderBalance: ConfidentialAmount;
+    encryptedSenderBalance: TwistedElGamalCiphertext[];
+    amountToTransfer: ConfidentialAmount;
+    transferAmountRandomness: bigint[];
     newBalanceRandomness: bigint[];
   }) {
     this.senderDecryptionKey = args.senderDecryptionKey;
     this.recipientEncryptionKey = args.recipientEncryptionKey;
-    this.recipientEncryptionKeyU8 = args.recipientEncryptionKeyU8;
     this.auditorEncryptionKeys = args.auditorEncryptionKeys;
-    this.auditorsU8EncryptionKeys = args.auditorsU8EncryptionKeys;
-    this.auditorsCBList = args.auditorsCBList;
-    this.encryptedActualBalance = args.encryptedActualBalance;
-    this.confidentialAmountToTransfer = args.confidentialAmountToTransfer;
-
-    this.confidentialAmountAfterTransfer = args.confidentialAmountAfterTransfer;
-    this.encryptedAmountByRecipient = args.encryptedAmountByRecipient;
-    this.randomness = args.randomness;
+    this.encryptedSenderBalance = args.encryptedSenderBalance;
+    this.amountToTransfer = args.amountToTransfer;
+    this.senderBalanceAfterTransfer = ConfidentialAmount.fromAmount(
+      args.senderBalance.amount - this.amountToTransfer.amount,
+    );
+    this.transferAmountRandomness = args.transferAmountRandomness;
     this.newBalanceRandomness = args.newBalanceRandomness;
+
+    this.transferAmountEncryptedBySender = this.amountToTransfer.getAmountEncrypted(
+      args.senderDecryptionKey.publicKey(),
+      this.transferAmountRandomness,
+    );
+    this.transferAmountEncryptedByRecipient = this.amountToTransfer.amountChunks.map((chunk, i) =>
+      TwistedElGamal.encryptWithPK(chunk, this.recipientEncryptionKey, this.transferAmountRandomness[i]),
+    );
+    this.encryptedSenderBalanceAfterTransfer = this.senderBalanceAfterTransfer.getAmountEncrypted(
+      args.senderDecryptionKey.publicKey(),
+      this.newBalanceRandomness,
+    );
+    this.transferAmountEncryptedByAuditors = this.auditorEncryptionKeys.map((encryptionKey) =>
+      this.amountToTransfer.amountChunks.map((chunk, i) =>
+        TwistedElGamal.encryptWithPK(chunk, encryptionKey, this.transferAmountRandomness[i]),
+      ),
+    );
   }
 
   static async create(args: CreateConfidentialTransferOpArgs) {
-    const randomness = args.randomness ?? ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
+    const {
+      encryptedSenderBalance,
+      senderDecryptionKey,
+      recipientEncryptionKey,
+      amountToTransfer,
+      auditorEncryptionKeys = [],
+    } = args;
+    const transferAmountRandomness =
+      args.transferAmountRandomness ?? ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
     const newBalanceRandomness = ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
-    const recipientPublicKeyU8 = publicKeyToU8(args.recipientEncryptionKey);
 
-    const confidentialAmountToTransfer = ConfidentialAmount.fromAmount(args.amountToTransfer, {
+    const amountToTransferAsConfidentialAmount = ConfidentialAmount.fromAmount(amountToTransfer, {
       chunksCount: ConfidentialAmount.CHUNKS_COUNT / 2,
     });
 
-    const encryptedAmountByRecipient = confidentialAmountToTransfer.amountChunks.map((chunk, i) =>
-      TwistedElGamal.encryptWithPK(chunk, new TwistedEd25519PublicKey(recipientPublicKeyU8), randomness[i]),
-    );
-
-    const auditorsU8PublicKeys = args.auditorEncryptionKeys?.map((pk) => publicKeyToU8(pk)) ?? [];
-
-    const auditorsCBList =
-      args.auditorEncryptionKeys?.map((el) =>
-        confidentialAmountToTransfer.amountChunks.map((chunk, i) =>
-          TwistedElGamal.encryptWithPK(chunk, el, randomness[i]),
-        ),
-      ) || [];
-
-    const actualBalance = await ConfidentialAmount.fromEncrypted(args.encryptedActualBalance, args.senderDecryptionKey);
-
-    const confidentialAmountAfterTransfer = ConfidentialAmount.fromAmount(
-      actualBalance.amount - confidentialAmountToTransfer.amount,
-    );
+    const senderBalance = await ConfidentialAmount.fromEncrypted(encryptedSenderBalance, senderDecryptionKey);
 
     return new ConfidentialTransfer({
-      senderDecryptionKey: args.senderDecryptionKey,
-      recipientEncryptionKey: args.recipientEncryptionKey,
-      recipientEncryptionKeyU8: recipientPublicKeyU8,
-      auditorEncryptionKeys: args.auditorEncryptionKeys ?? [],
-      auditorsU8EncryptionKeys: auditorsU8PublicKeys,
-      auditorsCBList,
-      encryptedActualBalance: args.encryptedActualBalance,
-      confidentialAmountToTransfer,
-      confidentialAmountAfterTransfer,
-      encryptedAmountByRecipient,
-      randomness,
+      senderDecryptionKey,
+      recipientEncryptionKey,
+      auditorEncryptionKeys,
+      senderBalance,
+      encryptedSenderBalance,
+      amountToTransfer: amountToTransferAsConfidentialAmount,
+      transferAmountRandomness,
       newBalanceRandomness,
     });
   }
@@ -246,14 +264,14 @@ export class ConfidentialTransfer {
   }
 
   async genSigmaProof(): Promise<ConfidentialTransferSigmaProof> {
-    if (this.randomness && this.randomness.length !== ConfidentialAmount.CHUNKS_COUNT)
+    if (this.transferAmountRandomness && this.transferAmountRandomness.length !== ConfidentialAmount.CHUNKS_COUNT)
       throw new TypeError("Invalid length list of randomness");
 
-    if (this.confidentialAmountToTransfer.amount > 2n ** (2n * ConfidentialAmount.CHUNK_BITS_BI) - 1n)
+    if (this.amountToTransfer.amount > 2n ** (2n * ConfidentialAmount.CHUNK_BITS_BI) - 1n)
       throw new TypeError(`Amount must be less than 2n**${ConfidentialAmount.CHUNK_BITS_BI * 2n}`);
 
     const senderPKRistretto = RistrettoPoint.fromHex(this.senderDecryptionKey.publicKey().toUint8Array());
-    const recipientPKRistretto = RistrettoPoint.fromHex(this.recipientEncryptionKeyU8);
+    const recipientPKRistretto = RistrettoPoint.fromHex(this.recipientEncryptionKey.toUint8Array());
 
     // Prover selects random x1, x2, x3i[], x4j[], x5, x6i[], where i in {0, 3} and j in {0, 1}
     const i = ConfidentialAmount.CHUNKS_COUNT;
@@ -306,7 +324,7 @@ export class ConfidentialTransfer {
         ),
       )
       .add(
-        this.encryptedActualBalance
+        this.encryptedSenderBalance
           .reduce(
             (acc, { D }, idx) => acc.add(D.multiply(2n ** (BigInt(idx) * ConfidentialAmount.CHUNK_BITS_BI))),
             RistrettoPoint.ZERO,
@@ -314,8 +332,7 @@ export class ConfidentialTransfer {
           .multiply(x2),
       )
       .subtract(
-        this.confidentialAmountAfterTransfer
-          .getAmountEncrypted(this.senderDecryptionKey.publicKey(), this.newBalanceRandomness)
+        this.encryptedSenderBalanceAfterTransfer
           .reduce(
             (acc, { D }, idx) => acc.add(D.multiply(2n ** (BigInt(idx) * ConfidentialAmount.CHUNK_BITS_BI))),
             RistrettoPoint.ZERO,
@@ -345,9 +362,9 @@ export class ConfidentialTransfer {
       return x1iG.add(x6iH).toRawBytes();
     });
     const X7List =
-      this.auditorsU8EncryptionKeys?.map((pk) =>
-        x3List.slice(0, j).map((el) => RistrettoPoint.fromHex(pk).multiply(el).toRawBytes()),
-      ) ?? [];
+      this.auditorEncryptionKeys
+        .map((pk) => publicKeyToU8(pk))
+        .map((pk) => x3List.slice(0, j).map((el) => RistrettoPoint.fromHex(pk).multiply(el).toRawBytes())) ?? [];
     const X8List = x3List.map((el) => senderPKRistretto.multiply(el).toRawBytes());
 
     const p = genFiatShamirChallenge(
@@ -355,19 +372,13 @@ export class ConfidentialTransfer {
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
       this.senderDecryptionKey.publicKey().toUint8Array(),
-      this.recipientEncryptionKeyU8,
-      ...this.auditorsU8EncryptionKeys,
-      ...this.encryptedActualBalance.map((el) => el.serialize()).flat(),
-      ...this.encryptedAmountByRecipient.map((el) => el.serialize()).flat(),
-      ...(this.auditorsCBList?.flat()?.map(({ D }) => D.toRawBytes()) ?? []),
-      ...this.confidentialAmountToTransfer
-        .getAmountEncrypted(this.senderDecryptionKey.publicKey(), this.randomness)
-        .map(({ D }) => D.toRawBytes())
-        .flat(),
-      ...this.confidentialAmountAfterTransfer
-        .getAmountEncrypted(this.senderDecryptionKey.publicKey(), this.newBalanceRandomness)
-        .map((el) => el.serialize())
-        .flat(),
+      this.recipientEncryptionKey.toUint8Array(),
+      ...this.auditorEncryptionKeys.map((pk) => publicKeyToU8(pk)),
+      ...this.encryptedSenderBalance.map((el) => el.serialize()).flat(),
+      ...this.transferAmountEncryptedByRecipient.map((el) => el.serialize()).flat(),
+      ...(this.transferAmountEncryptedByAuditors?.flat()?.map(({ D }) => D.toRawBytes()) ?? []),
+      ...this.transferAmountEncryptedBySender.map(({ D }) => D.toRawBytes()).flat(),
+      ...this.encryptedSenderBalanceAfterTransfer.map((el) => el.serialize()).flat(),
       X1,
       ...X2List,
       ...X3List,
@@ -382,13 +393,15 @@ export class ConfidentialTransfer {
     const invertSLE = ed25519InvertN(sLE);
 
     const alpha1List = x1List.map((x1, idx) =>
-      ed25519modN(x1 - ed25519modN(p * this.confidentialAmountAfterTransfer.amountChunks[idx])),
+      ed25519modN(x1 - ed25519modN(p * this.senderBalanceAfterTransfer.amountChunks[idx])),
     );
     const alpha2 = ed25519modN(x2 - p * sLE);
-    const alpha3List = x3List.map((el, idx) => ed25519modN(BigInt(el) - p * BigInt(this.randomness[idx])));
+    const alpha3List = x3List.map((el, idx) =>
+      ed25519modN(BigInt(el) - p * BigInt(this.transferAmountRandomness[idx])),
+    );
     const alpha4List = x4List
       .slice(0, j)
-      .map((el, idx) => ed25519modN(el - p * this.confidentialAmountToTransfer.amountChunks[idx]));
+      .map((el, idx) => ed25519modN(el - p * this.amountToTransfer.amountChunks[idx]));
     const alpha5 = ed25519modN(x5 - p * invertSLE);
     const alpha6List = x6List.map((el, idx) => ed25519modN(el - p * this.newBalanceRandomness[idx]));
 
@@ -584,15 +597,17 @@ export class ConfidentialTransfer {
 
   async genRangeProof(): Promise<ConfidentialTransferRangeProof> {
     const rangeProofAmount = await RangeProofExecutor.genBatchRangeZKP({
-      v: this.confidentialAmountToTransfer.amountChunks,
-      rs: this.randomness.slice(0, ConfidentialAmount.CHUNKS_COUNT / 2).map((el) => numberToBytesLE(el, 32)),
+      v: this.amountToTransfer.amountChunks,
+      rs: this.transferAmountRandomness
+        .slice(0, ConfidentialAmount.CHUNKS_COUNT / 2)
+        .map((el) => numberToBytesLE(el, 32)),
       val_base: RistrettoPoint.BASE.toRawBytes(),
       rand_base: H_RISTRETTO.toRawBytes(),
       num_bits: ConfidentialAmount.CHUNK_BITS,
     });
 
     const rangeProofNewBalance = await RangeProofExecutor.genBatchRangeZKP({
-      v: this.confidentialAmountAfterTransfer.amountChunks,
+      v: this.senderBalanceAfterTransfer.amountChunks,
       rs: this.newBalanceRandomness.map((el) => numberToBytesLE(el, 32)),
       val_base: RistrettoPoint.BASE.toRawBytes(),
       rand_base: H_RISTRETTO.toRawBytes(),
@@ -622,12 +637,9 @@ export class ConfidentialTransfer {
         sigmaProof,
         rangeProof,
       },
-      this.confidentialAmountAfterTransfer.getAmountEncrypted(
-        this.senderDecryptionKey.publicKey(),
-        this.newBalanceRandomness,
-      ),
-      this.encryptedAmountByRecipient,
-      this.auditorsCBList,
+      this.encryptedSenderBalanceAfterTransfer,
+      this.transferAmountEncryptedByRecipient,
+      this.transferAmountEncryptedByAuditors,
     ];
   }
 

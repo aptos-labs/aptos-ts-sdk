@@ -178,7 +178,7 @@ export class ConfidentialAsset {
   ): Promise<SimpleTransaction> {
     const confidentialWithdraw = await ConfidentialWithdraw.create({
       decryptionKey: toTwistedEd25519PrivateKey(args.decryptionKey),
-      encryptedActualBalance: args.encryptedActualBalance,
+      encryptedCurrentBalance: args.encryptedCurrentBalance,
       amountToWithdraw: args.amountToWithdraw,
       randomness: args.randomness,
     });
@@ -307,14 +307,14 @@ export class ConfidentialAsset {
 
     const confidentialTransfer = await ConfidentialTransfer.create({
       senderDecryptionKey: toTwistedEd25519PrivateKey(args.senderDecryptionKey),
-      encryptedActualBalance: args.encryptedActualBalance,
+      encryptedSenderBalance: args.encryptedSenderBalance,
       amountToTransfer: args.amountToTransfer,
       recipientEncryptionKey: toTwistedEd25519PublicKey(args.recipientEncryptionKey),
       auditorEncryptionKeys: [
         ...(globalAuditorPubKey?.length ? [toTwistedEd25519PublicKey(globalAuditorPubKey)] : []),
         ...(args.auditorEncryptionKeys?.map((el) => toTwistedEd25519PublicKey(el)) || []),
       ],
-      randomness: args.randomness,
+      transferAmountRandomness: args.transferAmountRandomness,
     });
 
     const [
@@ -328,12 +328,9 @@ export class ConfidentialAsset {
     ] = await confidentialTransfer.authorizeTransfer();
 
     const newBalance = encryptedAmountAfterTransfer.map((el) => el.serialize()).flat();
-    const amountBySender = confidentialTransfer.confidentialAmountToTransfer
-      .getAmountEncrypted(args.senderDecryptionKey.publicKey())
-      .map((el) => el.serialize())
-      .flat();
+    const amountBySender = confidentialTransfer.transferAmountEncryptedBySender.map((el) => el.serialize()).flat();
     const amountByRecipient = encryptedAmountByRecipient.map((el) => el.serialize()).flat();
-    const auditorEks = confidentialTransfer.auditorsU8EncryptionKeys;
+    const auditorEncryptionKeys = confidentialTransfer.auditorEncryptionKeys.map((pk) => publicKeyToU8(pk));
     const auditorBalances = auditorsCBList
       .flat()
       .map((el) => el.serialize())
@@ -350,7 +347,7 @@ export class ConfidentialAsset {
           concatBytes(...newBalance),
           concatBytes(...amountBySender.flat()),
           concatBytes(...amountByRecipient.flat()),
-          concatBytes(...auditorEks),
+          concatBytes(...auditorEncryptionKeys),
           concatBytes(...auditorBalances),
           rangeProofNewBalance,
           rangeProofAmount,
