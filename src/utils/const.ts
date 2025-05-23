@@ -77,6 +77,7 @@ export const RAW_TRANSACTION_WITH_DATA_SALT = "APTOS::RawTransactionWithData";
  * @category Utils
  */
 export enum ProcessorType {
+  ACCOUNT_RESTORATION_PROCESSOR = "account_restoration_processor",
   ACCOUNT_TRANSACTION_PROCESSOR = "account_transactions_processor",
   DEFAULT = "default_processor",
   EVENTS_PROCESSOR = "events_processor",

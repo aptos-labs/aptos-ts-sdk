@@ -522,6 +522,7 @@ export class Transaction {
   async rotateAuthKey(
     args: {
       fromAccount: Account;
+      options?: InputGenerateTransactionOptions;
     } & (
       | { toAccount: Account; dangerouslySkipVerification?: never }
       | { toNewPrivateKey: Ed25519PrivateKey; dangerouslySkipVerification?: never }
