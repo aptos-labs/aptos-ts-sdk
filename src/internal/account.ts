@@ -1121,17 +1121,17 @@ async function rotateAuthKeyUnverified(args: {
   });
 }
 
+export type AccountInfo = {
+  accountAddress: AccountAddress;
+  publicKey: BaseAccountPublicKey;
+  lastTransactionVersion: number;
+};
+
 export async function getAccountsForPublicKey(args: {
   aptosConfig: AptosConfig;
   publicKey: BaseAccountPublicKey;
   options?: { includeUnverified?: boolean; noMultiKey?: boolean };
-}): Promise<
-  {
-    accountAddress: AccountAddress;
-    publicKey: BaseAccountPublicKey;
-    lastTransactionVersion: number;
-  }[]
-> {
+}): Promise<AccountInfo[]> {
   const { aptosConfig, publicKey, options } = args;
   const noMultiKey = options?.noMultiKey ?? false;
   if (noMultiKey && publicKey instanceof AbstractMultiKey) {

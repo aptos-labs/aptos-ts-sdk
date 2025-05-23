@@ -50,6 +50,7 @@ import {
   getTransactions,
   lookupOriginalAccountAddress,
   deriveOwnedAccountsFromSigner,
+  AccountInfo,
 } from "../internal/account";
 import { APTOS_COIN, APTOS_FA, ProcessorType } from "../utils/const";
 import { AptosConfig } from "./aptosConfig";
@@ -1086,12 +1087,7 @@ export class Account {
     publicKey: BaseAccountPublicKey;
     minimumLedgerVersion?: AnyNumber;
     options?: { includeUnverified?: boolean; noMultiKey?: boolean };
-  }): Promise<
-    {
-      accountAddress: AccountAddress;
-      publicKey: BaseAccountPublicKey;
-    }[]
-  > {
+  }): Promise<AccountInfo[]> {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
