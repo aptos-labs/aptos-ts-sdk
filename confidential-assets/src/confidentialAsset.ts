@@ -184,63 +184,46 @@ export class ConfidentialAsset {
    *
    * @param args.tokenAddress - The token address of the asset to deposit to
    * @param args.amount - The amount to deposit
-   * @param args.to - The account address to deposit to. This is the senders address if not set.
+   * @param args.recipient - The account address to deposit to. This is the senders address if not set.
    * @param args.withFeePayer - Whether to use the fee payer for the transaction
    * @returns A SimpleTransaction to deposit the amount
    */
   async deposit(args: {
     sender: AccountAddressInput;
-    tokenAddress: string;
+    tokenAddress?: string;
+    coinType?: MoveStructId;
     amount: AnyNumber;
     /** If not set we will use the sender's address. */
-    to?: AccountAddress;
+    recipient?: AccountAddress;
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    return this.client.transaction.build.simple({
-      ...args,
-      withFeePayer: args.withFeePayer,
-      sender: args.sender,
-      data: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::deposit_to`,
-        functionArguments: [args.tokenAddress, args.to || args.sender, String(args.amount)],
-      },
-      options: args.options,
-    });
-  }
+    const { tokenAddress, coinType, recipient } = args;
+    if (tokenAddress && coinType) {
+      throw new Error("Only one of tokenAddress or coinType can be set");
+    }
 
-  /**
-   * Deposit an amount from a non-confidential coin balance into a confidential coin balance.
-   *
-   * This can be used by an account to convert their own non-confidential coin balance into a confidential coin balance if they have
-   * already registered a balance for the coin type.
-   *
-   * @param args.coinType - The coin type of the asset to deposit to
-   * @param args.amount - The amount to deposit
-   * @param args.to - The account address to deposit to. This is the senders address if not set.
-   * @param args.withFeePayer - Whether to use the fee payer for the transaction
-   * @returns A SimpleTransaction to deposit the amount
-   */
-  async depositCoin(args: {
-    sender: AccountAddressInput;
-    coinType: MoveStructId;
-    amount: AnyNumber;
-    /** If not set we will use the sender's address. */
-    to?: AccountAddress;
-    withFeePayer?: boolean;
-    options?: InputGenerateTransactionOptions;
-  }): Promise<SimpleTransaction> {
-    return this.client.transaction.build.simple({
-      ...args,
-      withFeePayer: args.withFeePayer,
-      sender: args.sender,
-      data: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::deposit_coins_to`,
-        functionArguments: [args.to || args.sender, String(args.amount)],
-        typeArguments: [args.coinType],
-      },
-      options: args.options,
-    });
+    const amountString = String(args.amount);
+    if (tokenAddress) {
+      return this.client.transaction.build.simple({
+        ...args,
+        data: {
+          function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::deposit_to`,
+          functionArguments: [tokenAddress, recipient || args.sender, amountString],
+        },
+      });
+    } else if (coinType) {
+      return this.client.transaction.build.simple({
+        ...args,
+        data: {
+          function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::deposit_coins_to`,
+          functionArguments: [recipient || args.sender, amountString],
+          typeArguments: [coinType],
+        },
+      });
+    } else {
+      throw new Error("Must set either tokenAddress or coinType");
+    }
   }
 
   /**
