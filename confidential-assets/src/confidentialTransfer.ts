@@ -56,7 +56,7 @@ export class ConfidentialTransfer {
    */
   senderEncryptedAvailableBalance: TwistedElGamalCiphertext[];
 
-  amountToTransfer: ConfidentialAmount;
+  amount: ConfidentialAmount;
 
   /**
    * The encrypted amount being transferred, which is the amount to be transferred encrypted with the public key of senderDecryptionKey
@@ -94,7 +94,7 @@ export class ConfidentialTransfer {
     auditorEncryptionKeys: TwistedEd25519PublicKey[];
     senderAvailableBalance: ConfidentialAmount;
     senderEncryptedAvailableBalance: TwistedElGamalCiphertext[];
-    amountToTransfer: ConfidentialAmount;
+    amount: ConfidentialAmount;
     transferAmountRandomness: bigint[];
     newBalanceRandomness: bigint[];
   }) {
@@ -102,18 +102,26 @@ export class ConfidentialTransfer {
     this.recipientEncryptionKey = args.recipientEncryptionKey;
     this.auditorEncryptionKeys = args.auditorEncryptionKeys;
     this.senderEncryptedAvailableBalance = args.senderEncryptedAvailableBalance;
-    this.amountToTransfer = args.amountToTransfer;
+    this.amount = args.amount;
+    if (this.amount.amount < 0n) {
+      throw new Error("Amount to transfer must not be positive");
+    }
     this.senderAvailableBalanceAfterTransfer = ConfidentialAmount.fromAmount(
-      args.senderAvailableBalance.amount - this.amountToTransfer.amount,
+      args.senderAvailableBalance.amount - this.amount.amount,
     );
+    if (this.senderAvailableBalanceAfterTransfer.amount < 0n) {
+      throw new Error(
+        `Insufficient balance. Available balance: ${args.senderAvailableBalance.amount}, Amount to transfer: ${this.amount.amount}`,
+      );
+    }
     this.transferAmountRandomness = args.transferAmountRandomness;
     this.newBalanceRandomness = args.newBalanceRandomness;
 
-    this.transferAmountEncryptedBySender = this.amountToTransfer.getAmountEncrypted(
+    this.transferAmountEncryptedBySender = this.amount.getAmountEncrypted(
       args.senderDecryptionKey.publicKey(),
       this.transferAmountRandomness,
     );
-    this.transferAmountEncryptedByRecipient = this.amountToTransfer.amountChunks.map((chunk, i) =>
+    this.transferAmountEncryptedByRecipient = this.amount.amountChunks.map((chunk, i) =>
       TwistedElGamal.encryptWithPK(chunk, this.recipientEncryptionKey, this.transferAmountRandomness[i]),
     );
     this.senderEncryptedAvailableBalanceAfterTransfer = this.senderAvailableBalanceAfterTransfer.getAmountEncrypted(
@@ -121,7 +129,7 @@ export class ConfidentialTransfer {
       this.newBalanceRandomness,
     );
     this.transferAmountEncryptedByAuditors = this.auditorEncryptionKeys.map((encryptionKey) =>
-      this.amountToTransfer.amountChunks.map((chunk, i) =>
+      this.amount.amountChunks.map((chunk, i) =>
         TwistedElGamal.encryptWithPK(chunk, encryptionKey, this.transferAmountRandomness[i]),
       ),
     );
@@ -154,7 +162,7 @@ export class ConfidentialTransfer {
       auditorEncryptionKeys,
       senderAvailableBalance,
       senderEncryptedAvailableBalance,
-      amountToTransfer: amountToTransferAsConfidentialAmount,
+      amount: amountToTransferAsConfidentialAmount,
       transferAmountRandomness,
       newBalanceRandomness,
     });
@@ -270,7 +278,7 @@ export class ConfidentialTransfer {
     if (this.transferAmountRandomness && this.transferAmountRandomness.length !== ConfidentialAmount.CHUNKS_COUNT)
       throw new TypeError("Invalid length list of randomness");
 
-    if (this.amountToTransfer.amount > 2n ** (2n * ConfidentialAmount.CHUNK_BITS_BI) - 1n)
+    if (this.amount.amount > 2n ** (2n * ConfidentialAmount.CHUNK_BITS_BI) - 1n)
       throw new TypeError(`Amount must be less than 2n**${ConfidentialAmount.CHUNK_BITS_BI * 2n}`);
 
     const senderPKRistretto = RistrettoPoint.fromHex(this.senderDecryptionKey.publicKey().toUint8Array());
@@ -402,9 +410,7 @@ export class ConfidentialTransfer {
     const alpha3List = x3List.map((el, idx) =>
       ed25519modN(BigInt(el) - p * BigInt(this.transferAmountRandomness[idx])),
     );
-    const alpha4List = x4List
-      .slice(0, j)
-      .map((el, idx) => ed25519modN(el - p * this.amountToTransfer.amountChunks[idx]));
+    const alpha4List = x4List.slice(0, j).map((el, idx) => ed25519modN(el - p * this.amount.amountChunks[idx]));
     const alpha5 = ed25519modN(x5 - p * invertSLE);
     const alpha6List = x6List.map((el, idx) => ed25519modN(el - p * this.newBalanceRandomness[idx]));
 
@@ -600,7 +606,7 @@ export class ConfidentialTransfer {
 
   async genRangeProof(): Promise<ConfidentialTransferRangeProof> {
     const rangeProofAmount = await RangeProofExecutor.genBatchRangeZKP({
-      v: this.amountToTransfer.amountChunks,
+      v: this.amount.amountChunks,
       rs: this.transferAmountRandomness
         .slice(0, ConfidentialAmount.CHUNKS_COUNT / 2)
         .map((el) => numberToBytesLE(el, 32)),

@@ -50,8 +50,17 @@ export class ConfidentialWithdraw {
     this.decryptionKey = args.decryptionKey;
     this.senderEncryptedAvailableBalance = args.senderEncryptedAvailableBalance;
     this.amount = args.amount;
+    if (this.amount.amount < 0n) {
+      throw new Error("Amount to withdraw must not be negative");
+    }
     this.randomness = args.randomness;
     this.senderAvailableBalanceAfterWithdrawal = args.senderAvailableBalanceAfterWithdrawal;
+
+    if (this.senderAvailableBalanceAfterWithdrawal.amount < 0n) {
+      throw new Error(
+        `Insufficient balance. Available balance: ${this.senderAvailableBalanceAfterWithdrawal.amount}, Amount to withdraw: ${this.amount.amount}`,
+      );
+    }
 
     this.senderEncryptedAvailableBalanceAfterWithdrawal = this.senderAvailableBalanceAfterWithdrawal.getAmountEncrypted(
       this.decryptionKey.publicKey(),

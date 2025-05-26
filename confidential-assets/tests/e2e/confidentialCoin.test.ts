@@ -208,6 +208,29 @@ describe("Confidential balance api", () => {
     longTestTimeout,
   );
 
+  test(
+    "it should throw if withdrawing more than the available balance",
+    async () => {
+      const { available } = await confidentialAsset.getDecryptedBalance({
+        accountAddress: alice.accountAddress,
+        tokenAddress: TOKEN_ADDRESS,
+        decryptionKey: aliceConfidential,
+      });
+
+      // Withdraw the amount from the confidential balance to the public balance
+      await expect(
+        confidentialAsset.withdraw({
+          sender: alice.accountAddress,
+          tokenAddress: TOKEN_ADDRESS,
+          senderDecryptionKey: aliceConfidential,
+          amount: available + BigInt(1),
+        }),
+      ).rejects.toThrow("Insufficient balance");
+    },
+    longTestTimeout,
+  );
+
+  // TODO: Add this back in once the test setup sets up the auditor correctly.
   test.skip(
     "it should get global auditor",
     async () => {
@@ -240,6 +263,29 @@ describe("Confidential balance api", () => {
           recipient: bob.accountAddress,
         }),
       ).rejects.toThrow("Failed to get encryption key for recipient");
+    },
+    longTestTimeout,
+  );
+
+  test(
+    "it should throw if transferring more than the available balance",
+    async () => {
+      const { available } = await confidentialAsset.getDecryptedBalance({
+        accountAddress: alice.accountAddress,
+        tokenAddress: TOKEN_ADDRESS,
+        decryptionKey: aliceConfidential,
+      });
+
+      // Withdraw the amount from the confidential balance to the public balance
+      await expect(
+        confidentialAsset.transfer({
+          sender: alice.accountAddress,
+          tokenAddress: TOKEN_ADDRESS,
+          senderDecryptionKey: aliceConfidential,
+          amount: available + BigInt(1),
+          recipient: alice.accountAddress,
+        }),
+      ).rejects.toThrow("Insufficient balance");
     },
     longTestTimeout,
   );
@@ -312,6 +358,19 @@ describe("Confidential balance api", () => {
   );
 
   test(
+    "it should throw if checking is Bob's balance not frozen",
+    async () => {
+      await expect(
+        confidentialAsset.isBalanceFrozen({
+          accountAddress: bob.accountAddress,
+          tokenAddress: TOKEN_ADDRESS,
+        }),
+      ).rejects.toThrow("393219"); // TODO: Currently when view functions fails a nice error is not returned. :(. Fix the contract to return a nice error.
+    },
+    longTestTimeout,
+  );
+
+  test(
     "it should normalize Alice's confidential balance",
     async () => {
       const rolloverTx = await confidentialAsset.rolloverPendingBalance({
@@ -336,6 +395,19 @@ describe("Confidential balance api", () => {
 
       // This should be true after normalization
       checkAliceNormalizedBalanceStatus(true);
+    },
+    longTestTimeout,
+  );
+
+  test(
+    "it should throw if Bob's balance is normalized",
+    async () => {
+      await expect(
+        confidentialAsset.isBalanceNormalized({
+          tokenAddress: TOKEN_ADDRESS,
+          accountAddress: bob.accountAddress,
+        }),
+      ).rejects.toThrow("393219"); // TODO: Currently when view functions fails a nice error is not returned. :(. Fix the contract to return a nice error.
     },
     longTestTimeout,
   );

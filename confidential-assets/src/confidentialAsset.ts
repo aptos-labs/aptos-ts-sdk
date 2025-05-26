@@ -42,6 +42,8 @@ export type ConfidentialBalance = {
 
 /**
  * A class to handle confidential balance operations
+ *
+ * TODO: Add key caching to avoid fetching the same key multiple times
  */
 export class ConfidentialAsset {
   client: Aptos;
@@ -153,10 +155,13 @@ export class ConfidentialAsset {
   }
 
   /**
-   * Register a balance for an account
+   * Register a confidential balance for an account
+   *
+   * @param args.sender - The address of the sender of the transaction
    * @param args.tokenAddress - The token address of the asset to register the balance for
    * @param args.decryptionKey - The decryption key for which the corresponding encryption key will be used registered for the balance
    * @param args.withFeePayer - Whether to use the fee payer for the transaction
+   * @param args.options - Optional transaction options
    * @returns A SimpleTransaction to register the balance
    */
   async registerBalance(args: {
@@ -186,6 +191,7 @@ export class ConfidentialAsset {
    * @param args.amount - The amount to deposit
    * @param args.recipient - The account address to deposit to. This is the senders address if not set.
    * @param args.withFeePayer - Whether to use the fee payer for the transaction
+   * @param args.options - Optional transaction options
    * @returns A SimpleTransaction to deposit the amount
    */
   async deposit(args: {
@@ -198,18 +204,19 @@ export class ConfidentialAsset {
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    const { tokenAddress, coinType, recipient } = args;
+    const { tokenAddress, coinType, amount, recipient = args.sender } = args;
+    validateAmount({ amount });
     if (tokenAddress && coinType) {
       throw new Error("Only one of tokenAddress or coinType can be set");
     }
 
-    const amountString = String(args.amount);
+    const amountString = String(amount);
     if (tokenAddress) {
       return this.client.transaction.build.simple({
         ...args,
         data: {
           function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::deposit_to`,
-          functionArguments: [tokenAddress, recipient || args.sender, amountString],
+          functionArguments: [tokenAddress, recipient, amountString],
         },
       });
     } else if (coinType) {
@@ -217,7 +224,7 @@ export class ConfidentialAsset {
         ...args,
         data: {
           function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::deposit_coins_to`,
-          functionArguments: [recipient || args.sender, amountString],
+          functionArguments: [recipient, amountString],
           typeArguments: [coinType],
         },
       });
@@ -231,11 +238,14 @@ export class ConfidentialAsset {
    *
    * This can be used by an account to convert their own confidential asset balance into a non-confidential asset balance.
    *
+   * @param args.sender - The address of the sender of the transaction
+   * @param args.senderDecryptionKey - The decryption key of the sender
    * @param args.tokenAddress - The token address of the asset to withdraw from
    * @param args.amount - The amount to withdraw
-   * @param args.to - The account address to withdraw to. This is the senders address if not set.
+   * @param args.recipient - The account address to withdraw to. This is the senders address if not set.
    * @param args.withFeePayer - Whether to use the fee payer for the transaction
    * @returns A SimpleTransaction to withdraw the amount
+   * @throws {Error} If the amount to withdraw is greater than the available balance
    */
   async withdraw(args: {
     sender: AccountAddressInput;
@@ -247,8 +257,8 @@ export class ConfidentialAsset {
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    const { sender, tokenAddress, amount, senderDecryptionKey, recipient, options } = args;
-
+    const { sender, tokenAddress, amount, senderDecryptionKey, recipient = args.sender, options } = args;
+    validateAmount({ amount });
     // Get the sender's available balance from the chain
     const { available: senderEncryptedAvailableBalance } = await this.getEncryptedBalance({
       accountAddress: AccountAddress.from(sender),
@@ -270,7 +280,7 @@ export class ConfidentialAsset {
         function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::withdraw_to`,
         functionArguments: [
           tokenAddress,
-          recipient || sender,
+          recipient,
           String(amount),
           concatBytes(...confidentialAmountAfterWithdraw.map((el) => el.serialize()).flat()),
           rangeProof,
@@ -290,6 +300,7 @@ export class ConfidentialAsset {
    * @param args.checkNormalized - Whether to check if the balance is normalized before rolling over. Default is true.
    * @param args.withFeePayer - Whether to use the fee payer for the transaction
    * @returns A SimpleTransaction to roll over the balance
+   * @throws {Error} If the balance is not normalized before rolling over, unless checkNormalized is false.
    */
   async rolloverPendingBalance(args: {
     sender: AccountAddressInput;
@@ -353,6 +364,8 @@ export class ConfidentialAsset {
    *
    * This can be used by an account to transfer their own confidential asset balance to a recipient.
    *
+   * TODO: Parallelize the view calls to get the encrypted balance and the encryption key
+   *
    * @param args.sender - The address of the sender of the transaction
    * @param args.senderDecryptionKey - The decryption key of the sender
    * @param args.tokenAddress - The token address of the asset to transfer
@@ -361,6 +374,8 @@ export class ConfidentialAsset {
    * @param args.additionalAuditorEncryptionKeys - The encryption keys of the auditors. If not set we will fetch the encryption keys from the chain.
    * @param args.withFeePayer - Whether to use the fee payer for the transaction
    * @returns A SimpleTransaction to transfer the amount
+   * @throws {Error} If the recipient's encryption key cannot be found
+   * @throws {Error} If the amount to transfer is greater than the available balance
    */
   async transfer(args: {
     sender: AccountAddressInput;
@@ -373,7 +388,7 @@ export class ConfidentialAsset {
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     const { senderDecryptionKey, recipient, tokenAddress, amount, additionalAuditorEncryptionKeys = [] } = args;
-
+    validateAmount({ amount });
     // Get the auditor public key for the token
     const globalAuditorPubKey = await this.getAssetAuditorEncryptionKey({
       tokenAddress,
@@ -458,6 +473,7 @@ export class ConfidentialAsset {
    * @param args.tokenAddress - The token address of the asset to check
    * @param args.options.ledgerVersion - The ledger version to use for the view call
    * @returns A boolean indicating if the user's balance is frozen
+   * @throws {AptosApiError} If the there is no registered confidential balance for token address on the account
    */
   async isBalanceFrozen(args: {
     accountAddress: AccountAddress;
@@ -482,6 +498,8 @@ export class ConfidentialAsset {
    * This will by default check if the pending balance is empty and throw an error if it is not. It also checks if the balance is frozen and
    * will unfreeze it if it is.
    *
+   * TODO: Parallelize the view calls
+   *
    * @param args.sender - The address of the sender of the transaction who's encryption key is being rotated
    * @param args.senderDecryptionKey - The decryption key of the sender
    * @param args.newDecryptionKey - The new decryption key
@@ -491,6 +509,7 @@ export class ConfidentialAsset {
    * see if the balance is frozen and if so, will unfreeze it.
    * @param args.withFeePayer - Whether to use the fee payer for the transaction
    * @returns A SimpleTransaction to rotate the encryption key
+   * @throws {Error} If the pending balance is not 0 before rotating the encryption key, unless checkPendingBalanceEmpty is false.
    */
   async rotateEncryptionKey(args: {
     sender: AccountAddressInput;
@@ -594,6 +613,7 @@ export class ConfidentialAsset {
    * @param args.tokenAddress - The token address of the asset to check
    * @param args.options.ledgerVersion - The ledger version to use for the view call
    * @returns A boolean indicating if the user's balance is normalized
+   * @throws {AptosApiError} If the there is no registered confidential balance for token address on the account
    */
   async isBalanceNormalized(args: {
     accountAddress: AccountAddress;
@@ -620,7 +640,6 @@ export class ConfidentialAsset {
    * @param args.sender - The address of the sender of the transaction who's balance is being normalized
    * @param args.senderDecryptionKey - The decryption key of the sender
    * @param args.tokenAddress - The token address of the asset to normalize
-   * @param args.unnormalizedEncryptedAvailableBalance - The unnormalized encrypted available balance
    * @param args.withFeePayer - Whether to use the fee payer for the transaction
    * @returns A SimpleTransaction to normalize the balance
    */
@@ -628,19 +647,15 @@ export class ConfidentialAsset {
     sender: AccountAddressInput;
     senderDecryptionKey: TwistedEd25519PrivateKey;
     tokenAddress: string;
-    unnormalizedEncryptedAvailableBalance?: TwistedElGamalCiphertext[];
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    const {
-      senderDecryptionKey,
-      unnormalizedEncryptedAvailableBalance = (
-        await this.getEncryptedBalance({
-          accountAddress: AccountAddress.from(args.sender),
-          tokenAddress: args.tokenAddress,
-        })
-      ).available,
-    } = args;
+    const { sender, senderDecryptionKey, tokenAddress } = args;
+
+    const { available: unnormalizedEncryptedAvailableBalance } = await this.getEncryptedBalance({
+      accountAddress: AccountAddress.from(sender),
+      tokenAddress,
+    });
 
     const confidentialNormalization = await ConfidentialNormalization.create({
       decryptionKey: senderDecryptionKey,
@@ -654,7 +669,7 @@ export class ConfidentialAsset {
       data: {
         function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::normalize`,
         functionArguments: [
-          args.tokenAddress,
+          tokenAddress,
           concatBytes(...normalizedCB.map((el) => el.serialize()).flat()),
           rangeProof,
           ConfidentialNormalization.serializeSigmaProof(sigmaProof),
@@ -662,5 +677,11 @@ export class ConfidentialAsset {
       },
       options: args.options,
     });
+  }
+}
+
+function validateAmount(args: { amount: AnyNumber }) {
+  if (BigInt(args.amount) < 0n) {
+    throw new Error("Amount must not be negative");
   }
 }
