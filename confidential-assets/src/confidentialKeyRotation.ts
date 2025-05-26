@@ -41,6 +41,8 @@ export class ConfidentialKeyRotation {
 
   newConfidentialAmount: ConfidentialAmount;
 
+  newEncryptedBalance: TwistedElGamalCiphertext[];
+
   constructor(args: {
     currDecryptionKey: TwistedEd25519PrivateKey;
     newDecryptionKey: TwistedEd25519PrivateKey;
@@ -55,21 +57,31 @@ export class ConfidentialKeyRotation {
     this.currEncryptedBalance = args.currEncryptedBalance;
     this.currConfidentialAmount = args.currConfidentialAmount;
     this.newConfidentialAmount = args.newConfidentialAmount;
+
+    this.newEncryptedBalance = this.newConfidentialAmount.getAmountEncrypted(
+      this.newDecryptionKey.publicKey(),
+      this.randomness,
+    );
   }
 
   static FIAT_SHAMIR_SIGMA_DST = "AptosConfidentialAsset/RotationProofFiatShamir";
 
   static async create(args: CreateConfidentialKeyRotationOpArgs) {
-    const randomness = args.randomness ?? ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
+    const {
+      randomness = ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT),
+      currEncryptedBalance,
+      currDecryptionKey,
+      newDecryptionKey,
+    } = args;
 
-    const currentBalance = await ConfidentialAmount.fromEncrypted(args.currEncryptedBalance, args.currDecryptionKey);
+    const currentBalance = await ConfidentialAmount.fromEncrypted(currEncryptedBalance, currDecryptionKey);
 
     const newBalance = ConfidentialAmount.fromAmount(currentBalance.amount);
 
     return new ConfidentialKeyRotation({
-      currDecryptionKey: args.currDecryptionKey,
-      newDecryptionKey: args.newDecryptionKey,
-      currEncryptedBalance: args.currEncryptedBalance,
+      currDecryptionKey,
+      newDecryptionKey,
+      currEncryptedBalance,
       randomness,
       currConfidentialAmount: currentBalance,
       newConfidentialAmount: newBalance,
@@ -177,10 +189,7 @@ export class ConfidentialKeyRotation {
       this.currDecryptionKey.publicKey().toUint8Array(),
       this.newDecryptionKey.publicKey().toUint8Array(),
       ...this.currEncryptedBalance.map((el) => el.serialize()).flat(),
-      ...this.newConfidentialAmount
-        .getAmountEncrypted(this.newDecryptionKey.publicKey())
-        .map((el) => el.serialize())
-        .flat(),
+      ...this.newEncryptedBalance.map((el) => el.serialize()).flat(),
       X1.toRawBytes(),
       X2.toRawBytes(),
       X3.toRawBytes(),
@@ -329,7 +338,7 @@ export class ConfidentialKeyRotation {
         sigmaProof,
         rangeProof,
       },
-      this.newConfidentialAmount.getAmountEncrypted(this.newDecryptionKey.publicKey()),
+      this.newEncryptedBalance,
     ];
   }
 
