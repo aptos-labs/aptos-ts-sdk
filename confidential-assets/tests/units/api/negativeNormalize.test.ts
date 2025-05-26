@@ -1,16 +1,15 @@
-import { Account, AccountAddress } from "@aptos-labs/ts-sdk";
+import { Account } from "@aptos-labs/ts-sdk";
 import {
   aptos,
   confidentialAsset,
   getBalances,
   getTestConfidentialAccount,
   longTestTimeout,
-  sendAndWaitBatchTxs,
   sendAndWaitTx,
 } from "../../helpers";
 import { numberToBytesLE, bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { bytesToHex } from "@noble/hashes/utils";
-import { ed25519modN, ConfidentialAmount } from "../../../src";
+import { ed25519modN } from "../../../src";
 import { preloadTables } from "../../helpers/wasmPollardKangaroo";
 
 describe("Transfer", () => {
@@ -21,8 +20,6 @@ describe("Transfer", () => {
   const tokenAddress = "0x000000000000000000000000000000000000000000000000000000000000000a";
   const fundAmount = 1 * 10 ** 8;
   const depositAmount = 0.5 * 10 ** 8;
-  const recipientAccAddr = "0x82094619a5e8621f2bf9e6479a62ed694dca9b8fd69b0383fce359a3070aa0d4";
-  const normalizeAmount = -BigInt(depositAmount);
 
   console.log("pk", alice.privateKey.toString());
   console.log("dk", aliceConfidential.toString());
@@ -51,7 +48,7 @@ describe("Transfer", () => {
     const aliceRegisterVBTxBody = await confidentialAsset.registerBalance({
       sender: alice.accountAddress,
       tokenAddress: tokenAddress,
-      publicKey: aliceConfidential.publicKey(),
+      decryptionKey: aliceConfidential,
     });
 
     const aliceTxResp = await sendAndWaitTx(aliceRegisterVBTxBody, alice);
@@ -72,17 +69,14 @@ describe("Transfer", () => {
   });
 
   it("Should rollover the balance", async () => {
-    const rolloverTxs = await confidentialAsset.safeRolloverPendingCB({
+    const rolloverTx = await confidentialAsset.rolloverPendingBalance({
       sender: alice.accountAddress,
       tokenAddress,
-      decryptionKey: aliceConfidential,
     });
 
-    const txResponses = await sendAndWaitBatchTxs(rolloverTxs, alice);
+    const resp = await sendAndWaitTx(rolloverTx, alice);
 
-    console.log("gas used:", txResponses.map((el) => `${el.hash} - ${el.gas_used}`).join("\n"));
-
-    expect(txResponses.every((el) => el.success)).toBeTruthy();
+    console.log("gas used:", resp.gas_used);
   });
 
   it("should transfer money from Alice actual to pending balance", async () => {
@@ -90,21 +84,9 @@ describe("Transfer", () => {
 
     console.log({ balances });
 
-    const fakeBalance = ConfidentialAmount.fromAmount(normalizeAmount);
-
-    const recipientEncKey = await confidentialAsset.getEncryptionByAddr({
-      accountAddress: AccountAddress.from(recipientAccAddr),
+    const normalizeTx = await confidentialAsset.normalizeBalance({
       tokenAddress,
-    });
-
-    console.log({ recipientEncKey: recipientEncKey.toString() });
-
-    const normalizeTx = await confidentialAsset.normalizeUserBalance({
-      tokenAddress,
-      decryptionKey: aliceConfidential,
-      unnormalizedEncryptedBalance: fakeBalance.getAmountEncrypted(aliceConfidential.publicKey()),
-      balanceAmount: fakeBalance.amount,
-
+      senderDecryptionKey: aliceConfidential,
       sender: alice.accountAddress,
     });
 

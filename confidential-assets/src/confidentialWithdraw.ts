@@ -22,38 +22,38 @@ export type ConfidentialWithdrawSigmaProof = {
 
 export type CreateConfidentialWithdrawOpArgs = {
   decryptionKey: TwistedEd25519PrivateKey;
-  encryptedCurrentBalance: TwistedElGamalCiphertext[];
-  amountToWithdraw: bigint;
+  senderEncryptedAvailableBalance: TwistedElGamalCiphertext[];
+  amount: bigint;
   randomness?: bigint[];
 };
 
 export class ConfidentialWithdraw {
   decryptionKey: TwistedEd25519PrivateKey;
 
-  encryptedCurrentBalance: TwistedElGamalCiphertext[];
+  senderEncryptedAvailableBalance: TwistedElGamalCiphertext[];
 
-  amountToWithdraw: ConfidentialAmount;
+  amount: ConfidentialAmount;
 
-  balanceAfterWithdrawal: ConfidentialAmount;
+  senderAvailableBalanceAfterWithdrawal: ConfidentialAmount;
 
-  encryptedBalanceAfterWithdrawal: TwistedElGamalCiphertext[];
+  senderEncryptedAvailableBalanceAfterWithdrawal: TwistedElGamalCiphertext[];
 
   randomness: bigint[];
 
   constructor(args: {
     decryptionKey: TwistedEd25519PrivateKey;
-    encryptedCurrentBalance: TwistedElGamalCiphertext[];
-    amountToWithdraw: ConfidentialAmount;
-    balanceAfterWithdrawal: ConfidentialAmount;
+    senderEncryptedAvailableBalance: TwistedElGamalCiphertext[];
+    amount: ConfidentialAmount;
+    senderAvailableBalanceAfterWithdrawal: ConfidentialAmount;
     randomness: bigint[];
   }) {
     this.decryptionKey = args.decryptionKey;
-    this.encryptedCurrentBalance = args.encryptedCurrentBalance;
-    this.amountToWithdraw = args.amountToWithdraw;
+    this.senderEncryptedAvailableBalance = args.senderEncryptedAvailableBalance;
+    this.amount = args.amount;
     this.randomness = args.randomness;
-    this.balanceAfterWithdrawal = args.balanceAfterWithdrawal;
+    this.senderAvailableBalanceAfterWithdrawal = args.senderAvailableBalanceAfterWithdrawal;
 
-    this.encryptedBalanceAfterWithdrawal = this.balanceAfterWithdrawal.getAmountEncrypted(
+    this.senderEncryptedAvailableBalanceAfterWithdrawal = this.senderAvailableBalanceAfterWithdrawal.getAmountEncrypted(
       this.decryptionKey.publicKey(),
       this.randomness,
     );
@@ -62,20 +62,23 @@ export class ConfidentialWithdraw {
   static async create(args: CreateConfidentialWithdrawOpArgs) {
     const randomness = args.randomness ?? ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
 
-    const confidentialAmountToWithdraw = ConfidentialAmount.fromAmount(args.amountToWithdraw, {
+    const confidentialAmountToWithdraw = ConfidentialAmount.fromAmount(args.amount, {
       chunksCount: ConfidentialAmount.CHUNKS_COUNT / 2,
     });
-    const currentBalance = await ConfidentialAmount.fromEncrypted(args.encryptedCurrentBalance, args.decryptionKey);
+    const currentBalance = await ConfidentialAmount.fromEncrypted(
+      args.senderEncryptedAvailableBalance,
+      args.decryptionKey,
+    );
 
-    const balanceAfterWithdrawal = ConfidentialAmount.fromAmount(
+    const senderAvailableBalanceAfterWithdrawal = ConfidentialAmount.fromAmount(
       currentBalance.amount - confidentialAmountToWithdraw.amount,
     );
 
     return new ConfidentialWithdraw({
       decryptionKey: args.decryptionKey,
-      encryptedCurrentBalance: args.encryptedCurrentBalance,
-      amountToWithdraw: confidentialAmountToWithdraw,
-      balanceAfterWithdrawal,
+      senderEncryptedAvailableBalance: args.senderEncryptedAvailableBalance,
+      amount: confidentialAmountToWithdraw,
+      senderAvailableBalanceAfterWithdrawal,
       randomness,
     });
   }
@@ -150,7 +153,7 @@ export class ConfidentialWithdraw {
         }, 0n),
       ),
     ).add(
-      this.encryptedCurrentBalance.reduce((acc, el, i) => {
+      this.senderEncryptedAvailableBalance.reduce((acc, el, i) => {
         const { D } = el;
         const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
 
@@ -173,11 +176,9 @@ export class ConfidentialWithdraw {
       H_RISTRETTO.toRawBytes(),
       this.decryptionKey.publicKey().toUint8Array(),
       concatBytes(
-        ...this.amountToWithdraw.amountChunks
-          .slice(0, ConfidentialAmount.CHUNKS_COUNT / 2)
-          .map((a) => numberToBytesLE(a, 32)),
+        ...this.amount.amountChunks.slice(0, ConfidentialAmount.CHUNKS_COUNT / 2).map((a) => numberToBytesLE(a, 32)),
       ),
-      concatBytes(...this.encryptedCurrentBalance.map((el) => el.serialize()).flat()),
+      concatBytes(...this.senderEncryptedAvailableBalance.map((el) => el.serialize()).flat()),
       X1.toRawBytes(),
       X2.toRawBytes(),
       ...X3List.map((el) => el.toRawBytes()),
@@ -191,7 +192,7 @@ export class ConfidentialWithdraw {
     const psInvert = ed25519modN(p * invertSLE);
 
     const alpha1List = x1List.map((el, i) => {
-      const pChunk = ed25519modN(p * this.balanceAfterWithdrawal.amountChunks[i]);
+      const pChunk = ed25519modN(p * this.senderAvailableBalanceAfterWithdrawal.amountChunks[i]);
       return ed25519modN(el - pChunk);
     });
     const alpha2 = ed25519modN(x2 - ps);
@@ -215,8 +216,8 @@ export class ConfidentialWithdraw {
 
   static verifySigmaProof(opts: {
     sigmaProof: ConfidentialWithdrawSigmaProof;
-    encryptedCurrentBalance: TwistedElGamalCiphertext[];
-    encryptedBalanceAfterWithdrawal: TwistedElGamalCiphertext[];
+    senderEncryptedAvailableBalance: TwistedElGamalCiphertext[];
+    senderEncryptedAvailableBalanceAfterWithdrawal: TwistedElGamalCiphertext[];
     publicKey: TwistedEd25519PublicKey;
     amountToWithdraw: bigint;
   }): boolean {
@@ -238,14 +239,14 @@ export class ConfidentialWithdraw {
       ...confidentialAmountToWithdraw.amountChunks
         .slice(0, ConfidentialAmount.CHUNKS_COUNT / 2)
         .map((a) => numberToBytesLE(a, 32)),
-      ...opts.encryptedCurrentBalance.map((el) => el.serialize()).flat(),
+      ...opts.senderEncryptedAvailableBalance.map((el) => el.serialize()).flat(),
       opts.sigmaProof.X1,
       opts.sigmaProof.X2,
       ...opts.sigmaProof.X3List,
       ...opts.sigmaProof.X4List,
     );
 
-    const { DOldSum, COldSum } = opts.encryptedCurrentBalance.reduce(
+    const { DOldSum, COldSum } = opts.senderEncryptedAvailableBalance.reduce(
       (acc, { C, D }, i) => {
         const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
         return {
@@ -274,13 +275,13 @@ export class ConfidentialWithdraw {
     const X3List = alpha1LEList.map((el, i) => {
       const a1iG = RistrettoPoint.BASE.multiply(el);
       const a4iH = H_RISTRETTO.multiply(alpha4LEList[i]);
-      const pC = opts.encryptedBalanceAfterWithdrawal![i].C.multiply(p);
+      const pC = opts.senderEncryptedAvailableBalanceAfterWithdrawal![i].C.multiply(p);
       return a1iG.add(a4iH).add(pC);
     });
     const X4List = alpha4LEList.map((el, i) => {
       const a4iP = RistrettoPoint.fromHex(publicKeyU8).multiply(el);
 
-      const pDNew = opts.encryptedBalanceAfterWithdrawal[i].D.multiply(p);
+      const pDNew = opts.senderEncryptedAvailableBalanceAfterWithdrawal[i].D.multiply(p);
 
       return a4iP.add(pDNew);
     });
@@ -295,7 +296,7 @@ export class ConfidentialWithdraw {
 
   async genRangeProof() {
     const rangeProof = await RangeProofExecutor.genBatchRangeZKP({
-      v: this.balanceAfterWithdrawal.amountChunks.map((chunk) => chunk),
+      v: this.senderAvailableBalanceAfterWithdrawal.amountChunks.map((chunk) => chunk),
       rs: this.randomness.map((chunk) => numberToBytesLE(chunk, 32)),
       val_base: RistrettoPoint.BASE.toRawBytes(),
       rand_base: H_RISTRETTO.toRawBytes(),
@@ -317,16 +318,16 @@ export class ConfidentialWithdraw {
     const sigmaProof = await this.genSigmaProof();
     const rangeProof = await this.genRangeProof();
 
-    return [{ sigmaProof, rangeProof }, this.encryptedBalanceAfterWithdrawal];
+    return [{ sigmaProof, rangeProof }, this.senderEncryptedAvailableBalanceAfterWithdrawal];
   }
 
   static async verifyRangeProof(opts: {
     rangeProof: Uint8Array;
-    encryptedBalanceAfterWithdrawal: TwistedElGamalCiphertext[];
+    senderEncryptedAvailableBalanceAfterWithdrawal: TwistedElGamalCiphertext[];
   }) {
     return RangeProofExecutor.verifyBatchRangeZKP({
       proof: opts.rangeProof,
-      comm: opts.encryptedBalanceAfterWithdrawal.map((el) => el.C.toRawBytes()),
+      comm: opts.senderEncryptedAvailableBalanceAfterWithdrawal.map((el) => el.C.toRawBytes()),
       val_base: RistrettoPoint.BASE.toRawBytes(),
       rand_base: H_RISTRETTO.toRawBytes(),
       num_bits: ConfidentialAmount.CHUNK_BITS,

@@ -1,5 +1,6 @@
 import { TwistedElGamal, TwistedElGamalCiphertext } from "./twistedElGamal";
 import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
+import { AnyNumber } from "@aptos-labs/ts-sdk";
 
 /**
  * Number of chunks for confidential balance
@@ -30,13 +31,13 @@ export class ConfidentialAmount {
   static CHUNK_BITS_BI = BigInt(ConfidentialAmount.CHUNK_BITS);
 
   constructor(args: {
-    amount: bigint;
+    amount: AnyNumber;
     amountChunks: bigint[];
     encryptedAmount?: TwistedElGamalCiphertext[];
     chunksCount?: number;
     chunkBits?: number;
   }) {
-    this.amount = args.amount;
+    this.amount = BigInt(args.amount);
     this.amountChunks = args.amountChunks;
 
     if (args.encryptedAmount) {
@@ -73,7 +74,7 @@ export class ConfidentialAmount {
    * @returns An array of bigints, where each element represents a segment of the original amount.
    */
   static amountToChunks(
-    amount: bigint,
+    amount: AnyNumber,
     chunksCount = ConfidentialAmount.CHUNKS_COUNT,
     chunkBits = ConfidentialAmount.CHUNK_BITS,
   ): bigint[] {
@@ -92,7 +93,7 @@ export class ConfidentialAmount {
        * 2. Use a bitmask ( (1n << chunkBitsBi) - 1n ) to extract only those `chunkBits`
        *    bits. This mask is effectively a number with `chunkBits` 1s in binary.
        */
-      const chunk = (amount >> (chunkBitsBi * BigInt(i))) & ((1n << chunkBitsBi) - 1n);
+      const chunk = (BigInt(amount) >> (chunkBitsBi * BigInt(i))) & ((1n << chunkBitsBi) - 1n);
 
       // Add this extracted chunk to the chunks array.
       chunks.push(chunk);
@@ -103,7 +104,7 @@ export class ConfidentialAmount {
   }
 
   static fromAmount(
-    amount: bigint,
+    amount: AnyNumber,
     opts?: {
       chunksCount?: number;
       chunkBits?: number;

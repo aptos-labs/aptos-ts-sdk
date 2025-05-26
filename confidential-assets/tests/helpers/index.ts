@@ -51,7 +51,7 @@ export const getBalances = async (
   accountAddress: AccountAddress,
   tokenAddress = TOKEN_ADDRESS,
 ) => {
-  const aliceChunkedConfidentialBalance = await confidentialAsset.getBalance({
+  const aliceChunkedConfidentialBalance = await confidentialAsset.getEncryptedBalance({
     accountAddress,
     tokenAddress,
   });
@@ -61,7 +61,7 @@ export const getBalances = async (
     decryptionKey,
   );
   const aliceConfidentialAmountActual = await ConfidentialAmount.fromEncrypted(
-    aliceChunkedConfidentialBalance.actual,
+    aliceChunkedConfidentialBalance.available,
     decryptionKey,
   );
 
@@ -115,6 +115,7 @@ export const getTestAccount = () => {
     });
   }
 
+  console.log("Generating new account");
   return Account.generate();
 };
 
