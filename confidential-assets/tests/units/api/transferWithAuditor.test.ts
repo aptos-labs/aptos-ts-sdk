@@ -24,7 +24,6 @@ describe("Transfer with auditor", () => {
   const AUDITOR = TwistedEd25519PrivateKey.generate();
   const TRANSFER_AMOUNT = 2n;
   test("it should transfer Alice's tokens to Alice's confidential balance with auditor", async () => {
-
     const transferTx = await confidentialAsset.transfer({
       senderDecryptionKey: aliceConfidential,
       recipient: alice.accountAddress,

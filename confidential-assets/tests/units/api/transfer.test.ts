@@ -22,7 +22,6 @@ describe("Transfer", () => {
   );
 
   it("should transfer money from Alice actual to pending balance", async () => {
-
     const recipientAccAddr = "0xbae983154b659e5d0e9cb7f84001fdedb06482125a8e2945f47c2bc6ccd00690";
 
     const transferTx = await confidentialAsset.transfer({
