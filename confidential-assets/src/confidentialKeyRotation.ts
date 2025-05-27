@@ -185,14 +185,8 @@ export class ConfidentialKeyRotation {
       H_RISTRETTO.toRawBytes(),
       this.currentEncryptedAvailableBalance.publicKey.toUint8Array(),
       this.newEncryptedAvailableBalance.publicKey.toUint8Array(),
-      ...this.currentEncryptedAvailableBalance
-        .getCipherText()
-        .map((el) => el.serialize())
-        .flat(),
-      ...this.newEncryptedAvailableBalance
-        .getCipherText()
-        .map((el) => el.serialize())
-        .flat(),
+      this.currentEncryptedAvailableBalance.getCipherTextBytes(),
+      this.newEncryptedAvailableBalance.getCipherTextBytes(),
       X1.toRawBytes(),
       X2.toRawBytes(),
       X3.toRawBytes(),
@@ -329,7 +323,7 @@ export class ConfidentialKeyRotation {
         sigmaProof: ConfidentialKeyRotationSigmaProof;
         rangeProof: Uint8Array;
       },
-      TwistedElGamalCiphertext[],
+      EncryptedAmount,
     ]
   > {
     const sigmaProof = await this.genSigmaProof();
@@ -341,7 +335,7 @@ export class ConfidentialKeyRotation {
         sigmaProof,
         rangeProof,
       },
-      this.newEncryptedAvailableBalance.getCipherText(),
+      this.newEncryptedAvailableBalance,
     ];
   }
 

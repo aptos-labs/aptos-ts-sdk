@@ -165,14 +165,8 @@ export class ConfidentialNormalization {
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
       this.decryptionKey.publicKey().toUint8Array(),
-      ...this.unnormalizedEncryptedAvailableBalance
-        .getCipherText()
-        .map((el) => el.serialize())
-        .flat(),
-      ...this.normalizedEncryptedAvailableBalance
-        .getCipherText()
-        .map((el) => el.serialize())
-        .flat(),
+      this.unnormalizedEncryptedAvailableBalance.getCipherTextBytes(),
+      this.normalizedEncryptedAvailableBalance.getCipherTextBytes(),
       X1.toRawBytes(),
       X2.toRawBytes(),
       ...X3List.map((X3) => X3.toRawBytes()),
@@ -228,14 +222,8 @@ export class ConfidentialNormalization {
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
       publicKeyU8,
-      ...opts.unnormalizedEncryptedBalance
-        .getCipherText()
-        .map((el) => el.serialize())
-        .flat(),
-      ...opts.normalizedEncryptedBalance
-        .getCipherText()
-        .map((el) => el.serialize())
-        .flat(),
+      opts.unnormalizedEncryptedBalance.getCipherTextBytes(),
+      opts.normalizedEncryptedBalance.getCipherTextBytes(),
       opts.sigmaProof.X1,
       opts.sigmaProof.X2,
       ...opts.sigmaProof.X3List,
@@ -318,11 +306,11 @@ export class ConfidentialNormalization {
   }
 
   async authorizeNormalization(): Promise<
-    [{ sigmaProof: ConfidentialNormalizationSigmaProof; rangeProof: Uint8Array }, TwistedElGamalCiphertext[]]
+    [{ sigmaProof: ConfidentialNormalizationSigmaProof; rangeProof: Uint8Array }, EncryptedAmount]
   > {
     const sigmaProof = await this.genSigmaProof();
     const rangeProof = await this.genRangeProof();
 
-    return [{ sigmaProof, rangeProof }, this.normalizedEncryptedAvailableBalance.getCipherText()];
+    return [{ sigmaProof, rangeProof }, this.normalizedEncryptedAvailableBalance];
   }
 }

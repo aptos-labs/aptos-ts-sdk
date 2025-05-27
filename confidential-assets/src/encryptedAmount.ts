@@ -2,6 +2,7 @@ import { TwistedElGamal, TwistedElGamalCiphertext } from "./twistedElGamal";
 import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
 import { ed25519GenRandom } from "./utils";
 import { ChunkedAmount } from "./chunkedAmount";
+import { concatBytes } from "@noble/hashes/utils";
 
 export class EncryptedAmount {
   // private amount: bigint;
@@ -54,6 +55,14 @@ export class EncryptedAmount {
 
   getCipherText(): TwistedElGamalCiphertext[] {
     return this.cipherText;
+  }
+
+  getCipherTextBytes(): Uint8Array {
+    return concatBytes(...this.cipherText.map((el) => el.serialize()).flat());
+  }
+
+  getCipherTextDPointBytes(): Uint8Array {
+    return concatBytes(...this.cipherText.map((el) => el.D.toRawBytes()).flat());
   }
 
   getRandomness(): bigint[] | undefined {

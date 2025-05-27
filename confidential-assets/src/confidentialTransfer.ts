@@ -416,26 +416,11 @@ export class ConfidentialTransfer {
       this.senderDecryptionKey.publicKey().toUint8Array(),
       this.recipientEncryptionKey.toUint8Array(),
       ...this.auditorEncryptionKeys.map((pk) => publicKeyToU8(pk)),
-      ...this.senderEncryptedAvailableBalance
-        .getCipherText()
-        .map((el) => el.serialize())
-        .flat(),
-      ...this.transferAmountEncryptedByRecipient
-        .getCipherText()
-        .map((el) => el.serialize())
-        .flat(),
-      ...(this.transferAmountEncryptedByAuditors
-        ?.map((el) => el.getCipherText())
-        .flat()
-        ?.map(({ D }) => D.toRawBytes()) ?? []),
-      ...this.transferAmountEncryptedBySender
-        .getCipherText()
-        .map(({ D }) => D.toRawBytes())
-        .flat(),
-      ...this.senderEncryptedAvailableBalanceAfterTransfer
-        .getCipherText()
-        .map((el) => el.serialize())
-        .flat(),
+      this.senderEncryptedAvailableBalance.getCipherTextBytes(),
+      this.transferAmountEncryptedByRecipient.getCipherTextBytes(),
+      ...this.transferAmountEncryptedByAuditors.map((el) => el.getCipherTextDPointBytes()).flat(),
+      this.transferAmountEncryptedBySender.getCipherTextDPointBytes(),
+      this.senderEncryptedAvailableBalanceAfterTransfer.getCipherTextBytes(),
       X1,
       ...X2List,
       ...X3List,
@@ -516,19 +501,10 @@ export class ConfidentialTransfer {
       recipientPublicKeyU8,
       ...auditorPKs,
       ...opts.encryptedActualBalance.map((el) => el.serialize()).flat(),
-      ...opts.encryptedTransferAmountByRecipient
-        .getCipherText()
-        .map((el) => el.serialize())
-        .flat(),
+      opts.encryptedTransferAmountByRecipient.getCipherTextBytes(),
       ...(opts.auditors?.auditorsCBList?.flat().map(({ D }) => D.toRawBytes()) || []),
-      ...opts.encryptedTransferAmountBySender
-        .getCipherText()
-        .map(({ D }) => D.toRawBytes())
-        .flat(),
-      ...opts.encryptedActualBalanceAfterTransfer
-        .getCipherText()
-        .map((el) => el.serialize())
-        .flat(),
+      opts.encryptedTransferAmountBySender.getCipherTextDPointBytes(),
+      opts.encryptedActualBalanceAfterTransfer.getCipherTextBytes(),
       opts.sigmaProof.X1,
       ...opts.sigmaProof.X2List,
       ...opts.sigmaProof.X3List,
@@ -692,9 +668,9 @@ export class ConfidentialTransfer {
   async authorizeTransfer(): Promise<
     [
       { sigmaProof: ConfidentialTransferSigmaProof; rangeProof: ConfidentialTransferRangeProof },
-      TwistedElGamalCiphertext[],
-      TwistedElGamalCiphertext[],
-      TwistedElGamalCiphertext[][],
+      EncryptedAmount,
+      EncryptedAmount,
+      EncryptedAmount[],
     ]
   > {
     const sigmaProof = await this.genSigmaProof();
@@ -706,9 +682,9 @@ export class ConfidentialTransfer {
         sigmaProof,
         rangeProof,
       },
-      this.senderEncryptedAvailableBalanceAfterTransfer.getCipherText(),
-      this.transferAmountEncryptedByRecipient.getCipherText(),
-      this.transferAmountEncryptedByAuditors.map((el) => el.getCipherText()),
+      this.senderEncryptedAvailableBalanceAfterTransfer,
+      this.transferAmountEncryptedByRecipient,
+      this.transferAmountEncryptedByAuditors,
     ];
   }
 

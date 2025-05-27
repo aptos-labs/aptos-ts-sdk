@@ -253,10 +253,7 @@ export class ConfidentialWithdraw {
       ...confidentialAmountToWithdraw.amountChunks
         .slice(0, ChunkedAmount.CHUNKS_COUNT_HALF)
         .map((a) => numberToBytesLE(a, 32)),
-      ...opts.senderEncryptedAvailableBalance
-        .getCipherText()
-        .map((el) => el.serialize())
-        .flat(),
+      opts.senderEncryptedAvailableBalance.getCipherTextBytes(),
       opts.sigmaProof.X1,
       opts.sigmaProof.X2,
       ...opts.sigmaProof.X3List,
@@ -329,13 +326,13 @@ export class ConfidentialWithdraw {
         sigmaProof: ConfidentialWithdrawSigmaProof;
         rangeProof: Uint8Array;
       },
-      TwistedElGamalCiphertext[],
+      EncryptedAmount,
     ]
   > {
     const sigmaProof = await this.genSigmaProof();
     const rangeProof = await this.genRangeProof();
 
-    return [{ sigmaProof, rangeProof }, this.senderEncryptedAvailableBalanceAfterWithdrawal.getCipherText()];
+    return [{ sigmaProof, rangeProof }, this.senderEncryptedAvailableBalanceAfterWithdrawal];
   }
 
   static async verifyRangeProof(opts: {

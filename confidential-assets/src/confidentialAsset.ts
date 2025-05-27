@@ -311,8 +311,7 @@ export class ConfidentialAsset {
       amount: BigInt(amount),
     });
 
-    const [{ sigmaProof, rangeProof }, confidentialAmountAfterWithdraw] =
-      await confidentialWithdraw.authorizeWithdrawal();
+    const [{ sigmaProof, rangeProof }, encryptedAmountAfterWithdraw] = await confidentialWithdraw.authorizeWithdrawal();
 
     return this.client.transaction.build.simple({
       ...args,
@@ -322,7 +321,7 @@ export class ConfidentialAsset {
           tokenAddress,
           recipient,
           String(amount),
-          concatBytes(...confidentialAmountAfterWithdraw.map((el) => el.serialize()).flat()),
+          encryptedAmountAfterWithdraw.getCipherTextBytes(),
           rangeProof,
           ConfidentialWithdraw.serializeSigmaProof(sigmaProof),
         ],
@@ -460,7 +459,7 @@ export class ConfidentialAsset {
       recipientEncryptionKey,
       auditorEncryptionKeys: [
         ...(globalAuditorPubKey ? [globalAuditorPubKey] : []),
-        ...additionalAuditorEncryptionKeys.map((el) => toTwistedEd25519PublicKey(el)),
+        ...additionalAuditorEncryptionKeys,
       ],
     });
 
@@ -474,17 +473,8 @@ export class ConfidentialAsset {
       auditorsCBList,
     ] = await confidentialTransfer.authorizeTransfer();
 
-    const newBalance = encryptedAmountAfterTransfer.map((el) => el.serialize()).flat();
-    const amountBySender = confidentialTransfer.transferAmountEncryptedBySender
-      .getCipherText()
-      .map((el) => el.serialize())
-      .flat();
-    const amountByRecipient = encryptedAmountByRecipient.map((el) => el.serialize()).flat();
     const auditorEncryptionKeys = confidentialTransfer.auditorEncryptionKeys.map((pk) => pk.toUint8Array());
-    const auditorBalances = auditorsCBList
-      .flat()
-      .map((el) => el.serialize())
-      .flat();
+    const auditorBalances = auditorsCBList.map((el) => el.getCipherTextBytes());
 
     return this.client.transaction.build.simple({
       ...args,
@@ -494,9 +484,9 @@ export class ConfidentialAsset {
         functionArguments: [
           tokenAddress,
           recipient,
-          concatBytes(...newBalance),
-          concatBytes(...amountBySender.flat()),
-          concatBytes(...amountByRecipient.flat()),
+          encryptedAmountAfterTransfer.getCipherTextBytes(),
+          confidentialTransfer.transferAmountEncryptedBySender.getCipherTextBytes(),
+          encryptedAmountByRecipient.getCipherTextBytes(),
           concatBytes(...auditorEncryptionKeys),
           concatBytes(...auditorBalances),
           rangeProofNewBalance,
@@ -598,11 +588,10 @@ export class ConfidentialAsset {
     });
 
     // Create the sigma proof and range proof
-    const [{ sigmaProof, rangeProof }, newCB] = await confidentialKeyRotation.authorizeKeyRotation();
+    const [{ sigmaProof, rangeProof }, newEncryptedAvailableBalance] =
+      await confidentialKeyRotation.authorizeKeyRotation();
 
     const newPublicKeyBytes = toTwistedEd25519PrivateKey(args.newDecryptionKey).publicKey().toUint8Array();
-
-    const serializedNewBalance = concatBytes(...newCB.map((el) => [el.C.toRawBytes(), el.D.toRawBytes()]).flat());
 
     const method = withUnfreezeBalance ? "rotate_encryption_key_and_unfreeze" : "rotate_encryption_key";
 
@@ -615,7 +604,7 @@ export class ConfidentialAsset {
         functionArguments: [
           args.tokenAddress,
           newPublicKeyBytes,
-          serializedNewBalance,
+          newEncryptedAvailableBalance.getCipherTextBytes(),
           rangeProof,
           ConfidentialKeyRotation.serializeSigmaProof(sigmaProof),
         ],
@@ -715,7 +704,7 @@ export class ConfidentialAsset {
         function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::normalize`,
         functionArguments: [
           tokenAddress,
-          concatBytes(...normalizedCB.map((el) => el.serialize()).flat()),
+          normalizedCB.getCipherTextBytes(),
           rangeProof,
           ConfidentialNormalization.serializeSigmaProof(sigmaProof),
         ],
