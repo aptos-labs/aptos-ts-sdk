@@ -23,18 +23,23 @@ export const preloadTables = async () => {
   TwistedElGamal.setDecryptionFn(async (pk) => {
     if (bytesToNumberLE(pk) === 0n) return 0n;
 
-    let result = kangaroo16.solve_dlp(pk, 30n);
+    try {
+      let result = kangaroo16.solve_dlp(pk, 30n);
 
-    if (!result) {
-      result = kangaroo32.solve_dlp(pk, 120n);
+      if (!result) {
+        result = kangaroo32.solve_dlp(pk, 120n);
+      }
+
+      if (!result) {
+        result = kangaroo48.solve_dlp(pk, 2000n);
+      }
+
+      if (!result) throw new TypeError("Decryption failed");
+
+      return result;
+    } catch (e) {
+      console.error("Decryption failed", e);
+      throw e;
     }
-
-    if (!result) {
-      result = kangaroo48.solve_dlp(pk);
-    }
-
-    if (!result) throw new TypeError("Decryption failed");
-
-    return result;
   });
 };

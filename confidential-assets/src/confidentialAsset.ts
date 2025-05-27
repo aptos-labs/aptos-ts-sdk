@@ -21,8 +21,8 @@ import { ConfidentialTransfer } from "./confidentialTransfer";
 import { ConfidentialWithdraw } from "./confidentialWithdraw";
 import { TwistedEd25519PublicKey, TwistedEd25519PrivateKey } from "./twistedEd25519";
 import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS, MODULE_NAME } from "./consts";
-import { ConfidentialAmount } from "./confidentialAmount";
 import { preloadTables } from "./preloadKangarooTables";
+import { EncryptedAmount } from "./encryptedAmount";
 
 export type ConfidentialBalanceResponse = {
   chunks: {
@@ -31,15 +31,31 @@ export type ConfidentialBalanceResponse = {
   }[];
 }[];
 
-export type DecryptedBalance = {
-  available: bigint;
-  pending: bigint;
-};
+export class ConfidentialBalance {
+  available: EncryptedAmount;
+  pending: EncryptedAmount;
 
-export type ConfidentialBalance = {
-  pending: TwistedElGamalCiphertext[];
-  available: TwistedElGamalCiphertext[];
-};
+  constructor(available: EncryptedAmount, pending: EncryptedAmount) {
+    this.available = available;
+    this.pending = pending;
+  }
+
+  availableBalance(): bigint {
+    return this.available.getAmount();
+  }
+
+  pendingBalance(): bigint {
+    return this.pending.getAmount();
+  }
+
+  availableBalanceCipherText(): TwistedElGamalCiphertext[] {
+    return this.available.getCipherText();
+  }
+
+  pendingBalanceCipherText(): TwistedElGamalCiphertext[] {
+    return this.pending.getCipherText();
+  }
+}
 
 /**
  * A class to handle confidential balance operations
@@ -80,34 +96,31 @@ export class ConfidentialAsset {
   }
 
   /**
-   * Get the decrypted balance for an account
+   * Get the balance for an account
    * @param args.accountAddress - The account address to get the balance for
    * @param args.tokenAddress - The token address of the asset to get the balance for
    * @param args.decryptionKey - The decryption key to decrypt the encrypted balance fetched from the chain
    * @param args.options.ledgerVersion - The ledger version to use for the lookup
-   * @returns The decrypted balance as an object with available and pending amounts
+   * @returns A ConfidentialBalance object with available and pending amounts and cipher texts
    */
-  async getDecryptedBalance(args: {
+  async getBalance(args: {
     accountAddress: AccountAddress;
     tokenAddress: string;
     decryptionKey: TwistedEd25519PrivateKey;
     options?: LedgerVersionArg;
-  }): Promise<DecryptedBalance> {
+  }): Promise<ConfidentialBalance> {
     await this.ensurePreloaded();
     const { accountAddress, tokenAddress, decryptionKey, options } = args;
-    const { available, pending } = await this.getEncryptedBalance({
+    const { available, pending } = await this.getBalanceCipherText({
       accountAddress,
       tokenAddress,
       options,
     });
 
-    const decryptedActualBalance = await ConfidentialAmount.fromEncrypted(available, decryptionKey);
-    const decryptedPendingBalance = await ConfidentialAmount.fromEncrypted(pending, decryptionKey);
+    const decryptedActualBalance = await EncryptedAmount.fromCipherTextAndPrivateKey(available, decryptionKey);
+    const decryptedPendingBalance = await EncryptedAmount.fromCipherTextAndPrivateKey(pending, decryptionKey);
 
-    return {
-      available: decryptedActualBalance.amount,
-      pending: decryptedPendingBalance.amount,
-    };
+    return new ConfidentialBalance(decryptedActualBalance, decryptedPendingBalance);
   }
 
   /**
@@ -117,11 +130,14 @@ export class ConfidentialAsset {
    * @param args.options.ledgerVersion - The ledger version to use for the lookup
    * @returns The encrypted balance as an object with pending and available balances
    */
-  async getEncryptedBalance(args: {
+  async getBalanceCipherText(args: {
     accountAddress: AccountAddress;
     tokenAddress: string;
     options?: LedgerVersionArg;
-  }): Promise<ConfidentialBalance> {
+  }): Promise<{
+    pending: TwistedElGamalCiphertext[];
+    available: TwistedElGamalCiphertext[];
+  }> {
     const { accountAddress, tokenAddress, options } = args;
     const [[chunkedPendingBalance], [chunkedActualBalances]] = await Promise.all([
       this.client.view<ConfidentialBalanceResponse>({
@@ -284,14 +300,14 @@ export class ConfidentialAsset {
     validateAmount({ amount });
     await this.ensurePreloaded();
     // Get the sender's available balance from the chain
-    const { available: senderEncryptedAvailableBalance } = await this.getEncryptedBalance({
+    const { available: senderEncryptedAvailableBalance } = await this.getBalanceCipherText({
       accountAddress: AccountAddress.from(sender),
       tokenAddress,
     });
 
     const confidentialWithdraw = await ConfidentialWithdraw.create({
       decryptionKey: senderDecryptionKey,
-      senderEncryptedAvailableBalance,
+      senderAvailableBalanceCipherText: senderEncryptedAvailableBalance,
       amount: BigInt(amount),
     });
 
@@ -431,7 +447,7 @@ export class ConfidentialAsset {
     }
 
     // Get the sender's available balance from the chain
-    const { available: senderEncryptedAvailableBalance } = await this.getEncryptedBalance({
+    const { available: senderEncryptedAvailableBalance } = await this.getBalanceCipherText({
       accountAddress: AccountAddress.from(args.sender),
       tokenAddress,
     });
@@ -439,7 +455,7 @@ export class ConfidentialAsset {
     // Create the confidential transfer object
     const confidentialTransfer = await ConfidentialTransfer.create({
       senderDecryptionKey,
-      senderEncryptedAvailableBalance,
+      senderAvailableBalanceCipherText: senderEncryptedAvailableBalance,
       amount,
       recipientEncryptionKey,
       auditorEncryptionKeys: [
@@ -459,7 +475,10 @@ export class ConfidentialAsset {
     ] = await confidentialTransfer.authorizeTransfer();
 
     const newBalance = encryptedAmountAfterTransfer.map((el) => el.serialize()).flat();
-    const amountBySender = confidentialTransfer.transferAmountEncryptedBySender.map((el) => el.serialize()).flat();
+    const amountBySender = confidentialTransfer.transferAmountEncryptedBySender
+      .getCipherText()
+      .map((el) => el.serialize())
+      .flat();
     const amountByRecipient = encryptedAmountByRecipient.map((el) => el.serialize()).flat();
     const auditorEncryptionKeys = confidentialTransfer.auditorEncryptionKeys.map((pk) => pk.toUint8Array());
     const auditorBalances = auditorsCBList
@@ -556,17 +575,17 @@ export class ConfidentialAsset {
     } = args;
     await this.ensurePreloaded();
     // Get the sender's balance from the chain
-    const { available: currEncryptedBalance, pending: currPendingEncryptedBalance } = await this.getEncryptedBalance({
+    const { available: currEncryptedBalance, pending: currPendingEncryptedBalance } = await this.getBalanceCipherText({
       accountAddress: AccountAddress.from(args.sender),
       tokenAddress: args.tokenAddress,
     });
 
     if (checkPendingBalanceEmpty) {
-      const currPendingConfidentialAmount = await ConfidentialAmount.fromEncrypted(
+      const currPendingConfidentialAmount = await EncryptedAmount.fromCipherTextAndPrivateKey(
         currPendingEncryptedBalance,
         args.senderDecryptionKey,
       );
-      if (currPendingConfidentialAmount.amount > 0n) {
+      if (currPendingConfidentialAmount.getAmount() > 0n) {
         throw new Error("Pending balance must be 0 before rotating encryption key");
       }
     }
@@ -678,14 +697,14 @@ export class ConfidentialAsset {
   }): Promise<SimpleTransaction> {
     const { sender, senderDecryptionKey, tokenAddress } = args;
     await this.ensurePreloaded();
-    const { available: unnormalizedEncryptedAvailableBalance } = await this.getEncryptedBalance({
+    const { available: unnormalizedEncryptedAvailableBalance } = await this.getBalanceCipherText({
       accountAddress: AccountAddress.from(sender),
       tokenAddress,
     });
 
     const confidentialNormalization = await ConfidentialNormalization.create({
       decryptionKey: senderDecryptionKey,
-      unnormalizedEncryptedAvailableBalance,
+      unnormalizedAvailableBalanceCipherText: unnormalizedEncryptedAvailableBalance,
     });
 
     const [{ sigmaProof, rangeProof }, normalizedCB] = await confidentialNormalization.authorizeNormalization();

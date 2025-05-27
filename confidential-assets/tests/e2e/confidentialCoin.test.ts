@@ -31,14 +31,14 @@ describe("Confidential balance api", () => {
     expectedPending: AnyNumber,
     decryptionKey?: TwistedEd25519PrivateKey,
   ) {
-    const { available, pending } = await confidentialAsset.getDecryptedBalance({
+    const confidentialBalance = await confidentialAsset.getBalance({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       decryptionKey: decryptionKey || aliceConfidential,
     });
 
-    expect(available).toBe(BigInt(expectedAvailable));
-    expect(pending).toBe(BigInt(expectedPending));
+    expect(confidentialBalance.availableBalance()).toBe(BigInt(expectedAvailable));
+    expect(confidentialBalance.pendingBalance()).toBe(BigInt(expectedPending));
   }
 
   async function checkAliceNormalizedBalanceStatus(expectedStatus: boolean) {
@@ -91,7 +91,10 @@ describe("Confidential balance api", () => {
     "it should check Alice encrypted confidential balances",
     async () => {
       const [aliceConfidentialBalances] = await Promise.all([
-        confidentialAsset.getEncryptedBalance({ accountAddress: alice.accountAddress, tokenAddress: TOKEN_ADDRESS }),
+        confidentialAsset.getBalanceCipherText({
+          accountAddress: alice.accountAddress,
+          tokenAddress: TOKEN_ADDRESS,
+        }),
       ]);
       expect(aliceConfidentialBalances.pending.length).toBeDefined();
       expect(aliceConfidentialBalances.available.length).toBeDefined();
@@ -209,7 +212,7 @@ describe("Confidential balance api", () => {
   test(
     "it should throw if withdrawing more than the available balance",
     async () => {
-      const { available } = await confidentialAsset.getDecryptedBalance({
+      const confidentialBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         decryptionKey: aliceConfidential,
@@ -221,7 +224,7 @@ describe("Confidential balance api", () => {
           sender: alice.accountAddress,
           tokenAddress: TOKEN_ADDRESS,
           senderDecryptionKey: aliceConfidential,
-          amount: available + BigInt(1),
+          amount: confidentialBalance.availableBalance() + BigInt(1),
         }),
       ).rejects.toThrow("Insufficient balance");
     },
@@ -268,7 +271,7 @@ describe("Confidential balance api", () => {
   test(
     "it should throw if transferring more than the available balance",
     async () => {
-      const { available } = await confidentialAsset.getDecryptedBalance({
+      const confidentialBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         decryptionKey: aliceConfidential,
@@ -280,7 +283,7 @@ describe("Confidential balance api", () => {
           sender: alice.accountAddress,
           tokenAddress: TOKEN_ADDRESS,
           senderDecryptionKey: aliceConfidential,
-          amount: available + BigInt(1),
+          amount: confidentialBalance.availableBalance() + BigInt(1),
           recipient: alice.accountAddress,
         }),
       ).rejects.toThrow("Insufficient balance");
@@ -291,7 +294,7 @@ describe("Confidential balance api", () => {
   test(
     "it should transfer Alice's tokens to Alice's pending balance without auditor",
     async () => {
-      const { available, pending } = await confidentialAsset.getDecryptedBalance({
+      const confidentialBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         decryptionKey: aliceConfidential,
@@ -309,7 +312,10 @@ describe("Confidential balance api", () => {
       expect(txResp.success).toBeTruthy();
 
       // Verify the confidential balance has been updated correctly
-      await checkAliceDecryptedBalance(available - TRANSFER_AMOUNT, pending + TRANSFER_AMOUNT);
+      await checkAliceDecryptedBalance(
+        confidentialBalance.availableBalance() - TRANSFER_AMOUNT,
+        confidentialBalance.pendingBalance() + TRANSFER_AMOUNT,
+      );
     },
     longTestTimeout,
   );
@@ -318,7 +324,7 @@ describe("Confidential balance api", () => {
   test(
     "it should transfer Alice's tokens to Alice's confidential balance with auditor",
     async () => {
-      const { available, pending } = await confidentialAsset.getDecryptedBalance({
+      const confidentialBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         decryptionKey: aliceConfidential,
@@ -337,7 +343,10 @@ describe("Confidential balance api", () => {
       expect(txResp.success).toBeTruthy();
 
       // Verify the confidential balance has been updated correctly
-      await checkAliceDecryptedBalance(available - TRANSFER_AMOUNT, pending + TRANSFER_AMOUNT);
+      await checkAliceDecryptedBalance(
+        confidentialBalance.availableBalance() - TRANSFER_AMOUNT,
+        confidentialBalance.pendingBalance() + TRANSFER_AMOUNT,
+      );
     },
     longTestTimeout,
   );
@@ -415,7 +424,7 @@ describe("Confidential balance api", () => {
     async () => {
       // Get the current public token balance of Bob
       const bobTokenBalance = await getPublicTokenBalance(bob.accountAddress);
-      const { available, pending } = await confidentialAsset.getDecryptedBalance({
+      const confidentialBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         decryptionKey: aliceConfidential,
@@ -436,7 +445,10 @@ describe("Confidential balance api", () => {
       expect(bobNewTokenBalance).toBe(bobTokenBalance + WITHDRAW_AMOUNT);
 
       // Verify the confidential balance has been updated correctly
-      await checkAliceDecryptedBalance(available - BigInt(WITHDRAW_AMOUNT), pending);
+      await checkAliceDecryptedBalance(
+        confidentialBalance.availableBalance() - BigInt(WITHDRAW_AMOUNT),
+        confidentialBalance.pendingBalance(),
+      );
     },
     longTestTimeout,
   );
@@ -512,7 +524,7 @@ describe("Confidential balance api", () => {
       await checkAliceBalanceFrozenStatus(true);
 
       // Get the current balance before rotation
-      const { available, pending } = await confidentialAsset.getDecryptedBalance({
+      const confidentialBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         decryptionKey: aliceConfidential,
@@ -533,7 +545,11 @@ describe("Confidential balance api", () => {
       await checkAliceBalanceFrozenStatus(false);
 
       // If this decrypts correctly, then the key rotation worked.
-      await checkAliceDecryptedBalance(available, pending, ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY);
+      await checkAliceDecryptedBalance(
+        confidentialBalance.availableBalance(),
+        confidentialBalance.pendingBalance(),
+        ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY,
+      );
     },
     longTestTimeout,
   );

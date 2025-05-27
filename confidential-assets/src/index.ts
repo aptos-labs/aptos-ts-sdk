@@ -1,4 +1,4 @@
-export * from "./confidentialAmount";
+export * from "./chunkedAmount";
 export * from "./confidentialAsset";
 export * from "./confidentialKeyRotation";
 export * from "./confidentialNormalization";

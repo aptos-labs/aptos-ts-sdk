@@ -2,11 +2,12 @@ import { bytesToNumberLE, concatBytes, numberToBytesLE } from "@noble/curves/abs
 import { utf8ToBytes } from "@noble/hashes/utils";
 import { PROOF_CHUNK_SIZE, SIGMA_PROOF_KEY_ROTATION_SIZE } from "./consts";
 import { genFiatShamirChallenge } from "./helpers";
-import { ConfidentialAmount } from "./confidentialAmount";
 import { RangeProofExecutor } from "./rangeProof";
 import { TwistedEd25519PrivateKey, RistrettoPoint, H_RISTRETTO, TwistedEd25519PublicKey } from "./twistedEd25519";
 import { TwistedElGamalCiphertext } from "./twistedElGamal";
 import { ed25519GenListOfRandom, ed25519GenRandom, ed25519modN, ed25519InvertN } from "./utils";
+import { EncryptedAmount } from "./encryptedAmount";
+import { ChunkedAmount } from "./chunkedAmount";
 
 export type ConfidentialKeyRotationSigmaProof = {
   alpha1List: Uint8Array[];
@@ -31,60 +32,55 @@ export type CreateConfidentialKeyRotationOpArgs = {
 export class ConfidentialKeyRotation {
   randomness: bigint[];
 
-  currDecryptionKey: TwistedEd25519PrivateKey;
+  currentDecryptionKey: TwistedEd25519PrivateKey;
 
   newDecryptionKey: TwistedEd25519PrivateKey;
 
-  currEncryptedBalance: TwistedElGamalCiphertext[];
+  currentEncryptedAvailableBalance: EncryptedAmount;
 
-  currConfidentialAmount: ConfidentialAmount;
-
-  newConfidentialAmount: ConfidentialAmount;
-
-  newEncryptedBalance: TwistedElGamalCiphertext[];
+  newEncryptedAvailableBalance: EncryptedAmount;
 
   constructor(args: {
-    currDecryptionKey: TwistedEd25519PrivateKey;
-    newDecryptionKey: TwistedEd25519PrivateKey;
-    currEncryptedBalance: TwistedElGamalCiphertext[];
     randomness: bigint[];
-    currConfidentialAmount: ConfidentialAmount;
-    newConfidentialAmount: ConfidentialAmount;
+    currentDecryptionKey: TwistedEd25519PrivateKey;
+    newDecryptionKey: TwistedEd25519PrivateKey;
+    currentEncryptedAvailableBalance: EncryptedAmount;
+    newEncryptedAvailableBalance: EncryptedAmount;
   }) {
     this.randomness = args.randomness;
-    this.currDecryptionKey = args.currDecryptionKey;
+    this.currentDecryptionKey = args.currentDecryptionKey;
     this.newDecryptionKey = args.newDecryptionKey;
-    this.currEncryptedBalance = args.currEncryptedBalance;
-    this.currConfidentialAmount = args.currConfidentialAmount;
-    this.newConfidentialAmount = args.newConfidentialAmount;
-
-    this.newEncryptedBalance = this.newConfidentialAmount.getAmountEncrypted(
-      this.newDecryptionKey.publicKey(),
-      this.randomness,
-    );
+    this.currentEncryptedAvailableBalance = args.currentEncryptedAvailableBalance;
+    this.newEncryptedAvailableBalance = args.newEncryptedAvailableBalance;
   }
 
   static FIAT_SHAMIR_SIGMA_DST = "AptosConfidentialAsset/RotationProofFiatShamir";
 
   static async create(args: CreateConfidentialKeyRotationOpArgs) {
     const {
-      randomness = ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT),
+      randomness = ed25519GenListOfRandom(ChunkedAmount.CHUNKS_COUNT),
       currEncryptedBalance,
       currDecryptionKey,
       newDecryptionKey,
     } = args;
 
-    const currentBalance = await ConfidentialAmount.fromEncrypted(currEncryptedBalance, currDecryptionKey);
+    const currentEncryptedAvailableBalance = await EncryptedAmount.fromCipherTextAndPrivateKey(
+      currEncryptedBalance,
+      currDecryptionKey,
+    );
 
-    const newBalance = ConfidentialAmount.fromAmount(currentBalance.amount);
+    const newEncryptedAvailableBalance = EncryptedAmount.fromAmountAndPublicKey({
+      amount: currentEncryptedAvailableBalance.getAmount(),
+      publicKey: newDecryptionKey.publicKey(),
+      randomness,
+    });
 
     return new ConfidentialKeyRotation({
-      currDecryptionKey,
+      currentDecryptionKey: currDecryptionKey,
       newDecryptionKey,
-      currEncryptedBalance,
+      currentEncryptedAvailableBalance,
+      newEncryptedAvailableBalance,
       randomness,
-      currConfidentialAmount: currentBalance,
-      newConfidentialAmount: newBalance,
     });
   }
 
@@ -119,12 +115,12 @@ export class ConfidentialKeyRotation {
     const alpha2 = proofArr[3];
     const alpha3 = proofArr[4];
     const alpha4 = proofArr[5];
-    const alpha5List = proofArr.slice(6, 6 + ConfidentialAmount.CHUNKS_COUNT);
-    const X1 = proofArr[6 + ConfidentialAmount.CHUNKS_COUNT];
-    const X2 = proofArr[7 + ConfidentialAmount.CHUNKS_COUNT];
-    const X3 = proofArr[8 + ConfidentialAmount.CHUNKS_COUNT];
-    const X4List = proofArr.slice(8 + ConfidentialAmount.CHUNKS_COUNT, 8 + 2 * ConfidentialAmount.CHUNKS_COUNT);
-    const X5List = proofArr.slice(8 + 2 * ConfidentialAmount.CHUNKS_COUNT);
+    const alpha5List = proofArr.slice(6, 6 + ChunkedAmount.CHUNKS_COUNT);
+    const X1 = proofArr[6 + ChunkedAmount.CHUNKS_COUNT];
+    const X2 = proofArr[7 + ChunkedAmount.CHUNKS_COUNT];
+    const X3 = proofArr[8 + ChunkedAmount.CHUNKS_COUNT];
+    const X4List = proofArr.slice(8 + ChunkedAmount.CHUNKS_COUNT, 8 + 2 * ChunkedAmount.CHUNKS_COUNT);
+    const X5List = proofArr.slice(8 + 2 * ChunkedAmount.CHUNKS_COUNT);
 
     return {
       alpha1List,
@@ -141,30 +137,31 @@ export class ConfidentialKeyRotation {
   }
 
   async genSigmaProof(): Promise<ConfidentialKeyRotationSigmaProof> {
-    if (this.randomness && this.randomness.length !== ConfidentialAmount.CHUNKS_COUNT) {
+    if (this.randomness && this.randomness.length !== ChunkedAmount.CHUNKS_COUNT) {
       throw new Error("Invalid length list of randomness");
     }
 
-    const x1List = ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
+    const x1List = ed25519GenListOfRandom(ChunkedAmount.CHUNKS_COUNT);
     const x2 = ed25519GenRandom();
     const x3 = ed25519GenRandom();
     const x4 = ed25519GenRandom();
 
-    const x5List = ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
+    const x5List = ed25519GenListOfRandom(ChunkedAmount.CHUNKS_COUNT);
 
     const X1 = RistrettoPoint.BASE.multiply(
       ed25519modN(
         x1List.reduce((acc, el, i) => {
-          const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
+          const coef = 2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT);
           const x1i = el * coef;
 
           return acc + x1i;
         }, 0n),
       ),
     ).add(
-      this.currEncryptedBalance
+      this.currentEncryptedAvailableBalance
+        .getCipherText()
         .reduce(
-          (acc, el, i) => acc.add(el.D.multiply(2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI))),
+          (acc, el, i) => acc.add(el.D.multiply(2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT))),
           RistrettoPoint.ZERO,
         )
         .multiply(x2),
@@ -178,7 +175,7 @@ export class ConfidentialKeyRotation {
       return x1iG.add(x5iH);
     });
     const X5List = x5List.map((el) => {
-      const Pnew = RistrettoPoint.fromHex(this.newDecryptionKey.publicKey().toUint8Array());
+      const Pnew = RistrettoPoint.fromHex(this.newEncryptedAvailableBalance.publicKey.toUint8Array());
       return Pnew.multiply(el);
     });
 
@@ -186,10 +183,16 @@ export class ConfidentialKeyRotation {
       utf8ToBytes(ConfidentialKeyRotation.FIAT_SHAMIR_SIGMA_DST),
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
-      this.currDecryptionKey.publicKey().toUint8Array(),
-      this.newDecryptionKey.publicKey().toUint8Array(),
-      ...this.currEncryptedBalance.map((el) => el.serialize()).flat(),
-      ...this.newEncryptedBalance.map((el) => el.serialize()).flat(),
+      this.currentEncryptedAvailableBalance.publicKey.toUint8Array(),
+      this.newEncryptedAvailableBalance.publicKey.toUint8Array(),
+      ...this.currentEncryptedAvailableBalance
+        .getCipherText()
+        .map((el) => el.serialize())
+        .flat(),
+      ...this.newEncryptedAvailableBalance
+        .getCipherText()
+        .map((el) => el.serialize())
+        .flat(),
       X1.toRawBytes(),
       X2.toRawBytes(),
       X3.toRawBytes(),
@@ -197,13 +200,13 @@ export class ConfidentialKeyRotation {
       ...X5List.map((el) => el.toRawBytes()),
     );
 
-    const oldSLE = bytesToNumberLE(this.currDecryptionKey.toUint8Array());
+    const oldSLE = bytesToNumberLE(this.currentDecryptionKey.toUint8Array());
     const invertOldSLE = ed25519InvertN(oldSLE);
     const newSLE = bytesToNumberLE(this.newDecryptionKey.toUint8Array());
     const invertNewSLE = ed25519InvertN(newSLE);
 
     const alpha1List = x1List.map((el, i) => {
-      const pChunk = ed25519modN(p * this.currConfidentialAmount.amountChunks[i]);
+      const pChunk = ed25519modN(p * this.currentEncryptedAvailableBalance.getAmountChunks()[i]);
 
       return ed25519modN(el - pChunk);
     });
@@ -263,7 +266,7 @@ export class ConfidentialKeyRotation {
 
     const { DOldSum, COldSum } = opts.currEncryptedBalance.reduce(
       (acc, { C, D }, i) => {
-        const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
+        const coef = 2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT);
         return {
           DOldSum: acc.DOldSum.add(D.multiply(coef)),
           COldSum: acc.COldSum.add(C.multiply(coef)),
@@ -275,7 +278,7 @@ export class ConfidentialKeyRotation {
     const X1 = RistrettoPoint.BASE.multiply(
       ed25519modN(
         alpha1LEList.reduce((acc, el, i) => {
-          const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
+          const coef = 2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT);
           const a1i = el * coef;
 
           return acc + a1i;
@@ -310,11 +313,11 @@ export class ConfidentialKeyRotation {
 
   async genRangeProof(): Promise<Uint8Array> {
     const rangeProof = await RangeProofExecutor.genBatchRangeZKP({
-      v: this.currConfidentialAmount.amountChunks,
+      v: this.currentEncryptedAvailableBalance.getAmountChunks(),
       rs: this.randomness.map((chunk) => numberToBytesLE(chunk, 32)),
       val_base: RistrettoPoint.BASE.toRawBytes(),
       rand_base: H_RISTRETTO.toRawBytes(),
-      num_bits: ConfidentialAmount.CHUNK_BITS,
+      num_bits: ChunkedAmount.CHUNK_BITS,
     });
 
     return rangeProof.proof;
@@ -338,7 +341,7 @@ export class ConfidentialKeyRotation {
         sigmaProof,
         rangeProof,
       },
-      this.newEncryptedBalance,
+      this.newEncryptedAvailableBalance.getCipherText(),
     ];
   }
 
@@ -348,7 +351,7 @@ export class ConfidentialKeyRotation {
       comm: opts.newEncryptedBalance.map((el) => el.C.toRawBytes()),
       val_base: RistrettoPoint.BASE.toRawBytes(),
       rand_base: H_RISTRETTO.toRawBytes(),
-      num_bits: ConfidentialAmount.CHUNK_BITS,
+      num_bits: ChunkedAmount.CHUNK_BITS,
     });
   }
 }

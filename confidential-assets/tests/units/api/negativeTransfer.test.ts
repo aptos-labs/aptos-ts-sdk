@@ -84,7 +84,7 @@ describe("Transfer", () => {
 
     const balancesAfterTransfer = await getBalances(aliceConfidential, alice.accountAddress, tokenAddress);
 
-    console.log(balancesAfterTransfer.actual);
+    console.log(balancesAfterTransfer.availableBalance());
 
     expect(txResp.success).toBeTruthy();
   });
