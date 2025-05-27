@@ -442,7 +442,7 @@ export class ConfidentialAsset {
         tokenAddress,
       });
     } catch (e) {
-      throw new Error("Failed to get encryption key for recipient.", { cause: e });
+      throw new Error(`Failed to get encryption key for recipient - ${e}`);
     }
 
     // Get the sender's available balance from the chain
