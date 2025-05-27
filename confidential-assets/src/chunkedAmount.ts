@@ -27,15 +27,9 @@ export class ChunkedAmount {
 
   static CHUNKS_COUNT_HALF = ChunkedAmount.CHUNKS_COUNT / 2;
 
-  constructor(args: {
-    amount?: AnyNumber;
-    amountChunks: bigint[];
-    chunksCount?: number;
-    chunkBits?: number;
-  }) {
+  constructor(args: { amount?: AnyNumber; amountChunks: bigint[]; chunksCount?: number; chunkBits?: number }) {
     this.amount = args.amount ? BigInt(args.amount) : ChunkedAmount.chunksToAmount(args.amountChunks);
     this.amountChunks = args.amountChunks;
-
 
     if (args.chunksCount) {
       this.chunksCount = args.chunksCount;

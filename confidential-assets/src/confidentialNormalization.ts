@@ -143,8 +143,7 @@ export class ConfidentialNormalization {
       this.unnormalizedEncryptedAvailableBalance
         .getCipherText()
         .reduce(
-          (acc, ciphertext, i) =>
-            acc.add(ciphertext.D.multiply(2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT))),
+          (acc, ciphertext, i) => acc.add(ciphertext.D.multiply(2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT))),
           RistrettoPoint.ZERO,
         )
         .multiply(x2),

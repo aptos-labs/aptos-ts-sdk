@@ -188,8 +188,8 @@ describe("Generate 'confidential coin' proofs", () => {
         sigmaProof: confidentialTransferWithAuditorsSigmaProof,
         auditors: {
           publicKeys: [auditor.publicKey()],
-          auditorsCBList: confidentialTransferWithAuditors.transferAmountEncryptedByAuditors!.map(
-            (el) => el.getCipherText(),
+          auditorsCBList: confidentialTransferWithAuditors.transferAmountEncryptedByAuditors!.map((el) =>
+            el.getCipherText(),
           ),
         },
       });
@@ -214,8 +214,8 @@ describe("Generate 'confidential coin' proofs", () => {
         sigmaProof: confidentialTransferWithAuditorsSigmaProof,
         auditors: {
           publicKeys: [invalidAuditor.publicKey()],
-          auditorsCBList: confidentialTransferWithAuditors.transferAmountEncryptedByAuditors!.map(
-            (el) => el.getCipherText(),
+          auditorsCBList: confidentialTransferWithAuditors.transferAmountEncryptedByAuditors!.map((el) =>
+            el.getCipherText(),
           ),
         },
       });
