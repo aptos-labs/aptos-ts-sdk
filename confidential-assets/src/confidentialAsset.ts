@@ -22,6 +22,7 @@ import { ConfidentialWithdraw } from "./confidentialWithdraw";
 import { TwistedEd25519PublicKey, TwistedEd25519PrivateKey } from "./twistedEd25519";
 import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS, MODULE_NAME } from "./consts";
 import { ConfidentialAmount } from "./confidentialAmount";
+import { preloadTables } from "./preloadKangarooTables";
 
 export type ConfidentialBalanceResponse = {
   chunks: {
@@ -48,6 +49,8 @@ export type ConfidentialBalance = {
 export class ConfidentialAsset {
   client: Aptos;
   confidentialAssetModuleAddress: string;
+  private preloadTablesPromise: Promise<void>;
+  private tablesPreloaded: boolean;
 
   constructor(
     readonly config: AptosConfig,
@@ -57,6 +60,23 @@ export class ConfidentialAsset {
   ) {
     this.client = new Aptos(config);
     this.confidentialAssetModuleAddress = confidentialAssetModuleAddress;
+    this.preloadTablesPromise = this.preloadTables();
+    this.tablesPreloaded = false;
+  }
+
+  private async preloadTables(): Promise<void> {
+    try {
+      await preloadTables();
+      this.tablesPreloaded = true;
+    } catch (error) {
+      throw new Error(`Failed to preload tables: ${error}`);
+    }
+  }
+
+  private async ensurePreloaded(): Promise<void> {
+    if (!this.tablesPreloaded) {
+      await this.preloadTablesPromise;
+    }
   }
 
   /**
@@ -73,6 +93,7 @@ export class ConfidentialAsset {
     decryptionKey: TwistedEd25519PrivateKey;
     options?: LedgerVersionArg;
   }): Promise<DecryptedBalance> {
+    await this.ensurePreloaded();
     const { accountAddress, tokenAddress, decryptionKey, options } = args;
     const { available, pending } = await this.getEncryptedBalance({
       accountAddress,
@@ -206,6 +227,8 @@ export class ConfidentialAsset {
   }): Promise<SimpleTransaction> {
     const { tokenAddress, coinType, amount, recipient = args.sender } = args;
     validateAmount({ amount });
+    await this.ensurePreloaded();
+
     if (tokenAddress && coinType) {
       throw new Error("Only one of tokenAddress or coinType can be set");
     }
@@ -259,6 +282,7 @@ export class ConfidentialAsset {
   }): Promise<SimpleTransaction> {
     const { sender, tokenAddress, amount, senderDecryptionKey, recipient = args.sender, options } = args;
     validateAmount({ amount });
+    await this.ensurePreloaded();
     // Get the sender's available balance from the chain
     const { available: senderEncryptedAvailableBalance } = await this.getEncryptedBalance({
       accountAddress: AccountAddress.from(sender),
@@ -311,6 +335,7 @@ export class ConfidentialAsset {
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     const { checkNormalized = true, withFreezeBalance = false } = args;
+    await this.ensurePreloaded();
     if (checkNormalized) {
       const isNormalized = await this.isBalanceNormalized({
         accountAddress: AccountAddress.from(args.sender),
@@ -389,6 +414,7 @@ export class ConfidentialAsset {
   }): Promise<SimpleTransaction> {
     const { senderDecryptionKey, recipient, tokenAddress, amount, additionalAuditorEncryptionKeys = [] } = args;
     validateAmount({ amount });
+    await this.ensurePreloaded();
     // Get the auditor public key for the token
     const globalAuditorPubKey = await this.getAssetAuditorEncryptionKey({
       tokenAddress,
@@ -528,7 +554,7 @@ export class ConfidentialAsset {
         tokenAddress: args.tokenAddress,
       }),
     } = args;
-
+    await this.ensurePreloaded();
     // Get the sender's balance from the chain
     const { available: currEncryptedBalance, pending: currPendingEncryptedBalance } = await this.getEncryptedBalance({
       accountAddress: AccountAddress.from(args.sender),
@@ -651,7 +677,7 @@ export class ConfidentialAsset {
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     const { sender, senderDecryptionKey, tokenAddress } = args;
-
+    await this.ensurePreloaded();
     const { available: unnormalizedEncryptedAvailableBalance } = await this.getEncryptedBalance({
       accountAddress: AccountAddress.from(sender),
       tokenAddress,

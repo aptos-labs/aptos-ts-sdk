@@ -13,7 +13,6 @@ import {
   longTestTimeout,
   confidentialAsset,
 } from "../helpers";
-import { preloadTables } from "../helpers/wasmPollardKangaroo";
 
 describe("Confidential balance api", () => {
   const alice = getTestAccount();
@@ -59,7 +58,6 @@ describe("Confidential balance api", () => {
     expect(isFrozen).toBe(expectedStatus);
   }
   beforeAll(async () => {
-    await preloadTables();
     await aptos.fundAccount({
       accountAddress: alice.accountAddress,
       amount: 100000000,
