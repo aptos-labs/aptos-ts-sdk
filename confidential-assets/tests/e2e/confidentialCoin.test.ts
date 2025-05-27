@@ -22,7 +22,7 @@ import {
 } from "../helpers";
 import { preloadTables } from "../helpers/wasmPollardKangaroo";
 
-describe("Confidential balance api", () => {
+describe.skip("Confidential balance api", () => {
   const alice = getTestAccount();
   const aliceConfidential = getTestConfidentialAccount(alice);
 

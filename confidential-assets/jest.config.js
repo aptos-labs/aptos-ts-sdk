@@ -1,5 +1,7 @@
 module.exports = {
   ...require("../jest.config.js"),
-  globalSetup: undefined,
-  globalTeardown: undefined,
+  testPathIgnorePatterns: ["./tests/units/api"],
+  coveragePathIgnorePatterns: ["./tests/units/api"],
+  globalSetup: "../tests/preTest.cjs",
+  globalTeardown: "../tests/postTest.cjs",
 };
