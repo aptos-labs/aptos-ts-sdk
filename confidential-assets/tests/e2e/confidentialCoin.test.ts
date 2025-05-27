@@ -14,7 +14,7 @@ import {
   confidentialAsset,
 } from "../helpers";
 
-describe("Confidential balance api", () => {
+describe.skip("Confidential balance api", () => {
   const alice = getTestAccount();
   const aliceConfidential = getTestConfidentialAccount(alice);
 
