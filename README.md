@@ -1,4 +1,4 @@
-# TypeScript SDK for Aptos
+# TypeScript SDK for Cedra
 
 ![License][github-license]
 [![Discord][discord-image]][discord-url]
