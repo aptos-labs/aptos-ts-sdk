@@ -1,34 +1,34 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account, Bool, MoveString, MoveVector, U8 } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
-import { getAptosClient } from "../helper";
+import { getCedraClient } from "../helper";
 
-const { aptos } = getAptosClient();
+const { cedra } = getCedraClient();
 
 const collectionName = "Test Collection";
 const collectionDescription = "My new collection!";
-const collectionUri = "http://aptos.dev";
+const collectionUri = "http://cedra.dev";
 
 const tokenName = "Test Token";
 const tokenDescription = "my first nft";
-const tokenUri = "http://aptos.dev/nft";
+const tokenUri = "http://cedra.dev/nft";
 
 const creator = Account.generate();
 const creatorAddress = creator.accountAddress.toString();
 
 async function setupCollection(): Promise<string> {
-  await aptos.fundAccount({ accountAddress: creator.accountAddress, amount: FUND_AMOUNT });
-  const transaction = await aptos.createCollectionTransaction({
+  await cedra.fundAccount({ accountAddress: creator.accountAddress, amount: FUND_AMOUNT });
+  const transaction = await cedra.createCollectionTransaction({
     creator,
     description: collectionDescription,
     name: collectionName,
     uri: collectionUri,
   });
-  const pendingTxn = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-  const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
-  const data = await aptos.getCollectionData({
+  const pendingTxn = await cedra.signAndSubmitTransaction({ signer: creator, transaction });
+  const response = await cedra.waitForTransaction({ transactionHash: pendingTxn.hash });
+  const data = await cedra.getCollectionData({
     collectionName,
     creatorAddress,
     minimumLedgerVersion: BigInt(response.version),
@@ -37,7 +37,7 @@ async function setupCollection(): Promise<string> {
 }
 
 async function setupToken(): Promise<string> {
-  const transaction = await aptos.mintDigitalAssetTransaction({
+  const transaction = await cedra.mintDigitalAssetTransaction({
     creator,
     collection: collectionName,
     description: tokenDescription,
@@ -47,10 +47,10 @@ async function setupToken(): Promise<string> {
     propertyTypes: ["BOOLEAN", "ARRAY"],
     propertyValues: [false, "[value]"],
   });
-  const pendingTxn = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-  const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+  const pendingTxn = await cedra.signAndSubmitTransaction({ signer: creator, transaction });
+  const response = await cedra.waitForTransaction({ transactionHash: pendingTxn.hash });
   return (
-    await aptos.getOwnedDigitalAssets({
+    await cedra.getOwnedDigitalAssets({
       ownerAddress: creator.accountAddress.toString(),
       minimumLedgerVersion: BigInt(response.version),
     })
@@ -68,7 +68,7 @@ describe("DigitalAsset", () => {
   });
 
   test("it gets digital asset data for a digital asset's address", async () => {
-    const tokenData = await aptos.getDigitalAssetData({ digitalAssetAddress: tokenAddress });
+    const tokenData = await cedra.getDigitalAssetData({ digitalAssetAddress: tokenAddress });
 
     expect(tokenData.token_data_id).toEqual(tokenAddress);
     expect(tokenData.description).toEqual(tokenDescription);
@@ -79,7 +79,7 @@ describe("DigitalAsset", () => {
   });
 
   test("it gets an owner's digital assets", async () => {
-    const tokenData = (await aptos.getOwnedDigitalAssets({ ownerAddress: creatorAddress }))[0];
+    const tokenData = (await cedra.getOwnedDigitalAssets({ ownerAddress: creatorAddress }))[0];
 
     expect(tokenData.token_data_id).toEqual(tokenAddress);
     expect(tokenData.owner_address).toEqual(creatorAddress);
@@ -89,7 +89,7 @@ describe("DigitalAsset", () => {
   });
 
   test("it gets ownership data given a digital asset's address", async () => {
-    const tokenOwnershipData = await aptos.getCurrentDigitalAssetOwnership({ digitalAssetAddress: tokenAddress });
+    const tokenOwnershipData = await cedra.getCurrentDigitalAssetOwnership({ digitalAssetAddress: tokenAddress });
 
     expect(tokenOwnershipData.token_data_id).toEqual(tokenAddress);
     expect(tokenOwnershipData.owner_address).toEqual(creatorAddress);
@@ -99,15 +99,15 @@ describe("DigitalAsset", () => {
   });
 
   test("it gets activity data given a digital asset's address", async () => {
-    const tokenActivityData = await aptos.getDigitalAssetActivity({ digitalAssetAddress: tokenAddress });
+    const tokenActivityData = await cedra.getDigitalAssetActivity({ digitalAssetAddress: tokenAddress });
 
-    expect(tokenActivityData[0].entry_function_id_str).toEqual("0x4::aptos_token::mint");
+    expect(tokenActivityData[0].entry_function_id_str).toEqual("0x4::cedra_token::mint");
     expect(tokenActivityData[0].token_data_id).toEqual(tokenAddress);
     expect(tokenActivityData[0].from_address).toEqual(creatorAddress);
     expect(tokenActivityData[0].is_fungible_v2).toEqual(null);
   });
   test("it fetches collection data", async () => {
-    const data = await aptos.getCollectionData({ collectionName, creatorAddress });
+    const data = await cedra.getCollectionData({ collectionName, creatorAddress });
 
     expect(data.collection_name).toEqual(collectionName);
     expect(data.creator_address).toEqual(creatorAddress);
@@ -119,10 +119,10 @@ describe("DigitalAsset", () => {
     expect(data.token_standard).toEqual("v2");
 
     const collectionDataByCreatorAddressAndCollectionName =
-      await aptos.getCollectionDataByCreatorAddressAndCollectionName({ collectionName, creatorAddress });
+      await cedra.getCollectionDataByCreatorAddressAndCollectionName({ collectionName, creatorAddress });
     expect(data.collection_name).toEqual(collectionDataByCreatorAddressAndCollectionName.collection_name);
 
-    const collectionDataByCreatorAddress = await aptos.getCollectionDataByCreatorAddress({
+    const collectionDataByCreatorAddress = await cedra.getCollectionDataByCreatorAddress({
       creatorAddress,
     });
     expect(data.collection_name).toEqual(collectionDataByCreatorAddress.collection_name);
@@ -134,130 +134,130 @@ describe("DigitalAsset", () => {
     expect(data).toHaveProperty("table_handle_v1");
     expect(data).toHaveProperty("total_minted_v2");
 
-    const address = await aptos.getCollectionId({ collectionName, creatorAddress });
+    const address = await cedra.getCollectionId({ collectionName, creatorAddress });
     expect(address).toEqual(data.collection_id);
 
-    const collectionDataByCollectionId = await aptos.getCollectionDataByCollectionId({ collectionId: address });
+    const collectionDataByCollectionId = await cedra.getCollectionDataByCollectionId({ collectionId: address });
     expect(address).toEqual(collectionDataByCollectionId.collection_id);
   });
 
   test("it freezes transfer ability", async () => {
-    const transaction = await aptos.freezeDigitalAssetTransaferTransaction({
+    const transaction = await cedra.freezeDigitalAssetTransaferTransaction({
       creator,
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const commitedTransaction = await cedra.signAndSubmitTransaction({ signer: creator, transaction });
+    await cedra.waitForTransaction({ transactionHash: commitedTransaction.hash });
   });
 
   test("it unfreezes transfer ability", async () => {
-    const transaction = await aptos.unfreezeDigitalAssetTransaferTransaction({
+    const transaction = await cedra.unfreezeDigitalAssetTransaferTransaction({
       creator,
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const commitedTransaction = await cedra.signAndSubmitTransaction({ signer: creator, transaction });
+    await cedra.waitForTransaction({ transactionHash: commitedTransaction.hash });
   });
 
   test("it sets digital asset descripion", async () => {
-    const transaction = await aptos.setDigitalAssetDescriptionTransaction({
+    const transaction = await cedra.setDigitalAssetDescriptionTransaction({
       creator,
       description: "my new description",
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const commitedTransaction = await cedra.signAndSubmitTransaction({ signer: creator, transaction });
+    await cedra.waitForTransaction({ transactionHash: commitedTransaction.hash });
   });
 
   test("it sets digital asset name", async () => {
-    const transaction = await aptos.setDigitalAssetNameTransaction({
+    const transaction = await cedra.setDigitalAssetNameTransaction({
       creator,
       name: "my new name",
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const commitedTransaction = await cedra.signAndSubmitTransaction({ signer: creator, transaction });
+    await cedra.waitForTransaction({ transactionHash: commitedTransaction.hash });
   });
 
   test("it sets digital asset uri", async () => {
-    const transaction = await aptos.setDigitalAssetURITransaction({
+    const transaction = await cedra.setDigitalAssetURITransaction({
       creator,
       uri: "my.new.uri",
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const commitedTransaction = await cedra.signAndSubmitTransaction({ signer: creator, transaction });
+    await cedra.waitForTransaction({ transactionHash: commitedTransaction.hash });
   });
 
   test("it adds digital asset property", async () => {
-    const transaction = await aptos.addDigitalAssetPropertyTransaction({
+    const transaction = await cedra.addDigitalAssetPropertyTransaction({
       creator,
       propertyKey: "newKey",
       propertyType: "BOOLEAN",
       propertyValue: true,
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const commitedTransaction = await cedra.signAndSubmitTransaction({ signer: creator, transaction });
+    await cedra.waitForTransaction({ transactionHash: commitedTransaction.hash });
   });
 
   test("it updates digital asset property", async () => {
-    const transaction = await aptos.updateDigitalAssetPropertyTransaction({
+    const transaction = await cedra.updateDigitalAssetPropertyTransaction({
       creator,
       propertyKey: "newKey",
       propertyType: "BOOLEAN",
       propertyValue: false,
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const commitedTransaction = await cedra.signAndSubmitTransaction({ signer: creator, transaction });
+    await cedra.waitForTransaction({ transactionHash: commitedTransaction.hash });
   });
 
   test("it removes digital asset property", async () => {
-    const transaction = await aptos.removeDigitalAssetPropertyTransaction({
+    const transaction = await cedra.removeDigitalAssetPropertyTransaction({
       creator,
       propertyKey: "newKey",
       propertyType: "BOOLEAN",
       propertyValue: true,
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const commitedTransaction = await cedra.signAndSubmitTransaction({ signer: creator, transaction });
+    await cedra.waitForTransaction({ transactionHash: commitedTransaction.hash });
   });
 
   test("it adds typed digital asset property", async () => {
-    const transaction = await aptos.addDigitalAssetTypedPropertyTransaction({
+    const transaction = await cedra.addDigitalAssetTypedPropertyTransaction({
       creator,
       propertyKey: "typedKey",
       propertyType: "STRING",
       propertyValue: "hello",
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const commitedTransaction = await cedra.signAndSubmitTransaction({ signer: creator, transaction });
+    await cedra.waitForTransaction({ transactionHash: commitedTransaction.hash });
   });
 
   test("it updates typed digital asset property", async () => {
-    const transaction = await aptos.updateDigitalAssetTypedPropertyTransaction({
+    const transaction = await cedra.updateDigitalAssetTypedPropertyTransaction({
       creator,
       propertyKey: "typedKey",
       propertyType: "U8",
       propertyValue: 2,
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const commitedTransaction = await cedra.signAndSubmitTransaction({ signer: creator, transaction });
+    await cedra.waitForTransaction({ transactionHash: commitedTransaction.hash });
   });
 
   test("it mints soul bound token", async () => {
     const bob = Account.generate();
-    await aptos.fundAccount({ accountAddress: bob.accountAddress, amount: FUND_AMOUNT });
-    const transaction = await aptos.mintSoulBoundTransaction({
+    await cedra.fundAccount({ accountAddress: bob.accountAddress, amount: FUND_AMOUNT });
+    const transaction = await cedra.mintSoulBoundTransaction({
       account: creator,
       collection: collectionName,
       description: "soul bound token description",
       name: "soul bound token",
-      uri: "https://aptos.dev/img/nyan.jpeg",
+      uri: "https://cedra.dev/img/nyan.jpeg",
       recipient: bob.accountAddress,
       propertyKeys: [
         "bool key",
@@ -285,23 +285,23 @@ describe("DigitalAsset", () => {
         new MoveVector([new MoveString("hello"), new U8(1), new Bool(true), new MoveString("world")]).bcsToBytes(),
       ],
     });
-    await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await cedra.signAndSubmitTransaction({ signer: creator, transaction });
   });
 
   test("it transfers digital asset ownership", async () => {
     const digitalAssetReciever = Account.generate();
-    await aptos.fundAccount({ accountAddress: digitalAssetReciever.accountAddress, amount: FUND_AMOUNT });
+    await cedra.fundAccount({ accountAddress: digitalAssetReciever.accountAddress, amount: FUND_AMOUNT });
 
-    const transaction = await aptos.transferDigitalAssetTransaction({
+    const transaction = await cedra.transferDigitalAssetTransaction({
       sender: creator,
       digitalAssetAddress: tokenAddress,
       recipient: digitalAssetReciever.accountAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    const res = await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const commitedTransaction = await cedra.signAndSubmitTransaction({ signer: creator, transaction });
+    const res = await cedra.waitForTransaction({ transactionHash: commitedTransaction.hash });
 
     const tokenData = (
-      await aptos.getOwnedDigitalAssets({
+      await cedra.getOwnedDigitalAssets({
         ownerAddress: digitalAssetReciever.accountAddress,
         minimumLedgerVersion: BigInt(res.version),
       })
@@ -311,11 +311,11 @@ describe("DigitalAsset", () => {
   });
 
   test("it burns digital asset", async () => {
-    const transaction = await aptos.burnDigitalAssetTransaction({
+    const transaction = await cedra.burnDigitalAssetTransaction({
       creator,
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const commitedTransaction = await cedra.signAndSubmitTransaction({ signer: creator, transaction });
+    await cedra.waitForTransaction({ transactionHash: commitedTransaction.hash });
   });
 });

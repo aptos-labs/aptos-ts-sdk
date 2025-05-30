@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
@@ -12,43 +12,43 @@ import {
 } from "../internal/keyless";
 import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions";
 import { HexInput } from "../types";
-import { AptosConfig } from "./aptosConfig";
+import { CedraConfig } from "./cedraConfig";
 
 /**
- * A class to query all `Keyless` related queries on Aptos.
+ * A class to query all `Keyless` related queries on Cedra.
  *
  * More documentation on how to integrate Keyless Accounts see the below
- * [Aptos Keyless Integration Guide](https://aptos.dev/guides/keyless-accounts/#aptos-keyless-integration-guide).
+ * [Cedra Keyless Integration Guide](https://cedra.dev/guides/keyless-accounts/#cedra-keyless-integration-guide).
  * @group Keyless
  */
 export class Keyless {
   /**
-   * Initializes a new instance of the Aptos class with the provided configuration.
-   * This allows you to interact with the Aptos blockchain using the specified network settings.
+   * Initializes a new instance of the Cedra class with the provided configuration.
+   * This allows you to interact with the Cedra blockchain using the specified network settings.
    *
-   * @param config - The configuration settings for connecting to the Aptos network.
+   * @param config - The configuration settings for connecting to the Cedra network.
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
    * async function runExample() {
-   *     // Create a new configuration for the Aptos client
-   *     const config = new AptosConfig({ network: Network.TESTNET }); // Specify your desired network
+   *     // Create a new configuration for the Cedra client
+   *     const config = new CedraConfig({ network: Network.TESTNET }); // Specify your desired network
    *
-   *     // Initialize the Aptos client with the configuration
-   *     const aptos = new Aptos(config);
+   *     // Initialize the Cedra client with the configuration
+   *     const cedra = new Cedra(config);
    *
-   *     console.log("Aptos client initialized:", aptos);
+   *     console.log("Cedra client initialized:", cedra);
    * }
    * runExample().catch(console.error);
    * ```
    * @group Keyless
    */
-  constructor(readonly config: AptosConfig) {}
+  constructor(readonly config: CedraConfig) {}
 
   /**
-   * Fetches the pepper from the Aptos pepper service API.
+   * Fetches the pepper from the Cedra pepper service API.
    *
    * @param args - The arguments for fetching the pepper.
    * @param args.jwt - JWT token.
@@ -59,17 +59,17 @@ export class Keyless {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   const ephemeralKeyPair = new EphemeralKeyPair(); // create a new ephemeral key pair
    *   const jwt = "your_jwt_token"; // replace with a real JWT token
    *
    *   // Fetching the pepper using the provided JWT and ephemeral key pair
-   *   const pepper = await aptos.getPepper({
+   *   const pepper = await cedra.getPepper({
    *     jwt,
    *     ephemeralKeyPair,
    *     // derivationPath: "m/44'/637'/0'/0'/0" // specify your own if needed
@@ -86,33 +86,33 @@ export class Keyless {
     ephemeralKeyPair: EphemeralKeyPair;
     derivationPath?: string;
   }): Promise<Uint8Array> {
-    return getPepper({ aptosConfig: this.config, ...args });
+    return getPepper({ cedraConfig: this.config, ...args });
   }
 
   /**
-   * Fetches a proof from the Aptos prover service API.
+   * Fetches a proof from the Cedra prover service API.
    *
    * @param args - The arguments for fetching the proof.
    * @param args.jwt - JWT token.
    * @param args.ephemeralKeyPair - The EphemeralKeyPair used to generate the nonce in the JWT token.
-   * @param args.pepper - The pepper used for the account. If not provided, it will be fetched from the Aptos pepper service.
+   * @param args.pepper - The pepper used for the account. If not provided, it will be fetched from the Cedra pepper service.
    * @param args.uidKey - A key in the JWT token to use to set the uidVal in the IdCommitment.
    *
    * @returns The proof which is represented by a ZeroKnowledgeSig.
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network, EphemeralKeyPair, getPepper } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network, EphemeralKeyPair, getPepper } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   const jwt = "your_jwt_token"; // replace with a real JWT token
    *   const ephemeralKeyPair = new EphemeralKeyPair(); // create a new ephemeral key pair
    *
    *   // Fetch the proof using the getProof function
-   *   const proof = await aptos.getProof({
+   *   const proof = await cedra.getProof({
    *     jwt,
    *     ephemeralKeyPair,
    *     pepper: await getPepper({}), // fetch the pepper if not provided
@@ -131,7 +131,7 @@ export class Keyless {
     pepper?: HexInput;
     uidKey?: string;
   }): Promise<ZeroKnowledgeSig> {
-    return getProof({ aptosConfig: this.config, ...args });
+    return getProof({ cedraConfig: this.config, ...args });
   }
 
   async deriveKeylessAccount(args: {
@@ -169,10 +169,10 @@ export class Keyless {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network, deriveKeylessAccount } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network, deriveKeylessAccount } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   const jwt = "your_jwt_token"; // replace with a real JWT token
@@ -200,7 +200,7 @@ export class Keyless {
     pepper?: HexInput;
     proofFetchCallback?: ProofFetchCallback;
   }): Promise<KeylessAccount | FederatedKeylessAccount> {
-    return deriveKeylessAccount({ aptosConfig: this.config, ...args });
+    return deriveKeylessAccount({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -222,6 +222,6 @@ export class Keyless {
     jwksUrl?: string;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    return updateFederatedKeylessJwkSetTransaction({ aptosConfig: this.config, ...args });
+    return updateFederatedKeylessJwkSetTransaction({ cedraConfig: this.config, ...args });
   }
 }

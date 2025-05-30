@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import {
@@ -6,8 +6,8 @@ import {
   AccountAddress,
   AccountAddressInput,
   AnyNumber,
-  Aptos,
-  AptosConfig,
+  Cedra,
+  CedraConfig,
   CommittedTransactionResponse,
   HexInput,
   InputGenerateSingleSignerRawTransactionArgs,
@@ -15,7 +15,7 @@ import {
   LedgerVersionArg,
   MoveStructId,
   SimpleTransaction,
-} from "@aptos-labs/ts-sdk";
+} from "@cedra-labs/ts-sdk";
 import { TwistedElGamalCiphertext } from "./twistedElGamal";
 import { ConfidentialNormalization, CreateConfidentialNormalizationOpArgs } from "./confidentialNormalization";
 import { ConfidentialKeyRotation, CreateConfidentialKeyRotationOpArgs } from "./confidentialKeyRotation";
@@ -43,16 +43,16 @@ export type ConfidentialBalance = {
  * A class to handle confidential balance operations
  */
 export class ConfidentialAsset {
-  client: Aptos;
+  client: Cedra;
   confidentialAssetModuleAddress: string;
 
   constructor(
-    readonly config: AptosConfig,
+    readonly config: CedraConfig,
     {
       confidentialAssetModuleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS,
     }: { confidentialAssetModuleAddress?: string } = {},
   ) {
-    this.client = new Aptos(config);
+    this.client = new Cedra(config);
     this.confidentialAssetModuleAddress = confidentialAssetModuleAddress;
   }
 
@@ -112,7 +112,7 @@ export class ConfidentialAsset {
       tokenAddress: string;
       publicKey: HexInput | TwistedEd25519PublicKey;
       withFeePayer?: boolean;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "cedraConfig" | "feePayerAddress">,
   ): Promise<SimpleTransaction> {
     const pkU8 = publicKeyToU8(args.publicKey);
     return this.client.transaction.build.simple({
@@ -132,7 +132,7 @@ export class ConfidentialAsset {
       /** If not set we will use the sender's address. */
       to?: AccountAddress;
       withFeePayer?: boolean;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "cedraConfig" | "feePayerAddress">,
   ): Promise<SimpleTransaction> {
     return this.client.transaction.build.simple({
       ...args,
@@ -153,7 +153,7 @@ export class ConfidentialAsset {
       /** If not set we will use the sender's address. */
       to?: AccountAddress;
       withFeePayer?: boolean;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "cedraConfig" | "feePayerAddress">,
   ) {
     return this.client.transaction.build.simple({
       ...args,
@@ -174,7 +174,7 @@ export class ConfidentialAsset {
       /** If not set we will use the sender's address. */
       to?: AccountAddressInput;
       withFeePayer?: boolean;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "cedraConfig" | "feePayerAddress">,
   ): Promise<SimpleTransaction> {
     const confidentialWithdraw = await ConfidentialWithdraw.create({
       decryptionKey: toTwistedEd25519PrivateKey(args.decryptionKey),
@@ -211,7 +211,7 @@ export class ConfidentialAsset {
       confidentialAssetModuleAddress: string;
       withFreezeBalance?: boolean;
       withFeePayer?: boolean;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "cedraConfig" | "feePayerAddress">,
   ): InputGenerateTransactionPayloadData {
     const method = args.withFreezeBalance ? "rollover_pending_balance_and_freeze" : "rollover_pending_balance";
     return {
@@ -225,7 +225,7 @@ export class ConfidentialAsset {
       tokenAddress: string;
       withFreezeBalance?: boolean;
       withFeePayer?: boolean;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "cedraConfig" | "feePayerAddress">,
   ): Promise<SimpleTransaction> {
     return this.client.transaction.build.simple({
       ...args,
@@ -246,7 +246,7 @@ export class ConfidentialAsset {
       decryptionKey: TwistedEd25519PrivateKey;
       withFreezeBalance?: boolean;
       withFeePayer?: boolean;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "cedraConfig" | "feePayerAddress">,
   ): Promise<InputGenerateTransactionPayloadData[]> {
     const txPayloadsList: InputGenerateTransactionPayloadData[] = [];
 
@@ -299,7 +299,7 @@ export class ConfidentialAsset {
       recipientAddress: AccountAddressInput;
       tokenAddress: string;
       withFeePayer?: boolean;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "cedraConfig" | "feePayerAddress">,
   ): Promise<SimpleTransaction> {
     const [{ vec: globalAuditorPubKey }] = await this.getAssetAuditor({
       tokenAddress: args.tokenAddress,
@@ -414,7 +414,7 @@ export class ConfidentialAsset {
       tokenAddress: string;
       withUnfreezeBalance: boolean;
       withFeePayer?: boolean;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "cedraConfig" | "feePayerAddress">,
   ): Promise<SimpleTransaction> {
     return this.client.transaction.build.simple({
       ...args,
@@ -429,13 +429,13 @@ export class ConfidentialAsset {
   }
 
   async safeRotateCBKey(
-    aptosClient: Aptos,
+    cedraClient: Cedra,
     signer: Account,
     args: CreateConfidentialKeyRotationOpArgs & {
       tokenAddress: string;
       withUnfreezeBalance: boolean;
       withFeePayer?: boolean;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "cedraConfig" | "feePayerAddress">,
   ): Promise<CommittedTransactionResponse> {
     const isFrozen = await this.isBalanceFrozen({
       accountAddress: AccountAddress.from(args.sender),
@@ -452,13 +452,13 @@ export class ConfidentialAsset {
         withFeePayer: args.withFeePayer,
       });
 
-      const pendingTxResponse = await aptosClient.signAndSubmitTransaction({
+      const pendingTxResponse = await cedraClient.signAndSubmitTransaction({
         ...args,
         signer,
         transaction: rolloverWithFreezeTxBody,
       });
 
-      const committedTransactionResponse = await aptosClient.waitForTransaction({
+      const committedTransactionResponse = await cedraClient.waitForTransaction({
         transactionHash: pendingTxResponse.hash,
       });
 
@@ -480,13 +480,13 @@ export class ConfidentialAsset {
       withFeePayer: args.withFeePayer,
     });
 
-    const pendingTxResponse = await aptosClient.signAndSubmitTransaction({
+    const pendingTxResponse = await cedraClient.signAndSubmitTransaction({
       ...args,
       signer,
       transaction: rotateKeyTxBody,
     });
 
-    return aptosClient.waitForTransaction({
+    return cedraClient.waitForTransaction({
       transactionHash: pendingTxResponse.hash,
     });
   }
@@ -556,7 +556,7 @@ export class ConfidentialAsset {
     args: CreateConfidentialNormalizationOpArgs & {
       tokenAddress: string;
       withFeePayer?: boolean;
-    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "aptosConfig" | "feePayerAddress">,
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, "payload" | "cedraConfig" | "feePayerAddress">,
   ) {
     return this.client.transaction.build.simple({
       ...args,

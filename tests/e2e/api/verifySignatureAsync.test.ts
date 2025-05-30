@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import {
@@ -26,11 +26,11 @@ import {
   singleSignerED25519,
   EXPIRED_EPHEMERAL_KEY_PAIR,
 } from "../../unit/helper";
-import { getAptosClient } from "../helper";
+import { getCedraClient } from "../helper";
 
 describe("verifySignatureAsync", () => {
-  const { aptos } = getAptosClient();
-  const aptosConfig = aptos.config;
+  const { cedra } = getCedraClient();
+  const cedraConfig = cedra.config;
 
   it("signs a message with single signer Secp256k1 scheme and verifies successfully", async () => {
     const { privateKey: privateKeyBytes, address, signatureHex, messageEncoded, stringMessage } = secp256k1TestObject;
@@ -41,13 +41,13 @@ describe("verifySignatureAsync", () => {
     const signature1 = secpAccount.sign(messageEncoded);
     expect(signature1.signature.toString()).toEqual(signatureHex);
     expect(
-      await secpAccount.verifySignatureAsync({ aptosConfig, message: messageEncoded, signature: signature1 }),
+      await secpAccount.verifySignatureAsync({ cedraConfig, message: messageEncoded, signature: signature1 }),
     ).toBeTruthy();
     // verifies a string message
     const signature2 = secpAccount.sign(stringMessage);
     expect(signature2.signature.toString()).toEqual(signatureHex);
     expect(
-      await secpAccount.verifySignatureAsync({ aptosConfig, message: stringMessage, signature: signature2 }),
+      await secpAccount.verifySignatureAsync({ cedraConfig, message: stringMessage, signature: signature2 }),
     ).toBeTruthy();
   });
 
@@ -58,7 +58,7 @@ describe("verifySignatureAsync", () => {
     const edAccount = Account.fromPrivateKey({ privateKey, address: accountAddress, legacy: false });
     const signature = edAccount.sign(messageEncoded);
     expect(signature.signature.toString()).toEqual(signatureHex);
-    expect(await edAccount.verifySignatureAsync({ aptosConfig, message: messageEncoded, signature })).toBeTruthy();
+    expect(await edAccount.verifySignatureAsync({ cedraConfig, message: messageEncoded, signature })).toBeTruthy();
   });
   describe("multikey", () => {
     const singleSignerED25519SenderAccount = Account.generate({
@@ -90,7 +90,7 @@ describe("verifySignatureAsync", () => {
       });
       const message = "test message";
       const multiKeySig = account.sign(message);
-      expect(await account.verifySignatureAsync({ aptosConfig, message, signature: multiKeySig })).toEqual(true);
+      expect(await account.verifySignatureAsync({ cedraConfig, message, signature: multiKeySig })).toEqual(true);
     });
 
     it("signs a message with a 2 of 4 multikey scheme with keyless account and verifies successfully", async () => {
@@ -102,7 +102,7 @@ describe("verifySignatureAsync", () => {
       const multiKeySig = account.sign(message);
       expect(
         await account.verifySignatureAsync({
-          aptosConfig,
+          cedraConfig,
           message,
           signature: multiKeySig,
           options: { throwErrorWithReason: true },
@@ -131,7 +131,7 @@ describe("verifySignatureAsync", () => {
       const multiKeySig = account.sign(message);
       await expect(async () =>
         account.verifySignatureAsync({
-          aptosConfig,
+          cedraConfig,
           message,
           signature: multiKeySig,
           options: { throwErrorWithReason: true },
@@ -156,7 +156,7 @@ describe("verifySignatureAsync", () => {
         signers: [ed25519PrivateKey1, ed25519PrivateKey3],
       });
       const multiKeySig = account.sign(message);
-      expect(await account.verifySignatureAsync({ aptosConfig, message, signature: multiKeySig })).toEqual(true);
+      expect(await account.verifySignatureAsync({ cedraConfig, message, signature: multiKeySig })).toEqual(true);
     });
 
     it("signs a message with a 2 of 3 multiEd25519 scheme and verifies successfully with misordered signers", async () => {
@@ -165,7 +165,7 @@ describe("verifySignatureAsync", () => {
         signers: [ed25519PrivateKey3, ed25519PrivateKey2],
       });
       const multiKeySig = account.sign(message);
-      expect(await account.verifySignatureAsync({ aptosConfig, message, signature: multiKeySig })).toEqual(true);
+      expect(await account.verifySignatureAsync({ cedraConfig, message, signature: multiKeySig })).toEqual(true);
     });
 
     test("constructing a multi ed25519 account with insufficient signers fails", async () => {
@@ -182,13 +182,13 @@ describe("verifySignatureAsync", () => {
     const signature1 = legacyEdAccount.sign(messageEncoded);
     expect(signature1.toString()).toEqual(signatureHex);
     expect(
-      await legacyEdAccount.verifySignatureAsync({ aptosConfig, message: messageEncoded, signature: signature1 }),
+      await legacyEdAccount.verifySignatureAsync({ cedraConfig, message: messageEncoded, signature: signature1 }),
     ).toBeTruthy();
     // verifies a string message
     const signature2 = legacyEdAccount.sign(stringMessage);
     expect(signature2.toString()).toEqual(signatureHex);
     expect(
-      await legacyEdAccount.verifySignatureAsync({ aptosConfig, message: stringMessage, signature: signature2 }),
+      await legacyEdAccount.verifySignatureAsync({ cedraConfig, message: stringMessage, signature: signature2 }),
     ).toBeTruthy();
   });
 });

@@ -1,10 +1,10 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "../api/aptosConfig";
-import { aptosRequest } from "./core";
-import { AptosResponse, AnyNumber, ClientConfig, MimeType } from "../types";
-import { AptosApiType } from "../utils/const";
+import { CedraConfig } from "../api/cedraConfig";
+import { cedraRequest } from "./core";
+import { CedraResponse, AnyNumber, ClientConfig, MimeType } from "../types";
+import { CedraApiType } from "../utils/const";
 
 /**
  * Options for making a POST request, including the API client configuration.
@@ -17,13 +17,13 @@ export type PostRequestOptions = {
    * @group Implementation
    * @category Client
    */
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   /**
    * The type of API endpoint to call e.g. fullnode, indexer, etc
    * @group Implementation
    * @category Client
    */
-  type: AptosApiType;
+  type: CedraApiType;
   /**
    * The name of the API method
    * @group Implementation
@@ -61,7 +61,7 @@ export type PostRequestOptions = {
    */
   body?: any;
   /**
-   * Specific client overrides for this request to override aptosConfig
+   * Specific client overrides for this request to override cedraConfig
    * @group Implementation
    * @category Client
    */
@@ -69,11 +69,11 @@ export type PostRequestOptions = {
 };
 
 /**
- * Options for posting a request to Aptos, excluding the type field.
+ * Options for posting a request to Cedra, excluding the type field.
  * @group Implementation
  * @category Client
  */
-export type PostAptosRequestOptions = Omit<PostRequestOptions, "type">;
+export type PostCedraRequestOptions = Omit<PostRequestOptions, "type">;
 
 /**
  * Executes a POST request to the specified URL with the provided options.
@@ -86,7 +86,7 @@ export type PostAptosRequestOptions = Omit<PostRequestOptions, "type">;
  * @param options.acceptType - The type of response expected from the server.
  * @param options.contentType - The content type of the request body.
  * @param options.params - Additional parameters to include in the request.
- * @param options.aptosConfig - Configuration settings for the Aptos request.
+ * @param options.cedraConfig - Configuration settings for the Cedra request.
  * @param options.overrides - Any overrides for the default request behavior.
  * @returns The response from the POST request.
  * @group Implementation
@@ -94,11 +94,11 @@ export type PostAptosRequestOptions = Omit<PostRequestOptions, "type">;
  */
 export async function post<Req extends {}, Res extends {}>(
   options: PostRequestOptions,
-): Promise<AptosResponse<Req, Res>> {
-  const { type, originMethod, path, body, acceptType, contentType, params, aptosConfig, overrides } = options;
-  const url = aptosConfig.getRequestUrl(type);
+): Promise<CedraResponse<Req, Res>> {
+  const { type, originMethod, path, body, acceptType, contentType, params, cedraConfig, overrides } = options;
+  const url = cedraConfig.getRequestUrl(type);
 
-  return aptosRequest<Req, Res>(
+  return cedraRequest<Req, Res>(
     {
       url,
       method: "POST",
@@ -110,107 +110,107 @@ export async function post<Req extends {}, Res extends {}>(
       params,
       overrides,
     },
-    aptosConfig,
+    cedraConfig,
     options.type,
   );
 }
 
 /**
- * Sends a request to the Aptos full node using the specified options.
- * This function allows you to interact with the Aptos blockchain by sending requests to the full node.
+ * Sends a request to the Cedra full node using the specified options.
+ * This function allows you to interact with the Cedra blockchain by sending requests to the full node.
  *
  * @param options - The options for the request.
- * @param options.aptosConfig - Configuration settings for the Aptos client.
- * @param options.aptosConfig.clientConfig - Client-specific configuration settings.
- * @param options.aptosConfig.fullnodeConfig - Full node-specific configuration settings.
+ * @param options.cedraConfig - Configuration settings for the Cedra client.
+ * @param options.cedraConfig.clientConfig - Client-specific configuration settings.
+ * @param options.cedraConfig.fullnodeConfig - Full node-specific configuration settings.
  * @param options.overrides - Additional overrides for the request.
  * @group Implementation
  * @category Client
  */
-export async function postAptosFullNode<Req extends {}, Res extends {}>(
-  options: PostAptosRequestOptions,
-): Promise<AptosResponse<Req, Res>> {
-  const { aptosConfig } = options;
+export async function postCedraFullNode<Req extends {}, Res extends {}>(
+  options: PostCedraRequestOptions,
+): Promise<CedraResponse<Req, Res>> {
+  const { cedraConfig } = options;
 
   return post<Req, Res>({
     ...options,
-    type: AptosApiType.FULLNODE,
+    type: CedraApiType.FULLNODE,
     overrides: {
-      ...aptosConfig.clientConfig,
-      ...aptosConfig.fullnodeConfig,
+      ...cedraConfig.clientConfig,
+      ...cedraConfig.fullnodeConfig,
       ...options.overrides,
-      HEADERS: { ...aptosConfig.clientConfig?.HEADERS, ...aptosConfig.fullnodeConfig?.HEADERS },
+      HEADERS: { ...cedraConfig.clientConfig?.HEADERS, ...cedraConfig.fullnodeConfig?.HEADERS },
     },
   });
 }
 
 /**
- * Sends a request to the Aptos indexer with the specified options.
- * This function allows you to interact with the Aptos indexer and customize the request using various configurations.
+ * Sends a request to the Cedra indexer with the specified options.
+ * This function allows you to interact with the Cedra indexer and customize the request using various configurations.
  *
- * @param options - The options for the request to the Aptos indexer.
- * @param options.aptosConfig - Configuration settings specific to the Aptos client and indexer.
- * @param options.aptosConfig.clientConfig - The client configuration settings.
- * @param options.aptosConfig.indexerConfig - The indexer configuration settings.
+ * @param options - The options for the request to the Cedra indexer.
+ * @param options.cedraConfig - Configuration settings specific to the Cedra client and indexer.
+ * @param options.cedraConfig.clientConfig - The client configuration settings.
+ * @param options.cedraConfig.indexerConfig - The indexer configuration settings.
  * @param options.overrides - Additional overrides for the request.
  * @param options.overrides.HEADERS - Custom headers to include in the request.
  * @group Implementation
  * @category Client
  */
-export async function postAptosIndexer<Req extends {}, Res extends {}>(
-  options: PostAptosRequestOptions,
-): Promise<AptosResponse<Req, Res>> {
-  const { aptosConfig } = options;
+export async function postCedraIndexer<Req extends {}, Res extends {}>(
+  options: PostCedraRequestOptions,
+): Promise<CedraResponse<Req, Res>> {
+  const { cedraConfig } = options;
 
   return post<Req, Res>({
     ...options,
-    type: AptosApiType.INDEXER,
+    type: CedraApiType.INDEXER,
     overrides: {
-      ...aptosConfig.clientConfig,
-      ...aptosConfig.indexerConfig,
+      ...cedraConfig.clientConfig,
+      ...cedraConfig.indexerConfig,
       ...options.overrides,
-      HEADERS: { ...aptosConfig.clientConfig?.HEADERS, ...aptosConfig.indexerConfig?.HEADERS },
+      HEADERS: { ...cedraConfig.clientConfig?.HEADERS, ...cedraConfig.indexerConfig?.HEADERS },
     },
   });
 }
 
 /**
- * Sends a request to the Aptos faucet to obtain test tokens.
+ * Sends a request to the Cedra faucet to obtain test tokens.
  * This function modifies the provided configuration to ensure that the API_KEY is not included in the request.
  *
  * Note that only devnet has a publicly accessible faucet. For testnet, you must use
- * the minting page at https://aptos.dev/network/faucet.
+ * the minting page at https://cedra.dev/network/faucet.
  *
  * @param options - The options for the request.
- * @param options.aptosConfig - The configuration settings for the Aptos client.
- * @param options.aptosConfig.clientConfig - The client-specific configuration settings.
- * @param options.aptosConfig.clientConfig.HEADERS - Optional headers to include in the request.
- * @param options.aptosConfig.faucetConfig - The configuration settings specific to the faucet.
+ * @param options.cedraConfig - The configuration settings for the Cedra client.
+ * @param options.cedraConfig.clientConfig - The client-specific configuration settings.
+ * @param options.cedraConfig.clientConfig.HEADERS - Optional headers to include in the request.
+ * @param options.cedraConfig.faucetConfig - The configuration settings specific to the faucet.
  * @param options.overrides - Additional overrides for the request configuration.
  * @group Implementation
  * @category Client
  */
-export async function postAptosFaucet<Req extends {}, Res extends {}>(
-  options: PostAptosRequestOptions,
-): Promise<AptosResponse<Req, Res>> {
-  const { aptosConfig } = options;
+export async function postCedraFaucet<Req extends {}, Res extends {}>(
+  options: PostCedraRequestOptions,
+): Promise<CedraResponse<Req, Res>> {
+  const { cedraConfig } = options;
   // Faucet does not support API_KEY
   // Create a new object with the desired modification
-  const modifiedAptosConfig = {
-    ...aptosConfig,
-    clientConfig: { ...aptosConfig.clientConfig },
+  const modifiedCedraConfig = {
+    ...cedraConfig,
+    clientConfig: { ...cedraConfig.clientConfig },
   };
   // Delete API_KEY config
-  delete modifiedAptosConfig?.clientConfig?.API_KEY;
+  delete modifiedCedraConfig?.clientConfig?.API_KEY;
 
   return post<Req, Res>({
     ...options,
-    type: AptosApiType.FAUCET,
+    type: CedraApiType.FAUCET,
     overrides: {
-      ...modifiedAptosConfig.clientConfig,
-      ...modifiedAptosConfig.faucetConfig,
+      ...modifiedCedraConfig.clientConfig,
+      ...modifiedCedraConfig.faucetConfig,
       ...options.overrides,
-      HEADERS: { ...modifiedAptosConfig.clientConfig?.HEADERS, ...modifiedAptosConfig.faucetConfig?.HEADERS },
+      HEADERS: { ...modifiedCedraConfig.clientConfig?.HEADERS, ...modifiedCedraConfig.faucetConfig?.HEADERS },
     },
   });
 }
@@ -226,23 +226,23 @@ export async function postAptosFaucet<Req extends {}, Res extends {}>(
  * @group Implementation
  * @category Client
  */
-export async function postAptosPepperService<Req extends {}, Res extends {}>(
-  options: PostAptosRequestOptions,
-): Promise<AptosResponse<Req, Res>> {
-  return post<Req, Res>({ ...options, type: AptosApiType.PEPPER });
+export async function postCedraPepperService<Req extends {}, Res extends {}>(
+  options: PostCedraRequestOptions,
+): Promise<CedraResponse<Req, Res>> {
+  return post<Req, Res>({ ...options, type: CedraApiType.PEPPER });
 }
 
 /**
- * Sends a request to the Aptos proving service with the specified options.
+ * Sends a request to the Cedra proving service with the specified options.
  *
- * @param options - The options for the request to the Aptos proving service.
- * @param options.type - The type of the request, which should be set to AptosApiType.PROVER.
+ * @param options - The options for the request to the Cedra proving service.
+ * @param options.type - The type of the request, which should be set to CedraApiType.PROVER.
  * @param options.data - The data to be included in the request.
  * @group Implementation
  * @category Client
  */
-export async function postAptosProvingService<Req extends {}, Res extends {}>(
-  options: PostAptosRequestOptions,
-): Promise<AptosResponse<Req, Res>> {
-  return post<Req, Res>({ ...options, type: AptosApiType.PROVER });
+export async function postCedraProvingService<Req extends {}, Res extends {}>(
+  options: PostCedraRequestOptions,
+): Promise<CedraResponse<Req, Res>> {
+  return post<Req, Res>({ ...options, type: CedraApiType.PROVER });
 }

@@ -14,7 +14,7 @@
     "target": "es2020",
     "pretty": true,
     "paths": {
-      "@aptos/*": ["../.."]
+      "@cedra/*": ["../.."]
     }
   },
   "include": ["*.ts", "sponsored_transactions/*.ts"],

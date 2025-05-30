@@ -1,7 +1,7 @@
 import { TwistedEd25519PrivateKey } from "../../../src";
 import {
   addNewContentLineToFile,
-  aptos,
+  cedra,
   confidentialAsset,
   getBalances,
   getTestAccount,
@@ -27,7 +27,7 @@ describe("Safely rotate Alice's confidential balance key", () => {
   test("it should safely rotate Alice's confidential balance key", async () => {
     const balances = await getBalances(aliceConfidential, alice.accountAddress);
 
-    const keyRotationAndUnfreezeTxResponse = await confidentialAsset.safeRotateCBKey(aptos, alice, {
+    const keyRotationAndUnfreezeTxResponse = await confidentialAsset.safeRotateCBKey(cedra, alice, {
       sender: alice.accountAddress,
 
       currDecryptionKey: aliceConfidential,

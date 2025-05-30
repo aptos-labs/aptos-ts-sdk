@@ -1,9 +1,9 @@
 import axios from 'axios';
-import { Account, Aptos, AptosConfig, Network, } from '@aptos-labs/ts-sdk';
+import { Account, Cedra, CedraConfig, Network, } from '@cedra-labs/ts-sdk';
 
 const main = async () => {
-    const config = new AptosConfig({ network: Network.DEVNET });
-    const aptos = new Aptos(config);
+    const config = new CedraConfig({ network: Network.DEVNET });
+    const cedra = new Cedra(config);
 
     // Create sender and recipient accounts
     const alice = Account.generate();
@@ -13,19 +13,19 @@ const main = async () => {
     console.log("Bob's address:", bob.accountAddress.toStringLong());
 
     // Fund Alice's account
-    await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: 100_000_000 });
+    await cedra.fundAccount({ accountAddress: alice.accountAddress, amount: 100_000_000 });
 
-    const transaction = await aptos.transaction.build.simple({
+    const transaction = await cedra.transaction.build.simple({
         sender: alice.accountAddress,
         withFeePayer: true,
         data: {
-            function: "0x1::aptos_account::transfer",
+            function: "0x1::cedra_account::transfer",
             functionArguments: [bob.accountAddress, 100],
         },
     });
 
     // Sign the transaction as Alice
-    const senderAuthenticator = aptos.transaction.sign({ signer: alice, transaction });
+    const senderAuthenticator = cedra.transaction.sign({ signer: alice, transaction });
 
     // Send the transaction to the sponsor server
     const response = await axios.post(
@@ -45,7 +45,7 @@ const main = async () => {
     const { transactionHash } = response.data;
 
     console.log("Transaction submitted. Hash:", transactionHash);
-    const executedTx = await aptos.waitForTransaction({ transactionHash: transactionHash });
+    const executedTx = await cedra.waitForTransaction({ transactionHash: transactionHash });
     console.log("Executed transaction:", executedTx);
 };
 

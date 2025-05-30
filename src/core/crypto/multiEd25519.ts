@@ -1,7 +1,7 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "../../api";
+import { CedraConfig } from "../../api";
 import { Deserializer, Serializer } from "../../bcs";
 import { SigningScheme as AuthenticationKeyScheme, HexInput } from "../../types";
 import { AuthenticationKey } from "../authenticationKey";
@@ -16,7 +16,7 @@ import { Signature } from "./signature";
  * for it to be executed. This class encapsulates the logic for managing the public keys and the threshold
  * for valid signatures.
  *
- * @see {@link https://aptos.dev/integration/creating-a-signed-transaction/ | Creating a Signed Transaction}
+ * @see {@link https://cedra.dev/integration/creating-a-signed-transaction/ | Creating a Signed Transaction}
  * @group Implementation
  * @category Serialization
  */
@@ -62,7 +62,7 @@ export class MultiEd25519PublicKey extends AbstractMultiKey {
    * and passed the check conducted by the chain.
    *
    * @see {@link
-   * https://aptos.dev/integration/creating-a-signed-transaction/ | Creating a Signed Transaction}
+   * https://cedra.dev/integration/creating-a-signed-transaction/ | Creating a Signed Transaction}
    * @param args - A wrapper to let you choose the param order.
    * @param args.publicKeys A list of public keys
    * @param args.threshold At least "threshold" signatures must be valid
@@ -142,7 +142,7 @@ export class MultiEd25519PublicKey extends AbstractMultiKey {
   }
 
   async verifySignatureAsync(args: {
-    aptosConfig: AptosConfig;
+    cedraConfig: CedraConfig;
     message: HexInput;
     signature: Signature;
   }): Promise<boolean> {
@@ -238,7 +238,7 @@ export class MultiEd25519PublicKey extends AbstractMultiKey {
 /**
  * Represents the signature of a K-of-N Ed25519 multi-sig transaction.
  *
- * @see {@link https://aptos.dev/integration/creating-a-signed-transaction/#multisignature-transactions | Creating a Signed Transaction}
+ * @see {@link https://cedra.dev/integration/creating-a-signed-transaction/#multisignature-transactions | Creating a Signed Transaction}
  * @group Implementation
  * @category Serialization
  */
@@ -277,7 +277,7 @@ export class MultiEd25519Signature extends Signature {
    * Signature for a K-of-N multi-sig transaction.
    *
    * @see {@link
-   * https://aptos.dev/integration/creating-a-signed-transaction/#multisignature-transactions | Creating a Signed Transaction}
+   * https://cedra.dev/integration/creating-a-signed-transaction/#multisignature-transactions | Creating a Signed Transaction}
    *
    * @param args.signatures A list of signatures
    * @param args.bitmap 4 bytes, at most 32 signatures are supported. If Nth bit value is `1`, the Nth

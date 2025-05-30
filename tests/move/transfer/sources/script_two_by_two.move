@@ -1,6 +1,6 @@
 script {
-    use aptos_framework::aptos_coin;
-    use aptos_framework::coin;
+    use cedra_framework::cedra_coin;
+    use cedra_framework::coin;
 
     fun transfer_two_by_two(
         first: &signer,
@@ -11,8 +11,8 @@ script {
         dst_second: address,
         deposit_first: u64,
     ) {
-        let coin_first = coin::withdraw<aptos_coin::AptosCoin>(first, amount_first);
-        let coin_second = coin::withdraw<aptos_coin::AptosCoin>(second, amount_second);
+        let coin_first = coin::withdraw<cedra_coin::CedraCoin>(first, amount_first);
+        let coin_second = coin::withdraw<cedra_coin::CedraCoin>(second, amount_second);
 
         coin::merge(&mut coin_first, coin_second);
 

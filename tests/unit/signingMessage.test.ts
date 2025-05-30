@@ -1,11 +1,11 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account, Ed25519PrivateKey, generateSigningMessageForTransaction } from "../../src";
-import { getAptosClient } from "../e2e/helper";
+import { getCedraClient } from "../e2e/helper";
 import { ed25519 } from "./helper";
 
-const { aptos } = getAptosClient();
+const { cedra } = getCedraClient();
 const TRANSFER_AMOUNT = 100;
 
 describe("generateSigningMessage ", () => {
@@ -14,10 +14,10 @@ describe("generateSigningMessage ", () => {
   });
 
   test("generates the proper message for transaction", async () => {
-    const transaction = await aptos.transaction.build.simple({
+    const transaction = await cedra.transaction.build.simple({
       sender: alice.accountAddress,
       data: {
-        function: "0x1::aptos_account::transfer",
+        function: "0x1::cedra_account::transfer",
         functionArguments: [alice.accountAddress, TRANSFER_AMOUNT],
       },
       options: {
@@ -41,11 +41,11 @@ describe("generateSigningMessage ", () => {
   });
 
   test("generates the proper message for fee payer transaction", async () => {
-    const transaction = await aptos.transaction.build.simple({
+    const transaction = await cedra.transaction.build.simple({
       sender: alice.accountAddress,
       withFeePayer: true,
       data: {
-        function: "0x1::aptos_account::transfer",
+        function: "0x1::cedra_account::transfer",
         functionArguments: [alice.accountAddress, TRANSFER_AMOUNT],
       },
       options: {

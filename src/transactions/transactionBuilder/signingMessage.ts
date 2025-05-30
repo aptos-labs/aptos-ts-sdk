@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 /**
@@ -17,7 +17,7 @@ import { Serializable } from "../../bcs";
  * This function helps in identifying whether the transaction is a FeePayerRawTransaction,
  * MultiAgentRawTransaction, or a standard RawTransaction.
  *
- * @param transaction - An object representing an Aptos transaction, which may include:
+ * @param transaction - An object representing an Cedra transaction, which may include:
  *   - feePayerAddress - The address of the fee payer (optional).
  *   - secondarySignerAddresses - An array of secondary signer addresses (optional).
  *   - rawTransaction - The raw transaction data.

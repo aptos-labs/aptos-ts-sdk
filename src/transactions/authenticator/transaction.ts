@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -74,7 +74,7 @@ export abstract class TransactionAuthenticator extends Serializable {
  *
  * @param public_key - The client's public key.
  * @param signature - The Ed25519 signature of a raw transaction.
- * @see {@link https://aptos.dev/integration/creating-a-signed-transaction | Creating a Signed Transaction}
+ * @see {@link https://cedra.dev/integration/creating-a-signed-transaction | Creating a Signed Transaction}
  * for details about generating a signature.
  * @group Implementation
  * @category Transactions

@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -9,7 +9,7 @@ import { AccountAddress } from "../../core";
 import { RawTransaction } from "./rawTransaction";
 
 /**
- * Represents a simple transaction type that can be submitted to the Aptos chain for execution.
+ * Represents a simple transaction type that can be submitted to the Cedra chain for execution.
  *
  * This transaction type is designed for a single signer and includes metadata such as the Raw Transaction
  * and an optional sponsor Account Address to cover gas fees.
@@ -30,7 +30,7 @@ export class SimpleTransaction extends Serializable {
 
   /**
    * SimpleTransaction represents a transaction signed by a single account that
-   * can be submitted to the Aptos chain for execution.
+   * can be submitted to the Cedra chain for execution.
    *
    * @param rawTransaction The Raw Transaction.
    * @param feePayerAddress The optional sponsor Account Address to pay the gas fees.

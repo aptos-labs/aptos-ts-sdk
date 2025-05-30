@@ -1,15 +1,15 @@
-import { AptosApiError } from "../../src/errors";
-import { AptosApiType } from "../../src/utils/const.js";
+import { CedraApiError } from "../../src/errors";
+import { CedraApiType } from "../../src/utils/const.js";
 
-describe(AptosApiError.name, () => {
+describe(CedraApiError.name, () => {
   it("should generate pretty error messages", () => {
-    const err = new AptosApiError({
-      apiType: AptosApiType.PEPPER,
-      aptosRequest: {
+    const err = new CedraApiError({
+      apiType: CedraApiType.PEPPER,
+      cedraRequest: {
         url: "http://blabla.com/my/api:8080",
         method: "POST",
       },
-      aptosResponse: {
+      cedraResponse: {
         data: { error: "something went wrong" },
         status: 400,
         statusText: "Bad Request",
@@ -20,13 +20,13 @@ describe(AptosApiError.name, () => {
 
     expect(err.message).toMatchSnapshot();
 
-    const err2 = new AptosApiError({
-      apiType: AptosApiType.INDEXER,
-      aptosRequest: {
+    const err2 = new CedraApiError({
+      apiType: CedraApiType.INDEXER,
+      cedraRequest: {
         url: "http://blabla.com/my/api:8080",
         method: "POST",
       },
-      aptosResponse: {
+      cedraResponse: {
         data: {
           data: null,
           errors: [
@@ -44,13 +44,13 @@ describe(AptosApiError.name, () => {
 
     expect(err2.message).toMatchSnapshot();
 
-    const err3 = new AptosApiError({
-      apiType: AptosApiType.INDEXER,
-      aptosRequest: {
+    const err3 = new CedraApiError({
+      apiType: CedraApiType.INDEXER,
+      cedraRequest: {
         url: "http://blabla.com/my/api:8080",
         method: "POST",
       },
-      aptosResponse: {
+      cedraResponse: {
         data: {
           // some kinda large response payload
           foo: "bar",

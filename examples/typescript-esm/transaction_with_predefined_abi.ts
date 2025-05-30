@@ -1,16 +1,16 @@
 /* eslint-disable no-console */
 
 /**
- * This example shows how to use the Aptos client to create accounts, fund them, and transfer between them.
+ * This example shows how to use the Cedra client to create accounts, fund them, and transfer between them.
  */
 import dotenv from "dotenv";
 dotenv.config();
 import {
   Account,
   AccountAddress,
-  Aptos,
+  Cedra,
   APTOS_COIN,
-  AptosConfig,
+  CedraConfig,
   EntryFunctionABI,
   InputViewFunctionJsonData,
   Network,
@@ -20,7 +20,7 @@ import {
   TypeTagAddress,
   TypeTagU64,
   U64,
-} from "@aptos-labs/ts-sdk";
+} from "@cedra-labs/ts-sdk";
 
 const APTOS_COIN_TYPE = parseTypeTag(APTOS_COIN);
 const ALICE_INITIAL_BALANCE = 100_000_000;
@@ -32,37 +32,37 @@ const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] |
 
 /**
  * Prints the balance of an account
- * @param aptos
+ * @param cedra
  * @param name
  * @param address
  * @returns {Promise<*>}
  *
  */
-const balance = async (aptos: Aptos, name: string, address: AccountAddress): Promise<any> => {
+const balance = async (cedra: Cedra, name: string, address: AccountAddress): Promise<any> => {
   const payload: InputViewFunctionJsonData = {
     function: "0x1::coin::balance",
-    typeArguments: ["0x1::aptos_coin::AptosCoin"],
+    typeArguments: ["0x1::cedra_coin::CedraCoin"],
     functionArguments: [address.toString()],
   };
-  const [balance] = await aptos.viewJson<[number]>({ payload: payload });
+  const [balance] = await cedra.viewJson<[number]>({ payload: payload });
 
   console.log(`${name}'s balance is: ${balance}`);
   return Number(balance);
 };
 
 async function timeSubmission(
-  aptos: Aptos,
+  cedra: Cedra,
   signer: Account,
   buildTxn: () => Promise<SimpleTransaction>,
 ): Promise<void> {
   const start = performance.now();
   const rawTxn = await buildTxn();
   const buildTime = performance.now();
-  const senderAuthenticator = aptos.sign({ signer, transaction: rawTxn });
+  const senderAuthenticator = cedra.sign({ signer, transaction: rawTxn });
   const signTime = performance.now();
-  const submittedTxn = await aptos.transaction.submit.simple({ transaction: rawTxn, senderAuthenticator });
+  const submittedTxn = await cedra.transaction.submit.simple({ transaction: rawTxn, senderAuthenticator });
   const submitTime = performance.now();
-  await aptos.waitForTransaction({ transactionHash: submittedTxn.hash });
+  await cedra.waitForTransaction({ transactionHash: submittedTxn.hash });
   const endTime = performance.now();
   const builtLatency = buildTime - start;
   const signLatency = signTime - buildTime;
@@ -78,8 +78,8 @@ const example = async () => {
   console.log("This example will show you how to increase performance of known entry functions");
 
   // Set up the client
-  const config = new AptosConfig({ network: APTOS_NETWORK });
-  const aptos = new Aptos(config);
+  const config = new CedraConfig({ network: APTOS_NETWORK });
+  const cedra = new Cedra(config);
 
   // Create two accounts
   const alice = Account.generate();
@@ -92,20 +92,20 @@ const example = async () => {
   // Fund the accounts
   console.log("\n=== Funding accounts ===\n");
 
-  await aptos.fundAccount({
+  await cedra.fundAccount({
     accountAddress: alice.accountAddress,
     amount: ALICE_INITIAL_BALANCE,
   });
 
-  await aptos.fundAccount({
+  await cedra.fundAccount({
     accountAddress: bob.accountAddress,
     amount: BOB_INITIAL_BALANCE,
   });
 
   // Show the balances
   console.log("\n=== Balances ===\n");
-  const aliceBalance = await balance(aptos, "Alice", alice.accountAddress);
-  const bobBalance = await balance(aptos, "Bob", bob.accountAddress);
+  const aliceBalance = await balance(cedra, "Alice", alice.accountAddress);
+  const bobBalance = await balance(cedra, "Bob", bob.accountAddress);
 
   if (aliceBalance !== ALICE_INITIAL_BALANCE) throw new Error("Alice's balance is incorrect");
   if (bobBalance !== BOB_INITIAL_BALANCE) throw new Error("Bob's balance is incorrect");
@@ -120,8 +120,8 @@ const example = async () => {
   console.log("\n=== Remote ABI, normal inputs ===\n");
   const aliceAddressString = alice.accountAddress.toString();
   const bobAddressString = bob.accountAddress.toString();
-  await timeSubmission(aptos, alice, async () =>
-    aptos.transaction.build.simple({
+  await timeSubmission(cedra, alice, async () =>
+    cedra.transaction.build.simple({
       sender: aliceAddressString,
       data: {
         function: "0x1::coin::transfer",
@@ -132,8 +132,8 @@ const example = async () => {
   );
 
   console.log("\n=== Remote ABI, BCS inputs ===\n");
-  await timeSubmission(aptos, alice, async () =>
-    aptos.transaction.build.simple({
+  await timeSubmission(cedra, alice, async () =>
+    cedra.transaction.build.simple({
       sender: alice.accountAddress,
       data: {
         function: "0x1::coin::transfer",
@@ -144,8 +144,8 @@ const example = async () => {
   );
 
   console.log("\n=== Local ABI, normal inputs ===\n");
-  await timeSubmission(aptos, alice, async () =>
-    aptos.transaction.build.simple({
+  await timeSubmission(cedra, alice, async () =>
+    cedra.transaction.build.simple({
       sender: alice.accountAddress,
       data: {
         function: "0x1::coin::transfer",
@@ -157,8 +157,8 @@ const example = async () => {
   );
 
   console.log("\n=== Local ABI, BCS inputs ===\n");
-  await timeSubmission(aptos, alice, async () =>
-    aptos.transaction.build.simple({
+  await timeSubmission(cedra, alice, async () =>
+    cedra.transaction.build.simple({
       sender: alice.accountAddress,
       data: {
         function: "0x1::coin::transfer",
@@ -170,10 +170,10 @@ const example = async () => {
   );
 
   console.log("\n=== Local ABI, BCS inputs, sequence number already cached ===\n");
-  const accountData = await aptos.account.getAccountInfo({ accountAddress: alice.accountAddress });
+  const accountData = await cedra.account.getAccountInfo({ accountAddress: alice.accountAddress });
   const sequenceNumber = BigInt(accountData.sequence_number);
-  await timeSubmission(aptos, alice, async () =>
-    aptos.transaction.build.simple({
+  await timeSubmission(cedra, alice, async () =>
+    cedra.transaction.build.simple({
       sender: alice.accountAddress,
       data: {
         function: "0x1::coin::transfer",
@@ -188,8 +188,8 @@ const example = async () => {
   );
 
   console.log("\n=== Local ABI, BCS inputs, sequence number and gas already cached ===\n");
-  await timeSubmission(aptos, alice, async () =>
-    aptos.transaction.build.simple({
+  await timeSubmission(cedra, alice, async () =>
+    cedra.transaction.build.simple({
       sender: alice.accountAddress,
       data: {
         function: "0x1::coin::transfer",

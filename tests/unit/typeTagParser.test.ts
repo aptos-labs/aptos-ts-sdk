@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import {
@@ -24,7 +24,7 @@ import {
   TypeTagParserError,
   TypeTagParserErrorType,
   TypeTagReference,
-  aptosCoinStructTag,
+  cedraCoinStructTag,
   Identifier,
   APTOS_COIN,
 } from "../../src";
@@ -61,7 +61,7 @@ const primitives = [
  */
 const structTypes = [
   { str: "0x1::string::String", type: new TypeTagStruct(stringStructTag()) },
-  { str: APTOS_COIN, type: new TypeTagStruct(aptosCoinStructTag()) },
+  { str: APTOS_COIN, type: new TypeTagStruct(cedraCoinStructTag()) },
   { str: "0x1::option::Option<u8>", type: new TypeTagStruct(optionStructTag(new TypeTagU8())) },
   { str: "0x1::object::Object<u8>", type: new TypeTagStruct(objectStructTag(new TypeTagU8())) },
   { str: TAG_STRUCT_NAME, type: structTagType() },

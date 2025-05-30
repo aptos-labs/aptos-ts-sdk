@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -12,8 +12,8 @@ import { TransactionVariants } from "../../types";
 
 /**
  * Represents a raw transaction that can be serialized and deserialized.
- * Raw transactions contain the metadata and payloads that can be submitted to the Aptos chain for execution.
- * They must be signed before the Aptos chain can execute them.
+ * Raw transactions contain the metadata and payloads that can be submitted to the Cedra chain for execution.
+ * They must be signed before the Cedra chain can execute them.
  * @group Implementation
  * @category Transactions
  */
@@ -33,13 +33,13 @@ export class RawTransaction extends Serializable {
   public readonly chain_id: ChainId;
 
   /**
-   * RawTransactions contain the metadata and payloads that can be submitted to Aptos chain for execution.
-   * RawTransactions must be signed before Aptos chain can execute them.
+   * RawTransactions contain the metadata and payloads that can be submitted to Cedra chain for execution.
+   * RawTransactions must be signed before Cedra chain can execute them.
    *
    * @param sender The sender Account Address
    * @param sequence_number Sequence number of this transaction. This must match the sequence number stored in
    *   the sender's account at the time the transaction executes.
-   * @param payload Instructions for the Aptos Blockchain, including publishing a module,
+   * @param payload Instructions for the Cedra Blockchain, including publishing a module,
    *   execute an entry function or execute a script payload.
    * @param max_gas_amount Maximum total gas to spend for this transaction. The account must have more
    *   than this gas or the transaction will be discarded during validation.

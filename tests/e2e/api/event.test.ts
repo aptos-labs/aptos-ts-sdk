@@ -1,21 +1,21 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account } from "../../../src";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
-import { getAptosClient } from "../helper";
+import { getCedraClient } from "../helper";
 
 describe("Event", () => {
   test.skip("it should get transaction fee statement module event by event type", async () => {
-    const { aptos } = getAptosClient();
+    const { cedra } = getCedraClient();
 
-    const events = await aptos.getModuleEventsByEventType({
+    const events = await cedra.getModuleEventsByEventType({
       eventType: "0x1::block::NewBlock",
     });
     expect(events.length).toBeGreaterThan(2);
     expect(events[0].type).toEqual("0x1::block::NewBlock");
 
-    const onlyTwoEvents = await aptos.getModuleEventsByEventType({
+    const onlyTwoEvents = await cedra.getModuleEventsByEventType({
       eventType: "0x1::block::NewBlock",
       options: {
         limit: 2,
@@ -26,12 +26,12 @@ describe("Event", () => {
   });
 
   test.skip("it should get fund event by creation number and address", async () => {
-    const { aptos } = getAptosClient();
+    const { cedra } = getCedraClient();
 
     const testAccount = Account.generate();
-    await aptos.fundAccount({ accountAddress: testAccount.accountAddress, amount: FUND_AMOUNT });
+    await cedra.fundAccount({ accountAddress: testAccount.accountAddress, amount: FUND_AMOUNT });
 
-    const events = await aptos.getAccountEventsByCreationNumber({
+    const events = await cedra.getAccountEventsByCreationNumber({
       accountAddress: testAccount.accountAddress,
       creationNumber: 0,
     });
@@ -40,15 +40,15 @@ describe("Event", () => {
   });
 
   test.skip("it should get fund event by event type and address", async () => {
-    const { aptos } = getAptosClient();
+    const { cedra } = getCedraClient();
 
     const testAccount = Account.generate();
-    await aptos.fundAccount({
+    await cedra.fundAccount({
       accountAddress: testAccount.accountAddress,
       amount: FUND_AMOUNT,
     });
 
-    const events = await aptos.getAccountEventsByEventType({
+    const events = await cedra.getAccountEventsByEventType({
       accountAddress: testAccount.accountAddress,
       eventType: "0x1::account::CoinRegisterEvent",
     });
@@ -57,15 +57,15 @@ describe("Event", () => {
   });
 
   test("it should get all events", async () => {
-    const { aptos } = getAptosClient();
+    const { cedra } = getCedraClient();
 
     const testAccount = Account.generate();
-    await aptos.fundAccount({
+    await cedra.fundAccount({
       accountAddress: testAccount.accountAddress,
       amount: FUND_AMOUNT,
     });
 
-    const events = await aptos.getEvents();
+    const events = await cedra.getEvents();
 
     expect(events.length).toBeGreaterThan(0);
   });
@@ -73,20 +73,20 @@ describe("Event", () => {
   test.skip(
     "it should filter events",
     async () => {
-      const { aptos } = getAptosClient();
+      const { cedra } = getCedraClient();
 
       const testAccount1 = Account.generate();
       const testAccount2 = Account.generate();
-      await aptos.fundAccount({
+      await cedra.fundAccount({
         accountAddress: testAccount1.accountAddress,
         amount: FUND_AMOUNT,
       });
-      await aptos.fundAccount({
+      await cedra.fundAccount({
         accountAddress: testAccount2.accountAddress,
         amount: FUND_AMOUNT,
       });
 
-      const events = await aptos.getEvents({
+      const events = await cedra.getEvents({
         options: { where: { account_address: { _eq: testAccount1.accountAddress.toString() } } },
       });
 

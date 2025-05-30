@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -338,7 +338,7 @@ export class EntryFunction {
 
 /**
  * Represents a Script that can be serialized and deserialized.
- * Scripts contain the Move bytecode payload that can be submitted to the Aptos chain for execution.
+ * Scripts contain the Move bytecode payload that can be submitted to the Cedra chain for execution.
  * @group Implementation
  * @category Transactions
  */
@@ -365,7 +365,7 @@ export class Script {
   public readonly args: Array<ScriptFunctionArgument>;
 
   /**
-   * Scripts contain the Move bytecodes payload that can be submitted to Aptos chain for execution.
+   * Scripts contain the Move bytecodes payload that can be submitted to Cedra chain for execution.
    *
    * @param bytecode The move module bytecode
    * @param type_args The type arguments that the bytecode function requires.

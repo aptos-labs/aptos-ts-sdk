@@ -2,20 +2,20 @@ import { longTestTimeout } from "../../unit/helper";
 import { Account } from "../../../src/account";
 import * as AccountQueries from "../../../src/internal/account";
 import { AccountSequenceNumber } from "../../../src/transactions/management/accountSequenceNumber";
-import { getAptosClient } from "../helper";
+import { getCedraClient } from "../helper";
 
-const { aptos, config: aptosConfig } = getAptosClient();
+const { cedra, config: cedraConfig } = getCedraClient();
 
 const account = Account.generate();
 
-const accountSequenceNumber = new AccountSequenceNumber(aptosConfig, account, 30, 100, 10);
+const accountSequenceNumber = new AccountSequenceNumber(cedraConfig, account, 30, 100, 10);
 let getAccountInfoSpy: jest.SpyInstance;
 
 let lastSeqNumber: bigint | null;
 
 describe("account sequence number", () => {
   beforeAll(async () => {
-    await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1000000000 });
+    await cedra.fundAccount({ accountAddress: account.accountAddress, amount: 1000000000 });
   }, longTestTimeout);
 
   beforeEach(() => {

@@ -4,7 +4,7 @@
  * This example demonstrates the new multisig account module (MultiSig V2) and transaction execution flow
  * where in that module, there is no off-chain signature aggregation step.
  * Each owner sends its transactions to the chain on its own, and so the "voting" process occurs on-chain.
- * {@link https://github.com/aptos-labs/aptos-core/blob/main/aptos-move/framework/aptos-framework/sources/multisig_account.move}
+ * {@link https://github.com/cedra-labs/cedra-core/blob/main/cedra-move/framework/cedra-framework/sources/multisig_account.move}
  *
  * This example demonstrates different interaction with the module
  * - create a multi sig account
@@ -20,8 +20,8 @@ dotenv.config();
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import {
   Account,
-  Aptos,
-  AptosConfig,
+  Cedra,
+  CedraConfig,
   Network,
   NetworkToNetworkName,
   MoveString,
@@ -33,14 +33,14 @@ import {
   SimpleTransaction,
   generateTransactionPayload,
   InputViewFunctionJsonData,
-} from "@aptos-labs/ts-sdk";
+} from "@cedra-labs/ts-sdk";
 
 // Default to devnet, but allow for overriding
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 
 // Set up the client
-const config = new AptosConfig({ network: APTOS_NETWORK });
-const aptos = new Aptos(config);
+const config = new CedraConfig({ network: APTOS_NETWORK });
+const cedra = new Cedra(config);
 
 // Generate 3 accounts that will be the owners of the multisig account.
 const owner1 = Account.generate();
@@ -62,7 +62,7 @@ const owner4 = Account.generate();
 // HELPER FUNCTIONS //
 
 const getNumberOfOwners = async (): Promise<void> => {
-  const multisigAccountResource = await aptos.getAccountResource<{ owners: Array<string> }>({
+  const multisigAccountResource = await cedra.getAccountResource<{ owners: Array<string> }>({
     accountAddress: multisigAddress,
     resourceType: "0x1::multisig_account::MultisigAccount",
   });
@@ -70,7 +70,7 @@ const getNumberOfOwners = async (): Promise<void> => {
 };
 
 const getSignatureThreshold = async (): Promise<void> => {
-  const multisigAccountResource = await aptos.getAccountResource<{ num_signatures_required: number }>({
+  const multisigAccountResource = await cedra.getAccountResource<{ num_signatures_required: number }>({
     accountAddress: multisigAddress,
     resourceType: "0x1::multisig_account::MultisigAccount",
   });
@@ -78,9 +78,9 @@ const getSignatureThreshold = async (): Promise<void> => {
 };
 
 const fundOwnerAccounts = async () => {
-  await aptos.fundAccount({ accountAddress: owner1.accountAddress, amount: 100_000_000 });
-  await aptos.fundAccount({ accountAddress: owner2.accountAddress, amount: 100_000_000 });
-  await aptos.fundAccount({ accountAddress: owner3.accountAddress, amount: 100_000_000 });
+  await cedra.fundAccount({ accountAddress: owner1.accountAddress, amount: 100_000_000 });
+  await cedra.fundAccount({ accountAddress: owner2.accountAddress, amount: 100_000_000 });
+  await cedra.fundAccount({ accountAddress: owner3.accountAddress, amount: 100_000_000 });
   console.log(`owner1: ${owner1.accountAddress.toString()}`);
   console.log(`owner2: ${owner2.accountAddress.toString()}`);
   console.log(`owner3: ${owner3.accountAddress.toString()}`);
@@ -97,9 +97,9 @@ const settingUpMultiSigAccount = async () => {
     function: "0x1::multisig_account::get_next_multisig_account_address",
     functionArguments: [owner1.accountAddress.toString()],
   };
-  [multisigAddress] = await aptos.view<[string]>({ payload });
+  [multisigAddress] = await cedra.view<[string]>({ payload });
   // Create the multisig account with 3 owners and a signature threshold of 2.
-  const createMultisig = await aptos.transaction.build.simple({
+  const createMultisig = await cedra.transaction.build.simple({
     sender: owner1.accountAddress,
     data: {
       function: "0x1::multisig_account::create_with_owners",
@@ -111,12 +111,12 @@ const settingUpMultiSigAccount = async () => {
       ],
     },
   });
-  const owner1Authenticator = aptos.transaction.sign({ signer: owner1, transaction: createMultisig });
-  const res = await aptos.transaction.submit.simple({
+  const owner1Authenticator = cedra.transaction.sign({ signer: owner1, transaction: createMultisig });
+  const res = await cedra.transaction.submit.simple({
     senderAuthenticator: owner1Authenticator,
     transaction: createMultisig,
   });
-  await aptos.waitForTransaction({ transactionHash: res.hash });
+  await cedra.waitForTransaction({ transactionHash: res.hash });
 
   console.log("Multisig Account Address:", multisigAddress);
 
@@ -130,7 +130,7 @@ const settingUpMultiSigAccount = async () => {
 const fundMultiSigAccount = async () => {
   console.log("Funding the multisig account...");
   // Fund the multisig account for transfers.
-  await aptos.fundAccount({ accountAddress: multisigAddress, amount: 100_000_000 });
+  await cedra.fundAccount({ accountAddress: multisigAddress, amount: 100_000_000 });
 };
 
 const createMultiSigTransferTransaction = async () => {
@@ -138,24 +138,24 @@ const createMultiSigTransferTransaction = async () => {
 
   transactionPayload = await generateTransactionPayload({
     multisigAddress,
-    function: "0x1::aptos_account::transfer",
+    function: "0x1::cedra_account::transfer",
     functionArguments: [recipient.accountAddress, 1_000_000],
-    aptosConfig: config,
+    cedraConfig: config,
   });
 
   // Generate a raw transaction with the multisig address as the sender,
   // the provided entry function payload, and 0x0 as the fee payer address.
-  const transactionToSimulate = await aptos.transaction.build.simple({
+  const transactionToSimulate = await cedra.transaction.build.simple({
     sender: multisigAddress,
     data: {
-      function: "0x1::aptos_account::transfer",
+      function: "0x1::cedra_account::transfer",
       functionArguments: [recipient.accountAddress, 1_000_000],
     },
     withFeePayer: true,
   });
 
   // Simulate the transaction, skipping the public/auth key check for both the sender and the fee payer.
-  const [simulateMultisigTx] = await aptos.transaction.simulate.simple({
+  const [simulateMultisigTx] = await cedra.transaction.simulate.simple({
     transaction: transactionToSimulate,
   });
   console.log("simulateMultisigTx", simulateMultisigTx);
@@ -164,7 +164,7 @@ const createMultiSigTransferTransaction = async () => {
   }
 
   // Build create_transaction transaction
-  const createMultisigTx = await aptos.transaction.build.simple({
+  const createMultisigTx = await cedra.transaction.build.simple({
     sender: owner2.accountAddress,
     data: {
       function: "0x1::multisig_account::create_transaction",
@@ -173,14 +173,14 @@ const createMultiSigTransferTransaction = async () => {
   });
 
   // Owner 2 signs the transaction
-  const createMultisigTxAuthenticator = aptos.transaction.sign({ signer: owner2, transaction: createMultisigTx });
+  const createMultisigTxAuthenticator = cedra.transaction.sign({ signer: owner2, transaction: createMultisigTx });
 
   // Submit the transaction to chain
-  const createMultisigTxResponse = await aptos.transaction.submit.simple({
+  const createMultisigTxResponse = await cedra.transaction.submit.simple({
     senderAuthenticator: createMultisigTxAuthenticator,
     transaction: createMultisigTx,
   });
-  await aptos.waitForTransaction({ transactionHash: createMultisigTxResponse.hash });
+  await cedra.waitForTransaction({ transactionHash: createMultisigTxResponse.hash });
 };
 
 const executeMultiSigTransferTransaction = async () => {
@@ -188,28 +188,28 @@ const executeMultiSigTransferTransaction = async () => {
   console.log("Owner 2 can now execute the transfer transaction as it already has 2 approvals (from owners 2 and 3).");
 
   const rawTransaction = await generateRawTransaction({
-    aptosConfig: config,
+    cedraConfig: config,
     sender: owner2.accountAddress,
     payload: transactionPayload,
   });
 
   const transaction = new SimpleTransaction(rawTransaction);
 
-  const owner2Authenticator = aptos.transaction.sign({ signer: owner2, transaction });
-  const transferTransactionResponse = await aptos.transaction.submit.simple({
+  const owner2Authenticator = cedra.transaction.sign({ signer: owner2, transaction });
+  const transferTransactionResponse = await cedra.transaction.submit.simple({
     senderAuthenticator: owner2Authenticator,
     transaction,
   });
-  await aptos.waitForTransaction({ transactionHash: transferTransactionResponse.hash });
+  await cedra.waitForTransaction({ transactionHash: transferTransactionResponse.hash });
 };
 
 const checkBalance = async () => {
   const payload: InputViewFunctionJsonData = {
     function: "0x1::coin::balance",
-    typeArguments: ["0x1::aptos_coin::AptosCoin"],
+    typeArguments: ["0x1::cedra_coin::CedraCoin"],
     functionArguments: [recipient.accountAddress.toString()],
   };
-  const [balance] = await aptos.viewJson<[number]>({ payload: payload });
+  const [balance] = await cedra.viewJson<[number]>({ payload: payload });
 
   console.log("Recipient's balance after transfer", balance);
 };
@@ -222,7 +222,7 @@ const createMultiSigTransferTransactionWithPayloadHash = async () => {
   transferTxPayloadHash.update(transactionPayload.multiSig.transaction_payload.bcsToBytes());
 
   // Build create_transaction_with_hash transaction
-  const createMultisigTxWithHash = await aptos.transaction.build.simple({
+  const createMultisigTxWithHash = await cedra.transaction.build.simple({
     sender: owner2.accountAddress,
     data: {
       function: "0x1::multisig_account::create_transaction_with_hash",
@@ -230,16 +230,16 @@ const createMultiSigTransferTransactionWithPayloadHash = async () => {
     },
   });
   // Owner 2 signs the transaction
-  const createMultisigTxWithHashAuthenticator = aptos.transaction.sign({
+  const createMultisigTxWithHashAuthenticator = cedra.transaction.sign({
     signer: owner2,
     transaction: createMultisigTxWithHash,
   });
   // Submit the transaction to chain
-  const createMultisigTxWithHashResponse = await aptos.transaction.submit.simple({
+  const createMultisigTxWithHashResponse = await cedra.transaction.submit.simple({
     senderAuthenticator: createMultisigTxWithHashAuthenticator,
     transaction: createMultisigTxWithHash,
   });
-  await aptos.waitForTransaction({ transactionHash: createMultisigTxWithHashResponse.hash });
+  await cedra.waitForTransaction({ transactionHash: createMultisigTxWithHashResponse.hash });
 };
 
 const executeMultiSigTransferTransactionWithPayloadHash = async () => {
@@ -249,22 +249,22 @@ const executeMultiSigTransferTransactionWithPayloadHash = async () => {
   );
 
   const createTransactionWithHashRawTransaction = await generateRawTransaction({
-    aptosConfig: config,
+    cedraConfig: config,
     sender: owner2.accountAddress,
     payload: transactionPayload,
   });
 
   const transaction = new SimpleTransaction(createTransactionWithHashRawTransaction);
 
-  const owner2Authenticator2 = aptos.transaction.sign({
+  const owner2Authenticator2 = cedra.transaction.sign({
     signer: owner2,
     transaction,
   });
-  const multisigTxExecution2Response = await aptos.transaction.submit.simple({
+  const multisigTxExecution2Response = await cedra.transaction.submit.simple({
     senderAuthenticator: owner2Authenticator2,
     transaction,
   });
-  await aptos.waitForTransaction({ transactionHash: multisigTxExecution2Response.hash });
+  await cedra.waitForTransaction({ transactionHash: multisigTxExecution2Response.hash });
 };
 
 const createAddingAnOwnerToMultiSigAccountTransaction = async () => {
@@ -275,11 +275,11 @@ const createAddingAnOwnerToMultiSigAccountTransaction = async () => {
     multisigAddress,
     function: "0x1::multisig_account::add_owner",
     functionArguments: [owner4.accountAddress],
-    aptosConfig: config,
+    cedraConfig: config,
   });
 
   // Build create_transaction transaction
-  const createAddOwnerTransaction = await aptos.transaction.build.simple({
+  const createAddOwnerTransaction = await cedra.transaction.build.simple({
     sender: owner2.accountAddress,
     data: {
       function: "0x1::multisig_account::create_transaction",
@@ -287,16 +287,16 @@ const createAddingAnOwnerToMultiSigAccountTransaction = async () => {
     },
   });
   // Owner 2 signs the transaction
-  const createAddOwnerTxAuthenticator = aptos.transaction.sign({
+  const createAddOwnerTxAuthenticator = cedra.transaction.sign({
     signer: owner2,
     transaction: createAddOwnerTransaction,
   });
   // Submit the transaction to chain
-  const createAddOwnerTxResponse = await aptos.transaction.submit.simple({
+  const createAddOwnerTxResponse = await cedra.transaction.submit.simple({
     senderAuthenticator: createAddOwnerTxAuthenticator,
     transaction: createAddOwnerTransaction,
   });
-  await aptos.waitForTransaction({ transactionHash: createAddOwnerTxResponse.hash });
+  await cedra.waitForTransaction({ transactionHash: createAddOwnerTxResponse.hash });
 };
 
 const executeAddingAnOwnerToMultiSigAccountTransaction = async () => {
@@ -306,22 +306,22 @@ const executeAddingAnOwnerToMultiSigAccountTransaction = async () => {
   );
 
   const multisigTxExecution3 = await generateRawTransaction({
-    aptosConfig: config,
+    cedraConfig: config,
     sender: owner2.accountAddress,
     payload: new TransactionPayloadMultiSig(new MultiSig(AccountAddress.fromString(multisigAddress))),
   });
 
   const transaction = new SimpleTransaction(multisigTxExecution3);
 
-  const owner2Authenticator3 = aptos.transaction.sign({
+  const owner2Authenticator3 = cedra.transaction.sign({
     signer: owner2,
     transaction,
   });
-  const multisigTxExecution3Response = await aptos.transaction.submit.simple({
+  const multisigTxExecution3Response = await cedra.transaction.submit.simple({
     senderAuthenticator: owner2Authenticator3,
     transaction,
   });
-  await aptos.waitForTransaction({ transactionHash: multisigTxExecution3Response.hash });
+  await cedra.waitForTransaction({ transactionHash: multisigTxExecution3Response.hash });
 };
 
 const createRemovingAnOwnerToMultiSigAccount = async () => {
@@ -331,11 +331,11 @@ const createRemovingAnOwnerToMultiSigAccount = async () => {
     multisigAddress,
     function: "0x1::multisig_account::remove_owner",
     functionArguments: [owner4.accountAddress],
-    aptosConfig: config,
+    cedraConfig: config,
   });
 
   // Build create_transaction transaction
-  const removeOwnerTx = await aptos.transaction.build.simple({
+  const removeOwnerTx = await cedra.transaction.build.simple({
     sender: owner2.accountAddress,
     data: {
       function: "0x1::multisig_account::create_transaction",
@@ -344,16 +344,16 @@ const createRemovingAnOwnerToMultiSigAccount = async () => {
   });
 
   // Owner 2 signs the transaction
-  const createRemoveOwnerTxAuthenticator = aptos.transaction.sign({
+  const createRemoveOwnerTxAuthenticator = cedra.transaction.sign({
     signer: owner2,
     transaction: removeOwnerTx,
   });
   // Submit the transaction to chain
-  const createRemoveOwnerTxResponse = await aptos.transaction.submit.simple({
+  const createRemoveOwnerTxResponse = await cedra.transaction.submit.simple({
     senderAuthenticator: createRemoveOwnerTxAuthenticator,
     transaction: removeOwnerTx,
   });
-  await aptos.waitForTransaction({ transactionHash: createRemoveOwnerTxResponse.hash });
+  await cedra.waitForTransaction({ transactionHash: createRemoveOwnerTxResponse.hash });
 };
 
 const executeRemovingAnOwnerToMultiSigAccount = async () => {
@@ -363,22 +363,22 @@ const executeRemovingAnOwnerToMultiSigAccount = async () => {
   );
 
   const multisigTxExecution4 = await generateRawTransaction({
-    aptosConfig: config,
+    cedraConfig: config,
     sender: owner2.accountAddress,
     payload: new TransactionPayloadMultiSig(new MultiSig(AccountAddress.fromString(multisigAddress))),
   });
 
   const transaction = new SimpleTransaction(multisigTxExecution4);
 
-  const owner2Authenticator4 = aptos.transaction.sign({
+  const owner2Authenticator4 = cedra.transaction.sign({
     signer: owner2,
     transaction,
   });
-  const multisigTxExecution4Response = await aptos.transaction.submit.simple({
+  const multisigTxExecution4Response = await cedra.transaction.submit.simple({
     senderAuthenticator: owner2Authenticator4,
     transaction,
   });
-  await aptos.waitForTransaction({ transactionHash: multisigTxExecution4Response.hash });
+  await cedra.waitForTransaction({ transactionHash: multisigTxExecution4Response.hash });
 };
 
 const createChangeSignatureThresholdTransaction = async () => {
@@ -388,11 +388,11 @@ const createChangeSignatureThresholdTransaction = async () => {
     multisigAddress,
     function: "0x1::multisig_account::update_signatures_required",
     functionArguments: [3],
-    aptosConfig: config,
+    cedraConfig: config,
   });
 
   // Build create_transaction transaction
-  const changeSigThresholdTx = await aptos.transaction.build.simple({
+  const changeSigThresholdTx = await cedra.transaction.build.simple({
     sender: owner2.accountAddress,
     data: {
       function: "0x1::multisig_account::create_transaction",
@@ -401,16 +401,16 @@ const createChangeSignatureThresholdTransaction = async () => {
   });
 
   // Owner 2 signs the transaction
-  const changeSigThresholdAuthenticator = aptos.transaction.sign({
+  const changeSigThresholdAuthenticator = cedra.transaction.sign({
     signer: owner2,
     transaction: changeSigThresholdTx,
   });
   // Submit the transaction to chain
-  const changeSigThresholdResponse = await aptos.transaction.submit.simple({
+  const changeSigThresholdResponse = await cedra.transaction.submit.simple({
     senderAuthenticator: changeSigThresholdAuthenticator,
     transaction: changeSigThresholdTx,
   });
-  await aptos.waitForTransaction({ transactionHash: changeSigThresholdResponse.hash });
+  await cedra.waitForTransaction({ transactionHash: changeSigThresholdResponse.hash });
 };
 
 const executeChangeSignatureThresholdTransaction = async () => {
@@ -420,27 +420,27 @@ const executeChangeSignatureThresholdTransaction = async () => {
   );
 
   const multisigTxExecution5 = await generateRawTransaction({
-    aptosConfig: config,
+    cedraConfig: config,
     sender: owner2.accountAddress,
     payload: new TransactionPayloadMultiSig(new MultiSig(AccountAddress.fromString(multisigAddress))),
   });
 
   const transaction = new SimpleTransaction(multisigTxExecution5);
 
-  const owner2Authenticator5 = aptos.transaction.sign({
+  const owner2Authenticator5 = cedra.transaction.sign({
     signer: owner2,
     transaction,
   });
-  const multisigTxExecution5Response = await aptos.transaction.submit.simple({
+  const multisigTxExecution5Response = await cedra.transaction.submit.simple({
     senderAuthenticator: owner2Authenticator5,
     transaction,
   });
-  await aptos.waitForTransaction({ transactionHash: multisigTxExecution5Response.hash });
+  await cedra.waitForTransaction({ transactionHash: multisigTxExecution5Response.hash });
 };
 
 const rejectAndApprove = async (approveOwner: Account, rejectOwner: Account, transactionId: number): Promise<void> => {
   console.log("Owner 1 rejects but owner 3 approves.");
-  const rejectTx = await aptos.transaction.build.simple({
+  const rejectTx = await cedra.transaction.build.simple({
     sender: approveOwner.accountAddress,
     data: {
       function: "0x1::multisig_account::reject_transaction",
@@ -448,14 +448,14 @@ const rejectAndApprove = async (approveOwner: Account, rejectOwner: Account, tra
     },
   });
 
-  const rejectSenderAuthenticator = aptos.transaction.sign({ signer: approveOwner, transaction: rejectTx });
-  const rejectTxResponse = await aptos.transaction.submit.simple({
+  const rejectSenderAuthenticator = cedra.transaction.sign({ signer: approveOwner, transaction: rejectTx });
+  const rejectTxResponse = await cedra.transaction.submit.simple({
     senderAuthenticator: rejectSenderAuthenticator,
     transaction: rejectTx,
   });
-  await aptos.waitForTransaction({ transactionHash: rejectTxResponse.hash });
+  await cedra.waitForTransaction({ transactionHash: rejectTxResponse.hash });
 
-  const approveTx = await aptos.transaction.build.simple({
+  const approveTx = await cedra.transaction.build.simple({
     sender: rejectOwner.accountAddress,
     data: {
       function: "0x1::multisig_account::approve_transaction",
@@ -463,12 +463,12 @@ const rejectAndApprove = async (approveOwner: Account, rejectOwner: Account, tra
     },
   });
 
-  const approveSenderAuthenticator = aptos.transaction.sign({ signer: rejectOwner, transaction: approveTx });
-  const approveTxResponse = await aptos.transaction.submit.simple({
+  const approveSenderAuthenticator = cedra.transaction.sign({ signer: rejectOwner, transaction: approveTx });
+  const approveTxResponse = await cedra.transaction.submit.simple({
     senderAuthenticator: approveSenderAuthenticator,
     transaction: approveTx,
   });
-  await aptos.waitForTransaction({ transactionHash: approveTxResponse.hash });
+  await cedra.waitForTransaction({ transactionHash: approveTxResponse.hash });
 };
 
 const main = async () => {

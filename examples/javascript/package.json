@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@aptos-labs/ts-sdk": "link:../..",
+    "@cedra-labs/ts-sdk": "link:../..",
     "npm-run-all": "4.1.5"
   }
 }

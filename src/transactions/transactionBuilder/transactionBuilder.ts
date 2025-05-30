@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 /**
@@ -7,7 +7,7 @@
  * and a signed transaction that can be simulated, signed and submitted to chain.
  */
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
-import { AptosConfig } from "../../api/aptosConfig";
+import { CedraConfig } from "../../api/cedraConfig";
 import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
 import {
   AnyPublicKey,
@@ -93,7 +93,7 @@ import { getFunctionParts } from "../../utils/helpers";
  * @param args.function - The function to be called, specified in the format "moduleAddress::moduleName::functionName".
  * @param args.functionArguments - The arguments to pass to the function.
  * @param args.typeArguments - The type arguments for the function.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.abi - The ABI to use for the transaction, if not using the RemoteABI.
  *
  * @returns TransactionPayload - The generated transaction payload, which can be of type TransactionPayloadScript,
@@ -142,7 +142,7 @@ export async function generateTransactionPayload(
     moduleAddress,
     moduleName,
     functionName,
-    aptosConfig: args.aptosConfig,
+    cedraConfig: args.cedraConfig,
     abi: args.abi,
     fetch: fetchEntryFunctionAbi,
   });
@@ -245,7 +245,7 @@ export function generateTransactionPayloadWithABI(
  *
  * @param args - The input data required to generate the view function payload.
  * @param args.function - The function identifier in the format "moduleAddress::moduleName::functionName".
- * @param args.aptosConfig - Configuration settings for the Aptos client.
+ * @param args.cedraConfig - Configuration settings for the Cedra client.
  * @param args.abi - The ABI (Application Binary Interface) of the module.
  *
  * @returns The generated payload for the view function call.
@@ -260,7 +260,7 @@ export async function generateViewFunctionPayload(args: InputViewFunctionDataWit
     moduleAddress,
     moduleName,
     functionName,
-    aptosConfig: args.aptosConfig,
+    cedraConfig: args.cedraConfig,
     abi: args.abi,
     fetch: fetchViewFunctionAbi,
   });
@@ -338,10 +338,10 @@ function generateTransactionPayloadScript(args: InputScriptData) {
 }
 
 /**
- * Generates a raw transaction that can be sent to the Aptos network.
+ * Generates a raw transaction that can be sent to the Cedra network.
  *
  * @param args - The arguments for generating the raw transaction.
- * @param args.aptosConfig - The configuration for the Aptos network.
+ * @param args.cedraConfig - The configuration for the Cedra network.
  * @param args.sender - The transaction's sender account address as a hex input.
  * @param args.payload - The transaction payload, which can be created using generateTransactionPayload().
  * @param args.options - Optional parameters for transaction generation.
@@ -352,19 +352,19 @@ function generateTransactionPayloadScript(args: InputScriptData) {
  * @category Transactions
  */
 export async function generateRawTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   sender: AccountAddressInput;
   payload: AnyTransactionPayloadInstance;
   options?: InputGenerateTransactionOptions;
   feePayerAddress?: AccountAddressInput;
 }): Promise<RawTransaction> {
-  const { aptosConfig, sender, payload, options, feePayerAddress } = args;
+  const { cedraConfig, sender, payload, options, feePayerAddress } = args;
 
   const getChainId = async () => {
-    if (NetworkToChainId[aptosConfig.network]) {
-      return { chainId: NetworkToChainId[aptosConfig.network] };
+    if (NetworkToChainId[cedraConfig.network]) {
+      return { chainId: NetworkToChainId[cedraConfig.network] };
     }
-    const info = await getLedgerInfo({ aptosConfig });
+    const info = await getLedgerInfo({ cedraConfig });
     return { chainId: info.chain_id };
   };
 
@@ -372,7 +372,7 @@ export async function generateRawTransaction(args: {
     if (options?.gasUnitPrice) {
       return { gasEstimate: options.gasUnitPrice };
     }
-    const estimation = await getGasPriceEstimation({ aptosConfig });
+    const estimation = await getGasPriceEstimation({ cedraConfig });
     return { gasEstimate: estimation.gas_estimate };
   };
 
@@ -382,12 +382,12 @@ export async function generateRawTransaction(args: {
         return options.accountSequenceNumber;
       }
 
-      return (await getInfo({ aptosConfig, accountAddress: sender })).sequence_number;
+      return (await getInfo({ cedraConfig, accountAddress: sender })).sequence_number;
     };
 
     /**
      * Check if is sponsored transaction to honor AIP-52
-     * {@link https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-52.md}
+     * {@link https://github.com/cedra-foundation/AIPs/blob/main/aips/aip-52.md}
      * @group Implementation
      * @category Transactions
      */
@@ -432,7 +432,7 @@ export async function generateRawTransaction(args: {
  * This function can create both simple and multi-agent transactions, allowing for flexible transaction handling.
  *
  * @param args - The input arguments for generating the transaction.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.sender - The transaction's sender account address as a hex input.
  * @param args.payload - The transaction payload, which can be created using `generateTransactionPayload()`.
  * @param args.options - Optional. Transaction options object.
@@ -455,7 +455,7 @@ export async function buildTransaction(args: InputGenerateMultiAgentRawTransacti
  * Note: we can start with one function to support all different payload/transaction types,
  * and if to complex to use, we could have function for each type
  *
- * @param args.aptosConfig AptosConfig
+ * @param args.cedraConfig CedraConfig
  * @param args.sender The transaction's sender account address as a hex input
  * @param args.payload The transaction payload - can create by using generateTransactionPayload()
  * @param args.options optional. Transaction options object
@@ -474,10 +474,10 @@ export async function buildTransaction(args: InputGenerateMultiAgentRawTransacti
  * @category Transactions
  */
 export async function buildTransaction(args: InputGenerateRawTransactionArgs): Promise<AnyRawTransaction> {
-  const { aptosConfig, sender, payload, options, feePayerAddress } = args;
+  const { cedraConfig, sender, payload, options, feePayerAddress } = args;
   // generate raw transaction
   const rawTxn = await generateRawTransaction({
-    aptosConfig,
+    cedraConfig,
     sender,
     payload,
     options,
@@ -504,7 +504,7 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
  * This function helps in preparing a transaction that can be simulated, allowing users to verify its validity and expected behavior.
  *
  * @param args - The input data required to generate the signed transaction for simulation.
- * @param args.transaction - An Aptos transaction type to sign.
+ * @param args.transaction - An Cedra transaction type to sign.
  * @param args.signerPublicKey - The public key of the signer.
  * @param args.secondarySignersPublicKeys - Optional. The public keys of secondary signers if it is a multi-signer transaction.
  * @param args.feePayerPublicKey - Optional. The public key of the fee payer in a sponsored transaction.
@@ -610,7 +610,7 @@ export function getAuthenticatorForSimulation(publicKey?: PublicKey) {
   }
 
   // Wrap the public key types below with AnyPublicKey as they are only support through single sender.
-  // Learn more about AnyPublicKey here - https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-55.md
+  // Learn more about AnyPublicKey here - https://github.com/cedra-foundation/AIPs/blob/main/aips/aip-55.md
   const convertToAnyPublicKey =
     KeylessPublicKey.isInstance(publicKey) ||
     FederatedKeylessPublicKey.isInstance(publicKey) ||
@@ -661,7 +661,7 @@ export function getAuthenticatorForSimulation(publicKey?: PublicKey) {
  * This function prepares the transaction by authenticating the sender and any additional signers based on the provided arguments.
  *
  * @param args - The input data required to generate the signed transaction.
- * @param args.transaction - An Aptos transaction type containing the details of the transaction.
+ * @param args.transaction - An Cedra transaction type containing the details of the transaction.
  * @param args.senderAuthenticator - The account authenticator of the transaction sender.
  * @param args.feePayerAuthenticator - The authenticator for the fee payer, required if the transaction has a fee payer address.
  * @param args.additionalSignersAuthenticators - Optional authenticators for additional signers in a multi-signer transaction.
@@ -768,7 +768,7 @@ export function generateUserTransactionHash(args: InputSubmitTransactionData): s
  * @param moduleAddress - The address of the module from which to fetch the ABI.
  * @param moduleName - The name of the module containing the function.
  * @param functionName - The name of the function whose ABI is being fetched.
- * @param aptosConfig - Configuration settings for Aptos.
+ * @param cedraConfig - Configuration settings for Cedra.
  * @param abi - An optional ABI to use if already available.
  * @param fetch - A function to fetch the ABI if it is not provided.
  * @group Implementation
@@ -779,7 +779,7 @@ async function fetchAbi<T extends FunctionABI>({
   moduleAddress,
   moduleName,
   functionName,
-  aptosConfig,
+  cedraConfig,
   abi,
   fetch,
 }: {
@@ -787,9 +787,9 @@ async function fetchAbi<T extends FunctionABI>({
   moduleAddress: string;
   moduleName: string;
   functionName: string;
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   abi?: T;
-  fetch: (moduleAddress: string, moduleName: string, functionName: string, aptosConfig: AptosConfig) => Promise<T>;
+  fetch: (moduleAddress: string, moduleName: string, functionName: string, cedraConfig: CedraConfig) => Promise<T>;
 }): Promise<T> {
   if (abi !== undefined) {
     return abi;
@@ -797,8 +797,8 @@ async function fetchAbi<T extends FunctionABI>({
 
   // We fetch the entry function ABI, and then pretend that we already had the ABI
   return memoizeAsync(
-    async () => fetch(moduleAddress, moduleName, functionName, aptosConfig),
-    `${key}-${aptosConfig.network}-${moduleAddress}-${moduleName}-${functionName}`,
+    async () => fetch(moduleAddress, moduleName, functionName, cedraConfig),
+    `${key}-${cedraConfig.network}-${moduleAddress}-${moduleName}-${functionName}`,
     1000 * 60 * 5, // 5 minutes
   )();
 }

@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import {
@@ -14,7 +14,7 @@ import {
 } from "../../../src";
 
 import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper";
-import { getAptosClient } from "../helper";
+import { getCedraClient } from "../helper";
 import { EPHEMERAL_KEY_PAIR, simpleCoinTransactionHeler as simpleCoinTransactionHelper } from "../transaction/helper";
 
 export const TEST_JWT_TOKENS = [
@@ -67,37 +67,37 @@ const KEYLESS_TEST_TIMEOUT = 12000;
 
 describe("keyless api", () => {
   const ephemeralKeyPair = EPHEMERAL_KEY_PAIR;
-  const { aptos } = getAptosClient();
+  const { cedra } = getCedraClient();
   const jwkAccount = Account.generate();
 
   beforeEach(async () => {
-    await aptos.fundAccount({
+    await cedra.fundAccount({
       accountAddress: jwkAccount.accountAddress,
       amount: FUND_AMOUNT,
     });
-    const jwkTransaction = await aptos.updateFederatedKeylessJwkSetTransaction({
+    const jwkTransaction = await cedra.updateFederatedKeylessJwkSetTransaction({
       sender: jwkAccount,
       iss: "test.federated.oidc.provider",
-      jwksUrl: "https://github.com/aptos-labs/aptos-core/raw/main/types/src/jwks/rsa/secure_test_jwk.json",
+      jwksUrl: "https://github.com/cedra-labs/cedra-core/raw/main/types/src/jwks/rsa/secure_test_jwk.json",
     });
-    const committedJwkTxn = await aptos.signAndSubmitTransaction({ signer: jwkAccount, transaction: jwkTransaction });
-    await aptos.waitForTransaction({ transactionHash: committedJwkTxn.hash });
+    const committedJwkTxn = await cedra.signAndSubmitTransaction({ signer: jwkAccount, transaction: jwkTransaction });
+    await cedra.waitForTransaction({ transactionHash: committedJwkTxn.hash });
   });
 
   test(
     "installs jwks for an auth0 iss",
     async () => {
       const sender = Account.generate();
-      await aptos.fundAccount({
+      await cedra.fundAccount({
         accountAddress: sender.accountAddress,
         amount: FUND_AMOUNT,
       });
-      const jwkTransaction = await aptos.updateFederatedKeylessJwkSetTransaction({
+      const jwkTransaction = await cedra.updateFederatedKeylessJwkSetTransaction({
         sender,
         iss: "https://dev-qtdgjv22jh0v1k7g.us.auth0.com/",
       });
-      const committedJwkTxn = await aptos.signAndSubmitTransaction({ signer: sender, transaction: jwkTransaction });
-      await aptos.waitForTransaction({ transactionHash: committedJwkTxn.hash });
+      const committedJwkTxn = await cedra.signAndSubmitTransaction({ signer: sender, transaction: jwkTransaction });
+      await cedra.waitForTransaction({ transactionHash: committedJwkTxn.hash });
     },
     KEYLESS_TEST_TIMEOUT,
   );
@@ -106,16 +106,16 @@ describe("keyless api", () => {
     "installs jwks for a firebase iss",
     async () => {
       const sender = Account.generate();
-      await aptos.fundAccount({
+      await cedra.fundAccount({
         accountAddress: sender.accountAddress,
         amount: FUND_AMOUNT,
       });
-      const jwkTransaction = await aptos.updateFederatedKeylessJwkSetTransaction({
+      const jwkTransaction = await cedra.updateFederatedKeylessJwkSetTransaction({
         sender,
-        iss: "https://securetoken.google.com/aptos-build",
+        iss: "https://securetoken.google.com/cedra-build",
       });
-      const committedJwkTxn = await aptos.signAndSubmitTransaction({ signer: sender, transaction: jwkTransaction });
-      await aptos.waitForTransaction({ transactionHash: committedJwkTxn.hash });
+      const committedJwkTxn = await cedra.signAndSubmitTransaction({ signer: sender, transaction: jwkTransaction });
+      await cedra.waitForTransaction({ transactionHash: committedJwkTxn.hash });
     },
     KEYLESS_TEST_TIMEOUT,
   );
@@ -134,7 +134,7 @@ describe("keyless api", () => {
       pepper: new Uint8Array(31),
     });
     const recipient = Account.generate();
-    await expect(simpleCoinTransactionHelper(aptos, account, recipient)).rejects.toThrow(
+    await expect(simpleCoinTransactionHelper(cedra, account, recipient)).rejects.toThrow(
       "JWK with kid 'test-rsa2' for issuer 'test.oidc.provider' not found.",
     );
   });
@@ -143,7 +143,7 @@ describe("keyless api", () => {
     "submitting a keyless txn with a federated keyless account with an outdated JWK should error with meaningful message",
     async () => {
       // This deserializes a keyless account derived from a JWT with a kid that is no longer valid.
-      const account = await aptos.deriveKeylessAccount({
+      const account = await cedra.deriveKeylessAccount({
         jwt: TEST_FEDERATED_JWT_TOKENS[0],
         ephemeralKeyPair,
         jwkAddress: jwkAccount.accountAddress,
@@ -151,15 +151,15 @@ describe("keyless api", () => {
       const recipient = Account.generate();
 
       // Now rotate the JWKs
-      const jwkTransaction = await aptos.updateFederatedKeylessJwkSetTransaction({
+      const jwkTransaction = await cedra.updateFederatedKeylessJwkSetTransaction({
         sender: jwkAccount,
         iss: "test.federated.oidc.provider",
         jwksUrl: "https://dev-qtdgjv22jh0v1k7g.us.auth0.com/.well-known/jwks.json",
       });
-      const committedJwkTxn = await aptos.signAndSubmitTransaction({ signer: jwkAccount, transaction: jwkTransaction });
-      await aptos.waitForTransaction({ transactionHash: committedJwkTxn.hash });
+      const committedJwkTxn = await cedra.signAndSubmitTransaction({ signer: jwkAccount, transaction: jwkTransaction });
+      await cedra.waitForTransaction({ transactionHash: committedJwkTxn.hash });
 
-      await expect(simpleCoinTransactionHelper(aptos, account, recipient)).rejects.toThrow(
+      await expect(simpleCoinTransactionHelper(cedra, account, recipient)).rejects.toThrow(
         "JWK with kid 'test-rsa' for issuer 'test.federated.oidc.provider' not found",
       );
     },
@@ -182,10 +182,10 @@ describe("keyless api", () => {
       async () => {
         const sender =
           jwkAddress === undefined
-            ? await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair })
-            : await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, jwkAddress });
+            ? await cedra.deriveKeylessAccount({ jwt, ephemeralKeyPair })
+            : await cedra.deriveKeylessAccount({ jwt, ephemeralKeyPair, jwkAddress });
         const recipient = Account.generate();
-        await simpleCoinTransactionHelper(aptos, sender, recipient);
+        await simpleCoinTransactionHelper(cedra, sender, recipient);
       },
       KEYLESS_TEST_TIMEOUT,
     );
@@ -193,15 +193,15 @@ describe("keyless api", () => {
     test(
       "creates the keyless account via the static constructor and submits a transaction",
       async () => {
-        const pepper = await aptos.getPepper({ jwt, ephemeralKeyPair });
-        const proof = await aptos.getProof({ jwt, ephemeralKeyPair, pepper });
+        const pepper = await cedra.getPepper({ jwt, ephemeralKeyPair });
+        const proof = await cedra.getProof({ jwt, ephemeralKeyPair, pepper });
 
         const account =
           jwkAddress === undefined
             ? KeylessAccount.create({ proof, jwt, ephemeralKeyPair, pepper })
             : FederatedKeylessAccount.create({ proof, jwt, ephemeralKeyPair, pepper, jwkAddress });
         const recipient = Account.generate();
-        await simpleCoinTransactionHelper(aptos, account, recipient);
+        await simpleCoinTransactionHelper(cedra, account, recipient);
       },
       KEYLESS_TEST_TIMEOUT,
     );
@@ -211,10 +211,10 @@ describe("keyless api", () => {
       async () => {
         const sender =
           jwkAddress === undefined
-            ? await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, uidKey: "email" })
-            : await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, jwkAddress, uidKey: "email" });
+            ? await cedra.deriveKeylessAccount({ jwt, ephemeralKeyPair, uidKey: "email" })
+            : await cedra.deriveKeylessAccount({ jwt, ephemeralKeyPair, jwkAddress, uidKey: "email" });
         const recipient = Account.generate();
-        await simpleCoinTransactionHelper(aptos, sender, recipient);
+        await simpleCoinTransactionHelper(cedra, sender, recipient);
       },
       KEYLESS_TEST_TIMEOUT,
     );
@@ -224,10 +224,10 @@ describe("keyless api", () => {
       async () => {
         const sender =
           jwkAddress === undefined
-            ? await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, pepper: new Uint8Array(31) })
-            : await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, jwkAddress, pepper: new Uint8Array(31) });
+            ? await cedra.deriveKeylessAccount({ jwt, ephemeralKeyPair, pepper: new Uint8Array(31) })
+            : await cedra.deriveKeylessAccount({ jwt, ephemeralKeyPair, jwkAddress, pepper: new Uint8Array(31) });
         const recipient = Account.generate();
-        await simpleCoinTransactionHelper(aptos, sender, recipient);
+        await simpleCoinTransactionHelper(cedra, sender, recipient);
       },
       KEYLESS_TEST_TIMEOUT,
     );
@@ -244,13 +244,13 @@ describe("keyless api", () => {
         };
         const sender =
           jwkAddress === undefined
-            ? await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback })
-            : await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback, jwkAddress });
+            ? await cedra.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback })
+            : await cedra.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback, jwkAddress });
         expect(succeeded).toBeFalsy();
         await sender.waitForProofFetch();
         expect(succeeded).toBeTruthy();
         const recipient = Account.generate();
-        await simpleCoinTransactionHelper(aptos, sender, recipient);
+        await simpleCoinTransactionHelper(cedra, sender, recipient);
       },
       KEYLESS_TEST_TIMEOUT,
     );
@@ -261,19 +261,19 @@ describe("keyless api", () => {
         const proofFetchCallback = async () => {};
         const sender =
           jwkAddress === undefined
-            ? await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback })
-            : await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback, jwkAddress });
-        await aptos.fundAccount({
+            ? await cedra.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback })
+            : await cedra.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback, jwkAddress });
+        await cedra.fundAccount({
           accountAddress: sender.accountAddress,
           amount: FUND_AMOUNT,
         });
-        const transaction = await aptos.transferCoinTransaction({
+        const transaction = await cedra.transferCoinTransaction({
           sender: sender.accountAddress,
           recipient: sender.accountAddress,
           amount: TRANSFER_AMOUNT,
         });
-        const pendingTxn = await aptos.signAndSubmitTransaction({ signer: sender, transaction });
-        await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+        const pendingTxn = await cedra.signAndSubmitTransaction({ signer: sender, transaction });
+        await cedra.waitForTransaction({ transactionHash: pendingTxn.hash });
       },
       KEYLESS_TEST_TIMEOUT,
     );
@@ -284,13 +284,13 @@ describe("keyless api", () => {
         const proofFetchCallback = async () => {};
         const sender =
           jwkAddress === undefined
-            ? await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback })
-            : await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback, jwkAddress });
-        await aptos.fundAccount({
+            ? await cedra.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback })
+            : await cedra.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback, jwkAddress });
+        await cedra.fundAccount({
           accountAddress: sender.accountAddress,
           amount: FUND_AMOUNT,
         });
-        const transaction = await aptos.transferCoinTransaction({
+        const transaction = await cedra.transferCoinTransaction({
           sender: sender.accountAddress,
           recipient: sender.accountAddress,
           amount: TRANSFER_AMOUNT,
@@ -309,14 +309,14 @@ describe("keyless api", () => {
 
         const sender =
           jwkAddress === undefined
-            ? await aptos.deriveKeylessAccount({
+            ? await cedra.deriveKeylessAccount({
                 jwt,
                 ephemeralKeyPair,
                 uidKey: "email",
                 pepper: new Uint8Array(31),
                 proofFetchCallback,
               })
-            : await aptos.deriveKeylessAccount({
+            : await cedra.deriveKeylessAccount({
                 jwt,
                 ephemeralKeyPair,
                 uidKey: "email",
@@ -325,7 +325,7 @@ describe("keyless api", () => {
                 jwkAddress,
               });
         const recipient = Account.generate();
-        await simpleCoinTransactionHelper(aptos, sender, recipient);
+        await simpleCoinTransactionHelper(cedra, sender, recipient);
       },
       KEYLESS_TEST_TIMEOUT,
     );
@@ -335,18 +335,18 @@ describe("keyless api", () => {
       async () => {
         const sender =
           jwkAddress === undefined
-            ? await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair })
-            : await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, jwkAddress });
-        await aptos.fundAccount({
+            ? await cedra.deriveKeylessAccount({ jwt, ephemeralKeyPair })
+            : await cedra.deriveKeylessAccount({ jwt, ephemeralKeyPair, jwkAddress });
+        await cedra.fundAccount({
           accountAddress: sender.accountAddress,
           amount: FUND_AMOUNT,
         });
-        const transaction = await aptos.transferCoinTransaction({
+        const transaction = await cedra.transferCoinTransaction({
           sender: sender.accountAddress,
           recipient: sender.accountAddress,
           amount: TRANSFER_AMOUNT,
         });
-        await aptos.transaction.simulate.simple({ signerPublicKey: sender.publicKey, transaction });
+        await cedra.transaction.simulate.simple({ signerPublicKey: sender.publicKey, transaction });
       },
       KEYLESS_TEST_TIMEOUT,
     );
@@ -356,11 +356,11 @@ describe("keyless api", () => {
       async () => {
         const sender =
           jwkAddress === undefined
-            ? await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair })
-            : await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, jwkAddress });
+            ? await cedra.deriveKeylessAccount({ jwt, ephemeralKeyPair })
+            : await cedra.deriveKeylessAccount({ jwt, ephemeralKeyPair, jwkAddress });
         const message = "hello world";
         const signature = sender.sign(message);
-        expect(await sender.verifySignatureAsync({ aptosConfig: aptos.config, message, signature })).toBe(true);
+        expect(await sender.verifySignatureAsync({ cedraConfig: cedra.config, message, signature })).toBe(true);
       },
       KEYLESS_TEST_TIMEOUT,
     );
@@ -370,8 +370,8 @@ describe("keyless api", () => {
       async () => {
         const sender =
           jwkAddress === undefined
-            ? await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair })
-            : await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, jwkAddress });
+            ? await cedra.deriveKeylessAccount({ jwt, ephemeralKeyPair })
+            : await cedra.deriveKeylessAccount({ jwt, ephemeralKeyPair, jwkAddress });
         const bytes = sender.bcsToBytes();
         const deserializedAccount =
           jwkAddress === undefined ? KeylessAccount.fromBytes(bytes) : FederatedKeylessAccount.fromBytes(bytes);

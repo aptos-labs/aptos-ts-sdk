@@ -1,5 +1,5 @@
 script {
-    use aptos_framework::coin;
+    use cedra_framework::coin;
 
     fun coin_transfer<Coin>(
         sender: &signer,

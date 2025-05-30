@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account } from "../account";
@@ -25,7 +25,7 @@ import {
 } from "../internal/ans";
 import { GetANSNameResponse } from "../types";
 import { InputGenerateTransactionOptions } from "../transactions/types";
-import { AptosConfig } from "./aptosConfig";
+import { CedraConfig } from "./cedraConfig";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 /**
@@ -34,32 +34,32 @@ import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
  */
 export class ANS {
   /**
-   * Initializes a new instance of the Aptos class with the provided configuration.
-   * This allows you to interact with the Aptos blockchain using the specified network settings.
+   * Initializes a new instance of the Cedra class with the provided configuration.
+   * This allows you to interact with the Cedra blockchain using the specified network settings.
    *
-   * @param config - The configuration settings for the Aptos client.
+   * @param config - The configuration settings for the Cedra client.
    * @param config.network - The network to connect to (e.g., mainnet, testnet).
-   * @param config.nodeUrl - The URL of the Aptos node to connect to.
+   * @param config.nodeUrl - The URL of the Cedra node to connect to.
    * @param config.faucetUrl - The URL of the faucet to use for funding accounts.
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
    * async function runExample() {
-   *     // Create a configuration for connecting to the Aptos testnet
-   *     const config = new AptosConfig({ network: Network.TESTNET });
+   *     // Create a configuration for connecting to the Cedra testnet
+   *     const config = new CedraConfig({ network: Network.TESTNET });
    *
-   *     // Initialize the Aptos client with the configuration
-   *     const aptos = new Aptos(config);
+   *     // Initialize the Cedra client with the configuration
+   *     const cedra = new Cedra(config);
    *
-   *     console.log("Aptos client initialized:", aptos);
+   *     console.log("Cedra client initialized:", cedra);
    * }
    * runExample().catch(console.error);
    * ```
    * @group ANS
    */
-  constructor(readonly config: AptosConfig) {}
+  constructor(readonly config: CedraConfig) {}
 
   /**
    * Retrieve the owner address of a specified domain name or subdomain name from the contract.
@@ -71,14 +71,14 @@ export class ANS {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
-   *   // Retrieve the owner address of "test.aptos"
-   *   const owner = await aptos.getOwnerAddress({ name: "test.aptos" });
+   *   // Retrieve the owner address of "test.cedra"
+   *   const owner = await cedra.getOwnerAddress({ name: "test.cedra" });
    *   console.log(owner); // Logs the owner address or undefined if not owned
    * }
    * runExample().catch(console.error);
@@ -86,7 +86,7 @@ export class ANS {
    * @group ANS
    */
   async getOwnerAddress(args: { name: string }): Promise<AccountAddress | undefined> {
-    return getOwnerAddress({ aptosConfig: this.config, ...args });
+    return getOwnerAddress({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -99,14 +99,14 @@ export class ANS {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
-   *   // Get the expiration time for the domain "test.aptos"
-   *   const exp = await aptos.getExpiration({ name: "test.aptos" });
+   *   // Get the expiration time for the domain "test.cedra"
+   *   const exp = await cedra.getExpiration({ name: "test.cedra" });
    *
    *   // Log the expiration date
    *   console.log(new Date(exp)); // Outputs the expiration date
@@ -116,7 +116,7 @@ export class ANS {
    * @group ANS
    */
   async getExpiration(args: { name: string }): Promise<number | undefined> {
-    return getExpiration({ aptosConfig: this.config, ...args });
+    return getExpiration({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -131,14 +131,14 @@ export class ANS {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Retrieve the target address for the specified domain name
-   *   const targetAddr = await aptos.getTargetAddress({ name: "test.aptos" });
+   *   const targetAddr = await cedra.getTargetAddress({ name: "test.cedra" });
    *
    *   console.log(targetAddr); // Logs the target address, e.g., 0x123...
    * }
@@ -147,7 +147,7 @@ export class ANS {
    * @group ANS
    */
   async getTargetAddress(args: { name: string }): Promise<AccountAddress | undefined> {
-    return getTargetAddress({ aptosConfig: this.config, ...args });
+    return getTargetAddress({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -156,7 +156,7 @@ export class ANS {
    *
    * @param args - The arguments for setting the target address.
    * @param args.sender - The account initiating the transaction.
-   * @param args.name - A string representing the domain or subdomain name (e.g., "test.aptos").
+   * @param args.name - A string representing the domain or subdomain name (e.g., "test.cedra").
    * @param args.address - The AccountAddressInput of the address to set the domain or subdomain to.
    * @param args.options - Optional settings for generating the transaction.
    *
@@ -164,24 +164,24 @@ export class ANS {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Setting the target address for a domain name
    *   const sender = Account.generate(); // replace with a real account
    *   const address = "0x1"; // replace with a real account address
    *
-   *   await aptos.setTargetAddress({
+   *   await cedra.setTargetAddress({
    *     sender: sender,
-   *     name: "test.aptos",
+   *     name: "test.cedra",
    *     address: address,
    *   });
    *
-   *   const targetAddress = await aptos.getTargetAddress({ name: "test.aptos" });
-   *   console.log(targetAddress); // Should log the address set for "test.aptos"
+   *   const targetAddress = await cedra.getTargetAddress({ name: "test.cedra" });
+   *   console.log(targetAddress); // Should log the address set for "test.cedra"
    * }
    * runExample().catch(console.error);
    * ```
@@ -193,7 +193,7 @@ export class ANS {
     address: AccountAddressInput;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    return setTargetAddress({ aptosConfig: this.config, ...args });
+    return setTargetAddress({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -206,14 +206,14 @@ export class ANS {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Retrieve the primary name for the specified account address
-   *   const name = await aptos.getPrimaryName({ address: "0x1" }); // replace with a real account address
+   *   const name = await cedra.getPrimaryName({ address: "0x1" }); // replace with a real account address
    *   console.log(name);
    * }
    * runExample().catch(console.error);
@@ -221,7 +221,7 @@ export class ANS {
    * @group ANS
    */
   async getPrimaryName(args: { address: AccountAddressInput }): Promise<string | undefined> {
-    return getPrimaryName({ aptosConfig: this.config, ...args });
+    return getPrimaryName({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -230,25 +230,25 @@ export class ANS {
    *
    * @param args - The arguments for setting the primary name.
    * @param args.sender - The sender account.
-   * @param args.name - A string representing the name to set as primary (e.g., "test.aptos").
+   * @param args.name - A string representing the name to set as primary (e.g., "test.cedra").
    * @param args.options - Optional transaction options.
    *
    * @returns SimpleTransaction
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Set the primary name for the sender account
    *   const sender = Account.generate(); // replace with a real account
-   *   await aptos.setPrimaryName({ sender, name: "test.aptos" });
+   *   await cedra.setPrimaryName({ sender, name: "test.cedra" });
    *
-   *   const primaryName = await aptos.getPrimaryName({ address: sender.accountAddress });
-   *   console.log("Primary Name:", primaryName); // Should log: "Primary Name: test.aptos"
+   *   const primaryName = await cedra.getPrimaryName({ address: sender.accountAddress });
+   *   console.log("Primary Name:", primaryName); // Should log: "Primary Name: test.cedra"
    * }
    * runExample().catch(console.error);
    * ```
@@ -259,7 +259,7 @@ export class ANS {
     name?: string;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    return setPrimaryName({ aptosConfig: this.config, ...args });
+    return setPrimaryName({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -269,7 +269,7 @@ export class ANS {
    *
    * @param args.sender - The sender account.
    * @param args.name - A string of the name to register. This can be inclusive or exclusive of the .apt suffix. Examples include:
-   * "test", "test.apt", "test.aptos.apt", etc.
+   * "test", "test.apt", "test.cedra.apt", etc.
    * @param args.expiration  - An object with the expiration policy of the name.
    * @param args.expiration.policy - 'domain' | 'subdomain:follow-domain' | 'subdomain:independent'.
    * - domain: Years is required and the name will expire after the given number of years.
@@ -287,16 +287,16 @@ export class ANS {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Registering a subdomain name assuming def.apt is already registered and belongs to the sender alice.
-   *   const txn = await aptos.registerName({
+   *   const txn = await cedra.registerName({
    *     sender: "0x1", // replace with a real sender account
-   *     name: "test.aptos.apt",
+   *     name: "test.cedra.apt",
    *     expiration: {
    *       policy: "subdomain:independent",
    *       expirationDate: Date.now() + 30 * 24 * 60 * 60 * 1000, // expires in 30 days
@@ -309,8 +309,8 @@ export class ANS {
    * ```
    * @group ANS
    */
-  async registerName(args: Omit<RegisterNameParameters, "aptosConfig">): Promise<SimpleTransaction> {
-    return registerName({ aptosConfig: this.config, ...args });
+  async registerName(args: Omit<RegisterNameParameters, "cedraConfig">): Promise<SimpleTransaction> {
+    return registerName({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -327,14 +327,14 @@ export class ANS {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Renew the domain "test" for one year
-   *   const transaction = await aptos.renewDomain({
+   *   const transaction = await cedra.renewDomain({
    *     sender: Account.generate(), // replace with a real account
    *     name: "test"
    *   });
@@ -351,28 +351,28 @@ export class ANS {
     years?: 1;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    return renewDomain({ aptosConfig: this.config, ...args });
+    return renewDomain({ cedraConfig: this.config, ...args });
   }
 
   /**
    * Fetches a single name from the indexer based on the provided name argument.
    *
    * @param args - The arguments for retrieving the name.
-   * @param args.name - A string of the name to retrieve, e.g. "test.aptos.apt" or "test.apt" or "test".
+   * @param args.name - A string of the name to retrieve, e.g. "test.cedra.apt" or "test.apt" or "test".
    *                    Can be inclusive or exclusive of the .apt suffix and can be a subdomain.
    *
    * @returns A promise of an ANSName or undefined if the name is not active.
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *     // Fetching a name from the indexer
-   *     const name = await aptos.getName({ name: "test.aptos" }); // replace with a real name
+   *     const name = await cedra.getName({ name: "test.cedra" }); // replace with a real name
    *     console.log(name);
    * }
    * runExample().catch(console.error);
@@ -380,7 +380,7 @@ export class ANS {
    * @group ANS
    */
   async getName(args: { name: string }): Promise<GetANSNameResponse[0] | undefined> {
-    return getName({ aptosConfig: this.config, ...args });
+    return getName({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -398,14 +398,14 @@ export class ANS {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Fetch account names for a specific address
-   *   const accountNames = await aptos.getAccountNames({
+   *   const accountNames = await cedra.getAccountNames({
    *     accountAddress: "0x1", // replace with a real account address
    *     options: {
    *       limit: 10, // specify how many names to fetch
@@ -420,7 +420,7 @@ export class ANS {
    * @group ANS
    */
   async getAccountNames(args: GetAccountNamesArgs): Promise<GetANSNameResponse> {
-    return getAccountNames({ aptosConfig: this.config, ...args });
+    return getAccountNames({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -437,14 +437,14 @@ export class ANS {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Fetching all top-level domain names for a specific account
-   *   const domains = await aptos.getAccountDomains({
+   *   const domains = await cedra.getAccountDomains({
    *     accountAddress: "0x1", // replace with a real account address
    *     options: {
    *       limit: 10, // specify the number of names to fetch
@@ -463,7 +463,7 @@ export class ANS {
    * @group ANS
    */
   async getAccountDomains(args: GetAccountDomainsArgs): Promise<GetANSNameResponse> {
-    return getAccountDomains({ aptosConfig: this.config, ...args });
+    return getAccountDomains({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -481,14 +481,14 @@ export class ANS {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *     // Fetching subdomain names for a specific account
-   *     const subdomains = await aptos.getAccountSubdomains({
+   *     const subdomains = await cedra.getAccountSubdomains({
    *         accountAddress: "0x1", // replace with a real account address
    *         options: {
    *             limit: 10, // specify the number of subdomains to fetch
@@ -504,7 +504,7 @@ export class ANS {
    * @group ANS
    */
   async getAccountSubdomains(args: GetAccountSubdomainsArgs): Promise<GetANSNameResponse> {
-    return getAccountSubdomains({ aptosConfig: this.config, ...args });
+    return getAccountSubdomains({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -522,14 +522,14 @@ export class ANS {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Fetching subdomains for a specific domain
-   *   const subdomains = await aptos.getDomainSubdomains({
+   *   const subdomains = await cedra.getDomainSubdomains({
    *     domain: "test", // replace with your domain
    *     options: {
    *       limit: 10, // specify the number of subdomains to fetch
@@ -545,6 +545,6 @@ export class ANS {
    * @group ANS
    */
   async getDomainSubdomains(args: GetDomainSubdomainsArgs): Promise<GetANSNameResponse> {
-    return getDomainSubdomains({ aptosConfig: this.config, ...args });
+    return getDomainSubdomains({ cedraConfig: this.config, ...args });
   }
 }

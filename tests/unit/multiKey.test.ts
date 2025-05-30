@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { Deserializer, Ed25519PublicKey, Secp256k1PublicKey, MultiKey } from "../../src";

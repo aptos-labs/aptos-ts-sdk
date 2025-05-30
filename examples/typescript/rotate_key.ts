@@ -3,19 +3,19 @@
 import {
   Account,
   AccountAddress,
-  Aptos,
-  AptosConfig,
+  Cedra,
+  CedraConfig,
   Ed25519Account,
   Network,
   NetworkToNetworkName,
-} from "@aptos-labs/ts-sdk";
+} from "@cedra-labs/ts-sdk";
 
 const WIDTH = 16;
 
 // Set up the client
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
-const config = new AptosConfig({ network: APTOS_NETWORK });
-const aptos = new Aptos(config);
+const config = new CedraConfig({ network: APTOS_NETWORK });
+const cedra = new Cedra(config);
 
 function truncate(address: AccountAddress): string {
   return `${address.toString().substring(0, 6)}...${address
@@ -32,8 +32,8 @@ function formatAccountInfo(account: Ed25519Account): string {
   const alice = Account.generate();
   const bob = Account.generate();
 
-  await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: 1000000000 });
-  await aptos.fundAccount({ accountAddress: bob.accountAddress, amount: 1000000000 });
+  await cedra.fundAccount({ accountAddress: alice.accountAddress, amount: 1000000000 });
+  await cedra.fundAccount({ accountAddress: bob.accountAddress, amount: 1000000000 });
 
   console.log(
     `\n${"Account".padEnd(WIDTH)} ${"Address".padEnd(WIDTH)} ${"Auth Key".padEnd(WIDTH)} ${"Private Key".padEnd(
@@ -46,7 +46,7 @@ function formatAccountInfo(account: Ed25519Account): string {
   console.log("\n...rotating...".padStart(WIDTH));
 
   // Rotate the key!
-  await aptos.rotateAuthKey({ fromAccount: alice, toNewPrivateKey: bob.privateKey });
+  await cedra.rotateAuthKey({ fromAccount: alice, toNewPrivateKey: bob.privateKey });
 
   const aliceNew = Account.fromPrivateKey({ privateKey: bob.privateKey, address: alice.accountAddress });
 

@@ -80,7 +80,7 @@ export class ConfidentialWithdraw {
     });
   }
 
-  static FIAT_SHAMIR_SIGMA_DST = "AptosConfidentialAsset/WithdrawalProofFiatShamir";
+  static FIAT_SHAMIR_SIGMA_DST = "CedraConfidentialAsset/WithdrawalProofFiatShamir";
 
   static serializeSigmaProof(sigmaProof: ConfidentialWithdrawSigmaProof): Uint8Array {
     return concatBytes(

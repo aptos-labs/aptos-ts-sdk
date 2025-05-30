@@ -1,5 +1,5 @@
 module deployer::hello_world_authenticator {
-    use aptos_framework::auth_data::{Self, AbstractionAuthData};
+    use cedra_framework::auth_data::{Self, AbstractionAuthData};
 
     const EINVALID_SIGNATURE: u64 = 1;
 

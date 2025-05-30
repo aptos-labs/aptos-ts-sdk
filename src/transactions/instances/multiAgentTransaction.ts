@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -26,7 +26,7 @@ export class MultiAgentTransaction extends Serializable {
   public secondarySignerAddresses: AccountAddress[];
 
   /**
-   * Represents a MultiAgentTransaction that can be submitted to the Aptos chain for execution.
+   * Represents a MultiAgentTransaction that can be submitted to the Cedra chain for execution.
    * This class encapsulates the raw transaction data, the secondary signer addresses, and an optional fee payer address.
    *
    * @param rawTransaction The raw transaction data.

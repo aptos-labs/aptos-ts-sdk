@@ -1,11 +1,11 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { ed25519, RistrettoPoint } from "@noble/curves/ed25519";
 import { bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { H_RISTRETTO, RistPoint, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
 import { ed25519GenRandom, ed25519modN } from "./utils";
-import { HexInput } from "@aptos-labs/ts-sdk";
+import { HexInput } from "@cedra-labs/ts-sdk";
 
 export interface DecryptionRange {
   start?: bigint;

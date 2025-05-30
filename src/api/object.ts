@@ -1,48 +1,48 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { AnyNumber, GetObjectDataQueryResponse, OrderByArg, PaginationArgs } from "../types";
 import { AccountAddressInput } from "../core";
-import { AptosConfig } from "./aptosConfig";
+import { CedraConfig } from "./cedraConfig";
 import { ProcessorType } from "../utils";
 import { waitForIndexerOnVersion } from "./utils";
 import { getObjectDataByObjectAddress } from "../internal/object";
 
 /**
- * A class to query all `Object` related queries on Aptos.
+ * A class to query all `Object` related queries on Cedra.
  * @group Object
  */
-export class AptosObject {
+export class CedraObject {
   /**
-   * Creates an instance of the Aptos client with the provided configuration.
-   * This allows interaction with the Aptos blockchain using the specified settings.
+   * Creates an instance of the Cedra client with the provided configuration.
+   * This allows interaction with the Cedra blockchain using the specified settings.
    *
-   * @param config - The configuration settings for the Aptos client.
+   * @param config - The configuration settings for the Cedra client.
    * @param config.network - The network to connect to (e.g., mainnet, testnet).
-   * @param config.nodeUrl - The URL of the Aptos node to connect to.
+   * @param config.nodeUrl - The URL of the Cedra node to connect to.
    * @param config.faucetUrl - The URL of the faucet for funding accounts (optional).
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
    * async function runExample() {
-   *     // Create a configuration for the Aptos client
-   *     const config = new AptosConfig({
+   *     // Create a configuration for the Cedra client
+   *     const config = new CedraConfig({
    *         network: Network.TESTNET, // Specify the desired network
-   *         nodeUrl: "https://testnet.aptos.dev", // Replace with your node URL
+   *         nodeUrl: "https://testnet.cedra.dev", // Replace with your node URL
    *     });
    *
-   *     // Create an instance of the Aptos client
-   *     const aptos = new Aptos(config);
+   *     // Create an instance of the Cedra client
+   *     const cedra = new Cedra(config);
    *
-   *     console.log("Aptos client created successfully", aptos);
+   *     console.log("Cedra client created successfully", cedra);
    * }
    * runExample().catch(console.error);
    * ```
    * @group Object
    */
-  constructor(readonly config: AptosConfig) {}
+  constructor(readonly config: CedraConfig) {}
 
   /**
    * Fetches the object data based on the specified object address.
@@ -55,14 +55,14 @@ export class AptosObject {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Fetching object data by object address
-   *   const objectData = await aptos.getObjectDataByObjectAddress({
+   *   const objectData = await cedra.getObjectDataByObjectAddress({
    *     objectAddress: "0x1", // replace with a real object address
    *   });
    *
@@ -83,7 +83,7 @@ export class AptosObject {
       processorType: ProcessorType.OBJECT_PROCESSOR,
     });
     return getObjectDataByObjectAddress({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       ...args,
     });
   }

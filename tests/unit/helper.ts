@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable max-len */
 
@@ -198,7 +198,7 @@ export async function customClient<Req, Res>(requestOptions: ClientRequest<Req>)
     headers: customHeaders,
     body:
       // weird fetch issue
-      headers!["content-type"] === "application/x.aptos.signed_transaction+bcs" ? (body as any) : JSON.stringify(body),
+      headers!["content-type"] === "application/x.cedra.signed_transaction+bcs" ? (body as any) : JSON.stringify(body),
     method,
   };
 

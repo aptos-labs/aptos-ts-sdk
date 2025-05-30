@@ -1,4 +1,4 @@
-import { AptosConfig } from "../api/aptosConfig";
+import { CedraConfig } from "../api/cedraConfig";
 import { AccountAddressInput, AccountAddress } from "../core";
 import { PaginationArgs, OrderByArg, GetObjectDataQueryResponse, WhereArg } from "../types";
 import { GetObjectDataQuery } from "../types/generated/operations";
@@ -10,7 +10,7 @@ import { queryIndexer } from "./general";
  * Retrieves the current objects based on specified filtering and pagination options.
  *
  * @param args - The arguments for retrieving object data.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param [args.options] - Optional parameters for pagination and filtering.
  * @param [args.options.offset] - The number of items to skip before starting to collect the result set.
  * @param [args.options.limit] - The maximum number of items to return.
@@ -20,10 +20,10 @@ import { queryIndexer } from "./general";
  * @group Implementation
  */
 export async function getObjectData(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   options?: PaginationArgs & OrderByArg<GetObjectDataQueryResponse[0]> & WhereArg<CurrentObjectsBoolExp>;
 }): Promise<GetObjectDataQueryResponse> {
-  const { aptosConfig, options } = args;
+  const { cedraConfig, options } = args;
 
   const graphqlQuery = {
     query: GetObjectData,
@@ -35,7 +35,7 @@ export async function getObjectData(args: {
     },
   };
   const data = await queryIndexer<GetObjectDataQuery>({
-    aptosConfig,
+    cedraConfig,
     query: graphqlQuery,
     originMethod: "getObjectData",
   });
@@ -45,24 +45,24 @@ export async function getObjectData(args: {
 
 /**
  * Retrieves the object data associated with a specific object address.
- * This function allows you to access detailed information about an object in the Aptos blockchain.
+ * This function allows you to access detailed information about an object in the Cedra blockchain.
  *
  * @param args - The arguments for retrieving object data.
- * @param args.aptosConfig - The configuration for connecting to the Aptos blockchain.
+ * @param args.cedraConfig - The configuration for connecting to the Cedra blockchain.
  * @param args.objectAddress - The address of the object whose data is being retrieved.
  * @param args.options - Optional parameters for pagination and ordering of the results.
  * @group Implementation
  */
 export async function getObjectDataByObjectAddress(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   objectAddress: AccountAddressInput;
   options?: PaginationArgs & OrderByArg<GetObjectDataQueryResponse[0]>;
 }): Promise<GetObjectDataQueryResponse[0]> {
-  const { aptosConfig, objectAddress, options } = args;
+  const { cedraConfig, objectAddress, options } = args;
   const address = AccountAddress.from(objectAddress).toStringLong();
 
   const whereCondition: { object_address: { _eq: string } } = {
     object_address: { _eq: address },
   };
-  return (await getObjectData({ aptosConfig, options: { ...options, where: whereCondition } }))[0];
+  return (await getObjectData({ cedraConfig, options: { ...options, where: whereCondition } }))[0];
 }

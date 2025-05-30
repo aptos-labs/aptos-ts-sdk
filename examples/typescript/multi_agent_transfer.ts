@@ -2,24 +2,24 @@
 /* eslint-disable no-console */
 
 /**
- * This example shows how to use the Aptos client to create accounts, fund them, and transfer between them.
+ * This example shows how to use the Cedra client to create accounts, fund them, and transfer between them.
  */
 import {
   Account,
   AccountAddress,
-  Aptos,
-  AptosConfig,
+  Cedra,
+  CedraConfig,
   U64,
   parseTypeTag,
   Network,
   NetworkToNetworkName,
   InputViewFunctionJsonData,
-} from "@aptos-labs/ts-sdk";
+} from "@cedra-labs/ts-sdk";
 import dotenv from "dotenv";
 dotenv.config();
 
 // TODO: There currently isn't a way to use the APTOS_COIN in the COIN_STORE due to a regex
-const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
+const APTOS_COIN = "0x1::cedra_coin::CedraCoin";
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100_000_000;
 const TRANSFER_AMOUNT = 10;
@@ -28,19 +28,19 @@ const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ??
 
 /**
  * Prints the balance of an account
- * @param aptos
+ * @param cedra
  * @param name
  * @param address
  * @returns {Promise<*>}
  *
  */
-const balance = async (aptos: Aptos, name: string, address: AccountAddress): Promise<any> => {
+const balance = async (cedra: Cedra, name: string, address: AccountAddress): Promise<any> => {
   const payload: InputViewFunctionJsonData = {
     function: "0x1::coin::balance",
-    typeArguments: ["0x1::aptos_coin::AptosCoin"],
+    typeArguments: ["0x1::cedra_coin::CedraCoin"],
     functionArguments: [address.toString()],
   };
-  const [balance] = await aptos.viewJson<[number]>({ payload: payload });
+  const [balance] = await cedra.viewJson<[number]>({ payload: payload });
 
   console.log(`${name}'s balance is: ${balance}`);
   return Number(balance);
@@ -57,8 +57,8 @@ const example = async () => {
   );
 
   // Set up the client
-  const config = new AptosConfig({ network: APTOS_NETWORK });
-  const aptos = new Aptos(config);
+  const config = new CedraConfig({ network: APTOS_NETWORK });
+  const cedra = new Cedra(config);
 
   // Create two accounts
   const alice = Account.generate();
@@ -71,13 +71,13 @@ const example = async () => {
   // Fund the accounts
   console.log("\n=== Funding accounts ===\n");
 
-  const aliceFundTxn = await aptos.fundAccount({
+  const aliceFundTxn = await cedra.fundAccount({
     accountAddress: alice.accountAddress,
     amount: ALICE_INITIAL_BALANCE,
   });
   console.log("Alice's fund transaction: ", aliceFundTxn);
 
-  const bobFundTxn = await aptos.fundAccount({
+  const bobFundTxn = await cedra.fundAccount({
     accountAddress: bob.accountAddress,
     amount: BOB_INITIAL_BALANCE,
   });
@@ -85,8 +85,8 @@ const example = async () => {
 
   // Show the balances
   console.log("\n=== Balances ===\n");
-  const alicePreBalance = await balance(aptos, "Alice", alice.accountAddress);
-  const bobPreBalance = await balance(aptos, "Bob", bob.accountAddress);
+  const alicePreBalance = await balance(cedra, "Alice", alice.accountAddress);
+  const bobPreBalance = await balance(cedra, "Bob", bob.accountAddress);
   console.log(`Alice: ${alicePreBalance}`);
   console.log(`Bob: ${bobPreBalance}`);
 
@@ -95,17 +95,17 @@ const example = async () => {
 
   // Create the object
   console.log("\n=== Create an object owned by Alice ===\n");
-  const createObject = await aptos.transaction.build.simple({
+  const createObject = await cedra.transaction.build.simple({
     sender: alice.accountAddress,
     data: {
       bytecode: CREATE_OBJECT_SCRIPT,
       functionArguments: [],
     },
   });
-  const pendingObjectTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction: createObject });
-  const response = await aptos.waitForTransaction({ transactionHash: pendingObjectTxn.hash });
+  const pendingObjectTxn = await cedra.signAndSubmitTransaction({ signer: alice, transaction: createObject });
+  const response = await cedra.waitForTransaction({ transactionHash: pendingObjectTxn.hash });
 
-  const objects = await aptos.getAccountOwnedObjects({
+  const objects = await cedra.getAccountOwnedObjects({
     accountAddress: alice.accountAddress,
     minimumLedgerVersion: BigInt(response.version),
   });
@@ -118,7 +118,7 @@ const example = async () => {
   console.log(`Created object ${objectAddress} with transaction: ${pendingObjectTxn.hash}`);
 
   console.log("\n=== Transfer object ownership to Bob ===\n");
-  const transferTxn = await aptos.transaction.build.multiAgent({
+  const transferTxn = await cedra.transaction.build.multiAgent({
     sender: alice.accountAddress,
     secondarySignerAddresses: [bob.accountAddress],
     data: {
@@ -129,19 +129,19 @@ const example = async () => {
   });
 
   // Alice signs
-  const aliceSignature = aptos.transaction.sign({ signer: alice, transaction: transferTxn });
+  const aliceSignature = cedra.transaction.sign({ signer: alice, transaction: transferTxn });
 
   // Bob signs
-  const bobSignature = aptos.transaction.sign({ signer: bob, transaction: transferTxn });
+  const bobSignature = cedra.transaction.sign({ signer: bob, transaction: transferTxn });
 
-  const pendingTransferTxn = await aptos.transaction.submit.multiAgent({
+  const pendingTransferTxn = await cedra.transaction.submit.multiAgent({
     transaction: transferTxn,
     senderAuthenticator: aliceSignature,
     additionalSignersAuthenticators: [bobSignature],
   });
-  const transferResponse = await aptos.waitForTransaction({ transactionHash: pendingTransferTxn.hash });
+  const transferResponse = await cedra.waitForTransaction({ transactionHash: pendingTransferTxn.hash });
 
-  const bobObjectsAfter = await aptos.getAccountOwnedObjects({
+  const bobObjectsAfter = await cedra.getAccountOwnedObjects({
     accountAddress: bob.accountAddress,
     minimumLedgerVersion: BigInt(transferResponse.version),
   });
@@ -154,8 +154,8 @@ const example = async () => {
 
   // Check balance
   console.log("\n=== New Balances ===\n");
-  const alicePostBalance = await balance(aptos, "Alice", alice.accountAddress);
-  const bobPostBalance = await balance(aptos, "Bob", bob.accountAddress);
+  const alicePostBalance = await balance(cedra, "Alice", alice.accountAddress);
+  const bobPostBalance = await balance(cedra, "Bob", bob.accountAddress);
 
   if (alicePostBalance >= ALICE_INITIAL_BALANCE + TRANSFER_AMOUNT) throw new Error("Alice's balance is incorrect");
   if (bobPostBalance !== BOB_INITIAL_BALANCE - TRANSFER_AMOUNT) throw new Error("Bob's balance is incorrect");

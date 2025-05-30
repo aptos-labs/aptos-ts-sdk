@@ -3,17 +3,17 @@
 ![License][github-license]
 [![Discord][discord-image]][discord-url]
 [![NPM Package Version][npm-image-version]][npm-url]
-![Node Version](https://img.shields.io/node/v/%40aptos-labs%2Fts-sdk)
-![NPM bundle size](https://img.shields.io/bundlephobia/min/%40aptos-labs/ts-sdk)
+![Node Version](https://img.shields.io/node/v/%40cedra-labs%2Fts-sdk)
+![NPM bundle size](https://img.shields.io/bundlephobia/min/%40cedra-labs/ts-sdk)
 [![NPM Package Downloads][npm-image-downloads]][npm-url]
 
-The [TypeScript SDK](https://www.npmjs.com/package/@aptos-labs/ts-sdk) allows you to connect, explore, and interact with the Aptos blockchain. You can use it to request data, send transactions, set up test environments, and more!
+The [TypeScript SDK](https://www.npmjs.com/package/@cedra-labs/ts-sdk) allows you to connect, explore, and interact with the Cedra blockchain. You can use it to request data, send transactions, set up test environments, and more!
 
 ## Learn How To Use The TypeScript SDK
-### [Quickstart](https://aptos.dev/en/build/sdks/ts-sdk/quickstart)
-### [Tutorials](https://aptos.dev/en/build/sdks/ts-sdk)
+### [Quickstart](https://cedra.dev/en/build/sdks/ts-sdk/quickstart)
+### [Tutorials](https://cedra.dev/en/build/sdks/ts-sdk)
 ### [Examples](./examples/README.md)
-### [Reference Docs (For looking up specific functions)](https://aptos-labs.github.io/aptos-ts-sdk/)
+### [Reference Docs (For looking up specific functions)](https://cedra-labs.github.io/cedra-ts-sdk/)
 
 ## Installation
 
@@ -22,7 +22,7 @@ The [TypeScript SDK](https://www.npmjs.com/package/@aptos-labs/ts-sdk) allows yo
 Install with your favorite package manager such as npm, yarn, or pnpm:
 
 ```bash
-pnpm install @aptos-labs/ts-sdk
+pnpm install @cedra-labs/ts-sdk
 ```
 
 ### For use in a browser (<= version 1.9.1 only)
@@ -30,37 +30,37 @@ pnpm install @aptos-labs/ts-sdk
 You can add the SDK to your web application using a script tag:
 
 ```html
-<script src="https://unpkg.com/@aptos-labs/ts-sdk/dist/browser/index.global.js"></script>
+<script src="https://unpkg.com/@cedra-labs/ts-sdk/dist/browser/index.global.js"></script>
 ```
 
-Then, the SDK can be accessed through `window.aptosSDK`.
+Then, the SDK can be accessed through `window.cedraSDK`.
 
 ## Usage
 
-Create an `Aptos` client in order to access the SDK's functionality.
+Create an `Cedra` client in order to access the SDK's functionality.
 
 ```ts
-import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk"
+import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk"
 
-// You can use AptosConfig to choose which network to connect to
-const config = new AptosConfig({ network: Network.TESTNET });
-// Aptos is the main entrypoint for all functions
-const aptos = new Aptos(config);
+// You can use CedraConfig to choose which network to connect to
+const config = new CedraConfig({ network: Network.TESTNET });
+// Cedra is the main entrypoint for all functions
+const cedra = new Cedra(config);
 ```
 
-### Reading Data From Onchain ([Guide](https://aptos.dev/en/build/sdks/ts-sdk/fetch-data-via-sdk))
+### Reading Data From Onchain ([Guide](https://cedra.dev/en/build/sdks/ts-sdk/fetch-data-via-sdk))
 
 ---
 
 ```ts
-const fund = await aptos.getAccountInfo({ accountAddress: "0x123" });
-const modules = await aptos.getAccountModules({ accountAddress: "0x123" });
-const tokens = await aptos.getAccountOwnedTokens({ accountAddress: "0x123" });
+const fund = await cedra.getAccountInfo({ accountAddress: "0x123" });
+const modules = await cedra.getAccountModules({ accountAddress: "0x123" });
+const tokens = await cedra.getAccountOwnedTokens({ accountAddress: "0x123" });
 ```
 
 ### Account management (default to Ed25519)
 
-> Note: We introduce a Single Sender authentication (as introduced in [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263)). Generating an account defaults to Legacy Ed25519 authentication with the option to use the Single Sender unified authentication.
+> Note: We introduce a Single Sender authentication (as introduced in [AIP-55](https://github.com/cedra-foundation/AIPs/pull/263)). Generating an account defaults to Legacy Ed25519 authentication with the option to use the Single Sender unified authentication.
 
 ---
 
@@ -88,8 +88,8 @@ const account = await Account.fromPrivateKey({ privateKey });
 
 // Also, can use this function that resolves the provided private key type and derives the public key from it
 // to support key rotation and differentiation between Legacy Ed25519 and Unified authentications
-const aptos = new Aptos();
-const account = await aptos.deriveAccountFromPrivateKey({ privateKey });
+const cedra = new Cedra();
+const account = await cedra.deriveAccountFromPrivateKey({ privateKey });
 ```
 
 #### Derive from private key and address
@@ -116,29 +116,29 @@ const mnemonic = "various float stumble...";
 const account = Account.fromDerivationPath({ path, mnemonic });
 ```
 
-### Submit transaction ([Tutorial](https://aptos.dev/en/build/sdks/ts-sdk/building-transactions))
+### Submit transaction ([Tutorial](https://cedra.dev/en/build/sdks/ts-sdk/building-transactions))
 
 ---
 
 ```ts
 /**
- * This example shows how to use the Aptos SDK to send a transaction.
- * Don't forget to install @aptos-labs/ts-sdk before running this example!
+ * This example shows how to use the Cedra SDK to send a transaction.
+ * Don't forget to install @cedra-labs/ts-sdk before running this example!
  */
  
 import {
     Account,
-    Aptos,
-    AptosConfig,
+    Cedra,
+    CedraConfig,
     Network,
-} from "@aptos-labs/ts-sdk";
+} from "@cedra-labs/ts-sdk";
  
 async function example() {
     console.log("This example will create two accounts (Alice and Bob) and send a transaction transferring APT to Bob's account.");
  
     // 0. Setup the client and test accounts
-    const config = new AptosConfig({ network: Network.TESTNET });
-    const aptos = new Aptos(config);
+    const config = new CedraConfig({ network: Network.TESTNET });
+    const cedra = new Cedra(config);
  
     let alice = Account.generate();
     let bob = Account.generate();
@@ -148,11 +148,11 @@ async function example() {
     console.log(`Bob's address is: ${bob.accountAddress}`);
  
     console.log("\n=== Funding accounts ===\n");
-    await aptos.fundAccount({
+    await cedra.fundAccount({
         accountAddress: alice.accountAddress,
         amount: 100_000_000,
     });  
-    await aptos.fundAccount({
+    await cedra.fundAccount({
         accountAddress: bob.accountAddress,
         amount: 100,
     });
@@ -160,11 +160,11 @@ async function example() {
  
     // 1. Build
     console.log("\n=== 1. Building the transaction ===\n");
-    const transaction = await aptos.transaction.build.simple({
+    const transaction = await cedra.transaction.build.simple({
         sender: alice.accountAddress,
         data: {
-        // All transactions on Aptos are implemented via smart contracts.
-        function: "0x1::aptos_account::transfer",
+        // All transactions on Cedra are implemented via smart contracts.
+        function: "0x1::cedra_account::transfer",
         functionArguments: [bob.accountAddress, 100],
         },
     });
@@ -172,7 +172,7 @@ async function example() {
  
     // 2. Simulate (Optional)
     console.log("\n === 2. Simulating Response (Optional) === \n")
-    const [userTransactionResponse] = await aptos.transaction.simulate.simple({
+    const [userTransactionResponse] = await cedra.transaction.simulate.simple({
         signerPublicKey: alice.publicKey,
         transaction,
     });
@@ -180,7 +180,7 @@ async function example() {
  
     // 3. Sign
     console.log("\n=== 3. Signing transaction ===\n");
-    const senderAuthenticator = aptos.transaction.sign({
+    const senderAuthenticator = cedra.transaction.sign({
         signer: alice,
         transaction,
     });
@@ -188,7 +188,7 @@ async function example() {
  
     // 4. Submit
     console.log("\n=== 4. Submitting transaction ===\n");
-    const submittedTransaction = await aptos.transaction.submit.simple({
+    const submittedTransaction = await cedra.transaction.submit.simple({
         transaction,
         senderAuthenticator,
     });
@@ -197,7 +197,7 @@ async function example() {
  
     // 5. Wait for results
     console.log("\n=== 5. Waiting for result of transaction ===\n");
-    const executedTransaction = await aptos.waitForTransaction({ transactionHash: submittedTransaction.hash });
+    const executedTransaction = await cedra.waitForTransaction({ transactionHash: submittedTransaction.hash });
     console.log(executedTransaction)
 };
  
@@ -209,16 +209,16 @@ example();
 If you see an import error when you do this:
 
 ```typescript
-import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
 ```
 
 It could be that your `tsconfig.json` is not using `node`. Make sure your `moduleResolution` in the `tsconfig.json` is set to `node` instead of `bundler`.
 
 ## Contributing
 
-If you found a bug or would like to request a feature, please file an [issue](https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose).
-If, based on the discussion on an issue, you would like to offer a code change, please make a [pull request](https://github.com/aptos-labs/aptos-ts-sdk/pulls).
-If neither of these describes what you would like to contribute, check out the [contributing guide](https://github.com/aptos-labs/aptos-ts-sdk/blob/main/CONTRIBUTING.md).
+If you found a bug or would like to request a feature, please file an [issue](https://github.com/cedra-labs/cedra-ts-sdk/issues/new/choose).
+If, based on the discussion on an issue, you would like to offer a code change, please make a [pull request](https://github.com/cedra-labs/cedra-ts-sdk/pulls).
+If neither of these describes what you would like to contribute, check out the [contributing guide](https://github.com/cedra-labs/cedra-ts-sdk/blob/main/CONTRIBUTING.md).
 
 ## Running unit tests
 
@@ -227,10 +227,10 @@ To run a unit test in this repo, for example, the keyless end-to-end unit test i
 pnpm jest keyless.test.ts
 ```
 
-[npm-image-version]: https://img.shields.io/npm/v/%40aptos-labs%2Fts-sdk.svg
-[npm-image-downloads]: https://img.shields.io/npm/dm/%40aptos-labs%2Fts-sdk.svg
-[npm-url]: https://npmjs.org/package/@aptos-labs/ts-sdk
-[experimental-url]: https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/experimental
+[npm-image-version]: https://img.shields.io/npm/v/%40cedra-labs%2Fts-sdk.svg
+[npm-image-downloads]: https://img.shields.io/npm/dm/%40cedra-labs%2Fts-sdk.svg
+[npm-url]: https://npmjs.org/package/@cedra-labs/ts-sdk
+[experimental-url]: https://www.npmjs.com/package/@cedra-labs/ts-sdk/v/experimental
 [discord-image]: https://img.shields.io/discord/945856774056083548?label=Discord&logo=discord&style=flat
-[discord-url]: https://discord.gg/aptosnetwork
-[github-license]: https://img.shields.io/github/license/aptos-labs/aptos-ts-sdk
+[discord-url]: https://discord.gg/cedranetwork
+[github-license]: https://img.shields.io/github/license/cedra-labs/cedra-ts-sdk

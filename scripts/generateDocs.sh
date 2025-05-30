@@ -11,7 +11,7 @@ fi
 # References the Github repo directly
 echo "Generating docs for version $npm_package_version";
 
-if [ -d "docs/@aptos-labs/ts-sdk-$npm_package_version" ]; then
+if [ -d "docs/@cedra-labs/ts-sdk-$npm_package_version" ]; then
   echo "WARNING! Docs folder already exists, overwriting docs for version $npm_package_version";
 fi
 
@@ -19,14 +19,14 @@ fi
 #
 # Explanation of each flag:
 # --options typedoc.json - Loads options from the typedoc.json configuration file
-# --out "docs/@aptos-labs/ts-sdk-$npm_package_version" - Specifies the output directory for the generated documentation, 
+# --out "docs/@cedra-labs/ts-sdk-$npm_package_version" - Specifies the output directory for the generated documentation, 
 #   dynamically including the current npm package version in the path using the $npm_package_version variable
-# --plugin typedoc-plugin-missing-exports - Includes the plugin to include private code in the generated docs (needed to show the reference docs for the Aptos mixin implementation details)
+# --plugin typedoc-plugin-missing-exports - Includes the plugin to include private code in the generated docs (needed to show the reference docs for the Cedra mixin implementation details)
 # --cleanOutputDir - Clears the output directory before generating new documentation
 # --excludeInternal - Excludes internal symbols from the generated documentation (symbols marked with @internal in comments)
 # --includeVersion - Includes the version of the package in the generated documentation
 # --skipErrorChecking - TODO: Remove this flag when no longer needed. This avoids the docs build failing due to compiler errors in the tests folder. 
-npx typedoc src/index.ts --options typedoc.json --out "docs/@aptos-labs/ts-sdk-$npm_package_version" --plugin typedoc-plugin-missing-exports --internalModule PrivateCode --cleanOutputDir --excludeInternal --includeVersion --skipErrorChecking
+npx typedoc src/index.ts --options typedoc.json --out "docs/@cedra-labs/ts-sdk-$npm_package_version" --plugin typedoc-plugin-missing-exports --internalModule PrivateCode --cleanOutputDir --excludeInternal --includeVersion --skipErrorChecking
 
 
 # Update the main page
@@ -49,12 +49,12 @@ else
   # TODO: Make this more stable / a different way of generating that isn't just inserting a line
   {
     head -n $FIRST_LINE $INDEX_FILE;
-    echo "- [$LABEL - @aptos-labs/ts-sdk-$npm_package_version](@aptos-labs/ts-sdk-$npm_package_version)";
+    echo "- [$LABEL - @cedra-labs/ts-sdk-$npm_package_version](@cedra-labs/ts-sdk-$npm_package_version)";
     tail -n +$NEXT_LINE $INDEX_FILE;
   } > $INDEX_FILE.tmp && mv $INDEX_FILE.tmp $INDEX_FILE
 fi
 
 # Now update the redirect
-REDIRECT_FILE='docs/@aptos-labs/ts-sdk-latest/index.md';
-$(sed -i.bak "s/redirect_to:.*/redirect_to: \/@aptos-labs\/ts-sdk-${npm_package_version}/" $REDIRECT_FILE)
+REDIRECT_FILE='docs/@cedra-labs/ts-sdk-latest/index.md';
+$(sed -i.bak "s/redirect_to:.*/redirect_to: \/@cedra-labs\/ts-sdk-${npm_package_version}/" $REDIRECT_FILE)
 echo "Updated redirect $REDIRECT_FILE with version $npm_package_version for latest";

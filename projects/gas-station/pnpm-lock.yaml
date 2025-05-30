@@ -8,7 +8,7 @@ overrides:
   cross-spawn: '>=6.0.6'
 
 dependencies:
-  '@aptos-labs/ts-sdk':
+  '@cedra-labs/ts-sdk':
     specifier: ^1.36.0
     version: 1.36.0(axios@1.8.3)(got@11.8.6)
   axios:
@@ -40,14 +40,14 @@ devDependencies:
 
 packages:
 
-  /@aptos-labs/aptos-cli@1.0.2:
+  /@cedra-labs/cedra-cli@1.0.2:
     resolution: {integrity: sha512-PYPsd0Kk3ynkxNfe3S4fanI3DiUICCoh4ibQderbvjPFL5A0oK6F4lPEO2t0MDsQySTk2t4vh99Xjy6Bd9y+aQ==}
     hasBin: true
     dependencies:
       commander: 12.1.0
     dev: false
 
-  /@aptos-labs/aptos-client@1.1.0(axios@1.8.3)(got@11.8.6):
+  /@cedra-labs/cedra-client@1.1.0(axios@1.8.3)(got@11.8.6):
     resolution: {integrity: sha512-rkGVjQufVONAwnMcjIbdPRmJnAoqBFxd8IXVUBJIVlDXkPgjW+Vj0P3z31CxDFE4mVBN6Wpu30BeBzCW/+IDPQ==}
     engines: {node: '>=15.10.0'}
     peerDependencies:
@@ -58,23 +58,23 @@ packages:
       got: 11.8.6
     dev: false
 
-  /@aptos-labs/aptos-dynamic-transaction-composer@0.1.3:
+  /@cedra-labs/cedra-dynamic-transaction-composer@0.1.3:
     resolution: {integrity: sha512-bJl+Zq5QbhpcPIJakAkl9tnT3T02mxCYhZThQDhUmjsOZ5wMRlKJ0P7aaq1dmlybSHkVj7vRgOy2t86/NDKKng==}
     dev: false
 
-  /@aptos-labs/script-composer-pack@0.0.9:
+  /@cedra-labs/script-composer-pack@0.0.9:
     resolution: {integrity: sha512-Y3kA1rgF65HETgoTn2omDymsgO+fnZouPLrKJZ9sbxTGdOekIIHtGee3A2gk84eCqa02ZKBumZmP+IDCXRtU/g==}
     dependencies:
-      '@aptos-labs/aptos-dynamic-transaction-composer': 0.1.3
+      '@cedra-labs/cedra-dynamic-transaction-composer': 0.1.3
     dev: false
 
-  /@aptos-labs/ts-sdk@1.36.0(axios@1.8.3)(got@11.8.6):
+  /@cedra-labs/ts-sdk@1.36.0(axios@1.8.3)(got@11.8.6):
     resolution: {integrity: sha512-ViH6kuJCDtRtEl8p0cTIzU/RGH6qx7wJNdL4ZidLzRou8NnCSEkYBKamwVy6H1UHTIQM9wvMx+t4ADLPeloX/w==}
     engines: {node: '>=20.0.0'}
     dependencies:
-      '@aptos-labs/aptos-cli': 1.0.2
-      '@aptos-labs/aptos-client': 1.1.0(axios@1.8.3)(got@11.8.6)
-      '@aptos-labs/script-composer-pack': 0.0.9
+      '@cedra-labs/cedra-cli': 1.0.2
+      '@cedra-labs/cedra-client': 1.1.0(axios@1.8.3)(got@11.8.6)
+      '@cedra-labs/script-composer-pack': 0.0.9
       '@noble/curves': 1.8.1
       '@noble/hashes': 1.7.1
       '@scure/bip32': 1.6.2

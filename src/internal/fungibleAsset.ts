@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 /**
@@ -9,7 +9,7 @@
  * @group Implementation
  */
 
-import { AptosConfig } from "../api/aptosConfig";
+import { CedraConfig } from "../api/cedraConfig";
 import {
   AnyNumber,
   GetCurrentFungibleAssetBalancesResponse,
@@ -51,7 +51,7 @@ import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
  * This function allows you to filter and paginate through fungible asset metadata.
  *
  * @param args - The arguments for the function.
- * @param args.aptosConfig - The configuration for Aptos.
+ * @param args.cedraConfig - The configuration for Cedra.
  * @param [args.options] - Optional parameters for pagination and filtering.
  * @param [args.options.limit] - The maximum number of results to return.
  * @param [args.options.offset] - The number of results to skip before starting to collect the result set.
@@ -59,10 +59,10 @@ import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
  * @group Implementation
  */
 export async function getFungibleAssetMetadata(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   options?: PaginationArgs & WhereArg<FungibleAssetMetadataBoolExp>;
 }): Promise<GetFungibleAssetMetadataResponse> {
-  const { aptosConfig, options } = args;
+  const { cedraConfig, options } = args;
 
   const graphqlQuery = {
     query: GetFungibleAssetMetadata,
@@ -74,7 +74,7 @@ export async function getFungibleAssetMetadata(args: {
   };
 
   const data = await queryIndexer<GetFungibleAssetMetadataQuery>({
-    aptosConfig,
+    cedraConfig,
     query: graphqlQuery,
     originMethod: "getFungibleAssetMetadata",
   });
@@ -87,7 +87,7 @@ export async function getFungibleAssetMetadata(args: {
  * This function allows you to filter and paginate through the activities based on specified conditions.
  *
  * @param args - The arguments for retrieving fungible asset activities.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param [args.options] - Optional parameters for pagination and filtering.
  * @param [args.options.limit] - The maximum number of activities to retrieve.
  * @param [args.options.offset] - The number of activities to skip before starting to collect the result set.
@@ -96,10 +96,10 @@ export async function getFungibleAssetMetadata(args: {
  * @group Implementation
  */
 export async function getFungibleAssetActivities(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   options?: PaginationArgs & WhereArg<FungibleAssetActivitiesBoolExp>;
 }): Promise<GetFungibleAssetActivitiesResponse> {
-  const { aptosConfig, options } = args;
+  const { cedraConfig, options } = args;
 
   const graphqlQuery = {
     query: GetFungibleAssetActivities,
@@ -111,7 +111,7 @@ export async function getFungibleAssetActivities(args: {
   };
 
   const data = await queryIndexer<GetFungibleAssetActivitiesQuery>({
-    aptosConfig,
+    cedraConfig,
     query: graphqlQuery,
     originMethod: "getFungibleAssetActivities",
   });
@@ -123,7 +123,7 @@ export async function getFungibleAssetActivities(args: {
  * Retrieves the current balances of fungible assets for a specified configuration.
  *
  * @param args - The arguments for retrieving fungible asset balances.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.options - Optional parameters for pagination and filtering.
  * @param args.options.limit - The maximum number of results to return.
  * @param args.options.offset - The number of results to skip before starting to collect the results.
@@ -132,10 +132,10 @@ export async function getFungibleAssetActivities(args: {
  * @group Implementation
  */
 export async function getCurrentFungibleAssetBalances(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   options?: PaginationArgs & WhereArg<CurrentFungibleAssetBalancesBoolExp>;
 }): Promise<GetCurrentFungibleAssetBalancesResponse> {
-  const { aptosConfig, options } = args;
+  const { cedraConfig, options } = args;
 
   const graphqlQuery = {
     query: GetCurrentFungibleAssetBalances,
@@ -147,7 +147,7 @@ export async function getCurrentFungibleAssetBalances(args: {
   };
 
   const data = await queryIndexer<GetCurrentFungibleAssetBalancesQuery>({
-    aptosConfig,
+    cedraConfig,
     query: graphqlQuery,
     originMethod: "getCurrentFungibleAssetBalances",
   });
@@ -162,10 +162,10 @@ const faTransferAbi: EntryFunctionABI = {
 
 /**
  * Transfers a specified amount of a fungible asset from the sender to the recipient.
- * This function helps facilitate the transfer of digital assets between accounts on the Aptos blockchain.
+ * This function helps facilitate the transfer of digital assets between accounts on the Cedra blockchain.
  *
  * @param args - The parameters for the transfer operation.
- * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.cedraConfig - The configuration settings for the Cedra network.
  * @param args.sender - The account initiating the transfer.
  * @param args.fungibleAssetMetadataAddress - The address of the fungible asset's metadata.
  * @param args.recipient - The address of the account receiving the asset.
@@ -174,16 +174,16 @@ const faTransferAbi: EntryFunctionABI = {
  * @group Implementation
  */
 export async function transferFungibleAsset(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   sender: Account;
   fungibleAssetMetadataAddress: AccountAddressInput;
   recipient: AccountAddressInput;
   amount: AnyNumber;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, sender, fungibleAssetMetadataAddress, recipient, amount, options } = args;
+  const { cedraConfig, sender, fungibleAssetMetadataAddress, recipient, amount, options } = args;
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: sender.accountAddress,
     data: {
       function: "0x1::primary_fungible_store::transfer",
@@ -197,10 +197,10 @@ export async function transferFungibleAsset(args: {
 
 /**
  * Transfers a specified amount of a fungible asset from any (primary or secondary) fungible store to any (primary or secondary) fungible store.
- * This function helps facilitate the transfer of digital assets between fungible stores on the Aptos blockchain.
+ * This function helps facilitate the transfer of digital assets between fungible stores on the Cedra blockchain.
  *
  * @param args - The parameters for the transfer operation.
- * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.cedraConfig - The configuration settings for the Cedra network.
  * @param args.sender - The account initiating the transfer.
  * @param args.fromStore - The address of the fungible store initiating the transfer.
  * @param args.toStore - The address of the fungible store receiving the asset.
@@ -211,16 +211,16 @@ export async function transferFungibleAsset(args: {
  * @group Implementation
  */
 export async function transferFungibleAssetBetweenStores(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   sender: Account;
   fromStore: AccountAddressInput;
   toStore: AccountAddressInput;
   amount: AnyNumber;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, sender, fromStore, toStore, amount, options } = args;
+  const { cedraConfig, sender, fromStore, toStore, amount, options } = args;
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: sender.accountAddress,
     data: {
       function: "0x1::dispatchable_fungible_asset::transfer",

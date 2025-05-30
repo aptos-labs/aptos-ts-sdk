@@ -1,7 +1,7 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "../api/aptosConfig";
+import { CedraConfig } from "../api/cedraConfig";
 import { MoveOption, MoveString, MoveVector } from "../bcs/serializable/moveStructs";
 import { Bool, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/movePrimitives";
 import { FixedBytes } from "../bcs/serializable/fixedBytes";
@@ -187,11 +187,11 @@ export type InputMultiSigDataWithABI = {
 } & InputEntryFunctionDataWithABI;
 
 /**
- * Combines input function data with Aptos configuration for remote ABI interactions.
+ * Combines input function data with Cedra configuration for remote ABI interactions.
  * @group Implementation
  * @category Transactions
  */
-export type InputEntryFunctionDataWithRemoteABI = InputEntryFunctionData & { aptosConfig: AptosConfig };
+export type InputEntryFunctionDataWithRemoteABI = InputEntryFunctionData & { cedraConfig: CedraConfig };
 /**
  * The data needed to generate a Multi Sig payload
  * @group Implementation
@@ -256,11 +256,11 @@ export type ViewFunctionJsonPayload = {
 };
 
 /**
- * Data required to create a view function payload and retrieve the remote ABI, including Aptos configuration.
+ * Data required to create a view function payload and retrieve the remote ABI, including Cedra configuration.
  * @group Implementation
  * @category Transactions
  */
-export type InputViewFunctionDataWithRemoteABI = InputViewFunctionData & { aptosConfig: AptosConfig };
+export type InputViewFunctionDataWithRemoteABI = InputViewFunctionData & { cedraConfig: CedraConfig };
 
 /**
  * Data needed to generate a view function, including the fetched ABI.
@@ -300,7 +300,7 @@ export type ViewFunctionABI = FunctionABI & {
 /**
  * Arguments for generating a single signer raw transaction, used in the transaction builder flow.
  *
- * @param aptosConfig - Configuration settings for Aptos.
+ * @param cedraConfig - Configuration settings for Cedra.
  * @param sender - The address of the sender.
  * @param payload - The transaction payload.
  * @param options - Optional transaction generation options.
@@ -309,7 +309,7 @@ export type ViewFunctionABI = FunctionABI & {
  * @category Transactions
  */
 export interface InputGenerateSingleSignerRawTransactionArgs {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   sender: AccountAddressInput;
   payload: AnyTransactionPayloadInstance;
   options?: InputGenerateTransactionOptions;
@@ -319,7 +319,7 @@ export interface InputGenerateSingleSignerRawTransactionArgs {
 /**
  * Arguments for generating a multi-agent transaction, used in the `generateTransaction()` method of the transaction builder flow.
  *
- * @param aptosConfig - Configuration settings for Aptos.
+ * @param cedraConfig - Configuration settings for Cedra.
  * @param sender - The address of the transaction sender.
  * @param payload - The transaction payload.
  * @param secondarySignerAddresses - List of secondary signer addresses.
@@ -329,7 +329,7 @@ export interface InputGenerateSingleSignerRawTransactionArgs {
  * @category Transactions
  */
 export interface InputGenerateMultiAgentRawTransactionArgs {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   sender: AccountAddressInput;
   payload: AnyTransactionPayloadInstance;
   secondarySignerAddresses: AccountAddressInput[];

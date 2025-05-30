@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { randomBytes } from "@noble/hashes/utils";
@@ -23,7 +23,7 @@ const TWO_WEEKS_IN_SECONDS = 1_209_600;
  * Represents an ephemeral key pair used for signing transactions via the Keyless authentication scheme.
  * This key pair is temporary and includes an expiration time.
  * For more details on how this class is used, refer to the documentation:
- * https://aptos.dev/guides/keyless-accounts/#1-present-the-user-with-a-sign-in-with-idp-button-on-the-ui
+ * https://cedra.dev/guides/keyless-accounts/#1-present-the-user-with-a-sign-in-with-idp-button-on-the-ui
  * @group Implementation
  * @category Account (On-Chain Model)
  */

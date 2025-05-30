@@ -9,10 +9,10 @@
  *
  * @example
  * ```typescript
- * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
  *
- * const config = new AptosConfig({ network: Network.TESTNET });
- * const aptos = new Aptos(config);
+ * const config = new CedraConfig({ network: Network.TESTNET });
+ * const cedra = new Cedra(config);
  *
  * class TransactionHandler {
  *   @ValidateFeePayerDataOnSubmission
@@ -71,10 +71,10 @@ export function ValidateFeePayerDataOnSubmission(target: unknown, propertyKey: s
  *
  * @example
  * ```typescript
- * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
  *
- * const config = new AptosConfig({ network: Network.TESTNET });
- * const aptos = new Aptos(config);
+ * const config = new CedraConfig({ network: Network.TESTNET });
+ * const cedra = new Cedra(config);
  *
  * async function runExample() {
  *   const methodArgs = {
@@ -86,7 +86,7 @@ export function ValidateFeePayerDataOnSubmission(target: unknown, propertyKey: s
  *
  *   try {
  *     // This will throw an error due to missing feePayerPublicKey
- *     await aptos.someMethod(methodArgs);
+ *     await cedra.someMethod(methodArgs);
  *   } catch (error) {
  *     console.error(error.message); // Output the error message
  *   }

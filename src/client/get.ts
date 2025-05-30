@@ -1,7 +1,7 @@
-import { AptosConfig } from "../api/aptosConfig";
-import { aptosRequest } from "./core";
-import { AptosResponse, AnyNumber, ClientConfig, MimeType } from "../types";
-import { AptosApiType } from "../utils/const";
+import { CedraConfig } from "../api/cedraConfig";
+import { cedraRequest } from "./core";
+import { CedraResponse, AnyNumber, ClientConfig, MimeType } from "../types";
+import { CedraApiType } from "../utils/const";
 
 /**
  * Options for making a GET request, including configuration for the API client.
@@ -14,13 +14,13 @@ export type GetRequestOptions = {
    * @group Implementation
    * @category Client
    */
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   /**
    * The type of API endpoint to call e.g. fullnode, indexer, etc
    * @group Implementation
    * @category Client
    */
-  type: AptosApiType;
+  type: CedraApiType;
   /**
    * The name of the API method
    * @group Implementation
@@ -52,7 +52,7 @@ export type GetRequestOptions = {
    */
   params?: Record<string, string | AnyNumber | boolean | undefined>;
   /**
-   * Specific client overrides for this request to override aptosConfig
+   * Specific client overrides for this request to override cedraConfig
    * @group Implementation
    * @category Client
    */
@@ -60,17 +60,17 @@ export type GetRequestOptions = {
 };
 
 /**
- * Options for making a request to the Aptos API, excluding the "type" field.
+ * Options for making a request to the Cedra API, excluding the "type" field.
  * @group Implementation
  * @category Client
  */
-export type GetAptosRequestOptions = Omit<GetRequestOptions, "type">;
+export type GetCedraRequestOptions = Omit<GetRequestOptions, "type">;
 
 /**
  * Executes a GET request to retrieve data based on the provided options.
  *
  * @param options - The options for the GET request.
- * @param options.aptosConfig - The configuration object for Aptos requests.
+ * @param options.cedraConfig - The configuration object for Cedra requests.
  * @param options.overrides - Optional overrides for the request configuration.
  * @param options.params - Query parameters to include in the request.
  * @param options.contentType - The content type of the request.
@@ -84,11 +84,11 @@ export type GetAptosRequestOptions = Omit<GetRequestOptions, "type">;
  */
 export async function get<Req extends {}, Res extends {}>(
   options: GetRequestOptions,
-): Promise<AptosResponse<Req, Res>> {
-  const { aptosConfig, overrides, params, contentType, acceptType, path, originMethod, type } = options;
-  const url = aptosConfig.getRequestUrl(type);
+): Promise<CedraResponse<Req, Res>> {
+  const { cedraConfig, overrides, params, contentType, acceptType, path, originMethod, type } = options;
+  const url = cedraConfig.getRequestUrl(type);
 
-  return aptosRequest<Req, Res>(
+  return cedraRequest<Req, Res>(
     {
       url,
       method: "GET",
@@ -98,60 +98,60 @@ export async function get<Req extends {}, Res extends {}>(
       acceptType,
       params,
       overrides: {
-        ...aptosConfig.clientConfig,
+        ...cedraConfig.clientConfig,
         ...overrides,
       },
     },
-    aptosConfig,
+    cedraConfig,
     options.type,
   );
 }
 
 /**
- * Retrieves data from the Aptos full node using the provided options.
+ * Retrieves data from the Cedra full node using the provided options.
  *
- * @param options - The options for the request to the Aptos full node.
- * @param options.aptosConfig - Configuration settings specific to the Aptos client and full node.
- * @param options.aptosConfig.clientConfig - The client configuration settings.
- * @param options.aptosConfig.fullnodeConfig - The full node configuration settings.
+ * @param options - The options for the request to the Cedra full node.
+ * @param options.cedraConfig - Configuration settings specific to the Cedra client and full node.
+ * @param options.cedraConfig.clientConfig - The client configuration settings.
+ * @param options.cedraConfig.fullnodeConfig - The full node configuration settings.
  * @param options.overrides - Additional overrides for the request.
  * @param options.type - The type of API request being made.
  *
- * @returns A promise that resolves with the response from the Aptos full node.
+ * @returns A promise that resolves with the response from the Cedra full node.
  * @group Implementation
  * @category Client
  */
-export async function getAptosFullNode<Req extends {}, Res extends {}>(
-  options: GetAptosRequestOptions,
-): Promise<AptosResponse<Req, Res>> {
-  const { aptosConfig } = options;
+export async function getCedraFullNode<Req extends {}, Res extends {}>(
+  options: GetCedraRequestOptions,
+): Promise<CedraResponse<Req, Res>> {
+  const { cedraConfig } = options;
 
   return get<Req, Res>({
     ...options,
-    type: AptosApiType.FULLNODE,
+    type: CedraApiType.FULLNODE,
     overrides: {
-      ...aptosConfig.clientConfig,
-      ...aptosConfig.fullnodeConfig,
+      ...cedraConfig.clientConfig,
+      ...cedraConfig.fullnodeConfig,
       ...options.overrides,
-      HEADERS: { ...aptosConfig.clientConfig?.HEADERS, ...aptosConfig.fullnodeConfig?.HEADERS },
+      HEADERS: { ...cedraConfig.clientConfig?.HEADERS, ...cedraConfig.fullnodeConfig?.HEADERS },
     },
   });
 }
 
 /**
- * Makes a GET request to the Aptos Pepper service to retrieve data.
+ * Makes a GET request to the Cedra Pepper service to retrieve data.
  *
  * @param options - The options for the request.
  * @param options.param1 - Description of param1.
  * @param options.param2 - Description of param2.
- * @returns AptosResponse - The response from the Aptos Pepper service.
+ * @returns CedraResponse - The response from the Cedra Pepper service.
  * @group Implementation
  * @category Client
  */
-export async function getAptosPepperService<Req extends {}, Res extends {}>(
-  options: GetAptosRequestOptions,
-): Promise<AptosResponse<Req, Res>> {
-  return get<Req, Res>({ ...options, type: AptosApiType.PEPPER });
+export async function getCedraPepperService<Req extends {}, Res extends {}>(
+  options: GetCedraRequestOptions,
+): Promise<CedraResponse<Req, Res>> {
+  return get<Req, Res>({ ...options, type: CedraApiType.PEPPER });
 }
 
 /**
@@ -160,7 +160,7 @@ export async function getAptosPepperService<Req extends {}, Res extends {}>(
  * @category Client
  */
 export async function paginateWithCursor<Req extends Record<string, any>, Res extends Array<{}>>(
-  options: GetAptosRequestOptions,
+  options: GetCedraRequestOptions,
 ): Promise<Res> {
   const out: Res = new Array(0) as Res;
   let cursor: string | undefined;
@@ -168,8 +168,8 @@ export async function paginateWithCursor<Req extends Record<string, any>, Res ex
   do {
     // eslint-disable-next-line no-await-in-loop
     const response = await get<Req, Res>({
-      type: AptosApiType.FULLNODE,
-      aptosConfig: options.aptosConfig,
+      type: CedraApiType.FULLNODE,
+      cedraConfig: options.cedraConfig,
       originMethod: options.originMethod,
       path: options.path,
       params: requestParams,
@@ -182,7 +182,7 @@ export async function paginateWithCursor<Req extends Record<string, any>, Res ex
      * @group Implementation
      * @category Client
      */
-    cursor = response.headers["x-aptos-cursor"];
+    cursor = response.headers["x-cedra-cursor"];
     // Now that we have the cursor (if any), we remove the headers before
     // adding these to the output of this function.
     delete response.headers;
@@ -194,7 +194,7 @@ export async function paginateWithCursor<Req extends Record<string, any>, Res ex
 
 /// This function is a helper for paginating using a function wrapping an API using offset instead of start
 export async function paginateWithObfuscatedCursor<Req extends Record<string, any>, Res extends Array<{}>>(
-  options: GetAptosRequestOptions,
+  options: GetCedraRequestOptions,
 ): Promise<Res> {
   const out: Res = new Array(0) as Res;
   let cursor: string | undefined;
@@ -228,8 +228,8 @@ export async function paginateWithObfuscatedCursor<Req extends Record<string, an
 }
 
 export async function getPageWithObfuscatedCursor<Req extends Record<string, any>, Res extends Array<{}>>(
-  options: GetAptosRequestOptions,
-): Promise<{ response: AptosResponse<Req, Res>; cursor: string | undefined }> {
+  options: GetCedraRequestOptions,
+): Promise<{ response: CedraResponse<Req, Res>; cursor: string | undefined }> {
   let cursor: string | undefined;
   let requestParams: { start?: string; limit?: number } = {};
 
@@ -244,8 +244,8 @@ export async function getPageWithObfuscatedCursor<Req extends Record<string, any
 
   // eslint-disable-next-line no-await-in-loop
   const response = await get<Req, Res>({
-    type: AptosApiType.FULLNODE,
-    aptosConfig: options.aptosConfig,
+    type: CedraApiType.FULLNODE,
+    cedraConfig: options.cedraConfig,
     originMethod: options.originMethod,
     path: options.path,
     params: requestParams,
@@ -257,6 +257,6 @@ export async function getPageWithObfuscatedCursor<Req extends Record<string, any
    * should not need to "care" what it represents but just use it
    * to query the next chunk of data.
    */
-  cursor = response.headers["x-aptos-cursor"];
+  cursor = response.headers["x-cedra-cursor"];
   return { response, cursor };
 }

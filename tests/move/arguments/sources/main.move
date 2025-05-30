@@ -1,4 +1,4 @@
-/// Generate code with `aptos move build-publish-payload --json-output-file publish.json --included-artifacts none`
+/// Generate code with `cedra move build-publish-payload --json-output-file publish.json --included-artifacts none`
 module transaction_arguments::tx_args_module {
     use std::string;
     use std::error;

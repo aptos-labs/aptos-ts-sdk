@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { AccountPublicKey, PublicKey } from "./publicKey";
@@ -14,7 +14,7 @@ import {
   verifyKeylessSignature,
   verifyKeylessSignatureWithJwkAndConfig,
 } from "./keyless";
-import { AptosConfig } from "../../api";
+import { CedraConfig } from "../../api";
 import { Signature } from "..";
 
 /**
@@ -106,16 +106,16 @@ export class FederatedKeylessPublicKey extends AccountPublicKey {
 
   /**
    * Verifies a keyless signature for a given message.  It will fetch the keyless configuration and the JWK to
-   * use for verification from the appropriate network as defined by the aptosConfig.
+   * use for verification from the appropriate network as defined by the cedraConfig.
    *
-   * @param args.aptosConfig The aptos config to use for fetching the keyless configuration.
+   * @param args.cedraConfig The cedra config to use for fetching the keyless configuration.
    * @param args.message The message to verify the signature against.
    * @param args.signature The signature to verify.
    * @param args.options.throwErrorWithReason Whether to throw an error with the reason for the failure instead of returning false.
    * @returns true if the signature is valid
    */
   async verifySignatureAsync(args: {
-    aptosConfig: AptosConfig;
+    cedraConfig: CedraConfig;
     message: HexInput;
     signature: KeylessSignature;
     options?: { throwErrorWithReason?: boolean };

@@ -1,6 +1,6 @@
 script {
-    use aptos_framework::object;
-    use aptos_std::signer;
+    use cedra_framework::object;
+    use cedra_std::signer;
 
 
     // Creates an object owned by the sender

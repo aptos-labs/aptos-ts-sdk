@@ -9,7 +9,7 @@ import {
   KeylessPublicKey,
 } from "../../../src";
 import { ed25519, longTestTimeout } from "../../unit/helper";
-import { getAptosClient } from "../helper";
+import { getCedraClient } from "../helper";
 import {
   createAndFundMultisigAccount,
   createMultisigTransaction,
@@ -20,7 +20,7 @@ import {
 } from "./helper";
 
 describe("transaction simulation", () => {
-  const { aptos } = getAptosClient();
+  const { cedra } = getCedraClient();
   const contractPublisherAccount = Account.generate();
   const singleSignerED25519SenderAccount = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
   const legacyED25519SenderAccount = Account.generate();
@@ -46,7 +46,7 @@ describe("transaction simulation", () => {
     functionArguments: [1, receiverAccounts[0].accountAddress],
   };
   beforeAll(async () => {
-    await fundAccounts(aptos, [
+    await fundAccounts(cedra, [
       contractPublisherAccount,
       singleSignerED25519SenderAccount,
       singleSignerSecp256k1Account,
@@ -56,7 +56,7 @@ describe("transaction simulation", () => {
       secondarySignerAccount,
       feePayerAccount,
     ]);
-    await publishTransferPackage(aptos, contractPublisherAccount);
+    await publishTransferPackage(cedra, contractPublisherAccount);
   }, longTestTimeout);
   describe("Single Sender ED25519", () => {
     beforeAll(async () => {
@@ -65,35 +65,35 @@ describe("transaction simulation", () => {
     }, longTestTimeout);
     describe("single signer", () => {
       test("with script payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: singleSignerED25519SenderAccount.accountAddress,
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
         });
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: singleSignerED25519SenderAccount.publicKey,
           transaction: rawTxn,
         });
         expect(response.success).toBeTruthy();
       });
       test("with entry function payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: singleSignerED25519SenderAccount.accountAddress,
           data: {
             function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
             functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: singleSignerED25519SenderAccount.publicKey,
           transaction: rawTxn,
         });
         expect(response.success).toBeTruthy();
       });
       test("with multisig payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: singleSignerED25519SenderAccount.accountAddress,
           data: {
             multisigAddress,
@@ -101,7 +101,7 @@ describe("transaction simulation", () => {
             functionArguments: multisigEntryFunction.functionArguments,
           },
         });
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: singleSignerED25519SenderAccount.publicKey,
           transaction: rawTxn,
         });
@@ -110,7 +110,7 @@ describe("transaction simulation", () => {
     });
     describe("multi agent", () => {
       test("with script payload", async () => {
-        const rawTxn = await aptos.transaction.build.multiAgent({
+        const rawTxn = await cedra.transaction.build.multiAgent({
           sender: singleSignerED25519SenderAccount.accountAddress,
           secondarySignerAddresses: [secondarySignerAccount.accountAddress],
           data: {
@@ -125,7 +125,7 @@ describe("transaction simulation", () => {
           },
         });
 
-        const [response] = await aptos.transaction.simulate.multiAgent({
+        const [response] = await cedra.transaction.simulate.multiAgent({
           signerPublicKey: singleSignerED25519SenderAccount.publicKey,
           transaction: rawTxn,
           secondarySignersPublicKeys: [secondarySignerAccount.publicKey],
@@ -136,7 +136,7 @@ describe("transaction simulation", () => {
       test(
         "with entry function payload",
         async () => {
-          const rawTxn = await aptos.transaction.build.multiAgent({
+          const rawTxn = await cedra.transaction.build.multiAgent({
             sender: singleSignerED25519SenderAccount.accountAddress,
             secondarySignerAddresses: [secondarySignerAccount.accountAddress],
             data: {
@@ -151,7 +151,7 @@ describe("transaction simulation", () => {
             },
           });
 
-          const [response] = await aptos.transaction.simulate.multiAgent({
+          const [response] = await cedra.transaction.simulate.multiAgent({
             signerPublicKey: singleSignerED25519SenderAccount.publicKey,
             transaction: rawTxn,
             secondarySignersPublicKeys: [secondarySignerAccount.publicKey],
@@ -163,7 +163,7 @@ describe("transaction simulation", () => {
     });
     describe("fee payer", () => {
       test("with script payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: singleSignerED25519SenderAccount.accountAddress,
           data: {
             bytecode: singleSignerScriptBytecode,
@@ -173,7 +173,7 @@ describe("transaction simulation", () => {
         });
         rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: singleSignerED25519SenderAccount.publicKey,
           transaction: rawTxn,
           feePayerPublicKey: feePayerAccount.publicKey,
@@ -181,7 +181,7 @@ describe("transaction simulation", () => {
         expect(response.success).toBeTruthy();
       });
       test("with entry function payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: singleSignerED25519SenderAccount.accountAddress,
           data: {
             function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
@@ -191,7 +191,7 @@ describe("transaction simulation", () => {
         });
         rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: singleSignerED25519SenderAccount.publicKey,
           transaction: rawTxn,
           feePayerPublicKey: feePayerAccount.publicKey,
@@ -199,7 +199,7 @@ describe("transaction simulation", () => {
         expect(response.success).toBeTruthy();
       });
       test("with multisig payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: singleSignerED25519SenderAccount.accountAddress,
           data: {
             multisigAddress,
@@ -210,7 +210,7 @@ describe("transaction simulation", () => {
         });
         rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: singleSignerED25519SenderAccount.publicKey,
           transaction: rawTxn,
           feePayerPublicKey: feePayerAccount.publicKey,
@@ -218,7 +218,7 @@ describe("transaction simulation", () => {
         expect(response.success).toBeTruthy();
       });
       test("with multi agent transaction", async () => {
-        const rawTxn = await aptos.transaction.build.multiAgent({
+        const rawTxn = await cedra.transaction.build.multiAgent({
           sender: singleSignerED25519SenderAccount.accountAddress,
           secondarySignerAddresses: [secondarySignerAccount.accountAddress],
           data: {
@@ -235,7 +235,7 @@ describe("transaction simulation", () => {
         });
         rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
-        const [response] = await aptos.transaction.simulate.multiAgent({
+        const [response] = await cedra.transaction.simulate.multiAgent({
           signerPublicKey: singleSignerED25519SenderAccount.publicKey,
           transaction: rawTxn,
           secondarySignersPublicKeys: [secondarySignerAccount.publicKey],
@@ -252,35 +252,35 @@ describe("transaction simulation", () => {
     }, longTestTimeout);
     describe("single signer", () => {
       test("with script payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: singleSignerSecp256k1Account.accountAddress,
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
         });
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: singleSignerSecp256k1Account.publicKey,
           transaction: rawTxn,
         });
         expect(response.success).toBeTruthy();
       });
       test("with entry function payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: singleSignerSecp256k1Account.accountAddress,
           data: {
             function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
             functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: singleSignerSecp256k1Account.publicKey,
           transaction: rawTxn,
         });
         expect(response.success).toBeTruthy();
       });
       test("with multisig payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: singleSignerSecp256k1Account.accountAddress,
           data: {
             multisigAddress,
@@ -288,7 +288,7 @@ describe("transaction simulation", () => {
             functionArguments: multisigEntryFunction.functionArguments,
           },
         });
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: singleSignerSecp256k1Account.publicKey,
           transaction: rawTxn,
         });
@@ -297,7 +297,7 @@ describe("transaction simulation", () => {
     });
     describe("multi agent", () => {
       test("with script payload", async () => {
-        const rawTxn = await aptos.transaction.build.multiAgent({
+        const rawTxn = await cedra.transaction.build.multiAgent({
           sender: singleSignerSecp256k1Account.accountAddress,
           secondarySignerAddresses: [secondarySignerAccount.accountAddress],
           data: {
@@ -312,7 +312,7 @@ describe("transaction simulation", () => {
           },
         });
 
-        const [response] = await aptos.transaction.simulate.multiAgent({
+        const [response] = await cedra.transaction.simulate.multiAgent({
           signerPublicKey: singleSignerSecp256k1Account.publicKey,
           transaction: rawTxn,
           secondarySignersPublicKeys: [secondarySignerAccount.publicKey],
@@ -323,7 +323,7 @@ describe("transaction simulation", () => {
       test(
         "with entry function payload",
         async () => {
-          const rawTxn = await aptos.transaction.build.multiAgent({
+          const rawTxn = await cedra.transaction.build.multiAgent({
             sender: singleSignerSecp256k1Account.accountAddress,
             secondarySignerAddresses: [secondarySignerAccount.accountAddress],
             data: {
@@ -338,7 +338,7 @@ describe("transaction simulation", () => {
             },
           });
 
-          const [response] = await aptos.transaction.simulate.multiAgent({
+          const [response] = await cedra.transaction.simulate.multiAgent({
             signerPublicKey: singleSignerSecp256k1Account.publicKey,
             transaction: rawTxn,
             secondarySignersPublicKeys: [secondarySignerAccount.publicKey],
@@ -350,7 +350,7 @@ describe("transaction simulation", () => {
     });
     describe("fee payer", () => {
       test("with script payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: singleSignerSecp256k1Account.accountAddress,
           data: {
             bytecode: singleSignerScriptBytecode,
@@ -360,7 +360,7 @@ describe("transaction simulation", () => {
         });
         rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: singleSignerSecp256k1Account.publicKey,
           transaction: rawTxn,
           feePayerPublicKey: feePayerAccount.publicKey,
@@ -368,7 +368,7 @@ describe("transaction simulation", () => {
         expect(response.success).toBeTruthy();
       });
       test("with entry function payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: singleSignerSecp256k1Account.accountAddress,
           data: {
             function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
@@ -378,7 +378,7 @@ describe("transaction simulation", () => {
         });
         rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: singleSignerSecp256k1Account.publicKey,
           transaction: rawTxn,
           feePayerPublicKey: feePayerAccount.publicKey,
@@ -386,7 +386,7 @@ describe("transaction simulation", () => {
         expect(response.success).toBeTruthy();
       });
       test("with multisig payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: singleSignerSecp256k1Account.accountAddress,
           data: {
             multisigAddress,
@@ -397,7 +397,7 @@ describe("transaction simulation", () => {
         });
         rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: singleSignerSecp256k1Account.publicKey,
           transaction: rawTxn,
           feePayerPublicKey: feePayerAccount.publicKey,
@@ -405,7 +405,7 @@ describe("transaction simulation", () => {
         expect(response.success).toBeTruthy();
       });
       test("with multi agent transaction", async () => {
-        const rawTxn = await aptos.transaction.build.multiAgent({
+        const rawTxn = await cedra.transaction.build.multiAgent({
           sender: singleSignerSecp256k1Account.accountAddress,
           secondarySignerAddresses: [secondarySignerAccount.accountAddress],
           data: {
@@ -422,7 +422,7 @@ describe("transaction simulation", () => {
         });
         rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
-        const [response] = await aptos.transaction.simulate.multiAgent({
+        const [response] = await cedra.transaction.simulate.multiAgent({
           signerPublicKey: singleSignerSecp256k1Account.publicKey,
           transaction: rawTxn,
           secondarySignersPublicKeys: [secondarySignerAccount.publicKey],
@@ -439,35 +439,35 @@ describe("transaction simulation", () => {
     }, longTestTimeout);
     describe("single signer", () => {
       test("with script payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: legacyED25519SenderAccount.accountAddress,
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
         });
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: legacyED25519SenderAccount.publicKey,
           transaction: rawTxn,
         });
         expect(response.success).toBeTruthy();
       });
       test("with entry function payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: legacyED25519SenderAccount.accountAddress,
           data: {
             function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
             functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: legacyED25519SenderAccount.publicKey,
           transaction: rawTxn,
         });
         expect(response.success).toBeTruthy();
       });
       test("with multisig payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: legacyED25519SenderAccount.accountAddress,
           data: {
             multisigAddress,
@@ -475,7 +475,7 @@ describe("transaction simulation", () => {
             functionArguments: multisigEntryFunction.functionArguments,
           },
         });
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: legacyED25519SenderAccount.publicKey,
           transaction: rawTxn,
         });
@@ -484,7 +484,7 @@ describe("transaction simulation", () => {
     });
     describe("multi agent", () => {
       test("with script payload", async () => {
-        const rawTxn = await aptos.transaction.build.multiAgent({
+        const rawTxn = await cedra.transaction.build.multiAgent({
           sender: legacyED25519SenderAccount.accountAddress,
           secondarySignerAddresses: [secondarySignerAccount.accountAddress],
           data: {
@@ -499,7 +499,7 @@ describe("transaction simulation", () => {
           },
         });
 
-        const [response] = await aptos.transaction.simulate.multiAgent({
+        const [response] = await cedra.transaction.simulate.multiAgent({
           signerPublicKey: legacyED25519SenderAccount.publicKey,
           transaction: rawTxn,
           secondarySignersPublicKeys: [secondarySignerAccount.publicKey],
@@ -510,7 +510,7 @@ describe("transaction simulation", () => {
       test(
         "with entry function payload",
         async () => {
-          const rawTxn = await aptos.transaction.build.multiAgent({
+          const rawTxn = await cedra.transaction.build.multiAgent({
             sender: legacyED25519SenderAccount.accountAddress,
             secondarySignerAddresses: [secondarySignerAccount.accountAddress],
             data: {
@@ -519,7 +519,7 @@ describe("transaction simulation", () => {
             },
           });
 
-          const [response] = await aptos.transaction.simulate.multiAgent({
+          const [response] = await cedra.transaction.simulate.multiAgent({
             signerPublicKey: legacyED25519SenderAccount.publicKey,
             transaction: rawTxn,
             secondarySignersPublicKeys: [secondarySignerAccount.publicKey],
@@ -531,7 +531,7 @@ describe("transaction simulation", () => {
     });
     describe("fee payer", () => {
       test("with script payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: legacyED25519SenderAccount.accountAddress,
           data: {
             bytecode: singleSignerScriptBytecode,
@@ -541,7 +541,7 @@ describe("transaction simulation", () => {
         });
         rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: legacyED25519SenderAccount.publicKey,
           transaction: rawTxn,
           feePayerPublicKey: feePayerAccount.publicKey,
@@ -549,7 +549,7 @@ describe("transaction simulation", () => {
         expect(response.success).toBeTruthy();
       });
       test("with entry function payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: legacyED25519SenderAccount.accountAddress,
           data: {
             function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
@@ -559,7 +559,7 @@ describe("transaction simulation", () => {
         });
         rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: legacyED25519SenderAccount.publicKey,
           transaction: rawTxn,
           feePayerPublicKey: feePayerAccount.publicKey,
@@ -567,7 +567,7 @@ describe("transaction simulation", () => {
         expect(response.success).toBeTruthy();
       });
       test("with multisig payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: legacyED25519SenderAccount.accountAddress,
           data: {
             multisigAddress,
@@ -578,7 +578,7 @@ describe("transaction simulation", () => {
         });
         rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: legacyED25519SenderAccount.publicKey,
           transaction: rawTxn,
           feePayerPublicKey: feePayerAccount.publicKey,
@@ -586,7 +586,7 @@ describe("transaction simulation", () => {
         expect(response.success).toBeTruthy();
       });
       test("with multi agent transaction", async () => {
-        const rawTxn = await aptos.transaction.build.multiAgent({
+        const rawTxn = await cedra.transaction.build.multiAgent({
           sender: legacyED25519SenderAccount.accountAddress,
           secondarySignerAddresses: [secondarySignerAccount.accountAddress],
           data: {
@@ -597,7 +597,7 @@ describe("transaction simulation", () => {
         });
         rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
-        const [response] = await aptos.transaction.simulate.multiAgent({
+        const [response] = await cedra.transaction.simulate.multiAgent({
           signerPublicKey: legacyED25519SenderAccount.publicKey,
           transaction: rawTxn,
           secondarySignersPublicKeys: [secondarySignerAccount.publicKey],
@@ -614,35 +614,35 @@ describe("transaction simulation", () => {
     }, longTestTimeout);
     describe("single signer", () => {
       test("with script payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: multiKeyAccount.accountAddress,
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
         });
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: multiKeyAccount.publicKey,
           transaction: rawTxn,
         });
         expect(response.success).toBeTruthy();
       });
       test("with entry function payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: multiKeyAccount.accountAddress,
           data: {
             function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
             functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: multiKeyAccount.publicKey,
           transaction: rawTxn,
         });
         expect(response.success).toBeTruthy();
       });
       test("with multisig payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: multiKeyAccount.accountAddress,
           data: {
             multisigAddress,
@@ -650,7 +650,7 @@ describe("transaction simulation", () => {
             functionArguments: multisigEntryFunction.functionArguments,
           },
         });
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: multiKeyAccount.publicKey,
           transaction: rawTxn,
         });
@@ -659,7 +659,7 @@ describe("transaction simulation", () => {
     });
     describe("multi agent", () => {
       test("with script payload", async () => {
-        const rawTxn = await aptos.transaction.build.multiAgent({
+        const rawTxn = await cedra.transaction.build.multiAgent({
           sender: multiKeyAccount.accountAddress,
           secondarySignerAddresses: [secondarySignerAccount.accountAddress],
           data: {
@@ -674,7 +674,7 @@ describe("transaction simulation", () => {
           },
         });
 
-        const [response] = await aptos.transaction.simulate.multiAgent({
+        const [response] = await cedra.transaction.simulate.multiAgent({
           signerPublicKey: multiKeyAccount.publicKey,
           transaction: rawTxn,
           secondarySignersPublicKeys: [secondarySignerAccount.publicKey],
@@ -685,7 +685,7 @@ describe("transaction simulation", () => {
       test(
         "with entry function payload",
         async () => {
-          const rawTxn = await aptos.transaction.build.multiAgent({
+          const rawTxn = await cedra.transaction.build.multiAgent({
             sender: multiKeyAccount.accountAddress,
             secondarySignerAddresses: [secondarySignerAccount.accountAddress],
             data: {
@@ -694,7 +694,7 @@ describe("transaction simulation", () => {
             },
           });
 
-          const [response] = await aptos.transaction.simulate.multiAgent({
+          const [response] = await cedra.transaction.simulate.multiAgent({
             signerPublicKey: multiKeyAccount.publicKey,
             transaction: rawTxn,
             secondarySignersPublicKeys: [secondarySignerAccount.publicKey],
@@ -706,7 +706,7 @@ describe("transaction simulation", () => {
     });
     describe("fee payer", () => {
       test("with script payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: multiKeyAccount.accountAddress,
           data: {
             bytecode: singleSignerScriptBytecode,
@@ -716,7 +716,7 @@ describe("transaction simulation", () => {
         });
         rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: multiKeyAccount.publicKey,
           transaction: rawTxn,
           feePayerPublicKey: feePayerAccount.publicKey,
@@ -724,7 +724,7 @@ describe("transaction simulation", () => {
         expect(response.success).toBeTruthy();
       });
       test("with entry function payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: multiKeyAccount.accountAddress,
           data: {
             function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
@@ -734,7 +734,7 @@ describe("transaction simulation", () => {
         });
         rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: multiKeyAccount.publicKey,
           transaction: rawTxn,
           feePayerPublicKey: feePayerAccount.publicKey,
@@ -742,7 +742,7 @@ describe("transaction simulation", () => {
         expect(response.success).toBeTruthy();
       });
       test("with multisig payload", async () => {
-        const rawTxn = await aptos.transaction.build.simple({
+        const rawTxn = await cedra.transaction.build.simple({
           sender: multiKeyAccount.accountAddress,
           data: {
             multisigAddress,
@@ -753,7 +753,7 @@ describe("transaction simulation", () => {
         });
         rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
-        const [response] = await aptos.transaction.simulate.simple({
+        const [response] = await cedra.transaction.simulate.simple({
           signerPublicKey: multiKeyAccount.publicKey,
           transaction: rawTxn,
           feePayerPublicKey: feePayerAccount.publicKey,
@@ -761,7 +761,7 @@ describe("transaction simulation", () => {
         expect(response.success).toBeTruthy();
       });
       test("with multi agent transaction", async () => {
-        const rawTxn = await aptos.transaction.build.multiAgent({
+        const rawTxn = await cedra.transaction.build.multiAgent({
           sender: multiKeyAccount.accountAddress,
           secondarySignerAddresses: [secondarySignerAccount.accountAddress],
           data: {
@@ -772,7 +772,7 @@ describe("transaction simulation", () => {
         });
         rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
-        const [response] = await aptos.transaction.simulate.multiAgent({
+        const [response] = await cedra.transaction.simulate.multiAgent({
           signerPublicKey: multiKeyAccount.publicKey,
           transaction: rawTxn,
           secondarySignersPublicKeys: [secondarySignerAccount.publicKey],
@@ -784,7 +784,7 @@ describe("transaction simulation", () => {
   });
   describe("validate fee payer data on transaction simulation", () => {
     test("simluate a fee payer transaction without the feePayerPublicKey", async () => {
-      const rawTxn = await aptos.transaction.build.simple({
+      const rawTxn = await cedra.transaction.build.simple({
         sender: singleSignerSecp256k1Account.accountAddress,
         data: {
           bytecode: singleSignerScriptBytecode,
@@ -794,7 +794,7 @@ describe("transaction simulation", () => {
       });
       rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
-      const [response] = await aptos.transaction.simulate.simple({
+      const [response] = await cedra.transaction.simulate.simple({
         signerPublicKey: singleSignerSecp256k1Account.publicKey,
         transaction: rawTxn,
       });
@@ -802,7 +802,7 @@ describe("transaction simulation", () => {
     });
 
     test("simluate a multi agent fee payer transaction without the feePayerPublicKey", async () => {
-      const rawTxn = await aptos.transaction.build.multiAgent({
+      const rawTxn = await cedra.transaction.build.multiAgent({
         sender: singleSignerSecp256k1Account.accountAddress,
         secondarySignerAddresses: [secondarySignerAccount.accountAddress],
         data: {
@@ -813,7 +813,7 @@ describe("transaction simulation", () => {
       });
       rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
-      const [response] = await aptos.transaction.simulate.multiAgent({
+      const [response] = await cedra.transaction.simulate.multiAgent({
         signerPublicKey: singleSignerSecp256k1Account.publicKey,
         transaction: rawTxn,
         secondarySignersPublicKeys: [secondarySignerAccount.publicKey],
@@ -824,21 +824,21 @@ describe("transaction simulation", () => {
 
   describe("simulations with no account authenticator", () => {
     test("single signer with script payload", async () => {
-      const transaction = await aptos.transaction.build.simple({
+      const transaction = await cedra.transaction.build.simple({
         sender: singleSignerED25519SenderAccount.accountAddress,
         data: {
           bytecode: singleSignerScriptBytecode,
           functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
         },
       });
-      const [response] = await aptos.transaction.simulate.simple({
+      const [response] = await cedra.transaction.simulate.simple({
         transaction,
       });
       expect(response.success).toBeTruthy();
     });
   });
   test("fee payer with script payload", async () => {
-    const rawTxn = await aptos.transaction.build.simple({
+    const rawTxn = await cedra.transaction.build.simple({
       sender: legacyED25519SenderAccount.accountAddress,
       data: {
         bytecode: singleSignerScriptBytecode,
@@ -848,13 +848,13 @@ describe("transaction simulation", () => {
     });
     rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
-    const [response] = await aptos.transaction.simulate.simple({
+    const [response] = await cedra.transaction.simulate.simple({
       transaction: rawTxn,
     });
     expect(response.success).toBeTruthy();
   });
   test("fee payer as 0x0 with script payload", async () => {
-    const rawTxn = await aptos.transaction.build.simple({
+    const rawTxn = await cedra.transaction.build.simple({
       sender: legacyED25519SenderAccount.accountAddress,
       data: {
         bytecode: singleSignerScriptBytecode,
@@ -864,13 +864,13 @@ describe("transaction simulation", () => {
     });
     // Note that the rawTxn.feePayerAddress is 0x0 by default.
 
-    const [response] = await aptos.transaction.simulate.simple({
+    const [response] = await cedra.transaction.simulate.simple({
       transaction: rawTxn,
     });
     expect(response.success).toBeTruthy();
   });
   test("fee payer as 0x7 with script payload", async () => {
-    const rawTxn = await aptos.transaction.build.simple({
+    const rawTxn = await cedra.transaction.build.simple({
       sender: legacyED25519SenderAccount.accountAddress,
       data: {
         bytecode: singleSignerScriptBytecode,
@@ -880,13 +880,13 @@ describe("transaction simulation", () => {
     });
     // 0x7 is a fee payer who does not have a sufficient fund.
     rawTxn.feePayerAddress = AccountAddress.from("0x7");
-    const [response] = await aptos.transaction.simulate.simple({
+    const [response] = await cedra.transaction.simulate.simple({
       transaction: rawTxn,
     });
     expect(response.vm_status).toContain("INSUFFICIENT_BALANCE_FOR_TRANSACTION_FEE");
   });
   test("with multi agent transaction without providing the secondary signer public key", async () => {
-    const rawTxn = await aptos.transaction.build.multiAgent({
+    const rawTxn = await cedra.transaction.build.multiAgent({
       sender: legacyED25519SenderAccount.accountAddress,
       secondarySignerAddresses: [secondarySignerAccount.accountAddress],
       data: {
@@ -897,7 +897,7 @@ describe("transaction simulation", () => {
     });
     rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
-    const [response] = await aptos.transaction.simulate.multiAgent({
+    const [response] = await cedra.transaction.simulate.multiAgent({
       signerPublicKey: legacyED25519SenderAccount.publicKey,
       transaction: rawTxn,
       secondarySignersPublicKeys: [undefined],
@@ -906,7 +906,7 @@ describe("transaction simulation", () => {
     expect(response.success).toBeTruthy();
   });
   test("with multi agent transaction without providing the secondary signer public key array", async () => {
-    const rawTxn = await aptos.transaction.build.multiAgent({
+    const rawTxn = await cedra.transaction.build.multiAgent({
       sender: legacyED25519SenderAccount.accountAddress,
       secondarySignerAddresses: [secondarySignerAccount.accountAddress],
       data: {
@@ -917,7 +917,7 @@ describe("transaction simulation", () => {
     });
     rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
-    const [response] = await aptos.transaction.simulate.multiAgent({
+    const [response] = await cedra.transaction.simulate.multiAgent({
       signerPublicKey: legacyED25519SenderAccount.publicKey,
       transaction: rawTxn,
       feePayerPublicKey: feePayerAccount.publicKey,

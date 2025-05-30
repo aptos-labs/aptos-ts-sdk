@@ -2,9 +2,9 @@
 /// deployer will be creating a new managed fungible asset with the hardcoded supply config, name, symbol, and decimals.
 /// The address of the asset can be obtained via get_metadata(). As a simple version, it only deals with primary stores.
 module FACoin::cat {
-    use aptos_framework::fungible_asset::{Self, MintRef, TransferRef, BurnRef, Metadata, FungibleAsset};
-    use aptos_framework::object::{Self, Object};
-    use aptos_framework::primary_fungible_store;
+    use cedra_framework::fungible_asset::{Self, MintRef, TransferRef, BurnRef, Metadata, FungibleAsset};
+    use cedra_framework::object::{Self, Object};
+    use cedra_framework::primary_fungible_store;
     use std::error;
     use std::signer;
     use std::string::utf8;
@@ -15,7 +15,7 @@ module FACoin::cat {
 
     const ASSET_SYMBOL: vector<u8> = b"CAT";
 
-    #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
+    #[resource_group_member(group = cedra_framework::object::ObjectGroup)]
     /// Hold refs to control the minting, transfer and burning of fungible assets.
     struct ManagedFungibleAsset has key {
         mint_ref: MintRef,

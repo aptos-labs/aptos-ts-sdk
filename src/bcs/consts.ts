@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { Uint8, Uint16, Uint32, Uint64, Uint128, Uint256 } from "../types";

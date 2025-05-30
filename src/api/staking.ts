@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import {
@@ -9,40 +9,40 @@ import {
 import { AnyNumber, GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, OrderByArg } from "../types";
 import { AccountAddressInput } from "../core";
 import { ProcessorType } from "../utils/const";
-import { AptosConfig } from "./aptosConfig";
+import { CedraConfig } from "./cedraConfig";
 import { waitForIndexerOnVersion } from "./utils";
 
 /**
- * A class to query all `Staking` related queries on Aptos.
+ * A class to query all `Staking` related queries on Cedra.
  * @group Staking
  */
 export class Staking {
   /**
-   * Creates an instance of the Aptos client with the specified configuration.
-   * This allows you to interact with the Aptos blockchain using the provided settings.
+   * Creates an instance of the Cedra client with the specified configuration.
+   * This allows you to interact with the Cedra blockchain using the provided settings.
    *
-   * @param config - The configuration settings for the Aptos client.
+   * @param config - The configuration settings for the Cedra client.
    * @param config.network - The network to connect to (e.g., TESTNET, MAINNET).
-   * @param config.nodeUrl - The URL of the Aptos node to connect to.
+   * @param config.nodeUrl - The URL of the Cedra node to connect to.
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
    * async function runExample() {
-   *     // Create a configuration for the Aptos client
-   *     const config = new AptosConfig({ network: Network.TESTNET }); // Specify your network
+   *     // Create a configuration for the Cedra client
+   *     const config = new CedraConfig({ network: Network.TESTNET }); // Specify your network
    *
-   *     // Initialize the Aptos client with the configuration
-   *     const aptos = new Aptos(config);
+   *     // Initialize the Cedra client with the configuration
+   *     const cedra = new Cedra(config);
    *
-   *     console.log("Aptos client initialized:", aptos);
+   *     console.log("Cedra client initialized:", cedra);
    * }
    * runExample().catch(console.error);
    * ```
    * @group Staking
    */
-  constructor(readonly config: AptosConfig) {}
+  constructor(readonly config: CedraConfig) {}
 
   /**
    * Queries the current number of delegators in a specified pool. Throws an error if the pool is not found.
@@ -54,14 +54,14 @@ export class Staking {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Get the number of delegators for a specific pool
-   *   const delegators = await aptos.getNumberOfDelegators({ poolAddress: "0x1" }); // replace with a real pool address
+   *   const delegators = await cedra.getNumberOfDelegators({ poolAddress: "0x1" }); // replace with a real pool address
    *   console.log(`Number of delegators: ${delegators}`);
    * }
    * runExample().catch(console.error);
@@ -77,7 +77,7 @@ export class Staking {
       minimumLedgerVersion: args?.minimumLedgerVersion,
       processorType: ProcessorType.STAKE_PROCESSOR,
     });
-    return getNumberOfDelegators({ aptosConfig: this.config, ...args });
+    return getNumberOfDelegators({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -90,14 +90,14 @@ export class Staking {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Retrieve the number of delegators for all pools
-   *   const delegators = await aptos.getNumberOfDelegatorsForAllPools();
+   *   const delegators = await cedra.getNumberOfDelegatorsForAllPools();
    *   console.log(delegators);
    * }
    * runExample().catch(console.error);
@@ -113,7 +113,7 @@ export class Staking {
       minimumLedgerVersion: args?.minimumLedgerVersion,
       processorType: ProcessorType.STAKE_PROCESSOR,
     });
-    return getNumberOfDelegatorsForAllPools({ aptosConfig: this.config, ...args });
+    return getNumberOfDelegatorsForAllPools({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -127,14 +127,14 @@ export class Staking {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Get delegated staking activities for a specific delegator and pool
-   *   const activities = await aptos.getDelegatedStakingActivities({
+   *   const activities = await cedra.getDelegatedStakingActivities({
    *     delegatorAddress: "0x1", // replace with a real delegator address
    *     poolAddress: "0x2", // replace with a real pool address
    *     minimumLedgerVersion: 1, // specify your own if needed
@@ -156,6 +156,6 @@ export class Staking {
       minimumLedgerVersion: args?.minimumLedgerVersion,
       processorType: ProcessorType.STAKE_PROCESSOR,
     });
-    return getDelegatedStakingActivities({ aptosConfig: this.config, ...args });
+    return getDelegatedStakingActivities({ cedraConfig: this.config, ...args });
   }
 }

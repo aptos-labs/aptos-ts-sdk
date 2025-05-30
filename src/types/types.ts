@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { Network } from "../utils/apiEndpoints";
@@ -19,8 +19,8 @@ export enum MimeType {
   /**
    * BCS representation, used for transaction submission in BCS input
    */
-  BCS_SIGNED_TRANSACTION = "application/x.aptos.signed_transaction+bcs",
-  BCS_VIEW_FUNCTION = "application/x.aptos.view_function+bcs",
+  BCS_SIGNED_TRANSACTION = "application/x.cedra.signed_transaction+bcs",
+  BCS_VIEW_FUNCTION = "application/x.cedra.view_function+bcs",
 }
 
 /**
@@ -30,7 +30,7 @@ export type HexInput = string | Uint8Array;
 
 /**
  * Variants of type tags used in the system, encompassing various data types and structures.
- * {@link https://github.com/aptos-labs/aptos-core/blob/main/third_party/move/move-core/types/src/language_storage.rs#L27}
+ * {@link https://github.com/cedra-labs/cedra-core/blob/main/third_party/move/move-core/types/src/language_storage.rs#L27}
  */
 export enum TypeTagVariants {
   Bool = 0,
@@ -50,7 +50,7 @@ export enum TypeTagVariants {
 
 /**
  * Variants of script transaction arguments used in Rust, encompassing various data types for transaction processing.
- * {@link https://github.com/aptos-labs/aptos-core/blob/main/third_party/move/move-core/types/src/transaction_argument.rs#L11}
+ * {@link https://github.com/cedra-labs/cedra-core/blob/main/third_party/move/move-core/types/src/transaction_argument.rs#L11}
  */
 export enum ScriptTransactionArgumentVariants {
   U8 = 0,
@@ -67,7 +67,7 @@ export enum ScriptTransactionArgumentVariants {
 
 /**
  * The payload for various transaction types in the system.
- * {@link https://github.com/aptos-labs/aptos-core/blob/main/types/src/transaction/mod.rs#L478}
+ * {@link https://github.com/cedra-labs/cedra-core/blob/main/types/src/transaction/mod.rs#L478}
  */
 export enum TransactionPayloadVariants {
   Script = 0,
@@ -77,7 +77,7 @@ export enum TransactionPayloadVariants {
 
 /**
  * Variants of transactions used in the system.
- * {@link https://github.com/aptos-labs/aptos-core/blob/main/types/src/transaction/mod.rs#L440}
+ * {@link https://github.com/cedra-labs/cedra-core/blob/main/types/src/transaction/mod.rs#L440}
  */
 export enum TransactionVariants {
   MultiAgentTransaction = 0,
@@ -86,7 +86,7 @@ export enum TransactionVariants {
 
 /**
  * Variants of transaction authenticators used in the system.
- * {@link https://github.com/aptos-labs/aptos-core/blob/main/types/src/transaction/authenticator.rs#L44}
+ * {@link https://github.com/cedra-labs/cedra-core/blob/main/types/src/transaction/authenticator.rs#L44}
  */
 export enum TransactionAuthenticatorVariant {
   Ed25519 = 0,
@@ -98,7 +98,7 @@ export enum TransactionAuthenticatorVariant {
 
 /**
  * Variants of account authenticators used in transactions.
- * {@link https://github.com/aptos-labs/aptos-core/blob/main/types/src/transaction/authenticator.rs#L414}
+ * {@link https://github.com/cedra-labs/cedra-core/blob/main/types/src/transaction/authenticator.rs#L414}
  */
 export enum AccountAuthenticatorVariant {
   Ed25519 = 0,
@@ -111,7 +111,7 @@ export enum AccountAuthenticatorVariant {
 
 /**
  * Variants of private keys that can comply with the AIP-80 standard.
- * {@link https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md}
+ * {@link https://github.com/cedra-foundation/AIPs/blob/main/aips/aip-80.md}
  */
 export enum PrivateKeyVariants {
   Ed25519 = "ed25519",
@@ -201,9 +201,9 @@ export type Uint256 = bigint;
 export type AnyNumber = number | bigint;
 
 /**
- * Configuration options for initializing the SDK, allowing customization of its behavior and interaction with the Aptos network.
+ * Configuration options for initializing the SDK, allowing customization of its behavior and interaction with the Cedra network.
  */
-export type AptosSettings = {
+export type CedraSettings = {
   readonly network?: Network;
 
   readonly fullnode?: string;
@@ -348,7 +348,7 @@ export interface Client {
 /**
  * The API request type
  *
- * @param url - the url to make the request to, i.e. https://fullnode.devnet.aptoslabs.com/v1
+ * @param url - the url to make the request to, i.e. https://fullnode.devnet.cedralabs.com/v1
  * @param method - the request method "GET" | "POST"
  * @param endpoint (optional) - the endpoint to make the request to, i.e. transactions
  * @param body (optional) - the body of the request
@@ -358,7 +358,7 @@ export interface Client {
  * @param originMethod (optional) - the local method the request came from
  * @param overrides (optional) - a `ClientConfig` object type to override request data
  */
-export type AptosRequest = {
+export type CedraRequest = {
   url: string;
   method: "GET" | "POST";
   path?: string;
@@ -381,7 +381,7 @@ export type AptosRequest = {
  * @param config (optional) - the request object
  * @param request (optional) - the request object
  */
-export interface AptosResponse<Req, Res> {
+export interface CedraResponse<Req, Res> {
   status: number;
   statusText: string;
   data: Res;
@@ -1431,7 +1431,7 @@ export type TableItemRequest = {
 };
 
 /**
- * A list of supported Authentication Key schemes in Aptos, consisting of combinations of signing schemes and derive schemes.
+ * A list of supported Authentication Key schemes in Cedra, consisting of combinations of signing schemes and derive schemes.
  */
 export type AuthenticationKeyScheme = SigningScheme | DeriveScheme;
 

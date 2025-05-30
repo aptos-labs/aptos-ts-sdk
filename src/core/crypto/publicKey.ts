@@ -1,4 +1,4 @@
-import { AptosConfig } from "../../api";
+import { CedraConfig } from "../../api";
 import { Serializable } from "../../bcs";
 import { HexInput } from "../../types";
 import { AuthenticationKey } from "../authenticationKey";
@@ -24,14 +24,14 @@ export interface VerifySignatureArgs {
  * The validity of certain types of signatures are dependent on network state.  This is the case for
  * Keyless signatures which need to lookup the verification key and keyless configuration.
  *
- * @param aptosConfig - The Aptos configuration to use
+ * @param cedraConfig - The Cedra configuration to use
  * @param message - The original message that was signed.
  * @param signature - The signature to be verified against the message.
  * @group Implementation
  * @category Serialization
  */
 export type VerifySignatureAsyncArgs = VerifySignatureArgs & {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   options?: any;
 };
 
@@ -55,7 +55,7 @@ export abstract class PublicKey extends Serializable {
 
   /**
    * Verifies signature with the public key and makes any network calls required to get state required to verify the signature.
-   * @param args.aptosConfig The Aptos configuration
+   * @param args.cedraConfig The Cedra configuration
    * @param args.message The message that was signed
    * @param args.signature The signature to verify
    * @group Implementation

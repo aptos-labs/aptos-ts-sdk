@@ -1,7 +1,7 @@
 module transaction_test::transfer {
   
-  use aptos_framework::aptos_coin;  
-  use aptos_framework::coin;
+  use cedra_framework::cedra_coin;  
+  use cedra_framework::coin;
 
   public entry fun two_by_two(
         first: &signer,
@@ -12,8 +12,8 @@ module transaction_test::transfer {
         dst_second: address,
         deposit_first: u64,
     ) {
-      let coin_first = coin::withdraw<aptos_coin::AptosCoin>(first, amount_first);
-      let coin_second = coin::withdraw<aptos_coin::AptosCoin>(second, amount_second);
+      let coin_first = coin::withdraw<cedra_coin::CedraCoin>(first, amount_first);
+      let coin_second = coin::withdraw<cedra_coin::CedraCoin>(second, amount_second);
 
       coin::merge(&mut coin_first, coin_second);
 
@@ -28,7 +28,7 @@ module transaction_test::transfer {
         amount: u64,
         reciever: address,
     ) {
-      let coin = coin::withdraw<aptos_coin::AptosCoin>(sender, amount);
+      let coin = coin::withdraw<cedra_coin::CedraCoin>(sender, amount);
       coin::deposit(reciever, coin);
     }
 }

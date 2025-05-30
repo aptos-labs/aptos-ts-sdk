@@ -1,11 +1,11 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import {
   APTOS_COIN,
   Account,
-  Aptos,
-  AptosConfig,
+  Cedra,
+  CedraConfig,
   Ed25519PrivateKey,
   Network,
   SigningSchemeInput,
@@ -15,7 +15,7 @@ import {
   MultiEd25519Account,
   MultiEd25519PublicKey,
 } from "../../../src";
-import { getAptosClient } from "../helper";
+import { getCedraClient } from "../helper";
 import { simpleCoinTransactionHeler } from "../transaction/helper";
 
 describe("account api", () => {
@@ -23,8 +23,8 @@ describe("account api", () => {
 
   describe("fetch data", () => {
     test("it fetches account data", async () => {
-      const { aptos } = getAptosClient();
-      const data = await aptos.getAccountInfo({
+      const { cedra } = getCedraClient();
+      const data = await cedra.getAccountInfo({
         accountAddress: "0x1",
       });
       expect(data).toHaveProperty("sequence_number");
@@ -34,17 +34,17 @@ describe("account api", () => {
     });
 
     test("it fetches account modules", async () => {
-      const { aptos } = getAptosClient();
-      const data = await aptos.getAccountModules({
+      const { cedra } = getCedraClient();
+      const data = await cedra.getAccountModules({
         accountAddress: "0x1",
       });
       expect(data.length).toBeGreaterThan(0);
     });
 
     test("it fetches account modules with a limit", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const data = await aptos.getAccountModules({
+      const config = new CedraConfig({ network: Network.LOCAL });
+      const cedra = new Cedra(config);
+      const data = await cedra.getAccountModules({
         accountAddress: "0x1",
         options: {
           limit: 1,
@@ -54,9 +54,9 @@ describe("account api", () => {
     });
 
     test("it fetches account modules with pagination", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      let { modules, cursor } = await aptos.getAccountModulesPage({
+      const config = new CedraConfig({ network: Network.LOCAL });
+      const cedra = new Cedra(config);
+      let { modules, cursor } = await cedra.getAccountModulesPage({
         accountAddress: "0x1",
         options: {
           limit: 1,
@@ -65,7 +65,7 @@ describe("account api", () => {
       expect(modules.length).toEqual(1);
       expect(cursor).toBeDefined();
       while (true) {
-        const { modules: modules2, cursor: cursor2 } = await aptos.getAccountModulesPage({
+        const { modules: modules2, cursor: cursor2 } = await cedra.getAccountModulesPage({
           accountAddress: "0x1",
           options: {
             cursor,
@@ -81,9 +81,9 @@ describe("account api", () => {
     });
 
     test("it fetches an account module", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const data = await aptos.getAccountModule({
+      const config = new CedraConfig({ network: Network.LOCAL });
+      const cedra = new Cedra(config);
+      const data = await cedra.getAccountModule({
         accountAddress: "0x1",
         moduleName: "coin",
       });
@@ -91,18 +91,18 @@ describe("account api", () => {
     });
 
     test("it fetches account resources", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const data = await aptos.getAccountResources({
+      const config = new CedraConfig({ network: Network.LOCAL });
+      const cedra = new Cedra(config);
+      const data = await cedra.getAccountResources({
         accountAddress: "0x1",
       });
       expect(data.length).toBeGreaterThan(0);
     });
 
     test("it fetches account resources with a limit", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const data = await aptos.getAccountResources({
+      const config = new CedraConfig({ network: Network.LOCAL });
+      const cedra = new Cedra(config);
+      const data = await cedra.getAccountResources({
         accountAddress: "0x1",
         options: {
           limit: 1,
@@ -112,9 +112,9 @@ describe("account api", () => {
     });
 
     test("it fetches account resources with pagination", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const { resources, cursor } = await aptos.getAccountResourcesPage({
+      const config = new CedraConfig({ network: Network.LOCAL });
+      const cedra = new Cedra(config);
+      const { resources, cursor } = await cedra.getAccountResourcesPage({
         accountAddress: "0x1",
         options: {
           limit: 1,
@@ -123,7 +123,7 @@ describe("account api", () => {
       expect(resources.length).toEqual(1);
       expect(cursor).toBeDefined();
 
-      const { resources: resources2, cursor: cursor2 } = await aptos.getAccountResourcesPage({
+      const { resources: resources2, cursor: cursor2 } = await cedra.getAccountResourcesPage({
         accountAddress: "0x1",
         options: {
           cursor,
@@ -135,9 +135,9 @@ describe("account api", () => {
     });
 
     test("it fetches an account resource without a type", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const data = await aptos.getAccountResource({
+      const config = new CedraConfig({ network: Network.LOCAL });
+      const cedra = new Cedra(config);
+      const data = await cedra.getAccountResource({
         accountAddress: "0x1",
         resourceType: "0x1::account::Account",
       });
@@ -148,8 +148,8 @@ describe("account api", () => {
     });
 
     test("it fetches an account resource typed", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const config = new CedraConfig({ network: Network.LOCAL });
+      const cedra = new Cedra(config);
       type AccountRes = {
         authentication_key: string;
         coin_register_events: {
@@ -174,7 +174,7 @@ describe("account api", () => {
         sequence_number: string;
       };
 
-      const resource = await aptos.getAccountResource<AccountRes>({
+      const resource = await cedra.getAccountResource<AccountRes>({
         accountAddress: "0x1",
         resourceType: "0x1::account::Account",
       });
@@ -185,128 +185,128 @@ describe("account api", () => {
     });
 
     test("it fetches account transactions", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const config = new CedraConfig({ network: Network.LOCAL });
+      const cedra = new Cedra(config);
       const senderAccount = Account.generate();
-      await aptos.fundAccount({
+      await cedra.fundAccount({
         accountAddress: senderAccount.accountAddress,
         amount: FUND_AMOUNT,
       });
       const bob = Account.generate();
-      const rawTxn = await aptos.transaction.build.simple({
+      const rawTxn = await cedra.transaction.build.simple({
         sender: senderAccount.accountAddress,
         data: {
-          function: "0x1::aptos_account::transfer",
+          function: "0x1::cedra_account::transfer",
           functionArguments: [bob.accountAddress, new U64(10)],
         },
       });
-      const authenticator = aptos.transaction.sign({
+      const authenticator = cedra.transaction.sign({
         signer: senderAccount,
         transaction: rawTxn,
       });
-      const response = await aptos.transaction.submit.simple({
+      const response = await cedra.transaction.submit.simple({
         transaction: rawTxn,
         senderAuthenticator: authenticator,
       });
-      const txn = await aptos.waitForTransaction({ transactionHash: response.hash });
-      const accountTransactions = await aptos.getAccountTransactions({
+      const txn = await cedra.waitForTransaction({ transactionHash: response.hash });
+      const accountTransactions = await cedra.getAccountTransactions({
         accountAddress: senderAccount.accountAddress,
       });
       expect(accountTransactions[0]).toStrictEqual(txn);
     });
 
     test("it fetches account transactions count", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const config = new CedraConfig({ network: Network.LOCAL });
+      const cedra = new Cedra(config);
       const senderAccount = Account.generate();
-      const response = await aptos.fundAccount({
+      const response = await cedra.fundAccount({
         accountAddress: senderAccount.accountAddress,
         amount: FUND_AMOUNT,
       });
 
-      await aptos.waitForTransaction({ transactionHash: response.hash });
-      const accountTransactionsCount = await aptos.getAccountTransactionsCount({
+      await cedra.waitForTransaction({ transactionHash: response.hash });
+      const accountTransactionsCount = await cedra.getAccountTransactionsCount({
         accountAddress: senderAccount.accountAddress,
       });
       expect(accountTransactionsCount).toBe(1);
     });
 
     test("it fetches account coins data", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const config = new CedraConfig({ network: Network.LOCAL });
+      const cedra = new Cedra(config);
       const senderAccount = Account.generate();
-      const fundTxn = await aptos.fundAccount({
+      const fundTxn = await cedra.fundAccount({
         accountAddress: senderAccount.accountAddress,
         amount: FUND_AMOUNT,
       });
 
-      await aptos.waitForTransaction({ transactionHash: fundTxn.hash });
-      const accountCoinData = await aptos.getAccountCoinsData({
+      await cedra.waitForTransaction({ transactionHash: fundTxn.hash });
+      const accountCoinData = await cedra.getAccountCoinsData({
         accountAddress: senderAccount.accountAddress,
       });
       expect(accountCoinData[0].amount).toBe(FUND_AMOUNT);
-      expect(accountCoinData[0].asset_type).toBe("0x1::aptos_coin::AptosCoin");
+      expect(accountCoinData[0].asset_type).toBe("0x1::cedra_coin::CedraCoin");
     });
 
     test("it fetches account coins count", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const config = new CedraConfig({ network: Network.LOCAL });
+      const cedra = new Cedra(config);
       const senderAccount = Account.generate();
-      const fundTxn = await aptos.fundAccount({
+      const fundTxn = await cedra.fundAccount({
         accountAddress: senderAccount.accountAddress,
         amount: FUND_AMOUNT,
       });
 
-      await aptos.waitForTransaction({ transactionHash: fundTxn.hash });
-      const accountCoinsCount = await aptos.getAccountCoinsCount({
+      await cedra.waitForTransaction({ transactionHash: fundTxn.hash });
+      const accountCoinsCount = await cedra.getAccountCoinsCount({
         accountAddress: senderAccount.accountAddress,
       });
       expect(accountCoinsCount).toBe(1);
     });
 
     test("it fetches account's coin amount", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const config = new CedraConfig({ network: Network.LOCAL });
+      const cedra = new Cedra(config);
       const senderAccount = Account.generate();
-      const fundTxn = await aptos.fundAccount({
+      const fundTxn = await cedra.fundAccount({
         accountAddress: senderAccount.accountAddress,
         amount: FUND_AMOUNT,
       });
 
-      await aptos.waitForTransaction({ transactionHash: fundTxn.hash });
+      await cedra.waitForTransaction({ transactionHash: fundTxn.hash });
       // custom coin type that doesn't exist, will throw an error
-      const getInvalidCoinAmount = aptos.getAccountCoinAmount({
+      const getInvalidCoinAmount = cedra.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
         coinType: "0x12345::coin::Coin",
         minimumLedgerVersion: BigInt(fundTxn.version),
       });
       await expect(getInvalidCoinAmount).rejects.toThrow();
       // custom coin type struct that does exist, but is not a coin, will return 0, similar to a coin that exists
-      const getOtherCoinAmount = await aptos.getAccountCoinAmount({
+      const getOtherCoinAmount = await cedra.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
         coinType: "0x1::string::String",
         minimumLedgerVersion: BigInt(fundTxn.version),
       });
       expect(getOtherCoinAmount).toBe(0);
 
-      // APT Aptos coin
-      const accountAPTAmount = await aptos.getAccountCoinAmount({
+      // APT Cedra coin
+      const accountAPTAmount = await cedra.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
         coinType: APTOS_COIN,
         minimumLedgerVersion: BigInt(fundTxn.version),
       });
       expect(accountAPTAmount).toBe(100000000);
 
-      // APT Aptos coin by fungible asset metadata
-      const accountAPTAmount2 = await aptos.getAccountCoinAmount({
+      // APT Cedra coin by fungible asset metadata
+      const accountAPTAmount2 = await cedra.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
         faMetadataAddress: AccountAddress.A,
         minimumLedgerVersion: BigInt(fundTxn.version),
       });
       expect(accountAPTAmount2).toBe(100000000);
       // By both
-      // APT Aptos coin by fungible asset metadata
-      const accountAPTAmount3 = await aptos.getAccountCoinAmount({
+      // APT Cedra coin by fungible asset metadata
+      const accountAPTAmount3 = await cedra.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
         coinType: APTOS_COIN,
         faMetadataAddress: "0xA",
@@ -314,7 +314,7 @@ describe("account api", () => {
       });
       expect(accountAPTAmount3).toBe(100000000);
       // By neither
-      const failForNoCoinTypeGiven = aptos.getAccountCoinAmount({
+      const failForNoCoinTypeGiven = cedra.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
         minimumLedgerVersion: BigInt(fundTxn.version),
       });
@@ -322,53 +322,53 @@ describe("account api", () => {
     });
 
     test("lookupOriginalAccountAddress - Look up account address before key rotation", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const config = new CedraConfig({ network: Network.LOCAL });
+      const cedra = new Cedra(config);
       const account = Account.generate();
 
       // Fund and create account on-chain
-      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: FUND_AMOUNT });
+      await cedra.fundAccount({ accountAddress: account.accountAddress, amount: FUND_AMOUNT });
 
-      const lookupAccount = await aptos.lookupOriginalAccountAddress({
+      const lookupAccount = await cedra.lookupOriginalAccountAddress({
         authenticationKey: account.accountAddress,
       });
       expect(lookupAccount).toStrictEqual(account.accountAddress);
     });
 
     test("it fetches account owned token from collection", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const config = new CedraConfig({ network: Network.LOCAL });
+      const cedra = new Cedra(config);
       const creator = Account.generate();
-      await aptos.fundAccount({ accountAddress: creator.accountAddress, amount: FUND_AMOUNT });
-      const collectionCreationTransaction = await aptos.createCollectionTransaction({
+      await cedra.fundAccount({ accountAddress: creator.accountAddress, amount: FUND_AMOUNT });
+      const collectionCreationTransaction = await cedra.createCollectionTransaction({
         creator,
         description: "My new collection!",
         name: "Test Collection",
         uri: "Test Collection",
       });
-      const pendingCollectionCreationTransaction = await aptos.signAndSubmitTransaction({
+      const pendingCollectionCreationTransaction = await cedra.signAndSubmitTransaction({
         signer: creator,
         transaction: collectionCreationTransaction,
       });
-      await aptos.waitForTransaction({ transactionHash: pendingCollectionCreationTransaction.hash });
-      const transaction = await aptos.mintDigitalAssetTransaction({
+      await cedra.waitForTransaction({ transactionHash: pendingCollectionCreationTransaction.hash });
+      const transaction = await cedra.mintDigitalAssetTransaction({
         creator,
         collection: "Test Collection",
         description: "My new collection!",
         name: "Test Token",
-        uri: "http://aptos.dev/nft",
+        uri: "http://cedra.dev/nft",
         propertyKeys: ["my bool key", "my array key"],
         propertyTypes: ["BOOLEAN", "ARRAY"],
         propertyValues: [false, "[value]"],
       });
-      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-      const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+      const pendingTxn = await cedra.signAndSubmitTransaction({ signer: creator, transaction });
+      const response = await cedra.waitForTransaction({ transactionHash: pendingTxn.hash });
 
-      const address = await aptos.getCollectionId({
+      const address = await cedra.getCollectionId({
         collectionName: "Test Collection",
         creatorAddress: creator.accountAddress,
       });
-      const tokens = await aptos.getAccountOwnedTokensFromCollectionAddress({
+      const tokens = await cedra.getAccountOwnedTokensFromCollectionAddress({
         accountAddress: creator.accountAddress,
         collectionAddress: address,
         minimumLedgerVersion: BigInt(response.version),
@@ -380,30 +380,30 @@ describe("account api", () => {
 
     describe("it derives an account from a private key", () => {
       test("single sender ed25519", async () => {
-        const config = new AptosConfig({ network: Network.LOCAL });
-        const aptos = new Aptos(config);
+        const config = new CedraConfig({ network: Network.LOCAL });
+        const cedra = new Cedra(config);
         const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
-        await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100 });
+        await cedra.fundAccount({ accountAddress: account.accountAddress, amount: 100 });
 
-        const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
+        const derivedAccount = await cedra.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
         // Note, this will now always return the legacy account
         expect(derivedAccount.accountAddress.equals(account.accountAddress)).toEqual(false);
       });
       test("single sender secp256k1", async () => {
-        const config = new AptosConfig({ network: Network.LOCAL });
-        const aptos = new Aptos(config);
+        const config = new CedraConfig({ network: Network.LOCAL });
+        const cedra = new Cedra(config);
         const account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
 
-        const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
+        const derivedAccount = await cedra.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
         expect(derivedAccount).toStrictEqual(account);
       });
       test("legacy ed25519", async () => {
-        const config = new AptosConfig({ network: Network.LOCAL });
-        const aptos = new Aptos(config);
+        const config = new CedraConfig({ network: Network.LOCAL });
+        const cedra = new Cedra(config);
         const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
-        await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100 });
+        await cedra.fundAccount({ accountAddress: account.accountAddress, amount: 100 });
 
-        const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
+        const derivedAccount = await cedra.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
         expect(derivedAccount).toStrictEqual(account);
       });
     });
@@ -411,22 +411,22 @@ describe("account api", () => {
 
   describe("Key Rotation", () => {
     test("it should rotate ed25519 to ed25519 auth key correctly", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const config = new CedraConfig({ network: Network.LOCAL });
+      const cedra = new Cedra(config);
 
       // Current Account
       const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
-      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
+      await cedra.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
 
       // account that holds the new key
       const rotateToPrivateKey = Ed25519PrivateKey.generate();
 
       // Rotate the key
-      const pendingTxn = await aptos.rotateAuthKey({ fromAccount: account, toNewPrivateKey: rotateToPrivateKey });
-      const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+      const pendingTxn = await cedra.rotateAuthKey({ fromAccount: account, toNewPrivateKey: rotateToPrivateKey });
+      const response = await cedra.waitForTransaction({ transactionHash: pendingTxn.hash });
 
       // lookup original account address
-      const lookupAccountAddress = await aptos.lookupOriginalAccountAddress({
+      const lookupAccountAddress = await cedra.lookupOriginalAccountAddress({
         authenticationKey: rotateToPrivateKey.publicKey().authKey().derivedAddress(),
         minimumLedgerVersion: BigInt(response.version),
       });
@@ -438,16 +438,16 @@ describe("account api", () => {
         privateKey: rotateToPrivateKey,
         address: account.accountAddress,
       });
-      await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
+      await simpleCoinTransactionHeler(cedra, rotatedAccount, Account.generate());
     }, 10000);
 
     test("it should rotate ed25519 to multi-ed25519 auth key correctly", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const config = new CedraConfig({ network: Network.LOCAL });
+      const cedra = new Cedra(config);
 
       // Current Account
       const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
-      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
+      await cedra.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
 
       const mk1 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
       const mk2 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
@@ -460,10 +460,10 @@ describe("account api", () => {
       });
 
       // Rotate the key
-      const pendingTxn = await aptos.rotateAuthKey({ fromAccount: account, toAccount: multiEdAccount });
-      await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+      const pendingTxn = await cedra.rotateAuthKey({ fromAccount: account, toAccount: multiEdAccount });
+      await cedra.waitForTransaction({ transactionHash: pendingTxn.hash });
 
-      const accountInfo = await aptos.account.getAccountInfo({
+      const accountInfo = await cedra.account.getAccountInfo({
         accountAddress: account.accountAddress,
       });
       expect(accountInfo.authentication_key).toEqual(multiEdAccount.publicKey.authKey().toString());
@@ -476,16 +476,16 @@ describe("account api", () => {
         signers: [mk1.privateKey],
         address: account.accountAddress,
       });
-      await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
+      await simpleCoinTransactionHeler(cedra, rotatedAccount, Account.generate());
     }, 10000);
 
     test("it should rotate ed25519 to multikey auth key correctly", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const config = new CedraConfig({ network: Network.LOCAL });
+      const cedra = new Cedra(config);
 
       // Current Account
       const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
-      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
+      await cedra.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
 
       const mk1 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
       const mk2 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
@@ -496,10 +496,10 @@ describe("account api", () => {
       });
 
       // Rotate the key
-      const pendingTxn = await aptos.rotateAuthKey({ fromAccount: account, toAccount: multiKeyAccount });
-      await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+      const pendingTxn = await cedra.rotateAuthKey({ fromAccount: account, toAccount: multiKeyAccount });
+      await cedra.waitForTransaction({ transactionHash: pendingTxn.hash });
 
-      const accountInfo = await aptos.account.getAccountInfo({
+      const accountInfo = await cedra.account.getAccountInfo({
         accountAddress: account.accountAddress,
       });
       expect(accountInfo.authentication_key).toEqual(multiKeyAccount.publicKey.authKey().toString());
@@ -510,30 +510,30 @@ describe("account api", () => {
         signaturesRequired: 1,
         signers: [mk1],
       });
-      await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
+      await simpleCoinTransactionHeler(cedra, rotatedAccount, Account.generate());
     }, 10000);
 
     test("it should rotate ed25519 to unverified auth key correctly", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const config = new CedraConfig({ network: Network.LOCAL });
+      const cedra = new Cedra(config);
 
       // Current Account
       const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
-      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
+      await cedra.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
 
       // account that holds the new key
       const newAccount = Account.generate();
       const newAuthKey = newAccount.publicKey.authKey();
 
       // Rotate the key
-      const pendingTxn = await aptos.rotateAuthKey({
+      const pendingTxn = await cedra.rotateAuthKey({
         fromAccount: account,
         toAuthKey: newAuthKey,
         dangerouslySkipVerification: true,
       });
-      await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+      await cedra.waitForTransaction({ transactionHash: pendingTxn.hash });
 
-      const accountInfo = await aptos.account.getAccountInfo({
+      const accountInfo = await cedra.account.getAccountInfo({
         accountAddress: account.accountAddress,
       });
       expect(accountInfo.authentication_key).toEqual(newAuthKey.toString());
@@ -542,7 +542,7 @@ describe("account api", () => {
         privateKey: newAccount.privateKey,
         address: newAccount.accountAddress,
       });
-      await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
+      await simpleCoinTransactionHeler(cedra, rotatedAccount, Account.generate());
     }, 10000);
   });
 });

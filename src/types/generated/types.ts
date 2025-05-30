@@ -891,9 +891,9 @@ export type CoinActivities = {
   activity_type?: Maybe<Scalars["String"]["output"]>;
   amount?: Maybe<Scalars["numeric"]["output"]>;
   /** An array relationship */
-  aptos_names: Array<CurrentAptosNames>;
+  cedra_names: Array<CurrentCedraNames>;
   /** An aggregate relationship */
-  aptos_names_aggregate: CurrentAptosNamesAggregate;
+  cedra_names_aggregate: CurrentCedraNamesAggregate;
   block_height?: Maybe<Scalars["bigint"]["output"]>;
   /** An object relationship */
   coin_info?: Maybe<CoinInfos>;
@@ -912,21 +912,21 @@ export type CoinActivities = {
 };
 
 /** columns and relationships of "legacy_migration_v1.coin_activities" */
-export type CoinActivitiesAptosNamesArgs = {
-  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+export type CoinActivitiesCedraNamesArgs = {
+  distinct_on?: InputMaybe<Array<CurrentCedraNamesSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
-  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+  order_by?: InputMaybe<Array<CurrentCedraNamesOrderBy>>;
+  where?: InputMaybe<CurrentCedraNamesBoolExp>;
 };
 
 /** columns and relationships of "legacy_migration_v1.coin_activities" */
-export type CoinActivitiesAptosNamesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+export type CoinActivitiesCedraNamesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<CurrentCedraNamesSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
-  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+  order_by?: InputMaybe<Array<CurrentCedraNamesOrderBy>>;
+  where?: InputMaybe<CurrentCedraNamesBoolExp>;
 };
 
 /** aggregated selection of "legacy_migration_v1.coin_activities" */
@@ -1027,8 +1027,8 @@ export type CoinActivitiesBoolExp = {
   _or?: InputMaybe<Array<CoinActivitiesBoolExp>>;
   activity_type?: InputMaybe<StringComparisonExp>;
   amount?: InputMaybe<NumericComparisonExp>;
-  aptos_names?: InputMaybe<CurrentAptosNamesBoolExp>;
-  aptos_names_aggregate?: InputMaybe<CurrentAptosNamesAggregateBoolExp>;
+  cedra_names?: InputMaybe<CurrentCedraNamesBoolExp>;
+  cedra_names_aggregate?: InputMaybe<CurrentCedraNamesAggregateBoolExp>;
   block_height?: InputMaybe<BigintComparisonExp>;
   coin_info?: InputMaybe<CoinInfosBoolExp>;
   coin_type?: InputMaybe<StringComparisonExp>;
@@ -1117,7 +1117,7 @@ export type CoinActivitiesMinOrderBy = {
 export type CoinActivitiesOrderBy = {
   activity_type?: InputMaybe<OrderBy>;
   amount?: InputMaybe<OrderBy>;
-  aptos_names_aggregate?: InputMaybe<CurrentAptosNamesAggregateOrderBy>;
+  cedra_names_aggregate?: InputMaybe<CurrentCedraNamesAggregateOrderBy>;
   block_height?: InputMaybe<OrderBy>;
   coin_info?: InputMaybe<CoinInfosOrderBy>;
   coin_type?: InputMaybe<OrderBy>;
@@ -1876,15 +1876,15 @@ export type CurrentAnsLookupV2StreamCursorValueInput = {
   token_standard?: InputMaybe<Scalars["String"]["input"]>;
 };
 
-/** columns and relationships of "current_aptos_names" */
-export type CurrentAptosNames = {
+/** columns and relationships of "current_cedra_names" */
+export type CurrentCedraNames = {
   domain?: Maybe<Scalars["String"]["output"]>;
   domain_expiration_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
   domain_with_suffix?: Maybe<Scalars["String"]["output"]>;
   expiration_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
   is_active?: Maybe<Scalars["Boolean"]["output"]>;
   /** An object relationship */
-  is_domain_owner?: Maybe<CurrentAptosNames>;
+  is_domain_owner?: Maybe<CurrentCedraNames>;
   is_primary?: Maybe<Scalars["Boolean"]["output"]>;
   last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
   owner_address?: Maybe<Scalars["String"]["output"]>;
@@ -1895,98 +1895,98 @@ export type CurrentAptosNames = {
   token_standard?: Maybe<Scalars["String"]["output"]>;
 };
 
-/** aggregated selection of "current_aptos_names" */
-export type CurrentAptosNamesAggregate = {
-  aggregate?: Maybe<CurrentAptosNamesAggregateFields>;
-  nodes: Array<CurrentAptosNames>;
+/** aggregated selection of "current_cedra_names" */
+export type CurrentCedraNamesAggregate = {
+  aggregate?: Maybe<CurrentCedraNamesAggregateFields>;
+  nodes: Array<CurrentCedraNames>;
 };
 
-export type CurrentAptosNamesAggregateBoolExp = {
-  bool_and?: InputMaybe<CurrentAptosNamesAggregateBoolExpBoolAnd>;
-  bool_or?: InputMaybe<CurrentAptosNamesAggregateBoolExpBoolOr>;
-  count?: InputMaybe<CurrentAptosNamesAggregateBoolExpCount>;
+export type CurrentCedraNamesAggregateBoolExp = {
+  bool_and?: InputMaybe<CurrentCedraNamesAggregateBoolExpBoolAnd>;
+  bool_or?: InputMaybe<CurrentCedraNamesAggregateBoolExpBoolOr>;
+  count?: InputMaybe<CurrentCedraNamesAggregateBoolExpCount>;
 };
 
-export type CurrentAptosNamesAggregateBoolExpBoolAnd = {
-  arguments: CurrentAptosNamesSelectColumnCurrentAptosNamesAggregateBoolExpBoolAndArgumentsColumns;
+export type CurrentCedraNamesAggregateBoolExpBoolAnd = {
+  arguments: CurrentCedraNamesSelectColumnCurrentCedraNamesAggregateBoolExpBoolAndArgumentsColumns;
   distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
-  filter?: InputMaybe<CurrentAptosNamesBoolExp>;
+  filter?: InputMaybe<CurrentCedraNamesBoolExp>;
   predicate: BooleanComparisonExp;
 };
 
-export type CurrentAptosNamesAggregateBoolExpBoolOr = {
-  arguments: CurrentAptosNamesSelectColumnCurrentAptosNamesAggregateBoolExpBoolOrArgumentsColumns;
+export type CurrentCedraNamesAggregateBoolExpBoolOr = {
+  arguments: CurrentCedraNamesSelectColumnCurrentCedraNamesAggregateBoolExpBoolOrArgumentsColumns;
   distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
-  filter?: InputMaybe<CurrentAptosNamesBoolExp>;
+  filter?: InputMaybe<CurrentCedraNamesBoolExp>;
   predicate: BooleanComparisonExp;
 };
 
-export type CurrentAptosNamesAggregateBoolExpCount = {
-  arguments?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+export type CurrentCedraNamesAggregateBoolExpCount = {
+  arguments?: InputMaybe<Array<CurrentCedraNamesSelectColumn>>;
   distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
-  filter?: InputMaybe<CurrentAptosNamesBoolExp>;
+  filter?: InputMaybe<CurrentCedraNamesBoolExp>;
   predicate: IntComparisonExp;
 };
 
-/** aggregate fields of "current_aptos_names" */
-export type CurrentAptosNamesAggregateFields = {
-  avg?: Maybe<CurrentAptosNamesAvgFields>;
+/** aggregate fields of "current_cedra_names" */
+export type CurrentCedraNamesAggregateFields = {
+  avg?: Maybe<CurrentCedraNamesAvgFields>;
   count: Scalars["Int"]["output"];
-  max?: Maybe<CurrentAptosNamesMaxFields>;
-  min?: Maybe<CurrentAptosNamesMinFields>;
-  stddev?: Maybe<CurrentAptosNamesStddevFields>;
-  stddev_pop?: Maybe<CurrentAptosNamesStddevPopFields>;
-  stddev_samp?: Maybe<CurrentAptosNamesStddevSampFields>;
-  sum?: Maybe<CurrentAptosNamesSumFields>;
-  var_pop?: Maybe<CurrentAptosNamesVarPopFields>;
-  var_samp?: Maybe<CurrentAptosNamesVarSampFields>;
-  variance?: Maybe<CurrentAptosNamesVarianceFields>;
+  max?: Maybe<CurrentCedraNamesMaxFields>;
+  min?: Maybe<CurrentCedraNamesMinFields>;
+  stddev?: Maybe<CurrentCedraNamesStddevFields>;
+  stddev_pop?: Maybe<CurrentCedraNamesStddevPopFields>;
+  stddev_samp?: Maybe<CurrentCedraNamesStddevSampFields>;
+  sum?: Maybe<CurrentCedraNamesSumFields>;
+  var_pop?: Maybe<CurrentCedraNamesVarPopFields>;
+  var_samp?: Maybe<CurrentCedraNamesVarSampFields>;
+  variance?: Maybe<CurrentCedraNamesVarianceFields>;
 };
 
-/** aggregate fields of "current_aptos_names" */
-export type CurrentAptosNamesAggregateFieldsCountArgs = {
-  columns?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+/** aggregate fields of "current_cedra_names" */
+export type CurrentCedraNamesAggregateFieldsCountArgs = {
+  columns?: InputMaybe<Array<CurrentCedraNamesSelectColumn>>;
   distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
-/** order by aggregate values of table "current_aptos_names" */
-export type CurrentAptosNamesAggregateOrderBy = {
-  avg?: InputMaybe<CurrentAptosNamesAvgOrderBy>;
+/** order by aggregate values of table "current_cedra_names" */
+export type CurrentCedraNamesAggregateOrderBy = {
+  avg?: InputMaybe<CurrentCedraNamesAvgOrderBy>;
   count?: InputMaybe<OrderBy>;
-  max?: InputMaybe<CurrentAptosNamesMaxOrderBy>;
-  min?: InputMaybe<CurrentAptosNamesMinOrderBy>;
-  stddev?: InputMaybe<CurrentAptosNamesStddevOrderBy>;
-  stddev_pop?: InputMaybe<CurrentAptosNamesStddevPopOrderBy>;
-  stddev_samp?: InputMaybe<CurrentAptosNamesStddevSampOrderBy>;
-  sum?: InputMaybe<CurrentAptosNamesSumOrderBy>;
-  var_pop?: InputMaybe<CurrentAptosNamesVarPopOrderBy>;
-  var_samp?: InputMaybe<CurrentAptosNamesVarSampOrderBy>;
-  variance?: InputMaybe<CurrentAptosNamesVarianceOrderBy>;
+  max?: InputMaybe<CurrentCedraNamesMaxOrderBy>;
+  min?: InputMaybe<CurrentCedraNamesMinOrderBy>;
+  stddev?: InputMaybe<CurrentCedraNamesStddevOrderBy>;
+  stddev_pop?: InputMaybe<CurrentCedraNamesStddevPopOrderBy>;
+  stddev_samp?: InputMaybe<CurrentCedraNamesStddevSampOrderBy>;
+  sum?: InputMaybe<CurrentCedraNamesSumOrderBy>;
+  var_pop?: InputMaybe<CurrentCedraNamesVarPopOrderBy>;
+  var_samp?: InputMaybe<CurrentCedraNamesVarSampOrderBy>;
+  variance?: InputMaybe<CurrentCedraNamesVarianceOrderBy>;
 };
 
 /** aggregate avg on columns */
-export type CurrentAptosNamesAvgFields = {
+export type CurrentCedraNamesAvgFields = {
   last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
   subdomain_expiration_policy?: Maybe<Scalars["Float"]["output"]>;
 };
 
-/** order by avg() on columns of table "current_aptos_names" */
-export type CurrentAptosNamesAvgOrderBy = {
+/** order by avg() on columns of table "current_cedra_names" */
+export type CurrentCedraNamesAvgOrderBy = {
   last_transaction_version?: InputMaybe<OrderBy>;
   subdomain_expiration_policy?: InputMaybe<OrderBy>;
 };
 
-/** Boolean expression to filter rows from the table "current_aptos_names". All fields are combined with a logical 'AND'. */
-export type CurrentAptosNamesBoolExp = {
-  _and?: InputMaybe<Array<CurrentAptosNamesBoolExp>>;
-  _not?: InputMaybe<CurrentAptosNamesBoolExp>;
-  _or?: InputMaybe<Array<CurrentAptosNamesBoolExp>>;
+/** Boolean expression to filter rows from the table "current_cedra_names". All fields are combined with a logical 'AND'. */
+export type CurrentCedraNamesBoolExp = {
+  _and?: InputMaybe<Array<CurrentCedraNamesBoolExp>>;
+  _not?: InputMaybe<CurrentCedraNamesBoolExp>;
+  _or?: InputMaybe<Array<CurrentCedraNamesBoolExp>>;
   domain?: InputMaybe<StringComparisonExp>;
   domain_expiration_timestamp?: InputMaybe<TimestampComparisonExp>;
   domain_with_suffix?: InputMaybe<StringComparisonExp>;
   expiration_timestamp?: InputMaybe<TimestampComparisonExp>;
   is_active?: InputMaybe<BooleanComparisonExp>;
-  is_domain_owner?: InputMaybe<CurrentAptosNamesBoolExp>;
+  is_domain_owner?: InputMaybe<CurrentCedraNamesBoolExp>;
   is_primary?: InputMaybe<BooleanComparisonExp>;
   last_transaction_version?: InputMaybe<BigintComparisonExp>;
   owner_address?: InputMaybe<StringComparisonExp>;
@@ -1998,7 +1998,7 @@ export type CurrentAptosNamesBoolExp = {
 };
 
 /** aggregate max on columns */
-export type CurrentAptosNamesMaxFields = {
+export type CurrentCedraNamesMaxFields = {
   domain?: Maybe<Scalars["String"]["output"]>;
   domain_expiration_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
   domain_with_suffix?: Maybe<Scalars["String"]["output"]>;
@@ -2012,8 +2012,8 @@ export type CurrentAptosNamesMaxFields = {
   token_standard?: Maybe<Scalars["String"]["output"]>;
 };
 
-/** order by max() on columns of table "current_aptos_names" */
-export type CurrentAptosNamesMaxOrderBy = {
+/** order by max() on columns of table "current_cedra_names" */
+export type CurrentCedraNamesMaxOrderBy = {
   domain?: InputMaybe<OrderBy>;
   domain_expiration_timestamp?: InputMaybe<OrderBy>;
   domain_with_suffix?: InputMaybe<OrderBy>;
@@ -2028,7 +2028,7 @@ export type CurrentAptosNamesMaxOrderBy = {
 };
 
 /** aggregate min on columns */
-export type CurrentAptosNamesMinFields = {
+export type CurrentCedraNamesMinFields = {
   domain?: Maybe<Scalars["String"]["output"]>;
   domain_expiration_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
   domain_with_suffix?: Maybe<Scalars["String"]["output"]>;
@@ -2042,8 +2042,8 @@ export type CurrentAptosNamesMinFields = {
   token_standard?: Maybe<Scalars["String"]["output"]>;
 };
 
-/** order by min() on columns of table "current_aptos_names" */
-export type CurrentAptosNamesMinOrderBy = {
+/** order by min() on columns of table "current_cedra_names" */
+export type CurrentCedraNamesMinOrderBy = {
   domain?: InputMaybe<OrderBy>;
   domain_expiration_timestamp?: InputMaybe<OrderBy>;
   domain_with_suffix?: InputMaybe<OrderBy>;
@@ -2057,14 +2057,14 @@ export type CurrentAptosNamesMinOrderBy = {
   token_standard?: InputMaybe<OrderBy>;
 };
 
-/** Ordering options when selecting data from "current_aptos_names". */
-export type CurrentAptosNamesOrderBy = {
+/** Ordering options when selecting data from "current_cedra_names". */
+export type CurrentCedraNamesOrderBy = {
   domain?: InputMaybe<OrderBy>;
   domain_expiration_timestamp?: InputMaybe<OrderBy>;
   domain_with_suffix?: InputMaybe<OrderBy>;
   expiration_timestamp?: InputMaybe<OrderBy>;
   is_active?: InputMaybe<OrderBy>;
-  is_domain_owner?: InputMaybe<CurrentAptosNamesOrderBy>;
+  is_domain_owner?: InputMaybe<CurrentCedraNamesOrderBy>;
   is_primary?: InputMaybe<OrderBy>;
   last_transaction_version?: InputMaybe<OrderBy>;
   owner_address?: InputMaybe<OrderBy>;
@@ -2075,8 +2075,8 @@ export type CurrentAptosNamesOrderBy = {
   token_standard?: InputMaybe<OrderBy>;
 };
 
-/** select columns of table "current_aptos_names" */
-export enum CurrentAptosNamesSelectColumn {
+/** select columns of table "current_cedra_names" */
+export enum CurrentCedraNamesSelectColumn {
   /** column name */
   Domain = "domain",
   /** column name */
@@ -2105,16 +2105,16 @@ export enum CurrentAptosNamesSelectColumn {
   TokenStandard = "token_standard",
 }
 
-/** select "current_aptos_names_aggregate_bool_exp_bool_and_arguments_columns" columns of table "current_aptos_names" */
-export enum CurrentAptosNamesSelectColumnCurrentAptosNamesAggregateBoolExpBoolAndArgumentsColumns {
+/** select "current_cedra_names_aggregate_bool_exp_bool_and_arguments_columns" columns of table "current_cedra_names" */
+export enum CurrentCedraNamesSelectColumnCurrentCedraNamesAggregateBoolExpBoolAndArgumentsColumns {
   /** column name */
   IsActive = "is_active",
   /** column name */
   IsPrimary = "is_primary",
 }
 
-/** select "current_aptos_names_aggregate_bool_exp_bool_or_arguments_columns" columns of table "current_aptos_names" */
-export enum CurrentAptosNamesSelectColumnCurrentAptosNamesAggregateBoolExpBoolOrArgumentsColumns {
+/** select "current_cedra_names_aggregate_bool_exp_bool_or_arguments_columns" columns of table "current_cedra_names" */
+export enum CurrentCedraNamesSelectColumnCurrentCedraNamesAggregateBoolExpBoolOrArgumentsColumns {
   /** column name */
   IsActive = "is_active",
   /** column name */
@@ -2122,51 +2122,51 @@ export enum CurrentAptosNamesSelectColumnCurrentAptosNamesAggregateBoolExpBoolOr
 }
 
 /** aggregate stddev on columns */
-export type CurrentAptosNamesStddevFields = {
+export type CurrentCedraNamesStddevFields = {
   last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
   subdomain_expiration_policy?: Maybe<Scalars["Float"]["output"]>;
 };
 
-/** order by stddev() on columns of table "current_aptos_names" */
-export type CurrentAptosNamesStddevOrderBy = {
+/** order by stddev() on columns of table "current_cedra_names" */
+export type CurrentCedraNamesStddevOrderBy = {
   last_transaction_version?: InputMaybe<OrderBy>;
   subdomain_expiration_policy?: InputMaybe<OrderBy>;
 };
 
 /** aggregate stddev_pop on columns */
-export type CurrentAptosNamesStddevPopFields = {
+export type CurrentCedraNamesStddevPopFields = {
   last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
   subdomain_expiration_policy?: Maybe<Scalars["Float"]["output"]>;
 };
 
-/** order by stddev_pop() on columns of table "current_aptos_names" */
-export type CurrentAptosNamesStddevPopOrderBy = {
+/** order by stddev_pop() on columns of table "current_cedra_names" */
+export type CurrentCedraNamesStddevPopOrderBy = {
   last_transaction_version?: InputMaybe<OrderBy>;
   subdomain_expiration_policy?: InputMaybe<OrderBy>;
 };
 
 /** aggregate stddev_samp on columns */
-export type CurrentAptosNamesStddevSampFields = {
+export type CurrentCedraNamesStddevSampFields = {
   last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
   subdomain_expiration_policy?: Maybe<Scalars["Float"]["output"]>;
 };
 
-/** order by stddev_samp() on columns of table "current_aptos_names" */
-export type CurrentAptosNamesStddevSampOrderBy = {
+/** order by stddev_samp() on columns of table "current_cedra_names" */
+export type CurrentCedraNamesStddevSampOrderBy = {
   last_transaction_version?: InputMaybe<OrderBy>;
   subdomain_expiration_policy?: InputMaybe<OrderBy>;
 };
 
-/** Streaming cursor of the table "current_aptos_names" */
-export type CurrentAptosNamesStreamCursorInput = {
+/** Streaming cursor of the table "current_cedra_names" */
+export type CurrentCedraNamesStreamCursorInput = {
   /** Stream column input with initial value */
-  initial_value: CurrentAptosNamesStreamCursorValueInput;
+  initial_value: CurrentCedraNamesStreamCursorValueInput;
   /** cursor ordering */
   ordering?: InputMaybe<CursorOrdering>;
 };
 
 /** Initial value of the column from where the streaming should start */
-export type CurrentAptosNamesStreamCursorValueInput = {
+export type CurrentCedraNamesStreamCursorValueInput = {
   domain?: InputMaybe<Scalars["String"]["input"]>;
   domain_expiration_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
   domain_with_suffix?: InputMaybe<Scalars["String"]["input"]>;
@@ -2183,49 +2183,49 @@ export type CurrentAptosNamesStreamCursorValueInput = {
 };
 
 /** aggregate sum on columns */
-export type CurrentAptosNamesSumFields = {
+export type CurrentCedraNamesSumFields = {
   last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
   subdomain_expiration_policy?: Maybe<Scalars["bigint"]["output"]>;
 };
 
-/** order by sum() on columns of table "current_aptos_names" */
-export type CurrentAptosNamesSumOrderBy = {
+/** order by sum() on columns of table "current_cedra_names" */
+export type CurrentCedraNamesSumOrderBy = {
   last_transaction_version?: InputMaybe<OrderBy>;
   subdomain_expiration_policy?: InputMaybe<OrderBy>;
 };
 
 /** aggregate var_pop on columns */
-export type CurrentAptosNamesVarPopFields = {
+export type CurrentCedraNamesVarPopFields = {
   last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
   subdomain_expiration_policy?: Maybe<Scalars["Float"]["output"]>;
 };
 
-/** order by var_pop() on columns of table "current_aptos_names" */
-export type CurrentAptosNamesVarPopOrderBy = {
+/** order by var_pop() on columns of table "current_cedra_names" */
+export type CurrentCedraNamesVarPopOrderBy = {
   last_transaction_version?: InputMaybe<OrderBy>;
   subdomain_expiration_policy?: InputMaybe<OrderBy>;
 };
 
 /** aggregate var_samp on columns */
-export type CurrentAptosNamesVarSampFields = {
+export type CurrentCedraNamesVarSampFields = {
   last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
   subdomain_expiration_policy?: Maybe<Scalars["Float"]["output"]>;
 };
 
-/** order by var_samp() on columns of table "current_aptos_names" */
-export type CurrentAptosNamesVarSampOrderBy = {
+/** order by var_samp() on columns of table "current_cedra_names" */
+export type CurrentCedraNamesVarSampOrderBy = {
   last_transaction_version?: InputMaybe<OrderBy>;
   subdomain_expiration_policy?: InputMaybe<OrderBy>;
 };
 
 /** aggregate variance on columns */
-export type CurrentAptosNamesVarianceFields = {
+export type CurrentCedraNamesVarianceFields = {
   last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
   subdomain_expiration_policy?: Maybe<Scalars["Float"]["output"]>;
 };
 
-/** order by variance() on columns of table "current_aptos_names" */
-export type CurrentAptosNamesVarianceOrderBy = {
+/** order by variance() on columns of table "current_cedra_names" */
+export type CurrentCedraNamesVarianceOrderBy = {
   last_transaction_version?: InputMaybe<OrderBy>;
   subdomain_expiration_policy?: InputMaybe<OrderBy>;
 };
@@ -3213,29 +3213,29 @@ export type CurrentStakingPoolVoter = {
   last_transaction_version: Scalars["bigint"]["output"];
   operator_address: Scalars["String"]["output"];
   /** An array relationship */
-  operator_aptos_name: Array<CurrentAptosNames>;
+  operator_cedra_name: Array<CurrentCedraNames>;
   /** An aggregate relationship */
-  operator_aptos_name_aggregate: CurrentAptosNamesAggregate;
+  operator_cedra_name_aggregate: CurrentCedraNamesAggregate;
   staking_pool_address: Scalars["String"]["output"];
   voter_address: Scalars["String"]["output"];
 };
 
 /** columns and relationships of "current_staking_pool_voter" */
-export type CurrentStakingPoolVoterOperatorAptosNameArgs = {
-  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+export type CurrentStakingPoolVoterOperatorCedraNameArgs = {
+  distinct_on?: InputMaybe<Array<CurrentCedraNamesSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
-  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+  order_by?: InputMaybe<Array<CurrentCedraNamesOrderBy>>;
+  where?: InputMaybe<CurrentCedraNamesBoolExp>;
 };
 
 /** columns and relationships of "current_staking_pool_voter" */
-export type CurrentStakingPoolVoterOperatorAptosNameAggregateArgs = {
-  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+export type CurrentStakingPoolVoterOperatorCedraNameAggregateArgs = {
+  distinct_on?: InputMaybe<Array<CurrentCedraNamesSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
-  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+  order_by?: InputMaybe<Array<CurrentCedraNamesOrderBy>>;
+  where?: InputMaybe<CurrentCedraNamesBoolExp>;
 };
 
 /** Boolean expression to filter rows from the table "current_staking_pool_voter". All fields are combined with a logical 'AND'. */
@@ -3245,8 +3245,8 @@ export type CurrentStakingPoolVoterBoolExp = {
   _or?: InputMaybe<Array<CurrentStakingPoolVoterBoolExp>>;
   last_transaction_version?: InputMaybe<BigintComparisonExp>;
   operator_address?: InputMaybe<StringComparisonExp>;
-  operator_aptos_name?: InputMaybe<CurrentAptosNamesBoolExp>;
-  operator_aptos_name_aggregate?: InputMaybe<CurrentAptosNamesAggregateBoolExp>;
+  operator_cedra_name?: InputMaybe<CurrentCedraNamesBoolExp>;
+  operator_cedra_name_aggregate?: InputMaybe<CurrentCedraNamesAggregateBoolExp>;
   staking_pool_address?: InputMaybe<StringComparisonExp>;
   voter_address?: InputMaybe<StringComparisonExp>;
 };
@@ -3255,7 +3255,7 @@ export type CurrentStakingPoolVoterBoolExp = {
 export type CurrentStakingPoolVoterOrderBy = {
   last_transaction_version?: InputMaybe<OrderBy>;
   operator_address?: InputMaybe<OrderBy>;
-  operator_aptos_name_aggregate?: InputMaybe<CurrentAptosNamesAggregateOrderBy>;
+  operator_cedra_name_aggregate?: InputMaybe<CurrentCedraNamesAggregateOrderBy>;
   staking_pool_address?: InputMaybe<OrderBy>;
   voter_address?: InputMaybe<OrderBy>;
 };
@@ -3540,7 +3540,7 @@ export type CurrentTokenDatasStreamCursorValueInput = {
 /** columns and relationships of "current_token_datas_v2" */
 export type CurrentTokenDatasV2 = {
   /** An object relationship */
-  aptos_name?: Maybe<CurrentAptosNames>;
+  cedra_name?: Maybe<CurrentCedraNames>;
   /** An object relationship */
   cdn_asset_uris?: Maybe<NftMetadataCrawlerParsedAssetUris>;
   collection_id: Scalars["String"]["output"];
@@ -3594,7 +3594,7 @@ export type CurrentTokenDatasV2BoolExp = {
   _and?: InputMaybe<Array<CurrentTokenDatasV2BoolExp>>;
   _not?: InputMaybe<CurrentTokenDatasV2BoolExp>;
   _or?: InputMaybe<Array<CurrentTokenDatasV2BoolExp>>;
-  aptos_name?: InputMaybe<CurrentAptosNamesBoolExp>;
+  cedra_name?: InputMaybe<CurrentCedraNamesBoolExp>;
   cdn_asset_uris?: InputMaybe<NftMetadataCrawlerParsedAssetUrisBoolExp>;
   collection_id?: InputMaybe<StringComparisonExp>;
   current_collection?: InputMaybe<CurrentCollectionsV2BoolExp>;
@@ -3618,7 +3618,7 @@ export type CurrentTokenDatasV2BoolExp = {
 
 /** Ordering options when selecting data from "current_token_datas_v2". */
 export type CurrentTokenDatasV2OrderBy = {
-  aptos_name?: InputMaybe<CurrentAptosNamesOrderBy>;
+  cedra_name?: InputMaybe<CurrentCedraNamesOrderBy>;
   cdn_asset_uris?: InputMaybe<NftMetadataCrawlerParsedAssetUrisOrderBy>;
   collection_id?: InputMaybe<OrderBy>;
   current_collection?: InputMaybe<CurrentCollectionsV2OrderBy>;
@@ -3704,7 +3704,7 @@ export type CurrentTokenDatasV2StreamCursorValueInput = {
 export type CurrentTokenOwnerships = {
   amount?: Maybe<Scalars["numeric"]["output"]>;
   /** An object relationship */
-  aptos_name?: Maybe<CurrentAptosNames>;
+  cedra_name?: Maybe<CurrentCedraNames>;
   collection_data_id_hash?: Maybe<Scalars["String"]["output"]>;
   collection_name?: Maybe<Scalars["String"]["output"]>;
   creator_address?: Maybe<Scalars["String"]["output"]>;
@@ -3800,7 +3800,7 @@ export type CurrentTokenOwnershipsBoolExp = {
   _not?: InputMaybe<CurrentTokenOwnershipsBoolExp>;
   _or?: InputMaybe<Array<CurrentTokenOwnershipsBoolExp>>;
   amount?: InputMaybe<NumericComparisonExp>;
-  aptos_name?: InputMaybe<CurrentAptosNamesBoolExp>;
+  cedra_name?: InputMaybe<CurrentCedraNamesBoolExp>;
   collection_data_id_hash?: InputMaybe<StringComparisonExp>;
   collection_name?: InputMaybe<StringComparisonExp>;
   creator_address?: InputMaybe<StringComparisonExp>;
@@ -3879,7 +3879,7 @@ export type CurrentTokenOwnershipsMinOrderBy = {
 /** Ordering options when selecting data from "legacy_migration_v1.current_token_ownerships". */
 export type CurrentTokenOwnershipsOrderBy = {
   amount?: InputMaybe<OrderBy>;
-  aptos_name?: InputMaybe<CurrentAptosNamesOrderBy>;
+  cedra_name?: InputMaybe<CurrentCedraNamesOrderBy>;
   collection_data_id_hash?: InputMaybe<OrderBy>;
   collection_name?: InputMaybe<OrderBy>;
   creator_address?: InputMaybe<OrderBy>;
@@ -5162,9 +5162,9 @@ export type FungibleAssetActivities = {
   metadata?: Maybe<FungibleAssetMetadata>;
   owner_address?: Maybe<Scalars["String"]["output"]>;
   /** An array relationship */
-  owner_aptos_names: Array<CurrentAptosNames>;
+  owner_cedra_names: Array<CurrentCedraNames>;
   /** An aggregate relationship */
-  owner_aptos_names_aggregate: CurrentAptosNamesAggregate;
+  owner_cedra_names_aggregate: CurrentCedraNamesAggregate;
   storage_id: Scalars["String"]["output"];
   storage_refund_amount: Scalars["numeric"]["output"];
   token_standard: Scalars["String"]["output"];
@@ -5174,21 +5174,21 @@ export type FungibleAssetActivities = {
 };
 
 /** columns and relationships of "fungible_asset_activities" */
-export type FungibleAssetActivitiesOwnerAptosNamesArgs = {
-  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+export type FungibleAssetActivitiesOwnerCedraNamesArgs = {
+  distinct_on?: InputMaybe<Array<CurrentCedraNamesSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
-  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+  order_by?: InputMaybe<Array<CurrentCedraNamesOrderBy>>;
+  where?: InputMaybe<CurrentCedraNamesBoolExp>;
 };
 
 /** columns and relationships of "fungible_asset_activities" */
-export type FungibleAssetActivitiesOwnerAptosNamesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+export type FungibleAssetActivitiesOwnerCedraNamesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<CurrentCedraNamesSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
-  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+  order_by?: InputMaybe<Array<CurrentCedraNamesOrderBy>>;
+  where?: InputMaybe<CurrentCedraNamesBoolExp>;
 };
 
 /** order by aggregate values of table "fungible_asset_activities" */
@@ -5231,8 +5231,8 @@ export type FungibleAssetActivitiesBoolExp = {
   is_transaction_success?: InputMaybe<BooleanComparisonExp>;
   metadata?: InputMaybe<FungibleAssetMetadataBoolExp>;
   owner_address?: InputMaybe<StringComparisonExp>;
-  owner_aptos_names?: InputMaybe<CurrentAptosNamesBoolExp>;
-  owner_aptos_names_aggregate?: InputMaybe<CurrentAptosNamesAggregateBoolExp>;
+  owner_cedra_names?: InputMaybe<CurrentCedraNamesBoolExp>;
+  owner_cedra_names_aggregate?: InputMaybe<CurrentCedraNamesAggregateBoolExp>;
   storage_id?: InputMaybe<StringComparisonExp>;
   storage_refund_amount?: InputMaybe<NumericComparisonExp>;
   token_standard?: InputMaybe<StringComparisonExp>;
@@ -5288,7 +5288,7 @@ export type FungibleAssetActivitiesOrderBy = {
   is_transaction_success?: InputMaybe<OrderBy>;
   metadata?: InputMaybe<FungibleAssetMetadataOrderBy>;
   owner_address?: InputMaybe<OrderBy>;
-  owner_aptos_names_aggregate?: InputMaybe<CurrentAptosNamesAggregateOrderBy>;
+  owner_cedra_names_aggregate?: InputMaybe<CurrentCedraNamesAggregateOrderBy>;
   storage_id?: InputMaybe<OrderBy>;
   storage_refund_amount?: InputMaybe<OrderBy>;
   token_standard?: InputMaybe<OrderBy>;
@@ -7008,10 +7008,10 @@ export type QueryRoot = {
   current_ans_lookup_v2: Array<CurrentAnsLookupV2>;
   /** fetch data from the table: "current_ans_lookup_v2" using primary key columns */
   current_ans_lookup_v2_by_pk?: Maybe<CurrentAnsLookupV2>;
-  /** fetch data from the table: "current_aptos_names" */
-  current_aptos_names: Array<CurrentAptosNames>;
-  /** fetch aggregated fields from the table: "current_aptos_names" */
-  current_aptos_names_aggregate: CurrentAptosNamesAggregate;
+  /** fetch data from the table: "current_cedra_names" */
+  current_cedra_names: Array<CurrentCedraNames>;
+  /** fetch aggregated fields from the table: "current_cedra_names" */
+  current_cedra_names_aggregate: CurrentCedraNamesAggregate;
   /** fetch data from the table: "legacy_migration_v1.current_coin_balances" */
   current_coin_balances: Array<CurrentCoinBalances>;
   /** fetch data from the table: "legacy_migration_v1.current_collection_datas" */
@@ -7336,20 +7336,20 @@ export type QueryRootCurrentAnsLookupV2ByPkArgs = {
   token_standard: Scalars["String"]["input"];
 };
 
-export type QueryRootCurrentAptosNamesArgs = {
-  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+export type QueryRootCurrentCedraNamesArgs = {
+  distinct_on?: InputMaybe<Array<CurrentCedraNamesSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
-  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+  order_by?: InputMaybe<Array<CurrentCedraNamesOrderBy>>;
+  where?: InputMaybe<CurrentCedraNamesBoolExp>;
 };
 
-export type QueryRootCurrentAptosNamesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+export type QueryRootCurrentCedraNamesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<CurrentCedraNamesSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
-  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+  order_by?: InputMaybe<Array<CurrentCedraNamesOrderBy>>;
+  where?: InputMaybe<CurrentCedraNamesBoolExp>;
 };
 
 export type QueryRootCurrentCoinBalancesArgs = {
@@ -8114,12 +8114,12 @@ export type SubscriptionRoot = {
   current_ans_lookup_v2_by_pk?: Maybe<CurrentAnsLookupV2>;
   /** fetch data from the table in a streaming manner: "current_ans_lookup_v2" */
   current_ans_lookup_v2_stream: Array<CurrentAnsLookupV2>;
-  /** fetch data from the table: "current_aptos_names" */
-  current_aptos_names: Array<CurrentAptosNames>;
-  /** fetch aggregated fields from the table: "current_aptos_names" */
-  current_aptos_names_aggregate: CurrentAptosNamesAggregate;
-  /** fetch data from the table in a streaming manner: "current_aptos_names" */
-  current_aptos_names_stream: Array<CurrentAptosNames>;
+  /** fetch data from the table: "current_cedra_names" */
+  current_cedra_names: Array<CurrentCedraNames>;
+  /** fetch aggregated fields from the table: "current_cedra_names" */
+  current_cedra_names_aggregate: CurrentCedraNamesAggregate;
+  /** fetch data from the table in a streaming manner: "current_cedra_names" */
+  current_cedra_names_stream: Array<CurrentCedraNames>;
   /** fetch data from the table: "legacy_migration_v1.current_coin_balances" */
   current_coin_balances: Array<CurrentCoinBalances>;
   /** fetch data from the table in a streaming manner: "legacy_migration_v1.current_coin_balances" */
@@ -8604,26 +8604,26 @@ export type SubscriptionRootCurrentAnsLookupV2StreamArgs = {
   where?: InputMaybe<CurrentAnsLookupV2BoolExp>;
 };
 
-export type SubscriptionRootCurrentAptosNamesArgs = {
-  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+export type SubscriptionRootCurrentCedraNamesArgs = {
+  distinct_on?: InputMaybe<Array<CurrentCedraNamesSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
-  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+  order_by?: InputMaybe<Array<CurrentCedraNamesOrderBy>>;
+  where?: InputMaybe<CurrentCedraNamesBoolExp>;
 };
 
-export type SubscriptionRootCurrentAptosNamesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+export type SubscriptionRootCurrentCedraNamesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<CurrentCedraNamesSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
-  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+  order_by?: InputMaybe<Array<CurrentCedraNamesOrderBy>>;
+  where?: InputMaybe<CurrentCedraNamesBoolExp>;
 };
 
-export type SubscriptionRootCurrentAptosNamesStreamArgs = {
+export type SubscriptionRootCurrentCedraNamesStreamArgs = {
   batch_size: Scalars["Int"]["input"];
-  cursor: Array<InputMaybe<CurrentAptosNamesStreamCursorInput>>;
-  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+  cursor: Array<InputMaybe<CurrentCedraNamesStreamCursorInput>>;
+  where?: InputMaybe<CurrentCedraNamesBoolExp>;
 };
 
 export type SubscriptionRootCurrentCoinBalancesArgs = {
@@ -9640,13 +9640,13 @@ export type TimestamptzComparisonExp = {
 /** columns and relationships of "legacy_migration_v1.token_activities" */
 export type TokenActivities = {
   /** An array relationship */
-  aptos_names_owner: Array<CurrentAptosNames>;
+  cedra_names_owner: Array<CurrentCedraNames>;
   /** An aggregate relationship */
-  aptos_names_owner_aggregate: CurrentAptosNamesAggregate;
+  cedra_names_owner_aggregate: CurrentCedraNamesAggregate;
   /** An array relationship */
-  aptos_names_to: Array<CurrentAptosNames>;
+  cedra_names_to: Array<CurrentCedraNames>;
   /** An aggregate relationship */
-  aptos_names_to_aggregate: CurrentAptosNamesAggregate;
+  cedra_names_to_aggregate: CurrentCedraNamesAggregate;
   coin_amount?: Maybe<Scalars["String"]["output"]>;
   coin_type?: Maybe<Scalars["String"]["output"]>;
   collection_data_id_hash?: Maybe<Scalars["String"]["output"]>;
@@ -9670,39 +9670,39 @@ export type TokenActivities = {
 };
 
 /** columns and relationships of "legacy_migration_v1.token_activities" */
-export type TokenActivitiesAptosNamesOwnerArgs = {
-  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+export type TokenActivitiesCedraNamesOwnerArgs = {
+  distinct_on?: InputMaybe<Array<CurrentCedraNamesSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
-  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+  order_by?: InputMaybe<Array<CurrentCedraNamesOrderBy>>;
+  where?: InputMaybe<CurrentCedraNamesBoolExp>;
 };
 
 /** columns and relationships of "legacy_migration_v1.token_activities" */
-export type TokenActivitiesAptosNamesOwnerAggregateArgs = {
-  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+export type TokenActivitiesCedraNamesOwnerAggregateArgs = {
+  distinct_on?: InputMaybe<Array<CurrentCedraNamesSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
-  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+  order_by?: InputMaybe<Array<CurrentCedraNamesOrderBy>>;
+  where?: InputMaybe<CurrentCedraNamesBoolExp>;
 };
 
 /** columns and relationships of "legacy_migration_v1.token_activities" */
-export type TokenActivitiesAptosNamesToArgs = {
-  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+export type TokenActivitiesCedraNamesToArgs = {
+  distinct_on?: InputMaybe<Array<CurrentCedraNamesSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
-  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+  order_by?: InputMaybe<Array<CurrentCedraNamesOrderBy>>;
+  where?: InputMaybe<CurrentCedraNamesBoolExp>;
 };
 
 /** columns and relationships of "legacy_migration_v1.token_activities" */
-export type TokenActivitiesAptosNamesToAggregateArgs = {
-  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+export type TokenActivitiesCedraNamesToAggregateArgs = {
+  distinct_on?: InputMaybe<Array<CurrentCedraNamesSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
-  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+  order_by?: InputMaybe<Array<CurrentCedraNamesOrderBy>>;
+  where?: InputMaybe<CurrentCedraNamesBoolExp>;
 };
 
 /** aggregated selection of "legacy_migration_v1.token_activities" */
@@ -9783,10 +9783,10 @@ export type TokenActivitiesBoolExp = {
   _and?: InputMaybe<Array<TokenActivitiesBoolExp>>;
   _not?: InputMaybe<TokenActivitiesBoolExp>;
   _or?: InputMaybe<Array<TokenActivitiesBoolExp>>;
-  aptos_names_owner?: InputMaybe<CurrentAptosNamesBoolExp>;
-  aptos_names_owner_aggregate?: InputMaybe<CurrentAptosNamesAggregateBoolExp>;
-  aptos_names_to?: InputMaybe<CurrentAptosNamesBoolExp>;
-  aptos_names_to_aggregate?: InputMaybe<CurrentAptosNamesAggregateBoolExp>;
+  cedra_names_owner?: InputMaybe<CurrentCedraNamesBoolExp>;
+  cedra_names_owner_aggregate?: InputMaybe<CurrentCedraNamesAggregateBoolExp>;
+  cedra_names_to?: InputMaybe<CurrentCedraNamesBoolExp>;
+  cedra_names_to_aggregate?: InputMaybe<CurrentCedraNamesAggregateBoolExp>;
   coin_amount?: InputMaybe<StringComparisonExp>;
   coin_type?: InputMaybe<StringComparisonExp>;
   collection_data_id_hash?: InputMaybe<StringComparisonExp>;
@@ -9898,8 +9898,8 @@ export type TokenActivitiesMinOrderBy = {
 
 /** Ordering options when selecting data from "legacy_migration_v1.token_activities". */
 export type TokenActivitiesOrderBy = {
-  aptos_names_owner_aggregate?: InputMaybe<CurrentAptosNamesAggregateOrderBy>;
-  aptos_names_to_aggregate?: InputMaybe<CurrentAptosNamesAggregateOrderBy>;
+  cedra_names_owner_aggregate?: InputMaybe<CurrentCedraNamesAggregateOrderBy>;
+  cedra_names_to_aggregate?: InputMaybe<CurrentCedraNamesAggregateOrderBy>;
   coin_amount?: InputMaybe<OrderBy>;
   coin_type?: InputMaybe<OrderBy>;
   collection_data_id_hash?: InputMaybe<OrderBy>;
@@ -10075,13 +10075,13 @@ export type TokenActivitiesSumOrderBy = {
 export type TokenActivitiesV2 = {
   after_value?: Maybe<Scalars["String"]["output"]>;
   /** An array relationship */
-  aptos_names_from: Array<CurrentAptosNames>;
+  cedra_names_from: Array<CurrentCedraNames>;
   /** An aggregate relationship */
-  aptos_names_from_aggregate: CurrentAptosNamesAggregate;
+  cedra_names_from_aggregate: CurrentCedraNamesAggregate;
   /** An array relationship */
-  aptos_names_to: Array<CurrentAptosNames>;
+  cedra_names_to: Array<CurrentCedraNames>;
   /** An aggregate relationship */
-  aptos_names_to_aggregate: CurrentAptosNamesAggregate;
+  cedra_names_to_aggregate: CurrentCedraNamesAggregate;
   before_value?: Maybe<Scalars["String"]["output"]>;
   /** An object relationship */
   current_token_data?: Maybe<CurrentTokenDatasV2>;
@@ -10101,39 +10101,39 @@ export type TokenActivitiesV2 = {
 };
 
 /** columns and relationships of "token_activities_v2" */
-export type TokenActivitiesV2AptosNamesFromArgs = {
-  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+export type TokenActivitiesV2CedraNamesFromArgs = {
+  distinct_on?: InputMaybe<Array<CurrentCedraNamesSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
-  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+  order_by?: InputMaybe<Array<CurrentCedraNamesOrderBy>>;
+  where?: InputMaybe<CurrentCedraNamesBoolExp>;
 };
 
 /** columns and relationships of "token_activities_v2" */
-export type TokenActivitiesV2AptosNamesFromAggregateArgs = {
-  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+export type TokenActivitiesV2CedraNamesFromAggregateArgs = {
+  distinct_on?: InputMaybe<Array<CurrentCedraNamesSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
-  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+  order_by?: InputMaybe<Array<CurrentCedraNamesOrderBy>>;
+  where?: InputMaybe<CurrentCedraNamesBoolExp>;
 };
 
 /** columns and relationships of "token_activities_v2" */
-export type TokenActivitiesV2AptosNamesToArgs = {
-  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+export type TokenActivitiesV2CedraNamesToArgs = {
+  distinct_on?: InputMaybe<Array<CurrentCedraNamesSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
-  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+  order_by?: InputMaybe<Array<CurrentCedraNamesOrderBy>>;
+  where?: InputMaybe<CurrentCedraNamesBoolExp>;
 };
 
 /** columns and relationships of "token_activities_v2" */
-export type TokenActivitiesV2AptosNamesToAggregateArgs = {
-  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+export type TokenActivitiesV2CedraNamesToAggregateArgs = {
+  distinct_on?: InputMaybe<Array<CurrentCedraNamesSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
-  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+  order_by?: InputMaybe<Array<CurrentCedraNamesOrderBy>>;
+  where?: InputMaybe<CurrentCedraNamesBoolExp>;
 };
 
 /** aggregated selection of "token_activities_v2" */
@@ -10227,10 +10227,10 @@ export type TokenActivitiesV2BoolExp = {
   _not?: InputMaybe<TokenActivitiesV2BoolExp>;
   _or?: InputMaybe<Array<TokenActivitiesV2BoolExp>>;
   after_value?: InputMaybe<StringComparisonExp>;
-  aptos_names_from?: InputMaybe<CurrentAptosNamesBoolExp>;
-  aptos_names_from_aggregate?: InputMaybe<CurrentAptosNamesAggregateBoolExp>;
-  aptos_names_to?: InputMaybe<CurrentAptosNamesBoolExp>;
-  aptos_names_to_aggregate?: InputMaybe<CurrentAptosNamesAggregateBoolExp>;
+  cedra_names_from?: InputMaybe<CurrentCedraNamesBoolExp>;
+  cedra_names_from_aggregate?: InputMaybe<CurrentCedraNamesAggregateBoolExp>;
+  cedra_names_to?: InputMaybe<CurrentCedraNamesBoolExp>;
+  cedra_names_to_aggregate?: InputMaybe<CurrentCedraNamesAggregateBoolExp>;
   before_value?: InputMaybe<StringComparisonExp>;
   current_token_data?: InputMaybe<CurrentTokenDatasV2BoolExp>;
   entry_function_id_str?: InputMaybe<StringComparisonExp>;
@@ -10323,8 +10323,8 @@ export type TokenActivitiesV2MinOrderBy = {
 /** Ordering options when selecting data from "token_activities_v2". */
 export type TokenActivitiesV2OrderBy = {
   after_value?: InputMaybe<OrderBy>;
-  aptos_names_from_aggregate?: InputMaybe<CurrentAptosNamesAggregateOrderBy>;
-  aptos_names_to_aggregate?: InputMaybe<CurrentAptosNamesAggregateOrderBy>;
+  cedra_names_from_aggregate?: InputMaybe<CurrentCedraNamesAggregateOrderBy>;
+  cedra_names_to_aggregate?: InputMaybe<CurrentCedraNamesAggregateOrderBy>;
   before_value?: InputMaybe<OrderBy>;
   current_token_data?: InputMaybe<CurrentTokenDatasV2OrderBy>;
   entry_function_id_str?: InputMaybe<OrderBy>;

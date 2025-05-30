@@ -1,18 +1,18 @@
 import {
-  AptosConfig,
+  CedraConfig,
   GraphqlQuery,
-  postAptosIndexer,
-  postAptosFullNode,
+  postCedraIndexer,
+  postCedraFullNode,
   U8,
-  postAptosFaucet,
+  postCedraFaucet,
   Account,
   InputViewFunctionData,
 } from "../../../src";
 import { GetChainTopUserTransactionsQuery } from "../../../src/types/generated/operations";
 import { GetChainTopUserTransactions } from "../../../src/types/generated/queries";
-import { getAptosClient } from "../helper";
+import { getCedraClient } from "../helper";
 
-function getAptosConfig(): AptosConfig {
+function getCedraConfig(): CedraConfig {
   const partialConfig = {
     clientConfig: {
       HEADERS: { clientConfig: "clientConfig-header" },
@@ -22,15 +22,15 @@ function getAptosConfig(): AptosConfig {
     indexerConfig: { HEADERS: { indexerHeader: "indexer-header" } },
     faucetConfig: { HEADERS: { faucetHeader: "faucet-header" }, AUTH_TOKEN: "auth-token" },
   };
-  const { config } = getAptosClient(partialConfig);
+  const { config } = getCedraClient(partialConfig);
   return config;
 }
 
 describe("post request", () => {
   describe("indexer", () => {
     test("it sets correct headers", async () => {
-      const response = await postAptosIndexer<GraphqlQuery, GetChainTopUserTransactionsQuery>({
-        aptosConfig: getAptosConfig(),
+      const response = await postCedraIndexer<GraphqlQuery, GetChainTopUserTransactionsQuery>({
+        cedraConfig: getCedraConfig(),
         originMethod: "testQueryIndexer",
         path: "",
         body: {
@@ -52,8 +52,8 @@ describe("post request", () => {
   });
   describe("fullnode", () => {
     test("it sets correct headers on post request", async () => {
-      const response = await postAptosFullNode<InputViewFunctionData, U8>({
-        aptosConfig: getAptosConfig(),
+      const response = await postCedraFullNode<InputViewFunctionData, U8>({
+        cedraConfig: getCedraConfig(),
         originMethod: "testPostFullnodeQuery",
         path: "view",
         body: {
@@ -76,8 +76,8 @@ describe("post request", () => {
   describe("faucet", () => {
     test("it sets correct headers", async () => {
       const account = Account.generate();
-      const response = await postAptosFaucet<any, { txn_hashes: Array<string> }>({
-        aptosConfig: getAptosConfig(),
+      const response = await postCedraFaucet<any, { txn_hashes: Array<string> }>({
+        cedraConfig: getCedraConfig(),
         path: "fund",
         body: {
           address: account.accountAddress.toString(),

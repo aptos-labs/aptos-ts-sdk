@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 /**
@@ -8,9 +8,9 @@
  * account namespace and without having a dependency cycle error.
  * @group Implementation
  */
-import { AptosConfig } from "../api/aptosConfig";
+import { CedraConfig } from "../api/cedraConfig";
 import {
-  getAptosFullNode,
+  getCedraFullNode,
   getPageWithObfuscatedCursor,
   paginateWithCursor,
   paginateWithObfuscatedCursor,
@@ -63,7 +63,7 @@ import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey, createObject
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 import { getTableItem } from "./table";
 import { APTOS_COIN } from "../utils";
-import { AptosApiError } from "../errors";
+import { CedraApiError } from "../errors";
 import { signAndSubmitTransaction, generateTransaction } from "./transactionSubmission";
 import { EntryFunctionABI, RotationProofChallenge, TypeTagU8, TypeTagVector } from "../transactions";
 import { U8, MoveVector } from "../bcs";
@@ -73,12 +73,12 @@ import { waitForTransaction } from "./transaction";
  * Retrieves account information for a specified account address.
  *
  * @param args - The arguments for retrieving account information.
- * @param args.aptosConfig - The configuration object for Aptos.
+ * @param args.cedraConfig - The configuration object for Cedra.
  * @param args.accountAddress - The address of the account to retrieve information for.
  * @group Implementation
  */
 export async function getInfo(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
 }): Promise<AccountData> {
   return getInfoUtil(args);
@@ -88,7 +88,7 @@ export async function getInfo(args: {
  * Retrieves the modules associated with a specified account address.
  *
  * @param args - The arguments for retrieving modules.
- * @param args.aptosConfig - The configuration for connecting to the Aptos blockchain.
+ * @param args.cedraConfig - The configuration for connecting to the Cedra blockchain.
  * @param args.accountAddress - The address of the account whose modules are to be retrieved.
  * @param args.options - Optional parameters for pagination and ledger version.
  * @param args.options.limit - The maximum number of modules to retrieve (default is 1000).
@@ -97,13 +97,13 @@ export async function getInfo(args: {
  * @group Implementation
  */
 export async function getModules(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
   options?: { limit?: number } & LedgerVersionArg;
 }): Promise<MoveModuleBytecode[]> {
-  const { aptosConfig, accountAddress, options } = args;
+  const { cedraConfig, accountAddress, options } = args;
   return paginateWithObfuscatedCursor<{}, MoveModuleBytecode[]>({
-    aptosConfig,
+    cedraConfig,
     originMethod: "getModules",
     path: `accounts/${AccountAddress.from(accountAddress).toString()}/modules`,
     params: {
@@ -117,7 +117,7 @@ export async function getModules(args: {
  * Retrieves the modules associated with a specified account address.
  *
  * @param args - The arguments for retrieving modules.
- * @param args.aptosConfig - The configuration for connecting to the Aptos blockchain.
+ * @param args.cedraConfig - The configuration for connecting to the Cedra blockchain.
  * @param args.accountAddress - The address of the account whose modules are to be retrieved.
  * @param args.options - Optional parameters for pagination and ledger version.
  * @param args.options.cursor - The starting point for pagination.  Note, this is obfuscated and is not an index.
@@ -126,13 +126,13 @@ export async function getModules(args: {
  * @group Implementation
  */
 export async function getModulesPage(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
   options?: CursorPaginationArgs & LedgerVersionArg;
 }): Promise<{ modules: MoveModuleBytecode[]; cursor: string | undefined }> {
-  const { aptosConfig, accountAddress, options } = args;
+  const { cedraConfig, accountAddress, options } = args;
   const { response, cursor } = await getPageWithObfuscatedCursor<{}, MoveModuleBytecode[]>({
-    aptosConfig,
+    cedraConfig,
     originMethod: "getModulesPage",
     path: `accounts/${AccountAddress.from(accountAddress).toString()}/modules`,
     params: {
@@ -150,7 +150,7 @@ export async function getModulesPage(args: {
  * This function can help you retrieve the module's ABI and other relevant information.
  *
  * @param args - The arguments for retrieving the module.
- * @param args.aptosConfig - The configuration for the Aptos client.
+ * @param args.cedraConfig - The configuration for the Cedra client.
  * @param args.accountAddress - The account address in hex-encoded 32 byte format.
  * @param args.moduleName - The name of the module to retrieve.
  * @param args.options - Optional parameters for the request.
@@ -159,7 +159,7 @@ export async function getModulesPage(args: {
  * @group Implementation
  */
 export async function getModule(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
   moduleName: string;
   options?: LedgerVersionArg;
@@ -172,7 +172,7 @@ export async function getModule(args: {
  * This function allows you to paginate through the transactions for better performance and usability.
  *
  * @param args - The arguments for retrieving transactions.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.accountAddress - The account address for which to retrieve transactions.
  * @param args.options - Optional pagination parameters.
  * @param args.options.offset - The starting point for pagination.
@@ -180,13 +180,13 @@ export async function getModule(args: {
  * @group Implementation
  */
 export async function getTransactions(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
   options?: PaginationArgs;
 }): Promise<TransactionResponse[]> {
-  const { aptosConfig, accountAddress, options } = args;
+  const { cedraConfig, accountAddress, options } = args;
   return paginateWithCursor<{}, TransactionResponse[]>({
-    aptosConfig,
+    cedraConfig,
     originMethod: "getTransactions",
     path: `accounts/${AccountAddress.from(accountAddress).toString()}/transactions`,
     params: { start: options?.offset, limit: options?.limit },
@@ -197,7 +197,7 @@ export async function getTransactions(args: {
  * Retrieves a list of resources associated with a specific account address.
  *
  * @param args - The arguments for retrieving resources.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.accountAddress - The address of the account to fetch resources for.
  * @param args.options - Optional pagination and ledger version parameters.
  * @param args.options.limit - The maximum number of resources to retrieve (default is 999).
@@ -205,13 +205,13 @@ export async function getTransactions(args: {
  * @group Implementation
  */
 export async function getResources(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
   options?: { limit?: number } & LedgerVersionArg;
 }): Promise<MoveResource[]> {
-  const { aptosConfig, accountAddress, options } = args;
+  const { cedraConfig, accountAddress, options } = args;
   return paginateWithObfuscatedCursor<{}, MoveResource[]>({
-    aptosConfig,
+    cedraConfig,
     originMethod: "getResources",
     path: `accounts/${AccountAddress.from(accountAddress).toString()}/resources`,
     params: {
@@ -225,7 +225,7 @@ export async function getResources(args: {
  * Retrieves a page of resources associated with a specific account address.
  *
  * @param args - The arguments for retrieving resources.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.accountAddress - The address of the account to fetch resources for.
  * @param args.options - Optional pagination and ledger version parameters.
  * @param args.options.cursor - The starting point for pagination.  Note, this is obfuscated and is not an index.
@@ -234,13 +234,13 @@ export async function getResources(args: {
  * @group Implementation
  */
 export async function getResourcesPage(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
   options?: CursorPaginationArgs & LedgerVersionArg;
 }): Promise<{ resources: MoveResource[]; cursor: string | undefined }> {
-  const { aptosConfig, accountAddress, options } = args;
+  const { cedraConfig, accountAddress, options } = args;
   const { response, cursor } = await getPageWithObfuscatedCursor<{}, MoveResource[]>({
-    aptosConfig,
+    cedraConfig,
     originMethod: "getResourcesPage",
     path: `accounts/${AccountAddress.from(accountAddress).toString()}/resources`,
     params: {
@@ -257,21 +257,21 @@ export async function getResourcesPage(args: {
  * Retrieves a specific resource of a given type for the specified account address.
  *
  * @param args - The arguments for retrieving the resource.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.accountAddress - The address of the account from which to retrieve the resource.
  * @param args.resourceType - The type of the resource to retrieve, specified as a MoveStructId.
  * @param args.options - Optional parameters for specifying the ledger version.
  * @group Implementation
  */
 export async function getResource<T extends {}>(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
   resourceType: MoveStructId;
   options?: LedgerVersionArg;
 }): Promise<T> {
-  const { aptosConfig, accountAddress, resourceType, options } = args;
-  const { data } = await getAptosFullNode<{}, MoveResource>({
-    aptosConfig,
+  const { cedraConfig, accountAddress, resourceType, options } = args;
+  const { data } = await getCedraFullNode<{}, MoveResource>({
+    cedraConfig,
     originMethod: "getResource",
     path: `accounts/${AccountAddress.from(accountAddress).toString()}/resource/${resourceType}`,
     params: { ledger_version: options?.ledgerVersion },
@@ -283,7 +283,7 @@ export async function getResource<T extends {}>(args: {
  * Retrieves the original account address associated with a given authentication key, which is useful for handling key rotations.
  *
  * @param args - The arguments for the lookup.
- * @param args.aptosConfig - The configuration for the Aptos client.
+ * @param args.cedraConfig - The configuration for the Cedra client.
  * @param args.authenticationKey - The authentication key for which to look up the original address.
  * @param args.options - Optional parameters for specifying the ledger version.
  * @returns The original account address or the provided authentication key address if not found.
@@ -291,16 +291,16 @@ export async function getResource<T extends {}>(args: {
  * @group Implementation
  */
 export async function lookupOriginalAccountAddress(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   authenticationKey: AccountAddressInput;
   options?: LedgerVersionArg;
 }): Promise<AccountAddress> {
-  const { aptosConfig, authenticationKey, options } = args;
+  const { cedraConfig, authenticationKey, options } = args;
   type OriginatingAddress = {
     address_map: { handle: string };
   };
   const resource = await getResource<OriginatingAddress>({
-    aptosConfig,
+    cedraConfig,
     accountAddress: "0x1",
     resourceType: "0x1::account::OriginatingAddress",
     options,
@@ -316,7 +316,7 @@ export async function lookupOriginalAccountAddress(args: {
   // then return the address as is
   try {
     const originalAddress = await getTableItem<string>({
-      aptosConfig,
+      cedraConfig,
       handle,
       data: {
         key: authKeyAddress.toString(),
@@ -328,7 +328,7 @@ export async function lookupOriginalAccountAddress(args: {
 
     return AccountAddress.from(originalAddress);
   } catch (err) {
-    if (err instanceof AptosApiError && err.data.error_code === "table_item_not_found") {
+    if (err instanceof CedraApiError && err.data.error_code === "table_item_not_found") {
       return authKeyAddress;
     }
 
@@ -340,16 +340,16 @@ export async function lookupOriginalAccountAddress(args: {
  * Retrieves the count of tokens owned by a specific account address.
  *
  * @param args - The arguments for retrieving the account tokens count.
- * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.cedraConfig - The configuration settings for the Cedra network.
  * @param args.accountAddress - The address of the account for which to count the tokens.
  * @returns The count of tokens owned by the specified account.
  * @group Implementation
  */
 export async function getAccountTokensCount(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
 }): Promise<number> {
-  const { aptosConfig, accountAddress } = args;
+  const { cedraConfig, accountAddress } = args;
 
   const address = AccountAddress.from(accountAddress).toStringLong();
 
@@ -364,7 +364,7 @@ export async function getAccountTokensCount(args: {
   };
 
   const data = await queryIndexer<GetAccountTokensCountQuery>({
-    aptosConfig,
+    cedraConfig,
     query: graphqlQuery,
     originMethod: "getAccountTokensCount",
   });
@@ -380,7 +380,7 @@ export async function getAccountTokensCount(args: {
  * Retrieves the tokens owned by a specified account address.
  *
  * @param args - The arguments for retrieving the account's tokens.
- * @param args.aptosConfig - The configuration for the Aptos client.
+ * @param args.cedraConfig - The configuration for the Cedra client.
  * @param args.accountAddress - The address of the account whose tokens are being queried.
  * @param args.options - Optional parameters for filtering and pagination.
  * @param args.options.tokenStandard - The specific token standard to filter the results.
@@ -391,11 +391,11 @@ export async function getAccountTokensCount(args: {
  * @group Implementation
  */
 export async function getAccountOwnedTokens(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
   options?: TokenStandardArg & PaginationArgs & OrderByArg<GetAccountOwnedTokensQueryResponse[0]>;
 }): Promise<GetAccountOwnedTokensQueryResponse> {
-  const { aptosConfig, accountAddress, options } = args;
+  const { cedraConfig, accountAddress, options } = args;
   const address = AccountAddress.from(accountAddress).toStringLong();
 
   const whereCondition: { owner_address: { _eq: string }; amount: { _gt: number }; token_standard?: { _eq: string } } =
@@ -419,7 +419,7 @@ export async function getAccountOwnedTokens(args: {
   };
 
   const data = await queryIndexer<GetAccountOwnedTokensQuery>({
-    aptosConfig,
+    cedraConfig,
     query: graphqlQuery,
     originMethod: "getAccountOwnedTokens",
   });
@@ -431,7 +431,7 @@ export async function getAccountOwnedTokens(args: {
  * Retrieves the tokens owned by a specific account from a particular collection address.
  *
  * @param args - The parameters required to fetch the owned tokens.
- * @param args.aptosConfig - The Aptos configuration object.
+ * @param args.cedraConfig - The Cedra configuration object.
  * @param args.accountAddress - The address of the account whose tokens are being queried.
  * @param args.collectionAddress - The address of the collection from which tokens are being retrieved.
  * @param args.options - Optional parameters for filtering and pagination, including token standard, pagination arguments, and
@@ -439,12 +439,12 @@ export async function getAccountOwnedTokens(args: {
  * @group Implementation
  */
 export async function getAccountOwnedTokensFromCollectionAddress(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
   collectionAddress: AccountAddressInput;
   options?: TokenStandardArg & PaginationArgs & OrderByArg<GetAccountOwnedTokensFromCollectionResponse[0]>;
 }): Promise<GetAccountOwnedTokensFromCollectionResponse> {
-  const { aptosConfig, accountAddress, collectionAddress, options } = args;
+  const { cedraConfig, accountAddress, collectionAddress, options } = args;
   const ownerAddress = AccountAddress.from(accountAddress).toStringLong();
   const collAddress = AccountAddress.from(collectionAddress).toStringLong();
 
@@ -474,7 +474,7 @@ export async function getAccountOwnedTokensFromCollectionAddress(args: {
   };
 
   const data = await queryIndexer<GetAccountOwnedTokensFromCollectionQuery>({
-    aptosConfig,
+    cedraConfig,
     query: graphqlQuery,
     originMethod: "getAccountOwnedTokensFromCollectionAddress",
   });
@@ -486,7 +486,7 @@ export async function getAccountOwnedTokensFromCollectionAddress(args: {
  * Retrieves the collections owned by a specified account along with the tokens in those collections.
  *
  * @param args - The arguments for the function.
- * @param args.aptosConfig - The configuration for the Aptos client.
+ * @param args.cedraConfig - The configuration for the Cedra client.
  * @param args.accountAddress - The address of the account whose collections are being queried.
  * @param args.options - Optional parameters for filtering and pagination.
  * @param args.options.tokenStandard - An optional token standard to filter the collections.
@@ -496,11 +496,11 @@ export async function getAccountOwnedTokensFromCollectionAddress(args: {
  * @group Implementation
  */
 export async function getAccountCollectionsWithOwnedTokens(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
   options?: TokenStandardArg & PaginationArgs & OrderByArg<GetAccountCollectionsWithOwnedTokenResponse[0]>;
 }): Promise<GetAccountCollectionsWithOwnedTokenResponse> {
-  const { aptosConfig, accountAddress, options } = args;
+  const { cedraConfig, accountAddress, options } = args;
   const address = AccountAddress.from(accountAddress).toStringLong();
 
   const whereCondition: {
@@ -527,7 +527,7 @@ export async function getAccountCollectionsWithOwnedTokens(args: {
   };
 
   const data = await queryIndexer<GetAccountCollectionsWithOwnedTokensQuery>({
-    aptosConfig,
+    cedraConfig,
     query: graphqlQuery,
     originMethod: "getAccountCollectionsWithOwnedTokens",
   });
@@ -539,16 +539,16 @@ export async function getAccountCollectionsWithOwnedTokens(args: {
  * Retrieves the count of transactions associated with a specified account.
  *
  * @param args - The arguments for the function.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.accountAddress - The address of the account for which to retrieve the transaction count.
  * @returns The number of transactions associated with the specified account.
  * @group Implementation
  */
 export async function getAccountTransactionsCount(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
 }): Promise<number> {
-  const { aptosConfig, accountAddress } = args;
+  const { cedraConfig, accountAddress } = args;
 
   const address = AccountAddress.from(accountAddress).toStringLong();
 
@@ -558,7 +558,7 @@ export async function getAccountTransactionsCount(args: {
   };
 
   const data = await queryIndexer<GetAccountTransactionsCountQuery>({
-    aptosConfig,
+    cedraConfig,
     query: graphqlQuery,
     originMethod: "getAccountTransactionsCount",
   });
@@ -572,7 +572,7 @@ export async function getAccountTransactionsCount(args: {
  * Retrieves the amount of a specific coin held by an account.
  *
  * @param args - The parameters for the request.
- * @param args.aptosConfig - The Aptos configuration object.
+ * @param args.cedraConfig - The Cedra configuration object.
  * @param args.accountAddress - The address of the account to query.
  * @param args.coinType - Optional; the type of coin to check the amount for.
  * @param args.faMetadataAddress - Optional; the address of the fungible asset metadata.
@@ -581,12 +581,12 @@ export async function getAccountTransactionsCount(args: {
  * @group Implementation
  */
 export async function getAccountCoinAmount(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
   coinType?: MoveStructId;
   faMetadataAddress?: AccountAddressInput;
 }): Promise<number> {
-  const { aptosConfig, accountAddress, coinType, faMetadataAddress } = args;
+  const { cedraConfig, accountAddress, coinType, faMetadataAddress } = args;
 
   let coinAssetType: string | undefined = coinType;
   let faAddress: string;
@@ -620,7 +620,7 @@ export async function getAccountCoinAmount(args: {
   }
 
   const data = await getAccountCoinsData({
-    aptosConfig,
+    cedraConfig,
     accountAddress: address,
     options: {
       where,
@@ -636,7 +636,7 @@ export async function getAccountCoinAmount(args: {
  * Retrieves the current fungible asset balances for a specified account.
  *
  * @param args - The arguments for retrieving account coins data.
- * @param args.aptosConfig - The configuration for connecting to the Aptos network.
+ * @param args.cedraConfig - The configuration for connecting to the Cedra network.
  * @param args.accountAddress - The address of the account for which to retrieve coin data.
  * @param args.options - Optional parameters for pagination and filtering the results.
  * @param args.options.offset - The number of items to skip before starting to collect the result set.
@@ -646,11 +646,11 @@ export async function getAccountCoinAmount(args: {
  * @group Implementation
  */
 export async function getAccountCoinsData(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
   options?: PaginationArgs & OrderByArg<GetAccountCoinsDataResponse[0]> & WhereArg<CurrentFungibleAssetBalancesBoolExp>;
 }): Promise<GetAccountCoinsDataResponse> {
-  const { aptosConfig, accountAddress, options } = args;
+  const { cedraConfig, accountAddress, options } = args;
   const address = AccountAddress.from(accountAddress).toStringLong();
 
   const whereCondition: { owner_address: { _eq: string } } = {
@@ -669,7 +669,7 @@ export async function getAccountCoinsData(args: {
   };
 
   const data = await queryIndexer<GetAccountCoinsDataQuery>({
-    aptosConfig,
+    cedraConfig,
     query: graphqlQuery,
     originMethod: "getAccountCoinsData",
   });
@@ -681,16 +681,16 @@ export async function getAccountCoinsData(args: {
  * Retrieves the count of fungible asset coins held by a specified account.
  *
  * @param args - The arguments for the function.
- * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.cedraConfig - The configuration settings for the Cedra network.
  * @param args.accountAddress - The address of the account for which to retrieve the coin count.
  * @throws Error if the count of account coins cannot be retrieved.
  * @group Implementation
  */
 export async function getAccountCoinsCount(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
 }): Promise<number> {
-  const { aptosConfig, accountAddress } = args;
+  const { cedraConfig, accountAddress } = args;
   const address = AccountAddress.from(accountAddress).toStringLong();
 
   const graphqlQuery = {
@@ -699,7 +699,7 @@ export async function getAccountCoinsCount(args: {
   };
 
   const data = await queryIndexer<GetAccountCoinsCountQuery>({
-    aptosConfig,
+    cedraConfig,
     query: graphqlQuery,
     originMethod: "getAccountCoinsCount",
   });
@@ -715,7 +715,7 @@ export async function getAccountCoinsCount(args: {
  * Retrieves the objects owned by a specified account.
  *
  * @param args - The parameters for the request.
- * @param args.aptosConfig - The configuration for the Aptos client.
+ * @param args.cedraConfig - The configuration for the Cedra client.
  * @param args.accountAddress - The address of the account whose owned objects are to be retrieved.
  * @param args.options - Optional parameters for pagination and ordering of the results.
  * @param args.options.offset - The number of items to skip before starting to collect the result set.
@@ -725,11 +725,11 @@ export async function getAccountCoinsCount(args: {
  * @group Implementation
  */
 export async function getAccountOwnedObjects(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
   options?: PaginationArgs & OrderByArg<GetObjectDataQueryResponse[0]>;
 }): Promise<GetObjectDataQueryResponse> {
-  const { aptosConfig, accountAddress, options } = args;
+  const { cedraConfig, accountAddress, options } = args;
   const address = AccountAddress.from(accountAddress).toStringLong();
 
   const whereCondition: { owner_address: { _eq: string } } = {
@@ -745,7 +745,7 @@ export async function getAccountOwnedObjects(args: {
     },
   };
   const data = await queryIndexer<GetObjectDataQuery>({
-    aptosConfig,
+    cedraConfig,
     query: graphqlQuery,
     originMethod: "getAccountOwnedObjects",
   });
@@ -754,7 +754,7 @@ export async function getAccountOwnedObjects(args: {
 }
 
 /**
- * Derives an account from the provided private key and Aptos configuration.
+ * Derives an account from the provided private key and Cedra configuration.
  * This function helps in obtaining the account details associated with a given private key,
  * considering both unified and legacy authentication schemes.
  *
@@ -764,17 +764,17 @@ export async function getAccountOwnedObjects(args: {
  * or first legacy scheme and then unified scheme.
  *
  * @param args - The arguments for deriving the account.
- * @param args.aptosConfig - The Aptos configuration used for account lookup.
+ * @param args.cedraConfig - The Cedra configuration used for account lookup.
  * @param args.privateKey - The private key used to derive the account.
  * @throws Error if the account cannot be derived from the private key.
  * @group Implementation
  * @deprecated Note that more inspection is needed by the user to determine which account exists on-chain
  */
 export async function deriveAccountFromPrivateKey(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   privateKey: PrivateKey;
 }): Promise<Account> {
-  const { aptosConfig, privateKey } = args;
+  const { cedraConfig, privateKey } = args;
   const publicKey = new AnyPublicKey(privateKey.publicKey());
 
   if (privateKey instanceof Secp256k1PrivateKey) {
@@ -789,7 +789,7 @@ export async function deriveAccountFromPrivateKey(args: {
     const legacyAuthKey = AuthenticationKey.fromPublicKey({
       publicKey: publicKey.publicKey as Ed25519PublicKey,
     });
-    const isLegacyEd25519 = await isAccountExist({ authKey: legacyAuthKey, aptosConfig });
+    const isLegacyEd25519 = await isAccountExist({ authKey: legacyAuthKey, cedraConfig });
     if (isLegacyEd25519) {
       const address = legacyAuthKey.derivedAddress();
       return Account.fromPrivateKey({ privateKey, address, legacy: true });
@@ -800,7 +800,7 @@ export async function deriveAccountFromPrivateKey(args: {
     });
     const isSingleSenderTransactionAuthenticator = await isAccountExist({
       authKey: singleSenderTransactionAuthenticatorAuthKey,
-      aptosConfig,
+      cedraConfig,
     });
     if (isSingleSenderTransactionAuthenticator) {
       const address = singleSenderTransactionAuthenticatorAuthKey.derivedAddress();
@@ -813,26 +813,26 @@ export async function deriveAccountFromPrivateKey(args: {
 }
 
 /**
- * Checks if an account exists by verifying its information against the Aptos blockchain.
+ * Checks if an account exists by verifying its information against the Cedra blockchain.
  *
  * @param args - The arguments for the function.
- * @param args.aptosConfig - The configuration for connecting to the Aptos blockchain.
+ * @param args.cedraConfig - The configuration for connecting to the Cedra blockchain.
  * @param args.authKey - The authentication key used to derive the account address.
  * @returns A promise that resolves to a boolean indicating whether the account exists.
  *
  * @throws Throws an Error if there is an issue while looking for account information.
  * @group Implementation
  */
-export async function isAccountExist(args: { aptosConfig: AptosConfig; authKey: AuthenticationKey }): Promise<boolean> {
-  const { aptosConfig, authKey } = args;
+export async function isAccountExist(args: { cedraConfig: CedraConfig; authKey: AuthenticationKey }): Promise<boolean> {
+  const { cedraConfig, authKey } = args;
   const accountAddress = await lookupOriginalAccountAddress({
-    aptosConfig,
+    cedraConfig,
     authenticationKey: authKey.derivedAddress(),
   });
 
   try {
     await getInfo({
-      aptosConfig,
+      cedraConfig,
       accountAddress,
     });
     return true;
@@ -861,7 +861,7 @@ const rotateAuthKeyAbi: EntryFunctionABI = {
  * Rotates the authentication key for a given account.
  *
  * @param args - The arguments for rotating the authentication key.
- * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.cedraConfig - The configuration settings for the Cedra network.
  * @param args.fromAccount - The account from which the authentication key will be rotated.
  * @param args.toAccount - (Optional) The target account to rotate to. Required if not using toNewPrivateKey or toAuthKey.
  * @param args.toNewPrivateKey - (Optional) The new private key to rotate to. Required if not using toAccount or toAuthKey.
@@ -886,7 +886,7 @@ const rotateAuthKeyAbi: EntryFunctionABI = {
  */
 export async function rotateAuthKey(
   args: {
-    aptosConfig: AptosConfig;
+    cedraConfig: CedraConfig;
     fromAccount: Account;
   } & (
     | { toAccount: Account; dangerouslySkipVerification?: never }
@@ -894,10 +894,10 @@ export async function rotateAuthKey(
     | { toAuthKey: AuthenticationKey; dangerouslySkipVerification: true }
   ),
 ): Promise<PendingTransactionResponse> {
-  const { aptosConfig, fromAccount, dangerouslySkipVerification } = args;
+  const { cedraConfig, fromAccount, dangerouslySkipVerification } = args;
   if ("toNewPrivateKey" in args) {
     return rotateAuthKeyWithChallenge({
-      aptosConfig,
+      cedraConfig,
       fromAccount,
       toNewPrivateKey: args.toNewPrivateKey,
     });
@@ -905,10 +905,10 @@ export async function rotateAuthKey(
   let authKey: AuthenticationKey;
   if ("toAccount" in args) {
     if (args.toAccount instanceof Ed25519Account) {
-      return rotateAuthKeyWithChallenge({ aptosConfig, fromAccount, toNewPrivateKey: args.toAccount.privateKey });
+      return rotateAuthKeyWithChallenge({ cedraConfig, fromAccount, toNewPrivateKey: args.toAccount.privateKey });
     }
     if (args.toAccount instanceof MultiEd25519Account) {
-      return rotateAuthKeyWithChallenge({ aptosConfig, fromAccount, toAccount: args.toAccount });
+      return rotateAuthKeyWithChallenge({ cedraConfig, fromAccount, toAccount: args.toAccount });
     }
     authKey = args.toAccount.publicKey.authKey();
   } else if ("toAuthKey" in args) {
@@ -918,7 +918,7 @@ export async function rotateAuthKey(
   }
 
   const pendingTxn = await rotateAuthKeyUnverified({
-    aptosConfig,
+    cedraConfig,
     fromAccount,
     toAuthKey: authKey,
   });
@@ -928,7 +928,7 @@ export async function rotateAuthKey(
   }
 
   const rotateAuthKeyTxnResponse = await waitForTransaction({
-    aptosConfig,
+    cedraConfig,
     transactionHash: pendingTxn.hash,
   });
   if (!rotateAuthKeyTxnResponse.success) {
@@ -938,7 +938,7 @@ export async function rotateAuthKey(
   // Verify the rotation by setting the originating address to the new account.
   // This verifies the rotation even if the transaction payload fails to execute successfully.
   const verificationTxn = await generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: fromAccount.accountAddress,
     data: {
       function: "0x1::account::set_originating_address",
@@ -947,7 +947,7 @@ export async function rotateAuthKey(
   });
 
   return signAndSubmitTransaction({
-    aptosConfig,
+    cedraConfig,
     signer: args.toAccount, // Use the new account to sign
     transaction: verificationTxn,
   });
@@ -955,13 +955,13 @@ export async function rotateAuthKey(
 
 async function rotateAuthKeyWithChallenge(
   args: {
-    aptosConfig: AptosConfig;
+    cedraConfig: CedraConfig;
     fromAccount: Account;
   } & ({ toNewPrivateKey: Ed25519PrivateKey } | { toAccount: MultiEd25519Account }),
 ): Promise<PendingTransactionResponse> {
-  const { aptosConfig, fromAccount } = args;
+  const { cedraConfig, fromAccount } = args;
   const accountInfo = await getInfo({
-    aptosConfig,
+    cedraConfig,
     accountAddress: fromAccount.accountAddress,
   });
 
@@ -986,7 +986,7 @@ async function rotateAuthKeyWithChallenge(
 
   // Generate transaction
   const rawTxn = await generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: fromAccount.accountAddress,
     data: {
       function: "0x1::account::rotate_authentication_key",
@@ -1002,7 +1002,7 @@ async function rotateAuthKeyWithChallenge(
     },
   });
   return signAndSubmitTransaction({
-    aptosConfig,
+    cedraConfig,
     signer: fromAccount,
     transaction: rawTxn,
   });
@@ -1014,14 +1014,14 @@ const rotateAuthKeyUnverifiedAbi: EntryFunctionABI = {
 };
 
 async function rotateAuthKeyUnverified(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   fromAccount: Account;
   toAuthKey: AuthenticationKey;
 }): Promise<PendingTransactionResponse> {
-  const { aptosConfig, fromAccount, toAuthKey } = args;
+  const { cedraConfig, fromAccount, toAuthKey } = args;
   const authKey = toAuthKey;
   const rawTxn = await generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: fromAccount.accountAddress,
     data: {
       function: "0x1::account::rotate_authentication_key_call",
@@ -1030,7 +1030,7 @@ async function rotateAuthKeyUnverified(args: {
     },
   });
   return signAndSubmitTransaction({
-    aptosConfig,
+    cedraConfig,
     signer: fromAccount,
     transaction: rawTxn,
   });

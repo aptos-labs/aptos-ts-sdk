@@ -2,11 +2,11 @@
 name = "transaction_test"
 version = "0.0.0"
 
-[dependencies.AptosFramework]
-git = 'https://github.com/aptos-labs/aptos-core.git'
+[dependencies.CedraFramework]
+git = 'https://github.com/cedra-labs/cedra-core.git'
 rev = 'main'
-subdir = 'aptos-move/framework/aptos-framework'
+subdir = 'cedra-move/framework/cedra-framework'
 
 [addresses]
-aptos_framework = "0x1"
+cedra_framework = "0x1"
 transaction_test = "_"

@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 /**
@@ -9,8 +9,8 @@
  * @group Implementation
  */
 
-import { AptosConfig } from "../api/aptosConfig";
-import { getAptosFullNode, postAptosIndexer } from "../client";
+import { CedraConfig } from "../api/cedraConfig";
+import { getCedraFullNode, postCedraIndexer } from "../client";
 import { GetChainTopUserTransactionsResponse, GetProcessorStatusResponse, GraphqlQuery, LedgerInfo } from "../types";
 import { GetChainTopUserTransactionsQuery, GetProcessorStatusQuery } from "../types/generated/operations";
 import { GetChainTopUserTransactions, GetProcessorStatus } from "../types/generated/queries";
@@ -20,13 +20,13 @@ import { ProcessorType } from "../utils/const";
  * Retrieves information about the current ledger.
  *
  * @param args - The arguments for retrieving ledger information.
- * @param args.aptosConfig - The configuration object for connecting to the Aptos network.
+ * @param args.cedraConfig - The configuration object for connecting to the Cedra network.
  * @group Implementation
  */
-export async function getLedgerInfo(args: { aptosConfig: AptosConfig }): Promise<LedgerInfo> {
-  const { aptosConfig } = args;
-  const { data } = await getAptosFullNode<{}, LedgerInfo>({
-    aptosConfig,
+export async function getLedgerInfo(args: { cedraConfig: CedraConfig }): Promise<LedgerInfo> {
+  const { cedraConfig } = args;
+  const { data } = await getCedraFullNode<{}, LedgerInfo>({
+    cedraConfig,
     originMethod: "getLedgerInfo",
     path: "",
   });
@@ -37,23 +37,23 @@ export async function getLedgerInfo(args: { aptosConfig: AptosConfig }): Promise
  * Retrieves the top user transactions for a specific blockchain chain.
  *
  * @param args - The arguments for the function.
- * @param args.aptosConfig - The configuration object for Aptos.
+ * @param args.cedraConfig - The configuration object for Cedra.
  * @param args.limit - The maximum number of transactions to retrieve.
  * @returns An array of user transactions.
  * @group Implementation
  */
 export async function getChainTopUserTransactions(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   limit: number;
 }): Promise<GetChainTopUserTransactionsResponse> {
-  const { aptosConfig, limit } = args;
+  const { cedraConfig, limit } = args;
   const graphqlQuery = {
     query: GetChainTopUserTransactions,
     variables: { limit },
   };
 
   const data = await queryIndexer<GetChainTopUserTransactionsQuery>({
-    aptosConfig,
+    cedraConfig,
     query: graphqlQuery,
     originMethod: "getChainTopUserTransactions",
   });
@@ -62,23 +62,23 @@ export async function getChainTopUserTransactions(args: {
 }
 
 /**
- * Executes a GraphQL query against the Aptos indexer and retrieves the resulting data.
+ * Executes a GraphQL query against the Cedra indexer and retrieves the resulting data.
  *
  * @param args - The arguments for the query.
- * @param args.aptosConfig - The configuration settings for the Aptos client.
+ * @param args.cedraConfig - The configuration settings for the Cedra client.
  * @param args.query - The GraphQL query to be executed.
  * @param args.originMethod - An optional string to specify the origin method for tracking purposes.
  * @returns The data returned from the query execution.
  * @group Implementation
  */
 export async function queryIndexer<T extends {}>(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   query: GraphqlQuery;
   originMethod?: string;
 }): Promise<T> {
-  const { aptosConfig, query, originMethod } = args;
-  const { data } = await postAptosIndexer<GraphqlQuery, T>({
-    aptosConfig,
+  const { cedraConfig, query, originMethod } = args;
+  const { data } = await postCedraIndexer<GraphqlQuery, T>({
+    cedraConfig,
     originMethod: originMethod ?? "queryIndexer",
     path: "",
     body: query,
@@ -91,19 +91,19 @@ export async function queryIndexer<T extends {}>(args: {
  * Retrieves the current statuses of processors.
  *
  * @param args - The arguments for the function.
- * @param args.aptosConfig - The configuration object for Aptos.
+ * @param args.cedraConfig - The configuration object for Cedra.
  * @returns The statuses of the processors.
  * @group Implementation
  */
-export async function getProcessorStatuses(args: { aptosConfig: AptosConfig }): Promise<GetProcessorStatusResponse> {
-  const { aptosConfig } = args;
+export async function getProcessorStatuses(args: { cedraConfig: CedraConfig }): Promise<GetProcessorStatusResponse> {
+  const { cedraConfig } = args;
 
   const graphqlQuery = {
     query: GetProcessorStatus,
   };
 
   const data = await queryIndexer<GetProcessorStatusQuery>({
-    aptosConfig,
+    cedraConfig,
     query: graphqlQuery,
     originMethod: "getProcessorStatuses",
   });
@@ -115,30 +115,30 @@ export async function getProcessorStatuses(args: { aptosConfig: AptosConfig }): 
  * Retrieves the last success version from the indexer.
  *
  * @param args - The arguments for the function.
- * @param args.aptosConfig - The configuration object for Aptos.
+ * @param args.cedraConfig - The configuration object for Cedra.
  * @returns The last success version as a BigInt.
  * @group Implementation
  */
-export async function getIndexerLastSuccessVersion(args: { aptosConfig: AptosConfig }): Promise<bigint> {
-  const response = await getProcessorStatuses({ aptosConfig: args.aptosConfig });
+export async function getIndexerLastSuccessVersion(args: { cedraConfig: CedraConfig }): Promise<bigint> {
+  const response = await getProcessorStatuses({ cedraConfig: args.cedraConfig });
   return BigInt(response[0].last_success_version);
 }
 
 /**
- * Retrieves the status of a specified processor in the Aptos network.
+ * Retrieves the status of a specified processor in the Cedra network.
  * This function allows you to check the current operational status of a processor, which can be useful for monitoring and troubleshooting.
  *
  * @param args - The arguments for the function.
- * @param args.aptosConfig - The configuration object for connecting to the Aptos network.
+ * @param args.cedraConfig - The configuration object for connecting to the Cedra network.
  * @param args.processorType - The type of processor whose status you want to retrieve.
  * @returns The status of the specified processor.
  * @group Implementation
  */
 export async function getProcessorStatus(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   processorType: ProcessorType;
 }): Promise<GetProcessorStatusResponse[0]> {
-  const { aptosConfig, processorType } = args;
+  const { cedraConfig, processorType } = args;
 
   const whereCondition: { processor: { _eq: string } } = {
     processor: { _eq: processorType },
@@ -152,7 +152,7 @@ export async function getProcessorStatus(args: {
   };
 
   const data = await queryIndexer<GetProcessorStatusQuery>({
-    aptosConfig,
+    cedraConfig,
     query: graphqlQuery,
     originMethod: "getProcessorStatus",
   });

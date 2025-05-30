@@ -3,8 +3,8 @@ name = "Argument Tests for the Typescript SDK"
 version = "0.0.0"
 
 [dependencies]
-AptosFramework = { git = "https://github.com/aptos-labs/aptos-framework.git", rev = "mainnet", subdir = "aptos-framework"}
-AptosTokenObjects = { git = "https://github.com/aptos-labs/aptos-framework.git", rev = "mainnet", subdir = "aptos-token-objects"}
+CedraFramework = { git = "https://github.com/cedra-labs/cedra-framework.git", rev = "mainnet", subdir = "cedra-framework"}
+CedraTokenObjects = { git = "https://github.com/cedra-labs/cedra-framework.git", rev = "mainnet", subdir = "cedra-token-objects"}
 
 [addresses]
 transaction_arguments = "0x2cca48b8b0d7f77ef28bfd608883c599680c5b8db8192c5e3baaae1aee45114c"

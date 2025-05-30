@@ -1,12 +1,12 @@
 import { execSync } from "child_process";
 import "dotenv";
-import { AccountAddress, Aptos, AptosApiType, Ed25519PrivateKey, PrivateKey, PrivateKeyVariants } from "../../../src";
+import { AccountAddress, Cedra, CedraApiType, Ed25519PrivateKey, PrivateKey, PrivateKeyVariants } from "../../../src";
 import { LOCAL_ANS_ACCOUNT_PK, LOCAL_ANS_ACCOUNT_ADDRESS } from "../../../src/internal/ans";
 
 /**
- * TS SDK supports ANS. Since ANS contract is not part of aptos-framework
+ * TS SDK supports ANS. Since ANS contract is not part of cedra-framework
  * we need to get the ANS contract, publish it to local testnet and test against it.
- * This script clones the aptos-names-contracts repo {@link https://github.com/aptos-labs/aptos-names-contracts},
+ * This script clones the cedra-names-contracts repo {@link https://github.com/cedra-labs/cedra-names-contracts},
  * uses a pre created account address and private key to fund that account and
  * then publish the contract under that account.
  * After the contract is published, we delete the cloned repo folder.
@@ -29,14 +29,14 @@ function execCmdBuffer(command: string): Buffer {
 }
 
 export async function publishAnsContract(
-  aptos: Aptos,
+  cedra: Cedra,
 ): Promise<{ address: AccountAddress; privateKey: Ed25519PrivateKey }> {
   const ret = {
     address: AccountAddress.fromString(LOCAL_ANS_ACCOUNT_ADDRESS),
     privateKey: new Ed25519PrivateKey(LOCAL_ANS_ACCOUNT_PK),
   };
   try {
-    await aptos.account.getAccountModule({
+    await cedra.account.getAccountModule({
       accountAddress: LOCAL_ANS_ACCOUNT_ADDRESS,
       moduleName: "domains",
     });
@@ -56,12 +56,12 @@ export async function publishAnsContract(
 
     // 1. Clone the ANS repo into the temporary directory.
     console.log(`---cloning ANS repository to ${tempDir}---`);
-    execSync(`git clone https://github.com/aptos-labs/aptos-names-contracts.git ${tempDir}`);
+    execSync(`git clone https://github.com/cedra-labs/cedra-names-contracts.git ${tempDir}`);
 
     // If we're using a local CLI we just use the temp dir directly.
     console.log("---running CLI using local binary---");
     // The command we use to run the CLI.
-    const cliInvocation = "aptos";
+    const cliInvocation = "cedra";
     // Where the CLI should look to find the ANS repo.
     const repoDir = tempDir;
 
@@ -86,11 +86,11 @@ export async function publishAnsContract(
 
     // 2. Fund ANS account.
     console.log("---funding account---");
-    const fundTxn = await aptos.fundAccount({
+    const fundTxn = await cedra.fundAccount({
       accountAddress: LOCAL_ANS_ACCOUNT_ADDRESS.toString(),
       amount: 100_000_000_000,
     });
-    await aptos.waitForTransaction({ transactionHash: fundTxn.hash });
+    await cedra.waitForTransaction({ transactionHash: fundTxn.hash });
     console.log(`Test account funded ${LOCAL_ANS_ACCOUNT_ADDRESS}`);
 
     // 3. Publish the ANS modules under the ANS account.
@@ -101,8 +101,8 @@ export async function publishAnsContract(
       // TODO: This is a temporary fix to unblock CI (`--max-gas`), the CLI should handle simulation correctly, and this hack shouldn't be necessary.
       // TODO: Convert back to AIP-80 when CLI is updated.
       execCmdBuffer(
-        `${cliInvocation} move publish --max-gas 100000 --package-dir ${repoDir}/${contract} --assume-yes --private-key=${PrivateKey.parseHexInput(LOCAL_ANS_ACCOUNT_PK, PrivateKeyVariants.Ed25519).toString()} --named-addresses aptos_names=${LOCAL_ANS_ACCOUNT_ADDRESS},router=${LOCAL_ANS_ACCOUNT_ADDRESS},aptos_names_v2_1=${LOCAL_ANS_ACCOUNT_ADDRESS},aptos_names_admin=${LOCAL_ANS_ACCOUNT_ADDRESS},aptos_names_funds=${LOCAL_ANS_ACCOUNT_ADDRESS},router_signer=${ROUTER_SIGNER} --url=${aptos.config.getRequestUrl(
-          AptosApiType.FULLNODE,
+        `${cliInvocation} move publish --max-gas 100000 --package-dir ${repoDir}/${contract} --assume-yes --private-key=${PrivateKey.parseHexInput(LOCAL_ANS_ACCOUNT_PK, PrivateKeyVariants.Ed25519).toString()} --named-addresses cedra_names=${LOCAL_ANS_ACCOUNT_ADDRESS},router=${LOCAL_ANS_ACCOUNT_ADDRESS},cedra_names_v2_1=${LOCAL_ANS_ACCOUNT_ADDRESS},cedra_names_admin=${LOCAL_ANS_ACCOUNT_ADDRESS},cedra_names_funds=${LOCAL_ANS_ACCOUNT_ADDRESS},router_signer=${ROUTER_SIGNER} --url=${cedra.config.getRequestUrl(
+          CedraApiType.FULLNODE,
         )}`,
       );
     }

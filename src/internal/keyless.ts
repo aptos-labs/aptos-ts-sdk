@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 /**
@@ -9,8 +9,8 @@
  * @group Implementation
  */
 import { jwtDecode, JwtPayload } from "jwt-decode";
-import { AptosConfig } from "../api/aptosConfig";
-import { postAptosPepperService, postAptosProvingService } from "../client";
+import { CedraConfig } from "../api/cedraConfig";
+import { postCedraPepperService, postCedraProvingService } from "../client";
 import {
   AccountAddressInput,
   EphemeralSignature,
@@ -38,7 +38,7 @@ import { FIREBASE_AUTH_ISS_PATTERN } from "../utils/const";
  * Retrieves a pepper value based on the provided configuration and authentication details.
  *
  * @param args - The arguments required to fetch the pepper.
- * @param args.aptosConfig - The configuration object for Aptos.
+ * @param args.cedraConfig - The configuration object for Cedra.
  * @param args.jwt - The JSON Web Token used for authentication.
  * @param args.ephemeralKeyPair - The ephemeral key pair used for the operation.
  * @param args.uidKey - An optional unique identifier key (defaults to "sub").
@@ -47,13 +47,13 @@ import { FIREBASE_AUTH_ISS_PATTERN } from "../utils/const";
  * @group Implementation
  */
 export async function getPepper(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   jwt: string;
   ephemeralKeyPair: EphemeralKeyPair;
   uidKey?: string;
   derivationPath?: string;
 }): Promise<Uint8Array> {
-  const { aptosConfig, jwt, ephemeralKeyPair, uidKey = "sub", derivationPath } = args;
+  const { cedraConfig, jwt, ephemeralKeyPair, uidKey = "sub", derivationPath } = args;
 
   const body = {
     jwt_b64: jwt,
@@ -63,8 +63,8 @@ export async function getPepper(args: {
     uid_key: uidKey,
     derivation_path: derivationPath,
   };
-  const { data } = await postAptosPepperService<PepperFetchRequest, PepperFetchResponse>({
-    aptosConfig,
+  const { data } = await postCedraPepperService<PepperFetchRequest, PepperFetchResponse>({
+    cedraConfig,
     path: "fetch",
     body,
     originMethod: "getPepper",
@@ -78,7 +78,7 @@ export async function getPepper(args: {
  * This function is essential for creating a signed proof that can be used in various cryptographic operations.
  *
  * @param args - The parameters required to generate the proof.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.jwt - The JSON Web Token used for authentication.
  * @param args.ephemeralKeyPair - The ephemeral key pair used for generating the proof.
  * @param args.pepper - An optional hex input used to enhance security (default is generated if not provided).
@@ -87,7 +87,7 @@ export async function getPepper(args: {
  * @group Implementation
  */
 export async function getProof(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   jwt: string;
   ephemeralKeyPair: EphemeralKeyPair;
   pepper?: HexInput;
@@ -95,12 +95,12 @@ export async function getProof(args: {
   maxExpHorizonSecs?: number;
 }): Promise<ZeroKnowledgeSig> {
   const {
-    aptosConfig,
+    cedraConfig,
     jwt,
     ephemeralKeyPair,
     pepper = await getPepper(args),
     uidKey = "sub",
-    maxExpHorizonSecs = (await getKeylessConfig({ aptosConfig })).maxExpHorizonSecs,
+    maxExpHorizonSecs = (await getKeylessConfig({ cedraConfig })).maxExpHorizonSecs,
   } = args;
   if (Hex.fromHexInput(pepper).toUint8Array().length !== KeylessAccount.PEPPER_LENGTH) {
     throw new Error(`Pepper needs to be ${KeylessAccount.PEPPER_LENGTH} bytes`);
@@ -122,8 +122,8 @@ export async function getProof(args: {
     uid_key: uidKey,
   };
 
-  const { data } = await postAptosProvingService<ProverRequest, ProverResponse>({
-    aptosConfig,
+  const { data } = await postCedraProvingService<ProverRequest, ProverResponse>({
+    cedraConfig,
     path: "prove",
     body: json,
     originMethod: "getProof",
@@ -150,7 +150,7 @@ export async function getProof(args: {
  * This function helps in creating a keyless account that can be used without managing private keys directly.
  *
  * @param args - The arguments required to derive the keyless account.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.jwt - The JSON Web Token used for authentication.
  * @param args.ephemeralKeyPair - The ephemeral key pair used for cryptographic operations.
  * @param args.uidKey - An optional unique identifier key for the user.
@@ -160,7 +160,7 @@ export async function getProof(args: {
  * @group Implementation
  */
 export async function deriveKeylessAccount(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   jwt: string;
   ephemeralKeyPair: EphemeralKeyPair;
   uidKey?: string;
@@ -169,7 +169,7 @@ export async function deriveKeylessAccount(args: {
 }): Promise<KeylessAccount>;
 
 export async function deriveKeylessAccount(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   jwt: string;
   ephemeralKeyPair: EphemeralKeyPair;
   jwkAddress: AccountAddressInput;
@@ -179,7 +179,7 @@ export async function deriveKeylessAccount(args: {
 }): Promise<FederatedKeylessAccount>;
 
 export async function deriveKeylessAccount(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   jwt: string;
   ephemeralKeyPair: EphemeralKeyPair;
   jwkAddress?: AccountAddressInput;
@@ -187,8 +187,8 @@ export async function deriveKeylessAccount(args: {
   pepper?: HexInput;
   proofFetchCallback?: ProofFetchCallback;
 }): Promise<KeylessAccount | FederatedKeylessAccount> {
-  const { aptosConfig, jwt, jwkAddress, uidKey, proofFetchCallback, pepper = await getPepper(args) } = args;
-  const { verificationKey, maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
+  const { cedraConfig, jwt, jwkAddress, uidKey, proofFetchCallback, pepper = await getPepper(args) } = args;
+  const { verificationKey, maxExpHorizonSecs } = await getKeylessConfig({ cedraConfig });
 
   const proofPromise = getProof({ ...args, pepper, maxExpHorizonSecs });
   // If a callback is provided, pass in the proof as a promise to KeylessAccount.create.  This will make the proof be fetched in the
@@ -202,7 +202,7 @@ export async function deriveKeylessAccount(args: {
   if (jwkAddress !== undefined) {
     const publicKey = FederatedKeylessPublicKey.fromJwtAndPepper({ jwt, pepper, jwkAddress, uidKey });
     const address = await lookupOriginalAccountAddress({
-      aptosConfig,
+      cedraConfig,
       authenticationKey: publicKey.authKey().derivedAddress(),
     });
 
@@ -219,7 +219,7 @@ export async function deriveKeylessAccount(args: {
 
   const publicKey = KeylessPublicKey.fromJwtAndPepper({ jwt, pepper, uidKey });
   const address = await lookupOriginalAccountAddress({
-    aptosConfig,
+    cedraConfig,
     authenticationKey: publicKey.authKey().derivedAddress(),
   });
   return KeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback, verificationKey });
@@ -230,13 +230,13 @@ export interface JWKS {
 }
 
 export async function updateFederatedKeylessJwkSetTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   sender: Account;
   iss: string;
   jwksUrl?: string;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, sender, iss, options } = args;
+  const { cedraConfig, sender, iss, options } = args;
 
   let { jwksUrl } = args;
 
@@ -270,7 +270,7 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
 
   const jwks: JWKS = await response.json();
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: sender.accountAddress,
     data: {
       function: "0x1::jwks::update_federated_jwk_set",

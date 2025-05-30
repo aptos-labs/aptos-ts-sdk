@@ -76,7 +76,7 @@ export class LocalNode {
   }
 
   /**
-   * Starts the localnet by running the Aptos node with the specified command-line arguments.
+   * Starts the localnet by running the Cedra node with the specified command-line arguments.
    *
    * @returns {void}
    *
@@ -86,7 +86,7 @@ export class LocalNode {
    */
   start(): void {
     const cliCommand = "npx";
-    const cliArgs = ["aptos", "node", "run-localnet", "--force-restart", "--assume-yes", "--with-indexer-api"];
+    const cliArgs = ["cedra", "node", "run-localnet", "--force-restart", "--assume-yes", "--with-indexer-api"];
 
     const currentPlatform = platform();
     const spawnConfig = {

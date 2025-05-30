@@ -1,13 +1,13 @@
 import express, { Request, Response } from 'express';
 import {
     Account, AccountAuthenticator,
-    Aptos,
-    AptosConfig,
+    Cedra,
+    CedraConfig,
     Deserializer,
     Network,
     NetworkToNetworkName,
     SimpleTransaction,
-} from '@aptos-labs/ts-sdk';
+} from '@cedra-labs/ts-sdk';
 
 const app = express();
 app.use(express.json());
@@ -16,8 +16,8 @@ const PORT = 3000;
 
 const APTOS_NETWORK = NetworkToNetworkName[process.env.APTOS_NETWORK || ''] || Network.DEVNET;
 
-const config = new AptosConfig({network: APTOS_NETWORK});
-const aptos = new Aptos(config);
+const config = new CedraConfig({network: APTOS_NETWORK});
+const cedra = new Cedra(config);
 
 const feePayerAccount = Account.generate();
 console.log(`feePayerAccount's address is: ${feePayerAccount.accountAddress}`);
@@ -25,7 +25,7 @@ console.log(`feePayerAccount's address is: ${feePayerAccount.accountAddress}`);
 // Fund the feePayerAccount account
 const fundFeePayerAccount = async () => {
     console.log('\n=== Funding feePayerAccount ===\n');
-    await aptos.fundAccount({
+    await cedra.fundAccount({
         accountAddress: feePayerAccount.accountAddress,
         amount: 100_000_000,
     });
@@ -52,7 +52,7 @@ app.post('/signAndSubmit', async (req: Request, res: Response) => {
         console.log('\n=== Signing Transaction as Sponsor ===\n');
 
         // Sponsor signs the transaction
-        const feePayerAuthenticator = aptos.transaction.signAsFeePayer({
+        const feePayerAuthenticator = cedra.transaction.signAsFeePayer({
             signer: feePayerAccount,
             transaction,
         });
@@ -65,8 +65,8 @@ app.post('/signAndSubmit', async (req: Request, res: Response) => {
             senderAuthenticator: deserializedSenderAuth,
             feePayerAuthenticator,
         };
-        let response = await aptos.transaction.submit.simple(signedTxnInput);
-        await aptos.waitForTransaction({transactionHash: response.hash});
+        let response = await cedra.transaction.submit.simple(signedTxnInput);
+        await cedra.waitForTransaction({transactionHash: response.hash});
         console.log('\n=== Transaction Signed by Sponsor ===\n');
 
         return res.status(200).json({transactionHash: response.hash});

@@ -1,6 +1,6 @@
 import { waitForIndexer } from "../internal/transaction";
 import { ProcessorType } from "../utils";
-import { AptosConfig } from "./aptosConfig";
+import { CedraConfig } from "./cedraConfig";
 import { AnyNumber } from "../types";
 
 /**
@@ -8,20 +8,20 @@ import { AnyNumber } from "../types";
  * This function is useful for ensuring that your application is working with the most up-to-date data before proceeding.
  *
  * @param args - The parameters for waiting on the indexer.
- * @param args.config - The configuration object for Aptos.
+ * @param args.config - The configuration object for Cedra.
  * @param [args.minimumLedgerVersion] - The minimum ledger version to wait for. If not specified, the function will not wait.
  * @param args.processorType - The type of processor to wait for.
  *
  * @example
  * ```typescript
- * import { Aptos, AptosConfig, Network, ProcessorType } from "@aptos-labs/ts-sdk";
+ * import { Cedra, CedraConfig, Network, ProcessorType } from "@cedra-labs/ts-sdk";
  *
- * const config = new AptosConfig({ network: Network.TESTNET });
- * const aptos = new Aptos(config);
+ * const config = new CedraConfig({ network: Network.TESTNET });
+ * const cedra = new Cedra(config);
  *
  * async function runExample() {
  *   // Wait for the indexer to reach a specific ledger version
- *   await aptos.waitForIndexerOnVersion({
+ *   await cedra.waitForIndexerOnVersion({
  *     config: config,
  *     minimumLedgerVersion: 1000n, // replace with a real ledger version
  *     processorType: ProcessorType.DEFAULT,
@@ -34,13 +34,13 @@ import { AnyNumber } from "../types";
  * @group Implementation
  */
 export async function waitForIndexerOnVersion(args: {
-  config: AptosConfig;
+  config: CedraConfig;
   minimumLedgerVersion?: AnyNumber;
   processorType: ProcessorType;
 }) {
   if (args.minimumLedgerVersion !== undefined) {
     await waitForIndexer({
-      aptosConfig: args.config,
+      cedraConfig: args.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
       processorType: args.processorType,
     });

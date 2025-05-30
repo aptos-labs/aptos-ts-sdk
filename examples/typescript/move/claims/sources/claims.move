@@ -1,14 +1,14 @@
 module my_addr::claims {
     use std::error;
-    use aptos_std::ed25519;
-    use aptos_std::signer;
-    use aptos_std::smart_table;
-    use aptos_std::smart_table::SmartTable;
-    use aptos_framework::account;
-    use aptos_framework::aptos_account;
-    use aptos_framework::aptos_coin;
-    use aptos_framework::coin;
-    use aptos_framework::coin::Coin;
+    use cedra_std::ed25519;
+    use cedra_std::signer;
+    use cedra_std::smart_table;
+    use cedra_std::smart_table::SmartTable;
+    use cedra_framework::account;
+    use cedra_framework::cedra_account;
+    use cedra_framework::cedra_coin;
+    use cedra_framework::coin;
+    use cedra_framework::coin::Coin;
 
     struct Claim has drop {
         sender: address,
@@ -17,7 +17,7 @@ module my_addr::claims {
     }
 
     struct Claims has key {
-        escrows: SmartTable<u64, Coin<aptos_coin::AptosCoin>>,
+        escrows: SmartTable<u64, Coin<cedra_coin::CedraCoin>>,
         next: u64,
     }
 
@@ -40,7 +40,7 @@ module my_addr::claims {
             })
         };
 
-        assert!(coin::balance<aptos_coin::AptosCoin>(caller_address) >= amount, E_NOT_ENOUGH_COINS);
+        assert!(coin::balance<cedra_coin::CedraCoin>(caller_address) >= amount, E_NOT_ENOUGH_COINS);
 
         // Add a claim to be claimed later
         let claims = borrow_global_mut<Claims>(caller_address);
@@ -86,6 +86,6 @@ module my_addr::claims {
         // Once verified transfer amount to user
         let claims = borrow_global_mut<Claims>(sender);
         let coins = smart_table::remove(&mut claims.escrows, claim_number);
-        aptos_account::deposit_coins(receiver_address, coins);
+        cedra_account::deposit_coins(receiver_address, coins);
     }
 }

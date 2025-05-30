@@ -14,7 +14,7 @@ import type { Account } from "./Account";
 import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction } from "../transactions/types";
 import { Ed25519Account } from "./Ed25519Account";
-import { AptosConfig } from "../api";
+import { CedraConfig } from "../api";
 
 /**
  * An interface which defines if an Account utilizes SingleKey signing.
@@ -211,7 +211,7 @@ export class SingleKeyAccount implements Account, SingleKeySigner {
    * @category Account (On-Chain Model)
    */
   async verifySignatureAsync(args: {
-    aptosConfig: AptosConfig;
+    cedraConfig: CedraConfig;
     message: HexInput;
     signature: Signature;
     options?: { throwErrorWithReason?: boolean };

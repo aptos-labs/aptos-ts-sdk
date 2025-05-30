@@ -10,7 +10,7 @@
  * `<Req, Res>(requestOptions: ClientRequest<Req>): Promise<ClientResponse<Res>>;`
  *
  */
-import { Aptos, AptosConfig, ClientResponse, ClientRequest, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
+import { Cedra, CedraConfig, ClientResponse, ClientRequest, Network, NetworkToNetworkName } from "@cedra-labs/ts-sdk";
 import dotenv from "dotenv";
 dotenv.config();
 // eslint-disable-next-line import/no-commonjs
@@ -55,12 +55,12 @@ const example = async () => {
   console.log("This example demonstrate how one can config for a custom client to be used by the SDK");
 
   async function withSuperagentClient() {
-    const config = new AptosConfig({ network: APTOS_NETWORK, client: { provider: superagentCustomClient } });
-    const aptos = new Aptos(config);
+    const config = new CedraConfig({ network: APTOS_NETWORK, client: { provider: superagentCustomClient } });
+    const cedra = new Cedra(config);
 
     console.log(`\nclient being used ${config.client.provider.name}`);
 
-    const chainInfo = await aptos.getLedgerInfo();
+    const chainInfo = await cedra.getLedgerInfo();
     console.log(`${chainInfo}`);
   }
 

@@ -1,4 +1,4 @@
-import { AccountAddress } from "@aptos-labs/ts-sdk";
+import { AccountAddress } from "@cedra-labs/ts-sdk";
 import { TwistedEd25519PublicKey } from "../../../src";
 import {
   confidentialAsset,

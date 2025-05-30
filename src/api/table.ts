@@ -11,44 +11,44 @@ import {
 } from "../types";
 import { TableItemsBoolExp, TableMetadatasBoolExp } from "../types/generated/types";
 import { ProcessorType } from "../utils";
-import { AptosConfig } from "./aptosConfig";
+import { CedraConfig } from "./cedraConfig";
 import { waitForIndexerOnVersion } from "./utils";
 
 /**
- * A class to query all `Table` Aptos related queries.
+ * A class to query all `Table` Cedra related queries.
  * @group Table
  */
 export class Table {
-  readonly config: AptosConfig;
+  readonly config: CedraConfig;
 
   /**
-   * Initializes a new instance of the Aptos client with the specified configuration.
-   * This allows you to interact with the Aptos blockchain using the provided settings.
+   * Initializes a new instance of the Cedra client with the specified configuration.
+   * This allows you to interact with the Cedra blockchain using the provided settings.
    *
-   * @param config - The configuration settings for the Aptos client.
+   * @param config - The configuration settings for the Cedra client.
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
    * async function runExample() {
-   *     // Create a new Aptos client with testnet configuration
-   *     const config = new AptosConfig({ network: Network.TESTNET });
-   *     const aptos = new Aptos(config);
+   *     // Create a new Cedra client with testnet configuration
+   *     const config = new CedraConfig({ network: Network.TESTNET });
+   *     const cedra = new Cedra(config);
    *
-   *     console.log("Aptos client initialized:", aptos);
+   *     console.log("Cedra client initialized:", cedra);
    * }
    * runExample().catch(console.error);
    * ```
    * @group Table
    */
-  constructor(config: AptosConfig) {
+  constructor(config: CedraConfig) {
     this.config = config;
   }
 
   /**
    * Queries for a specific item in a table identified by the handle and the key for the item.
-   * This function allows you to retrieve structured data from a table in the Aptos blockchain.
+   * This function allows you to retrieve structured data from a table in the Cedra blockchain.
    *
    * @param args.handle A pointer to where that table is stored.
    * @param args.data Object that describes the table item, including key and value types.
@@ -61,14 +61,14 @@ export class Table {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
-   *   // Retrieve a table item from the Aptos blockchain
-   *   const tableItem = await aptos.getTableItem({
+   *   // Retrieve a table item from the Cedra blockchain
+   *   const tableItem = await cedra.getTableItem({
    *     handle: "0x1b854694ae746cdbd8d44186ca4929b2b337df21d1c74633be19b2710552fdca",
    *     data: {
    *       key_type: "address", // Move type of table key
@@ -84,7 +84,7 @@ export class Table {
    * @group Table
    */
   async getTableItem<T>(args: { handle: string; data: TableItemRequest; options?: LedgerVersionArg }): Promise<T> {
-    return getTableItem<T>({ aptosConfig: this.config, ...args });
+    return getTableItem<T>({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -103,14 +103,14 @@ export class Table {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Retrieve table items data with specific filtering options
-   *   const data = await aptos.getTableItemsData({
+   *   const data = await cedra.getTableItemsData({
    *     minimumLedgerVersion: 1, // specify your own minimum ledger version if needed
    *     options: {
    *       where: {
@@ -138,7 +138,7 @@ export class Table {
       minimumLedgerVersion: args.minimumLedgerVersion,
       processorType: ProcessorType.DEFAULT,
     });
-    return getTableItemsData({ aptosConfig: this.config, ...args });
+    return getTableItemsData({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -156,14 +156,14 @@ export class Table {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Fetching table items metadata with a filter condition
-   *   const data = await aptos.getTableItemsMetadata({
+   *   const data = await cedra.getTableItemsMetadata({
    *     minimumLedgerVersion: 1, // specify your own minimum ledger version if needed
    *     options: {
    *       where: { handle: { _eq: "0x1b854694ae746cdbd8d44186ca4929b2b337df21d1c74633be19b2710552fdca" } },
@@ -188,6 +188,6 @@ export class Table {
       minimumLedgerVersion: args.minimumLedgerVersion,
       processorType: ProcessorType.DEFAULT,
     });
-    return getTableItemsMetadata({ aptosConfig: this.config, ...args });
+    return getTableItemsMetadata({ cedraConfig: this.config, ...args });
   }
 }

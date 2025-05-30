@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 /**
@@ -9,9 +9,9 @@
  * @group Implementation
  */
 
-import { AptosConfig } from "../api/aptosConfig";
-import { getAptosFullNode, paginateWithCursor } from "../client";
-import { AptosApiError } from "../errors";
+import { CedraConfig } from "../api/cedraConfig";
+import { getCedraFullNode, paginateWithCursor } from "../client";
+import { CedraApiError } from "../errors";
 import {
   TransactionResponseType,
   type AnyNumber,
@@ -32,19 +32,19 @@ import { getIndexerLastSuccessVersion, getProcessorStatus } from "./general";
  * Retrieve a list of transactions based on the specified options.
  *
  * @param {Object} args - The parameters for retrieving transactions.
- * @param {Object} args.aptosConfig - The configuration object for Aptos.
+ * @param {Object} args.cedraConfig - The configuration object for Cedra.
  * @param {Object} args.options - The options for pagination.
  * @param {number} args.options.offset - The number of transactions to skip before starting to collect the result set.
  * @param {number} args.options.limit - The maximum number of transactions to return.
  * @group Implementation
  */
 export async function getTransactions(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   options?: PaginationArgs;
 }): Promise<TransactionResponse[]> {
-  const { aptosConfig, options } = args;
+  const { cedraConfig, options } = args;
   return paginateWithCursor<{}, TransactionResponse[]>({
-    aptosConfig,
+    cedraConfig,
     originMethod: "getTransactions",
     path: "transactions",
     params: { start: options?.offset, limit: options?.limit },
@@ -52,26 +52,26 @@ export async function getTransactions(args: {
 }
 
 /**
- * Retrieves the estimated gas price for transactions on the Aptos network.
+ * Retrieves the estimated gas price for transactions on the Cedra network.
  * This function helps users understand the current gas price, which is essential for transaction planning and cost estimation.
  *
- * @param args - The configuration parameters for the Aptos network.
- * @param args.aptosConfig - The configuration object containing network details.
+ * @param args - The configuration parameters for the Cedra network.
+ * @param args.cedraConfig - The configuration object containing network details.
  * @group Implementation
  */
-export async function getGasPriceEstimation(args: { aptosConfig: AptosConfig }) {
-  const { aptosConfig } = args;
+export async function getGasPriceEstimation(args: { cedraConfig: CedraConfig }) {
+  const { cedraConfig } = args;
 
   return memoizeAsync(
     async () => {
-      const { data } = await getAptosFullNode<{}, GasEstimation>({
-        aptosConfig,
+      const { data } = await getCedraFullNode<{}, GasEstimation>({
+        cedraConfig,
         originMethod: "getGasPriceEstimation",
         path: "estimate_gas_price",
       });
       return data;
     },
-    `gas-price-${aptosConfig.network}`,
+    `gas-price-${cedraConfig.network}`,
     1000 * 60 * 5, // 5 minutes
   )();
 }
@@ -80,18 +80,18 @@ export async function getGasPriceEstimation(args: { aptosConfig: AptosConfig }) 
  * Retrieves the transaction details associated with a specific ledger version.
  *
  * @param args - The arguments for the transaction retrieval.
- * @param args.aptosConfig - The configuration settings for the Aptos client.
+ * @param args.cedraConfig - The configuration settings for the Cedra client.
  * @param args.ledgerVersion - The ledger version for which to retrieve the transaction.
  * @returns The transaction details for the specified ledger version.
  * @group Implementation
  */
 export async function getTransactionByVersion(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   ledgerVersion: AnyNumber;
 }): Promise<TransactionResponse> {
-  const { aptosConfig, ledgerVersion } = args;
-  const { data } = await getAptosFullNode<{}, TransactionResponse>({
-    aptosConfig,
+  const { cedraConfig, ledgerVersion } = args;
+  const { data } = await getCedraFullNode<{}, TransactionResponse>({
+    cedraConfig,
     originMethod: "getTransactionByVersion",
     path: `transactions/by_version/${ledgerVersion}`,
   });
@@ -102,18 +102,18 @@ export async function getTransactionByVersion(args: {
  * Retrieves transaction details using the specified transaction hash.
  *
  * @param args - The arguments for retrieving the transaction.
- * @param args.aptosConfig - The configuration settings for the Aptos client.
+ * @param args.cedraConfig - The configuration settings for the Cedra client.
  * @param args.transactionHash - The hash of the transaction to retrieve.
  * @returns A promise that resolves to the transaction details.
  * @group Implementation
  */
 export async function getTransactionByHash(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   transactionHash: HexInput;
 }): Promise<TransactionResponse> {
-  const { aptosConfig, transactionHash } = args;
-  const { data } = await getAptosFullNode<{}, TransactionResponse>({
-    aptosConfig,
+  const { cedraConfig, transactionHash } = args;
+  const { data } = await getCedraFullNode<{}, TransactionResponse>({
+    cedraConfig,
     path: `transactions/by_hash/${transactionHash}`,
     originMethod: "getTransactionByHash",
   });
@@ -122,22 +122,22 @@ export async function getTransactionByHash(args: {
 
 /**
  * Checks if a transaction is currently pending based on its hash.
- * This function helps determine the status of a transaction in the Aptos network.
+ * This function helps determine the status of a transaction in the Cedra network.
  *
  * @param args - The arguments for checking the transaction status.
- * @param args.aptosConfig - The configuration settings for connecting to the Aptos network.
+ * @param args.cedraConfig - The configuration settings for connecting to the Cedra network.
  * @param args.transactionHash - The hash of the transaction to check.
  * @returns A boolean indicating whether the transaction is pending.
  * @throws An error if the transaction cannot be retrieved due to reasons other than a 404 status.
  * @group Implementation
  */
 export async function isTransactionPending(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   transactionHash: HexInput;
 }): Promise<boolean> {
-  const { aptosConfig, transactionHash } = args;
+  const { cedraConfig, transactionHash } = args;
   try {
-    const transaction = await getTransactionByHash({ aptosConfig, transactionHash });
+    const transaction = await getTransactionByHash({ cedraConfig, transactionHash });
     return transaction.type === TransactionResponseType.Pending;
   } catch (e: any) {
     if (e?.status === 404) {
@@ -152,17 +152,17 @@ export async function isTransactionPending(args: {
  * This function allows you to monitor the status of a transaction until it is finalized.
  *
  * @param args - The arguments for the function.
- * @param args.aptosConfig - The configuration settings for the Aptos client.
+ * @param args.cedraConfig - The configuration settings for the Cedra client.
  * @param args.transactionHash - The hash of the transaction to wait for.
  * @group Implementation
  */
 export async function longWaitForTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   transactionHash: HexInput;
 }): Promise<TransactionResponse> {
-  const { aptosConfig, transactionHash } = args;
-  const { data } = await getAptosFullNode<{}, TransactionResponse>({
-    aptosConfig,
+  const { cedraConfig, transactionHash } = args;
+  const { data } = await getCedraFullNode<{}, TransactionResponse>({
+    cedraConfig,
     path: `transactions/wait_by_hash/${transactionHash}`,
     originMethod: "longWaitForTransaction",
   });
@@ -174,7 +174,7 @@ export async function longWaitForTransaction(args: {
  * This function allows you to monitor the status of a transaction until it is either confirmed or fails.
  *
  * @param args - The arguments for waiting for a transaction.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.transactionHash - The hash of the transaction to wait for.
  * @param args.options - Optional settings for waiting, including timeout and success check.
  * @param args.options.timeoutSecs - The maximum time to wait for the transaction in seconds. Defaults to a predefined value.
@@ -185,18 +185,18 @@ export async function longWaitForTransaction(args: {
  * @group Implementation
  */
 export async function waitForTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   transactionHash: HexInput;
   options?: WaitForTransactionOptions;
 }): Promise<CommittedTransactionResponse> {
-  const { aptosConfig, transactionHash, options } = args;
+  const { cedraConfig, transactionHash, options } = args;
   const timeoutSecs = options?.timeoutSecs ?? DEFAULT_TXN_TIMEOUT_SEC;
   const checkSuccess = options?.checkSuccess ?? true;
 
   let isPending = true;
   let timeElapsed = 0;
   let lastTxn: TransactionResponse | undefined;
-  let lastError: AptosApiError | undefined;
+  let lastError: CedraApiError | undefined;
   let backoffIntervalMs = 200;
   const backoffMultiplier = 1.5;
 
@@ -208,9 +208,9 @@ export async function waitForTransaction(args: {
    * @group Implementation
    */
   function handleAPIError(e: any) {
-    // In short, this means we will retry if it was an AptosApiError and the code was 404 or 5xx.
-    const isAptosApiError = e instanceof AptosApiError;
-    if (!isAptosApiError) {
+    // In short, this means we will retry if it was an CedraApiError and the code was 404 or 5xx.
+    const isCedraApiError = e instanceof CedraApiError;
+    if (!isCedraApiError) {
       throw e; // This would be unexpected
     }
     lastError = e;
@@ -222,7 +222,7 @@ export async function waitForTransaction(args: {
 
   // check to see if the txn is already on the blockchain
   try {
-    lastTxn = await getTransactionByHash({ aptosConfig, transactionHash });
+    lastTxn = await getTransactionByHash({ cedraConfig, transactionHash });
     isPending = lastTxn.type === TransactionResponseType.Pending;
   } catch (e) {
     handleAPIError(e);
@@ -232,7 +232,7 @@ export async function waitForTransaction(args: {
   if (isPending) {
     const startTime = Date.now();
     try {
-      lastTxn = await longWaitForTransaction({ aptosConfig, transactionHash });
+      lastTxn = await longWaitForTransaction({ cedraConfig, transactionHash });
       isPending = lastTxn.type === TransactionResponseType.Pending;
     } catch (e) {
       handleAPIError(e);
@@ -247,7 +247,7 @@ export async function waitForTransaction(args: {
     }
     try {
       // eslint-disable-next-line no-await-in-loop
-      lastTxn = await getTransactionByHash({ aptosConfig, transactionHash });
+      lastTxn = await getTransactionByHash({ cedraConfig, transactionHash });
 
       isPending = lastTxn.type === TransactionResponseType.Pending;
 
@@ -298,17 +298,17 @@ export async function waitForTransaction(args: {
  * Waits for the indexer to sync up to the specified ledger version. The timeout is 3 seconds.
  *
  * @param args - The arguments for the function.
- * @param args.aptosConfig - The configuration object for Aptos.
+ * @param args.cedraConfig - The configuration object for Cedra.
  * @param args.minimumLedgerVersion - The minimum ledger version that the indexer should sync to.
  * @param args.processorType - (Optional) The type of processor to check the last success version from.
  * @group Implementation
  */
 export async function waitForIndexer(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   minimumLedgerVersion: AnyNumber;
   processorType?: ProcessorType;
 }): Promise<void> {
-  const { aptosConfig, processorType } = args;
+  const { cedraConfig, processorType } = args;
   const minimumLedgerVersion = BigInt(args.minimumLedgerVersion);
   const timeoutMilliseconds = 3000; // 3 seconds
   const startTime = new Date().getTime();
@@ -323,11 +323,11 @@ export async function waitForIndexer(args: {
     if (processorType === undefined) {
       // Get the last success version from all processor
       // eslint-disable-next-line no-await-in-loop
-      indexerVersion = await getIndexerLastSuccessVersion({ aptosConfig });
+      indexerVersion = await getIndexerLastSuccessVersion({ cedraConfig });
     } else {
       // Get the last success version from the specific processor
       // eslint-disable-next-line no-await-in-loop
-      const processor = await getProcessorStatus({ aptosConfig, processorType });
+      const processor = await getProcessorStatus({ cedraConfig, processorType });
       indexerVersion = processor.last_success_version;
     }
 
@@ -384,24 +384,24 @@ export class FailedTransactionError extends Error {
 }
 
 /**
- * Retrieves a block from the Aptos blockchain by its ledger version.
+ * Retrieves a block from the Cedra blockchain by its ledger version.
  * This function allows you to obtain detailed information about a specific block, including its transactions if requested.
  *
  * @param args - The arguments for retrieving the block.
- * @param args.aptosConfig - The configuration object for connecting to the Aptos node.
+ * @param args.cedraConfig - The configuration object for connecting to the Cedra node.
  * @param args.ledgerVersion - The ledger version of the block to retrieve.
  * @param args.options - Optional parameters for the request.
  * @param args.options.withTransactions - Indicates whether to include transactions in the block data.
  * @group Implementation
  */
 export async function getBlockByVersion(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   ledgerVersion: AnyNumber;
   options?: { withTransactions?: boolean };
 }): Promise<Block> {
-  const { aptosConfig, ledgerVersion, options } = args;
-  const { data: block } = await getAptosFullNode<{}, Block>({
-    aptosConfig,
+  const { cedraConfig, ledgerVersion, options } = args;
+  const { data: block } = await getCedraFullNode<{}, Block>({
+    cedraConfig,
     originMethod: "getBlockByVersion",
     path: `blocks/by_version/${ledgerVersion}`,
     params: { with_transactions: options?.withTransactions },
@@ -411,10 +411,10 @@ export async function getBlockByVersion(args: {
 }
 
 /**
- * Retrieves a block from the Aptos blockchain by its height.
+ * Retrieves a block from the Cedra blockchain by its height.
  *
  * @param args - The parameters for retrieving the block.
- * @param args.aptosConfig - The configuration object for connecting to the Aptos network.
+ * @param args.cedraConfig - The configuration object for connecting to the Cedra network.
  * @param args.blockHeight - The height of the block to retrieve.
  * @param args.options - Optional parameters for the request.
  * @param args.options.withTransactions - Indicates whether to include transactions in the block data.
@@ -422,13 +422,13 @@ export async function getBlockByVersion(args: {
  * @group Implementation
  */
 export async function getBlockByHeight(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   blockHeight: AnyNumber;
   options?: { withTransactions?: boolean };
 }): Promise<Block> {
-  const { aptosConfig, blockHeight, options } = args;
-  const { data: block } = await getAptosFullNode<{}, Block>({
-    aptosConfig,
+  const { cedraConfig, blockHeight, options } = args;
+  const { data: block } = await getCedraFullNode<{}, Block>({
+    cedraConfig,
     originMethod: "getBlockByHeight",
     path: `blocks/by_height/${blockHeight}`,
     params: { with_transactions: options?.withTransactions },
@@ -440,18 +440,18 @@ export async function getBlockByHeight(args: {
  * Fills in the block with transactions if not enough were returned. This function ensures that the block contains all relevant
  * transactions by fetching any missing ones based on the specified options.
  * @param args - The arguments for filling the block transactions.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.block - The block object that will be filled with transactions.
  * @param args.options - Optional settings for fetching transactions.
  * @param args.options.withTransactions - Indicates whether to include transactions in the block.
  * @group Implementation
  */
 async function fillBlockTransactions(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   block: Block;
   options?: { withTransactions?: boolean };
 }) {
-  const { aptosConfig, block, options } = args;
+  const { cedraConfig, block, options } = args;
   if (options?.withTransactions) {
     // Transactions should be filled, but this ensures it
     block.transactions = block.transactions ?? [];
@@ -483,7 +483,7 @@ async function fillBlockTransactions(args: {
     for (let i = latestVersion + 1n; i < lastVersion; i += BigInt(100)) {
       fetchFutures.push(
         getTransactions({
-          aptosConfig,
+          cedraConfig,
           options: {
             offset: i,
             limit: Math.min(Number(pageSize), Number(lastVersion - i + 1n)),

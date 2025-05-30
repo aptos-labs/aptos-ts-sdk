@@ -7,7 +7,7 @@
  * to run cli commands
  */
 
-const cli = require("@aptos-labs/ts-sdk/dist/common/cli/index.js");
+const cli = require("@cedra-labs/ts-sdk/dist/common/cli/index.js");
 
 let localNode: any;
 const move = new cli.Move();
@@ -24,16 +24,16 @@ async function runLocalNode() {
   }
 }
 
-// initialize current directory for Aptos
+// initialize current directory for Cedra
 async function init() {
   try {
-    console.log("initializing Aptos");
+    console.log("initializing Cedra");
     await move.init({
       network: "local",
       profile: "default",
     });
   } catch (error) {
-    console.error("error initializing Aptos", error);
+    console.error("error initializing Cedra", error);
   }
 }
 

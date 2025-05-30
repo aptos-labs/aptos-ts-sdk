@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { sha3_256 } from "@noble/hashes/sha3";
@@ -12,7 +12,7 @@ import { PrivateKey } from "./privateKey";
 import { PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { convertSigningMessage } from "./utils";
-import { AptosConfig } from "../../api";
+import { CedraConfig } from "../../api";
 
 /**
  * Represents a Secp256k1 ECDSA public key.
@@ -86,7 +86,7 @@ export class Secp256k1PublicKey extends PublicKey {
    * This function helps ensure the integrity and authenticity of the message by confirming that the signature is valid.
    *
    * @param args - The arguments for signature verification.
-   * @param args.aptosConfig - The configuration object for connecting to the Aptos network
+   * @param args.cedraConfig - The configuration object for connecting to the Cedra network
    * @param args.message - The message that was signed.
    * @param args.signature - The signature to verify, which must be an instance of Secp256k1Signature.
    * @returns A boolean indicating whether the signature is valid for the given message.
@@ -94,7 +94,7 @@ export class Secp256k1PublicKey extends PublicKey {
    * @category Serialization
    */
   async verifySignatureAsync(args: {
-    aptosConfig: AptosConfig;
+    cedraConfig: CedraConfig;
     message: HexInput;
     signature: Secp256k1Signature;
   }): Promise<boolean> {
@@ -202,7 +202,7 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
   /**
    * Create a new PrivateKey instance from a Uint8Array or String.
    *
-   * [Read about AIP-80](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md)
+   * [Read about AIP-80](https://github.com/cedra-foundation/AIPs/blob/main/aips/aip-80.md)
    *
    * @param hexInput A HexInput (string or Uint8Array)
    * @param strict If true, private key must AIP-80 compliant.
@@ -339,7 +339,7 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
   /**
    * Get the private key as a AIP-80 compliant hex string.
    *
-   * [Read about AIP-80](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md)
+   * [Read about AIP-80](https://github.com/cedra-foundation/AIPs/blob/main/aips/aip-80.md)
    *
    * @returns AIP-80 compliant string representation of the private key.
    */

@@ -10,13 +10,13 @@ dotenv.config();
 import {
   Account,
   AccountAuthenticator,
-  Aptos,
-  AptosConfig,
+  Cedra,
+  CedraConfig,
   Deserializer,
   Network,
   NetworkToNetworkName,
   SimpleTransaction,
-} from "@aptos-labs/ts-sdk";
+} from "@cedra-labs/ts-sdk";
 
 const INITIAL_BALANCE = 100_000_000;
 const TRANSFER_AMOUNT = 100;
@@ -24,8 +24,8 @@ const TRANSFER_AMOUNT = 100;
 // Default to devnet, but allow for overriding
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 // Set up the client
-const config = new AptosConfig({ network: APTOS_NETWORK });
-const aptos = new Aptos(config);
+const config = new CedraConfig({ network: APTOS_NETWORK });
+const cedra = new Cedra(config);
 
 const sendToOtherServer = async (
   serializedTransaction: Uint8Array,
@@ -44,13 +44,13 @@ const sendToOtherServer = async (
   const deserializer3 = new Deserializer(sponsorAuth);
   const feePayerAuthenticator = AccountAuthenticator.deserialize(deserializer3);
 
-  const response = await aptos.transaction.submit.simple({
+  const response = await cedra.transaction.submit.simple({
     transaction,
     senderAuthenticator,
     feePayerAuthenticator,
   });
 
-  const executedTransaction = await aptos.waitForTransaction({ transactionHash: response.hash });
+  const executedTransaction = await cedra.waitForTransaction({ transactionHash: response.hash });
   console.log("executed transaction", executedTransaction.hash);
 };
 
@@ -68,29 +68,29 @@ const example = async () => {
   // Fund the accounts
   console.log("\n=== Funding accounts ===\n");
 
-  await aptos.fundAccount({
+  await cedra.fundAccount({
     accountAddress: alice.accountAddress,
     amount: INITIAL_BALANCE,
   });
 
-  await aptos.fundAccount({ accountAddress: sponsor.accountAddress, amount: INITIAL_BALANCE });
+  await cedra.fundAccount({ accountAddress: sponsor.accountAddress, amount: INITIAL_BALANCE });
 
   console.log("\n=== Accounts funded ===\n");
 
-  const transaction = await aptos.transaction.build.simple({
+  const transaction = await cedra.transaction.build.simple({
     sender: alice.accountAddress,
     withFeePayer: true,
     data: {
-      function: "0x1::aptos_account::transfer",
+      function: "0x1::cedra_account::transfer",
       functionArguments: [bob.accountAddress, TRANSFER_AMOUNT],
     },
   });
 
   // Alice signs
-  const senderAuth = aptos.transaction.sign({ signer: alice, transaction });
+  const senderAuth = cedra.transaction.sign({ signer: alice, transaction });
 
   // Sponsor signs
-  const sponsorAuth = aptos.transaction.signAsFeePayer({ signer: sponsor, transaction });
+  const sponsorAuth = cedra.transaction.signAsFeePayer({ signer: sponsor, transaction });
 
   // Send serialized data to server
   await sendToOtherServer(transaction.bcsToBytes(), senderAuth.bcsToBytes(), sponsorAuth.bcsToBytes());

@@ -5,8 +5,8 @@ import {
   Account,
   AccountAddress,
   AnyNumber,
-  Aptos,
-  AptosConfig,
+  Cedra,
+  CedraConfig,
   InputViewFunctionJsonData,
   MoveString,
   Network,
@@ -14,7 +14,7 @@ import {
   Serializable,
   Serializer,
   U64,
-} from "@aptos-labs/ts-sdk";
+} from "@cedra-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils";
 
 const ALICE_INITIAL_BALANCE = 100_000_000;
@@ -26,19 +26,19 @@ const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ??
 
 /**
  * Prints the balance of an account
- * @param aptos
+ * @param cedra
  * @param name
  * @param address
  * @returns {Promise<*>}
  *
  */
-const balance = async (aptos: Aptos, name: string, address: AccountAddress): Promise<any> => {
+const balance = async (cedra: Cedra, name: string, address: AccountAddress): Promise<any> => {
   const payload: InputViewFunctionJsonData = {
     function: "0x1::coin::balance",
-    typeArguments: ["0x1::aptos_coin::AptosCoin"],
+    typeArguments: ["0x1::cedra_coin::CedraCoin"],
     functionArguments: [address.toString()],
   };
-  const [balance] = await aptos.viewJson<[number]>({ payload: payload });
+  const [balance] = await cedra.viewJson<[number]>({ payload: payload });
 
   console.log(`${name}'s balance is: ${balance}`);
   return Number(balance);
@@ -93,8 +93,8 @@ const example = async () => {
   console.log("This example will publish a contract, and show how to sign a struct and prove it on-chain");
 
   // Set up the client
-  const config = new AptosConfig({ network: APTOS_NETWORK });
-  const aptos = new Aptos(config);
+  const config = new CedraConfig({ network: APTOS_NETWORK });
+  const cedra = new Cedra(config);
 
   // Create two accounts
   const alice = Account.generate();
@@ -107,20 +107,20 @@ const example = async () => {
   // Fund the accounts
   console.log("\n=== Funding accounts ===\n");
 
-  await aptos.fundAccount({
+  await cedra.fundAccount({
     accountAddress: alice.accountAddress,
     amount: ALICE_INITIAL_BALANCE,
   });
 
-  await aptos.fundAccount({
+  await cedra.fundAccount({
     accountAddress: bob.accountAddress,
     amount: BOB_INITIAL_BALANCE,
   });
 
   // Show the balances
   console.log("\n=== Balances ===\n");
-  const aliceBalance = await balance(aptos, "Alice", alice.accountAddress);
-  const bobBalance = await balance(aptos, "Bob", bob.accountAddress);
+  const aliceBalance = await balance(cedra, "Alice", alice.accountAddress);
+  const bobBalance = await balance(cedra, "Bob", bob.accountAddress);
 
   if (aliceBalance !== ALICE_INITIAL_BALANCE) throw new Error("Alice's balance is incorrect");
   if (bobBalance !== BOB_INITIAL_BALANCE) throw new Error("Bob's balance is incorrect");
@@ -131,44 +131,44 @@ const example = async () => {
   const { metadataBytes, byteCode } = getPackageBytesToPublish("move/claims/claims.json");
 
   console.log("\n===Publishing Claims package===");
-  const transaction = await aptos.publishPackageTransaction({
+  const transaction = await cedra.publishPackageTransaction({
     account: alice.accountAddress,
     metadataBytes,
     moduleBytecode: byteCode,
   });
-  const response = await aptos.signAndSubmitTransaction({
+  const response = await cedra.signAndSubmitTransaction({
     signer: alice,
     transaction,
   });
   console.log(`Transaction hash: ${response.hash}`);
-  await aptos.waitForTransaction({
+  await cedra.waitForTransaction({
     transactionHash: response.hash,
   });
 
   console.log("\n=== Balances after publish of package ===\n");
-  await balance(aptos, "Alice", alice.accountAddress);
-  await balance(aptos, "Bob", bob.accountAddress);
+  await balance(cedra, "Alice", alice.accountAddress);
+  await balance(cedra, "Bob", bob.accountAddress);
 
   // Setup a claim
-  const createClaim = await aptos.transaction.build.simple({
+  const createClaim = await cedra.transaction.build.simple({
     sender: alice.accountAddress,
     data: {
       function: `${alice.accountAddress.toString()}::claims::create_claim`,
       functionArguments: [TRANSFER_AMOUNT],
     },
   });
-  const createClaimResponse = await aptos.signAndSubmitTransaction({
+  const createClaimResponse = await cedra.signAndSubmitTransaction({
     signer: alice,
     transaction: createClaim,
   });
   console.log(`Create Claim Transaction hash: ${createClaimResponse.hash}`);
-  await aptos.waitForTransaction({
+  await cedra.waitForTransaction({
     transactionHash: createClaimResponse.hash,
   });
 
   console.log("\n=== Balances after creating claim ===\n");
-  await balance(aptos, "Alice", alice.accountAddress);
-  await balance(aptos, "Bob", bob.accountAddress);
+  await balance(cedra, "Alice", alice.accountAddress);
+  await balance(cedra, "Bob", bob.accountAddress);
 
   // Claim the coins
   const claim = new Claim({
@@ -181,25 +181,25 @@ const example = async () => {
   serializer.serialize(claim);
   const signature = alice.sign(serializer.toUint8Array());
 
-  const claimCoins = await aptos.transaction.build.simple({
+  const claimCoins = await cedra.transaction.build.simple({
     sender: bob.accountAddress,
     data: {
       function: `${alice.accountAddress.toString()}::claims::claim`,
       functionArguments: [alice.accountAddress, 0, alice.publicKey.toUint8Array(), signature.toUint8Array()],
     },
   });
-  const claimCoinsResponse = await aptos.signAndSubmitTransaction({
+  const claimCoinsResponse = await cedra.signAndSubmitTransaction({
     signer: bob,
     transaction: claimCoins,
   });
   console.log(`Claim Coins Transaction hash: ${claimCoinsResponse.hash}`);
-  await aptos.waitForTransaction({
+  await cedra.waitForTransaction({
     transactionHash: claimCoinsResponse.hash,
   });
 
   console.log("\n=== Balances after claiming ===\n");
-  await balance(aptos, "Alice", alice.accountAddress);
-  await balance(aptos, "Bob", bob.accountAddress);
+  await balance(cedra, "Alice", alice.accountAddress);
+  await balance(cedra, "Bob", bob.accountAddress);
 };
 
 example();

@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { ed25519 } from "@noble/curves/ed25519";
@@ -30,8 +30,8 @@ const L: number[] = [
  * @param signature - The signature to be checked for canonicality.
  * @returns A boolean indicating whether the signature is non-canonical.
  *
- * Comes from Aptos Core
- * https://github.com/aptos-labs/aptos-core/blob/main/crates/aptos-crypto/src/ed25519/ed25519_sigs.rs#L47-L85
+ * Comes from Cedra Core
+ * https://github.com/cedra-labs/cedra-core/blob/main/crates/cedra-crypto/src/ed25519/ed25519_sigs.rs#L47-L85
  * @group Implementation
  * @category Serialization
  */
@@ -52,7 +52,7 @@ export function isCanonicalEd25519Signature(signature: Signature): boolean {
 /**
  * Represents the public key of an Ed25519 key pair.
  *
- * Since [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263) Aptos supports
+ * Since [AIP-55](https://github.com/cedra-foundation/AIPs/pull/263) Cedra supports
  * `Legacy` and `Unified` authentication keys.
  *
  * Ed25519 scheme is represented in the SDK as `Legacy authentication key` and also
@@ -127,7 +127,7 @@ export class Ed25519PublicKey extends AccountPublicKey {
    * This function helps ensure the integrity and authenticity of the message by confirming that the signature is valid.
    *
    * @param args - The arguments for signature verification.
-   * @param args.aptosConfig - The configuration object for connecting to the Aptos network
+   * @param args.cedraConfig - The configuration object for connecting to the Cedra network
    * @param args.message - The message that was signed.
    * @param args.signature - The signature to verify, which must be an instance of Secp256k1Signature.
    * @returns A boolean indicating whether the signature is valid for the given message.
@@ -257,7 +257,7 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   /**
    * Create a new PrivateKey instance from a Uint8Array or String.
    *
-   * [Read about AIP-80](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md)
+   * [Read about AIP-80](https://github.com/cedra-foundation/AIPs/blob/main/aips/aip-80.md)
    *
    * @param hexInput HexInput (string or Uint8Array)
    * @param strict If true, private key must AIP-80 compliant.
@@ -398,7 +398,7 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   /**
    * Get the private key as a AIP-80 compliant hex string.
    *
-   * [Read about AIP-80](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md)
+   * [Read about AIP-80](https://github.com/cedra-foundation/AIPs/blob/main/aips/aip-80.md)
    *
    * @returns AIP-80 compliant string representation of the private key.
    */

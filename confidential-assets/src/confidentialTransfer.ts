@@ -4,7 +4,7 @@ import { utf8ToBytes } from "@noble/hashes/utils";
 import { PROOF_CHUNK_SIZE, SIGMA_PROOF_TRANSFER_SIZE } from "./consts";
 import { genFiatShamirChallenge, publicKeyToU8 } from "./helpers";
 import { ConfidentialAmount } from "./confidentialAmount";
-import { HexInput } from "@aptos-labs/ts-sdk";
+import { HexInput } from "@cedra-labs/ts-sdk";
 import { RangeProofExecutor } from "./rangeProof";
 import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey, H_RISTRETTO } from "./twistedEd25519";
 import { TwistedElGamalCiphertext, TwistedElGamal } from "./twistedElGamal";
@@ -157,7 +157,7 @@ export class ConfidentialTransfer {
     });
   }
 
-  static FIAT_SHAMIR_SIGMA_DST = "AptosConfidentialAsset/TransferProofFiatShamir";
+  static FIAT_SHAMIR_SIGMA_DST = "CedraConfidentialAsset/TransferProofFiatShamir";
 
   static serializeSigmaProof(sigmaProof: ConfidentialTransferSigmaProof): Uint8Array {
     return concatBytes(

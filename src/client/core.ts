@@ -1,11 +1,11 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "../api/aptosConfig";
+import { CedraConfig } from "../api/cedraConfig";
 import { VERSION } from "../version";
-import { AnyNumber, AptosRequest, AptosResponse, Client, ClientRequest, ClientResponse, MimeType } from "../types";
-import { AptosApiType } from "../utils";
-import { AptosApiError } from "../errors";
+import { AnyNumber, CedraRequest, CedraResponse, Client, ClientRequest, ClientResponse, MimeType } from "../types";
+import { CedraApiType } from "../utils";
+import { CedraApiError } from "../errors";
 
 /**
  * Sends a request using the specified options and returns the response.
@@ -31,9 +31,9 @@ export async function request<Req, Res>(options: ClientRequest<Req>, client: Cli
   const { url, method, body, contentType, params, overrides, originMethod } = options;
   const headers: Record<string, string | AnyNumber | boolean | undefined> = {
     ...overrides?.HEADERS,
-    "x-aptos-client": `aptos-typescript-sdk/${VERSION}`,
+    "x-cedra-client": `cedra-typescript-sdk/${VERSION}`,
     "content-type": contentType ?? MimeType.JSON,
-    "x-aptos-typescript-sdk-origin-method": originMethod,
+    "x-cedra-typescript-sdk-origin-method": originMethod,
   };
 
   if (overrides?.AUTH_TOKEN) {
@@ -44,8 +44,8 @@ export async function request<Req, Res>(options: ClientRequest<Req>, client: Cli
   }
 
   /*
-   * make a call using the @aptos-labs/aptos-client package
-   * {@link https://www.npmjs.com/package/@aptos-labs/aptos-client}
+   * make a call using the @cedra-labs/cedra-client package
+   * {@link https://www.npmjs.com/package/@cedra-labs/cedra-client}
    */
   return client.provider<Req, Res>({
     url,
@@ -58,25 +58,25 @@ export async function request<Req, Res>(options: ClientRequest<Req>, client: Cli
 }
 
 /**
- * The main function to use when making an API request, returning the response or throwing an AptosApiError on failure.
+ * The main function to use when making an API request, returning the response or throwing an CedraApiError on failure.
  *
- * @param aptosRequestOpts - Options for the Aptos request, including the URL and path.
- * @param aptosConfig - The configuration information for the SDK client instance.
+ * @param cedraRequestOpts - Options for the Cedra request, including the URL and path.
+ * @param cedraConfig - The configuration information for the SDK client instance.
  * @param apiType - The type of API being accessed, which determines how the response is handled.
- * @returns The response from the API request or throws an AptosApiError if the request fails.
+ * @returns The response from the API request or throws an CedraApiError if the request fails.
  * @group Implementation
  * @category Client
  */
-export async function aptosRequest<Req extends {}, Res extends {}>(
-  aptosRequestOpts: AptosRequest,
-  aptosConfig: AptosConfig,
-  apiType: AptosApiType,
-): Promise<AptosResponse<Req, Res>> {
-  const { url, path } = aptosRequestOpts;
+export async function cedraRequest<Req extends {}, Res extends {}>(
+  cedraRequestOpts: CedraRequest,
+  cedraConfig: CedraConfig,
+  apiType: CedraApiType,
+): Promise<CedraResponse<Req, Res>> {
+  const { url, path } = cedraRequestOpts;
   const fullUrl = path ? `${url}/${path}` : url;
-  const clientResponse = await request<Req, Res>({ ...aptosRequestOpts, url: fullUrl }, aptosConfig.client);
+  const clientResponse = await request<Req, Res>({ ...cedraRequestOpts, url: fullUrl }, cedraConfig.client);
 
-  const aptosResponse: AptosResponse<Req, Res> = {
+  const cedraResponse: CedraResponse<Req, Res> = {
     status: clientResponse.status,
     statusText: clientResponse.statusText ?? "No status text provided",
     data: clientResponse.data,
@@ -87,34 +87,34 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
   };
 
   // Handle case for `Unauthorized` error (i.e. API_KEY error)
-  if (aptosResponse.status === 401) {
-    throw new AptosApiError({ apiType, aptosRequest: aptosRequestOpts, aptosResponse });
+  if (cedraResponse.status === 401) {
+    throw new CedraApiError({ apiType, cedraRequest: cedraRequestOpts, cedraResponse });
   }
 
   // to support both fullnode and indexer responses,
   // check if it is an indexer query, and adjust response.data
-  if (apiType === AptosApiType.INDEXER) {
-    const indexerResponse = aptosResponse.data as any;
+  if (apiType === CedraApiType.INDEXER) {
+    const indexerResponse = cedraResponse.data as any;
     // Handle Indexer general errors
     if (indexerResponse.errors) {
-      throw new AptosApiError({
+      throw new CedraApiError({
         apiType,
-        aptosRequest: aptosRequestOpts,
-        aptosResponse,
+        cedraRequest: cedraRequestOpts,
+        cedraResponse,
       });
     }
-    aptosResponse.data = indexerResponse.data as Res;
-  } else if (apiType === AptosApiType.PEPPER || apiType === AptosApiType.PROVER) {
-    if (aptosResponse.status >= 400) {
-      throw new AptosApiError({ apiType, aptosRequest: aptosRequestOpts, aptosResponse });
+    cedraResponse.data = indexerResponse.data as Res;
+  } else if (apiType === CedraApiType.PEPPER || apiType === CedraApiType.PROVER) {
+    if (cedraResponse.status >= 400) {
+      throw new CedraApiError({ apiType, cedraRequest: cedraRequestOpts, cedraResponse });
     }
   }
 
-  if (aptosResponse.status >= 200 && aptosResponse.status < 300) {
-    return aptosResponse;
+  if (cedraResponse.status >= 200 && cedraResponse.status < 300) {
+    return cedraResponse;
   }
 
   // We have to explicitly check for all request types, because if the error is a non-indexer error, but
   // comes from an indexer request (e.g. 404), we'll need to mention it appropriately
-  throw new AptosApiError({ apiType, aptosRequest: aptosRequestOpts, aptosResponse });
+  throw new CedraApiError({ apiType, cedraRequest: cedraRequestOpts, cedraResponse });
 }

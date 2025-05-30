@@ -4,7 +4,7 @@ Cryptographic private keys are keys that use asymmetric cryptography to sign and
 
 This specifications covers the following:
 * Specifications for Ed25519 and Secp256k1 private keys.
-* AIP-80 compliant formatting and parsing of bytes, hex strings, and AIP-80 compliant strings. Read about AIP-80 here: https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md
+* AIP-80 compliant formatting and parsing of bytes, hex strings, and AIP-80 compliant strings. Read about AIP-80 here: https://github.com/cedra-foundation/AIPs/blob/main/aips/aip-80.md
 """
 
   Scenario Outline: It must format a HexString to an AIP-80 compliant string

@@ -1,7 +1,7 @@
 script {
-    use aptos_framework::coin;
-    use aptos_framework::object;
-    use aptos_std::signer;
+    use cedra_framework::coin;
+    use cedra_framework::object;
+    use cedra_std::signer;
 
 
     // Transfers an object for a price back in one transaction without escrow

@@ -1,7 +1,7 @@
 import { execSync } from "child_process";
 import path from "path";
 import fs from "fs";
-import { AccountAddress } from "@aptos-labs/ts-sdk";
+import { AccountAddress } from "@cedra-labs/ts-sdk";
 
 /* eslint-disable no-console */
 /* eslint-disable max-len */
@@ -18,17 +18,17 @@ export function compilePackage(
   namedAddresses: Array<{ name: string; address: AccountAddress }>,
   args?: string[],
 ) {
-  console.log("In order to run compilation, you must have the `aptos` CLI installed.");
+  console.log("In order to run compilation, you must have the `cedra` CLI installed.");
   try {
-    execSync("aptos --version");
+    execSync("cedra --version");
   } catch (e) {
-    console.log("aptos is not installed. Please install it from the instructions on aptos.dev");
+    console.log("cedra is not installed. Please install it from the instructions on cedra.dev");
   }
 
   const addressArg = namedAddresses.map(({ name, address }) => `${name}=${address}`).join(" ");
 
   // Assume-yes automatically overwrites the previous compiled version, only do this if you are sure you want to overwrite the previous version.
-  let compileCommand = `aptos move build-publish-payload --json-output-file ${outputFile} --package-dir ${packageDir} --named-addresses ${addressArg} --assume-yes`;
+  let compileCommand = `cedra move build-publish-payload --json-output-file ${outputFile} --package-dir ${packageDir} --named-addresses ${addressArg} --assume-yes`;
   if (args) compileCommand += ` ${args.join(" ")}`;
 
   console.log("Running the compilation locally, in a real situation you may want to compile this ahead of time.");

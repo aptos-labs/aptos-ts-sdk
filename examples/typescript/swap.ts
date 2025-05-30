@@ -16,13 +16,13 @@ import "dotenv";
 import {
   Account,
   AccountAddress,
-  Aptos,
-  AptosConfig,
+  Cedra,
+  CedraConfig,
   Ed25519PrivateKey,
   InputViewFunctionData,
   Network,
   NetworkToNetworkName,
-} from "@aptos-labs/ts-sdk";
+} from "@cedra-labs/ts-sdk";
 import { createInterface } from "readline";
 // Default to devnet, but allow for overriding
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
@@ -33,7 +33,7 @@ const readline = createInterface({
 });
 
 const getOptimalLpAmount = async (
-  aptos: Aptos,
+  cedra: Cedra,
   swap: AccountAddress,
   token1Addr: AccountAddress,
   token2Addr: AccountAddress,
@@ -42,32 +42,32 @@ const getOptimalLpAmount = async (
     function: `${swap.toString()}::router::optimal_liquidity_amounts`,
     functionArguments: [token1Addr, token2Addr, false, "200000", "300000", "200", "300"],
   };
-  const result = await aptos.view({ payload });
+  const result = await cedra.view({ payload });
   console.log("Optimal LP amount: ", result);
 };
 
 const addLiquidity = async (
-  aptos: Aptos,
+  cedra: Cedra,
   swap: AccountAddress,
   deployer: Account,
   token1Addr: AccountAddress,
   token2Addr: AccountAddress,
 ): Promise<string> => {
-  const rawTxn = await aptos.transaction.build.simple({
+  const rawTxn = await cedra.transaction.build.simple({
     sender: deployer.accountAddress,
     data: {
       function: `${swap.toString()}::router::add_liquidity_entry`,
       functionArguments: [token1Addr, token2Addr, false, 200000, 300000, 200, 300],
     },
   });
-  const pendingTxn = await aptos.signAndSubmitTransaction({ signer: deployer, transaction: rawTxn });
-  const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+  const pendingTxn = await cedra.signAndSubmitTransaction({ signer: deployer, transaction: rawTxn });
+  const response = await cedra.waitForTransaction({ transactionHash: pendingTxn.hash });
   console.log("Add liquidity succeed. - ", response.hash);
   return response.hash;
 };
 
 const swapAssets = async (
-  aptos: Aptos,
+  cedra: Cedra,
   swap: AccountAddress,
   deployer: Account,
   fromToken: AccountAddress,
@@ -76,21 +76,21 @@ const swapAssets = async (
   amountOutMin: number,
   recipient: AccountAddress,
 ): Promise<string> => {
-  const rawTxn = await aptos.transaction.build.simple({
+  const rawTxn = await cedra.transaction.build.simple({
     sender: deployer.accountAddress.toString(),
     data: {
       function: `${swap.toString()}::router::swap_entry`,
       functionArguments: [amountIn, amountOutMin, fromToken, toToken, false, recipient],
     },
   });
-  const pendingTxn = await aptos.signAndSubmitTransaction({ signer: deployer, transaction: rawTxn });
-  const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+  const pendingTxn = await cedra.signAndSubmitTransaction({ signer: deployer, transaction: rawTxn });
+  const response = await cedra.waitForTransaction({ transactionHash: pendingTxn.hash });
   console.log("Swap succeed. - ", response.hash);
   return response.hash;
 };
 
-const getAssetType = async (aptos: Aptos, owner: Account): Promise<any> => {
-  const data = await aptos.getFungibleAssetMetadata({
+const getAssetType = async (cedra: Cedra, owner: Account): Promise<any> => {
+  const data = await cedra.getFungibleAssetMetadata({
     options: {
       where: {
         creator_address: { _eq: owner.accountAddress.toStringLong() },
@@ -107,8 +107,8 @@ const getAssetType = async (aptos: Aptos, owner: Account): Promise<any> => {
   };
 };
 
-const getFaBalance = async (aptos: Aptos, owner: Account, assetType: string): Promise<number> => {
-  const data = await aptos.getCurrentFungibleAssetBalances({
+const getFaBalance = async (cedra: Cedra, owner: Account, assetType: string): Promise<number> => {
+  const data = await cedra.getCurrentFungibleAssetBalances({
     options: {
       where: {
         owner_address: { _eq: owner.accountAddress.toStringLong() },
@@ -121,46 +121,46 @@ const getFaBalance = async (aptos: Aptos, owner: Account, assetType: string): Pr
 };
 
 const createLiquidityPool = async (
-  aptos: Aptos,
+  cedra: Cedra,
   swap: AccountAddress,
   deployer: Account,
   dogCoinAddr: AccountAddress,
   catCoinAddr: AccountAddress,
 ): Promise<string> => {
-  const rawTxn = await aptos.transaction.build.simple({
+  const rawTxn = await cedra.transaction.build.simple({
     sender: deployer.accountAddress,
     data: {
       function: `${swap.toString()}::router::create_pool`,
       functionArguments: [dogCoinAddr, catCoinAddr, false],
     },
   });
-  const pendingTxn = await aptos.signAndSubmitTransaction({ signer: deployer, transaction: rawTxn });
-  const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+  const pendingTxn = await cedra.signAndSubmitTransaction({ signer: deployer, transaction: rawTxn });
+  const response = await cedra.waitForTransaction({ transactionHash: pendingTxn.hash });
   console.log("Creating liquidity pool successful. - ", response.hash);
   return response.hash;
 };
 
-const initLiquidityPool = async (aptos: Aptos, swap: AccountAddress, deployer: Account): Promise<string> => {
-  const rawTxn = await aptos.transaction.build.simple({
+const initLiquidityPool = async (cedra: Cedra, swap: AccountAddress, deployer: Account): Promise<string> => {
+  const rawTxn = await cedra.transaction.build.simple({
     sender: deployer.accountAddress,
     data: {
       function: `${swap.toString()}::liquidity_pool::initialize`,
       functionArguments: [],
     },
   });
-  const pendingTxn = await aptos.signAndSubmitTransaction({ signer: deployer, transaction: rawTxn });
-  const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+  const pendingTxn = await cedra.signAndSubmitTransaction({ signer: deployer, transaction: rawTxn });
+  const response = await cedra.waitForTransaction({ transactionHash: pendingTxn.hash });
   console.log("Init LP Pool success. - ", response.hash);
   return response.hash;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const createFungibleAsset = async (aptos: Aptos, admin: Account): Promise<void> => {
+const createFungibleAsset = async (cedra: Cedra, admin: Account): Promise<void> => {
   await new Promise<void>((resolve) => {
     readline.question(
       "Follow the steps to publish the Dog and Cat Coin module with Admin's address, and press enter. \n" +
-        "1. cd to /aptos-ts-sdk/examples/typescript/move/facoin folder \n" +
-        "2. run 'aptos move publish --named-address FACoin=[admin] --profile=[admin] \n" +
+        "1. cd to /cedra-ts-sdk/examples/typescript/move/facoin folder \n" +
+        "2. run 'cedra move publish --named-address FACoin=[admin] --profile=[admin] \n" +
         "   Note: [admin] is the same profile you used to publish your 'swap' package",
       () => {
         resolve();
@@ -172,16 +172,16 @@ const createFungibleAsset = async (aptos: Aptos, admin: Account): Promise<void> 
 /**
  *  Admin mint the coin
  */
-const mintCoin = async (aptos: Aptos, admin: Account, amount: number | bigint, coinName: string): Promise<string> => {
-  const rawTxn = await aptos.transaction.build.simple({
+const mintCoin = async (cedra: Cedra, admin: Account, amount: number | bigint, coinName: string): Promise<string> => {
+  const rawTxn = await cedra.transaction.build.simple({
     sender: admin.accountAddress,
     data: {
       function: `${admin.accountAddress.toString()}::${coinName}::mint`,
       functionArguments: [admin.accountAddress, amount],
     },
   });
-  const pendingTxn = await aptos.signAndSubmitTransaction({ signer: admin, transaction: rawTxn });
-  const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+  const pendingTxn = await cedra.signAndSubmitTransaction({ signer: admin, transaction: rawTxn });
+  const response = await cedra.waitForTransaction({ transactionHash: pendingTxn.hash });
   console.log(`Minting ${coinName} coin successful. - `, response.hash);
   return response.hash;
 };
@@ -192,7 +192,7 @@ const example = async () => {
       "After creating the Dog and Cat coin, and the liquidity pool, it will swap one token for another. \n" +
       "Note: This example requires you to have the 'swap' module published before running. \n" +
       "If you haven't published the 'swap' module, please publish the package using \n" +
-      "'aptos move create-resource-account-and-publish-package --seed 0 --address-name=swap --named-addresses deployer=[admin] --profile [admin]' first. \n" +
+      "'cedra move create-resource-account-and-publish-package --seed 0 --address-name=swap --named-addresses deployer=[admin] --profile [admin]' first. \n" +
       "[admin] is the account profile you will be using for this example. \n",
   );
 
@@ -202,8 +202,8 @@ const example = async () => {
     process.exit(1);
   }
 
-  const aptosConfig = new AptosConfig({ network: APTOS_NETWORK });
-  const aptos = new Aptos(aptosConfig);
+  const cedraConfig = new CedraConfig({ network: APTOS_NETWORK });
+  const cedra = new Cedra(cedraConfig);
   // Create three accounts
   const swapAddress = AccountAddress.from(process.argv[2]);
   const admin = Account.fromPrivateKey({
@@ -215,11 +215,11 @@ const example = async () => {
   console.log(`Admin's address is: ${admin.accountAddress.toString()}`);
   console.log(`Swap address is: ${swapAddress.toString()}`);
   // Fund Admin account
-  await aptos.fundAccount({ accountAddress: admin.accountAddress, amount: 100_000_000 });
+  await cedra.fundAccount({ accountAddress: admin.accountAddress, amount: 100_000_000 });
 
   console.log("\n====== Create Fungible Asset -> (Dog and Cat coin) ======\n");
-  await createFungibleAsset(aptos, admin);
-  const assetTypes = await getAssetType(aptos, admin);
+  await createFungibleAsset(cedra, admin);
+  const assetTypes = await getAssetType(cedra, admin);
   const dogCoinAddr = AccountAddress.from(assetTypes.dog);
   const catCoinAddr = AccountAddress.from(assetTypes.cat);
   console.log(`Cat FACoin asset type: ${catCoinAddr}`);
@@ -227,33 +227,33 @@ const example = async () => {
 
   console.log("\n====== Mint Dog and Cat Coin ======\n");
   console.log("minting 20_000_000 Dog coin...");
-  await mintCoin(aptos, admin, 20_000_000, "dog");
+  await mintCoin(cedra, admin, 20_000_000, "dog");
   console.log("minting 30_000_000 Cat coin...");
-  await mintCoin(aptos, admin, 30_000_000, "cat");
+  await mintCoin(cedra, admin, 30_000_000, "cat");
 
   console.log("\n====== Current Balance ======\n");
-  console.log(`Admin's Dog coin balance: ${await getFaBalance(aptos, admin, dogCoinAddr.toString())}.`);
-  console.log(`Admin's Cat coin balance: ${await getFaBalance(aptos, admin, catCoinAddr.toString())}.`);
+  console.log(`Admin's Dog coin balance: ${await getFaBalance(cedra, admin, dogCoinAddr.toString())}.`);
+  console.log(`Admin's Cat coin balance: ${await getFaBalance(cedra, admin, catCoinAddr.toString())}.`);
 
   console.log("\n====== Create Liquidity Pool ======\n");
   console.log("initializing Liquidity Pool......");
-  await initLiquidityPool(aptos, swapAddress, admin);
+  await initLiquidityPool(cedra, swapAddress, admin);
   console.log("Creating liquidity pool......");
-  await createLiquidityPool(aptos, swapAddress, admin, dogCoinAddr, catCoinAddr);
+  await createLiquidityPool(cedra, swapAddress, admin, dogCoinAddr, catCoinAddr);
   console.log("Getting optimal LP amount......");
-  await getOptimalLpAmount(aptos, swapAddress, dogCoinAddr, catCoinAddr);
+  await getOptimalLpAmount(cedra, swapAddress, dogCoinAddr, catCoinAddr);
   console.log("Adding liquidity......");
-  await addLiquidity(aptos, swapAddress, admin, dogCoinAddr, catCoinAddr);
+  await addLiquidity(cedra, swapAddress, admin, dogCoinAddr, catCoinAddr);
   console.log("Done.");
 
   console.log("\n====== Swap 100 Dog coins for Cat coins ======\n");
   console.log("Swapping 100 Dog coin to Cat coin......");
-  await swapAssets(aptos, swapAddress, admin, dogCoinAddr, catCoinAddr, 100, 1, admin.accountAddress);
+  await swapAssets(cedra, swapAddress, admin, dogCoinAddr, catCoinAddr, 100, 1, admin.accountAddress);
   console.log("Swap finished.");
 
   console.log("\n====== Current Balance ======\n");
-  console.log(`Admin's Dog coin balance: ${await getFaBalance(aptos, admin, dogCoinAddr.toString())}.`);
-  console.log(`Admin's Cat coin balance: ${await getFaBalance(aptos, admin, catCoinAddr.toString())}.`);
+  console.log(`Admin's Dog coin balance: ${await getFaBalance(cedra, admin, dogCoinAddr.toString())}.`);
+  console.log(`Admin's Cat coin balance: ${await getFaBalance(cedra, admin, catCoinAddr.toString())}.`);
 
   readline.close();
 };

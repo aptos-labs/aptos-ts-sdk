@@ -1,7 +1,7 @@
-import { Aptos, AptosConfig, Network, NetworkToNetworkName } from "../../src";
+import { Cedra, CedraConfig, Network, NetworkToNetworkName } from "../../src";
 
 /**
- * Use this function whenever you want an Aptos client.
+ * Use this function whenever you want an Cedra client.
  *
  * By default it uses Network.LOCAL. You can change this in one of two ways:
  *
@@ -14,19 +14,19 @@ import { Aptos, AptosConfig, Network, NetworkToNetworkName } from "../../src";
  * APTOS_NETWORK=devnet and APTOS_NODE_API_URL=http://localhost:8080, it will use the
  * given URL for the node API and the default URLs for devnet for the other APIs.
  */
-export function getAptosClient(additionalConfig?: Partial<AptosConfig>): { aptos: Aptos; config: AptosConfig } {
+export function getCedraClient(additionalConfig?: Partial<CedraConfig>): { cedra: Cedra; config: CedraConfig } {
   const networkRaw = process.env.APTOS_NETWORK;
   const network = networkRaw ? NetworkToNetworkName[networkRaw] : Network.LOCAL;
   if (!network) {
     throw new Error(`Unknown network, confirm APTOS_NETWORK env var is valid: ${networkRaw}`);
   }
-  const config = new AptosConfig({
+  const config = new CedraConfig({
     network,
     fullnode: process.env.APTOS_NODE_API_URL,
     indexer: process.env.APTOS_INDEXER_API_URL,
     faucet: process.env.APTOS_FAUCET_API_URL,
     ...additionalConfig,
   });
-  const aptos = new Aptos(config);
-  return { aptos, config };
+  const cedra = new Cedra(config);
+  return { cedra, config };
 }

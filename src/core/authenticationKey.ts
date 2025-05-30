@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
@@ -14,7 +14,7 @@ import { Deserializer } from "../bcs/deserializer";
  * owners to rotate their private key(s) without changing the address that hosts their account. The authentication key is a
  * SHA3-256 hash of data and is always 32 bytes in length.
  *
- * @see {@link https://aptos.dev/concepts/accounts | Account Basics}
+ * @see {@link https://cedra.dev/concepts/accounts | Account Basics}
  *
  * Account addresses can be derived from the AuthenticationKey.
  * @group Implementation

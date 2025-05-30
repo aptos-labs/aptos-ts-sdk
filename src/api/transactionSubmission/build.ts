@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { AccountAddressInput } from "../../core";
@@ -6,45 +6,45 @@ import { generateTransaction } from "../../internal/transactionSubmission";
 import { InputGenerateTransactionPayloadData, InputGenerateTransactionOptions } from "../../transactions";
 import { MultiAgentTransaction } from "../../transactions/instances/multiAgentTransaction";
 import { SimpleTransaction } from "../../transactions/instances/simpleTransaction";
-import { AptosConfig } from "../aptosConfig";
+import { CedraConfig } from "../cedraConfig";
 
 /**
  * A class to handle all `Build` transaction operations.
  * @group Implementation
  */
 export class Build {
-  readonly config: AptosConfig;
+  readonly config: CedraConfig;
 
   /**
-   * Initializes a new instance of the Aptos client with the specified configuration.
-   * This allows you to interact with the Aptos blockchain using the provided settings.
+   * Initializes a new instance of the Cedra client with the specified configuration.
+   * This allows you to interact with the Cedra blockchain using the provided settings.
    *
-   * @param config - The configuration settings for the Aptos client.
+   * @param config - The configuration settings for the Cedra client.
    * @param config.network - The network to connect to (e.g., TESTNET, MAINNET).
-   * @param config.nodeUrl - The URL of the Aptos node to connect to.
+   * @param config.nodeUrl - The URL of the Cedra node to connect to.
    * @param config.account - The account details for authentication.
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
    * async function runExample() {
-   *     // Create a configuration for the Aptos client
-   *     const config = new AptosConfig({
+   *     // Create a configuration for the Cedra client
+   *     const config = new CedraConfig({
    *         network: Network.TESTNET, // specify the network
-   *         nodeUrl: "https://testnet.aptos.dev", // specify the node URL
+   *         nodeUrl: "https://testnet.cedra.dev", // specify the node URL
    *     });
    *
-   *     // Initialize the Aptos client
-   *     const aptos = new Aptos(config);
+   *     // Initialize the Cedra client
+   *     const cedra = new Cedra(config);
    *
-   *     console.log("Aptos client initialized:", aptos);
+   *     console.log("Cedra client initialized:", cedra);
    * }
    * runExample().catch(console.error);
    * ```
    * @group Implementation
    */
-  constructor(config: AptosConfig) {
+  constructor(config: CedraConfig) {
     this.config = config;
   }
 
@@ -62,17 +62,17 @@ export class Build {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Build a simple transaction
-   *   const transaction = await aptos.transaction.simple({
+   *   const transaction = await cedra.transaction.simple({
    *     sender: "0x1", // replace with a real sender account address
    *     data: {
-   *       function: "0x1::aptos_account::transfer",
+   *       function: "0x1::cedra_account::transfer",
    *       functionArguments: ["0x2", 100], // replace with a real destination account address
    *     },
    *     options: {
@@ -93,7 +93,7 @@ export class Build {
     options?: InputGenerateTransactionOptions;
     withFeePayer?: boolean;
   }): Promise<SimpleTransaction> {
-    return generateTransaction({ aptosConfig: this.config, ...args });
+    return generateTransaction({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -110,18 +110,18 @@ export class Build {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Build a multi-agent transaction
-   *   const transaction = await aptos.multiAgent({
+   *   const transaction = await cedra.multiAgent({
    *     sender: "0x1", // replace with a real sender account address
    *     data: {
    *       // Transaction data structure
-   *       function: "0x1::aptos_account::transfer",
+   *       function: "0x1::cedra_account::transfer",
    *       functionArguments: ["0x2", 100], // replace with a real destination account address and amount
    *     },
    *     secondarySignerAddresses: ["0x3", "0x4"], // replace with real secondary signer addresses
@@ -145,6 +145,6 @@ export class Build {
     options?: InputGenerateTransactionOptions;
     withFeePayer?: boolean;
   }): Promise<MultiAgentTransaction> {
-    return generateTransaction({ aptosConfig: this.config, ...args });
+    return generateTransaction({ cedraConfig: this.config, ...args });
   }
 }

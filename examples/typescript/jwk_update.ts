@@ -5,12 +5,12 @@
  * This example shows how to use install JSON Web Key Set (JWKS) on an account to support Federated Keyless Accounts
  */
 
-import { Aptos, AptosConfig, EphemeralKeyPair, Network } from "@aptos-labs/ts-sdk";
+import { Cedra, CedraConfig, EphemeralKeyPair, Network } from "@cedra-labs/ts-sdk";
 import * as readlineSync from "readline-sync";
 
 const example = async () => {
-  const config = new AptosConfig({ network: Network.DEVNET });
-  const aptos = new Aptos(config);
+  const config = new CedraConfig({ network: Network.DEVNET });
+  const cedra = new Cedra(config);
 
   // Generate the ephemeral (temporary) key pair that will be used to sign transactions.
   const ephemeralKeyPair = EphemeralKeyPair.generate();
@@ -43,23 +43,23 @@ const example = async () => {
   const jwt = inputJwt();
   const iss = inputIss();
 
-  const alice = await aptos.deriveKeylessAccount({
+  const alice = await cedra.deriveKeylessAccount({
     jwt,
     ephemeralKeyPair,
   });
-  await aptos.fundAccount({
+  await cedra.fundAccount({
     accountAddress: alice.accountAddress,
     amount: 100_000_000,
   });
 
-  const jwkTxn = await aptos.updateFederatedKeylessJwkSetTransaction({ sender: alice, iss });
-  await aptos.signAndSubmitTransaction({ signer: alice, transaction: jwkTxn });
+  const jwkTxn = await cedra.updateFederatedKeylessJwkSetTransaction({ sender: alice, iss });
+  await cedra.signAndSubmitTransaction({ signer: alice, transaction: jwkTxn });
 
   console.log("\n=== Addresses ===\n");
   console.log(`JWKs were installed at - ${alice.accountAddress}\n`);
   console.log("Use it to construct Federated Keyless Accounts for your federated JWT tokens\n\n");
   console.log(
-    `await aptos.deriveKeylessAccount({\n  jwt,\n  ephemeralKeyPair,\n  jwkAddress: "${alice.accountAddress}",\n});`,
+    `await cedra.deriveKeylessAccount({\n  jwt,\n  ephemeralKeyPair,\n  jwkAddress: "${alice.accountAddress}",\n});`,
   );
 };
 

@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 /**
@@ -9,7 +9,7 @@
  * @group Implementation
  */
 
-import { AptosConfig } from "../api/aptosConfig";
+import { CedraConfig } from "../api/cedraConfig";
 import { Bool, MoveString, MoveVector, U64 } from "../bcs";
 import { AccountAddress, AccountAddressInput } from "../core";
 import { Account } from "../account";
@@ -99,16 +99,16 @@ const defaultDigitalAssetType = "0x4::token::Token";
  * Retrieves data for a specific digital asset using its address.
  *
  * @param args - The arguments for fetching digital asset data.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.digitalAssetAddress - The address of the digital asset to retrieve data for.
  * @returns The data of the specified digital asset.
  * @group Implementation
  */
 export async function getDigitalAssetData(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   digitalAssetAddress: AccountAddressInput;
 }): Promise<GetTokenDataResponse> {
-  const { aptosConfig, digitalAssetAddress } = args;
+  const { cedraConfig, digitalAssetAddress } = args;
 
   const whereCondition: { token_data_id: { _eq: string } } = {
     token_data_id: { _eq: AccountAddress.from(digitalAssetAddress).toStringLong() },
@@ -122,7 +122,7 @@ export async function getDigitalAssetData(args: {
   };
 
   const data = await queryIndexer<GetTokenDataQuery>({
-    aptosConfig,
+    cedraConfig,
     query: graphqlQuery,
     originMethod: "getDigitalAssetData",
   });
@@ -134,16 +134,16 @@ export async function getDigitalAssetData(args: {
  * Retrieves the current ownership details of a specified digital asset.
  *
  * @param args - The arguments for the function.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.digitalAssetAddress - The address of the digital asset to query ownership for.
  * @returns The current ownership details of the specified digital asset.
  * @group Implementation
  */
 export async function getCurrentDigitalAssetOwnership(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   digitalAssetAddress: AccountAddressInput;
 }): Promise<GetCurrentTokenOwnershipResponse> {
-  const { aptosConfig, digitalAssetAddress } = args;
+  const { cedraConfig, digitalAssetAddress } = args;
 
   const whereCondition: CurrentTokenOwnershipsV2BoolExp = {
     token_data_id: { _eq: AccountAddress.from(digitalAssetAddress).toStringLong() },
@@ -158,7 +158,7 @@ export async function getCurrentDigitalAssetOwnership(args: {
   };
 
   const data = await queryIndexer<GetCurrentTokenOwnershipQuery>({
-    aptosConfig,
+    cedraConfig,
     query: graphqlQuery,
     originMethod: "getCurrentDigitalAssetOwnership",
   });
@@ -170,7 +170,7 @@ export async function getCurrentDigitalAssetOwnership(args: {
  * Retrieves the digital assets owned by a specified account address.
  *
  * @param args - The arguments for retrieving owned digital assets.
- * @param args.aptosConfig - The configuration for connecting to the Aptos network.
+ * @param args.cedraConfig - The configuration for connecting to the Cedra network.
  * @param args.ownerAddress - The address of the account whose owned digital assets are being queried.
  * @param args.options - Optional pagination and ordering parameters for the query.
  * @param args.options.offset - The number of records to skip for pagination.
@@ -181,11 +181,11 @@ export async function getCurrentDigitalAssetOwnership(args: {
  * @group Implementation
  */
 export async function getOwnedDigitalAssets(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   ownerAddress: AccountAddressInput;
   options?: PaginationArgs & OrderByArg<GetTokenActivityResponse[0]>;
 }): Promise<GetOwnedTokensResponse> {
-  const { aptosConfig, ownerAddress, options } = args;
+  const { cedraConfig, ownerAddress, options } = args;
 
   const whereCondition: CurrentTokenOwnershipsV2BoolExp = {
     owner_address: { _eq: AccountAddress.from(ownerAddress).toStringLong() },
@@ -203,7 +203,7 @@ export async function getOwnedDigitalAssets(args: {
   };
 
   const data = await queryIndexer<GetCurrentTokenOwnershipQuery>({
-    aptosConfig,
+    cedraConfig,
     query: graphqlQuery,
     originMethod: "getOwnedDigitalAssets",
   });
@@ -216,7 +216,7 @@ export async function getOwnedDigitalAssets(args: {
  * This function allows you to track the token activities for a given digital asset address.
  *
  * @param args - The arguments for retrieving digital asset activity.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.digitalAssetAddress - The address of the digital asset to query.
  * @param args.options - Optional parameters for pagination and ordering.
  * @param args.options.offset - The number of records to skip before starting to collect the result set.
@@ -226,11 +226,11 @@ export async function getOwnedDigitalAssets(args: {
  * @group Implementation
  */
 export async function getDigitalAssetActivity(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   digitalAssetAddress: AccountAddressInput;
   options?: PaginationArgs & OrderByArg<GetTokenActivityResponse[0]>;
 }): Promise<GetTokenActivityResponse> {
-  const { aptosConfig, digitalAssetAddress, options } = args;
+  const { cedraConfig, digitalAssetAddress, options } = args;
 
   const whereCondition: TokenActivitiesV2BoolExp = {
     token_data_id: { _eq: AccountAddress.from(digitalAssetAddress).toStringLong() },
@@ -247,7 +247,7 @@ export async function getDigitalAssetActivity(args: {
   };
 
   const data = await queryIndexer<GetTokenActivityQuery>({
-    aptosConfig,
+    cedraConfig,
     query: graphqlQuery,
     originMethod: "getDigitalAssetActivity",
   });
@@ -310,11 +310,11 @@ const createCollectionAbi: EntryFunctionABI = {
 };
 
 /**
- * Creates a new collection transaction on the Aptos blockchain.
+ * Creates a new collection transaction on the Cedra blockchain.
  * This function allows you to define the properties of the collection, including its name, description, and URI.
  *
  * @param args - The parameters for creating the collection transaction.
- * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.cedraConfig - The configuration settings for the Cedra network.
  * @param args.creator - The account that will create the collection.
  * @param args.description - A description of the collection.
  * @param args.name - The name of the collection.
@@ -336,7 +336,7 @@ const createCollectionAbi: EntryFunctionABI = {
  */
 export async function createCollectionTransaction(
   args: {
-    aptosConfig: AptosConfig;
+    cedraConfig: CedraConfig;
     creator: Account;
     description: string;
     name: string;
@@ -344,12 +344,12 @@ export async function createCollectionTransaction(
     options?: InputGenerateTransactionOptions;
   } & CreateCollectionOptions,
 ): Promise<SimpleTransaction> {
-  const { aptosConfig, options, creator } = args;
+  const { cedraConfig, options, creator } = args;
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: creator.accountAddress,
     data: {
-      function: "0x4::aptos_token::create_collection",
+      function: "0x4::cedra_token::create_collection",
       functionArguments: [
         // Do not change the order
         new MoveString(args.description),
@@ -378,7 +378,7 @@ export async function createCollectionTransaction(
  * Retrieves data for the current collections based on specified options.
  *
  * @param args - The arguments for the function.
- * @param args.aptosConfig - The configuration object for Aptos.
+ * @param args.cedraConfig - The configuration object for Cedra.
  * @param args.options - Optional parameters for filtering and pagination.
  * @param args.options.tokenStandard - The token standard to filter the collections (default is "v2").
  * @param args.options.offset - The offset for pagination.
@@ -388,10 +388,10 @@ export async function createCollectionTransaction(
  * @group Implementation
  */
 export async function getCollectionData(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   options?: TokenStandardArg & PaginationArgs & WhereArg<CurrentCollectionsV2BoolExp>;
 }): Promise<GetCollectionDataResponse> {
-  const { aptosConfig, options } = args;
+  const { cedraConfig, options } = args;
 
   const whereCondition: any = options?.where;
 
@@ -408,7 +408,7 @@ export async function getCollectionData(args: {
     },
   };
   const data = await queryIndexer<GetCollectionDataQuery>({
-    aptosConfig,
+    cedraConfig,
     query: graphqlQuery,
     originMethod: "getCollectionData",
   });
@@ -420,7 +420,7 @@ export async function getCollectionData(args: {
  * Retrieves collection data based on the creator's address and the collection name.
  *
  * @param args - The arguments for retrieving the collection data.
- * @param args.aptosConfig - The Aptos configuration object.
+ * @param args.cedraConfig - The Cedra configuration object.
  * @param args.creatorAddress - The address of the creator whose collection data is being retrieved.
  * @param args.collectionName - The name of the collection to fetch data for.
  * @param args.options - Optional parameters for filtering the results, including token standard and pagination options.
@@ -429,12 +429,12 @@ export async function getCollectionData(args: {
  * @group Implementation
  */
 export async function getCollectionDataByCreatorAddressAndCollectionName(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   creatorAddress: AccountAddressInput;
   collectionName: string;
   options?: TokenStandardArg & PaginationArgs;
 }): Promise<GetCollectionDataResponse> {
-  const { aptosConfig, creatorAddress, collectionName, options } = args;
+  const { cedraConfig, creatorAddress, collectionName, options } = args;
   const address = AccountAddress.from(creatorAddress);
 
   const whereCondition: any = {
@@ -445,7 +445,7 @@ export async function getCollectionDataByCreatorAddressAndCollectionName(args: {
     whereCondition.token_standard = { _eq: options?.tokenStandard ?? "v2" };
   }
 
-  return getCollectionData({ aptosConfig, options: { ...options, where: whereCondition } });
+  return getCollectionData({ cedraConfig, options: { ...options, where: whereCondition } });
 }
 
 /**
@@ -453,7 +453,7 @@ export async function getCollectionDataByCreatorAddressAndCollectionName(args: {
  * This function allows you to filter the collections based on the creator's address and optional token standards.
  *
  * @param args - The arguments for retrieving collection data.
- * @param args.aptosConfig - The configuration for the Aptos network.
+ * @param args.cedraConfig - The configuration for the Cedra network.
  * @param args.creatorAddress - The address of the creator whose collection data is being retrieved.
  * @param args.options - Optional parameters for filtering the results.
  * @param args.options.tokenStandard - The token standard to filter the collections by.
@@ -461,11 +461,11 @@ export async function getCollectionDataByCreatorAddressAndCollectionName(args: {
  * @group Implementation
  */
 export async function getCollectionDataByCreatorAddress(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   creatorAddress: AccountAddressInput;
   options?: TokenStandardArg & PaginationArgs;
 }): Promise<GetCollectionDataResponse> {
-  const { aptosConfig, creatorAddress, options } = args;
+  const { cedraConfig, creatorAddress, options } = args;
   const address = AccountAddress.from(creatorAddress);
 
   const whereCondition: any = {
@@ -475,7 +475,7 @@ export async function getCollectionDataByCreatorAddress(args: {
     whereCondition.token_standard = { _eq: options?.tokenStandard ?? "v2" };
   }
 
-  return getCollectionData({ aptosConfig, options: { ...options, where: whereCondition } });
+  return getCollectionData({ cedraConfig, options: { ...options, where: whereCondition } });
 }
 
 /**
@@ -483,7 +483,7 @@ export async function getCollectionDataByCreatorAddress(args: {
  * This function allows you to filter the collection data based on the token standard and pagination options.
  *
  * @param args - The arguments for retrieving collection data.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.collectionId - The unique identifier for the collection.
  * @param args.options - Optional parameters for filtering by token standard and pagination.
  * @param args.options.tokenStandard - The standard of the token to filter the collection data.
@@ -492,11 +492,11 @@ export async function getCollectionDataByCreatorAddress(args: {
  * @group Implementation
  */
 export async function getCollectionDataByCollectionId(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   collectionId: AccountAddressInput;
   options?: TokenStandardArg & PaginationArgs;
 }): Promise<GetCollectionDataResponse> {
-  const { aptosConfig, collectionId, options } = args;
+  const { cedraConfig, collectionId, options } = args;
   const address = AccountAddress.from(collectionId);
 
   const whereCondition: any = {
@@ -507,15 +507,15 @@ export async function getCollectionDataByCollectionId(args: {
     whereCondition.token_standard = { _eq: options?.tokenStandard ?? "v2" };
   }
 
-  return getCollectionData({ aptosConfig, options: { ...options, where: whereCondition } });
+  return getCollectionData({ cedraConfig, options: { ...options, where: whereCondition } });
 }
 
 /**
  * Retrieves the collection ID based on the creator's address and the collection name.
- * This function helps in identifying a specific collection within the Aptos ecosystem.
+ * This function helps in identifying a specific collection within the Cedra ecosystem.
  *
  * @param args - The parameters for retrieving the collection ID.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.creatorAddress - The address of the creator of the collection.
  * @param args.collectionName - The name of the collection to look up.
  * @param args.options - Optional parameters for additional filtering.
@@ -524,12 +524,12 @@ export async function getCollectionDataByCollectionId(args: {
  * @group Implementation
  */
 export async function getCollectionId(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   creatorAddress: AccountAddressInput;
   collectionName: string;
   options?: TokenStandardArg;
 }): Promise<string> {
-  const { creatorAddress, collectionName, options, aptosConfig } = args;
+  const { creatorAddress, collectionName, options, cedraConfig } = args;
   const address = AccountAddress.from(creatorAddress);
 
   const whereCondition: any = {
@@ -540,7 +540,7 @@ export async function getCollectionId(args: {
     whereCondition.token_standard = { _eq: options?.tokenStandard ?? "v2" };
   }
 
-  return (await getCollectionData({ aptosConfig, options: { where: whereCondition } })).collection_id;
+  return (await getCollectionData({ cedraConfig, options: { where: whereCondition } })).collection_id;
 }
 
 // TRANSACTIONS
@@ -559,11 +559,11 @@ const mintDigitalAssetAbi: EntryFunctionABI = {
 };
 
 /**
- * Creates a transaction to mint a digital asset on the Aptos blockchain.
+ * Creates a transaction to mint a digital asset on the Cedra blockchain.
  * This function allows you to specify various attributes of the asset, including its collection, description, name, and URI.
  *
  * @param args - The arguments for minting the digital asset.
- * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.cedraConfig - The configuration settings for the Cedra network.
  * @param args.creator - The account that will create the digital asset.
  * @param args.collection - The name of the collection to which the asset belongs.
  * @param args.description - A brief description of the digital asset.
@@ -576,7 +576,7 @@ const mintDigitalAssetAbi: EntryFunctionABI = {
  * @group Implementation
  */
 export async function mintDigitalAssetTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   creator: Account;
   collection: string;
   description: string;
@@ -588,7 +588,7 @@ export async function mintDigitalAssetTransaction(args: {
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
   const {
-    aptosConfig,
+    cedraConfig,
     options,
     creator,
     collection,
@@ -601,10 +601,10 @@ export async function mintDigitalAssetTransaction(args: {
   } = args;
   const convertedPropertyType = propertyTypes?.map((type) => PropertyTypeMap[type]);
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: creator.accountAddress,
     data: {
-      function: "0x4::aptos_token::mint",
+      function: "0x4::cedra_token::mint",
       functionArguments: [
         new MoveString(collection),
         new MoveString(description),
@@ -639,7 +639,7 @@ const transferDigitalAssetAbi: EntryFunctionABI = {
  * This function helps in executing the transfer of digital assets securely and efficiently.
  *
  * @param args - The arguments required to perform the transfer.
- * @param args.aptosConfig - Configuration settings for the Aptos client.
+ * @param args.cedraConfig - Configuration settings for the Cedra client.
  * @param args.sender - The account initiating the transfer.
  * @param args.digitalAssetAddress - The address of the digital asset being transferred.
  * @param args.recipient - The address of the account receiving the digital asset.
@@ -648,16 +648,16 @@ const transferDigitalAssetAbi: EntryFunctionABI = {
  * @group Implementation
  */
 export async function transferDigitalAssetTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   sender: Account;
   digitalAssetAddress: AccountAddressInput;
   recipient: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, sender, digitalAssetAddress, recipient, digitalAssetType, options } = args;
+  const { cedraConfig, sender, digitalAssetAddress, recipient, digitalAssetType, options } = args;
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: sender.accountAddress,
     data: {
       function: "0x1::object::transfer",
@@ -688,7 +688,7 @@ const mintSoulBoundAbi: EntryFunctionABI = {
  * This function allows you to specify the token's attributes and recipient, facilitating the creation of unique digital assets.
  *
  * @param args - The parameters required to mint the soul-bound token.
- * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.cedraConfig - The configuration settings for the Cedra network.
  * @param args.account - The account initiating the minting transaction.
  * @param args.collection - The name of the collection to which the token belongs.
  * @param args.description - A description of the token being minted.
@@ -703,7 +703,7 @@ const mintSoulBoundAbi: EntryFunctionABI = {
  * @group Implementation
  */
 export async function mintSoulBoundTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   account: Account;
   collection: string;
   description: string;
@@ -716,7 +716,7 @@ export async function mintSoulBoundTransaction(args: {
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
   const {
-    aptosConfig,
+    cedraConfig,
     account,
     collection,
     description,
@@ -736,10 +736,10 @@ export async function mintSoulBoundTransaction(args: {
   }
   const convertedPropertyType = propertyTypes?.map((type) => PropertyTypeMap[type]);
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: account.accountAddress,
     data: {
-      function: "0x4::aptos_token::mint_soul_bound",
+      function: "0x4::cedra_token::mint_soul_bound",
       functionArguments: [
         collection,
         description,
@@ -766,7 +766,7 @@ const burnDigitalAssetAbi: EntryFunctionABI = {
  * This function allows users to permanently remove a digital asset from their account.
  *
  * @param args - The arguments for the transaction.
- * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.cedraConfig - The configuration settings for the Cedra network.
  * @param args.creator - The account that is initiating the burn transaction.
  * @param args.digitalAssetAddress - The address of the digital asset to be burned.
  * @param args.digitalAssetType - Optional; the type of the digital asset being burned.
@@ -774,18 +774,18 @@ const burnDigitalAssetAbi: EntryFunctionABI = {
  * @group Implementation
  */
 export async function burnDigitalAssetTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   creator: Account;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, creator, digitalAssetAddress, digitalAssetType, options } = args;
+  const { cedraConfig, creator, digitalAssetAddress, digitalAssetType, options } = args;
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: creator.accountAddress,
     data: {
-      function: "0x4::aptos_token::burn",
+      function: "0x4::cedra_token::burn",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
       functionArguments: [AccountAddress.from(digitalAssetAddress)],
       abi: burnDigitalAssetAbi,
@@ -804,7 +804,7 @@ const freezeDigitalAssetAbi: EntryFunctionABI = {
  * This function helps you prevent the transfer of a specified digital asset by generating the appropriate transaction.
  *
  * @param args - The parameters for the transaction.
- * @param args.aptosConfig - The configuration settings for the Aptos client.
+ * @param args.cedraConfig - The configuration settings for the Cedra client.
  * @param args.creator - The account that is creating the transaction.
  * @param args.digitalAssetAddress - The address of the digital asset to be frozen.
  * @param args.digitalAssetType - (Optional) The type of the digital asset as a Move struct ID.
@@ -812,18 +812,18 @@ const freezeDigitalAssetAbi: EntryFunctionABI = {
  * @group Implementation
  */
 export async function freezeDigitalAssetTransferTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   creator: Account;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, creator, digitalAssetAddress, digitalAssetType, options } = args;
+  const { cedraConfig, creator, digitalAssetAddress, digitalAssetType, options } = args;
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: creator.accountAddress,
     data: {
-      function: "0x4::aptos_token::freeze_transfer",
+      function: "0x4::cedra_token::freeze_transfer",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
       functionArguments: [digitalAssetAddress],
       abi: freezeDigitalAssetAbi,
@@ -841,7 +841,7 @@ const unfreezeDigitalAssetAbi: EntryFunctionABI = {
  * Unfreezes a digital asset transfer transaction, allowing the transfer of the specified digital asset.
  *
  * @param args - The arguments for unfreezing the digital asset transfer transaction.
- * @param args.aptosConfig - The Aptos configuration settings.
+ * @param args.cedraConfig - The Cedra configuration settings.
  * @param args.creator - The account that is initiating the unfreeze transaction.
  * @param args.digitalAssetAddress - The address of the digital asset to be unfrozen.
  * @param args.digitalAssetType - (Optional) The type of the digital asset being unfrozen.
@@ -849,18 +849,18 @@ const unfreezeDigitalAssetAbi: EntryFunctionABI = {
  * @group Implementation
  */
 export async function unfreezeDigitalAssetTransferTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   creator: Account;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, creator, digitalAssetAddress, digitalAssetType, options } = args;
+  const { cedraConfig, creator, digitalAssetAddress, digitalAssetType, options } = args;
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: creator.accountAddress,
     data: {
-      function: "0x4::aptos_token::unfreeze_transfer",
+      function: "0x4::cedra_token::unfreeze_transfer",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
       functionArguments: [digitalAssetAddress],
       abi: unfreezeDigitalAssetAbi,
@@ -878,7 +878,7 @@ const setDigitalAssetDescriptionAbi: EntryFunctionABI = {
  * Sets the description for a digital asset, allowing users to provide additional context or information about the asset.
  *
  * @param args - The arguments for setting the digital asset description.
- * @param args.aptosConfig - The Aptos configuration to use for the transaction.
+ * @param args.cedraConfig - The Cedra configuration to use for the transaction.
  * @param args.creator - The account that is creating the transaction.
  * @param args.description - The new description for the digital asset.
  * @param args.digitalAssetAddress - The address of the digital asset whose description is being set.
@@ -887,19 +887,19 @@ const setDigitalAssetDescriptionAbi: EntryFunctionABI = {
  * @group Implementation
  */
 export async function setDigitalAssetDescriptionTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   creator: Account;
   description: string;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, creator, description, digitalAssetAddress, digitalAssetType, options } = args;
+  const { cedraConfig, creator, description, digitalAssetAddress, digitalAssetType, options } = args;
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: creator.accountAddress,
     data: {
-      function: "0x4::aptos_token::set_description",
+      function: "0x4::cedra_token::set_description",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
       functionArguments: [AccountAddress.from(digitalAssetAddress), new MoveString(description)],
       abi: setDigitalAssetDescriptionAbi,
@@ -914,11 +914,11 @@ const setDigitalAssetNameAbi: EntryFunctionABI = {
 };
 
 /**
- * Sets the name of a digital asset on the Aptos blockchain.
+ * Sets the name of a digital asset on the Cedra blockchain.
  * This function allows you to update the name of a specified digital asset, enabling better identification and categorization.
  *
  * @param args - The parameters for setting the digital asset name.
- * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.cedraConfig - The configuration settings for the Cedra network.
  * @param args.creator - The account that is creating the transaction.
  * @param args.name - The new name to assign to the digital asset.
  * @param args.digitalAssetAddress - The address of the digital asset to update.
@@ -927,19 +927,19 @@ const setDigitalAssetNameAbi: EntryFunctionABI = {
  * @group Implementation
  */
 export async function setDigitalAssetNameTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   creator: Account;
   name: string;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, creator, name, digitalAssetAddress, digitalAssetType, options } = args;
+  const { cedraConfig, creator, name, digitalAssetAddress, digitalAssetType, options } = args;
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: creator.accountAddress,
     data: {
-      function: "0x4::aptos_token::set_name",
+      function: "0x4::cedra_token::set_name",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
       functionArguments: [AccountAddress.from(digitalAssetAddress), new MoveString(name)],
       abi: setDigitalAssetNameAbi,
@@ -957,7 +957,7 @@ const setDigitalAssetURIAbi: EntryFunctionABI = {
  * Sets the URI for a digital asset, allowing you to update the metadata associated with it.
  *
  * @param args - The arguments for setting the digital asset URI.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.creator - The account that is creating the transaction.
  * @param args.uri - The new URI to be set for the digital asset.
  * @param args.digitalAssetAddress - The address of the digital asset whose URI is being set.
@@ -966,19 +966,19 @@ const setDigitalAssetURIAbi: EntryFunctionABI = {
  * @group Implementation
  */
 export async function setDigitalAssetURITransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   creator: Account;
   uri: string;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, creator, uri, digitalAssetAddress, digitalAssetType, options } = args;
+  const { cedraConfig, creator, uri, digitalAssetAddress, digitalAssetType, options } = args;
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: creator.accountAddress,
     data: {
-      function: "0x4::aptos_token::set_uri",
+      function: "0x4::cedra_token::set_uri",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
       functionArguments: [AccountAddress.from(digitalAssetAddress), new MoveString(uri)],
       abi: setDigitalAssetURIAbi,
@@ -1002,7 +1002,7 @@ const addDigitalAssetPropertyAbi: EntryFunctionABI = {
  * This function helps in enhancing the metadata associated with a digital asset by allowing the addition of custom properties.
  *
  * @param args - The arguments for the transaction.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.creator - The account that is creating the transaction.
  * @param args.propertyKey - The key for the property being added.
  * @param args.propertyType - The type of the property being added.
@@ -1013,7 +1013,7 @@ const addDigitalAssetPropertyAbi: EntryFunctionABI = {
  * @group Implementation
  */
 export async function addDigitalAssetPropertyTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   creator: Account;
   propertyKey: string;
   propertyType: PropertyType;
@@ -1023,7 +1023,7 @@ export async function addDigitalAssetPropertyTransaction(args: {
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
   const {
-    aptosConfig,
+    cedraConfig,
     creator,
     propertyKey,
     propertyType,
@@ -1033,10 +1033,10 @@ export async function addDigitalAssetPropertyTransaction(args: {
     options,
   } = args;
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: creator.accountAddress,
     data: {
-      function: "0x4::aptos_token::add_property",
+      function: "0x4::cedra_token::add_property",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
       functionArguments: [
         AccountAddress.from(digitalAssetAddress),
@@ -1056,11 +1056,11 @@ const removeDigitalAssetPropertyAbi: EntryFunctionABI = {
 };
 
 /**
- * Removes a property from a digital asset on the Aptos blockchain.
+ * Removes a property from a digital asset on the Cedra blockchain.
  * This function helps in managing the attributes of digital assets by allowing the removal of specific properties.
  *
  * @param args - The arguments for the transaction.
- * @param args.aptosConfig - The configuration object for Aptos.
+ * @param args.cedraConfig - The configuration object for Cedra.
  * @param args.creator - The account that is creating the transaction.
  * @param args.propertyKey - The key of the property to be removed.
  * @param args.digitalAssetAddress - The address of the digital asset from which the property will be removed.
@@ -1069,19 +1069,19 @@ const removeDigitalAssetPropertyAbi: EntryFunctionABI = {
  * @group Implementation
  */
 export async function removeDigitalAssetPropertyTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   creator: Account;
   propertyKey: string;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, creator, propertyKey, digitalAssetAddress, digitalAssetType, options } = args;
+  const { cedraConfig, creator, propertyKey, digitalAssetAddress, digitalAssetType, options } = args;
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: creator.accountAddress,
     data: {
-      function: "0x4::aptos_token::remove_property",
+      function: "0x4::cedra_token::remove_property",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
       functionArguments: [AccountAddress.from(digitalAssetAddress), new MoveString(propertyKey)],
       abi: removeDigitalAssetPropertyAbi,
@@ -1101,11 +1101,11 @@ const updateDigitalAssetPropertyAbi: EntryFunctionABI = {
 };
 
 /**
- * Updates a property of a digital asset by generating a transaction for the Aptos blockchain.
+ * Updates a property of a digital asset by generating a transaction for the Cedra blockchain.
  * This function allows you to modify attributes of a digital asset, facilitating dynamic changes to its properties.
  *
  * @param args - The arguments for updating the digital asset property.
- * @param args.aptosConfig - The configuration settings for the Aptos blockchain.
+ * @param args.cedraConfig - The configuration settings for the Cedra blockchain.
  * @param args.creator - The account that is creating the transaction.
  * @param args.propertyKey - The key of the property to be updated.
  * @param args.propertyType - The type of the property being updated.
@@ -1116,7 +1116,7 @@ const updateDigitalAssetPropertyAbi: EntryFunctionABI = {
  * @group Implementation
  */
 export async function updateDigitalAssetPropertyTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   creator: Account;
   propertyKey: string;
   propertyType: PropertyType;
@@ -1126,7 +1126,7 @@ export async function updateDigitalAssetPropertyTransaction(args: {
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
   const {
-    aptosConfig,
+    cedraConfig,
     creator,
     propertyKey,
     propertyType,
@@ -1136,10 +1136,10 @@ export async function updateDigitalAssetPropertyTransaction(args: {
     options,
   } = args;
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: creator.accountAddress,
     data: {
-      function: "0x4::aptos_token::update_property",
+      function: "0x4::cedra_token::update_property",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
       functionArguments: [
         AccountAddress.from(digitalAssetAddress),
@@ -1176,7 +1176,7 @@ const addDigitalAssetTypedPropertyAbi: EntryFunctionABI = {
  * This function helps in customizing digital assets by associating them with specific properties.
  *
  * @param args - The arguments required to create the transaction.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.creator - The account that is creating the transaction.
  * @param args.propertyKey - The key for the property being added.
  * @param args.propertyType - The type of the property being added.
@@ -1187,7 +1187,7 @@ const addDigitalAssetTypedPropertyAbi: EntryFunctionABI = {
  * @group Implementation
  */
 export async function addDigitalAssetTypedPropertyTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   creator: Account;
   propertyKey: string;
   propertyType: PropertyType;
@@ -1197,7 +1197,7 @@ export async function addDigitalAssetTypedPropertyTransaction(args: {
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
   const {
-    aptosConfig,
+    cedraConfig,
     creator,
     propertyKey,
     propertyType,
@@ -1207,10 +1207,10 @@ export async function addDigitalAssetTypedPropertyTransaction(args: {
     options,
   } = args;
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: creator.accountAddress,
     data: {
-      function: "0x4::aptos_token::add_typed_property",
+      function: "0x4::cedra_token::add_typed_property",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType, PropertyTypeMap[propertyType]],
       functionArguments: [AccountAddress.from(digitalAssetAddress), new MoveString(propertyKey), propertyValue],
       abi: addDigitalAssetTypedPropertyAbi,
@@ -1229,10 +1229,10 @@ const updateDigitalAssetTypedPropertyAbi: EntryFunctionABI = {
 };
 
 /**
- * Updates the typed property of a digital asset by generating a transaction for the Aptos blockchain.
+ * Updates the typed property of a digital asset by generating a transaction for the Cedra blockchain.
  *
  * @param args - The arguments for updating the digital asset typed property.
- * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.cedraConfig - The configuration settings for the Cedra network.
  * @param args.creator - The account that is creating the transaction.
  * @param args.propertyKey - The key of the property to be updated.
  * @param args.propertyType - The type of the property being updated.
@@ -1243,7 +1243,7 @@ const updateDigitalAssetTypedPropertyAbi: EntryFunctionABI = {
  * @group Implementation
  */
 export async function updateDigitalAssetTypedPropertyTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   creator: Account;
   propertyKey: string;
   propertyType: PropertyType;
@@ -1253,7 +1253,7 @@ export async function updateDigitalAssetTypedPropertyTransaction(args: {
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
   const {
-    aptosConfig,
+    cedraConfig,
     creator,
     propertyKey,
     propertyType,
@@ -1263,10 +1263,10 @@ export async function updateDigitalAssetTypedPropertyTransaction(args: {
     options,
   } = args;
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: creator.accountAddress,
     data: {
-      function: "0x4::aptos_token::update_typed_property",
+      function: "0x4::cedra_token::update_typed_property",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType, PropertyTypeMap[propertyType]],
       functionArguments: [AccountAddress.from(digitalAssetAddress), new MoveString(propertyKey), propertyValue],
       abi: updateDigitalAssetTypedPropertyAbi,

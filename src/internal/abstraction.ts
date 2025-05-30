@@ -8,19 +8,19 @@ import {
 import { AccountAddressInput } from "../core";
 import { generateTransaction } from "./transactionSubmission";
 import { MoveFunctionId } from "../types";
-import { AptosConfig } from "../api/aptosConfig";
+import { CedraConfig } from "../api/cedraConfig";
 import { getFunctionParts } from "../utils/helpers";
 
 export async function addAuthenticationFunctionTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   sender: AccountAddressInput;
   authenticationFunction: string;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, sender, authenticationFunction, options } = args;
+  const { cedraConfig, sender, authenticationFunction, options } = args;
   const { moduleAddress, moduleName, functionName } = getFunctionParts(authenticationFunction as MoveFunctionId);
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender,
     data: {
       function: "0x1::account_abstraction::add_authentication_function",
@@ -36,15 +36,15 @@ export async function addAuthenticationFunctionTransaction(args: {
 }
 
 export async function removeAuthenticationFunctionTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   sender: AccountAddressInput;
   authenticationFunction: string;
   options?: InputGenerateTransactionOptions;
 }) {
-  const { aptosConfig, sender, authenticationFunction, options } = args;
+  const { cedraConfig, sender, authenticationFunction, options } = args;
   const { moduleAddress, moduleName, functionName } = getFunctionParts(authenticationFunction as MoveFunctionId);
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender,
     data: {
       function: "0x1::account_abstraction::remove_authentication_function",
@@ -60,13 +60,13 @@ export async function removeAuthenticationFunctionTransaction(args: {
 }
 
 export async function removeDispatchableAuthenticatorTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   sender: AccountAddressInput;
   options?: InputGenerateTransactionOptions;
 }) {
-  const { aptosConfig, sender, options } = args;
+  const { cedraConfig, sender, options } = args;
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender,
     data: {
       function: "0x1::account_abstraction::remove_authenticator",

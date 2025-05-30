@@ -2,10 +2,10 @@
 /* eslint-disable no-console */
 
 /**
- * This example shows how to use the Keyless accounts on Aptos
+ * This example shows how to use the Keyless accounts on Cedra
  */
 
-import { Account, AccountAddress, Aptos, AptosConfig, EphemeralKeyPair, Network } from "@aptos-labs/ts-sdk";
+import { Account, AccountAddress, Cedra, CedraConfig, EphemeralKeyPair, Network } from "@cedra-labs/ts-sdk";
 import * as readlineSync from "readline-sync";
 
 const ALICE_INITIAL_BALANCE = 100_000_000;
@@ -14,14 +14,14 @@ const TRANSFER_AMOUNT = 10_000;
 
 /**
  * Prints the balance of an account
- * @param aptos
+ * @param cedra
  * @param name
  * @param address
  * @returns {Promise<*>}
  *
  */
-const balance = async (aptos: Aptos, name: string, address: AccountAddress): Promise<any> => {
-  const amount = await aptos.getAccountAPTAmount({
+const balance = async (cedra: Cedra, name: string, address: AccountAddress): Promise<any> => {
+  const amount = await cedra.getAccountAPTAmount({
     accountAddress: address,
   });
   console.log(`${name}'s balance is: ${amount}`);
@@ -31,8 +31,8 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress): Pro
 const example = async () => {
   // Set up the client
   const network = Network.DEVNET;
-  const config = new AptosConfig({ network });
-  const aptos = new Aptos(config);
+  const config = new CedraConfig({ network });
+  const cedra = new Cedra(config);
 
   // Generate the ephemeral (temporary) key pair that will be used to sign transactions.
   const aliceEphem = EphemeralKeyPair.generate();
@@ -55,7 +55,7 @@ const example = async () => {
 
   const jwt = inputJwt();
   // Derive the Keyless Account from the JWT and ephemeral key pair.
-  const alice = await aptos.deriveKeylessAccount({
+  const alice = await cedra.deriveKeylessAccount({
     jwt,
     ephemeralKeyPair: aliceEphem,
   });
@@ -71,11 +71,11 @@ const example = async () => {
   // Fund the accounts
   console.log("\n=== Funding accounts ===\n");
 
-  await aptos.fundAccount({
+  await cedra.fundAccount({
     accountAddress: alice.accountAddress,
     amount: ALICE_INITIAL_BALANCE,
   });
-  await aptos.fundAccount({
+  await cedra.fundAccount({
     accountAddress: bob.accountAddress,
     amount: BOB_INITIAL_BALANCE,
     options: { waitForIndexer: false },
@@ -83,24 +83,24 @@ const example = async () => {
 
   // // Show the balances
   console.log("\n=== Balances ===\n");
-  const aliceBalance = await balance(aptos, "Alice", alice.accountAddress);
-  const bobBalance = await balance(aptos, "Bob", bob.accountAddress);
+  const aliceBalance = await balance(cedra, "Alice", alice.accountAddress);
+  const bobBalance = await balance(cedra, "Bob", bob.accountAddress);
 
   // Transfer between users
-  const transaction = await aptos.transferCoinTransaction({
+  const transaction = await cedra.transferCoinTransaction({
     sender: alice.accountAddress,
     recipient: bob.accountAddress,
     amount: TRANSFER_AMOUNT,
   });
 
-  const committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
+  const committedTxn = await cedra.signAndSubmitTransaction({ signer: alice, transaction });
 
-  await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
-  console.log(`\nCommitted transaction:\nhttps://explorer.aptoslabs.com/txn/${committedTxn.hash}?network=${network}`);
+  await cedra.waitForTransaction({ transactionHash: committedTxn.hash });
+  console.log(`\nCommitted transaction:\nhttps://explorer.cedralabs.com/txn/${committedTxn.hash}?network=${network}`);
 
   console.log("\n=== Balances after transfer ===\n");
-  const newAliceBalance = await balance(aptos, "Alice", alice.accountAddress);
-  const newBobBalance = await balance(aptos, "Bob", bob.accountAddress);
+  const newAliceBalance = await balance(cedra, "Alice", alice.accountAddress);
+  const newBobBalance = await balance(cedra, "Bob", bob.accountAddress);
 
   // Bob should have the transfer amount
   if (TRANSFER_AMOUNT !== newBobBalance - bobBalance) throw new Error("Bob's balance after transfer is incorrect");

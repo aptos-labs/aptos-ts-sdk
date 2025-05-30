@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import type { Account } from "./Account";
@@ -8,7 +8,7 @@ import { HexInput, SigningScheme } from "../types";
 import { AccountAuthenticatorMultiKey } from "../transactions/authenticator/account";
 import { AnyRawTransaction } from "../transactions/types";
 import { AbstractKeylessAccount, KeylessSigner } from "./AbstractKeylessAccount";
-import { AptosConfig } from "../api/aptosConfig";
+import { CedraConfig } from "../api/cedraConfig";
 import { SingleKeyAccount, SingleKeySigner, SingleKeySignerOrLegacyEd25519Account } from "./SingleKeyAccount";
 import { Ed25519Account } from "./Ed25519Account";
 
@@ -215,11 +215,11 @@ export class MultiKeyAccount implements Account, KeylessSigner {
    * @group Implementation
    * @category Account (On-Chain Model)
    */
-  async checkKeylessAccountValidity(aptosConfig: AptosConfig): Promise<void> {
+  async checkKeylessAccountValidity(cedraConfig: CedraConfig): Promise<void> {
     const keylessSigners = this.signers.filter(
       (signer) => signer instanceof AbstractKeylessAccount,
     ) as AbstractKeylessAccount[];
-    const promises = keylessSigners.map((signer) => signer.checkKeylessAccountValidity(aptosConfig));
+    const promises = keylessSigners.map((signer) => signer.checkKeylessAccountValidity(cedraConfig));
     await Promise.all(promises);
   }
 
@@ -286,7 +286,7 @@ export class MultiKeyAccount implements Account, KeylessSigner {
    * @category Account (On-Chain Model)
    */
   async verifySignatureAsync(args: {
-    aptosConfig: AptosConfig;
+    cedraConfig: CedraConfig;
     message: HexInput;
     signature: MultiKeySignature;
     options?: { throwErrorWithReason?: boolean };

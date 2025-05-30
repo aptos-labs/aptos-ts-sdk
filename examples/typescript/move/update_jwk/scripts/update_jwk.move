@@ -1,5 +1,5 @@
 script {
-    use aptos_framework::jwks;
+    use cedra_framework::jwks;
     use std::string::String;
     use std::vector;
     fun main(account: &signer, iss: vector<u8>, kid_vec: vector<String>, alg_vec: vector<String>, e_vec: vector<String>, n_vec: vector<String>) {

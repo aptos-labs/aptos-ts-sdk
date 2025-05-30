@@ -5,10 +5,10 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
-  '@aptos-labs/confidential-asset-wasm-bindings':
+  '@cedra-labs/confidential-asset-wasm-bindings':
     specifier: ^0.0.2
     version: 0.0.2
-  '@aptos-labs/ts-sdk':
+  '@cedra-labs/ts-sdk':
     specifier: ^1.38.0
     version: 1.38.0(axios@1.9.0)(got@11.8.6)
   '@noble/curves':
@@ -69,14 +69,14 @@ packages:
       '@jridgewell/trace-mapping': 0.3.25
     dev: true
 
-  /@aptos-labs/aptos-cli@1.0.2:
+  /@cedra-labs/cedra-cli@1.0.2:
     resolution: {integrity: sha512-PYPsd0Kk3ynkxNfe3S4fanI3DiUICCoh4ibQderbvjPFL5A0oK6F4lPEO2t0MDsQySTk2t4vh99Xjy6Bd9y+aQ==}
     hasBin: true
     dependencies:
       commander: 12.1.0
     dev: false
 
-  /@aptos-labs/aptos-client@1.2.0(axios@1.9.0)(got@11.8.6):
+  /@cedra-labs/cedra-client@1.2.0(axios@1.9.0)(got@11.8.6):
     resolution: {integrity: sha512-pBlIAT/W+Qa0TOr/318U8r0Gxw/jfyRLcvDGMEXgcVrPqO9Qhwsmozw6LPPIZ963FB7smwIaMeexWFDs3zijcg==}
     engines: {node: '>=15.10.0'}
     peerDependencies:
@@ -87,27 +87,27 @@ packages:
       got: 11.8.6
     dev: false
 
-  /@aptos-labs/aptos-dynamic-transaction-composer@0.1.3:
+  /@cedra-labs/cedra-dynamic-transaction-composer@0.1.3:
     resolution: {integrity: sha512-bJl+Zq5QbhpcPIJakAkl9tnT3T02mxCYhZThQDhUmjsOZ5wMRlKJ0P7aaq1dmlybSHkVj7vRgOy2t86/NDKKng==}
     dev: false
 
-  /@aptos-labs/confidential-asset-wasm-bindings@0.0.2:
+  /@cedra-labs/confidential-asset-wasm-bindings@0.0.2:
     resolution: {integrity: sha512-xfgRVc4WX4N7hjSHP91a3o686gC4307PGa9eDT7eWhp2VN9YgYhDIKRFRITpKT5JC7IXbuh6pGq1MqrqTjBokA==}
     dev: false
 
-  /@aptos-labs/script-composer-pack@0.0.9:
+  /@cedra-labs/script-composer-pack@0.0.9:
     resolution: {integrity: sha512-Y3kA1rgF65HETgoTn2omDymsgO+fnZouPLrKJZ9sbxTGdOekIIHtGee3A2gk84eCqa02ZKBumZmP+IDCXRtU/g==}
     dependencies:
-      '@aptos-labs/aptos-dynamic-transaction-composer': 0.1.3
+      '@cedra-labs/cedra-dynamic-transaction-composer': 0.1.3
     dev: false
 
-  /@aptos-labs/ts-sdk@1.38.0(axios@1.9.0)(got@11.8.6):
+  /@cedra-labs/ts-sdk@1.38.0(axios@1.9.0)(got@11.8.6):
     resolution: {integrity: sha512-cflGyknECg11wTkQ1o1OK759v1m+mpz0S0/ZXsHbPMO0dO6eQGLjH/Uk5/YWMe1Nat8/szcgIipKk8Xr6Unvzg==}
     engines: {node: '>=20.0.0'}
     dependencies:
-      '@aptos-labs/aptos-cli': 1.0.2
-      '@aptos-labs/aptos-client': 1.2.0(axios@1.9.0)(got@11.8.6)
-      '@aptos-labs/script-composer-pack': 0.0.9
+      '@cedra-labs/cedra-cli': 1.0.2
+      '@cedra-labs/cedra-client': 1.2.0(axios@1.9.0)(got@11.8.6)
+      '@cedra-labs/script-composer-pack': 0.0.9
       '@noble/curves': 1.9.0
       '@noble/hashes': 1.8.0
       '@scure/bip32': 1.7.0

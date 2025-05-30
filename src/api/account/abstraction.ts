@@ -8,23 +8,23 @@ import { view } from "../../internal/view";
 import { InputGenerateTransactionOptions, TypeTagAddress } from "../../transactions";
 import { MoveFunctionId } from "../../types";
 import { getFunctionParts } from "../../utils/helpers";
-import { AptosConfig } from "../aptosConfig";
+import { CedraConfig } from "../cedraConfig";
 
 export class AccountAbstraction {
-  constructor(readonly config: AptosConfig) {}
+  constructor(readonly config: CedraConfig) {}
 
   /**
    * Adds a dispatchable authentication function to the account.
    *
    * @example
    * ```ts
-   * const txn = await aptos.abstraction.addAuthenticationFunctionTransaction({
+   * const txn = await cedra.abstraction.addAuthenticationFunctionTransaction({
    *   accountAddress: alice.accountAddress,
    *   authenticationFunction: `${alice.accountAddress}::any_authenticator::authenticate`,
    * });
    *
-   * const txn =  await aptos.signAndSubmitTransaction({ signer: alice, transaction});
-   * await aptos.waitForTransaction({ transactionHash: txn.hash });
+   * const txn =  await cedra.signAndSubmitTransaction({ signer: alice, transaction});
+   * await cedra.waitForTransaction({ transactionHash: txn.hash });
    * ```
    *
    * @param args.accountAddress - The account to add the authentication function to.
@@ -39,7 +39,7 @@ export class AccountAbstraction {
   }) {
     const { accountAddress, authenticationFunction, options } = args;
     return addAuthenticationFunctionTransaction({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       authenticationFunction,
       sender: accountAddress,
       options,
@@ -51,13 +51,13 @@ export class AccountAbstraction {
    *
    * @example
    * ```ts
-   * const txn = await aptos.abstraction.removeAuthenticationFunctionTransaction({
+   * const txn = await cedra.abstraction.removeAuthenticationFunctionTransaction({
    *   accountAddress: alice.accountAddress,
    *   authenticationFunction: `${alice.accountAddress}::any_authenticator::authenticate`,
    * });
    *
-   * const txn = await aptos.signAndSubmitTransaction({ signer: alice, transaction: txn });
-   * await aptos.waitForTransaction({ transactionHash: txn.hash });
+   * const txn = await cedra.signAndSubmitTransaction({ signer: alice, transaction: txn });
+   * await cedra.waitForTransaction({ transactionHash: txn.hash });
    * ```
    *
    * @param args.accountAddress - The account to remove the authentication function from.
@@ -72,7 +72,7 @@ export class AccountAbstraction {
   }) {
     const { accountAddress, authenticationFunction, options } = args;
     return removeAuthenticationFunctionTransaction({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       sender: accountAddress,
       authenticationFunction,
       options,
@@ -84,12 +84,12 @@ export class AccountAbstraction {
    *
    * @example
    * ```ts
-   * const txn = await aptos.abstraction.removeDispatchableAuthenticatorTransaction({
+   * const txn = await cedra.abstraction.removeDispatchableAuthenticatorTransaction({
    *   accountAddress: alice.accountAddress,
    * });
    *
-   * const txn = await aptos.signAndSubmitTransaction({ signer: alice, transaction: txn });
-   * await aptos.waitForTransaction({ transactionHash: txn.hash });
+   * const txn = await cedra.signAndSubmitTransaction({ signer: alice, transaction: txn });
+   * await cedra.waitForTransaction({ transactionHash: txn.hash });
    * ```
    *
    * @param args.accountAddress - The account to remove the authenticator from.
@@ -101,7 +101,7 @@ export class AccountAbstraction {
     options?: InputGenerateTransactionOptions;
   }) {
     const { accountAddress, options } = args;
-    return removeDispatchableAuthenticatorTransaction({ aptosConfig: this.config, sender: accountAddress, options });
+    return removeDispatchableAuthenticatorTransaction({ cedraConfig: this.config, sender: accountAddress, options });
   }
 
   /**
@@ -109,7 +109,7 @@ export class AccountAbstraction {
    *
    * @example
    * ```ts
-   * const functionInfos = await aptos.abstraction.getAuthenticationFunction({
+   * const functionInfos = await cedra.abstraction.getAuthenticationFunction({
    *   accountAddress: alice.accountAddress,
    * });
    *
@@ -128,7 +128,7 @@ export class AccountAbstraction {
     const [{ vec: functionInfoOption }] = await view<
       [{ vec: { function_name: string; module_name: string; module_address: string }[][] }]
     >({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       payload: {
         function: "0x1::account_abstraction::dispatchable_authenticator",
         functionArguments: [AccountAddress.from(accountAddress)],
@@ -150,7 +150,7 @@ export class AccountAbstraction {
    *
    * @example
    * ```ts
-   * const isAccountAbstractionEnabled = await aptos.abstraction.isAccountAbstractionEnabled({
+   * const isAccountAbstractionEnabled = await cedra.abstraction.isAccountAbstractionEnabled({
    *   accountAddress: alice.accountAddress,
    *   authenticationFunction: `${alice.accountAddress}::any_authenticator::authenticate`,
    * });
@@ -185,13 +185,13 @@ export class AccountAbstraction {
    *
    * @example
    * ```ts
-   * const txn = await aptos.abstraction.enableAccountAbstractionTransaction({
+   * const txn = await cedra.abstraction.enableAccountAbstractionTransaction({
    *   accountAddress: alice.accountAddress,
    *   authenticationFunction: `{alice.accountAddress}::any_authenticator::authenticate`,
    * });
    *
-   * const txn = await aptos.signAndSubmitTransaction({ signer: alice, transaction: txn });
-   * await aptos.waitForTransaction({ transactionHash: txn.hash });
+   * const txn = await cedra.signAndSubmitTransaction({ signer: alice, transaction: txn });
+   * await cedra.waitForTransaction({ transactionHash: txn.hash });
    * ```
    *
    * @param args.accountAddress - The account to enable account abstraction for.
@@ -207,13 +207,13 @@ export class AccountAbstraction {
    *
    * @example
    * ```ts
-   * const txn = await aptos.abstraction.disableAccountAbstractionTransaction({
+   * const txn = await cedra.abstraction.disableAccountAbstractionTransaction({
    *   accountAddress: alice.accountAddress,
    *   authenticationFunction: `${alice.accountAddress}::any_authenticator::authenticate`,
    * });
    *
-   * const txn = await aptos.signAndSubmitTransaction({ signer: alice, transaction: txn });
-   * await aptos.waitForTransaction({ transactionHash: txn.hash });
+   * const txn = await cedra.signAndSubmitTransaction({ signer: alice, transaction: txn });
+   * await cedra.waitForTransaction({ transactionHash: txn.hash });
    * ```
    *
    * @param args.accountAddress - The account to disable account abstraction for.

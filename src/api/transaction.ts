@@ -1,7 +1,7 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "./aptosConfig";
+import { CedraConfig } from "./cedraConfig";
 import {
   getGasPriceEstimation,
   getTransactionByHash,
@@ -45,17 +45,17 @@ import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 import { rotateAuthKey } from "../internal/account";
 
 /**
- * Represents a transaction in the Aptos blockchain,
+ * Represents a transaction in the Cedra blockchain,
  * providing methods to build, simulate, submit, and manage transactions.
  * This class encapsulates functionalities for querying transaction details,
  * estimating gas prices, signing transactions, and handling transaction states.
  *
- * This class is used as part of the Aptos object, so should be called like so:
+ * This class is used as part of the Cedra object, so should be called like so:
  * @example
  * ```typescript
- * import { Account, Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * import { Account, Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
  *
- * const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
+ * const APTOS_COIN = "0x1::cedra_coin::CedraCoin";
  * const COIN_STORE = `0x1::coin::CoinStore<${APTOS_COIN}>`;
  * const ALICE_INITIAL_BALANCE = 100_000_000;
  * const TRANSFER_AMOUNT = 100;
@@ -66,8 +66,8 @@ import { rotateAuthKey } from "../internal/account";
  *   );
  *
  *   // Set up the client
- *   const config = new AptosConfig({ network: Network.DEVNET });
- *   const aptos = new Aptos(config);
+ *   const config = new CedraConfig({ network: Network.DEVNET });
+ *   const cedra = new Cedra(config);
  *
  *   // Generate two account credentials
  *   // Each account has a private key, a public key, and an address
@@ -81,42 +81,42 @@ import { rotateAuthKey } from "../internal/account";
  *   // Fund the accounts using a faucet
  *   console.log("\n=== Funding accounts ===\n");
  *
- *   await aptos.fundAccount({
+ *   await cedra.fundAccount({
  *     accountAddress: alice.accountAddress,
  *     amount: ALICE_INITIAL_BALANCE,
  *   });
  *
  *   // Send a transaction from Alice's account to Bob's account
- *   const txn = await aptos.transaction.build.simple({
+ *   const txn = await cedra.transaction.build.simple({
  *     sender: alice.accountAddress,
  *     data: {
- *       // All transactions on Aptos are implemented via smart contracts.
- *       function: "0x1::aptos_account::transfer",
+ *       // All transactions on Cedra are implemented via smart contracts.
+ *       function: "0x1::cedra_account::transfer",
  *       functionArguments: [bob.accountAddress, 100],
  *     },
  *   });
  *
  *   console.log("\n=== Transfer transaction ===\n");
  *   // Both signs and submits
- *   const committedTxn = await aptos.signAndSubmitTransaction({
+ *   const committedTxn = await cedra.signAndSubmitTransaction({
  *     signer: alice,
  *     transaction: txn,
  *  });
- *   // Waits for Aptos to verify and execute the transaction
- *   const executedTransaction = await aptos.waitForTransaction({
+ *   // Waits for Cedra to verify and execute the transaction
+ *   const executedTransaction = await cedra.waitForTransaction({
  *     transactionHash: committedTxn.hash,
  *   });
  *   console.log("Transaction hash:", executedTransaction.hash);
  *
  *  console.log("\n=== Balances after transfer ===\n");
- *  const newAliceAccountBalance = await aptos.getAccountResource({
+ *  const newAliceAccountBalance = await cedra.getAccountResource({
  *    accountAddress: alice.accountAddress,
  *    resourceType: COIN_STORE,
  *  });
  *  const newAliceBalance = Number(newAliceAccountBalance.coin.value);
  *  console.log(`Alice's balance is: ${newAliceBalance}`);
  *
- *  const newBobAccountBalance = await aptos.getAccountResource({
+ *  const newBobAccountBalance = await cedra.getAccountResource({
  *    accountAddress: bob.accountAddress,
  *    resourceType: COIN_STORE,
  *  });
@@ -129,7 +129,7 @@ import { rotateAuthKey } from "../internal/account";
  * @group Transaction
  */
 export class Transaction {
-  readonly config: AptosConfig;
+  readonly config: CedraConfig;
 
   readonly build: Build;
 
@@ -140,29 +140,29 @@ export class Transaction {
   readonly batch: TransactionManagement;
 
   /**
-   * Creates an instance of the Aptos client with the specified configuration.
-   * This allows you to interact with the Aptos blockchain using the provided settings.
+   * Creates an instance of the Cedra client with the specified configuration.
+   * This allows you to interact with the Cedra blockchain using the provided settings.
    *
-   * @param config - The configuration settings for the Aptos client.
+   * @param config - The configuration settings for the Cedra client.
    * @param config.network - The network to connect to (e.g., Testnet, Mainnet).
-   * @param config.nodeUrl - The URL of the Aptos node to connect to.
+   * @param config.nodeUrl - The URL of the Cedra node to connect to.
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
    * async function runExample() {
-   *     // Create a new Aptos client instance
-   *     const config = new AptosConfig({ network: Network.TESTNET }); // Specify the network
-   *     const aptos = new Aptos(config);
+   *     // Create a new Cedra client instance
+   *     const config = new CedraConfig({ network: Network.TESTNET }); // Specify the network
+   *     const cedra = new Cedra(config);
    *
-   *     console.log("Aptos client created successfully:", aptos);
+   *     console.log("Cedra client created successfully:", cedra);
    * }
    * runExample().catch(console.error);
    * ```
    * @group Transaction
    */
-  constructor(config: AptosConfig) {
+  constructor(config: CedraConfig) {
     this.config = config;
     this.build = new Build(this.config);
     this.simulate = new Simulate(this.config);
@@ -183,14 +183,14 @@ export class Transaction {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Fetch transactions with pagination
-   *   const transactions = await aptos.getTransactions({
+   *   const transactions = await cedra.getTransactions({
    *     options: {
    *       offset: 0, // Start from the first transaction
    *       limit: 10, // Limit to 10 results
@@ -205,7 +205,7 @@ export class Transaction {
    */
   async getTransactions(args?: { options?: PaginationArgs }): Promise<TransactionResponse[]> {
     return getTransactions({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       ...args,
     });
   }
@@ -220,14 +220,14 @@ export class Transaction {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Fetching a transaction by its version
-   *   const transaction = await aptos.getTransactionByVersion({ ledgerVersion: 1 }); // replace 1 with a real version
+   *   const transaction = await cedra.getTransactionByVersion({ ledgerVersion: 1 }); // replace 1 with a real version
    *   console.log(transaction);
    * }
    * runExample().catch(console.error);
@@ -236,7 +236,7 @@ export class Transaction {
    */
   async getTransactionByVersion(args: { ledgerVersion: AnyNumber }): Promise<TransactionResponse> {
     return getTransactionByVersion({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       ...args,
     });
   }
@@ -250,14 +250,14 @@ export class Transaction {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Fetch a transaction by its hash
-   *   const transaction = await aptos.getTransactionByHash({ transactionHash: "0x123" }); // replace with a real transaction hash
+   *   const transaction = await cedra.getTransactionByHash({ transactionHash: "0x123" }); // replace with a real transaction hash
    *
    *   console.log(transaction);
    * }
@@ -267,7 +267,7 @@ export class Transaction {
    */
   async getTransactionByHash(args: { transactionHash: HexInput }): Promise<TransactionResponse> {
     return getTransactionByHash({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       ...args,
     });
   }
@@ -282,14 +282,14 @@ export class Transaction {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Check if the transaction is pending using its hash
-   *   const isPendingTransaction = await aptos.isPendingTransaction({ transactionHash: "0x123" }); // replace with a real transaction hash
+   *   const isPendingTransaction = await cedra.isPendingTransaction({ transactionHash: "0x123" }); // replace with a real transaction hash
    *   console.log("Is the transaction pending?", isPendingTransaction);
    * }
    * runExample().catch(console.error);
@@ -298,7 +298,7 @@ export class Transaction {
    */
   async isPendingTransaction(args: { transactionHash: HexInput }): Promise<boolean> {
     return isTransactionPending({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       ...args,
     });
   }
@@ -309,7 +309,7 @@ export class Transaction {
    * 1. Transaction is successfully processed and committed to the chain.
    *    - The function will resolve with the transaction response from the API.
    * 2. Transaction is rejected for some reason, and is therefore not committed to the blockchain.
-   *    - The function will throw an AptosApiError with an HTTP status code indicating some problem with the request.
+   *    - The function will throw an CedraApiError with an HTTP status code indicating some problem with the request.
    * 3. Transaction is committed but execution failed, meaning no changes were
    *    written to the blockchain state.
    *    - If `checkSuccess` is true, the function will throw a FailedTransactionError
@@ -326,15 +326,15 @@ export class Transaction {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Wait for a transaction to complete using its hash
    *   const transactionHash = "0x123"; // replace with a real transaction hash
-   *   const transactionResponse = await aptos.waitForTransaction({
+   *   const transactionResponse = await cedra.waitForTransaction({
    *     transactionHash,
    *     options: {
    *       timeoutSecs: 30, // specify your own timeout if needed
@@ -353,28 +353,28 @@ export class Transaction {
     options?: WaitForTransactionOptions;
   }): Promise<CommittedTransactionResponse> {
     return waitForTransaction({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       ...args,
     });
   }
 
   /**
-   * Estimates the gas unit price required to process a transaction on the Aptos blockchain in a timely manner.
+   * Estimates the gas unit price required to process a transaction on the Cedra blockchain in a timely manner.
    * This helps users to understand the cost associated with their transactions.
-   * {@link https://api.mainnet.aptoslabs.com/v1/spec#/operations/estimate_gas_price}
+   * {@link https://api.mainnet.cedralabs.com/v1/spec#/operations/estimate_gas_price}
    *
    * @returns An object containing the estimated gas price.
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET }); // Specify your network
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET }); // Specify your network
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Getting the gas price estimation
-   *   const gasPriceEstimation = await aptos.getGasPriceEstimation();
+   *   const gasPriceEstimation = await cedra.getGasPriceEstimation();
    *
    *   console.log("Estimated Gas Price:", gasPriceEstimation);
    * }
@@ -384,7 +384,7 @@ export class Transaction {
    */
   async getGasPriceEstimation(): Promise<GasEstimation> {
     return getGasPriceEstimation({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
     });
   }
 
@@ -396,21 +396,21 @@ export class Transaction {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
-   *     const transaction = await aptos.transaction.build.simple({
+   *     const transaction = await cedra.transaction.build.simple({
    *         sender: "0x1", // replace with a real sender address
    *         data: {
-   *             function: "0x1::aptos_account::transfer",
+   *             function: "0x1::cedra_account::transfer",
    *             functionArguments: ["0x2", 100], // replace with a real destination address
    *         },
    *     });
    *
-   *     const message = await aptos.getSigningMessage({ transaction });
+   *     const message = await cedra.getSigningMessage({ transaction });
    *     console.log(message);
    * }
    * runExample().catch(console.error);
@@ -426,10 +426,10 @@ export class Transaction {
    * Generates a transaction to publish a Move package to the blockchain.
    * This function helps you create a transaction that can be simulated or submitted to the chain for publishing a package.
    *
-   * To get the `metadataBytes` and `byteCode`, can compile using Aptos CLI with command
-   * `aptos move compile --save-metadata ...`,
+   * To get the `metadataBytes` and `byteCode`, can compile using Cedra CLI with command
+   * `cedra move compile --save-metadata ...`,
    *
-   * {@link https://aptos.dev/tutorials/your-first-dapp/#step-4-publish-a-move-module}
+   * {@link https://cedra.dev/tutorials/your-first-dapp/#step-4-publish-a-move-module}
    *
    * @param args The arguments for publishing the package.
    * @param args.account The publisher account.
@@ -441,10 +441,10 @@ export class Transaction {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Replace with a real account address
@@ -452,7 +452,7 @@ export class Transaction {
    *   const metadataBytes = "0x..."; // replace with real metadata bytes
    *   const byteCode = "0x..."; // replace with real module bytecode
    *
-   *   const transaction = await aptos.publishPackageTransaction({
+   *   const transaction = await cedra.publishPackageTransaction({
    *     account,
    *     metadataBytes,
    *     moduleBytecode: [byteCode],
@@ -470,7 +470,7 @@ export class Transaction {
     moduleBytecode: Array<HexInput>;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    return publicPackageTransaction({ aptosConfig: this.config, ...args });
+    return publicPackageTransaction({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -499,14 +499,14 @@ export class Transaction {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network, Account, PrivateKey } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network, Account, PrivateKey } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Rotate the authentication key for an account
-   *   const response = await aptos.rotateAuthKey({
+   *   const response = await cedra.rotateAuthKey({
    *     // replace with a real account
    *     fromAccount: Account.generate(),
    *     // replace with a real private key
@@ -528,7 +528,7 @@ export class Transaction {
       | { toAuthKey: AuthenticationKey; dangerouslySkipVerification: true }
     ),
   ): Promise<PendingTransactionResponse> {
-    return rotateAuthKey({ aptosConfig: this.config, ...args });
+    return rotateAuthKey({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -543,22 +543,22 @@ export class Transaction {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   const sender = Account.generate(); // Generate a new account for signing
-   *   const transaction = await aptos.transaction.build.simple({
+   *   const transaction = await cedra.transaction.build.simple({
    *     sender: sender.accountAddress,
    *     data: {
-   *       function: "0x1::aptos_account::transfer",
+   *       function: "0x1::cedra_account::transfer",
    *       functionArguments: [ "0x1", 100 ], // replace with a real account address and amount
    *     },
    *   });
    *
-   *   const signedTransaction = await aptos.transaction.sign({
+   *   const signedTransaction = await cedra.transaction.sign({
    *     signer: sender,
    *     transaction,
    *   }); // Sign the transaction
@@ -588,21 +588,21 @@ export class Transaction {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   const sender = Account.generate(); // Generate a new account for the fee payer
-   *   const transaction = await aptos.transaction.build.simple({
-   *     // All transactions on Aptos are implemented via smart contracts.
-   *     function: "0x1::aptos_account::transfer",
+   *   const transaction = await cedra.transaction.build.simple({
+   *     // All transactions on Cedra are implemented via smart contracts.
+   *     function: "0x1::cedra_account::transfer",
    *     functionArguments: [sender.accountAddress, 100],
    *     feePayerAddress: sender.accountAddress, // Set the fee payer address
    *   });
    *
-   *   const signedTransaction = await aptos.transaction.signAsFeePayer({
+   *   const signedTransaction = await cedra.transaction.signAsFeePayer({
    *     signer: sender,
    *     transaction,
    *   });
@@ -623,7 +623,7 @@ export class Transaction {
   // TRANSACTION SUBMISSION //
 
   /**
-   * @deprecated Prefer to use `aptos.transaction.batch.forSingleAccount()`
+   * @deprecated Prefer to use `cedra.transaction.batch.forSingleAccount()`
    *
    * Batch transactions for a single account by submitting multiple transaction payloads.
    * This function is useful for efficiently processing and submitting transactions that do not depend on each other, such as
@@ -638,10 +638,10 @@ export class Transaction {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network, Account } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network, Account } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    * const sender = Account.generate(); // Generate a new account for sending transactions
    *
    * async function runExample() {
@@ -651,7 +651,7 @@ export class Transaction {
    *   ];
    *
    *   // Batch transactions for the single account
-   *   await aptos.batchTransactionsForSingleAccount({
+   *   await cedra.batchTransactionsForSingleAccount({
    *     sender,
    *     data: transactions,
    *   });
@@ -685,23 +685,23 @@ export class Transaction {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   const sender = Account.generate(); // Generate a new account for sending the transaction
-   *   const transaction = await aptos.transaction.build.simple({
+   *   const transaction = await cedra.transaction.build.simple({
    *     sender: sender.accountAddress,
    *     data: {
-   *       function: "0x1::aptos_account::transfer",
+   *       function: "0x1::cedra_account::transfer",
    *       functionArguments: [ "0x1", 100 ], // replace with a real account address
    *     },
    *   });
    *
    *   // Sign and submit the transaction
-   *   const pendingTransaction = await aptos.signAndSubmitTransaction({
+   *   const pendingTransaction = await cedra.signAndSubmitTransaction({
    *     signer: sender,
    *     transaction,
    *   });
@@ -720,7 +720,7 @@ export class Transaction {
     },
   ): Promise<PendingTransactionResponse> {
     return signAndSubmitTransaction({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       ...args,
     });
   }
@@ -733,9 +733,9 @@ export class Transaction {
    * @param args.transaction An instance of a RawTransaction, plus optional secondary/fee payer addresses
    *
    * @example
-   * const transaction = await aptos.transaction.build.simple({sender: alice.accountAddress, feePayer: true ...})
+   * const transaction = await cedra.transaction.build.simple({sender: alice.accountAddress, feePayer: true ...})
    * const senderAuthenticator = alice.signTransactionWithAuthenticator(transaction)
-   * const pendingTransaction = await aptos.signAndSubmitAsFeePayer({
+   * const pendingTransaction = await cedra.signAndSubmitAsFeePayer({
    *  senderAuthenticator,
    *  feePayer: bob,
    *  transaction,
@@ -750,7 +750,7 @@ export class Transaction {
     transaction: AnyRawTransaction;
   }): Promise<PendingTransactionResponse> {
     return signAndSubmitAsFeePayer({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       ...args,
     });
   }

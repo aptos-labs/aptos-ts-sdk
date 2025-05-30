@@ -5,10 +5,10 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
-  '@aptos-labs/aptos-cli':
+  '@cedra-labs/cedra-cli':
     specifier: ^1.0.2
     version: 1.0.2
-  '@aptos-labs/aptos-client':
+  '@cedra-labs/cedra-client':
     specifier: ^2.0.0
     version: 2.0.0(got@11.8.6)
   '@noble/curves':
@@ -150,14 +150,14 @@ packages:
       '@jridgewell/trace-mapping': 0.3.25
     dev: true
 
-  /@aptos-labs/aptos-cli@1.0.2:
+  /@cedra-labs/cedra-cli@1.0.2:
     resolution: {integrity: sha512-PYPsd0Kk3ynkxNfe3S4fanI3DiUICCoh4ibQderbvjPFL5A0oK6F4lPEO2t0MDsQySTk2t4vh99Xjy6Bd9y+aQ==}
     hasBin: true
     dependencies:
       commander: 12.1.0
     dev: false
 
-  /@aptos-labs/aptos-client@2.0.0(got@11.8.6):
+  /@cedra-labs/cedra-client@2.0.0(got@11.8.6):
     resolution: {integrity: sha512-A23T3zTCRXEKURodp00dkadVtIrhWjC9uo08dRDBkh69OhCnBAxkENmUy/rcBarfLoFr60nRWt7cBkc8wxr1mg==}
     engines: {node: '>=20.0.0'}
     peerDependencies:

@@ -1,6 +1,6 @@
-import { Account, AccountAddress } from "@aptos-labs/ts-sdk";
+import { Account, AccountAddress } from "@cedra-labs/ts-sdk";
 import {
-  aptos,
+  cedra,
   confidentialAsset,
   getBalances,
   getTestConfidentialAccount,
@@ -17,7 +17,7 @@ describe("Transfer", () => {
   const alice = Account.generate();
   const aliceConfidential = getTestConfidentialAccount(alice);
 
-  const coinType = "0x1::aptos_coin::AptosCoin";
+  const coinType = "0x1::cedra_coin::CedraCoin";
   const tokenAddress = "0x000000000000000000000000000000000000000000000000000000000000000a";
   const fundAmount = 1 * 10 ** 8;
   const depositAmount = 0.5 * 10 ** 8;
@@ -41,7 +41,7 @@ describe("Transfer", () => {
   );
 
   it("should fund Alice's account", async () => {
-    await aptos.fundAccount({
+    await cedra.fundAccount({
       accountAddress: alice.accountAddress,
       amount: fundAmount,
     });

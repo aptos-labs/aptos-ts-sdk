@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
@@ -42,7 +42,7 @@ export type AccountAddressInput = HexInput | AccountAddress;
  *
  * Proper formatting and parsing of account addresses is defined by AIP-40.
  * To learn more about the standard, read the AIP here:
- * https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-40.md.
+ * https://github.com/cedra-foundation/AIPs/blob/main/aips/aip-40.md.
  *
  * The comments in this class make frequent reference to the LONG and SHORT formats,
  * as well as "special" addresses. To learn what these refer to see AIP-40.
@@ -110,7 +110,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * and every other byte must be zero.
    *
    * For more information on how special addresses are defined, see AIP-40:
-   * https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-40.md.
+   * https://github.com/cedra-foundation/AIPs/blob/main/aips/aip-40.md.
    *
    * @returns true if the address is special, false otherwise.
    * @group Implementation
@@ -127,7 +127,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
 
   /**
    * Return the AccountAddress as a string as per AIP-40.
-   * https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-40.md.
+   * https://github.com/cedra-foundation/AIPs/blob/main/aips/aip-40.md.
    * This representation returns special addresses in SHORT form (0xf)
    * and other addresses in LONG form (0x + 64 characters).
    *
@@ -314,7 +314,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * This function has strict parsing behavior. For relaxed behavior, please use the `fromString` function.
    *
    * @see AIP-40 documentation for more details on address formats:
-   * https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-40.md.
+   * https://github.com/cedra-foundation/AIPs/blob/main/aips/aip-40.md.
    *
    * @returns An instance of AccountAddress.
    * @group Implementation
@@ -368,7 +368,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * - Padding zeroes are allowed, e.g. 0x0123 is valid.
    *
    * Learn more about the different address formats by reading AIP-40:
-   * https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-40.md.
+   * https://github.com/cedra-foundation/AIPs/blob/main/aips/aip-40.md.
    *
    * @param input A hex string representing an account address.
    * @param args.maxMissingChars The number of characters that can be missing in a padded address before it is invalid.

@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 /**
@@ -9,14 +9,14 @@
  * @group Implementation
  */
 
-import { AptosConfig } from "../api/aptosConfig";
+import { CedraConfig } from "../api/cedraConfig";
 import { Account } from "../account";
 import { AccountAddress, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions } from "../transactions/types";
 import { GetANSNameResponse, MoveAddressType, OrderByArg, PaginationArgs, WhereArg } from "../types";
 import { GetNamesQuery } from "../types/generated/operations";
 import { GetNames } from "../types/generated/queries";
-import { CurrentAptosNamesBoolExp } from "../types/generated/types";
+import { CurrentCedraNamesBoolExp } from "../types/generated/types";
 import { Network } from "../utils/apiEndpoints";
 import { queryIndexer } from "./general";
 import { view } from "./view";
@@ -125,17 +125,17 @@ const NetworkToAnsContract: Record<Network, string | null> = {
 };
 
 /**
- * Retrieves the address of the ANS contract based on the specified Aptos network configuration.
+ * Retrieves the address of the ANS contract based on the specified Cedra network configuration.
  *
- * @param aptosConfig - The configuration object for the Aptos network.
- * @param aptosConfig.network - The network for which to retrieve the ANS contract address.
+ * @param cedraConfig - The configuration object for the Cedra network.
+ * @param cedraConfig.network - The network for which to retrieve the ANS contract address.
  *
  * @throws Throws an error if the ANS contract is not deployed to the specified network.
  * @group Implementation
  */
-function getRouterAddress(aptosConfig: AptosConfig): string {
-  const address = NetworkToAnsContract[aptosConfig.network];
-  if (!address) throw new Error(`The ANS contract is not deployed to ${aptosConfig.network}`);
+function getRouterAddress(cedraConfig: CedraConfig): string {
+  const address = NetworkToAnsContract[cedraConfig.network];
+  if (!address) throw new Error(`The ANS contract is not deployed to ${cedraConfig.network}`);
   return address;
 }
 
@@ -151,21 +151,21 @@ const unwrapOption = <T>(option: any): T | undefined => {
  * Retrieve the owner address of a specified domain or subdomain.
  *
  * @param args - The arguments for retrieving the owner address.
- * @param args.aptosConfig - The Aptos configuration object.
+ * @param args.cedraConfig - The Cedra configuration object.
  * @param args.name - The name of the domain or subdomain to query.
  * @returns The account address of the owner, or undefined if not found.
  * @group Implementation
  */
 export async function getOwnerAddress(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   name: string;
 }): Promise<AccountAddress | undefined> {
-  const { aptosConfig, name } = args;
-  const routerAddress = getRouterAddress(aptosConfig);
+  const { cedraConfig, name } = args;
+  const routerAddress = getRouterAddress(cedraConfig);
   const { domainName, subdomainName } = isValidANSName(name);
 
   const res = await view({
-    aptosConfig,
+    cedraConfig,
     payload: {
       function: `${routerAddress}::router::get_owner_addr`,
       functionArguments: [domainName, subdomainName],
@@ -178,16 +178,16 @@ export async function getOwnerAddress(args: {
 }
 
 /**
- * Parameters for registering a name in the Aptos network.
+ * Parameters for registering a name in the Cedra network.
  *
- * @param aptosConfig - Configuration settings for the Aptos network.
+ * @param cedraConfig - Configuration settings for the Cedra network.
  * @param sender - The account initiating the name registration.
  * @param name - The name to be registered.
  * @param expiration - The expiration policy for the name registration.
  * @group Implementation
  */
 export interface RegisterNameParameters {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   sender: Account;
   name: string;
   expiration:
@@ -205,7 +205,7 @@ export interface RegisterNameParameters {
  * policies are valid before proceeding with the registration process.
  *
  * @param args - The parameters required for registering a name.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.expiration - The expiration details for the registration.
  * @param args.name - The name to be registered, which can be a domain or subdomain.
  * @param args.sender - The account details of the sender initiating the registration.
@@ -222,8 +222,8 @@ export interface RegisterNameParameters {
  * @group Implementation
  */
 export async function registerName(args: RegisterNameParameters): Promise<SimpleTransaction> {
-  const { aptosConfig, expiration, name, sender, targetAddress, toAddress, options, transferable } = args;
-  const routerAddress = getRouterAddress(aptosConfig);
+  const { cedraConfig, expiration, name, sender, targetAddress, toAddress, options, transferable } = args;
+  const routerAddress = getRouterAddress(cedraConfig);
   const { domainName, subdomainName } = isValidANSName(name);
 
   const hasSubdomainPolicy =
@@ -249,7 +249,7 @@ export async function registerName(args: RegisterNameParameters): Promise<Simple
     const registrationDuration = years * secondsInYear;
 
     const transaction = await generateTransaction({
-      aptosConfig,
+      cedraConfig,
       sender: sender.accountAddress.toString(),
       data: {
         function: `${routerAddress}::router::register_domain`,
@@ -266,7 +266,7 @@ export async function registerName(args: RegisterNameParameters): Promise<Simple
     throw new Error(`${expiration.policy} requires a subdomain to be provided.`);
   }
 
-  const tldExpiration = await getExpiration({ aptosConfig, name: domainName });
+  const tldExpiration = await getExpiration({ cedraConfig, name: domainName });
   if (!tldExpiration) {
     throw new Error("The domain does not exist");
   }
@@ -279,7 +279,7 @@ export async function registerName(args: RegisterNameParameters): Promise<Simple
   }
 
   const transaction = await generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: sender.accountAddress.toString(),
     data: {
       function: `${routerAddress}::router::register_subdomain`,
@@ -303,19 +303,19 @@ export async function registerName(args: RegisterNameParameters): Promise<Simple
  * Retrieves the expiration time of a specified domain or subdomain in epoch milliseconds.
  *
  * @param args - The arguments for the function.
- * @param args.aptosConfig - The configuration object for Aptos.
+ * @param args.cedraConfig - The configuration object for Cedra.
  * @param args.name - The name of the domain or subdomain to check.
  * @returns The expiration time in epoch milliseconds, or undefined if an error occurs.
  * @group Implementation
  */
-export async function getExpiration(args: { aptosConfig: AptosConfig; name: string }): Promise<number | undefined> {
-  const { aptosConfig, name } = args;
-  const routerAddress = getRouterAddress(aptosConfig);
+export async function getExpiration(args: { cedraConfig: CedraConfig; name: string }): Promise<number | undefined> {
+  const { cedraConfig, name } = args;
+  const routerAddress = getRouterAddress(cedraConfig);
   const { domainName, subdomainName } = isValidANSName(name);
 
   try {
     const res = await view({
-      aptosConfig,
+      cedraConfig,
       payload: {
         function: `${routerAddress}::router::get_expiration`,
         functionArguments: [domainName, subdomainName],
@@ -334,20 +334,20 @@ export async function getExpiration(args: { aptosConfig: AptosConfig; name: stri
  * This function helps in obtaining the complete domain name by combining the subdomain and domain names.
  *
  * @param args - The arguments for retrieving the primary name.
- * @param args.aptosConfig - The Aptos configuration object.
+ * @param args.cedraConfig - The Cedra configuration object.
  * @param args.address - The account address for which to retrieve the primary name.
  * @returns The primary name as a string, or undefined if no domain name exists.
  * @group Implementation
  */
 export async function getPrimaryName(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   address: AccountAddressInput;
 }): Promise<string | undefined> {
-  const { aptosConfig, address } = args;
-  const routerAddress = getRouterAddress(aptosConfig);
+  const { cedraConfig, address } = args;
+  const routerAddress = getRouterAddress(cedraConfig);
 
   const res = await view({
-    aptosConfig,
+    cedraConfig,
     payload: {
       function: `${routerAddress}::router::get_primary_name`,
       functionArguments: [AccountAddress.from(address).toString()],
@@ -367,7 +367,7 @@ export async function getPrimaryName(args: {
  * If no name is provided, it clears the existing primary name.
  *
  * @param args - The arguments for setting the primary name.
- * @param args.aptosConfig - The Aptos configuration object.
+ * @param args.cedraConfig - The Cedra configuration object.
  * @param args.sender - The account that is sending the transaction.
  * @param args.name - The name to set as the primary name. If omitted, the function will clear the primary name.
  * @param args.options - Optional transaction generation options.
@@ -375,17 +375,17 @@ export async function getPrimaryName(args: {
  * @group Implementation
  */
 export async function setPrimaryName(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   sender: Account;
   name?: string;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, sender, name, options } = args;
-  const routerAddress = getRouterAddress(aptosConfig);
+  const { cedraConfig, sender, name, options } = args;
+  const routerAddress = getRouterAddress(cedraConfig);
 
   if (!name) {
     const transaction = await generateTransaction({
-      aptosConfig,
+      cedraConfig,
       sender: sender.accountAddress.toString(),
       data: {
         function: `${routerAddress}::router::clear_primary_name`,
@@ -400,7 +400,7 @@ export async function setPrimaryName(args: {
   const { domainName, subdomainName } = isValidANSName(name);
 
   const transaction = await generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: sender.accountAddress.toString(),
     data: {
       function: `${routerAddress}::router::set_primary_name`,
@@ -416,21 +416,21 @@ export async function setPrimaryName(args: {
  * Retrieves the target address associated with a given domain name and subdomain name.
  *
  * @param args - The arguments for retrieving the target address.
- * @param args.aptosConfig - The Aptos configuration object.
+ * @param args.cedraConfig - The Cedra configuration object.
  * @param args.name - The name of the domain, which may include a subdomain.
  * @returns The target address as an AccountAddress, or undefined if not found.
  * @group Implementation
  */
 export async function getTargetAddress(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   name: string;
 }): Promise<AccountAddress | undefined> {
-  const { aptosConfig, name } = args;
-  const routerAddress = getRouterAddress(aptosConfig);
+  const { cedraConfig, name } = args;
+  const routerAddress = getRouterAddress(cedraConfig);
   const { domainName, subdomainName } = isValidANSName(name);
 
   const res = await view({
-    aptosConfig,
+    cedraConfig,
     payload: {
       function: `${routerAddress}::router::get_target_addr`,
       functionArguments: [domainName, subdomainName],
@@ -442,11 +442,11 @@ export async function getTargetAddress(args: {
 }
 
 /**
- * Sets the target address for a specified domain and subdomain in the Aptos network.
+ * Sets the target address for a specified domain and subdomain in the Cedra network.
  * This function helps to associate a given address with a domain name, allowing for easier access and management of resources.
  *
  * @param args - The arguments for setting the target address.
- * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.cedraConfig - The configuration settings for the Cedra network.
  * @param args.sender - The account that is sending the transaction.
  * @param args.name - The name of the domain or subdomain to be set.
  * @param args.address - The address to be associated with the domain or subdomain.
@@ -456,18 +456,18 @@ export async function getTargetAddress(args: {
  * @group Implementation
  */
 export async function setTargetAddress(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   sender: Account;
   name: string;
   address: AccountAddressInput;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, sender, name, address, options } = args;
-  const routerAddress = getRouterAddress(aptosConfig);
+  const { cedraConfig, sender, name, address, options } = args;
+  const routerAddress = getRouterAddress(cedraConfig);
   const { domainName, subdomainName } = isValidANSName(name);
 
   const transaction = await generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: sender.accountAddress.toString(),
     data: {
       function: `${routerAddress}::router::set_target_addr`,
@@ -480,28 +480,28 @@ export async function setTargetAddress(args: {
 }
 
 /**
- * Retrieves the active Aptos name associated with the specified domain and subdomain.
+ * Retrieves the active Cedra name associated with the specified domain and subdomain.
  *
  * @param args - The parameters for the function.
- * @param args.aptosConfig - The configuration object for Aptos.
+ * @param args.cedraConfig - The configuration object for Cedra.
  * @param args.name - The name to look up, which includes the domain and optional subdomain.
- * @returns The active Aptos name if it exists; otherwise, returns undefined.
+ * @returns The active Cedra name if it exists; otherwise, returns undefined.
  * @group Implementation
  */
 export async function getName(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   name: string;
 }): Promise<GetANSNameResponse[0] | undefined> {
-  const { aptosConfig, name } = args;
+  const { cedraConfig, name } = args;
   const { domainName, subdomainName = "" } = isValidANSName(name);
 
-  const where: CurrentAptosNamesBoolExp = {
+  const where: CurrentCedraNamesBoolExp = {
     domain: { _eq: domainName },
     subdomain: { _eq: subdomainName },
   };
 
   const data = await queryIndexer<GetNamesQuery>({
-    aptosConfig,
+    cedraConfig,
     query: {
       query: GetNames,
       variables: {
@@ -513,7 +513,7 @@ export async function getName(args: {
   });
 
   // Convert the expiration_timestamp from an ISO string to milliseconds since epoch
-  let res = data.current_aptos_names[0];
+  let res = data.current_cedra_names[0];
   if (res) {
     res = sanitizeANSName(res);
   }
@@ -528,7 +528,7 @@ export async function getName(args: {
  * @group Implementation
  */
 interface QueryNamesOptions {
-  options?: PaginationArgs & OrderByArg<GetANSNameResponse[0]> & WhereArg<CurrentAptosNamesBoolExp>;
+  options?: PaginationArgs & OrderByArg<GetANSNameResponse[0]> & WhereArg<CurrentCedraNamesBoolExp>;
 }
 
 /**
@@ -542,10 +542,10 @@ export interface GetAccountNamesArgs extends QueryNamesOptions {
 }
 
 /**
- * Retrieves the current Aptos names associated with a specific account address.
+ * Retrieves the current Cedra names associated with a specific account address.
  *
  * @param args - The arguments for retrieving account names.
- * @param args.aptosConfig - The configuration object for Aptos.
+ * @param args.cedraConfig - The configuration object for Cedra.
  * @param args.options - Optional parameters for querying account names.
  * @param args.options.limit - The maximum number of names to retrieve.
  * @param args.options.offset - The number of names to skip before starting to collect the result set.
@@ -553,18 +553,18 @@ export interface GetAccountNamesArgs extends QueryNamesOptions {
  * @param args.options.where - Additional conditions to filter the results.
  * @param args.accountAddress - The address of the account for which to retrieve names.
  *
- * @returns An array of sanitized Aptos names associated with the specified account address.
+ * @returns An array of sanitized Cedra names associated with the specified account address.
  * @group Implementation
  */
 export async function getAccountNames(
-  args: { aptosConfig: AptosConfig } & GetAccountNamesArgs,
+  args: { cedraConfig: CedraConfig } & GetAccountNamesArgs,
 ): Promise<GetANSNameResponse> {
-  const { aptosConfig, options, accountAddress } = args;
+  const { cedraConfig, options, accountAddress } = args;
 
-  const expirationDate = await getANSExpirationDate({ aptosConfig });
+  const expirationDate = await getANSExpirationDate({ cedraConfig });
 
   const data = await queryIndexer<GetNamesQuery>({
-    aptosConfig,
+    cedraConfig,
     originMethod: "getAccountNames",
     query: {
       query: GetNames,
@@ -581,7 +581,7 @@ export async function getAccountNames(
     },
   });
 
-  return data.current_aptos_names.map(sanitizeANSName);
+  return data.current_cedra_names.map(sanitizeANSName);
 }
 
 /**
@@ -598,7 +598,7 @@ export interface GetAccountDomainsArgs extends QueryNamesOptions {
  * Retrieves the list of top-level domains owned by a specified account.
  *
  * @param args - The arguments for retrieving account domains.
- * @param args.aptosConfig - The Aptos configuration object.
+ * @param args.cedraConfig - The Cedra configuration object.
  * @param args.options - Optional parameters for the query.
  * @param args.options.limit - The maximum number of results to return.
  * @param args.options.offset - The number of results to skip before starting to collect the result set.
@@ -612,14 +612,14 @@ export interface GetAccountDomainsArgs extends QueryNamesOptions {
  * @group Implementation
  */
 export async function getAccountDomains(
-  args: { aptosConfig: AptosConfig } & GetAccountDomainsArgs,
+  args: { cedraConfig: CedraConfig } & GetAccountDomainsArgs,
 ): Promise<GetANSNameResponse> {
-  const { aptosConfig, options, accountAddress } = args;
+  const { cedraConfig, options, accountAddress } = args;
 
-  const expirationDate = await getANSExpirationDate({ aptosConfig });
+  const expirationDate = await getANSExpirationDate({ cedraConfig });
 
   const data = await queryIndexer<GetNamesQuery>({
-    aptosConfig,
+    cedraConfig,
     originMethod: "getAccountDomains",
     query: {
       query: GetNames,
@@ -637,7 +637,7 @@ export async function getAccountDomains(
     },
   });
 
-  return data.current_aptos_names.map(sanitizeANSName);
+  return data.current_cedra_names.map(sanitizeANSName);
 }
 
 /**
@@ -655,7 +655,7 @@ export interface GetAccountSubdomainsArgs extends QueryNamesOptions {
  * This function helps you identify all subdomains associated with a given account.
  *
  * @param args - The arguments for retrieving account subdomains.
- * @param args.aptosConfig - The configuration object for Aptos.
+ * @param args.cedraConfig - The configuration object for Cedra.
  * @param args.options - Optional parameters for the query.
  * @param args.options.limit - The maximum number of results to return.
  * @param args.options.offset - The number of results to skip before starting to collect the result set.
@@ -668,14 +668,14 @@ export interface GetAccountSubdomainsArgs extends QueryNamesOptions {
  * @group Implementation
  */
 export async function getAccountSubdomains(
-  args: { aptosConfig: AptosConfig } & GetAccountSubdomainsArgs,
+  args: { cedraConfig: CedraConfig } & GetAccountSubdomainsArgs,
 ): Promise<GetANSNameResponse> {
-  const { aptosConfig, options, accountAddress } = args;
+  const { cedraConfig, options, accountAddress } = args;
 
-  const expirationDate = await getANSExpirationDate({ aptosConfig });
+  const expirationDate = await getANSExpirationDate({ cedraConfig });
 
   const data = await queryIndexer<GetNamesQuery>({
-    aptosConfig,
+    cedraConfig,
     originMethod: "getAccountSubdomains",
     query: {
       query: GetNames,
@@ -693,7 +693,7 @@ export async function getAccountSubdomains(
     },
   });
 
-  return data.current_aptos_names.map(sanitizeANSName);
+  return data.current_cedra_names.map(sanitizeANSName);
 }
 
 /**
@@ -710,7 +710,7 @@ export interface GetDomainSubdomainsArgs extends QueryNamesOptions {
  * Retrieve the active subdomains associated with a specified domain.
  *
  * @param args - The arguments for retrieving subdomains.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.options - Optional parameters for the query.
  * @param args.options.limit - The maximum number of results to return.
  * @param args.options.offset - The number of results to skip before starting to collect the results.
@@ -722,12 +722,12 @@ export interface GetDomainSubdomainsArgs extends QueryNamesOptions {
  * @group Implementation
  */
 export async function getDomainSubdomains(
-  args: { aptosConfig: AptosConfig } & GetDomainSubdomainsArgs,
+  args: { cedraConfig: CedraConfig } & GetDomainSubdomainsArgs,
 ): Promise<GetANSNameResponse> {
-  const { aptosConfig, options, domain } = args;
+  const { cedraConfig, options, domain } = args;
 
   const data = await queryIndexer<GetNamesQuery>({
-    aptosConfig,
+    cedraConfig,
     originMethod: "getDomainSubdomains",
     query: {
       query: GetNames,
@@ -744,7 +744,7 @@ export async function getDomainSubdomains(
     },
   });
 
-  return data.current_aptos_names.map(sanitizeANSName).filter(isActiveANSName);
+  return data.current_cedra_names.map(sanitizeANSName).filter(isActiveANSName);
 }
 
 /**
@@ -756,16 +756,16 @@ export async function getDomainSubdomains(
  * contract specified 30 days.
  *
  * @param args - The arguments for the function.
- * @param args.aptosConfig - An AptosConfig object containing the configuration settings.
+ * @param args.cedraConfig - An CedraConfig object containing the configuration settings.
  * @returns The expiration date in ISO 8601 format.
  * @group Implementation
  */
-async function getANSExpirationDate(args: { aptosConfig: AptosConfig }): Promise<string> {
-  const { aptosConfig } = args;
-  const routerAddress = getRouterAddress(aptosConfig);
+async function getANSExpirationDate(args: { cedraConfig: CedraConfig }): Promise<string> {
+  const { cedraConfig } = args;
+  const routerAddress = getRouterAddress(cedraConfig);
 
   const [gracePeriodInSeconds] = await view<[number]>({
-    aptosConfig,
+    cedraConfig,
     payload: {
       function: `${routerAddress}::config::reregistration_grace_sec`,
       functionArguments: [],
@@ -781,7 +781,7 @@ async function getANSExpirationDate(args: { aptosConfig: AptosConfig }): Promise
  * Renews a domain for a specified duration. This function allows you to extend the registration of a domain for one year.
  *
  * @param args - The parameters required to renew the domain.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.sender - The account that is sending the renewal transaction.
  * @param args.name - The name of the domain to renew.
  * @param args.years - The number of years to renew the domain for. Currently, only 1 year renewals are supported. (optional, default is 1)
@@ -790,14 +790,14 @@ async function getANSExpirationDate(args: { aptosConfig: AptosConfig }): Promise
  * @group Implementation
  */
 export async function renewDomain(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   sender: Account;
   name: string;
   years?: 1;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, sender, name, years = 1, options } = args;
-  const routerAddress = getRouterAddress(aptosConfig);
+  const { cedraConfig, sender, name, years = 1, options } = args;
+  const routerAddress = getRouterAddress(cedraConfig);
   const renewalDuration = years * 31536000;
   const { domainName, subdomainName } = isValidANSName(name);
 
@@ -810,7 +810,7 @@ export async function renewDomain(args: {
   }
 
   const transaction = await generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: sender.accountAddress.toString(),
     data: {
       function: `${routerAddress}::router::renew_domain`,

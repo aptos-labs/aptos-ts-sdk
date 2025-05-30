@@ -1,10 +1,10 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { submitTransaction } from "../../internal/transactionSubmission";
 import { AccountAuthenticator, AnyRawTransaction } from "../../transactions";
 import { PendingTransactionResponse } from "../../types";
-import { AptosConfig } from "../aptosConfig";
+import { CedraConfig } from "../cedraConfig";
 import { ValidateFeePayerDataOnSubmission } from "./helpers";
 
 /**
@@ -12,44 +12,44 @@ import { ValidateFeePayerDataOnSubmission } from "./helpers";
  * @group Implementation
  */
 export class Submit {
-  readonly config: AptosConfig;
+  readonly config: CedraConfig;
 
   /**
-   * Initializes a new instance of the Aptos client with the specified configuration.
-   * This allows you to interact with the Aptos blockchain using the provided settings.
+   * Initializes a new instance of the Cedra client with the specified configuration.
+   * This allows you to interact with the Cedra blockchain using the provided settings.
    *
-   * @param config - The configuration settings for the Aptos client.
+   * @param config - The configuration settings for the Cedra client.
    * @param config.network - The network to connect to (e.g., TESTNET, MAINNET).
-   * @param config.nodeUrl - The URL of the Aptos node to connect to.
+   * @param config.nodeUrl - The URL of the Cedra node to connect to.
    * @param config.faucetUrl - The URL of the faucet for obtaining test tokens.
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
    * async function runExample() {
-   *     // Create a configuration for the Aptos client
-   *     const config = new AptosConfig({
+   *     // Create a configuration for the Cedra client
+   *     const config = new CedraConfig({
    *         network: Network.TESTNET, // Use the TESTNET for testing
-   *         nodeUrl: "https://testnet.aptos.dev", // Specify the node URL
-   *         faucetUrl: "https://faucet.testnet.aptos.dev" // Specify the faucet URL
+   *         nodeUrl: "https://testnet.cedra.dev", // Specify the node URL
+   *         faucetUrl: "https://faucet.testnet.cedra.dev" // Specify the faucet URL
    *     });
    *
-   *     // Initialize the Aptos client with the configuration
-   *     const aptos = new Aptos(config);
+   *     // Initialize the Cedra client with the configuration
+   *     const cedra = new Cedra(config);
    *
-   *     console.log("Aptos client initialized:", aptos);
+   *     console.log("Cedra client initialized:", cedra);
    * }
    * runExample().catch(console.error);
    * ```
    * @group Implementation
    */
-  constructor(config: AptosConfig) {
+  constructor(config: CedraConfig) {
     this.config = config;
   }
 
   /**
-   * Submits a transaction to the Aptos blockchain using the provided transaction details and authenticators.
+   * Submits a transaction to the Cedra blockchain using the provided transaction details and authenticators.
    * This function allows you to execute transactions securely by specifying the sender and optional fee payer authenticators.
    *
    * @param args - The arguments for submitting the transaction.
@@ -59,23 +59,23 @@ export class Submit {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network, Account } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network, Account } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   const sender = Account.generate(); // Generate a new sender account
-   *   const transaction = await aptos.transaction.build.simple({
+   *   const transaction = await cedra.transaction.build.simple({
    *     sender: sender.accountAddress,
    *     data: {
-   *       function: "0x1::aptos_account::transfer",
+   *       function: "0x1::cedra_account::transfer",
    *       functionArguments: [Account.generate().accountAddress, 100], // Replace with a real destination account
    *     },
    *   });
    *
    *   // Submit the transaction
-   *   const response = await aptos.simple({
+   *   const response = await cedra.simple({
    *     transaction,
    *     senderAuthenticator: sender.getAuthenticator(), // Use the sender's authenticator
    *   });
@@ -92,11 +92,11 @@ export class Submit {
     senderAuthenticator: AccountAuthenticator;
     feePayerAuthenticator?: AccountAuthenticator;
   }): Promise<PendingTransactionResponse> {
-    return submitTransaction({ aptosConfig: this.config, ...args });
+    return submitTransaction({ cedraConfig: this.config, ...args });
   }
 
   /**
-   * Submits a multi-agent transaction to the Aptos network, allowing multiple signers to authorize the transaction.
+   * Submits a multi-agent transaction to the Cedra network, allowing multiple signers to authorize the transaction.
    * This function is useful for scenarios where a transaction requires approval from multiple accounts.
    *
    * @param args - The parameters for the multi-agent transaction.
@@ -107,25 +107,25 @@ export class Submit {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network, Account } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network, Account } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   const sender = Account.generate(); // Generate a new sender account
    *   const additionalSigner1 = Account.generate(); // Generate an additional signer account
    *   const additionalSigner2 = Account.generate(); // Generate another additional signer account
    *
-   *   const transaction = await aptos.transaction.build.simple({
+   *   const transaction = await cedra.transaction.build.simple({
    *     sender: sender.accountAddress,
    *     data: {
-   *       function: "0x1::aptos_account::transfer",
+   *       function: "0x1::cedra_account::transfer",
    *       functionArguments: [additionalSigner1.accountAddress, 100],
    *     },
    *   });
    *
-   *   const response = await aptos.multiAgent({
+   *   const response = await cedra.multiAgent({
    *     transaction,
    *     senderAuthenticator: sender.getAuthenticator(), // Use the sender's authenticator
    *     additionalSignersAuthenticators: [
@@ -147,6 +147,6 @@ export class Submit {
     additionalSignersAuthenticators: Array<AccountAuthenticator>;
     feePayerAuthenticator?: AccountAuthenticator;
   }): Promise<PendingTransactionResponse> {
-    return submitTransaction({ aptosConfig: this.config, ...args });
+    return submitTransaction({ cedraConfig: this.config, ...args });
   }
 }

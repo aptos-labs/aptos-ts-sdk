@@ -1,24 +1,24 @@
 import { AccountAddress, AccountAddressInput } from "../../core/accountAddress";
 import { MoveModuleBytecode, LedgerVersionArg, AccountData } from "../../types/types";
-import { AptosConfig } from "../../api/aptosConfig";
-import { getAptosFullNode } from "../../client";
+import { CedraConfig } from "../../api/cedraConfig";
+import { getCedraFullNode } from "../../client";
 import { memoizeAsync } from "../../utils/memoize";
 
 /**
  * Retrieves account information for a specified account address.
  *
  * @param args - The arguments for retrieving account information.
- * @param args.aptosConfig - The configuration object for Aptos.
+ * @param args.cedraConfig - The configuration object for Cedra.
  * @param args.accountAddress - The address of the account to retrieve information for.
  * @group Implementation
  */
 export async function getInfo(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
 }): Promise<AccountData> {
-  const { aptosConfig, accountAddress } = args;
-  const { data } = await getAptosFullNode<{}, AccountData>({
-    aptosConfig,
+  const { cedraConfig, accountAddress } = args;
+  const { data } = await getCedraFullNode<{}, AccountData>({
+    cedraConfig,
     originMethod: "getInfo",
     path: `accounts/${AccountAddress.from(accountAddress).toString()}`,
   });
@@ -30,7 +30,7 @@ export async function getInfo(args: {
  * This function can help you retrieve the module's ABI and other relevant information.
  *
  * @param args - The arguments for retrieving the module.
- * @param args.aptosConfig - The configuration for the Aptos client.
+ * @param args.cedraConfig - The configuration for the Cedra client.
  * @param args.accountAddress - The account address in hex-encoded 32 byte format.
  * @param args.moduleName - The name of the module to retrieve.
  * @param args.options - Optional parameters for the request.
@@ -39,7 +39,7 @@ export async function getInfo(args: {
  * @group Implementation
  */
 export async function getModule(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
   moduleName: string;
   options?: LedgerVersionArg;
@@ -61,7 +61,7 @@ export async function getModule(args: {
  * Retrieves the bytecode of a specified module from a given account address.
  *
  * @param args - The parameters for retrieving the module bytecode.
- * @param args.aptosConfig - The configuration for connecting to the Aptos network.
+ * @param args.cedraConfig - The configuration for connecting to the Cedra network.
  * @param args.accountAddress - The address of the account from which to retrieve the module.
  * @param args.moduleName - The name of the module to retrieve.
  * @param args.options - Optional parameters for specifying the ledger version.
@@ -69,15 +69,15 @@ export async function getModule(args: {
  * @group Implementation
  */
 async function getModuleInner(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
   moduleName: string;
   options?: LedgerVersionArg;
 }): Promise<MoveModuleBytecode> {
-  const { aptosConfig, accountAddress, moduleName, options } = args;
+  const { cedraConfig, accountAddress, moduleName, options } = args;
 
-  const { data } = await getAptosFullNode<{}, MoveModuleBytecode>({
-    aptosConfig,
+  const { data } = await getCedraFullNode<{}, MoveModuleBytecode>({
+    cedraConfig,
     originMethod: "getModule",
     path: `accounts/${AccountAddress.from(accountAddress).toString()}/module/${moduleName}`,
     params: { ledger_version: options?.ledgerVersion },

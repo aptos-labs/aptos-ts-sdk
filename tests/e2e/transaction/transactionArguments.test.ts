@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import {
@@ -37,7 +37,7 @@ import {
   MAX_U64_BIG_INT,
   MAX_U8_NUMBER,
 } from "../../../src/bcs/consts";
-import { getAptosClient } from "../helper";
+import { getCedraClient } from "../helper";
 import {
   fundAccounts,
   rawTransactionHelper,
@@ -58,7 +58,7 @@ jest.setTimeout(10000);
 // `sender_address: address` or all of the `&signer` addresses: `signer_addresses: vector<address>`
 
 describe("various transaction arguments", () => {
-  const { aptos } = getAptosClient();
+  const { cedra } = getCedraClient();
   const senderAccount = Account.fromPrivateKey({
     privateKey: new Ed25519PrivateKey(PUBLISHER_ACCOUNT_PK),
     legacy: false,
@@ -76,8 +76,8 @@ describe("various transaction arguments", () => {
   let backwardsCompatibleAbi: FunctionABI;
 
   beforeAll(async () => {
-    await fundAccounts(aptos, [senderAccount, ...secondarySignerAccounts, feePayerAccount]);
-    await publishArgumentTestModule(aptos, senderAccount);
+    await fundAccounts(cedra, [senderAccount, ...secondarySignerAccounts, feePayerAccount]);
+    await publishArgumentTestModule(cedra, senderAccount);
 
     // when deploying, `init_module` creates 3 objects and stores them into the `SetupData` resource
     // within that resource is 3 fields: `empty_object_1`, `empty_object_2`, `empty_object_3`
@@ -88,7 +88,7 @@ describe("various transaction arguments", () => {
       empty_object_3: { inner: string };
     };
 
-    const setupData = await aptos.getAccountResource<SetupData>({
+    const setupData = await cedra.getAccountResource<SetupData>({
       accountAddress: senderAccount.accountAddress,
       resourceType: `${senderAccount.accountAddress}::tx_args_module::SetupData`,
     });
@@ -249,7 +249,7 @@ describe("various transaction arguments", () => {
   describe("type tags", () => {
     it("successfully submits a transaction with 31 complex type tags", async () => {
       const response = await rawTransactionHelper(
-        aptos,
+        cedra,
         senderAccount,
         "type_tags",
         [
@@ -299,13 +299,13 @@ describe("various transaction arguments", () => {
   describe("single signer entry fns, all arguments except `&signer`, both public and private entry functions", () => {
     describe("sender is ed25519", () => {
       it("successfully submits a public entry fn with all argument types except `&signer`", async () => {
-        const response = await rawTransactionHelper(aptos, senderAccount, "public_arguments", [], transactionArguments);
+        const response = await rawTransactionHelper(cedra, senderAccount, "public_arguments", [], transactionArguments);
         expect(response.success).toBe(true);
       });
 
       it("successfully submits a private entry fn with all argument types except `&signer`", async () => {
         const response = await rawTransactionHelper(
-          aptos,
+          cedra,
           senderAccount,
           "private_arguments",
           [],
@@ -316,7 +316,7 @@ describe("various transaction arguments", () => {
 
       it("simple inputs successfully submits a public entry fn with all argument types except `&signer`", async () => {
         const response = await rawTransactionHelper(
-          aptos,
+          cedra,
           senderAccount,
           "public_arguments",
           [],
@@ -343,7 +343,7 @@ describe("various transaction arguments", () => {
 
       it("simple inputs successfully submits a private entry fn with all argument types except `&signer`", async () => {
         const response = await rawTransactionHelper(
-          aptos,
+          cedra,
           senderAccount,
           "private_arguments",
           [],
@@ -354,7 +354,7 @@ describe("various transaction arguments", () => {
 
       it("mixed inputs successfully submits a public entry fn with all argument types except `&signer`", async () => {
         const response = await rawTransactionHelper(
-          aptos,
+          cedra,
           senderAccount,
           "public_arguments",
           [],
@@ -365,7 +365,7 @@ describe("various transaction arguments", () => {
 
       it("mixed inputs successfully submits a private entry fn with all argument types except `&signer`", async () => {
         const response = await rawTransactionHelper(
-          aptos,
+          cedra,
           senderAccount,
           "private_arguments",
           [],
@@ -379,13 +379,13 @@ describe("various transaction arguments", () => {
   // only public entry functions- shouldn't need to test private again
   describe("single signer transactions with all entry function arguments", () => {
     it("successfully submits a single signer transaction with all argument types", async () => {
-      const response = await rawTransactionHelper(aptos, senderAccount, "public_arguments", [], transactionArguments);
+      const response = await rawTransactionHelper(cedra, senderAccount, "public_arguments", [], transactionArguments);
       expect(response.success).toBe(true);
     });
 
     it("simple inputs successfully submits a single signer transaction with all argument types", async () => {
       const response = await rawTransactionHelper(
-        aptos,
+        cedra,
         senderAccount,
         "public_arguments",
         [],
@@ -400,7 +400,7 @@ describe("various transaction arguments", () => {
     it("successfully submits a multi signer transaction with all argument types", async () => {
       const secondarySignerAddresses = secondarySignerAccounts.map((account) => account.accountAddress);
       const response = await rawTransactionMultiAgentHelper(
-        aptos,
+        cedra,
         senderAccount,
         "public_arguments_multiple_signers",
         [],
@@ -428,7 +428,7 @@ describe("various transaction arguments", () => {
     it("simple inputs successfully submits a multi signer transaction with all argument types", async () => {
       const secondarySignerAddresses = secondarySignerAccounts.map((account) => account.accountAddress);
       const response = await rawTransactionMultiAgentHelper(
-        aptos,
+        cedra,
         senderAccount,
         "public_arguments_multiple_signers",
         [],
@@ -455,7 +455,7 @@ describe("various transaction arguments", () => {
   describe("fee payer transactions with various numbers of signers", () => {
     it("successfully submits a sponsored transaction with all argument types", async () => {
       const response = await rawTransactionMultiAgentHelper(
-        aptos,
+        cedra,
         senderAccount,
         "public_arguments",
         [],
@@ -477,7 +477,7 @@ describe("various transaction arguments", () => {
     it("successfully submits a sponsored multi signer transaction with all argument types", async () => {
       const secondarySignerAddresses = secondarySignerAccounts.map((account) => account.accountAddress);
       const response = await rawTransactionMultiAgentHelper(
-        aptos,
+        cedra,
         senderAccount,
         "public_arguments_multiple_signers",
         [],
@@ -506,7 +506,7 @@ describe("various transaction arguments", () => {
 
     it("simple inputs successfully submits a sponsored transaction with all argument types", async () => {
       const response = await rawTransactionMultiAgentHelper(
-        aptos,
+        cedra,
         senderAccount,
         "public_arguments",
         [],
@@ -528,7 +528,7 @@ describe("various transaction arguments", () => {
     it("simple inputs successfully submits a sponsored multi signer transaction with all argument types", async () => {
       const secondarySignerAddresses = secondarySignerAccounts.map((account) => account.accountAddress);
       const response = await rawTransactionMultiAgentHelper(
-        aptos,
+        cedra,
         senderAccount,
         "public_arguments_multiple_signers",
         [],
@@ -558,7 +558,7 @@ describe("various transaction arguments", () => {
 
   describe("script transactions", () => {
     it("successfully submits a script transaction with all argument types", async () => {
-      const rawTransaction = await aptos.transaction.build.multiAgent({
+      const rawTransaction = await cedra.transaction.build.multiAgent({
         sender: senderAccount.accountAddress,
         data: {
           bytecode: MULTI_SIGNER_SCRIPT_ARGUMENT_TEST,
@@ -580,19 +580,19 @@ describe("various transaction arguments", () => {
         },
         secondarySignerAddresses: secondarySignerAccounts.map((account) => account.accountAddress),
       });
-      const senderAuthenticator = await aptos.transaction.sign({ signer: senderAccount, transaction: rawTransaction });
+      const senderAuthenticator = await cedra.transaction.sign({ signer: senderAccount, transaction: rawTransaction });
       const secondaryAuthenticators = secondarySignerAccounts.map((account) =>
-        aptos.transaction.sign({
+        cedra.transaction.sign({
           signer: account,
           transaction: rawTransaction,
         }),
       );
-      const transactionResponse = await aptos.transaction.submit.multiAgent({
+      const transactionResponse = await cedra.transaction.submit.multiAgent({
         transaction: rawTransaction,
         senderAuthenticator,
         additionalSignersAuthenticators: secondaryAuthenticators,
       });
-      const response = await aptos.waitForTransaction({
+      const response = await cedra.waitForTransaction({
         transactionHash: transactionResponse.hash,
       });
       expect(response.success).toBe(true);
@@ -616,7 +616,7 @@ describe("various transaction arguments", () => {
       const deeplyNested4 = new MoveVector([deeplyNested3, deeplyNested3, deeplyNested3]);
 
       const response = await rawTransactionMultiAgentHelper(
-        aptos,
+        cedra,
         senderAccount,
         "complex_arguments",
         [],

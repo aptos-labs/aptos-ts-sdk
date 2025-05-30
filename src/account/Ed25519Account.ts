@@ -5,7 +5,7 @@ import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature, Signature } from
 import type { Account } from "./Account";
 import { AnyRawTransaction } from "../transactions/types";
 import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
-import { AptosConfig } from "../api";
+import { CedraConfig } from "../api";
 
 /**
  * Arguments required to create an instance of an Ed25519 signer.
@@ -138,7 +138,7 @@ export class Ed25519Account implements Account {
    * Ed25519 signatures do not depend on chain state, so this function is equivalent to the synchronous verifySignature method.
    *
    * @param args - The arguments for verifying the signature.
-   * @param args.aptosConfig - The configuration object for connecting to the Aptos network
+   * @param args.cedraConfig - The configuration object for connecting to the Cedra network
    * @param args.message - Raw message data in HexInput format.
    * @param args.signature - Signed message signature.
    * @returns A boolean indicating whether the signature is valid.
@@ -146,7 +146,7 @@ export class Ed25519Account implements Account {
    * @category Account (On-Chain Model)
    */
   async verifySignatureAsync(args: {
-    aptosConfig: AptosConfig;
+    cedraConfig: CedraConfig;
     message: HexInput;
     signature: Signature;
   }): Promise<boolean> {

@@ -4,8 +4,8 @@ import { genBatchRangeZKP, generateRangeZKP, verifyBatchRangeZKP, verifyRangeZKP
 import {
   Network,
   NetworkToNetworkName,
-  AptosConfig,
-  Aptos,
+  CedraConfig,
+  Cedra,
   AccountAddress,
   AnyRawTransaction,
   Account,
@@ -16,7 +16,7 @@ import {
   PrivateKey,
   PrivateKeyVariants,
   Ed25519Account,
-} from "@aptos-labs/ts-sdk";
+} from "@cedra-labs/ts-sdk";
 import { ConfidentialAmount } from "../../src/confidentialAmount";
 import { ConfidentialAsset } from "../../src/confidentialAsset";
 import { RangeProofExecutor } from "../../src/rangeProof";
@@ -30,11 +30,11 @@ export const longTestTimeout = 120 * 1000;
 export const TOKEN_ADDRESS = "0x8b4dd7ebf8150f349675dde8bd2e9daa66461107b181a67e764de85d82bbac21";
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[Network.DEVNET];
-const config = new AptosConfig({ network: APTOS_NETWORK });
+const config = new CedraConfig({ network: APTOS_NETWORK });
 export const confidentialAsset = new ConfidentialAsset(config, {
   confidentialAssetModuleAddress: "0xd4aa5d2b93935bae55ef5aee8043e78e09e91ad1d31ea9532963a036b1cd5df1",
 });
-export const aptos = new Aptos(config);
+export const cedra = new Cedra(config);
 
 const rootDir = path.resolve(__dirname, "../../../");
 
@@ -75,15 +75,15 @@ export const sendAndWaitTx = async (
   transaction: AnyRawTransaction,
   signer: Account,
 ): Promise<CommittedTransactionResponse> => {
-  const pendingTxn = await aptos.signAndSubmitTransaction({ signer, transaction });
-  return aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+  const pendingTxn = await cedra.signAndSubmitTransaction({ signer, transaction });
+  return cedra.waitForTransaction({ transactionHash: pendingTxn.hash });
 };
 
 export const sendAndWaitBatchTxs = async (
   txPayloads: InputGenerateTransactionPayloadData[],
   sender: Account,
 ): Promise<CommittedTransactionResponse[]> => {
-  aptos.transaction.batch.forSingleAccount({
+  cedra.transaction.batch.forSingleAccount({
     sender,
     data: txPayloads,
   });
@@ -91,7 +91,7 @@ export const sendAndWaitBatchTxs = async (
   let allTxSentPromiseResolve: (value: void | PromiseLike<void>) => void;
 
   const txHashes: string[] = [];
-  aptos.transaction.batch.on(TransactionWorkerEventsEnum.TransactionSent, async (data) => {
+  cedra.transaction.batch.on(TransactionWorkerEventsEnum.TransactionSent, async (data) => {
     txHashes.push(data.transactionHash);
 
     if (txHashes.length === txPayloads.length) {
@@ -103,7 +103,7 @@ export const sendAndWaitBatchTxs = async (
     allTxSentPromiseResolve = resolve;
   });
 
-  return Promise.all(txHashes.map((txHash) => aptos.waitForTransaction({ transactionHash: txHash })));
+  return Promise.all(txHashes.map((txHash) => cedra.waitForTransaction({ transactionHash: txHash })));
 };
 
 export const getTestAccount = () => {
@@ -136,15 +136,15 @@ export const getTestConfidentialAccount = (account?: Ed25519Account) => {
  * @param account
  */
 export const mintFungibleTokens = async (account: Account) => {
-  const transaction = await aptos.transaction.build.simple({
+  const transaction = await cedra.transaction.build.simple({
     sender: account.accountAddress,
     data: {
       function: `${confidentialAsset.confidentialAssetModuleAddress}::mock_token::mint_to`,
       functionArguments: [500],
     },
   });
-  const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account, transaction });
-  return aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+  const pendingTxn = await cedra.signAndSubmitTransaction({ signer: account, transaction });
+  return cedra.waitForTransaction({ transactionHash: pendingTxn.hash });
 };
 
 RangeProofExecutor.setGenBatchRangeZKP(genBatchRangeZKP);

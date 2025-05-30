@@ -6,9 +6,9 @@
  * @group Implementation
  */
 
-import { AptosConfig } from "../api/aptosConfig";
+import { CedraConfig } from "../api/cedraConfig";
 import { Deserializer, MoveVector } from "../bcs";
-import { postAptosFullNode } from "../client";
+import { postCedraFullNode } from "../client";
 import { Account, AbstractKeylessAccount, isKeylessSigner } from "../account";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { FederatedKeylessPublicKey, KeylessPublicKey, KeylessSignature } from "../core/crypto";
@@ -44,10 +44,10 @@ import { MultiAgentTransaction } from "../transactions/instances/multiAgentTrans
  * @group Implementation
  */
 export async function generateTransaction(
-  args: { aptosConfig: AptosConfig } & InputGenerateSingleSignerRawTransactionData,
+  args: { cedraConfig: CedraConfig } & InputGenerateSingleSignerRawTransactionData,
 ): Promise<SimpleTransaction>;
 export async function generateTransaction(
-  args: { aptosConfig: AptosConfig } & InputGenerateMultiAgentRawTransactionData,
+  args: { cedraConfig: CedraConfig } & InputGenerateMultiAgentRawTransactionData,
 ): Promise<MultiAgentTransaction>;
 /**
  * Generates any transaction by passing in the required arguments
@@ -63,7 +63,7 @@ export async function generateTransaction(
  * move function name, move function type arguments, move function arguments
  * `
  * data: {
- *  function:"0x1::aptos_account::transfer",
+ *  function:"0x1::cedra_account::transfer",
  *  typeArguments:[]
  *  functionArguments :[receiverAddress,10]
  * }
@@ -91,7 +91,7 @@ export async function generateTransaction(
  * @group Implementation
  */
 export async function generateTransaction(
-  args: { aptosConfig: AptosConfig } & InputGenerateTransactionData,
+  args: { cedraConfig: CedraConfig } & InputGenerateTransactionData,
 ): Promise<AnyRawTransaction> {
   const payload = await buildTransactionPayload(args);
   return buildRawTransaction(args, payload);
@@ -99,20 +99,20 @@ export async function generateTransaction(
 
 /**
  * Builds a transaction payload based on the provided configuration and input data.
- * This function is essential for preparing transaction data for execution on the Aptos blockchain.
+ * This function is essential for preparing transaction data for execution on the Cedra blockchain.
  *
  * @param args - The arguments for building the transaction payload.
- * @param args.aptosConfig - Configuration settings for the Aptos network.
+ * @param args.cedraConfig - Configuration settings for the Cedra network.
  * @param args.data - Input data required to generate the transaction payload, which may include bytecode, multisig address,
  * function name, function arguments, type arguments, and ABI.
  * @returns A promise that resolves to the generated transaction payload instance.
  * @group Implementation
  */
 export async function buildTransactionPayload(
-  args: { aptosConfig: AptosConfig } & InputGenerateTransactionData,
+  args: { cedraConfig: CedraConfig } & InputGenerateTransactionData,
 ): Promise<AnyTransactionPayloadInstance> {
-  const { aptosConfig, data } = args;
-  // Merge in aptosConfig for remote ABI on non-script payloads
+  const { cedraConfig, data } = args;
+  // Merge in cedraConfig for remote ABI on non-script payloads
   let generateTransactionPayloadData: InputGenerateTransactionPayloadDataWithRemoteABI;
   let payload: AnyTransactionPayloadInstance;
 
@@ -121,7 +121,7 @@ export async function buildTransactionPayload(
     payload = await generateTransactionPayload(data);
   } else if ("multisigAddress" in data) {
     generateTransactionPayloadData = {
-      aptosConfig,
+      cedraConfig,
       multisigAddress: data.multisigAddress,
       function: data.function,
       functionArguments: data.functionArguments,
@@ -131,7 +131,7 @@ export async function buildTransactionPayload(
     payload = await generateTransactionPayload(generateTransactionPayloadData);
   } else {
     generateTransactionPayloadData = {
-      aptosConfig,
+      cedraConfig,
       function: data.function,
       functionArguments: data.functionArguments,
       typeArguments: data.typeArguments,
@@ -144,20 +144,20 @@ export async function buildTransactionPayload(
 
 /**
  * Builds a raw transaction based on the provided configuration and payload.
- * This function helps in creating a transaction that can be sent to the Aptos blockchain.
+ * This function helps in creating a transaction that can be sent to the Cedra blockchain.
  *
  * @param args - The arguments for generating the transaction.
- * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.cedraConfig - The configuration settings for Cedra.
  * @param args.sender - The address of the sender of the transaction.
  * @param args.options - Additional options for the transaction.
  * @param payload - The payload of the transaction, which defines the action to be performed.
  * @group Implementation
  */
 export async function buildRawTransaction(
-  args: { aptosConfig: AptosConfig } & InputGenerateTransactionData,
+  args: { cedraConfig: CedraConfig } & InputGenerateTransactionData,
   payload: AnyTransactionPayloadInstance,
 ): Promise<AnyRawTransaction> {
-  const { aptosConfig, sender, options } = args;
+  const { cedraConfig, sender, options } = args;
 
   let feePayerAddress;
   if (isFeePayerTransactionInput(args)) {
@@ -167,7 +167,7 @@ export async function buildRawTransaction(
   if (isMultiAgentTransactionInput(args)) {
     const { secondarySignerAddresses } = args;
     return buildTransaction({
-      aptosConfig,
+      cedraConfig,
       sender,
       payload,
       options,
@@ -177,7 +177,7 @@ export async function buildRawTransaction(
   }
 
   return buildTransaction({
-    aptosConfig,
+    cedraConfig,
     sender,
     payload,
     options,
@@ -263,7 +263,7 @@ export function signAsFeePayer(args: { signer: Account; transaction: AnyRawTrans
  * Simulates a transaction before signing it to evaluate its potential outcome.
  *
  * @param args The arguments for simulating the transaction.
- * @param args.aptosConfig The configuration for the Aptos network.
+ * @param args.cedraConfig The configuration for the Cedra network.
  * @param args.transaction The raw transaction to simulate.
  * @param args.signerPublicKey Optional. The signer public key.
  * @param args.secondarySignersPublicKeys Optional. For when the transaction involves multiple signers.
@@ -275,9 +275,9 @@ export function signAsFeePayer(args: { signer: Account; transaction: AnyRawTrans
  * @group Implementation
  */
 export async function simulateTransaction(
-  args: { aptosConfig: AptosConfig } & InputSimulateTransactionData,
+  args: { cedraConfig: CedraConfig } & InputSimulateTransactionData,
 ): Promise<Array<UserTransactionResponse>> {
-  const { aptosConfig, transaction, signerPublicKey, secondarySignersPublicKeys, feePayerPublicKey, options } = args;
+  const { cedraConfig, transaction, signerPublicKey, secondarySignersPublicKeys, feePayerPublicKey, options } = args;
 
   const signedTransaction = generateSignedTransactionForSimulation({
     transaction,
@@ -287,8 +287,8 @@ export async function simulateTransaction(
     options,
   });
 
-  const { data } = await postAptosFullNode<Uint8Array, Array<UserTransactionResponse>>({
-    aptosConfig,
+  const { data } = await postCedraFullNode<Uint8Array, Array<UserTransactionResponse>>({
+    cedraConfig,
     body: signedTransaction,
     path: "transactions/simulate",
     params: {
@@ -303,11 +303,11 @@ export async function simulateTransaction(
 }
 
 /**
- * Submit a transaction to the Aptos blockchain.
+ * Submit a transaction to the Cedra blockchain.
  *
  * @param args - The arguments for submitting the transaction.
- * @param args.aptosConfig - The configuration for connecting to the Aptos network.
- * @param args.transaction - The Aptos transaction data to be submitted.
+ * @param args.cedraConfig - The configuration for connecting to the Cedra network.
+ * @param args.transaction - The Cedra transaction data to be submitted.
  * @param args.senderAuthenticator - The account authenticator of the transaction sender.
  * @param args.secondarySignerAuthenticators - Optional. Authenticators for additional signers in a multi-signer transaction.
  *
@@ -316,14 +316,14 @@ export async function simulateTransaction(
  */
 export async function submitTransaction(
   args: {
-    aptosConfig: AptosConfig;
+    cedraConfig: CedraConfig;
   } & InputSubmitTransactionData,
 ): Promise<PendingTransactionResponse> {
-  const { aptosConfig } = args;
+  const { cedraConfig } = args;
   const signedTransaction = generateSignedTransaction({ ...args });
   try {
-    const { data } = await postAptosFullNode<Uint8Array, PendingTransactionResponse>({
-      aptosConfig,
+    const { data } = await postCedraFullNode<Uint8Array, PendingTransactionResponse>({
+      cedraConfig,
       body: signedTransaction,
       path: "transactions",
       originMethod: "submitTransaction",
@@ -339,7 +339,7 @@ export async function submitTransaction(
         signedTxn.authenticator.sender.public_key.publicKey instanceof FederatedKeylessPublicKey)
     ) {
       await AbstractKeylessAccount.fetchJWK({
-        aptosConfig,
+        cedraConfig,
         publicKey: signedTxn.authenticator.sender.public_key.publicKey,
         kid: (signedTxn.authenticator.sender.signature.signature as KeylessSignature).getJwkKid(),
       });
@@ -355,26 +355,26 @@ export type FeePayerOrFeePayerAuthenticatorOrNeither =
 
 export async function signAndSubmitTransaction(
   args: FeePayerOrFeePayerAuthenticatorOrNeither & {
-    aptosConfig: AptosConfig;
+    cedraConfig: CedraConfig;
     signer: Account;
     transaction: AnyRawTransaction;
   },
 ): Promise<PendingTransactionResponse> {
-  const { aptosConfig, signer, feePayer, transaction } = args;
+  const { cedraConfig, signer, feePayer, transaction } = args;
   // If the signer contains a KeylessAccount, await proof fetching in case the proof
   // was fetched asynchronously.
   if (isKeylessSigner(signer)) {
-    await signer.checkKeylessAccountValidity(aptosConfig);
+    await signer.checkKeylessAccountValidity(cedraConfig);
   }
   if (isKeylessSigner(feePayer)) {
-    await feePayer.checkKeylessAccountValidity(aptosConfig);
+    await feePayer.checkKeylessAccountValidity(cedraConfig);
   }
   const feePayerAuthenticator =
     args.feePayerAuthenticator || (feePayer && signAsFeePayer({ signer: feePayer, transaction }));
 
   const senderAuthenticator = signTransaction({ signer, transaction });
   return submitTransaction({
-    aptosConfig,
+    cedraConfig,
     transaction,
     senderAuthenticator,
     feePayerAuthenticator,
@@ -382,21 +382,21 @@ export async function signAndSubmitTransaction(
 }
 
 export async function signAndSubmitAsFeePayer(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   feePayer: Account;
   senderAuthenticator: AccountAuthenticator;
   transaction: AnyRawTransaction;
 }): Promise<PendingTransactionResponse> {
-  const { aptosConfig, senderAuthenticator, feePayer, transaction } = args;
+  const { cedraConfig, senderAuthenticator, feePayer, transaction } = args;
 
   if (isKeylessSigner(feePayer)) {
-    await feePayer.checkKeylessAccountValidity(aptosConfig);
+    await feePayer.checkKeylessAccountValidity(cedraConfig);
   }
 
   const feePayerAuthenticator = signAsFeePayer({ signer: feePayer, transaction });
 
   return submitTransaction({
-    aptosConfig,
+    cedraConfig,
     transaction,
     senderAuthenticator,
     feePayerAuthenticator,
@@ -409,11 +409,11 @@ const packagePublishAbi: EntryFunctionABI = {
 };
 
 /**
- * Publishes a package transaction to the Aptos blockchain.
+ * Publishes a package transaction to the Cedra blockchain.
  * This function allows you to create and send a transaction that publishes a package with the specified metadata and bytecode.
  *
  * @param args - The arguments for the package transaction.
- * @param args.aptosConfig - The configuration settings for the Aptos client.
+ * @param args.cedraConfig - The configuration settings for the Cedra client.
  * @param args.account - The address of the account sending the transaction.
  * @param args.metadataBytes - The metadata associated with the package, represented as hexadecimal input.
  * @param args.moduleBytecode - An array of module bytecode, each represented as hexadecimal input.
@@ -421,18 +421,18 @@ const packagePublishAbi: EntryFunctionABI = {
  * @group Implementation
  */
 export async function publicPackageTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   account: AccountAddressInput;
   metadataBytes: HexInput;
   moduleBytecode: Array<HexInput>;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, account, metadataBytes, moduleBytecode, options } = args;
+  const { cedraConfig, account, metadataBytes, moduleBytecode, options } = args;
 
   const totalByteCode = moduleBytecode.map((bytecode) => MoveVector.U8(bytecode));
 
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender: AccountAddress.from(account),
     data: {
       function: "0x1::code::publish_package_txn",

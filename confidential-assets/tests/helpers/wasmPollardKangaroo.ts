@@ -1,13 +1,13 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import initWasm, { create_kangaroo, WASMKangaroo } from "@aptos-labs/confidential-asset-wasm-bindings/pollard-kangaroo";
+import initWasm, { create_kangaroo, WASMKangaroo } from "@cedra-labs/confidential-asset-wasm-bindings/pollard-kangaroo";
 
 import { bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { ConfidentialAmount, TwistedEd25519PrivateKey, TwistedElGamal, TwistedElGamalCiphertext } from "../../src";
 
 const POLLARD_KANGAROO_WASM_URL =
-  "https://unpkg.com/@aptos-labs/confidential-asset-wasm-bindings@0.0.2/pollard-kangaroo/aptos_pollard_kangaroo_wasm_bg.wasm";
+  "https://unpkg.com/@cedra-labs/confidential-asset-wasm-bindings@0.0.2/pollard-kangaroo/cedra_pollard_kangaroo_wasm_bg.wasm";
 
 export async function createKangaroo(secret_size: number) {
   await initWasm({ module_or_path: POLLARD_KANGAROO_WASM_URL });

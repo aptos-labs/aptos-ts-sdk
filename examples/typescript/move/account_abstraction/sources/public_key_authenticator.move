@@ -1,14 +1,14 @@
 module deployer::public_key_authenticator {
     use std::signer;
-    use aptos_std::smart_table::{Self, SmartTable};
-    use aptos_std::ed25519::{
+    use cedra_std::smart_table::{Self, SmartTable};
+    use cedra_std::ed25519::{
         Self,
         new_signature_from_bytes,
         new_unvalidated_public_key_from_bytes,
         unvalidated_public_key_to_bytes
     };
-    use aptos_framework::bcs_stream::{Self, deserialize_u8};
-    use aptos_framework::auth_data::{Self, AbstractionAuthData};
+    use cedra_framework::bcs_stream::{Self, deserialize_u8};
+    use cedra_framework::auth_data::{Self, AbstractionAuthData};
 
     // ====== Error Codes ====== //
 

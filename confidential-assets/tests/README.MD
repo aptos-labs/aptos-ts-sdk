@@ -1,6 +1,6 @@
 # Confidential Assets Tests
 
-This directory contains tests for the Aptos confidential assets functionality. The tests are organized into:
+This directory contains tests for the Cedra confidential assets functionality. The tests are organized into:
 
 - `e2e/`: End-to-end tests that verify the complete workflows of confidential assets
 - `units/`: Unit tests for individual components and functionality
@@ -12,13 +12,13 @@ Before running the tests, ensure you have:
 
 1. Node.js (v16 or later) installed
 2. PNPM package manager installed
-3. Access to an Aptos testnet node
+3. Access to an Cedra testnet node
 
 ## Environment Variables
 
 The tests use environment variables to determine which accounts to use:
 
-- `TESTNET_PK`: Private key for the Aptos account used in tests
+- `TESTNET_PK`: Private key for the Cedra account used in tests
 - `TESTNET_DK`: Private key for the TwistedEd25519 account used in tests
 
 ### Configuration

@@ -1,8 +1,8 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { LedgerVersionArg, MimeType, MoveValue } from "../types";
-import { AptosConfig } from "../api/aptosConfig";
+import { CedraConfig } from "../api/cedraConfig";
 import {
   generateViewFunctionPayload,
   InputViewFunctionData,
@@ -10,25 +10,25 @@ import {
   ViewFunctionJsonPayload,
 } from "../transactions";
 import { Serializer } from "../bcs";
-import { postAptosFullNode } from "../client";
+import { postCedraFullNode } from "../client";
 
 export async function view<T extends Array<MoveValue> = Array<MoveValue>>(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   payload: InputViewFunctionData;
   options?: LedgerVersionArg;
 }): Promise<T> {
-  const { aptosConfig, payload, options } = args;
+  const { cedraConfig, payload, options } = args;
   const viewFunctionPayload = await generateViewFunctionPayload({
     ...payload,
-    aptosConfig,
+    cedraConfig,
   });
 
   const serializer = new Serializer();
   viewFunctionPayload.serialize(serializer);
   const bytes = serializer.toUint8Array();
 
-  const { data } = await postAptosFullNode<Uint8Array, MoveValue[]>({
-    aptosConfig,
+  const { data } = await postCedraFullNode<Uint8Array, MoveValue[]>({
+    cedraConfig,
     path: "view",
     originMethod: "view",
     contentType: MimeType.BCS_VIEW_FUNCTION,
@@ -40,13 +40,13 @@ export async function view<T extends Array<MoveValue> = Array<MoveValue>>(args: 
 }
 
 export async function viewJson<T extends Array<MoveValue> = Array<MoveValue>>(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   payload: InputViewFunctionJsonData;
   options?: LedgerVersionArg;
 }): Promise<T> {
-  const { aptosConfig, payload, options } = args;
-  const { data } = await postAptosFullNode<ViewFunctionJsonPayload, MoveValue[]>({
-    aptosConfig,
+  const { cedraConfig, payload, options } = args;
+  const { data } = await postCedraFullNode<ViewFunctionJsonPayload, MoveValue[]>({
+    cedraConfig,
     originMethod: "viewJson",
     path: "view",
     params: { ledger_version: options?.ledgerVersion },

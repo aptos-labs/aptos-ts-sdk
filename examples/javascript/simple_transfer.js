@@ -1,20 +1,20 @@
 /**
- * This example shows how to use the Aptos client to create accounts, fund them, and transfer between them.
+ * This example shows how to use the Cedra client to create accounts, fund them, and transfer between them.
  */
 const dotenv = require("dotenv");
 dotenv.config();
 const {
   Account,
-  Aptos,
-  AptosConfig,
+  Cedra,
+  CedraConfig,
   parseTypeTag,
   NetworkToNetworkName,
   Network,
   AccountAddress,
   U64,
-} = require("@aptos-labs/ts-sdk");
+} = require("@cedra-labs/ts-sdk");
 
-const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
+const APTOS_COIN = "0x1::cedra_coin::CedraCoin";
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 100;
@@ -31,7 +31,7 @@ const APTOS_NETWORK = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network
 const balance = async (sdk, name, address) => {
   const payload = {
     function: "0x1::coin::balance",
-    typeArguments: ["0x1::aptos_coin::AptosCoin"],
+    typeArguments: ["0x1::cedra_coin::CedraCoin"],
     functionArguments: [address.toString()],
   };
   const [balance] = await sdk.viewJson({ payload: payload });
@@ -46,8 +46,8 @@ const example = async () => {
   console.log("This example will create two accounts (Alice and Bob), fund them, and transfer between them.");
 
   // Set up the client
-  const config = new AptosConfig({ network: APTOS_NETWORK });
-  const sdk = new Aptos(config);
+  const config = new CedraConfig({ network: APTOS_NETWORK });
+  const sdk = new Cedra(config);
 
   // Create two accounts
   let alice = Account.generate({ scheme: 0 });

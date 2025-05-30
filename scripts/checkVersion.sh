@@ -23,7 +23,7 @@ if [ "$DOC_LANDING" = "" ]; then
   exit 1;
 fi
 
-DOC_FOLDER="docs/@aptos-labs/ts-sdk-$npm_package_version"
+DOC_FOLDER="docs/@cedra-labs/ts-sdk-$npm_package_version"
 
 echo "Checking docs folder $DOC_FOLDER"
 if [ ! -d "$DOC_FOLDER" ]; then

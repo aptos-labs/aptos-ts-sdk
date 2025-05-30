@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@aptos-labs/ts-sdk": "^1.36.0",
+    "@cedra-labs/ts-sdk": "^1.36.0",
     "axios": "^1.8.3",
     "dotenv": "^16.4.7",
     "express": "^4.21.2"

@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import {
@@ -22,7 +22,7 @@ import {
   FungibleAssetMetadataBoolExp,
 } from "../types/generated/types";
 import { ProcessorType } from "../utils/const";
-import { AptosConfig } from "./aptosConfig";
+import { CedraConfig } from "./cedraConfig";
 import { waitForIndexerOnVersion } from "./utils";
 import { Account } from "../account";
 import { AccountAddress, AccountAddressInput } from "../core";
@@ -30,34 +30,34 @@ import { InputGenerateTransactionOptions } from "../transactions";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 /**
- * A class for querying and managing fungible asset-related operations on the Aptos blockchain.
+ * A class for querying and managing fungible asset-related operations on the Cedra blockchain.
  * @group FungibleAsset
  */
 export class FungibleAsset {
   /**
-   * Initializes a new instance of the Aptos class with the provided configuration.
-   * This allows you to interact with the Aptos blockchain using the specified network settings.
+   * Initializes a new instance of the Cedra class with the provided configuration.
+   * This allows you to interact with the Cedra blockchain using the specified network settings.
    *
-   * @param config - The configuration settings for connecting to the Aptos network.
+   * @param config - The configuration settings for connecting to the Cedra network.
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
    * async function runExample() {
-   *     // Create a configuration for the Aptos client
-   *     const config = new AptosConfig({ network: Network.TESTNET }); // Specify your own network if needed
+   *     // Create a configuration for the Cedra client
+   *     const config = new CedraConfig({ network: Network.TESTNET }); // Specify your own network if needed
    *
-   *     // Initialize the Aptos client with the configuration
-   *     const aptos = new Aptos(config);
+   *     // Initialize the Cedra client with the configuration
+   *     const cedra = new Cedra(config);
    *
-   *     console.log("Aptos client initialized:", aptos);
+   *     console.log("Cedra client initialized:", cedra);
    * }
    * runExample().catch(console.error);
    * ```
    * @group FungibleAsset
    */
-  constructor(readonly config: AptosConfig) {}
+  constructor(readonly config: CedraConfig) {}
 
   /**
    * Queries all fungible asset metadata.
@@ -70,14 +70,14 @@ export class FungibleAsset {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Fetching fungible asset metadata
-   *   const fungibleAssets = await aptos.getFungibleAssetMetadata();
+   *   const fungibleAssets = await cedra.getFungibleAssetMetadata();
    *   console.log(fungibleAssets);
    * }
    * runExample().catch(console.error);
@@ -93,7 +93,7 @@ export class FungibleAsset {
       minimumLedgerVersion: args?.minimumLedgerVersion,
       processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
     });
-    return getFungibleAssetMetadata({ aptosConfig: this.config, ...args });
+    return getFungibleAssetMetadata({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -101,22 +101,22 @@ export class FungibleAsset {
    * This function helps retrieve detailed information about a fungible asset based on its type.
    *
    * @param args - The parameters for the query.
-   * @param args.assetType - The asset type of the fungible asset, e.g., "0x1::aptos_coin::AptosCoin" for Aptos Coin.
+   * @param args.assetType - The asset type of the fungible asset, e.g., "0x1::cedra_coin::CedraCoin" for Cedra Coin.
    * @param args.minimumLedgerVersion - Optional ledger version to sync up to before querying.
    *
    * @returns A fungible asset metadata item.
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Retrieve fungible asset metadata by asset type
-   *   const fungibleAsset = await aptos.getFungibleAssetMetadataByAssetType({
-   *     assetType: "0x1::aptos_coin::AptosCoin" // replace with your asset type
+   *   const fungibleAsset = await cedra.getFungibleAssetMetadataByAssetType({
+   *     assetType: "0x1::cedra_coin::CedraCoin" // replace with your asset type
    *   });
    *
    *   console.log(fungibleAsset);
@@ -135,7 +135,7 @@ export class FungibleAsset {
       processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
     });
     const data = await getFungibleAssetMetadata({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       options: {
         where: {
           asset_type: { _eq: args.assetType },
@@ -159,14 +159,14 @@ export class FungibleAsset {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Retrieve fungible asset metadata by creator address
-   *   const fungibleAsset = await aptos.getFungibleAssetMetadataByCreatorAddress({
+   *   const fungibleAsset = await cedra.getFungibleAssetMetadataByCreatorAddress({
    *     creatorAddress: "0x123", // replace with a real creator address
    *   });
    *
@@ -186,7 +186,7 @@ export class FungibleAsset {
       processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
     });
     const data = await getFungibleAssetMetadata({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       options: {
         where: {
           creator_address: { _eq: AccountAddress.from(args.creatorAddress).toStringLong() },
@@ -207,14 +207,14 @@ export class FungibleAsset {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Fetching fungible asset activities
-   *   const fungibleAssetActivities = await aptos.getFungibleAssetActivities();
+   *   const fungibleAssetActivities = await cedra.getFungibleAssetActivities();
    *   console.log(fungibleAssetActivities);
    * }
    * runExample().catch(console.error);
@@ -230,7 +230,7 @@ export class FungibleAsset {
       minimumLedgerVersion: args?.minimumLedgerVersion,
       processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
     });
-    return getFungibleAssetActivities({ aptosConfig: this.config, ...args });
+    return getFungibleAssetActivities({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -244,14 +244,14 @@ export class FungibleAsset {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Fetching current fungible asset balances
-   *   const fungibleAssetBalances = await aptos.getCurrentFungibleAssetBalances();
+   *   const fungibleAssetBalances = await cedra.getCurrentFungibleAssetBalances();
    *
    *   console.log(fungibleAssetBalances);
    * }
@@ -268,7 +268,7 @@ export class FungibleAsset {
       minimumLedgerVersion: args?.minimumLedgerVersion,
       processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
     });
-    return getCurrentFungibleAssetBalances({ aptosConfig: this.config, ...args });
+    return getCurrentFungibleAssetBalances({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -287,14 +287,14 @@ export class FungibleAsset {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Transfer fungible asset from sender to recipient
-   *   const transaction = await aptos.transferFungibleAsset({
+   *   const transaction = await cedra.transferFungibleAsset({
    *     sender: Account.generate(), // replace with a real sender account
    *     fungibleAssetMetadataAddress: "0x123", // replace with a real fungible asset address
    *     recipient: "0x456", // replace with a real recipient account
@@ -314,7 +314,7 @@ export class FungibleAsset {
     amount: AnyNumber;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    return transferFungibleAsset({ aptosConfig: this.config, ...args });
+    return transferFungibleAsset({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -338,14 +338,14 @@ export class FungibleAsset {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network, Account } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network, Account } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function transferAssets() {
    *   // Transfer 100 units of the asset from senderStore to recipientStore
-   *   const transaction = await aptos.transferFungibleAssetBetweenStores({
+   *   const transaction = await cedra.transferFungibleAssetBetweenStores({
    *     sender: Account.generate(), // replace with a real sender account
    *     fromStore: "0x123", // replace with a real fungible store address
    *     toStore: "0x456", // replace with a real fungible store address
@@ -366,6 +366,6 @@ export class FungibleAsset {
     amount: AnyNumber;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    return transferFungibleAssetBetweenStores({ aptosConfig: this.config, ...args });
+    return transferFungibleAssetBetweenStores({ cedraConfig: this.config, ...args });
   }
 }

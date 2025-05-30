@@ -1,5 +1,5 @@
 {
-  "name": "@aptos-labs/confidential-assets",
+  "name": "@cedra-labs/confidential-assets",
   "version": "0.2.11",
   "author": "",
   "license": "ISC",
@@ -45,8 +45,8 @@
     "e2e-test": "pnpm jest tests/e2e"
   },
   "dependencies": {
-    "@aptos-labs/confidential-asset-wasm-bindings": "^0.0.2",
-    "@aptos-labs/ts-sdk": "^1.38.0",
+    "@cedra-labs/confidential-asset-wasm-bindings": "^0.0.2",
+    "@cedra-labs/ts-sdk": "^1.38.0",
     "@noble/curves": "^1.6.0",
     "@noble/hashes": "^1.5.0"
   },

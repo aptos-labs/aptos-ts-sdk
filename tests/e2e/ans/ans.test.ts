@@ -1,26 +1,26 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import {
-  Aptos,
+  Cedra,
   Network,
   Account,
   AnyRawTransaction,
   U8,
-  AptosConfig,
+  CedraConfig,
   GetANSNameResponse,
   AccountAddress,
 } from "../../../src";
 import { isValidANSName, isActiveANSName, SubdomainExpirationPolicy } from "../../../src/internal/ans";
 import { generateTransaction } from "../../../src/internal/transactionSubmission";
-import { getAptosClient } from "../helper";
+import { getCedraClient } from "../helper";
 import { publishAnsContract } from "./publishANSContracts";
 
 // This isn't great, we should look into deploying outside the test
 jest.setTimeout(20000);
 
 describe("ANS", () => {
-  const { aptos, config } = getAptosClient();
+  const { cedra, config } = getCedraClient();
 
   let changeExpirationDate: (
     tokenMode: 0 | 1,
@@ -32,16 +32,16 @@ describe("ANS", () => {
   let changeRouterMode: (mode: 0 | 1) => void;
 
   const signAndSubmit = async (signer: Account, transaction: AnyRawTransaction) => {
-    const pendingTxn = await aptos.signAndSubmitTransaction({ transaction, signer });
-    return aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+    const pendingTxn = await cedra.signAndSubmitTransaction({ transaction, signer });
+    return cedra.waitForTransaction({ transactionHash: pendingTxn.hash });
   };
 
   const randomString = () => Math.random().toString().slice(2);
 
   beforeAll(
     async () => {
-      const { address: ANS_ADDRESS, privateKey: ANS_PRIVATE_KEY } = await publishAnsContract(aptos);
-      const contractAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: ANS_PRIVATE_KEY });
+      const { address: ANS_ADDRESS, privateKey: ANS_PRIVATE_KEY } = await publishAnsContract(cedra);
+      const contractAccount = await cedra.deriveAccountFromPrivateKey({ privateKey: ANS_PRIVATE_KEY });
 
       // Publish the contract, should be idempotent
 
@@ -49,7 +49,7 @@ describe("ANS", () => {
       await signAndSubmit(
         contractAccount,
         await generateTransaction({
-          aptosConfig: config,
+          cedraConfig: config,
           sender: contractAccount.accountAddress,
           data: {
             function: `${ANS_ADDRESS}::domains::init_reverse_lookup_registry_v1`,
@@ -62,7 +62,7 @@ describe("ANS", () => {
       await signAndSubmit(
         contractAccount,
         await generateTransaction({
-          aptosConfig: config,
+          cedraConfig: config,
           sender: contractAccount.accountAddress,
           data: {
             function: `${ANS_ADDRESS}::router::set_mode`,
@@ -84,7 +84,7 @@ describe("ANS", () => {
         signAndSubmit(
           contractAccount,
           await generateTransaction({
-            aptosConfig: config,
+            cedraConfig: config,
             sender: contractAccount.accountAddress,
             data: {
               function:
@@ -105,7 +105,7 @@ describe("ANS", () => {
         signAndSubmit(
           contractAccount,
           await generateTransaction({
-            aptosConfig: config,
+            cedraConfig: config,
             sender: contractAccount.accountAddress,
             data: {
               function: `${ANS_ADDRESS}::router::set_mode`,
@@ -255,11 +255,11 @@ describe("ANS", () => {
       alice = Account.generate();
       bob = Account.generate();
       await Promise.all([
-        aptos.fundAccount({
+        cedra.fundAccount({
           accountAddress: alice.accountAddress,
           amount: 500_000_000,
         }),
-        aptos.fundAccount({
+        cedra.fundAccount({
           accountAddress: bob.accountAddress,
           amount: 500_000_000,
         }),
@@ -270,7 +270,7 @@ describe("ANS", () => {
       const name = domainName;
 
       expect(
-        await aptos.registerName({
+        await cedra.registerName({
           name,
           sender: alice,
           expiration: { policy: "domain" },
@@ -278,7 +278,7 @@ describe("ANS", () => {
       ).toBeTruthy();
 
       expect(
-        await aptos.registerName({
+        await cedra.registerName({
           name,
           sender: alice,
           expiration: { policy: "domain", years: 1 },
@@ -286,7 +286,7 @@ describe("ANS", () => {
       ).toBeTruthy();
 
       await expect(
-        aptos.registerName({
+        cedra.registerName({
           sender: alice,
           name,
           // Force the year to be absent
@@ -296,7 +296,7 @@ describe("ANS", () => {
 
       // Testing to make sure that the subdomain policy is enforced
       await expect(
-        aptos.registerName({
+        cedra.registerName({
           sender: alice,
           name,
           // Force the year to be absent
@@ -310,14 +310,14 @@ describe("ANS", () => {
 
       await signAndSubmit(
         alice,
-        await aptos.registerName({
+        await cedra.registerName({
           name,
           expiration: { policy: "domain" },
           sender: alice,
         }),
       );
 
-      const owner = await aptos.getOwnerAddress({ name });
+      const owner = await cedra.getOwnerAddress({ name });
       expect(owner?.toString()).toEqual(alice.accountAddress.toString());
     });
 
@@ -326,7 +326,7 @@ describe("ANS", () => {
 
       await signAndSubmit(
         alice,
-        await aptos.registerName({
+        await cedra.registerName({
           name,
           expiration: { policy: "domain" },
           sender: alice,
@@ -335,14 +335,14 @@ describe("ANS", () => {
         }),
       );
 
-      const owner = await aptos.getOwnerAddress({ name });
+      const owner = await cedra.getOwnerAddress({ name });
       expect(owner?.toString()).toEqual(bob.accountAddress.toString());
     });
 
     test("it mints a subdomain name and gives it to the sender", async () => {
       await signAndSubmit(
         alice,
-        await aptos.registerName({
+        await cedra.registerName({
           name: domainName,
           expiration: { policy: "domain" },
           sender: alice,
@@ -351,7 +351,7 @@ describe("ANS", () => {
 
       await signAndSubmit(
         alice,
-        await aptos.registerName({
+        await cedra.registerName({
           name: `${subdomainName}.${domainName}`,
           expiration: { policy: "subdomain:follow-domain" },
           transferable: true,
@@ -359,14 +359,14 @@ describe("ANS", () => {
         }),
       );
 
-      const owner = await aptos.getOwnerAddress({ name: `${subdomainName}.${domainName}` });
+      const owner = await cedra.getOwnerAddress({ name: `${subdomainName}.${domainName}` });
       expect(owner?.toString()).toEqual(alice.accountAddress.toString());
     });
 
     test("it mints a subdomain name and gives it to the specified address", async () => {
       await signAndSubmit(
         alice,
-        await aptos.registerName({
+        await cedra.registerName({
           name: domainName,
           expiration: { policy: "domain" },
           sender: alice,
@@ -375,7 +375,7 @@ describe("ANS", () => {
 
       await signAndSubmit(
         alice,
-        await aptos.registerName({
+        await cedra.registerName({
           name: `${subdomainName}.${domainName}`,
           expiration: {
             policy: "subdomain:independent",
@@ -389,7 +389,7 @@ describe("ANS", () => {
         }),
       );
 
-      const owner = await aptos.getOwnerAddress({ name: `${subdomainName}.${domainName}` });
+      const owner = await cedra.getOwnerAddress({ name: `${subdomainName}.${domainName}` });
       expect(owner?.toString()).toEqual(bob.accountAddress.toString());
     });
   });
@@ -403,13 +403,13 @@ describe("ANS", () => {
 
     beforeEach(async () => {
       alice = Account.generate();
-      await aptos.fundAccount({
+      await cedra.fundAccount({
         accountAddress: alice.accountAddress,
         amount: 500_000_000,
       });
 
       bob = Account.generate();
-      await aptos.fundAccount({
+      await cedra.fundAccount({
         accountAddress: bob.accountAddress,
         amount: 500_000_000,
       });
@@ -423,7 +423,7 @@ describe("ANS", () => {
 
       await signAndSubmit(
         alice,
-        await aptos.registerName({
+        await cedra.registerName({
           name,
           expiration: { policy: "domain" },
           sender: alice,
@@ -432,18 +432,18 @@ describe("ANS", () => {
         }),
       );
 
-      addr = await aptos.getTargetAddress({ name });
+      addr = await cedra.getTargetAddress({ name });
       expect(addr?.toString()).toEqual(alice.accountAddress.toString());
 
       await signAndSubmit(
         alice,
-        await aptos.setTargetAddress({
+        await cedra.setTargetAddress({
           name,
           address: bob.accountAddress,
           sender: alice,
         }),
       );
-      addr = await aptos.getTargetAddress({ name });
+      addr = await cedra.getTargetAddress({ name });
       expect(addr?.toString()).toEqual(bob.accountAddress.toString());
     });
 
@@ -452,7 +452,7 @@ describe("ANS", () => {
 
       await signAndSubmit(
         alice,
-        await aptos.registerName({
+        await cedra.registerName({
           name: domainName,
           expiration: { policy: "domain" },
           sender: alice,
@@ -461,25 +461,25 @@ describe("ANS", () => {
 
       await signAndSubmit(
         alice,
-        await aptos.registerName({
+        await cedra.registerName({
           name,
           expiration: { policy: "subdomain:follow-domain" },
           sender: alice,
         }),
       );
 
-      addr = await aptos.getTargetAddress({ name });
+      addr = await cedra.getTargetAddress({ name });
       expect(addr?.toString()).toEqual(alice.accountAddress.toString());
 
       await signAndSubmit(
         alice,
-        await aptos.setTargetAddress({
+        await cedra.setTargetAddress({
           name,
           address: bob.accountAddress,
           sender: alice,
         }),
       );
-      addr = await aptos.getTargetAddress({ name });
+      addr = await cedra.getTargetAddress({ name });
       expect(addr?.toString()).toEqual(bob.accountAddress.toString());
     });
   });
@@ -492,13 +492,13 @@ describe("ANS", () => {
 
     beforeEach(async () => {
       alice = Account.generate();
-      await aptos.fundAccount({
+      await cedra.fundAccount({
         accountAddress: alice.accountAddress,
         amount: 500_000_000,
       });
 
       bob = Account.generate();
-      await aptos.fundAccount({
+      await cedra.fundAccount({
         accountAddress: bob.accountAddress,
         amount: 500_000_000,
       });
@@ -508,18 +508,18 @@ describe("ANS", () => {
     });
 
     test("it returns null if no primary name is set", async () => {
-      const res = await aptos.getPrimaryName({ address: alice.accountAddress });
+      const res = await cedra.getPrimaryName({ address: alice.accountAddress });
       expect(res).toBeFalsy();
     });
 
     test("it sets and gets domain primary names", async () => {
       const name = domainName;
 
-      await signAndSubmit(alice, await aptos.registerName({ name, expiration: { policy: "domain" }, sender: alice }));
+      await signAndSubmit(alice, await cedra.registerName({ name, expiration: { policy: "domain" }, sender: alice }));
 
-      await signAndSubmit(alice, await aptos.setPrimaryName({ name, sender: alice }));
+      await signAndSubmit(alice, await cedra.setPrimaryName({ name, sender: alice }));
 
-      const res = await aptos.getPrimaryName({ address: alice.accountAddress });
+      const res = await cedra.getPrimaryName({ address: alice.accountAddress });
 
       expect(res).toEqual(name);
     });
@@ -530,17 +530,17 @@ describe("ANS", () => {
 
       await signAndSubmit(
         alice,
-        await aptos.registerName({ name: tld, expiration: { policy: "domain" }, sender: alice }),
+        await cedra.registerName({ name: tld, expiration: { policy: "domain" }, sender: alice }),
       );
 
       await signAndSubmit(
         alice,
-        await aptos.registerName({ name, expiration: { policy: "subdomain:follow-domain" }, sender: alice }),
+        await cedra.registerName({ name, expiration: { policy: "subdomain:follow-domain" }, sender: alice }),
       );
 
-      await signAndSubmit(alice, await aptos.setPrimaryName({ name, sender: alice }));
+      await signAndSubmit(alice, await cedra.setPrimaryName({ name, sender: alice }));
 
-      const res = await aptos.getPrimaryName({ address: alice.accountAddress });
+      const res = await cedra.getPrimaryName({ address: alice.accountAddress });
 
       expect(res).toEqual(name);
     });
@@ -554,13 +554,13 @@ describe("ANS", () => {
 
     beforeEach(async () => {
       alice = Account.generate();
-      await aptos.fundAccount({
+      await cedra.fundAccount({
         accountAddress: alice.accountAddress,
         amount: 500_000_000,
       });
 
       bob = Account.generate();
-      await aptos.fundAccount({
+      await cedra.fundAccount({
         accountAddress: bob.accountAddress,
         amount: 500_000_000,
       });
@@ -576,7 +576,7 @@ describe("ANS", () => {
 
       await signAndSubmit(
         alice,
-        await aptos.registerName({
+        await cedra.registerName({
           name,
           expiration: { policy: "domain" },
           sender: alice,
@@ -587,11 +587,11 @@ describe("ANS", () => {
       const newExpirationDate = Math.floor(new Date(Date.now() + 24 * 60 * 60 * 1000).getTime() / 1000);
       await changeExpirationDate(1, newExpirationDate, name);
 
-      await signAndSubmit(alice, await aptos.renewDomain({ name, sender: alice }));
+      await signAndSubmit(alice, await cedra.renewDomain({ name, sender: alice }));
 
       // We expect the renewed expiration time to be one year from tomorrow
       const expectedExpirationDate = (newExpirationDate + 365 * 24 * 60 * 60) * 1000;
-      const res = await aptos.getExpiration({ name });
+      const res = await cedra.getExpiration({ name });
       expect(res?.toString()).toBe(expectedExpirationDate.toString());
     });
 
@@ -603,7 +603,7 @@ describe("ANS", () => {
 
       await signAndSubmit(
         alice,
-        await aptos.registerName({
+        await cedra.registerName({
           name: tld,
           expiration: { policy: "domain" },
           sender: alice,
@@ -612,20 +612,20 @@ describe("ANS", () => {
 
       await signAndSubmit(
         alice,
-        await aptos.registerName({
+        await cedra.registerName({
           name,
           expiration: { policy: "subdomain:follow-domain" },
           sender: alice,
         }),
       );
 
-      expect(aptos.renewDomain({ name, sender: alice })).rejects.toThrow();
+      expect(cedra.renewDomain({ name, sender: alice })).rejects.toThrow();
     });
   });
 
   describe("can get names", () => {
-    const testnet = new Aptos(
-      new AptosConfig({
+    const testnet = new Cedra(
+      new CedraConfig({
         network: Network.TESTNET,
       }),
     );
@@ -684,8 +684,8 @@ describe("ANS", () => {
   });
 
   describe("query an individual name", () => {
-    const testnet = new Aptos(
-      new AptosConfig({
+    const testnet = new Cedra(
+      new CedraConfig({
         network: Network.TESTNET,
       }),
     );

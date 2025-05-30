@@ -1,35 +1,35 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
-import { getAptosClient } from "../helper";
+import { getCedraClient } from "../helper";
 
 // use it here since all tests use the same configuration
-const { aptos } = getAptosClient();
+const { cedra } = getCedraClient();
 
 // Disable these tests for now until we can test against LOCAL
 describe("Collection", () => {
   test("it creates a new collection on chain and fetches its data", async () => {
     const creator = Account.generate();
     const creatorAddress = creator.accountAddress;
-    const collectionName = "Aptos Test NFT Collection";
+    const collectionName = "Cedra Test NFT Collection";
     const collectionDescription = "My new collection!";
-    const collectionUri = "https://aptos.dev";
+    const collectionUri = "https://cedra.dev";
 
-    await aptos.fundAccount({ accountAddress: creatorAddress, amount: FUND_AMOUNT });
+    await cedra.fundAccount({ accountAddress: creatorAddress, amount: FUND_AMOUNT });
 
-    const transaction = await aptos.createCollectionTransaction({
+    const transaction = await cedra.createCollectionTransaction({
       creator,
       description: collectionDescription,
       name: collectionName,
       uri: collectionUri,
     });
-    const pendingTxn = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    const pendingTxn = await cedra.signAndSubmitTransaction({ signer: creator, transaction });
 
-    const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+    const response = await cedra.waitForTransaction({ transactionHash: pendingTxn.hash });
 
-    const data = await aptos.getCollectionData({
+    const data = await cedra.getCollectionData({
       collectionName,
       creatorAddress,
       minimumLedgerVersion: BigInt(response.version),
@@ -51,11 +51,11 @@ describe("Collection", () => {
     expect(data).toHaveProperty("table_handle_v1");
     expect(data).toHaveProperty("total_minted_v2");
 
-    const address = await aptos.getCollectionId({ collectionName, creatorAddress });
+    const address = await cedra.getCollectionId({ collectionName, creatorAddress });
     expect(address).toEqual(data.collection_id);
 
     // Query again using the collection id should return the same data
-    const data2 = await aptos.getCollectionDataByCollectionId({
+    const data2 = await cedra.getCollectionDataByCollectionId({
       collectionId: address,
       minimumLedgerVersion: BigInt(response.version),
     });

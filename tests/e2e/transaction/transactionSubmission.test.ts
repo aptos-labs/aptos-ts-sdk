@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import {
@@ -17,12 +17,12 @@ import {
 } from "../../../src";
 import { MAX_U64_BIG_INT } from "../../../src/bcs/consts";
 import { longTestTimeout } from "../../unit/helper";
-import { getAptosClient } from "../helper";
+import { getCedraClient } from "../helper";
 import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
 import { AccountAuthenticatorNoAccountAuthenticator } from "../../../src/transactions";
 import { MultiEd25519Account } from "../../../src/account/MultiEd25519Account";
 
-const { aptos } = getAptosClient();
+const { cedra } = getCedraClient();
 
 describe("transaction submission", () => {
   const contractPublisherAccount = Account.generate();
@@ -33,7 +33,7 @@ describe("transaction submission", () => {
   const secondarySignerAccount = Account.generate();
   const feePayerAccount = Account.generate();
   beforeAll(async () => {
-    await fundAccounts(aptos, [
+    await fundAccounts(cedra, [
       contractPublisherAccount,
       singleSignerED25519SenderAccount,
       singleSignerSecp256k1Account,
@@ -42,42 +42,42 @@ describe("transaction submission", () => {
       secondarySignerAccount,
       feePayerAccount,
     ]);
-    await publishTransferPackage(aptos, contractPublisherAccount);
+    await publishTransferPackage(cedra, contractPublisherAccount);
   }, longTestTimeout);
   describe("Single Sender ED25519", () => {
     describe("single signer", () => {
       test("with script payload", async () => {
-        const transaction = await aptos.transaction.build.simple({
+        const transaction = await cedra.transaction.build.simple({
           sender: singleSignerED25519SenderAccount.accountAddress,
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
         });
-        const response = await aptos.signAndSubmitTransaction({
+        const response = await cedra.signAndSubmitTransaction({
           signer: singleSignerED25519SenderAccount,
           transaction,
         });
 
-        await aptos.waitForTransaction({
+        await cedra.waitForTransaction({
           transactionHash: response.hash,
         });
 
         expect(response.signature?.type).toBe("single_sender");
       });
       test("with entry function payload", async () => {
-        const transaction = await aptos.transaction.build.simple({
+        const transaction = await cedra.transaction.build.simple({
           sender: singleSignerED25519SenderAccount.accountAddress,
           data: {
             function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
             functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
-        const response = await aptos.signAndSubmitTransaction({
+        const response = await cedra.signAndSubmitTransaction({
           signer: singleSignerED25519SenderAccount,
           transaction,
         });
-        await aptos.waitForTransaction({
+        await cedra.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("single_sender");
@@ -85,7 +85,7 @@ describe("transaction submission", () => {
     });
     describe("multi agent", () => {
       test("with script payload", async () => {
-        const transaction = await aptos.transaction.build.multiAgent({
+        const transaction = await cedra.transaction.build.multiAgent({
           sender: singleSignerED25519SenderAccount.accountAddress,
           secondarySignerAddresses: [secondarySignerAccount.accountAddress],
           data: {
@@ -100,16 +100,16 @@ describe("transaction submission", () => {
           },
         });
 
-        const senderAuthenticator = aptos.transaction.sign({ signer: singleSignerED25519SenderAccount, transaction });
-        const secondarySignerAuthenticator = aptos.transaction.sign({ signer: secondarySignerAccount, transaction });
+        const senderAuthenticator = cedra.transaction.sign({ signer: singleSignerED25519SenderAccount, transaction });
+        const secondarySignerAuthenticator = cedra.transaction.sign({ signer: secondarySignerAccount, transaction });
 
-        const response = await aptos.transaction.submit.multiAgent({
+        const response = await cedra.transaction.submit.multiAgent({
           transaction,
           senderAuthenticator,
           additionalSignersAuthenticators: [secondarySignerAuthenticator],
         });
 
-        await aptos.waitForTransaction({
+        await cedra.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("multi_agent_signature");
@@ -118,7 +118,7 @@ describe("transaction submission", () => {
       test(
         "with entry function payload",
         async () => {
-          const transaction = await aptos.transaction.build.multiAgent({
+          const transaction = await cedra.transaction.build.multiAgent({
             sender: singleSignerED25519SenderAccount.accountAddress,
             secondarySignerAddresses: [secondarySignerAccount.accountAddress],
             data: {
@@ -127,16 +127,16 @@ describe("transaction submission", () => {
             },
           });
 
-          const senderAuthenticator = aptos.transaction.sign({ signer: singleSignerED25519SenderAccount, transaction });
-          const secondarySignerAuthenticator = aptos.transaction.sign({ signer: secondarySignerAccount, transaction });
+          const senderAuthenticator = cedra.transaction.sign({ signer: singleSignerED25519SenderAccount, transaction });
+          const secondarySignerAuthenticator = cedra.transaction.sign({ signer: secondarySignerAccount, transaction });
 
-          const response = await aptos.transaction.submit.multiAgent({
+          const response = await cedra.transaction.submit.multiAgent({
             transaction,
             senderAuthenticator,
             additionalSignersAuthenticators: [secondarySignerAuthenticator],
           });
 
-          await aptos.waitForTransaction({
+          await cedra.waitForTransaction({
             transactionHash: response.hash,
           });
           expect(response.signature?.type).toBe("multi_agent_signature");
@@ -146,7 +146,7 @@ describe("transaction submission", () => {
     });
     describe("fee payer", () => {
       test("with script payload", async () => {
-        const transaction = await aptos.transaction.build.simple({
+        const transaction = await cedra.transaction.build.simple({
           sender: singleSignerED25519SenderAccount.accountAddress,
           data: {
             bytecode: singleSignerScriptBytecode,
@@ -155,25 +155,25 @@ describe("transaction submission", () => {
           withFeePayer: true,
         });
 
-        const senderAuthenticator = aptos.transaction.sign({ signer: singleSignerED25519SenderAccount, transaction });
-        const feePayerSignerAuthenticator = aptos.transaction.signAsFeePayer({
+        const senderAuthenticator = cedra.transaction.sign({ signer: singleSignerED25519SenderAccount, transaction });
+        const feePayerSignerAuthenticator = cedra.transaction.signAsFeePayer({
           signer: feePayerAccount,
           transaction,
         });
 
-        const response = await aptos.transaction.submit.simple({
+        const response = await cedra.transaction.submit.simple({
           transaction,
           senderAuthenticator,
           feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
-        await aptos.waitForTransaction({
+        await cedra.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
       test("with entry function payload", async () => {
-        const transaction = await aptos.transaction.build.simple({
+        const transaction = await cedra.transaction.build.simple({
           sender: singleSignerED25519SenderAccount.accountAddress,
           data: {
             function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
@@ -181,25 +181,25 @@ describe("transaction submission", () => {
           },
           withFeePayer: true,
         });
-        const senderAuthenticator = aptos.transaction.sign({ signer: singleSignerED25519SenderAccount, transaction });
-        const feePayerSignerAuthenticator = aptos.transaction.signAsFeePayer({
+        const senderAuthenticator = cedra.transaction.sign({ signer: singleSignerED25519SenderAccount, transaction });
+        const feePayerSignerAuthenticator = cedra.transaction.signAsFeePayer({
           signer: feePayerAccount,
           transaction,
         });
 
-        const response = await aptos.transaction.submit.simple({
+        const response = await cedra.transaction.submit.simple({
           transaction,
           senderAuthenticator,
           feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
-        await aptos.waitForTransaction({
+        await cedra.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
       test("with multi agent transaction", async () => {
-        const transaction = await aptos.transaction.build.multiAgent({
+        const transaction = await cedra.transaction.build.multiAgent({
           sender: singleSignerED25519SenderAccount.accountAddress,
           secondarySignerAddresses: [secondarySignerAccount.accountAddress],
           data: {
@@ -209,21 +209,21 @@ describe("transaction submission", () => {
           withFeePayer: true,
         });
 
-        const senderAuthenticator = aptos.transaction.sign({ signer: singleSignerED25519SenderAccount, transaction });
-        const secondarySignerAuthenticator = aptos.transaction.sign({ signer: secondarySignerAccount, transaction });
-        const feePayerSignerAuthenticator = aptos.transaction.signAsFeePayer({
+        const senderAuthenticator = cedra.transaction.sign({ signer: singleSignerED25519SenderAccount, transaction });
+        const secondarySignerAuthenticator = cedra.transaction.sign({ signer: secondarySignerAccount, transaction });
+        const feePayerSignerAuthenticator = cedra.transaction.signAsFeePayer({
           signer: feePayerAccount,
           transaction,
         });
 
-        const response = await aptos.transaction.submit.multiAgent({
+        const response = await cedra.transaction.submit.multiAgent({
           transaction,
           senderAuthenticator,
           additionalSignersAuthenticators: [secondarySignerAuthenticator],
           feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
-        await aptos.waitForTransaction({
+        await cedra.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
@@ -233,35 +233,35 @@ describe("transaction submission", () => {
   describe("Single Sender Secp256k1", () => {
     describe("single signer", () => {
       test("with script payload", async () => {
-        const transaction = await aptos.transaction.build.simple({
+        const transaction = await cedra.transaction.build.simple({
           sender: singleSignerSecp256k1Account.accountAddress,
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
         });
-        const response = await aptos.signAndSubmitTransaction({
+        const response = await cedra.signAndSubmitTransaction({
           signer: singleSignerSecp256k1Account,
           transaction,
         });
-        await aptos.waitForTransaction({
+        await cedra.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("single_sender");
       });
       test("with entry function payload", async () => {
-        const transaction = await aptos.transaction.build.simple({
+        const transaction = await cedra.transaction.build.simple({
           sender: singleSignerSecp256k1Account.accountAddress,
           data: {
             function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
             functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
-        const response = await aptos.signAndSubmitTransaction({
+        const response = await cedra.signAndSubmitTransaction({
           signer: singleSignerSecp256k1Account,
           transaction,
         });
-        await aptos.waitForTransaction({
+        await cedra.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("single_sender");
@@ -269,7 +269,7 @@ describe("transaction submission", () => {
     });
     describe("multi agent", () => {
       test("with script payload", async () => {
-        const transaction = await aptos.transaction.build.multiAgent({
+        const transaction = await cedra.transaction.build.multiAgent({
           sender: singleSignerSecp256k1Account.accountAddress,
           secondarySignerAddresses: [secondarySignerAccount.accountAddress],
           data: {
@@ -284,16 +284,16 @@ describe("transaction submission", () => {
           },
         });
 
-        const senderAuthenticator = aptos.transaction.sign({ signer: singleSignerSecp256k1Account, transaction });
-        const secondarySignerAuthenticator = aptos.transaction.sign({ signer: secondarySignerAccount, transaction });
+        const senderAuthenticator = cedra.transaction.sign({ signer: singleSignerSecp256k1Account, transaction });
+        const secondarySignerAuthenticator = cedra.transaction.sign({ signer: secondarySignerAccount, transaction });
 
-        const response = await aptos.transaction.submit.multiAgent({
+        const response = await cedra.transaction.submit.multiAgent({
           transaction,
           senderAuthenticator,
           additionalSignersAuthenticators: [secondarySignerAuthenticator],
         });
 
-        await aptos.waitForTransaction({
+        await cedra.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("multi_agent_signature");
@@ -302,7 +302,7 @@ describe("transaction submission", () => {
       test(
         "with entry function payload",
         async () => {
-          const transaction = await aptos.transaction.build.multiAgent({
+          const transaction = await cedra.transaction.build.multiAgent({
             sender: singleSignerSecp256k1Account.accountAddress,
             secondarySignerAddresses: [secondarySignerAccount.accountAddress],
             data: {
@@ -311,16 +311,16 @@ describe("transaction submission", () => {
             },
           });
 
-          const senderAuthenticator = aptos.transaction.sign({ signer: singleSignerSecp256k1Account, transaction });
-          const secondarySignerAuthenticator = aptos.transaction.sign({ signer: secondarySignerAccount, transaction });
+          const senderAuthenticator = cedra.transaction.sign({ signer: singleSignerSecp256k1Account, transaction });
+          const secondarySignerAuthenticator = cedra.transaction.sign({ signer: secondarySignerAccount, transaction });
 
-          const response = await aptos.transaction.submit.multiAgent({
+          const response = await cedra.transaction.submit.multiAgent({
             transaction,
             senderAuthenticator,
             additionalSignersAuthenticators: [secondarySignerAuthenticator],
           });
 
-          await aptos.waitForTransaction({
+          await cedra.waitForTransaction({
             transactionHash: response.hash,
           });
           expect(response.signature?.type).toBe("multi_agent_signature");
@@ -330,7 +330,7 @@ describe("transaction submission", () => {
     });
     describe("fee payer", () => {
       test("with script payload", async () => {
-        const transaction = await aptos.transaction.build.simple({
+        const transaction = await cedra.transaction.build.simple({
           sender: singleSignerSecp256k1Account.accountAddress,
           data: {
             bytecode: singleSignerScriptBytecode,
@@ -339,25 +339,25 @@ describe("transaction submission", () => {
           withFeePayer: true,
         });
 
-        const senderAuthenticator = aptos.transaction.sign({ signer: singleSignerSecp256k1Account, transaction });
-        const feePayerSignerAuthenticator = aptos.transaction.signAsFeePayer({
+        const senderAuthenticator = cedra.transaction.sign({ signer: singleSignerSecp256k1Account, transaction });
+        const feePayerSignerAuthenticator = cedra.transaction.signAsFeePayer({
           signer: feePayerAccount,
           transaction,
         });
 
-        const response = await aptos.transaction.submit.simple({
+        const response = await cedra.transaction.submit.simple({
           transaction,
           senderAuthenticator,
           feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
-        await aptos.waitForTransaction({
+        await cedra.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
       test("with entry function payload", async () => {
-        const transaction = await aptos.transaction.build.simple({
+        const transaction = await cedra.transaction.build.simple({
           sender: singleSignerSecp256k1Account.accountAddress,
           data: {
             function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
@@ -365,25 +365,25 @@ describe("transaction submission", () => {
           },
           withFeePayer: true,
         });
-        const senderAuthenticator = aptos.transaction.sign({ signer: singleSignerSecp256k1Account, transaction });
-        const feePayerSignerAuthenticator = aptos.transaction.signAsFeePayer({
+        const senderAuthenticator = cedra.transaction.sign({ signer: singleSignerSecp256k1Account, transaction });
+        const feePayerSignerAuthenticator = cedra.transaction.signAsFeePayer({
           signer: feePayerAccount,
           transaction,
         });
 
-        const response = await aptos.transaction.submit.simple({
+        const response = await cedra.transaction.submit.simple({
           transaction,
           senderAuthenticator,
           feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
-        await aptos.waitForTransaction({
+        await cedra.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
       test("with multi agent transaction", async () => {
-        const transaction = await aptos.transaction.build.multiAgent({
+        const transaction = await cedra.transaction.build.multiAgent({
           sender: singleSignerSecp256k1Account.accountAddress,
           secondarySignerAddresses: [secondarySignerAccount.accountAddress],
           data: {
@@ -393,21 +393,21 @@ describe("transaction submission", () => {
           withFeePayer: true,
         });
 
-        const senderAuthenticator = aptos.transaction.sign({ signer: singleSignerSecp256k1Account, transaction });
-        const secondarySignerAuthenticator = aptos.transaction.sign({ signer: secondarySignerAccount, transaction });
-        const feePayerSignerAuthenticator = aptos.transaction.signAsFeePayer({
+        const senderAuthenticator = cedra.transaction.sign({ signer: singleSignerSecp256k1Account, transaction });
+        const secondarySignerAuthenticator = cedra.transaction.sign({ signer: secondarySignerAccount, transaction });
+        const feePayerSignerAuthenticator = cedra.transaction.signAsFeePayer({
           signer: feePayerAccount,
           transaction,
         });
 
-        const response = await aptos.transaction.submit.multiAgent({
+        const response = await cedra.transaction.submit.multiAgent({
           transaction,
           senderAuthenticator,
           additionalSignersAuthenticators: [secondarySignerAuthenticator],
           feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
-        await aptos.waitForTransaction({
+        await cedra.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
@@ -417,35 +417,35 @@ describe("transaction submission", () => {
   describe("Legacy ED25519", () => {
     describe("single signer", () => {
       test("with script payload", async () => {
-        const transaction = await aptos.transaction.build.simple({
+        const transaction = await cedra.transaction.build.simple({
           sender: legacyED25519SenderAccount.accountAddress,
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
         });
-        const response = await aptos.signAndSubmitTransaction({
+        const response = await cedra.signAndSubmitTransaction({
           signer: legacyED25519SenderAccount,
           transaction,
         });
-        await aptos.waitForTransaction({
+        await cedra.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("ed25519_signature");
       });
       test("with entry function payload", async () => {
-        const transaction = await aptos.transaction.build.simple({
+        const transaction = await cedra.transaction.build.simple({
           sender: legacyED25519SenderAccount.accountAddress,
           data: {
             function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
             functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
-        const response = await aptos.signAndSubmitTransaction({
+        const response = await cedra.signAndSubmitTransaction({
           signer: legacyED25519SenderAccount,
           transaction,
         });
-        await aptos.waitForTransaction({
+        await cedra.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("ed25519_signature");
@@ -453,7 +453,7 @@ describe("transaction submission", () => {
     });
     describe("multi agent", () => {
       test("with script payload", async () => {
-        const transaction = await aptos.transaction.build.multiAgent({
+        const transaction = await cedra.transaction.build.multiAgent({
           sender: legacyED25519SenderAccount.accountAddress,
           secondarySignerAddresses: [secondarySignerAccount.accountAddress],
           data: {
@@ -467,16 +467,16 @@ describe("transaction submission", () => {
             ],
           },
         });
-        const senderAuthenticator = aptos.transaction.sign({ signer: legacyED25519SenderAccount, transaction });
-        const secondarySignerAuthenticator = aptos.transaction.sign({ signer: secondarySignerAccount, transaction });
+        const senderAuthenticator = cedra.transaction.sign({ signer: legacyED25519SenderAccount, transaction });
+        const secondarySignerAuthenticator = cedra.transaction.sign({ signer: secondarySignerAccount, transaction });
 
-        const response = await aptos.transaction.submit.multiAgent({
+        const response = await cedra.transaction.submit.multiAgent({
           transaction,
           senderAuthenticator,
           additionalSignersAuthenticators: [secondarySignerAuthenticator],
         });
 
-        await aptos.waitForTransaction({
+        await cedra.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("multi_agent_signature");
@@ -485,7 +485,7 @@ describe("transaction submission", () => {
       test(
         "with entry function payload",
         async () => {
-          const transaction = await aptos.transaction.build.multiAgent({
+          const transaction = await cedra.transaction.build.multiAgent({
             sender: legacyED25519SenderAccount.accountAddress,
             secondarySignerAddresses: [secondarySignerAccount.accountAddress],
             data: {
@@ -494,16 +494,16 @@ describe("transaction submission", () => {
             },
           });
 
-          const senderAuthenticator = aptos.transaction.sign({ signer: legacyED25519SenderAccount, transaction });
-          const secondarySignerAuthenticator = aptos.transaction.sign({ signer: secondarySignerAccount, transaction });
+          const senderAuthenticator = cedra.transaction.sign({ signer: legacyED25519SenderAccount, transaction });
+          const secondarySignerAuthenticator = cedra.transaction.sign({ signer: secondarySignerAccount, transaction });
 
-          const response = await aptos.transaction.submit.multiAgent({
+          const response = await cedra.transaction.submit.multiAgent({
             transaction,
             senderAuthenticator,
             additionalSignersAuthenticators: [secondarySignerAuthenticator],
           });
 
-          await aptos.waitForTransaction({
+          await cedra.waitForTransaction({
             transactionHash: response.hash,
           });
           expect(response.signature?.type).toBe("multi_agent_signature");
@@ -513,7 +513,7 @@ describe("transaction submission", () => {
     });
     describe("fee payer", () => {
       test("with script payload", async () => {
-        const transaction = await aptos.transaction.build.simple({
+        const transaction = await cedra.transaction.build.simple({
           sender: legacyED25519SenderAccount.accountAddress,
           data: {
             bytecode: singleSignerScriptBytecode,
@@ -521,25 +521,25 @@ describe("transaction submission", () => {
           },
           withFeePayer: true,
         });
-        const senderAuthenticator = aptos.transaction.sign({ signer: legacyED25519SenderAccount, transaction });
-        const feePayerSignerAuthenticator = aptos.transaction.signAsFeePayer({
+        const senderAuthenticator = cedra.transaction.sign({ signer: legacyED25519SenderAccount, transaction });
+        const feePayerSignerAuthenticator = cedra.transaction.signAsFeePayer({
           signer: feePayerAccount,
           transaction,
         });
 
-        const response = await aptos.transaction.submit.simple({
+        const response = await cedra.transaction.submit.simple({
           transaction,
           senderAuthenticator,
           feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
-        await aptos.waitForTransaction({
+        await cedra.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
       test("with entry function payload", async () => {
-        const transaction = await aptos.transaction.build.simple({
+        const transaction = await cedra.transaction.build.simple({
           sender: legacyED25519SenderAccount.accountAddress,
           data: {
             function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
@@ -547,25 +547,25 @@ describe("transaction submission", () => {
           },
           withFeePayer: true,
         });
-        const senderAuthenticator = aptos.transaction.sign({ signer: legacyED25519SenderAccount, transaction });
-        const feePayerSignerAuthenticator = aptos.transaction.signAsFeePayer({
+        const senderAuthenticator = cedra.transaction.sign({ signer: legacyED25519SenderAccount, transaction });
+        const feePayerSignerAuthenticator = cedra.transaction.signAsFeePayer({
           signer: feePayerAccount,
           transaction,
         });
 
-        const response = await aptos.transaction.submit.simple({
+        const response = await cedra.transaction.submit.simple({
           transaction,
           senderAuthenticator,
           feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
-        await aptos.waitForTransaction({
+        await cedra.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
       test("with multi agent transaction", async () => {
-        const transaction = await aptos.transaction.build.multiAgent({
+        const transaction = await cedra.transaction.build.multiAgent({
           sender: legacyED25519SenderAccount.accountAddress,
           secondarySignerAddresses: [secondarySignerAccount.accountAddress],
           data: {
@@ -575,21 +575,21 @@ describe("transaction submission", () => {
           withFeePayer: true,
         });
 
-        const senderAuthenticator = aptos.transaction.sign({ signer: legacyED25519SenderAccount, transaction });
-        const secondarySignerAuthenticator = aptos.transaction.sign({ signer: secondarySignerAccount, transaction });
-        const feePayerSignerAuthenticator = aptos.transaction.signAsFeePayer({
+        const senderAuthenticator = cedra.transaction.sign({ signer: legacyED25519SenderAccount, transaction });
+        const secondarySignerAuthenticator = cedra.transaction.sign({ signer: secondarySignerAccount, transaction });
+        const feePayerSignerAuthenticator = cedra.transaction.signAsFeePayer({
           signer: feePayerAccount,
           transaction,
         });
 
-        const response = await aptos.transaction.submit.multiAgent({
+        const response = await cedra.transaction.submit.multiAgent({
           transaction,
           senderAuthenticator,
           additionalSignersAuthenticators: [secondarySignerAuthenticator],
           feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
-        await aptos.waitForTransaction({
+        await cedra.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
@@ -612,9 +612,9 @@ describe("transaction submission", () => {
         signers: [singleSignerED25519SenderAccount, singleSignerSecp256k1Account],
       });
 
-      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
+      await cedra.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
 
-      const transaction = await aptos.transaction.build.simple({
+      const transaction = await cedra.transaction.build.simple({
         sender: account.accountAddress,
         data: {
           function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
@@ -622,10 +622,10 @@ describe("transaction submission", () => {
         },
       });
 
-      const senderAuthenticator = aptos.transaction.sign({ signer: account, transaction });
+      const senderAuthenticator = cedra.transaction.sign({ signer: account, transaction });
 
-      const response = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
-      await aptos.waitForTransaction({
+      const response = await cedra.transaction.submit.simple({ transaction, senderAuthenticator });
+      await cedra.waitForTransaction({
         transactionHash: response.hash,
       });
       expect(response.signature?.type).toBe("single_sender");
@@ -647,9 +647,9 @@ describe("transaction submission", () => {
         signers: [singleSignerSecp256k1Account, singleSignerED25519SenderAccount],
       });
 
-      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
+      await cedra.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
 
-      const transaction = await aptos.transaction.build.simple({
+      const transaction = await cedra.transaction.build.simple({
         sender: account.accountAddress,
         data: {
           function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
@@ -657,10 +657,10 @@ describe("transaction submission", () => {
         },
       });
 
-      const senderAuthenticator = aptos.transaction.sign({ signer: account, transaction });
+      const senderAuthenticator = cedra.transaction.sign({ signer: account, transaction });
 
-      const response = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
-      await aptos.waitForTransaction({
+      const response = await cedra.transaction.submit.simple({ transaction, senderAuthenticator });
+      await cedra.waitForTransaction({
         transactionHash: response.hash,
       });
       expect(response.signature?.type).toBe("single_sender");
@@ -693,9 +693,9 @@ describe("transaction submission", () => {
         signers: [ed25519PrivateKey1, ed25519PrivateKey3],
       });
 
-      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
+      await cedra.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
 
-      const transaction = await aptos.transaction.build.simple({
+      const transaction = await cedra.transaction.build.simple({
         sender: account.accountAddress,
         data: {
           function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
@@ -703,10 +703,10 @@ describe("transaction submission", () => {
         },
       });
 
-      const senderAuthenticator = aptos.transaction.sign({ signer: account, transaction });
+      const senderAuthenticator = cedra.transaction.sign({ signer: account, transaction });
 
-      const response = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
-      await aptos.waitForTransaction({
+      const response = await cedra.transaction.submit.simple({ transaction, senderAuthenticator });
+      await cedra.waitForTransaction({
         transactionHash: response.hash,
       });
       expect(response.signature?.type).toBe("multi_ed25519_signature");
@@ -719,9 +719,9 @@ describe("transaction submission", () => {
         signers: [ed25519PrivateKey3, ed25519PrivateKey1],
       });
 
-      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
+      await cedra.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
 
-      const transaction = await aptos.transaction.build.simple({
+      const transaction = await cedra.transaction.build.simple({
         sender: account.accountAddress,
         data: {
           function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
@@ -729,10 +729,10 @@ describe("transaction submission", () => {
         },
       });
 
-      const senderAuthenticator = aptos.transaction.sign({ signer: account, transaction });
+      const senderAuthenticator = cedra.transaction.sign({ signer: account, transaction });
 
-      const response = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
-      await aptos.waitForTransaction({
+      const response = await cedra.transaction.submit.simple({ transaction, senderAuthenticator });
+      await cedra.waitForTransaction({
         transactionHash: response.hash,
       });
       expect(response.signature?.type).toBe("multi_ed25519_signature");
@@ -746,11 +746,11 @@ describe("transaction submission", () => {
     // eslint-disable-next-line max-len
     const byteCode = `a11ceb0b060000000801000602060a031022043208053a4e0788015208da01400c9a024c000001010102020404010001010508000000000100000302010002060506010002070701010002080901010002090a060100020403040404050403060c03050007060c060c0303050503010b0001080101080102060c03010b0001090002050b00010900030b000108010b000108010b0001080102070b000109000b0001090002070b0001090003087472616e736665720a6170746f735f636f696e04636f696e0a74776f5f62795f74776f04436f696e094170746f73436f696e087769746864726177076465706f736974056d657267650765787472616374${account.accountAddress.toStringWithoutPrefix()}00000000000000000000000000000000000000000000000000000000000000010001040003080b000b0138000c030b020b0338010201010400081a0b000a0238000c070b010a0338000c080d070b0838020d070b020b03160b061738030c090b040b0738010b050b0938010200`;
     beforeAll(async () => {
-      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
+      await cedra.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
     });
 
     test("it generates a publish move module transaction successfully", async () => {
-      const transaction = await aptos.publishPackageTransaction({
+      const transaction = await cedra.publishPackageTransaction({
         account: account.accountAddress,
         // eslint-disable-next-line max-len
         metadataBytes,
@@ -764,26 +764,26 @@ describe("transaction submission", () => {
     });
 
     test("it submits a publish move module transaction successfully", async () => {
-      const transaction = await aptos.publishPackageTransaction({
+      const transaction = await cedra.publishPackageTransaction({
         account: account.accountAddress,
         // eslint-disable-next-line max-len
         metadataBytes,
         moduleBytecode: [byteCode],
       });
-      const response = await aptos.signAndSubmitTransaction({
+      const response = await cedra.signAndSubmitTransaction({
         signer: account,
         transaction,
       });
-      await aptos.waitForTransaction({
+      await cedra.waitForTransaction({
         transactionHash: response.hash,
       });
-      const accountModules = await aptos.getAccountModules({ accountAddress: account.accountAddress });
+      const accountModules = await cedra.getAccountModules({ accountAddress: account.accountAddress });
       expect(accountModules[0].bytecode).toEqual(`0x${byteCode}`);
     });
   });
   describe("validate fee payer data on transaction submission", () => {
     test("it throws when trying to simluate a fee payer transaction without the feePayerAuthenticator", async () => {
-      const transaction = await aptos.transaction.build.simple({
+      const transaction = await cedra.transaction.build.simple({
         sender: legacyED25519SenderAccount.accountAddress,
         data: {
           function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
@@ -791,10 +791,10 @@ describe("transaction submission", () => {
         },
         withFeePayer: true,
       });
-      const senderAuthenticator = aptos.transaction.sign({ signer: legacyED25519SenderAccount, transaction });
+      const senderAuthenticator = cedra.transaction.sign({ signer: legacyED25519SenderAccount, transaction });
 
       await expect(
-        aptos.transaction.submit.simple({
+        cedra.transaction.submit.simple({
           transaction,
           senderAuthenticator,
         }),
@@ -802,7 +802,7 @@ describe("transaction submission", () => {
     });
 
     test("it throws when trying to simluate a multi agent fee payer transaction without the feePayerPublicKey", async () => {
-      const transaction = await aptos.transaction.build.multiAgent({
+      const transaction = await cedra.transaction.build.multiAgent({
         sender: legacyED25519SenderAccount.accountAddress,
         secondarySignerAddresses: [secondarySignerAccount.accountAddress],
         data: {
@@ -811,11 +811,11 @@ describe("transaction submission", () => {
         },
         withFeePayer: true,
       });
-      const senderAuthenticator = aptos.transaction.sign({ signer: legacyED25519SenderAccount, transaction });
-      const secondarySignerAuthenticator = aptos.transaction.sign({ signer: secondarySignerAccount, transaction });
+      const senderAuthenticator = cedra.transaction.sign({ signer: legacyED25519SenderAccount, transaction });
+      const secondarySignerAuthenticator = cedra.transaction.sign({ signer: secondarySignerAccount, transaction });
 
       await expect(
-        aptos.transaction.submit.multiAgent({
+        cedra.transaction.submit.multiAgent({
           transaction,
           senderAuthenticator,
           additionalSignersAuthenticators: [secondarySignerAuthenticator],
@@ -826,10 +826,10 @@ describe("transaction submission", () => {
   describe("sponsor transactions", () => {
     // TODO add local move entry function to support this test
     const createTransaction = async (uncreatedAccount: Account) =>
-      aptos.transaction.build.simple({
+      cedra.transaction.build.simple({
         sender: uncreatedAccount.accountAddress,
         data: {
-          function: "0x4::aptos_token::create_collection",
+          function: "0x4::cedra_token::create_collection",
           functionArguments: [
             // Do not change the order
             new MoveString("args.description"),
@@ -857,19 +857,19 @@ describe("transaction submission", () => {
 
       const transaction = await createTransaction(uncreatedAccount);
 
-      const response = await aptos.signAndSubmitTransaction({
+      const response = await cedra.signAndSubmitTransaction({
         signer: uncreatedAccount,
         feePayer: feePayerAccount,
         transaction,
       });
 
-      await aptos.waitForTransaction({
+      await cedra.waitForTransaction({
         transactionHash: response.hash,
       });
       // expect transaction is a sponsored transaction
       expect(response.signature?.type).toBe("fee_payer_signature");
 
-      const uncreatedAccountInfo = await aptos.account.getAccountInfo({
+      const uncreatedAccountInfo = await cedra.account.getAccountInfo({
         accountAddress: uncreatedAccount.accountAddress,
       });
       // expect uncreatedAccount' created on chain and sequence number is 1 since there was a transaction
@@ -881,21 +881,21 @@ describe("transaction submission", () => {
 
       const transaction = await createTransaction(uncreatedAccount);
 
-      const senderAuthenticator = aptos.transaction.sign({ signer: uncreatedAccount, transaction });
+      const senderAuthenticator = cedra.transaction.sign({ signer: uncreatedAccount, transaction });
 
-      const response = await aptos.signAndSubmitAsFeePayer({
+      const response = await cedra.signAndSubmitAsFeePayer({
         transaction,
         senderAuthenticator,
         feePayer: feePayerAccount,
       });
 
-      await aptos.waitForTransaction({
+      await cedra.waitForTransaction({
         transactionHash: response.hash,
       });
       // expect transaction is a sponsored transaction
       expect(response.signature?.type).toBe("fee_payer_signature");
 
-      const uncreatedAccountInfo = await aptos.account.getAccountInfo({
+      const uncreatedAccountInfo = await cedra.account.getAccountInfo({
         accountAddress: uncreatedAccount.accountAddress,
       });
       // expect uncreatedAccount' created on chain and sequence number is 1 since there was a transaction
@@ -907,23 +907,23 @@ describe("transaction submission", () => {
 
       const transaction = await createTransaction(uncreatedAccount);
 
-      const feePayerSignerAuthenticator = aptos.transaction.signAsFeePayer({
+      const feePayerSignerAuthenticator = cedra.transaction.signAsFeePayer({
         signer: feePayerAccount,
         transaction,
       });
-      const response = await aptos.signAndSubmitTransaction({
+      const response = await cedra.signAndSubmitTransaction({
         transaction,
         signer: uncreatedAccount,
         feePayerAuthenticator: feePayerSignerAuthenticator,
       });
 
-      await aptos.waitForTransaction({
+      await cedra.waitForTransaction({
         transactionHash: response.hash,
       });
       // expect transaction is a sponsored transaction
       expect(response.signature?.type).toBe("fee_payer_signature");
 
-      const uncreatedAccountInfo = await aptos.account.getAccountInfo({
+      const uncreatedAccountInfo = await cedra.account.getAccountInfo({
         accountAddress: uncreatedAccount.accountAddress,
       });
       // expect uncreatedAccount' created on chain and sequence number is 1 since there was a transaction
@@ -933,18 +933,18 @@ describe("transaction submission", () => {
 
   describe("transactions with loose types for SDK v1 compatibility", () => {
     it("submits transactions with loose types successfully", async () => {
-      const transaction = await aptos.transaction.build.simple({
+      const transaction = await cedra.transaction.build.simple({
         sender: singleSignerED25519SenderAccount.accountAddress,
         data: {
           function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
           functionArguments: ["1", receiverAccounts[0].accountAddress],
         },
       });
-      const response = await aptos.signAndSubmitTransaction({
+      const response = await cedra.signAndSubmitTransaction({
         signer: singleSignerED25519SenderAccount,
         transaction,
       });
-      const submittedTransaction = await aptos.waitForTransaction({
+      const submittedTransaction = await cedra.waitForTransaction({
         transactionHash: response.hash,
       });
 
@@ -954,7 +954,7 @@ describe("transaction submission", () => {
 
   describe("transactions with no account authenticator", () => {
     test("it fails to submit a transaction when authenticator in not provided", async () => {
-      const transaction = await aptos.transaction.build.simple({
+      const transaction = await cedra.transaction.build.simple({
         sender: singleSignerED25519SenderAccount.accountAddress,
         data: {
           bytecode: singleSignerScriptBytecode,
@@ -963,11 +963,11 @@ describe("transaction submission", () => {
       });
       const authenticator = new AccountAuthenticatorNoAccountAuthenticator();
       try {
-        const response = await aptos.transaction.submit.simple({
+        const response = await cedra.transaction.submit.simple({
           transaction,
           senderAuthenticator: authenticator,
         });
-        await aptos.waitForTransaction({
+        await cedra.waitForTransaction({
           transactionHash: response.hash,
         });
         fail("Expected an error to be thrown");

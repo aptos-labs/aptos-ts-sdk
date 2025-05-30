@@ -11,22 +11,22 @@ import {
   TypeTagAddress,
 } from "../../../src";
 import { longTestTimeout } from "../../unit/helper";
-import { getAptosClient } from "../helper";
+import { getCedraClient } from "../helper";
 import { fundAccounts, singleSignerScriptBytecode } from "./helper";
 
 describe("generate transaction", () => {
-  const { aptos } = getAptosClient();
+  const { cedra } = getCedraClient();
   const senderAccount = Account.generate();
   const recieverAccounts = [Account.generate(), Account.generate()];
   const secondarySignerAccount = Account.generate();
   const feePayerAccount = Account.generate();
   beforeAll(async () => {
-    await fundAccounts(aptos, [senderAccount, ...recieverAccounts, secondarySignerAccount, feePayerAccount]);
+    await fundAccounts(cedra, [senderAccount, ...recieverAccounts, secondarySignerAccount, feePayerAccount]);
   }, longTestTimeout);
 
   describe("single signer transaction", () => {
     test("with script payload", async () => {
-      const transaction = await aptos.transaction.build.simple({
+      const transaction = await cedra.transaction.build.simple({
         sender: senderAccount.accountAddress,
         data: {
           bytecode: singleSignerScriptBytecode,
@@ -40,11 +40,11 @@ describe("generate transaction", () => {
       expect(deserializedTransaction.payload instanceof TransactionPayloadScript).toBeTruthy();
     });
     test("with multi sig payload", async () => {
-      const transaction = await aptos.transaction.build.simple({
+      const transaction = await cedra.transaction.build.simple({
         sender: senderAccount.accountAddress,
         data: {
           multisigAddress: secondarySignerAccount.accountAddress,
-          function: "0x1::aptos_account::transfer",
+          function: "0x1::cedra_account::transfer",
           functionArguments: [recieverAccounts[0].accountAddress, 1],
         },
       });
@@ -56,10 +56,10 @@ describe("generate transaction", () => {
     });
 
     test("it generates an entry function transaction", async () => {
-      const transaction = await aptos.transaction.build.simple({
+      const transaction = await cedra.transaction.build.simple({
         sender: senderAccount.accountAddress,
         data: {
-          function: "0x1::aptos_account::transfer",
+          function: "0x1::cedra_account::transfer",
           functionArguments: [recieverAccounts[0].accountAddress, 1],
         },
       });
@@ -71,10 +71,10 @@ describe("generate transaction", () => {
     });
 
     test("it generates an entry function transaction with local ABI", async () => {
-      const transaction = await aptos.transaction.build.simple({
+      const transaction = await cedra.transaction.build.simple({
         sender: senderAccount.accountAddress,
         data: {
-          function: "0x1::aptos_account::transfer",
+          function: "0x1::cedra_account::transfer",
           functionArguments: [recieverAccounts[0].accountAddress, 1],
           abi: {
             typeParameters: [],
@@ -92,7 +92,7 @@ describe("generate transaction", () => {
 
   describe("multi agent transaction", () => {
     test("with script payload", async () => {
-      const transaction = await aptos.transaction.build.multiAgent({
+      const transaction = await cedra.transaction.build.multiAgent({
         sender: senderAccount.accountAddress,
         secondarySignerAddresses: [secondarySignerAccount.accountAddress],
         data: {
@@ -109,11 +109,11 @@ describe("generate transaction", () => {
     });
 
     test("with entry function transaction", async () => {
-      const transaction = await aptos.transaction.build.multiAgent({
+      const transaction = await cedra.transaction.build.multiAgent({
         sender: senderAccount.accountAddress,
         secondarySignerAddresses: [secondarySignerAccount.accountAddress],
         data: {
-          function: "0x1::aptos_account::transfer",
+          function: "0x1::cedra_account::transfer",
           functionArguments: [recieverAccounts[0].accountAddress, 1],
         },
       });
@@ -128,7 +128,7 @@ describe("generate transaction", () => {
 
   describe("fee payer transaction", () => {
     test("with script payload", async () => {
-      const transaction = await aptos.transaction.build.simple({
+      const transaction = await cedra.transaction.build.simple({
         sender: senderAccount.accountAddress,
         data: {
           bytecode: singleSignerScriptBytecode,
@@ -146,11 +146,11 @@ describe("generate transaction", () => {
     });
 
     test("with multi sig payload", async () => {
-      const transaction = await aptos.transaction.build.simple({
+      const transaction = await cedra.transaction.build.simple({
         sender: senderAccount.accountAddress,
         data: {
           multisigAddress: secondarySignerAccount.accountAddress,
-          function: "0x1::aptos_account::transfer",
+          function: "0x1::cedra_account::transfer",
           functionArguments: [recieverAccounts[0].accountAddress, 1],
         },
         withFeePayer: true,
@@ -165,10 +165,10 @@ describe("generate transaction", () => {
     });
 
     test("with entry function transaction", async () => {
-      const transaction = await aptos.transaction.build.simple({
+      const transaction = await cedra.transaction.build.simple({
         sender: senderAccount.accountAddress,
         data: {
-          function: "0x1::aptos_account::transfer",
+          function: "0x1::cedra_account::transfer",
           functionArguments: [recieverAccounts[0].accountAddress, 1],
         },
         withFeePayer: true,
@@ -183,11 +183,11 @@ describe("generate transaction", () => {
     });
 
     test("as a multi agent", async () => {
-      const transaction = await aptos.transaction.build.multiAgent({
+      const transaction = await cedra.transaction.build.multiAgent({
         sender: senderAccount.accountAddress,
         secondarySignerAddresses: [secondarySignerAccount.accountAddress],
         data: {
-          function: "0x1::aptos_account::transfer",
+          function: "0x1::cedra_account::transfer",
           functionArguments: [recieverAccounts[0].accountAddress, 1],
         },
         withFeePayer: true,

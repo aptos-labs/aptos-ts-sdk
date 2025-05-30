@@ -72,7 +72,7 @@ export class ConfidentialNormalization {
     });
   }
 
-  static FIAT_SHAMIR_SIGMA_DST = "AptosConfidentialAsset/NormalizationProofFiatShamir";
+  static FIAT_SHAMIR_SIGMA_DST = "CedraConfidentialAsset/NormalizationProofFiatShamir";
 
   static serializeSigmaProof(sigmaProof: ConfidentialNormalizationSigmaProof): Uint8Array {
     return concatBytes(

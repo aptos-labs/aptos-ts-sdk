@@ -1,24 +1,24 @@
 ---
 id: contributing
-title: Contributing to the Aptos TypeScript SDK
+title: Contributing to the Cedra TypeScript SDK
 ---
 
 # Contributing
 
-Our goal is to make contributing to Aptos TypeScript SDK easy and transparent. See [Aptos Community](https://aptos.dev/community)
+Our goal is to make contributing to Cedra TypeScript SDK easy and transparent. See [Cedra Community](https://cedra.dev/community)
 for full details. This page describes [our development process](#our-development-process).
 
-## Aptos SDK
+## Cedra SDK
 
-To contribute to the Aptos SDK implementation, first fork the [aptos-ts-sdk](https://github.com/aptos-labs/aptos-ts-sdk)
+To contribute to the Cedra SDK implementation, first fork the [cedra-ts-sdk](https://github.com/cedra-labs/cedra-ts-sdk)
 repository. For more information on how to fork see the [GitHub documentation](https://docs.github.com/en/get-started/quickstart/fork-a-repo).
 
 ## Our Development Process
 
 ### Documentation
 
-Aptos's developer website is also open source (the code can be found in this
-[repository](https://github.com/aptos-labs/aptos-core/tree/main/developers-docs-site/). It is built using
+Cedra's developer website is also open source (the code can be found in this
+[repository](https://github.com/cedra-labs/cedra-core/tree/main/developers-docs-site/). It is built using
 [Docusaurus](https://docusaurus.io/):
 
 If you know Markdown, you can already contribute!
@@ -127,7 +127,7 @@ and every commit is able to be built and passes all checks performed by CI.
 
 ## Issues
 
-The Aptos SDK uses [GitHub issues](https://github.com/aptos-labs/aptos-ts-sdk/issues) to track bugs. Please include
+The Cedra SDK uses [GitHub issues](https://github.com/cedra-labs/cedra-ts-sdk/issues) to track bugs. Please include
 necessary information and instructions to reproduce your issue.
 
 ## Releasing a new version
@@ -155,7 +155,7 @@ After you pulled latest main, it is recommended to first do a dry-run to make su
 npm publish --dry-run
 ```
 
-This command gives us a preview of what we will be releasing to NPM, make sure it does not include hidden files or anything we dont want to publish. Also, compare the package size and the total files with what is on [npm](https://www.npmjs.com/package/@aptos-labs/ts-sdk) and validate it is reasonable.
+This command gives us a preview of what we will be releasing to NPM, make sure it does not include hidden files or anything we dont want to publish. Also, compare the package size and the total files with what is on [npm](https://www.npmjs.com/package/@cedra-labs/ts-sdk) and validate it is reasonable.
 
 Then, when we are ready to publish to NPM, simply run:
 

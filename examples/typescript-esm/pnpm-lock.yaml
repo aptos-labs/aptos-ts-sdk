@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
-  '@aptos-labs/ts-sdk':
+  '@cedra-labs/ts-sdk':
     specifier: link:../..
     version: link:../..
   '@noble/hashes':

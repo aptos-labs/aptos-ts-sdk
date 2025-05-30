@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -709,14 +709,14 @@ export class StructTag extends Serializable {
 }
 
 /**
- * Retrieves the StructTag for the AptosCoin, which represents the Aptos Coin in the Aptos blockchain.
+ * Retrieves the StructTag for the CedraCoin, which represents the Cedra Coin in the Cedra blockchain.
  *
- * @returns {StructTag} The StructTag for the AptosCoin.
+ * @returns {StructTag} The StructTag for the CedraCoin.
  * @group Implementation
  * @category Transactions
  */
-export function aptosCoinStructTag(): StructTag {
-  return new StructTag(AccountAddress.ONE, new Identifier("aptos_coin"), new Identifier("AptosCoin"), []);
+export function cedraCoinStructTag(): StructTag {
+  return new StructTag(AccountAddress.ONE, new Identifier("cedra_coin"), new Identifier("CedraCoin"), []);
 }
 
 /**

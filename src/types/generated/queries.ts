@@ -22,7 +22,7 @@ export const TokenActivitiesFieldsFragmentDoc = `
 }
     `;
 export const AnsTokenFragmentFragmentDoc = `
-    fragment AnsTokenFragment on current_aptos_names {
+    fragment AnsTokenFragment on current_cedra_names {
   domain
   expiration_timestamp
   registered_address
@@ -358,8 +358,8 @@ export const GetFungibleAssetMetadata = `
 }
     `;
 export const GetNames = `
-    query getNames($offset: Int, $limit: Int, $where_condition: current_aptos_names_bool_exp, $order_by: [current_aptos_names_order_by!]) {
-  current_aptos_names(
+    query getNames($offset: Int, $limit: Int, $where_condition: current_cedra_names_bool_exp, $order_by: [current_cedra_names_order_by!]) {
+  current_cedra_names(
     limit: $limit
     where: $where_condition
     order_by: $order_by

@@ -16,7 +16,7 @@
     "strictNullChecks": true,
     "noEmit": true,
     "paths": {
-      "@aptos/*": ["../.."]
+      "@cedra/*": ["../.."]
     }
   },
   "include": ["./*.ts"],

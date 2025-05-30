@@ -25,17 +25,17 @@
  * @category Transactions
  */
 
-import { AptosConfig } from "../../api/aptosConfig";
+import { CedraConfig } from "../../api/cedraConfig";
 import { Account } from "../../account";
 import { getInfo } from "../../internal/account";
 import { nowInSeconds, sleep } from "../../utils/helpers";
 
 /**
- * Represents an account's sequence number management for transaction handling on the Aptos blockchain.
+ * Represents an account's sequence number management for transaction handling on the Cedra blockchain.
  * This class provides methods to retrieve the next available sequence number, synchronize with the on-chain sequence number,
  * and manage local sequence numbers while ensuring thread safety.
  *
- * @param aptosConfig - The configuration settings for Aptos.
+ * @param cedraConfig - The configuration settings for Cedra.
  * @param account - The account associated with the sequence number.
  * @param maxWaitTime - The maximum time to wait for a transaction to commit.
  * @param maximumInFlight - The maximum number of transactions that can be in flight at once.
@@ -44,7 +44,7 @@ import { nowInSeconds, sleep } from "../../utils/helpers";
  * @category Transactions
  */
 export class AccountSequenceNumber {
-  readonly aptosConfig: AptosConfig;
+  readonly cedraConfig: CedraConfig;
 
   readonly account: Account;
 
@@ -78,10 +78,10 @@ export class AccountSequenceNumber {
 
   /**
    * Creates an instance of the class with the specified configuration and account details.
-   * This constructor initializes the necessary parameters for managing Aptos transactions.
+   * This constructor initializes the necessary parameters for managing Cedra transactions.
    *
-   * @param aptosConfig - The configuration settings for Aptos.
-   * @param account - The account associated with the Aptos transactions.
+   * @param cedraConfig - The configuration settings for Cedra.
+   * @param account - The account associated with the Cedra transactions.
    * @param maxWaitTime - The maximum time to wait for a transaction to be processed, in milliseconds.
    * @param maximumInFlight - The maximum number of transactions that can be in flight at the same time.
    * @param sleepTime - The time to sleep between transaction checks, in milliseconds.
@@ -89,13 +89,13 @@ export class AccountSequenceNumber {
    * @category Transactions
    */
   constructor(
-    aptosConfig: AptosConfig,
+    cedraConfig: CedraConfig,
     account: Account,
     maxWaitTime: number,
     maximumInFlight: number,
     sleepTime: number,
   ) {
-    this.aptosConfig = aptosConfig;
+    this.cedraConfig = cedraConfig;
     this.account = account;
     this.maxWaitTime = maxWaitTime;
     this.maximumInFlight = maximumInFlight;
@@ -161,7 +161,7 @@ export class AccountSequenceNumber {
    */
   async initialize(): Promise<void> {
     const { sequence_number: sequenceNumber } = await getInfo({
-      aptosConfig: this.aptosConfig,
+      cedraConfig: this.cedraConfig,
       accountAddress: this.account.accountAddress,
     });
     this.currentNumber = BigInt(sequenceNumber);
@@ -177,7 +177,7 @@ export class AccountSequenceNumber {
    */
   async update(): Promise<bigint> {
     const { sequence_number: sequenceNumber } = await getInfo({
-      aptosConfig: this.aptosConfig,
+      cedraConfig: this.cedraConfig,
       accountAddress: this.account.accountAddress,
     });
     this.lastUncommintedNumber = BigInt(sequenceNumber);

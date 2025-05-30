@@ -1,4 +1,4 @@
-import { AptosConfig } from "../api/aptosConfig";
+import { CedraConfig } from "../api/cedraConfig";
 import { AccountAddressInput } from "../core";
 import { EntryFunctionABI, InputGenerateTransactionOptions } from "../transactions/types";
 import { AnyNumber, MoveStructId } from "../types";
@@ -17,29 +17,29 @@ const coinTransferAbi: EntryFunctionABI = {
  * This function allows you to specify the sender, recipient, amount, and coin type for the transaction.
  *
  * @param args - The parameters for the transaction.
- * @param args.aptosConfig - The Aptos configuration object.
+ * @param args.cedraConfig - The Cedra configuration object.
  * @param args.sender - The address of the account sending the coins.
  * @param args.recipient - The address of the account receiving the coins.
  * @param args.amount - The amount of coins to transfer.
- * @param args.coinType - (Optional) The type of coin to transfer, defaults to Aptos Coin if not specified.
+ * @param args.coinType - (Optional) The type of coin to transfer, defaults to Cedra Coin if not specified.
  * @param args.options - (Optional) Options for generating the transaction.
  * @group Implementation
  */
 export async function transferCoinTransaction(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   sender: AccountAddressInput;
   recipient: AccountAddressInput;
   amount: AnyNumber;
   coinType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, sender, recipient, amount, coinType, options } = args;
+  const { cedraConfig, sender, recipient, amount, coinType, options } = args;
   const coinStructType = coinType ?? APTOS_COIN;
   return generateTransaction({
-    aptosConfig,
+    cedraConfig,
     sender,
     data: {
-      function: "0x1::aptos_account::transfer_coins",
+      function: "0x1::cedra_account::transfer_coins",
       typeArguments: [coinStructType],
       functionArguments: [recipient, amount],
       abi: coinTransferAbi,

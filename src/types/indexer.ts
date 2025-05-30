@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 /**
@@ -187,11 +187,11 @@ export type GetTableItemsDataResponse = GetTableItemsDataQuery["table_items"];
 export type GetTableItemsMetadataResponse = GetTableItemsMetadataQuery["table_metadatas"];
 
 /**
- * The response containing the current Aptos names from the GetNamesQuery.
+ * The response containing the current Cedra names from the GetNamesQuery.
  * @group Implementation
  * @category Types
  */
-export type GetANSNameResponse = GetNamesQuery["current_aptos_names"];
+export type GetANSNameResponse = GetNamesQuery["current_cedra_names"];
 
 /**
  * A generic type that being passed by each function and holds an

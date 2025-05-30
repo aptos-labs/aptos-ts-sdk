@@ -2,10 +2,10 @@
 /* eslint-disable no-console */
 
 /**
- * This example shows how to use the Keyless accounts on Aptos
+ * This example shows how to use the Keyless accounts on Cedra
  */
 
-import { AccountAddress, Aptos, AptosConfig, EphemeralKeyPair, Network } from "@aptos-labs/ts-sdk";
+import { AccountAddress, Cedra, CedraConfig, EphemeralKeyPair, Network } from "@cedra-labs/ts-sdk";
 import * as readlineSync from "readline-sync";
 
 const TRANSFER_AMOUNT = 10; // octas
@@ -14,20 +14,20 @@ const GAS_UNIT_PRICE = 100; // octas / gas unit
 
 /**
  * Prints the balance of an account
- * @param aptos
+ * @param cedra
  * @param address
  * @returns {Promise<*>}
  *
  */
-const balance = async (aptos: Aptos, address: AccountAddress): Promise<any> =>
-  aptos.getAccountAPTAmount({
+const balance = async (cedra: Cedra, address: AccountAddress): Promise<any> =>
+  cedra.getAccountAPTAmount({
     accountAddress: address,
   });
 
 const example = async () => {
   // Set up the client
-  const config = new AptosConfig({ network: Network.MAINNET });
-  const aptos = new Aptos(config);
+  const config = new CedraConfig({ network: Network.MAINNET });
+  const cedra = new Cedra(config);
 
   // Generate the ephemeral (temporary) key pair that will be used to sign transactions.
   const aliceEphem = EphemeralKeyPair.generate();
@@ -50,7 +50,7 @@ const example = async () => {
 
   const jwt = inputJwt();
   // Derive the Keyless Account from the JWT and ephemeral key pair.
-  const alice = await aptos.deriveKeylessAccount({
+  const alice = await cedra.deriveKeylessAccount({
     jwt,
     ephemeralKeyPair: aliceEphem,
   });
@@ -63,8 +63,8 @@ const example = async () => {
   // Example:
   // Funded 0x3e42a237d4e6a504d1ce00fb12446be69cff8910e9e226e892558c094353c7dd with 0.03 APT and balance was 3,000,000
   // After the transfer(-to-self) of 10 octas with max gas 200 (gas units), the balance was 2,996,000 because TXN took 40 gas units of 100 octas each => 4,000 octas
-  // https://explorer.aptoslabs.com/txn/0x52f6f117baa09b4afd50e3a1a77e89191a07bbf96ba7402211330eb510c62e72/userTxnOverview?network=mainnet
-  let aliceBalance = await balance(aptos, alice.accountAddress);
+  // https://explorer.cedralabs.com/txn/0x52f6f117baa09b4afd50e3a1a77e89191a07bbf96ba7402211330eb510c62e72/userTxnOverview?network=mainnet
+  let aliceBalance = await balance(cedra, alice.accountAddress);
   const minBalance = MAX_GAS_UNITS * GAS_UNIT_PRICE + TRANSFER_AMOUNT;
   while (aliceBalance < minBalance) {
     console.log("\n=== Fund the account ===\n");
@@ -78,7 +78,7 @@ const example = async () => {
     try {
       console.log("Refetching balance...\n");
       // eslint-disable-next-line no-await-in-loop
-      aliceBalance = await balance(aptos, alice.accountAddress);
+      aliceBalance = await balance(cedra, alice.accountAddress);
     } catch (error) {
       console.log(`Error fetching balance: ${error}\n`);
     }
@@ -87,7 +87,7 @@ const example = async () => {
   console.log(`Alice's balance is: ${aliceBalance}`);
 
   // Transfer to yourself to not waste APT
-  const transaction = await aptos.transferCoinTransaction({
+  const transaction = await cedra.transferCoinTransaction({
     sender: alice.accountAddress,
     recipient: alice.accountAddress,
     amount: TRANSFER_AMOUNT,
@@ -97,13 +97,13 @@ const example = async () => {
     },
   });
 
-  const committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
+  const committedTxn = await cedra.signAndSubmitTransaction({ signer: alice, transaction });
 
-  await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
+  await cedra.waitForTransaction({ transactionHash: committedTxn.hash });
   console.log(`Committed transaction: ${committedTxn.hash}`);
 
   console.log("\n=== Balances after transfer ===\n");
-  const newAliceBalance = await balance(aptos, alice.accountAddress);
+  const newAliceBalance = await balance(cedra, alice.accountAddress);
   console.log(`Alice's balance is: ${newAliceBalance}`);
   // Alice should have the remainder minus gas
   if (TRANSFER_AMOUNT >= aliceBalance - newAliceBalance) throw new Error("Alice's balance after transfer is incorrect");

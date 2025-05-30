@@ -1,50 +1,50 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { fundAccount } from "../internal/faucet";
 import { UserTransactionResponse, WaitForTransactionOptions } from "../types";
 import { AccountAddressInput } from "../core";
-import { AptosConfig } from "./aptosConfig";
+import { CedraConfig } from "./cedraConfig";
 import { waitForIndexer } from "../internal/transaction";
 import { ProcessorType } from "../utils";
 
 /**
- * A class to query all `Faucet` related queries on Aptos.
+ * A class to query all `Faucet` related queries on Cedra.
  * @group Faucet
  */
 export class Faucet {
   /**
-   * Initializes a new instance of the Aptos client with the specified configuration.
+   * Initializes a new instance of the Cedra client with the specified configuration.
    *
    * Note that only devnet has a publicly accessible faucet. For testnet, you must use
-   * the minting page at https://aptos.dev/network/faucet.
+   * the minting page at https://cedra.dev/network/faucet.
    *
-   * @param config - The configuration settings for the Aptos client.
+   * @param config - The configuration settings for the Cedra client.
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
    * async function runExample() {
-   *     // Create a configuration for the Aptos client
-   *     const config = new AptosConfig({ network: Network.DEVNET }); // specify your own network if needed
+   *     // Create a configuration for the Cedra client
+   *     const config = new CedraConfig({ network: Network.DEVNET }); // specify your own network if needed
    *
-   *     // Initialize the Aptos client with the configuration
-   *     const aptos = new Aptos(config);
+   *     // Initialize the Cedra client with the configuration
+   *     const cedra = new Cedra(config);
    *
-   *     console.log("Aptos client initialized:", aptos);
+   *     console.log("Cedra client initialized:", cedra);
    * }
    * runExample().catch(console.error);
    * ```
    * @group Faucet
    */
-  constructor(readonly config: AptosConfig) {}
+  constructor(readonly config: CedraConfig) {}
 
   /**
    * This function creates an account if it does not exist and mints the specified amount of coins into that account.
    *
    * Note that only devnet has a publicly accessible faucet. For testnet, you must use
-   * the minting page at https://aptos.dev/network/faucet.
+   * the minting page at https://cedra.dev/network/faucet.
    *
    * @param args - The arguments for funding the account.
    * @param args.accountAddress - The address of the account to fund.
@@ -54,14 +54,14 @@ export class Faucet {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.DEVNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.DEVNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Fund an account with a specified amount of tokens
-   *   const transaction = await aptos.fundAccount({
+   *   const transaction = await cedra.fundAccount({
    *     accountAddress: "0x1", // replace with your account address
    *     amount: 100,
    *   });
@@ -77,13 +77,13 @@ export class Faucet {
     amount: number;
     options?: WaitForTransactionOptions;
   }): Promise<UserTransactionResponse> {
-    const fundTxn = await fundAccount({ aptosConfig: this.config, ...args });
+    const fundTxn = await fundAccount({ cedraConfig: this.config, ...args });
 
     // If the user explicitly says to NOT wait by setting waitForIndexer to false, then we skip this.
     // But, by default we want to wait for the indexer.
     if (args.options?.waitForIndexer === undefined || args.options?.waitForIndexer) {
       await waitForIndexer({
-        aptosConfig: this.config,
+        cedraConfig: this.config,
         minimumLedgerVersion: BigInt(fundTxn.version),
         processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
       });

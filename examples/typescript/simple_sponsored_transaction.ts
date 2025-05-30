@@ -5,7 +5,7 @@
  * Example to submit a simple sponsored transaction where Alice transfers APT coin to Bob
  * with a sponsor account to pay for the gas fee
  */
-import { Account, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
+import { Account, Cedra, CedraConfig, Network, NetworkToNetworkName } from "@cedra-labs/ts-sdk";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -22,8 +22,8 @@ const example = async () => {
   );
 
   // Set up the client
-  const aptosConfig = new AptosConfig({ network: APTOS_NETWORK });
-  const aptos = new Aptos(aptosConfig);
+  const cedraConfig = new CedraConfig({ network: APTOS_NETWORK });
+  const cedra = new Cedra(cedraConfig);
 
   // Create three accounts
   const alice = Account.generate();
@@ -41,15 +41,15 @@ const example = async () => {
   console.log(`Sponsor's address is: ${sponsorAddress}`);
 
   // Fund Alice and sponsor accounts
-  await aptos.fundAccount({ accountAddress: aliceAddress, amount: ALICE_INITIAL_BALANCE });
-  await aptos.fundAccount({
+  await cedra.fundAccount({ accountAddress: aliceAddress, amount: ALICE_INITIAL_BALANCE });
+  await cedra.fundAccount({
     accountAddress: sponsorAddress,
     amount: SPONSOR_INITIAL_BALANCE,
   });
 
   // Show account balances
-  const aliceBalanceBefore = await aptos.getAccountCoinsData({ accountAddress: aliceAddress });
-  const sponsorBalanceBefore = await aptos.getAccountCoinsData({ accountAddress: sponsorAddress });
+  const aliceBalanceBefore = await cedra.getAccountCoinsData({ accountAddress: aliceAddress });
+  const sponsorBalanceBefore = await cedra.getAccountCoinsData({ accountAddress: sponsorAddress });
 
   console.log("\n=== Balances ===\n");
   console.log(`Alice's balance is: ${aliceBalanceBefore[0].amount}`);
@@ -62,20 +62,20 @@ const example = async () => {
   // Generate a fee payer (aka sponsor) transaction
   // with Alice as the sender and sponsor as the fee payer
   console.log("\n=== Submitting Transaction ===\n");
-  const transaction = await aptos.transaction.build.simple({
+  const transaction = await cedra.transaction.build.simple({
     sender: aliceAddress,
     withFeePayer: true,
     data: {
-      function: "0x1::aptos_account::transfer",
+      function: "0x1::cedra_account::transfer",
       functionArguments: [bob.accountAddress, TRANSFER_AMOUNT],
     },
   });
 
   // Sponsor signs
-  const sponsorSignature = aptos.transaction.signAsFeePayer({ signer: sponsor, transaction });
+  const sponsorSignature = cedra.transaction.signAsFeePayer({ signer: sponsor, transaction });
 
   // Submit the transaction to chain
-  const committedTxn = await aptos.signAndSubmitTransaction({
+  const committedTxn = await cedra.signAndSubmitTransaction({
     signer: alice,
     // TODO: This doesn't actually work here?
     feePayerAuthenticator: sponsorSignature,
@@ -83,15 +83,15 @@ const example = async () => {
   });
 
   console.log(`Submitted transaction: ${committedTxn.hash}`);
-  const response = await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
+  const response = await cedra.waitForTransaction({ transactionHash: committedTxn.hash });
 
   console.log("\n=== Balances after transfer ===\n");
-  const aliceBalanceAfter = await aptos.getAccountCoinsData({
+  const aliceBalanceAfter = await cedra.getAccountCoinsData({
     accountAddress: aliceAddress,
     minimumLedgerVersion: BigInt(response.version),
   });
-  const bobBalanceAfter = await aptos.getAccountCoinsData({ accountAddress: bobAddress });
-  const sponsorBalanceAfter = await aptos.getAccountCoinsData({ accountAddress: sponsorAddress });
+  const bobBalanceAfter = await cedra.getAccountCoinsData({ accountAddress: bobAddress });
+  const sponsorBalanceAfter = await cedra.getAccountCoinsData({ accountAddress: sponsorAddress });
 
   // Bob should have the transfer amount
   if (bobBalanceAfter[0].amount !== TRANSFER_AMOUNT) throw new Error("Bob's balance after transfer is incorrect");

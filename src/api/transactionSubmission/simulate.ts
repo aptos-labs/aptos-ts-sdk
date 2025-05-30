@@ -1,11 +1,11 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { PublicKey } from "../../core";
 import { simulateTransaction } from "../../internal/transactionSubmission";
 import { AnyRawTransaction, InputSimulateTransactionOptions } from "../../transactions";
 import { UserTransactionResponse } from "../../types";
-import { AptosConfig } from "../aptosConfig";
+import { CedraConfig } from "../cedraConfig";
 import { ValidateFeePayerDataOnSimulation } from "./helpers";
 
 /**
@@ -13,34 +13,34 @@ import { ValidateFeePayerDataOnSimulation } from "./helpers";
  * @group Implementation
  */
 export class Simulate {
-  readonly config: AptosConfig;
+  readonly config: CedraConfig;
 
   /**
-   * Initializes a new instance of the Aptos client with the specified configuration.
-   * This allows you to interact with the Aptos blockchain using the provided settings.
+   * Initializes a new instance of the Cedra client with the specified configuration.
+   * This allows you to interact with the Cedra blockchain using the provided settings.
    *
-   * @param config - The configuration settings for the Aptos client.
+   * @param config - The configuration settings for the Cedra client.
    * @param config.network - The network to connect to (e.g., TESTNET, MAINNET).
-   * @param config.nodeUrl - The URL of the Aptos node to connect to.
+   * @param config.nodeUrl - The URL of the Cedra node to connect to.
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
    * async function runExample() {
-   *     // Create a configuration for the Aptos client
-   *     const config = new AptosConfig({ network: Network.TESTNET }); // Specify your desired network
+   *     // Create a configuration for the Cedra client
+   *     const config = new CedraConfig({ network: Network.TESTNET }); // Specify your desired network
    *
-   *     // Initialize the Aptos client with the configuration
-   *     const aptos = new Aptos(config);
+   *     // Initialize the Cedra client with the configuration
+   *     const cedra = new Cedra(config);
    *
-   *     console.log("Aptos client initialized:", aptos);
+   *     console.log("Cedra client initialized:", cedra);
    * }
    * runExample().catch(console.error);
    * ```
    * @group Implementation
    */
-  constructor(config: AptosConfig) {
+  constructor(config: CedraConfig) {
     this.config = config;
   }
 
@@ -58,36 +58,36 @@ export class Simulate {
    * ```typescript
    * import {
    *     Account,
-   *     Aptos,
-   *     AptosConfig,
+   *     Cedra,
+   *     CedraConfig,
    *     Network,
-   * } from "@aptos-labs/ts-sdk";
+   * } from "@cedra-labs/ts-sdk";
    *
    * async function example() {
    *     let sender = Account.generate();
    *     let receiver = Account.generate();
    *
    *     // 0. Set up the client and test accounts
-   *     const config = new AptosConfig({ network: Network.DEVNET });
-   *     const aptos = new Aptos(config);
+   *     const config = new CedraConfig({ network: Network.DEVNET });
+   *     const cedra = new Cedra(config);
    *
-   *     await aptos.fundAccount({
+   *     await cedra.fundAccount({
    *         accountAddress: sender.accountAddress,
    *         amount: 100_000_000,
    *     });
    *
    *     // 1. Build the transaction to preview the impact of it
-   *     const transaction = await aptos.transaction.build.simple({
+   *     const transaction = await cedra.transaction.build.simple({
    *         sender: sender.accountAddress,
    *         data: {
-   *             // All transactions on Aptos are implemented via smart contracts.
-   *             function: "0x1::aptos_account::transfer",
+   *             // All transactions on Cedra are implemented via smart contracts.
+   *             function: "0x1::cedra_account::transfer",
    *             functionArguments: [receiver.accountAddress, 100],
    *         },
    *     });
    *
    *     // 2. Simulate to see what would happen if we execute this transaction
-   *     const [userTransactionResponse] = await aptos.transaction.simulate.simple({
+   *     const [userTransactionResponse] = await cedra.transaction.simulate.simple({
    *         signerPublicKey: sender.publicKey,
    *         transaction,
    *     });
@@ -108,11 +108,11 @@ export class Simulate {
     feePayerPublicKey?: PublicKey;
     options?: InputSimulateTransactionOptions;
   }): Promise<Array<UserTransactionResponse>> {
-    return simulateTransaction({ aptosConfig: this.config, ...args });
+    return simulateTransaction({ cedraConfig: this.config, ...args });
   }
 
   /**
-   * Simulates a multi-agent transaction by generating a signed transaction and posting it to the Aptos full node.
+   * Simulates a multi-agent transaction by generating a signed transaction and posting it to the Cedra full node.
    * This function helps in understanding the outcome of a transaction involving multiple signers before it is executed.
    *
    * @param args - The parameters for simulating the transaction.
@@ -127,10 +127,10 @@ export class Simulate {
    * ```typescript
    * import {
    *     Account,
-   *     Aptos,
-   *     AptosConfig,
+   *     Cedra,
+   *     CedraConfig,
    *     Network,
-   * } from "@aptos-labs/ts-sdk";
+   * } from "@cedra-labs/ts-sdk";
    *
    * async function example() {
    *     let sender1 = Account.generate();
@@ -138,17 +138,17 @@ export class Simulate {
    *     let receiver = Account.generate();
    *
    *     // 0. Set up the client and test accounts
-   *     const config = new AptosConfig({ network: Network.DEVNET });
-   *     const aptos = new Aptos(config);
+   *     const config = new CedraConfig({ network: Network.DEVNET });
+   *     const cedra = new Cedra(config);
    *
-   *     await aptos.fundAccount({
+   *     await cedra.fundAccount({
    *         accountAddress: sender.accountAddress,
    *         amount: 100_000_000,
    *     });
    *
    *     // 1. Build
    *     console.log("\n=== 1. Building the transaction ===\n");
-   *     const transaction = await aptos.transaction.build.multiAgent({
+   *     const transaction = await cedra.transaction.build.multiAgent({
    *     sender: sender1.accountAddress,
    *     secondarySignerAddresses: [sender2.accountAddress],
    *     data: {
@@ -162,7 +162,7 @@ export class Simulate {
    *
    *      // 2. Simulate (Optional)
    *      console.log("\n === 2. Simulating Response (Optional) === \n");
-   *      const [userTransactionResponse] = await aptos.transaction.simulate.multiAgent(
+   *      const [userTransactionResponse] = await cedra.transaction.simulate.multiAgent(
    *        {
    *          signerPublicKey: sender1.publicKey,
    *          secondarySignersPublicKeys: [sender2.publicKey],
@@ -187,6 +187,6 @@ export class Simulate {
     feePayerPublicKey?: PublicKey;
     options?: InputSimulateTransactionOptions;
   }): Promise<Array<UserTransactionResponse>> {
-    return simulateTransaction({ aptosConfig: this.config, ...args });
+    return simulateTransaction({ cedraConfig: this.config, ...args });
   }
 }

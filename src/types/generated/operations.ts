@@ -498,12 +498,12 @@ export type GetFungibleAssetMetadataQuery = {
 export type GetNamesQueryVariables = Types.Exact<{
   offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
   limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
-  where_condition?: Types.InputMaybe<Types.CurrentAptosNamesBoolExp>;
-  order_by?: Types.InputMaybe<Array<Types.CurrentAptosNamesOrderBy> | Types.CurrentAptosNamesOrderBy>;
+  where_condition?: Types.InputMaybe<Types.CurrentCedraNamesBoolExp>;
+  order_by?: Types.InputMaybe<Array<Types.CurrentCedraNamesOrderBy> | Types.CurrentCedraNamesOrderBy>;
 }>;
 
 export type GetNamesQuery = {
-  current_aptos_names: Array<{
+  current_cedra_names: Array<{
     domain?: string | null;
     expiration_timestamp?: any | null;
     registered_address?: string | null;

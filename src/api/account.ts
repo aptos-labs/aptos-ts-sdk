@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account as AccountModule } from "../account";
@@ -44,7 +44,7 @@ import {
   lookupOriginalAccountAddress,
 } from "../internal/account";
 import { APTOS_COIN, APTOS_FA, ProcessorType } from "../utils/const";
-import { AptosConfig } from "./aptosConfig";
+import { CedraConfig } from "./cedraConfig";
 import { waitForIndexerOnVersion } from "./utils";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 import { view } from "../internal/view";
@@ -53,53 +53,53 @@ import { memoizeAsync } from "../utils/memoize";
 import { AccountAbstraction } from "./account/abstraction";
 
 /**
- * A class to query all `Account` related queries on Aptos.
+ * A class to query all `Account` related queries on Cedra.
  * @group Account
  */
 export class Account {
   abstraction: AccountAbstraction;
 
   /**
-   * Creates an instance of the Aptos client with the provided configuration.
+   * Creates an instance of the Cedra client with the provided configuration.
    *
-   * @param config - The configuration settings for the Aptos client.
+   * @param config - The configuration settings for the Cedra client.
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
    * async function runExample() {
-   *     // Initialize the Aptos client with testnet configuration
-   *     const config = new AptosConfig({ network: Network.TESTNET }); // specify your own network if needed
-   *     const aptos = new Aptos(config);
+   *     // Initialize the Cedra client with testnet configuration
+   *     const config = new CedraConfig({ network: Network.TESTNET }); // specify your own network if needed
+   *     const cedra = new Cedra(config);
    *
-   *     console.log("Aptos client initialized:", aptos);
+   *     console.log("Cedra client initialized:", cedra);
    * }
    * runExample().catch(console.error);
    * ```
    * @group Account
    */
-  constructor(readonly config: AptosConfig) {
+  constructor(readonly config: CedraConfig) {
     this.abstraction = new AccountAbstraction(config);
   }
 
   /**
-   * Queries the current state for an Aptos account given its account address.
+   * Queries the current state for an Cedra account given its account address.
    *
    * @param args - The arguments for retrieving account information.
-   * @param args.accountAddress - The Aptos account address to query.
+   * @param args.accountAddress - The Cedra account address to query.
    * @returns The account data.
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *     // Retrieve account information for a specific address
-   *     const accountInfo = await aptos.getAccountInfo({ accountAddress: "0x1" }); // replace with a real account address
+   *     const accountInfo = await cedra.getAccountInfo({ accountAddress: "0x1" }); // replace with a real account address
    *     console.log(accountInfo);
    * }
    * runExample().catch(console.error);
@@ -107,14 +107,14 @@ export class Account {
    * @group Account
    */
   async getAccountInfo(args: { accountAddress: AccountAddressInput }): Promise<AccountData> {
-    return getInfo({ aptosConfig: this.config, ...args });
+    return getInfo({ cedraConfig: this.config, ...args });
   }
 
   /**
    * Queries for all modules in an account given an account address.
    * This function may call the API multiple times to auto paginate through results.
    *
-   * @param args.accountAddress - The Aptos account address to query modules for.
+   * @param args.accountAddress - The Cedra account address to query modules for.
    * @param args.options.limit - The maximum number of results to return.
    * @param args.options.ledgerVersion - The ledger version to query; if not provided, it retrieves the latest version.
    *
@@ -122,14 +122,14 @@ export class Account {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Fetching account modules for a specific account
-   *   const accountModules = await aptos.getAccountModules({
+   *   const accountModules = await cedra.getAccountModules({
    *     accountAddress: "0x1", // replace with a real account address
    *     options: {
    *       limit: 10, // limiting to 10 modules
@@ -146,13 +146,13 @@ export class Account {
     accountAddress: AccountAddressInput;
     options?: { limit?: number } & LedgerVersionArg;
   }): Promise<MoveModuleBytecode[]> {
-    return getModules({ aptosConfig: this.config, ...args });
+    return getModules({ cedraConfig: this.config, ...args });
   }
 
   /**
    * Queries for a page of modules in an account given an account address.
    *
-   * @param args.accountAddress - The Aptos account address to query modules for.
+   * @param args.accountAddress - The Cedra account address to query modules for.
    * @param args.options.cursor - The cursor to start returning results from.  Note, this is obfuscated and is not an index.
    * @param args.options.limit - The maximum number of results to return.
    * @param args.options.ledgerVersion - The ledger version to query; if not provided, it retrieves the latest version.
@@ -161,14 +161,14 @@ export class Account {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Fetching account modules for a specific account
-   *   const {modules, cursor} = await aptos.getAccountModulesPage({
+   *   const {modules, cursor} = await cedra.getAccountModulesPage({
    *     accountAddress: "0x1", // replace with a real account address
    *     options: {
    *       cursor: undefined, // starting from the first module
@@ -187,13 +187,13 @@ export class Account {
     accountAddress: AccountAddressInput;
     options?: CursorPaginationArgs & LedgerVersionArg;
   }): Promise<{ modules: MoveModuleBytecode[]; cursor: string | undefined }> {
-    return getModulesPage({ aptosConfig: this.config, ...args });
+    return getModulesPage({ cedraConfig: this.config, ...args });
   }
 
   /**
    * Queries for a specific account module given an account address and module name.
    *
-   * @param args.accountAddress - The Aptos account address.
+   * @param args.accountAddress - The Cedra account address.
    * @param args.moduleName - The name of the module.
    * @param args.options.ledgerVersion - The ledger version to query; if not provided, it will get the latest version.
    *
@@ -201,14 +201,14 @@ export class Account {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Get the account module for a specific account address and module name
-   *   const module = await aptos.getAccountModule({
+   *   const module = await cedra.getAccountModule({
    *     accountAddress: "0x1", // replace with a real account address
    *     moduleName: "MyModule" // specify the module name
    *   });
@@ -224,14 +224,14 @@ export class Account {
     moduleName: string;
     options?: LedgerVersionArg;
   }): Promise<MoveModuleBytecode> {
-    return getModule({ aptosConfig: this.config, ...args });
+    return getModule({ cedraConfig: this.config, ...args });
   }
 
   /**
    * Queries account transactions given an account address.
    * This function may call the API multiple times to auto paginate and retrieve all account transactions.
    *
-   * @param args.accountAddress - The Aptos account address to query transactions for.
+   * @param args.accountAddress - The Cedra account address to query transactions for.
    * @param args.options - Optional pagination arguments.
    * @param args.options.offset - The number of transactions to start returning results from.
    * @param args.options.limit - The maximum number of results to return.
@@ -240,14 +240,14 @@ export class Account {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Fetch transactions for a specific account
-   *   const transactions = await aptos.getAccountTransactions({
+   *   const transactions = await cedra.getAccountTransactions({
    *     accountAddress: "0x1", // replace with a real account address
    *     options: {
    *       offset: 0, // starting from the first transaction
@@ -266,7 +266,7 @@ export class Account {
     options?: PaginationArgs;
   }): Promise<TransactionResponse[]> {
     return getTransactions({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       ...args,
     });
   }
@@ -275,21 +275,21 @@ export class Account {
    * Queries all account resources given an account address.
    * This function may call the API multiple times to auto paginate through results.
    *
-   * @param args.accountAddress - The Aptos account address to query resources for.
+   * @param args.accountAddress - The Cedra account address to query resources for.
    * @param args.options.limit - The maximum number of results to return.
    * @param args.options.ledgerVersion - The ledger version to query; if not provided, it will get the latest version.
    * @returns Account resources.
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Fetching account resources for a specific account address
-   *   const resources = await aptos.getAccountResources({ accountAddress: "0x1" }); // replace with a real account address
+   *   const resources = await cedra.getAccountResources({ accountAddress: "0x1" }); // replace with a real account address
    *   console.log(resources);
    * }
    * runExample().catch(console.error);
@@ -300,13 +300,13 @@ export class Account {
     accountAddress: AccountAddressInput;
     options?: PaginationArgs & LedgerVersionArg;
   }): Promise<MoveResource[]> {
-    return getResources({ aptosConfig: this.config, ...args });
+    return getResources({ cedraConfig: this.config, ...args });
   }
 
   /**
    * Queries a page of account resources given an account address.
    *
-   * @param args.accountAddress - The Aptos account address to query resources for.
+   * @param args.accountAddress - The Cedra account address to query resources for.
    * @param args.options.cursor - The cursor to start returning results from.  Note, this is obfuscated and is not an index.
    * @param args.options.limit - The maximum number of results to return.
    * @param args.options.ledgerVersion - The ledger version to query; if not provided, it will get the latest version.
@@ -314,14 +314,14 @@ export class Account {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Fetching account resources for a specific account address
-   *   const resources = await aptos.getAccountResourcesPage({
+   *   const resources = await cedra.getAccountResourcesPage({
    *     accountAddress: "0x1", // replace with a real account address
    *     options: {
    *       cursor: undefined, // starting from the first resource
@@ -339,30 +339,30 @@ export class Account {
     accountAddress: AccountAddressInput;
     options?: CursorPaginationArgs & LedgerVersionArg;
   }): Promise<{ resources: MoveResource[]; cursor: string | undefined }> {
-    return getResourcesPage({ aptosConfig: this.config, ...args });
+    return getResourcesPage({ cedraConfig: this.config, ...args });
   }
 
   /**
    * Queries a specific account resource given an account address and resource type.
    *
    * @template T - The typed output of the resource.
-   * @param args.accountAddress - The Aptos account address to query.
-   * @param args.resourceType - The string representation of an on-chain Move struct type, e.g., "0x1::aptos_coin::AptosCoin".
+   * @param args.accountAddress - The Cedra account address to query.
+   * @param args.resourceType - The string representation of an on-chain Move struct type, e.g., "0x1::cedra_coin::CedraCoin".
    * @param args.options.ledgerVersion - The ledger version to query; if not provided, it will get the latest version.
    * @returns The account resource of the specified type.
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Get the account resource for a specific account address and resource type
-   *   const resource = await aptos.getAccountResource({
+   *   const resource = await cedra.getAccountResource({
    *     accountAddress: "0x1", // replace with a real account address
-   *     resourceType: "0x1::aptos_coin::AptosCoin"
+   *     resourceType: "0x1::cedra_coin::CedraCoin"
    *   });
    *
    *   console.log(resource);
@@ -376,7 +376,7 @@ export class Account {
     resourceType: MoveStructId;
     options?: LedgerVersionArg;
   }): Promise<T> {
-    return getResource<T>({ aptosConfig: this.config, ...args });
+    return getResource<T>({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -389,14 +389,14 @@ export class Account {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Look up the original account address for a given authentication key
-   *   const accountAddress = await aptos.lookupOriginalAccountAddress({
+   *   const accountAddress = await cedra.lookupOriginalAccountAddress({
    *     authenticationKey: "0x1", // replace with a real authentication key
    *   });
    *
@@ -411,7 +411,7 @@ export class Account {
     minimumLedgerVersion?: AnyNumber;
     options?: LedgerVersionArg;
   }): Promise<AccountAddress> {
-    return lookupOriginalAccountAddress({ aptosConfig: this.config, ...args });
+    return lookupOriginalAccountAddress({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -424,14 +424,14 @@ export class Account {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Get the count of tokens owned by the account
-   *   const tokensCount = await aptos.getAccountTokensCount({ accountAddress: "0x1" }); // replace with a real account address
+   *   const tokensCount = await cedra.getAccountTokensCount({ accountAddress: "0x1" }); // replace with a real account address
    *   console.log(`Tokens Count: ${tokensCount}`);
    * }
    * runExample().catch(console.error);
@@ -448,7 +448,7 @@ export class Account {
       processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
     });
     return getAccountTokensCount({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       ...args,
     });
   }
@@ -467,14 +467,14 @@ export class Account {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Get the tokens owned by a specific account
-   *   const accountOwnedTokens = await aptos.getAccountOwnedTokens({
+   *   const accountOwnedTokens = await cedra.getAccountOwnedTokens({
    *     accountAddress: "0x1", // replace with a real account address
    *     options: {
    *       limit: 10, // specify how many tokens to return
@@ -499,7 +499,7 @@ export class Account {
       processorType: ProcessorType.TOKEN_V2_PROCESSOR,
     });
     return getAccountOwnedTokens({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       ...args,
     });
   }
@@ -520,14 +520,14 @@ export class Account {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Get tokens owned by a specific account in a specific collection
-   *   const accountOwnedTokens = await aptos.getAccountOwnedTokensFromCollectionAddress({
+   *   const accountOwnedTokens = await cedra.getAccountOwnedTokensFromCollectionAddress({
    *     accountAddress: "0x1", // replace with a real account address
    *     collectionAddress: "0x2", // replace with a real collection address
    *   });
@@ -550,7 +550,7 @@ export class Account {
       processorType: ProcessorType.TOKEN_V2_PROCESSOR,
     });
     return getAccountOwnedTokensFromCollectionAddress({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       ...args,
     });
   }
@@ -569,14 +569,14 @@ export class Account {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Get account collections with owned tokens for a specific account
-   *   const accountCollectionsWithOwnedTokens = await aptos.getAccountCollectionsWithOwnedTokens({
+   *   const accountCollectionsWithOwnedTokens = await cedra.getAccountCollectionsWithOwnedTokens({
    *     accountAddress: "0x1", // replace with a real account address
    *     options: {
    *       tokenStandard: "NFT", // specify the token standard if needed
@@ -601,7 +601,7 @@ export class Account {
       processorType: ProcessorType.TOKEN_V2_PROCESSOR,
     });
     return getAccountCollectionsWithOwnedTokens({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       ...args,
     });
   }
@@ -616,14 +616,14 @@ export class Account {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Get the count of transactions for a specific account
-   *   const accountTransactionsCount = await aptos.getAccountTransactionsCount({
+   *   const accountTransactionsCount = await cedra.getAccountTransactionsCount({
    *     accountAddress: "0x1", // replace with a real account address
    *     minimumLedgerVersion: 1, // specify your own minimum ledger version if needed
    *   });
@@ -644,7 +644,7 @@ export class Account {
       processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
     });
     return getAccountTransactionsCount({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       ...args,
     });
   }
@@ -662,14 +662,14 @@ export class Account {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Fetching coins data for a specific account
-   *   const accountCoinsData = await aptos.getAccountCoinsData({
+   *   const accountCoinsData = await cedra.getAccountCoinsData({
    *     accountAddress: "0x1", // replace with a real account address
    *     options: {
    *       limit: 10, // specify the number of results to return
@@ -696,7 +696,7 @@ export class Account {
       processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
     });
     return getAccountCoinsData({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       ...args,
     });
   }
@@ -711,14 +711,14 @@ export class Account {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Getting the account coins count for a specific account
-   *   const accountCoinsCount = await aptos.getAccountCoinsCount({ accountAddress: "0x1" }); // replace with a real account address
+   *   const accountCoinsCount = await cedra.getAccountCoinsCount({ accountAddress: "0x1" }); // replace with a real account address
    *   console.log("Account Coins Count:", accountCoinsCount);
    * }
    * runExample().catch(console.error);
@@ -734,7 +734,7 @@ export class Account {
       minimumLedgerVersion: args.minimumLedgerVersion,
       processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
     });
-    return getAccountCoinsCount({ aptosConfig: this.config, ...args });
+    return getAccountCoinsCount({ cedraConfig: this.config, ...args });
   }
 
   /**
@@ -747,14 +747,14 @@ export class Account {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Get the APT amount for a specific account
-   *   const accountAPTAmount = await aptos.getAccountAPTAmount({ accountAddress: "0x1" }); // replace with a real account address
+   *   const accountAPTAmount = await cedra.getAccountAPTAmount({ accountAddress: "0x1" }); // replace with a real account address
    *   console.log("Account APT Amount:", accountAPTAmount);
    * }
    * runExample().catch(console.error);
@@ -778,22 +778,22 @@ export class Account {
    * @param args.faMetadataAddress The fungible asset metadata address to query. Note: If not provided, it may be automatically
    * populated if `coinType` is specified.
    * @param args.minimumLedgerVersion Not used anymore, here for backward compatibility
-   * see https://github.com/aptos-labs/aptos-ts-sdk/pull/519, will be removed in the near future.
+   * see https://github.com/cedra-labs/cedra-ts-sdk/pull/519, will be removed in the near future.
    * Optional ledger version to sync up to before querying.
    * @returns The current amount of the specified coin held by the account.
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Query the account's coin amount for a specific coin type
-   *   const accountCoinAmount = await aptos.getAccountCoinAmount({
+   *   const accountCoinAmount = await cedra.getAccountCoinAmount({
    *     accountAddress: "0x1", // replace with a real account address
-   *     coinType: "0x1::aptos_coin::AptosCoin" // specify the coin type
+   *     coinType: "0x1::cedra_coin::CedraCoin" // specify the coin type
    *   });
    *
    *   console.log(`Account coin amount: ${accountCoinAmount}`);
@@ -814,7 +814,7 @@ export class Account {
       // eslint-disable-next-line no-console
       console.warn(
         `minimumLedgerVersion is not used anymore, here for backward 
-        compatibility see https://github.com/aptos-labs/aptos-ts-sdk/pull/519, 
+        compatibility see https://github.com/cedra-labs/cedra-ts-sdk/pull/519, 
         will be removed in the near future`,
       );
     }
@@ -827,7 +827,7 @@ export class Account {
           try {
             const pairedCoinTypeStruct = (
               await view({
-                aptosConfig: this.config,
+                cedraConfig: this.config,
                 payload: { function: "0x1::coin::paired_coin", functionArguments: [faMetadataAddress] },
               })
             ).at(0) as { vec: MoveValue[] };
@@ -873,7 +873,7 @@ export class Account {
     // TODO: This function's signature at the top, returns number, but it could be greater than can be represented
     if (coinAssetType !== undefined) {
       const [balanceStr] = await view<[string]>({
-        aptosConfig: this.config,
+        cedraConfig: this.config,
         payload: {
           function: "0x1::coin::balance",
           typeArguments: [coinAssetType],
@@ -883,7 +883,7 @@ export class Account {
       return parseInt(balanceStr, 10);
     }
     const [balanceStr] = await view<[string]>({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       payload: {
         function: "0x1::primary_fungible_store::balance",
         typeArguments: ["0x1::object::ObjectCore"],
@@ -905,14 +905,14 @@ export class Account {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *   // Get the objects owned by the specified account
-   *   const accountOwnedObjects = await aptos.getAccountOwnedObjects({
+   *   const accountOwnedObjects = await cedra.getAccountOwnedObjects({
    *     accountAddress: "0x1", // replace with a real account address
    *     minimumLedgerVersion: 1, // optional, specify if needed
    *     options: {
@@ -939,7 +939,7 @@ export class Account {
       processorType: ProcessorType.DEFAULT,
     });
     return getAccountOwnedObjects({
-      aptosConfig: this.config,
+      cedraConfig: this.config,
       ...args,
     });
   }
@@ -959,14 +959,14 @@ export class Account {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network, Ed25519PrivateKey } from "@aptos-labs/ts-sdk";
+   * import { Cedra, CedraConfig, Network, Ed25519PrivateKey } from "@cedra-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
+   * const config = new CedraConfig({ network: Network.TESTNET });
+   * const cedra = new Cedra(config);
    *
    * async function runExample() {
    *     // Deriving an account from a private key
-   *     const account = await aptos.deriveAccountFromPrivateKey({
+   *     const account = await cedra.deriveAccountFromPrivateKey({
    *         privateKey: new Ed25519PrivateKey("0x123") // replace with a real private key
    *     });
    *
@@ -978,6 +978,6 @@ export class Account {
    * @deprecated Note that more inspection is needed by the user to determine which account exists on-chain
    */
   async deriveAccountFromPrivateKey(args: { privateKey: PrivateKey }): Promise<AccountModule> {
-    return deriveAccountFromPrivateKey({ aptosConfig: this.config, ...args });
+    return deriveAccountFromPrivateKey({ cedraConfig: this.config, ...args });
   }
 }

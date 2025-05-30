@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 /**
@@ -9,7 +9,7 @@
  * @group Implementation
  */
 
-import { AptosConfig } from "../api/aptosConfig";
+import { CedraConfig } from "../api/cedraConfig";
 import { AccountAddress, AccountAddressInput } from "../core";
 import { AnyNumber, GetEventsResponse, PaginationArgs, MoveStructId, OrderByArg, WhereArg } from "../types";
 import { GetEventsQuery } from "../types/generated/operations";
@@ -29,17 +29,17 @@ const checkEventTypeLength = (eventType?: InputMaybe<string>) => {
  * This function allows you to filter events based on the event type and pagination options.
  *
  * @param args - The arguments for retrieving module events.
- * @param args.aptosConfig - The configuration object for Aptos.
+ * @param args.cedraConfig - The configuration object for Cedra.
  * @param args.eventType - The MoveStructId representing the type of event to retrieve.
  * @param [args.options] - Optional pagination and ordering parameters for the event retrieval.
  * @group Implementation
  */
 export async function getModuleEventsByEventType(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   eventType: MoveStructId;
   options?: PaginationArgs & OrderByArg<GetEventsResponse[0]>;
 }): Promise<GetEventsResponse> {
-  const { aptosConfig, eventType, options } = args;
+  const { cedraConfig, eventType, options } = args;
 
   const whereCondition: EventsBoolExp = {
     _or: [
@@ -55,26 +55,26 @@ export async function getModuleEventsByEventType(args: {
     indexed_type: { _eq: eventType },
   };
 
-  return getEvents({ aptosConfig, options: { ...options, where: whereCondition } });
+  return getEvents({ cedraConfig, options: { ...options, where: whereCondition } });
 }
 
 /**
  * Retrieve events associated with a specific account and creation number.
  *
  * @param args - The parameters for retrieving account events.
- * @param args.aptosConfig - The configuration settings for the Aptos client.
+ * @param args.cedraConfig - The configuration settings for the Cedra client.
  * @param args.accountAddress - The address of the account for which events are being retrieved.
  * @param args.creationNumber - The creation number to filter events.
  * @param args.options - Optional pagination and ordering parameters for the event retrieval.
  * @group Implementation
  */
 export async function getAccountEventsByCreationNumber(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
   creationNumber: AnyNumber;
   options?: PaginationArgs & OrderByArg<GetEventsResponse[0]>;
 }): Promise<GetEventsResponse> {
-  const { accountAddress, aptosConfig, creationNumber, options } = args;
+  const { accountAddress, cedraConfig, creationNumber, options } = args;
   const address = AccountAddress.from(accountAddress);
 
   const whereCondition: EventsBoolExp = {
@@ -82,26 +82,26 @@ export async function getAccountEventsByCreationNumber(args: {
     creation_number: { _eq: creationNumber },
   };
 
-  return getEvents({ aptosConfig, options: { ...options, where: whereCondition } });
+  return getEvents({ cedraConfig, options: { ...options, where: whereCondition } });
 }
 
 /**
  * Retrieves events associated with a specific account and event type.
  *
  * @param args - The parameters for retrieving account events.
- * @param args.aptosConfig - The configuration for connecting to the Aptos blockchain.
+ * @param args.cedraConfig - The configuration for connecting to the Cedra blockchain.
  * @param args.accountAddress - The address of the account for which to retrieve events.
  * @param args.eventType - The type of event to filter by.
  * @param args.options - Optional pagination and ordering parameters for the event retrieval.
  * @group Implementation
  */
 export async function getAccountEventsByEventType(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   accountAddress: AccountAddressInput;
   eventType: MoveStructId;
   options?: PaginationArgs & OrderByArg<GetEventsResponse[0]>;
 }): Promise<GetEventsResponse> {
-  const { accountAddress, aptosConfig, eventType, options } = args;
+  const { accountAddress, cedraConfig, eventType, options } = args;
   const address = AccountAddress.from(accountAddress).toStringLong();
 
   const whereCondition: EventsBoolExp = {
@@ -109,14 +109,14 @@ export async function getAccountEventsByEventType(args: {
     indexed_type: { _eq: eventType },
   };
 
-  return getEvents({ aptosConfig, options: { ...options, where: whereCondition } });
+  return getEvents({ cedraConfig, options: { ...options, where: whereCondition } });
 }
 
 /**
  * Retrieves a list of events based on specified filtering and pagination options.
  *
  * @param args - The arguments for retrieving events.
- * @param args.aptosConfig - The configuration for connecting to the Aptos network.
+ * @param args.cedraConfig - The configuration for connecting to the Cedra network.
  * @param [args.options] - Optional parameters for pagination and filtering.
  * @param [args.options.offset] - The number of records to skip before starting to collect the result set.
  * @param [args.options.limit] - The maximum number of records to return.
@@ -126,10 +126,10 @@ export async function getAccountEventsByEventType(args: {
  * @group Implementation
  */
 export async function getEvents(args: {
-  aptosConfig: AptosConfig;
+  cedraConfig: CedraConfig;
   options?: PaginationArgs & OrderByArg<GetEventsResponse[0]> & WhereArg<EventsBoolExp>;
 }): Promise<GetEventsResponse> {
-  const { aptosConfig, options } = args;
+  const { cedraConfig, options } = args;
 
   /**
    * Checks the length of event types based on the provided filtering options.
@@ -157,7 +157,7 @@ export async function getEvents(args: {
   };
 
   const data = await queryIndexer<GetEventsQuery>({
-    aptosConfig,
+    cedraConfig,
     query: graphqlQuery,
     originMethod: "getEvents",
   });

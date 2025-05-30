@@ -1,31 +1,31 @@
 import {
-  getAptosFullNode,
+  getCedraFullNode,
   Account,
-  postAptosFaucet,
+  postCedraFaucet,
   AccountAddress,
-  postAptosFullNode,
+  postCedraFullNode,
   MimeType,
   generateSignedTransaction,
 } from "../../../src";
 import { customClient } from "../../unit/helper";
-import { getAptosClient } from "../helper";
+import { getCedraClient } from "../helper";
 
 describe("custom client", () => {
-  test("it uses default client when it doesnt set in AptosConfig", () => {
-    const { aptos } = getAptosClient();
-    expect(aptos.config.client.provider).toBeInstanceOf(Function);
-    expect(aptos.config.client.provider.name).toBe("aptosClient");
+  test("it uses default client when it doesnt set in CedraConfig", () => {
+    const { cedra } = getCedraClient();
+    expect(cedra.config.client.provider).toBeInstanceOf(Function);
+    expect(cedra.config.client.provider.name).toBe("cedraClient");
   });
-  test("it uses a custom client set in AptosConfig", () => {
-    const { aptos } = getAptosClient({ client: { provider: customClient } });
-    expect(aptos.config.client.provider).toBeInstanceOf(Function);
-    expect(aptos.config.client.provider.name).toBe("customClient");
+  test("it uses a custom client set in CedraConfig", () => {
+    const { cedra } = getCedraClient({ client: { provider: customClient } });
+    expect(cedra.config.client.provider).toBeInstanceOf(Function);
+    expect(cedra.config.client.provider.name).toBe("customClient");
   });
 
   test("it uses custom client for fetch queries", async () => {
-    const { config } = getAptosClient({ client: { provider: customClient } });
-    const response = await getAptosFullNode<{ headers?: { customClient?: any } }, {}>({
-      aptosConfig: config,
+    const { config } = getCedraClient({ client: { provider: customClient } });
+    const response = await getCedraFullNode<{ headers?: { customClient?: any } }, {}>({
+      cedraConfig: config,
       originMethod: "getInfo",
       path: "accounts/0x1",
     });
@@ -33,10 +33,10 @@ describe("custom client", () => {
   });
 
   test("it uses custom client for post queries", async () => {
-    const { config } = getAptosClient({ client: { provider: customClient } });
+    const { config } = getCedraClient({ client: { provider: customClient } });
     const account = Account.generate();
-    const response = await postAptosFaucet<{ headers?: { customClient?: any } }, {}>({
-      aptosConfig: config,
+    const response = await postCedraFaucet<{ headers?: { customClient?: any } }, {}>({
+      cedraConfig: config,
       path: "fund",
       body: {
         address: AccountAddress.from(account.accountAddress).toString(),
@@ -48,19 +48,19 @@ describe("custom client", () => {
   });
 
   test("it uses custom client for transaction submission", async () => {
-    const { aptos, config } = getAptosClient({ client: { provider: customClient } });
+    const { cedra, config } = getCedraClient({ client: { provider: customClient } });
     const account = Account.generate();
     const recipient = Account.generate();
-    await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
-    const transaction = await aptos.transferCoinTransaction({
+    await cedra.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
+    const transaction = await cedra.transferCoinTransaction({
       sender: account.accountAddress,
       recipient: recipient.accountAddress,
       amount: 10,
     });
-    const authenticator = aptos.transaction.sign({ signer: account, transaction });
+    const authenticator = cedra.transaction.sign({ signer: account, transaction });
     const signedTransaction = generateSignedTransaction({ transaction, senderAuthenticator: authenticator });
-    const response = await postAptosFullNode<{ headers?: { customClient?: any } }, {}>({
-      aptosConfig: config,
+    const response = await postCedraFullNode<{ headers?: { customClient?: any } }, {}>({
+      cedraConfig: config,
       body: signedTransaction,
       path: "transactions",
       originMethod: "testSubmitTransaction",

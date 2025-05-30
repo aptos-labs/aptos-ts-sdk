@@ -1,7 +1,7 @@
 /* eslint-disable no-await-in-loop */
 
 import EventEmitter from "eventemitter3";
-import { AptosConfig } from "../../api/aptosConfig";
+import { CedraConfig } from "../../api/cedraConfig";
 import { Account } from "../../account";
 import { waitForTransaction } from "../../internal/transaction";
 import { generateTransaction, signAndSubmitTransaction } from "../../internal/transactionSubmission";
@@ -92,7 +92,7 @@ export type FailureEventData = {
  * @category Transactions
  */
 export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
-  readonly aptosConfig: AptosConfig;
+  readonly cedraConfig: CedraConfig;
 
   readonly account: Account;
 
@@ -140,7 +140,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
   /**
    * Initializes a new instance of the class, providing a framework for receiving payloads to be processed.
    *
-   * @param aptosConfig - A configuration object for Aptos.
+   * @param cedraConfig - A configuration object for Cedra.
    * @param account - The account that will be used for sending transactions.
    * @param maxWaitTime - The maximum wait time to wait before re-syncing the sequence number to the current on-chain state,
    * default is 30 seconds.
@@ -151,18 +151,18 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    * @category Transactions
    */
   constructor(
-    aptosConfig: AptosConfig,
+    cedraConfig: CedraConfig,
     account: Account,
     maxWaitTime: number = 30,
     maximumInFlight: number = 100,
     sleepTime: number = 10,
   ) {
     super();
-    this.aptosConfig = aptosConfig;
+    this.cedraConfig = cedraConfig;
     this.account = account;
     this.started = false;
     this.accountSequnceNumber = new AccountSequenceNumber(
-      aptosConfig,
+      cedraConfig,
       account,
       maxWaitTime,
       maximumInFlight,
@@ -188,7 +188,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
         const transaction = await this.generateNextTransaction(this.account, sequenceNumber);
         if (!transaction) return;
         const pendingTransaction = signAndSubmitTransaction({
-          aptosConfig: this.aptosConfig,
+          cedraConfig: this.cedraConfig,
           transaction,
           signer: this.account,
         });
@@ -278,7 +278,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
   async checkTransaction(sentTransaction: PromiseFulfilledResult<PendingTransactionResponse>, sequenceNumber: bigint) {
     try {
       const waitFor: Array<Promise<TransactionResponse>> = [];
-      waitFor.push(waitForTransaction({ aptosConfig: this.aptosConfig, transactionHash: sentTransaction.value.hash }));
+      waitFor.push(waitForTransaction({ cedraConfig: this.cedraConfig, transactionHash: sentTransaction.value.hash }));
       const sentTransactions = await Promise.allSettled(waitFor);
 
       for (let i = 0; i < sentTransactions.length; i += 1) {
@@ -327,7 +327,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
   /**
    * Generates a signed transaction that can be submitted to the chain.
    *
-   * @param account - An Aptos account used as the sender of the transaction.
+   * @param account - An Cedra account used as the sender of the transaction.
    * @param sequenceNumber - A sequence number the transaction will be generated with.
    * @returns A signed transaction object or undefined if the transaction queue is empty.
    * @group Implementation
@@ -337,7 +337,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
     if (this.transactionsQueue.isEmpty()) return undefined;
     const [transactionData, options] = await this.transactionsQueue.dequeue();
     return generateTransaction({
-      aptosConfig: this.aptosConfig,
+      cedraConfig: this.cedraConfig,
       sender: account.accountAddress,
       data: transactionData,
       options: { ...options, accountSequenceNumber: sequenceNumber },

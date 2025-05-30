@@ -4,7 +4,7 @@ import { createTokenAddress, createObjectAddress, createResourceAddress } from "
 
 describe("address", () => {
   /**
-   * Reference: {@link https://explorer.aptoslabs.com/account/0xf0995d360365587c500cc171d1416bad10a331b9c71871a1aec5f2c37ff43124/modules/view/migration_helper/migration_object_address?network=testnet}
+   * Reference: {@link https://explorer.cedralabs.com/account/0xf0995d360365587c500cc171d1416bad10a331b9c71871a1aec5f2c37ff43124/modules/view/migration_helper/migration_object_address?network=testnet}
    * creatorAddr = 0x120e79e45d21ef439963580c77a023e2729db799e96e61f878fac98fde5b9cc9
    * seed = "migration::migration_contract"
    * Expect = 0xbe376272a5c4361ee96bc147525b26b3bf2ee25f433cbd410a7b3b4b881ffcbf
@@ -24,7 +24,7 @@ describe("address", () => {
   });
 
   /**
-   * Reference: {@link https://explorer.aptoslabs.com/txn/473081244/userTxnOverview?network=mainnet}
+   * Reference: {@link https://explorer.cedralabs.com/txn/473081244/userTxnOverview?network=mainnet}
    * creatorAddr = 0x9d518b9b84f327eafc5f6632200ea224a818a935ffd6be5d78ada250bbc44a6
    * collectionName = SuperV Villains
    * tokenName = Nami #5962
@@ -39,7 +39,7 @@ describe("address", () => {
   });
 
   /**
-   * Reference: {@link https://explorer.aptoslabs.com/account/0x41e724e1d4fce6472ffcb5c9886770893eb49489e3f531d0aa97bf951e66d70c/modules/view/create_resource/create_resource?network=testnet}
+   * Reference: {@link https://explorer.cedralabs.com/account/0x41e724e1d4fce6472ffcb5c9886770893eb49489e3f531d0aa97bf951e66d70c/modules/view/create_resource/create_resource?network=testnet}
    * creatorAddr = 0x41e724e1d4fce6472ffcb5c9886770893eb49489e3f531d0aa97bf951e66d70c
    * seed = "create_resource::create_resource"
    * Expect = 0x764cb760889d5ab6caabf0594d82adfbf0c0076f36268563e5209fa3734d7f3e

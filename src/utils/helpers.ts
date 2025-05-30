@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { decode } from "js-base64";
@@ -117,7 +117,7 @@ export const convertAmountFromOnChainToHumanReadable = (value: number, decimal: 
 /**
  * Convert a hex string to an ascii string with the `0x` prefix.
  *
- * `0x6170746f735f636f696e` --> `aptos_coin`
+ * `0x6170746f735f636f696e` --> `cedra_coin`
  *
  * @param hex The hex string to convert (e.g. `0x6170746f735f636f696e`)
  * @returns The ascii string
@@ -141,7 +141,7 @@ const hexToAscii = (hex: string) => {
  *   module_name: "0x6170746f735f636f696e",
  *   struct_name: "0x4170746f73436f696e",
  * };
- * // structId is "0x1::aptos_coin::AptosCoin"
+ * // structId is "0x1::cedra_coin::CedraCoin"
  * const structId = parseEncodedStruct(structObj);
  *
  * @param structObj The struct with account_address, module_name, and struct_name properties
@@ -240,7 +240,7 @@ export function truncateAddress(address: string, start: number = 6, end: number 
 /**
  * Constants for metadata address calculation
  */
-const APTOS_COIN_TYPE_STR = "0x1::aptos_coin::AptosCoin";
+const APTOS_COIN_TYPE_STR = "0x1::cedra_coin::CedraCoin";
 const APT_METADATA_ADDRESS_HEX = AccountAddress.A.toStringLong();
 
 /**
@@ -265,16 +265,16 @@ function standardizeMoveTypeString(input: string): string {
  *
  * @example
  * // All these formats are valid and will produce the same result:
- * pairedFaMetadataAddress("0x1::aptos_coin::AptosCoin")  // simple form
- * pairedFaMetadataAddress("0x0000000000000000000000000000000000000000000000000000000000000001::aptos_coin::AptosCoin")  // long form
- * pairedFaMetadataAddress("0x00001::aptos_coin::AptosCoin")  // with leading zeros
- * pairedFaMetadataAddress("0x1::coin::Coin<0x1412::a::struct<0x0001::aptos_coin::AptosCoin>>")  // nested type parameters
+ * pairedFaMetadataAddress("0x1::cedra_coin::CedraCoin")  // simple form
+ * pairedFaMetadataAddress("0x0000000000000000000000000000000000000000000000000000000000000001::cedra_coin::CedraCoin")  // long form
+ * pairedFaMetadataAddress("0x00001::cedra_coin::CedraCoin")  // with leading zeros
+ * pairedFaMetadataAddress("0x1::coin::Coin<0x1412::a::struct<0x0001::cedra_coin::CedraCoin>>")  // nested type parameters
  *
  * @param coinType - The coin type string in any of these formats:
- *   - Short form address: "0x1::aptos_coin::AptosCoin"
- *   - Long form address: "0x0000000000000000000000000000000000000000000000000000000000000001::aptos_coin::AptosCoin"
- *   - With leading zeros: "0x00001::aptos_coin::AptosCoin"
- *   - With nested types: "0x1::coin::Coin<0x1412::a::struct<0x0001::aptos_coin::AptosCoin>>"
+ *   - Short form address: "0x1::cedra_coin::CedraCoin"
+ *   - Long form address: "0x0000000000000000000000000000000000000000000000000000000000000001::cedra_coin::CedraCoin"
+ *   - With leading zeros: "0x00001::cedra_coin::CedraCoin"
+ *   - With nested types: "0x1::coin::Coin<0x1412::a::struct<0x0001::cedra_coin::CedraCoin>>"
  * @returns The calculated metadata address as an AccountAddress instance
  */
 export function pairedFaMetadataAddress(coinType: `0x${string}::${string}::${string}`): AccountAddress {

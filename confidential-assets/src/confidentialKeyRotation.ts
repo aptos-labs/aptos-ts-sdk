@@ -64,7 +64,7 @@ export class ConfidentialKeyRotation {
     );
   }
 
-  static FIAT_SHAMIR_SIGMA_DST = "AptosConfidentialAsset/RotationProofFiatShamir";
+  static FIAT_SHAMIR_SIGMA_DST = "CedraConfidentialAsset/RotationProofFiatShamir";
 
   static async create(args: CreateConfidentialKeyRotationOpArgs) {
     const {

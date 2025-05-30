@@ -3,12 +3,12 @@
 /// enabling more complex asset management scenarios. Users can create multiple secondary stores for different
 /// fungible assets, and the module maintains a mapping of these stores for each user.
 module FACoin::secondary_store {
-    use aptos_framework::fungible_asset::{Self, Metadata, FungibleStore};
-    use aptos_framework::object::{Self, Object};
-    use aptos_std::table;
+    use cedra_framework::fungible_asset::{Self, Metadata, FungibleStore};
+    use cedra_framework::object::{Self, Object};
+    use cedra_std::table;
     use std::error;
     use std::signer;
-    use aptos_framework::event;
+    use cedra_framework::event;
 
     /// Error codes
     /// Error when attempting to create a secondary store that already exists

@@ -12,14 +12,14 @@ import { Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature } from "./s
 import { KeylessPublicKey, KeylessSignature } from "./keyless";
 import { Signature } from "./signature";
 import { FederatedKeylessPublicKey } from "./federatedKeyless";
-import { AptosConfig } from "../../api";
+import { CedraConfig } from "../../api";
 
 export type PrivateKeyInput = Ed25519PrivateKey | Secp256k1PrivateKey;
 
 /**
- * Represents any public key supported by Aptos.
+ * Represents any public key supported by Cedra.
  *
- * Since [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263) Aptos supports
+ * Since [AIP-55](https://github.com/cedra-foundation/AIPs/pull/263) Cedra supports
  * `Legacy` and `Unified` authentication keys.
  *
  * Any unified authentication key is represented in the SDK as `AnyPublicKey`.
@@ -99,7 +99,7 @@ export class AnyPublicKey extends AccountPublicKey {
    * This function helps ensure the integrity and authenticity of the message by confirming that the signature is valid.
    *
    * @param args - The arguments for signature verification.
-   * @param args.aptosConfig - The configuration object for connecting to the Aptos network
+   * @param args.cedraConfig - The configuration object for connecting to the Cedra network
    * @param args.message - The message that was signed.
    * @param args.signature - The signature to verify, which must be an instance of AnySignature.
    * @returns A boolean indicating whether the signature is valid for the given message.
@@ -107,7 +107,7 @@ export class AnyPublicKey extends AccountPublicKey {
    * @category Serialization
    */
   async verifySignatureAsync(args: {
-    aptosConfig: AptosConfig;
+    cedraConfig: CedraConfig;
     message: HexInput;
     signature: Signature;
     options?: { throwErrorWithReason?: boolean };
@@ -293,7 +293,7 @@ export class AnySignature extends Signature {
     // TODO: keep this warning around for a bit, and eventually change this to return `this.signature.toUint8Array()`.
     // eslint-disable-next-line no-console
     console.warn(
-      "[Aptos SDK] Calls to AnySignature.toUint8Array() will soon return the underlying signature bytes. " +
+      "[Cedra SDK] Calls to AnySignature.toUint8Array() will soon return the underlying signature bytes. " +
         "Use AnySignature.bcsToBytes() instead.",
     );
     return this.bcsToBytes();

@@ -1,4 +1,4 @@
-fragment AnsTokenFragment on current_aptos_names {
+fragment AnsTokenFragment on current_cedra_names {
   domain
   expiration_timestamp
   registered_address

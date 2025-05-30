@@ -1,6 +1,6 @@
 # Gas station
 Example Gas station node server accepting user signed transactions, 
-signing with fee payer and submitting to Aptos Blockchain.
+signing with fee payer and submitting to Cedra Blockchain.
 
 ### Build project
 ```bash

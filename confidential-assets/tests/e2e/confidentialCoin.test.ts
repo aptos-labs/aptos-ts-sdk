@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import {
@@ -11,7 +11,7 @@ import {
 import {
   getTestAccount,
   getTestConfidentialAccount,
-  aptos,
+  cedra,
   TOKEN_ADDRESS,
   sendAndWaitTx,
   mintFungibleTokens,
@@ -38,7 +38,7 @@ describe.skip("Confidential balance api", () => {
     "it should ensure Alice able to afford transactions",
     async () => {
       const [aliceBalance] = await Promise.all([
-        aptos.getAccountAPTAmount({
+        cedra.getAccountAPTAmount({
           accountAddress: alice.accountAddress,
         }),
       ]);
@@ -422,7 +422,7 @@ describe.skip("Confidential balance api", () => {
   test.skip(
     "it should safely rotate Alice's confidential balance key",
     async () => {
-      const keyRotationAndUnfreezeTxResponse = await confidentialAsset.safeRotateCBKey(aptos, alice, {
+      const keyRotationAndUnfreezeTxResponse = await confidentialAsset.safeRotateCBKey(cedra, alice, {
         sender: alice.accountAddress,
 
         currDecryptionKey: aliceConfidential,

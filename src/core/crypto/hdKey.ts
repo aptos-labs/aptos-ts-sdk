@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { hmac } from "@noble/hashes/hmac";
@@ -16,7 +16,7 @@ export type DerivedKeys = {
 };
 
 /**
- * Aptos derive path is 637
+ * Cedra derive path is 637
  * @group Implementation
  * @category Serialization
  */
@@ -60,7 +60,7 @@ export function isValidBIP44Path(path: string): boolean {
 }
 
 /**
- * Aptos derive path is 637
+ * Cedra derive path is 637
  *
  * Parse and validate a path that is compliant to SLIP-0010 and BIP-44
  * in form m/44'/637'/{account_index}'/{change_index}'/{address_index}'.

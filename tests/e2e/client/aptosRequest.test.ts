@@ -1,65 +1,65 @@
 import {
   Account,
-  AptosApiType,
-  aptosRequest,
+  CedraApiType,
+  cedraRequest,
   generateSignedTransaction,
   GraphqlQuery,
   NetworkToIndexerAPI,
   NetworkToNodeAPI,
   U64,
 } from "../../../src";
-import { AptosApiError } from "../../../src/errors";
+import { CedraApiError } from "../../../src/errors";
 import { VERSION } from "../../../src/version";
 import { longTestTimeout } from "../../unit/helper";
-import { getAptosClient } from "../helper";
+import { getCedraClient } from "../helper";
 import { singleSignerScriptBytecode } from "../transaction/helper";
 
-const { aptos, config } = getAptosClient();
+const { cedra, config } = getCedraClient();
 
 const fullnodeUrl = config.fullnode ?? NetworkToNodeAPI[config.network];
 const indexerUrl = config.indexer ?? NetworkToIndexerAPI[config.network];
 
-const dummyKey = "aptoslabs_secret1";
+const dummyKey = "cedralabs_secret1";
 
-describe("aptos request", () => {
+describe("cedra request", () => {
   describe("headers", () => {
     test(
       "call should include all expected headers",
       async () => {
         const sender = Account.generate();
         const receiverAccounts = Account.generate();
-        await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: 100_000_000 });
-        const transaction = await aptos.transaction.build.simple({
+        await cedra.fundAccount({ accountAddress: sender.accountAddress, amount: 100_000_000 });
+        const transaction = await cedra.transaction.build.simple({
           sender: sender.accountAddress,
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), receiverAccounts.accountAddress],
           },
         });
-        const authenticator = aptos.transaction.sign({
+        const authenticator = cedra.transaction.sign({
           signer: sender,
           transaction,
         });
         const signedTransaction = generateSignedTransaction({ transaction, senderAuthenticator: authenticator });
         try {
-          const response = await aptosRequest(
+          const response = await cedraRequest(
             {
               url: fullnodeUrl,
               method: "POST",
               path: "transactions",
               body: signedTransaction,
               originMethod: "test request includes all headers",
-              contentType: "application/x.aptos.signed_transaction+bcs",
+              contentType: "application/x.cedra.signed_transaction+bcs",
               overrides: { HEADERS: { my: "header" } },
             },
             config,
-            AptosApiType.FULLNODE,
+            CedraApiType.FULLNODE,
           );
-          expect(response.config.headers).toHaveProperty("x-aptos-client", `aptos-typescript-sdk/${VERSION}`);
+          expect(response.config.headers).toHaveProperty("x-cedra-client", `cedra-typescript-sdk/${VERSION}`);
           expect(response.config.headers).toHaveProperty("my", "header");
-          expect(response.config.headers).toHaveProperty("content-type", "application/x.aptos.signed_transaction+bcs");
+          expect(response.config.headers).toHaveProperty("content-type", "application/x.cedra.signed_transaction+bcs");
           expect(response.config.headers).toHaveProperty(
-            "x-aptos-typescript-sdk-origin-method",
+            "x-cedra-typescript-sdk-origin-method",
             "test request includes all headers",
           );
         } catch (error: any) {
@@ -78,7 +78,7 @@ describe("aptos request", () => {
       "should set api_token for full node requests",
       async () => {
         try {
-          const response = await aptosRequest(
+          const response = await cedraRequest(
             {
               url: fullnodeUrl,
               method: "GET",
@@ -87,7 +87,7 @@ describe("aptos request", () => {
               originMethod: "test when token is set",
             },
             config,
-            AptosApiType.FULLNODE,
+            CedraApiType.FULLNODE,
           );
           expect(response.config.headers).toHaveProperty("authorization", `Bearer ${dummyKey}`);
         } catch (error: any) {
@@ -107,7 +107,7 @@ describe("aptos request", () => {
         "when fullnode server returns 200 status code",
         async () => {
           try {
-            const response = await aptosRequest(
+            const response = await cedraRequest(
               {
                 url: fullnodeUrl,
                 method: "GET",
@@ -115,7 +115,7 @@ describe("aptos request", () => {
                 originMethod: "test fullnode 200 status",
               },
               config,
-              AptosApiType.FULLNODE,
+              CedraApiType.FULLNODE,
             );
             expect(response).toHaveProperty("data", {
               sequence_number: "0",
@@ -137,7 +137,7 @@ describe("aptos request", () => {
         "when server returns 400 status code",
         async () => {
           try {
-            await aptosRequest(
+            await cedraRequest(
               {
                 url: fullnodeUrl,
                 method: "GET",
@@ -145,10 +145,10 @@ describe("aptos request", () => {
                 originMethod: "test 400 status",
               },
               config,
-              AptosApiType.FULLNODE,
+              CedraApiType.FULLNODE,
             );
           } catch (error: any) {
-            expect(error).toBeInstanceOf(AptosApiError);
+            expect(error).toBeInstanceOf(CedraApiError);
             expect(error.url).toBe(`${fullnodeUrl}/transactions/by_hash/0x123`);
             expect(error.status).toBe(400);
             expect(error.statusText).toBe("Bad Request");
@@ -173,7 +173,7 @@ describe("aptos request", () => {
         "when server returns 404 status code",
         async () => {
           try {
-            await aptosRequest(
+            await cedraRequest(
               {
                 url: `${fullnodeUrl}`,
                 method: "GET",
@@ -181,10 +181,10 @@ describe("aptos request", () => {
                 originMethod: "test 404 status",
               },
               config,
-              AptosApiType.FULLNODE,
+              CedraApiType.FULLNODE,
             );
           } catch (error: any) {
-            expect(error).toBeInstanceOf(AptosApiError);
+            expect(error).toBeInstanceOf(CedraApiError);
             expect(error.url).toBe(
               `${fullnodeUrl}/transactions/by_hash/0x23851af73879128b541bafad4b49d0b6f1ac0d49ed2400632d247135fbca7bea`,
             );
@@ -211,20 +211,20 @@ describe("aptos request", () => {
         "when server returns transaction submission error",
         async () => {
           try {
-            await aptosRequest(
+            await cedraRequest(
               {
                 url: `${fullnodeUrl}`,
                 method: "POST",
                 path: "transactions",
                 body: new Uint8Array([1, 2, 3]),
                 originMethod: "test transaction submission error",
-                contentType: "application/x.aptos.signed_transaction+bcs",
+                contentType: "application/x.cedra.signed_transaction+bcs",
               },
               config,
-              AptosApiType.FULLNODE,
+              CedraApiType.FULLNODE,
             );
           } catch (error: any) {
-            expect(error).toBeInstanceOf(AptosApiError);
+            expect(error).toBeInstanceOf(CedraApiError);
             expect(error.url).toBe(`${fullnodeUrl}/transactions`);
             expect(error.status).toBe(400);
             expect(error.statusText).toBe("Bad Request");
@@ -239,7 +239,7 @@ describe("aptos request", () => {
               originMethod: "test transaction submission error",
               path: "transactions",
               body: new Uint8Array([1, 2, 3]),
-              contentType: "application/x.aptos.signed_transaction+bcs",
+              contentType: "application/x.cedra.signed_transaction+bcs",
             });
           }
         },
@@ -261,7 +261,7 @@ describe("aptos request", () => {
                 }
               }`,
             };
-            const response = await aptosRequest(
+            const response = await cedraRequest(
               {
                 url: `${indexerUrl}`,
                 method: "POST",
@@ -269,7 +269,7 @@ describe("aptos request", () => {
                 originMethod: "test indexer 200 status",
               },
               config,
-              AptosApiType.INDEXER,
+              CedraApiType.INDEXER,
             );
             expect(response).toHaveProperty("data", {
               ledger_infos: [
@@ -298,7 +298,7 @@ describe("aptos request", () => {
                 }
               }`,
             };
-            await aptosRequest(
+            await cedraRequest(
               {
                 url: `${indexerUrl}`,
                 method: "POST",
@@ -306,10 +306,10 @@ describe("aptos request", () => {
                 originMethod: "test indexer 400 status",
               },
               config,
-              AptosApiType.INDEXER,
+              CedraApiType.INDEXER,
             );
           } catch (error: any) {
-            expect(error).toBeInstanceOf(AptosApiError);
+            expect(error).toBeInstanceOf(CedraApiError);
             expect(error.url).toBe(`${indexerUrl}`);
             expect(error.status).toBe(200);
             expect(error.statusText).toBe("OK");

@@ -1,9 +1,9 @@
-// Copyright © Aptos Foundation
+// Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { sha512 } from "@noble/hashes/sha512";
 import { bytesToNumberLE, concatBytes } from "@noble/curves/abstract/utils";
-import { HexInput } from "@aptos-labs/ts-sdk";
+import { HexInput } from "@cedra-labs/ts-sdk";
 import { TwistedEd25519PublicKey, TwistedEd25519PrivateKey } from "./twistedEd25519";
 import { ed25519modN } from "./utils";
 

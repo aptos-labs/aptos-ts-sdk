@@ -1,24 +1,24 @@
 import {
-  AptosConfig,
+  CedraConfig,
   Network,
-  Aptos,
+  Cedra,
   Account,
   Deserializer,
   RawTransaction,
   TransactionPayloadEntryFunction,
 } from "../../../src";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
-import { getAptosClient } from "../helper";
+import { getCedraClient } from "../helper";
 
 describe("coin", () => {
-  test("it generates a transfer coin transaction with AptosCoin coin type", async () => {
-    const config = new AptosConfig({ network: Network.LOCAL });
-    const aptos = new Aptos(config);
+  test("it generates a transfer coin transaction with CedraCoin coin type", async () => {
+    const config = new CedraConfig({ network: Network.LOCAL });
+    const cedra = new Cedra(config);
     const sender = Account.generate();
     const recipient = Account.generate();
-    await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: FUND_AMOUNT });
+    await cedra.fundAccount({ accountAddress: sender.accountAddress, amount: FUND_AMOUNT });
 
-    const transaction = await aptos.transferCoinTransaction({
+    const transaction = await cedra.transferCoinTransaction({
       sender: sender.accountAddress,
       recipient: recipient.accountAddress,
       amount: 10,
@@ -37,17 +37,17 @@ describe("coin", () => {
     }
 
     expect(typeArg.value.address.toString()).toBe("0x1");
-    expect(typeArg.value.moduleName.identifier).toBe("aptos_coin");
-    expect(typeArg.value.name.identifier).toBe("AptosCoin");
+    expect(typeArg.value.moduleName.identifier).toBe("cedra_coin");
+    expect(typeArg.value.name.identifier).toBe("CedraCoin");
   });
 
   test("it generates a transfer coin transaction with a custom coin type", async () => {
-    const { aptos } = getAptosClient();
+    const { cedra } = getCedraClient();
     const sender = Account.generate();
     const recipient = Account.generate();
-    await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: FUND_AMOUNT });
+    await cedra.fundAccount({ accountAddress: sender.accountAddress, amount: FUND_AMOUNT });
 
-    const transaction = await aptos.transferCoinTransaction({
+    const transaction = await cedra.transferCoinTransaction({
       sender: sender.accountAddress,
       recipient: recipient.accountAddress,
       amount: 10,
@@ -74,32 +74,32 @@ describe("coin", () => {
   test(
     "it transfers APT coin amount from sender to recipient",
     async () => {
-      const { aptos } = getAptosClient();
+      const { cedra } = getCedraClient();
       const sender = Account.generate();
       const recipient = Account.generate();
 
-      await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: FUND_AMOUNT });
-      const senderCoinsBefore = await aptos.getAccountCoinsData({ accountAddress: sender.accountAddress });
+      await cedra.fundAccount({ accountAddress: sender.accountAddress, amount: FUND_AMOUNT });
+      const senderCoinsBefore = await cedra.getAccountCoinsData({ accountAddress: sender.accountAddress });
 
-      const transaction = await aptos.transferCoinTransaction({
+      const transaction = await cedra.transferCoinTransaction({
         sender: sender.accountAddress,
         recipient: recipient.accountAddress,
         amount: 10,
       });
-      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: sender, transaction });
+      const pendingTxn = await cedra.signAndSubmitTransaction({ signer: sender, transaction });
 
-      const res = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
-      const recipientCoins = await aptos.getAccountCoinsData({
+      const res = await cedra.waitForTransaction({ transactionHash: pendingTxn.hash });
+      const recipientCoins = await cedra.getAccountCoinsData({
         accountAddress: recipient.accountAddress,
         minimumLedgerVersion: BigInt(res.version),
       });
-      const senderCoinsAfter = await aptos.getAccountCoinsData({
+      const senderCoinsAfter = await cedra.getAccountCoinsData({
         accountAddress: sender.accountAddress,
         minimumLedgerVersion: BigInt(res.version),
       });
 
       expect(recipientCoins[0].amount).toBe(10);
-      expect(recipientCoins[0].asset_type).toBe("0x1::aptos_coin::AptosCoin");
+      expect(recipientCoins[0].asset_type).toBe("0x1::cedra_coin::CedraCoin");
       expect(senderCoinsAfter[0].amount).toBeLessThan(senderCoinsBefore[0].amount);
     },
     longTestTimeout,

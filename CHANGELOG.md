@@ -1,6 +1,6 @@
-# Aptos TypeScript SDK Changelog
+# Cedra TypeScript SDK Changelog
 
-All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+All notable changes to the Cedra TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
@@ -9,11 +9,11 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # 2.0.0 (2025-05-06)
 
-- Remove `scriptComposer` api due to increase in the sdk bundle size, If you wish to continue using it, please use version 1.39.0: [https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.39.0](https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.39.0)
+- Remove `scriptComposer` api due to increase in the sdk bundle size, If you wish to continue using it, please use version 1.39.0: [https://www.npmjs.com/package/@cedra-labs/ts-sdk/v/1.39.0](https://www.npmjs.com/package/@cedra-labs/ts-sdk/v/1.39.0)
 - [`Breaking`] Ed25519 and Secp256k1 private keys will now default to the AIP-80 format when calling `toString()`.
 - [`Breaking`] Custom networks now need to set the `network` field in the client config to the correct network type. This is needed to reduce network calls.
 - Add info message if using `CUSTOM` network
-- Update `@aptos-labs/aptos-client` to version `2.0.0`
+- Update `@cedra-labs/cedra-client` to version `2.0.0`
 
 # 1.39.0 (2025-05-05)
 
@@ -56,7 +56,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add support for skipping struct type tag validation.
 - Add support for known enum structs: DelegationKey and RateLimiter.
 - Deprecated `fetchMoveFunctionAbi` and `convertCallArgument`
-- Bump `aptos-client` to 1.1.0
+- Bump `cedra-client` to 1.1.0
 
 # 1.35.0 (2025-02-11)
 
@@ -67,7 +67,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add new `scriptComposer` api in `transactionSubmission` api to allow SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.
 - Add support for vectors as string as a valid argument
 - Add `AbstractedAccount` class to support account abstraction with custom signers.
-- Add `aptos.abstraction` namespace to support account abstraction APIs. Notable functions are: `isAccountAbstractionEnabled`, `enableAccountAbstractionTransaction`, and `disableAccountAbstractionTransaction`.
+- Add `cedra.abstraction` namespace to support account abstraction APIs. Notable functions are: `isAccountAbstractionEnabled`, `enableAccountAbstractionTransaction`, and `disableAccountAbstractionTransaction`.
 
 # 1.33.2 (2025-01-22)
 
@@ -81,7 +81,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # 1.33.1 (2024-11-28)
 
-- Add `gasProfile` function to `Move` class to allow for gas profiling of Aptos Move functions
+- Add `gasProfile` function to `Move` class to allow for gas profiling of Cedra Move functions
 - `PrivateKey.formatPrivateKey` now supports formatting AIP-80 strings
 - Removed strictness warnings for bytes AIP-80 private key parsing formatting.
 - Add accidentally deleted `deserializeOptionStr` and mark deprecated to unbreak Wallet Adapter
@@ -108,7 +108,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # 1.31.0 (2024-10-24)
 
-- Bump `@aptos-labs/aptos-cli` to `1.0.2`
+- Bump `@cedra-labs/cedra-cli` to `1.0.2`
 - Fix the `Move` CLI command to correctly handle the success/error outputs
 
 # 1.30.0 (2024-10-21)
@@ -117,7 +117,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add `showStdout` optional property to `Move` and `LocalNode` classes to control the output of the CLI commands
 - Add support for MultiKey's in transaction simulations
 - Adds default implementation for `toString` and `toStringWithoutPrefix` for `Serializable`
-- Bump `@aptos-labs/aptos-cli` to `1.0.1`
+- Bump `@cedra-labs/cedra-cli` to `1.0.1`
 
 # 1.29.1 (2024-10-09)
 
@@ -141,11 +141,11 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # 1.27.1 (2024-08-23)
 
-- [Security Fix] Bump `@aptos-labs/aptos-client` to version 0.1.1
+- [Security Fix] Bump `@cedra-labs/cedra-client` to version 0.1.1
 
 # 1.27.0 (2024-08-15)
 
-- Upgrade `@aptos-labs/aptos-cli` version to `0.2.0`
+- Upgrade `@cedra-labs/cedra-cli` version to `0.2.0`
 - Update Indexer GraphQL schema
 - Add `convertAmountFromHumanReadableToOnChain` and `convertAmountFromOnChainToHumanReadable` helper methods
 - Export `helpers.ts` file
@@ -174,8 +174,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - [`Fix`] Support migrated coins in coin balance lookup indexer queries
 - Add support for BlockEpilogueTransaction
 - [`Fix`] Fixes a bug with ANS not returning subdomains with an expiration policy of 1 when the subdomain is expired but the parent domain is not.
-- Marked AptosApiError.constructor function as @internal and changed its signature
-- AptosApiError.message contains a more descriptive and more detailed error message to ease troubleshooting
+- Marked CedraApiError.constructor function as @internal and changed its signature
+- CedraApiError.message contains a more descriptive and more detailed error message to ease troubleshooting
 
 # 1.22.2 (2024-06-26)
 
@@ -187,7 +187,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # 1.22.0 (2024-06-24)
 
-- Bump Aptos CLI version that will auto upgrade Aptos CLI to 0.1.9.
+- Bump Cedra CLI version that will auto upgrade Cedra CLI to 0.1.9.
 
 # 1.21.0 (2024-06-21)
 
@@ -197,7 +197,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # 1.20.0 (2024-06-18)
 
-- Introduce `AptosObject` API for all Object queries
+- Introduce `CedraObject` API for all Object queries
 - Add `getObjectDataByObjectAddress` API function to fetch an object data by the object address
 - [`Breaking`] `GetAccountOwnedObjectsResponse` type renamed to `GetObjectDataQueryResponse`
 - Add `getCollectionDataByCreatorAddressAndCollectionName` and `getCollectionDataByCreatorAddress` API queries
@@ -231,7 +231,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # 1.16.0 (2024-05-22)
 
-- Upgrade `@aptos-labs/aptos-cli` package to version `0.1.8`
+- Upgrade `@cedra-labs/cedra-cli` package to version `0.1.8`
 - [`Fix`] CLI scripts to be OS compatible with Mac, Linux and Windows
 - [`Fix`] Support generating transactions with loose types for SDK V1 backward compatibility
 
@@ -242,7 +242,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Refactors the core/accounts folder to the top level
 - Separates the signing message functionality out of the transactionSubmission.ts file
 - Adds an Account implementation for MultiKey accounts
-- Upgrade `@aptos-labs/aptos-cli` package to version `0.1.7`
+- Upgrade `@cedra-labs/cedra-cli` package to version `0.1.7`
 - Introduce `table` function APIs
 - Add `getTableItemsData` and `getTableItemsMetadata` API queries
 - Add `decimal` prop back to `current_token_ownerships_v2.current_token_data` response
@@ -264,7 +264,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - [`Fix`] Fix `generateSignedTransaction` so that it works with object instances from different bundles
 - [`Fix`] Preventing undefined options from overriding fallbacks in `generateRawTransaction`
-- Use `@aptos-labs/aptos-cli` as a regular dependency
+- Use `@cedra-labs/cedra-cli` as a regular dependency
 
 # 1.13.1 (2024-04-23)
 
@@ -275,7 +275,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - [`Breaking`] Change ed25519 library to be `@noble/curves/ed25519`
 - Fix ed25519 signature verification to ensure for canonical signatures to prevent malleability
-- Include `x-aptos-typescript-sdk-origin-method` header on server request
+- Include `x-cedra-typescript-sdk-origin-method` header on server request
 - Export `LocalNode` module using the module relative path
 - Change the `waitForTransaction` SDK API to try long poll
 
@@ -349,13 +349,13 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Remove request URLs forward slash append
 - Add events to `TransactionWorker` module that dapps can listen to
-- Introduce `aptos.transaction.batch` namespace to handle batch transactions
-- Support `aptos.transaction.batch.forSingleAccount()` to send batch transactions for a single account
-- Label `aptos.batchTransactionsForSingleAccount()` as `deprecated` to prefer using `aptos.transaction.batch.forSingleAccount()`
+- Introduce `cedra.transaction.batch` namespace to handle batch transactions
+- Support `cedra.transaction.batch.forSingleAccount()` to send batch transactions for a single account
+- Label `cedra.batchTransactionsForSingleAccount()` as `deprecated` to prefer using `cedra.transaction.batch.forSingleAccount()`
 
 # 1.4.0 (2024-01-08)
 
-- Omit `"build" | "simulate" | "submit"` from `aptos` namespace
+- Omit `"build" | "simulate" | "submit"` from `cedra` namespace
 - [`Breaking`] Change `sender` property type to `AccountAddressInput` in `transferCoinTransaction()`
 
 # 1.3.0 (2024-01-03)
@@ -363,7 +363,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - [`Breaking`] Capitalize `TransactionPayloadMultiSig` type
 - Add support to Array value in digital asset property map
 - [`Breaking`] Change `maxGasAmount, gasUnitPrice and expireTimestamp` properties in `InputGenerateTransactionOptions` type to `number` type
-- Add `@aptos-labs/aptos-cli` npm package as a dev dependency
+- Add `@cedra-labs/cedra-cli` npm package as a dev dependency
 - Implement a `LocalNode` module to run a local testnet with in the SDK environment
 - Use `LocalNode` module to spin up a local testnet pre running SDK tests
 - Update BigInt constants to be hardcoded rather than use Math.pow
@@ -374,7 +374,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Fixed `waitOnIndexer` to wait on correct tables / remove duplicate or unnecessary waits on indexer
 - [`Breaking`] Changed output of `getIndexerLastSuccessVersion` to `bigint` from `number`
 - Update dependencies in the Typescript SDK to keep up with latest changes
-- Updated @aptos-labs/aptos-client dependency
+- Updated @cedra-labs/cedra-client dependency
 - [`Breaking`] Hex string inputs to `vector<u8>` entry function arguments will now be interpreted as a string instead of hex
 - String inputs to `vector<u8>` entry function arguments will now be interpreted as UTF-8 bytes
 - ArrayBuffer is now a possible input for `vector<u8>` entry function arguments
@@ -382,7 +382,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 ## 1.1.0 (2023-12-11)
 
 - Add release automation, so version updates can be made with simply `pnpm update-version`
-- Rename custom request header to `aptos-typescript-sdk`
+- Rename custom request header to `cedra-typescript-sdk`
 - [`Breaking`] Rename `token` to `digitalAsset` and add digital asset built in transaction generation functions
 - [`Breaking`] change transaction submission builder flow namespace to be under a `transaction` namespace
 - [`Breaking`] Rename `SingleSignerTransaction` type to `SimpleTransaction`
@@ -430,10 +430,10 @@ Release Stable version `1.0.0`
     - getDomainSubdomains
 
 - [`Breaking`] Refactor transaction builder flow
-  - Each builder step is under a dedicated namespace - `aptos.build.transaction`, `aptos.sign.transaction`, `aptos.submit.transaction`
-  - Supports and implements 2 types of transactions - single signer as `aptos.*.transaction` and multi agent as `aptos.*.multiAgentTransaction`
+  - Each builder step is under a dedicated namespace - `cedra.build.transaction`, `cedra.sign.transaction`, `cedra.submit.transaction`
+  - Supports and implements 2 types of transactions - single signer as `cedra.*.transaction` and multi agent as `cedra.*.multiAgentTransaction`
   - A boolean `withFeePayer` argument can be passed to any transaction `build` function to make it a Sponsor transaction
-  - Different functions `aptos.sign.transaction` to sign a transaction as a single signer and `aptos.sign.transactionAsFeePayer`to sign a transaction as a sponsor
+  - Different functions `cedra.sign.transaction` to sign a transaction as a single signer and `cedra.sign.transactionAsFeePayer`to sign a transaction as a sponsor
   - Return `InputSingleSignerTransaction` type changed to `SingleSignerTransaction` type
   - Return `InputMultiAgentTransaction` type changed to `MultiAgentTransaction` type
 
@@ -462,7 +462,7 @@ Release Stable version `1.0.0`
 - Derive account from derivation path secp256k1 support
 - Default Account generation to Legacy Ed25519
 - Remove unnecessary pre-emptive serialization of the field `rawTransaction: Uint8Array` by replacing it with the unserialized `rawTransaction: RawTransaction` class
-- ANS (Aptos Names Service) SDK initial support for creation and lookup of names
+- ANS (Cedra Names Service) SDK initial support for creation and lookup of names
 - Initial Auth key rotation support
 
 ## 0.0.3 (2023-10-31)
@@ -495,7 +495,7 @@ Release Stable version `1.0.0`
 
 - Fetch data from chain
 - Fund account with APT coins
-- Proper formatting and parsing of account addresses as defined by [AIP-40](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-40.md)
+- Proper formatting and parsing of account addresses as defined by [AIP-40](https://github.com/cedra-foundation/AIPs/blob/main/aips/aip-40.md)
 - Submit transactions
   - Single signer
   - Fee payer

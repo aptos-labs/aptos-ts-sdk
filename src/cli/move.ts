@@ -5,7 +5,7 @@ import { AccountAddress } from "../core";
 import { Network } from "../utils";
 
 /**
- * Class representing a Move package management utility for the Aptos blockchain.
+ * Class representing a Move package management utility for the Cedra blockchain.
  * This class provides methods to initialize directories, compile packages, run tests, publish modules, create objects, upgrade
  * packages, build transaction payloads, and run scripts.
  * @group Implementation
@@ -13,8 +13,8 @@ import { Network } from "../utils";
  */
 export class Move {
   /**
-   * Initialize the current directory for Aptos by configuring the necessary settings.
-   * Configuration will be pushed into .aptos/config.yaml.
+   * Initialize the current directory for Cedra by configuring the necessary settings.
+   * Configuration will be pushed into .cedra/config.yaml.
    *
    * @param args - The arguments for initialization.
    * @param args.network - Optional Network type argument to use for default settings; defaults to local.
@@ -33,7 +33,7 @@ export class Move {
     showStdout?: boolean;
   }): Promise<{ output: string }> {
     const { network, profile, extraArguments, showStdout } = args;
-    const cliArgs = ["aptos", "init", `--network=${network ?? "local"}`, `--profile=${profile ?? "default"}`];
+    const cliArgs = ["cedra", "init", `--network=${network ?? "local"}`, `--profile=${profile ?? "default"}`];
 
     if (extraArguments) {
       cliArgs.push(...extraArguments);
@@ -62,7 +62,7 @@ export class Move {
     showStdout?: boolean;
   }): Promise<{ output: string }> {
     const { packageDirectoryPath, namedAddresses, extraArguments, showStdout } = args;
-    const cliArgs = ["aptos", "move", "compile", "--package-dir", packageDirectoryPath];
+    const cliArgs = ["cedra", "move", "compile", "--package-dir", packageDirectoryPath];
 
     const addressesMap = this.parseNamedAddresses(namedAddresses);
 
@@ -94,7 +94,7 @@ export class Move {
     showStdout?: boolean;
   }): Promise<{ output: string }> {
     const { packageDirectoryPath, namedAddresses, extraArguments, showStdout } = args;
-    const cliArgs = ["aptos", "move", "test", "--package-dir", packageDirectoryPath];
+    const cliArgs = ["cedra", "move", "test", "--package-dir", packageDirectoryPath];
 
     const addressesMap = this.parseNamedAddresses(namedAddresses);
 
@@ -108,7 +108,7 @@ export class Move {
   }
 
   /**
-   * Publishes the modules to the publisher account on the Aptos blockchain.
+   * Publishes the modules to the publisher account on the Cedra blockchain.
    *
    * @param args - The arguments for publishing the modules.
    * @param args.packageDirectoryPath - The path to a move package (the folder with a Move.toml file).
@@ -129,7 +129,7 @@ export class Move {
   }): Promise<{ output: string }> {
     const { packageDirectoryPath, namedAddresses, profile, extraArguments, showStdout } = args;
     const cliArgs = [
-      "aptos",
+      "cedra",
       "move",
       "publish",
       "--package-dir",
@@ -149,7 +149,7 @@ export class Move {
   }
 
   /**
-   * Create a new object and publish the Move package to it on the Aptos blockchain.
+   * Create a new object and publish the Move package to it on the Cedra blockchain.
    *
    * @param args - The arguments for creating the object and publishing the package.
    * @param args.packageDirectoryPath - Path to a Move package (the folder with a Move.toml file).
@@ -161,7 +161,7 @@ export class Move {
    * @returns The object address.
    *
    * A complete example in CLI:
-   * aptos move create-object-and-publish-package \
+   * cedra move create-object-and-publish-package \
    * --package-dir path_to_directory_that_has_move.toml \
    * --address-name launchpad_addr \
    * --named-addresses "launchpad_addr=0x123,initial_creator_addr=0x456" \
@@ -180,7 +180,7 @@ export class Move {
   }): Promise<{ objectAddress: string }> {
     const { packageDirectoryPath, addressName, namedAddresses, profile, extraArguments, showStdout } = args;
     const cliArgs = [
-      "aptos",
+      "cedra",
       "move",
       "create-object-and-publish-package",
       "--package-dir",
@@ -203,7 +203,7 @@ export class Move {
   }
 
   /**
-   * Upgrade a Move package previously published to an object on the Aptos blockchain.
+   * Upgrade a Move package previously published to an object on the Cedra blockchain.
    * The caller must be the object owner to execute this function.
    *
    * @param args - The arguments for upgrading the object package.
@@ -227,7 +227,7 @@ export class Move {
   }): Promise<{ output: string }> {
     const { packageDirectoryPath, objectAddress, namedAddresses, profile, extraArguments, showStdout } = args;
     const cliArgs = [
-      "aptos",
+      "cedra",
       "move",
       "upgrade-object-package",
       "--package-dir",
@@ -270,7 +270,7 @@ export class Move {
   }): Promise<{ output: string }> {
     const { outputFile, packageDirectoryPath, namedAddresses, extraArguments, showStdout } = args;
     const cliArgs = [
-      "aptos",
+      "cedra",
       "move",
       "build-publish-payload",
       "--json-output-file",
@@ -313,7 +313,7 @@ export class Move {
   }): Promise<{ output: string }> {
     const { compiledScriptPath, profile, extraArguments, showStdout } = args;
     const cliArgs = [
-      "aptos",
+      "cedra",
       "move",
       "run-script",
       "--compiled-script-path",
@@ -335,7 +335,7 @@ export class Move {
     showStdout?: boolean;
   }): Promise<{ output: string; result?: any }> {
     const { network, transactionId, extraArguments, showStdout } = args;
-    const cliArgs = ["aptos", "move", "replay", "--profile-gas", "--network", network, "--txn-id", transactionId];
+    const cliArgs = ["cedra", "move", "replay", "--profile-gas", "--network", network, "--txn-id", transactionId];
 
     if (extraArguments) {
       cliArgs.push(...extraArguments);
