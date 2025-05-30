@@ -76,8 +76,8 @@ export class ConfidentialAsset {
   ) {
     this.client = new Aptos(config);
     this.confidentialAssetModuleAddress = confidentialAssetModuleAddress;
-    this.preloadTablesPromise = this.preloadTables();
     this.tablesPreloaded = false;
+    this.preloadTablesPromise = this.preloadTables();
   }
 
   private async preloadTables(): Promise<void> {
@@ -132,7 +132,7 @@ export class ConfidentialAsset {
    */
   async getBalanceCipherText(args: {
     accountAddress: AccountAddress;
-    tokenAddress: string;
+    tokenAddress: AccountAddress;
     options?: LedgerVersionArg;
   }): Promise<{
     pending: TwistedElGamalCiphertext[];
@@ -234,7 +234,6 @@ export class ConfidentialAsset {
   async deposit(args: {
     sender: AccountAddressInput;
     tokenAddress?: string;
-    coinType?: MoveStructId;
     amount: AnyNumber;
     /** If not set we will use the sender's address. */
     recipient?: AccountAddress;
@@ -444,6 +443,7 @@ export class ConfidentialAsset {
     } catch (e) {
       throw new Error(`Failed to get encryption key for recipient - ${e}`);
     }
+    check that recipient balance is not frozen
 
     // Get the sender's available balance from the chain
     const { available: senderEncryptedAvailableBalance } = await this.getBalanceCipherText({
@@ -510,7 +510,7 @@ export class ConfidentialAsset {
    * @returns A boolean indicating if the user's balance is frozen
    * @throws {AptosApiError} If the there is no registered confidential balance for token address on the account
    */
-  async isBalanceFrozen(args: {
+  async isPendingBalanceFrozen(args: {
     accountAddress: AccountAddress;
     tokenAddress: string;
     options?: LedgerVersionArg;
@@ -549,10 +549,10 @@ export class ConfidentialAsset {
   async rotateEncryptionKey(args: {
     sender: AccountAddressInput;
     senderDecryptionKey: TwistedEd25519PrivateKey;
-    newDecryptionKey: TwistedEd25519PrivateKey;
+    newSenderDecryptionKey: TwistedEd25519PrivateKey;
     tokenAddress: string;
     checkPendingBalanceEmpty?: boolean;
-    withUnfreezeBalance?: boolean;
+    withUnfreezeBalance123?: boolean;
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
