@@ -1,6 +1,6 @@
 {
-  "name": "@aptos-labs/ts-sdk",
-  "description": "Aptos TypeScript SDK",
+  "name": "@cedra-labs/ts-sdk",
+  "description": "Cedra TypeScript SDK",
   "packageManager": "pnpm@8.15.1",
   "license": "Apache-2.0",
   "engines": {
