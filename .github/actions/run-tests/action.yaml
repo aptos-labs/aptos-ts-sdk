@@ -1,6 +1,6 @@
 name: "Run SDK E2E tests"
 description: |
-  Run the SDK E2E tests against a local testnet from the latest Aptos CLI
+  Run the SDK E2E tests against a local testnet from the latest Cedra CLI
 
 # Currently no indexer tests or tests against local testnets from production branches,
 # we just use whatever is in the latest CLI.

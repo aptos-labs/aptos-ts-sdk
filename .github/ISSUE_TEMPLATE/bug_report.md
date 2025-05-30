@@ -1,6 +1,6 @@
 ---
 name: "\U0001F41B Bug report"
-about: Create a bug report to help improve the Aptos Typescript SDK
+about: Create a bug report to help improve the Cedra Typescript SDK
 title: "[Bug] <Bug Title>"
 labels: bug
 assignees: ''
@@ -11,7 +11,7 @@ assignees: ''
 
 <!-- 
   A clear description of what the bug is.  
-  To report a security issue, please email security@aptoslabs.com.
+  To report a security issue, please email security@cedralabs.com.
 -->
 
 ## How to reproduce

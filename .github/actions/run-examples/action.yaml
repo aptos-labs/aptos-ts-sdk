@@ -21,11 +21,11 @@ runs:
       shell: bash
 
     # Install the CLI.
-    - run: pnpm install -g @aptos-labs/aptos-cli
+    - run: pnpm install -g @cedra-labs/cedra-cli
       shell: bash
 
     # Run a local testnet in the background.
-    - run: aptos node run-local-testnet --force-restart --assume-yes --with-indexer-api --log-to-stdout >& ${{ runner.temp }}/local-testnet-logs.txt &
+    - run: cedra node run-local-testnet --force-restart --assume-yes --with-indexer-api --log-to-stdout >& ${{ runner.temp }}/local-testnet-logs.txt &
       shell: bash
 
     # Wait for the local testnet to be ready by hitting the readiness endpoint.
@@ -44,7 +44,7 @@ runs:
         # repo and mounting it into the CLI container is created in a location that
         # actually supports mounting. Learn more here: https://stackoverflow.com/a/76523941/3846032.
         TMPDIR: ${{ runner.temp }}
-        APTOS_NETWORK: local
+        CEDRA_NETWORK: local
       with:
         max_attempts: 3
         timeout_minutes: 25
@@ -63,7 +63,7 @@ runs:
         # repo and mounting it into the CLI container is created in a location that
         # actually supports mounting. Learn more here: https://stackoverflow.com/a/76523941/3846032.
         TMPDIR: ${{ runner.temp }}
-        APTOS_NETWORK: local
+        CEDRA_NETWORK: local
       with:
         max_attempts: 3
         timeout_minutes: 25
@@ -82,7 +82,7 @@ runs:
         # repo and mounting it into the CLI container is created in a location that
         # actually supports mounting. Learn more here: https://stackoverflow.com/a/76523941/3846032.
         TMPDIR: ${{ runner.temp }}
-        APTOS_NETWORK: local
+        CEDRA_NETWORK: local
       with:
         max_attempts: 3
         timeout_minutes: 25
