@@ -2,14 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
-  AccountAddress,
   AccountAddressInput,
   AnyNumber,
   Aptos,
   AptosConfig,
   InputGenerateTransactionOptions,
   LedgerVersionArg,
-  MoveStructId,
   SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
 import { TwistedElGamalCiphertext } from "./twistedElGamal";
@@ -104,7 +102,7 @@ export class ConfidentialAsset {
    * @returns A ConfidentialBalance object with available and pending amounts and cipher texts
    */
   async getBalance(args: {
-    accountAddress: AccountAddress;
+    accountAddress: AccountAddressInput
     tokenAddress: AccountAddressInput;
     decryptionKey: TwistedEd25519PrivateKey;
     options?: LedgerVersionArg;
@@ -176,7 +174,7 @@ export class ConfidentialAsset {
    * @returns The encryption key as a TwistedEd25519PublicKey
    */
   async getEncryptionKey(args: {
-    accountAddress: AccountAddress;
+    accountAddress: AccountAddressInput
     tokenAddress: AccountAddressInput;
     options?: LedgerVersionArg;
   }): Promise<TwistedEd25519PublicKey> {
@@ -236,7 +234,7 @@ export class ConfidentialAsset {
     tokenAddress: AccountAddressInput;
     amount: AnyNumber;
     /** If not set we will use the sender's address. */
-    recipient?: AccountAddress;
+    recipient?: AccountAddressInput
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
@@ -284,7 +282,7 @@ export class ConfidentialAsset {
     await this.ensurePreloaded();
     // Get the sender's available balance from the chain
     const { available: senderEncryptedAvailableBalance } = await this.getBalanceCipherText({
-      accountAddress: AccountAddress.from(sender),
+      accountAddress: sender,
       tokenAddress,
     });
 
@@ -336,7 +334,7 @@ export class ConfidentialAsset {
     await this.ensurePreloaded();
     if (checkNormalized) {
       const isNormalized = await this.isBalanceNormalized({
-        accountAddress: AccountAddress.from(args.sender),
+        accountAddress: args.sender,
         tokenAddress: args.tokenAddress,
       });
       if (!isNormalized) {
@@ -421,7 +419,7 @@ export class ConfidentialAsset {
     let recipientEncryptionKey: TwistedEd25519PublicKey;
     try {
       recipientEncryptionKey = await this.getEncryptionKey({
-        accountAddress: AccountAddress.from(recipient),
+        accountAddress: recipient,
         tokenAddress,
       });
     } catch (e) {
@@ -436,7 +434,7 @@ export class ConfidentialAsset {
     }
     // Get the sender's available balance from the chain
     const { available: senderEncryptedAvailableBalance } = await this.getBalanceCipherText({
-      accountAddress: AccountAddress.from(args.sender),
+      accountAddress: args.sender,
       tokenAddress,
     });
 
@@ -615,7 +613,7 @@ export class ConfidentialAsset {
    * @returns A boolean indicating if the user has registered a confidential asset balance
    */
   async hasUserRegistered(args: {
-    accountAddress: AccountAddress;
+    accountAddress: AccountAddressInput;
     tokenAddress: AccountAddressInput;
     options?: LedgerVersionArg;
   }): Promise<boolean> {
@@ -643,7 +641,7 @@ export class ConfidentialAsset {
    * @throws {AptosApiError} If the there is no registered confidential balance for token address on the account
    */
   async isBalanceNormalized(args: {
-    accountAddress: AccountAddress;
+    accountAddress: AccountAddressInput
     tokenAddress: AccountAddressInput;
     options?: LedgerVersionArg;
   }): Promise<boolean> {
@@ -680,7 +678,7 @@ export class ConfidentialAsset {
     const { sender, senderDecryptionKey, tokenAddress } = args;
     await this.ensurePreloaded();
     const { available: unnormalizedEncryptedAvailableBalance } = await this.getBalanceCipherText({
-      accountAddress: AccountAddress.from(sender),
+      accountAddress: sender,
       tokenAddress,
     });
 

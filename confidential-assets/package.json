@@ -1,22 +1,19 @@
 {
   "name": "@aptos-labs/confidential-assets",
-  "version": "0.2.11",
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "sideEffects": false,
-  "typesVersions": {
-    ">=4.2": {
-      "*": [
-        "./dist/types/*"
-      ]
-    }
+  "description": "Aptos Confidential Assets SDK",
+  "packageManager": "pnpm@8.15.1",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=20.0.0"
   },
+  "bugs": {
+    "url": "https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose"
+  },
+  "homepage": "https://aptos-labs.github.io/aptos-ts-sdk/",
+  "version": "0.2.13",
+  "sideEffects": false,
   "main": "dist/common/index.js",
-  "browser": "./dist/esm/index.js",
-  "module": "./dist/esm/index.js",
-  "node": "./dist/cjs/index.js",
-  "types": "index.d.ts",
+  "module": "dist/esm/index.mjs",
   "exports": {
     ".": {
       "source": "./src/index.ts",

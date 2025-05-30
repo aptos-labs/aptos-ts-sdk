@@ -5,6 +5,7 @@ export * from "./confidentialNormalization";
 export * from "./confidentialTransfer";
 export * from "./confidentialWithdraw";
 export * from "./consts";
+export * from "./encryptedAmount";
 export * from "./helpers";
 export * from "./rangeProof";
 export * from "./twistedEd25519";
