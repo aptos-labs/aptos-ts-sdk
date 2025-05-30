@@ -25,7 +25,7 @@ import {
 } from "@cedra-labs/ts-sdk";
 import { createInterface } from "readline";
 // Default to devnet, but allow for overriding
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
+const CEDRA_NETWORK: Network = NetworkToNetworkName[process.env.CEDRA_NETWORK ?? Network.DEVNET];
 
 const readline = createInterface({
   input: process.stdin,
@@ -202,7 +202,7 @@ const example = async () => {
     process.exit(1);
   }
 
-  const cedraConfig = new CedraConfig({ network: APTOS_NETWORK });
+  const cedraConfig = new CedraConfig({ network: CEDRA_NETWORK });
   const cedra = new Cedra(cedraConfig);
   // Create three accounts
   const swapAddress = AccountAddress.from(process.argv[2]);

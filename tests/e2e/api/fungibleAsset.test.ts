@@ -1,7 +1,7 @@
 // Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, APTOS_COIN, APTOS_FA } from "../../../src";
+import { Account, CEDRA_COIN, CEDRA_FA } from "../../../src";
 import { getCedraClient } from "../helper";
 
 const { cedra } = getCedraClient();
@@ -11,18 +11,18 @@ describe("FungibleAsset", () => {
     const data = await cedra.getFungibleAssetMetadata({
       options: {
         where: {
-          asset_type: { _eq: APTOS_COIN },
+          asset_type: { _eq: CEDRA_COIN },
         },
       },
     });
     expect(data.length).toEqual(1);
     expect(data[0]).toHaveProperty("asset_type");
-    expect(data[0].asset_type).toEqual(APTOS_COIN);
+    expect(data[0].asset_type).toEqual(CEDRA_COIN);
   });
 
   test("it should fetch a specific fungible asset metadata by an asset type", async () => {
-    let data = await cedra.getFungibleAssetMetadataByAssetType({ assetType: APTOS_COIN });
-    expect(data.asset_type).toEqual(APTOS_COIN);
+    let data = await cedra.getFungibleAssetMetadataByAssetType({ assetType: CEDRA_COIN });
+    expect(data.asset_type).toEqual(CEDRA_COIN);
 
     // fetch by something that doesn't exist
     data = await cedra.getFungibleAssetMetadataByAssetType({ assetType: "0x1::cedra_coin::testnotexist" });
@@ -33,7 +33,7 @@ describe("FungibleAsset", () => {
     let data = await cedra.getFungibleAssetMetadataByCreatorAddress({
       creatorAddress: "0x0000000000000000000000000000000000000000000000000000000000000001",
     });
-    expect(data[1].asset_type).toEqual(APTOS_FA);
+    expect(data[1].asset_type).toEqual(CEDRA_FA);
 
     // fetch by something that doesn't exist
     data = await cedra.getFungibleAssetMetadataByCreatorAddress({ creatorAddress: "0xc" });
@@ -45,13 +45,13 @@ describe("FungibleAsset", () => {
       options: {
         limit: 2,
         where: {
-          asset_type: { _eq: APTOS_COIN },
+          asset_type: { _eq: CEDRA_COIN },
         },
       },
     });
     expect(data.length).toEqual(2);
-    expect(data[0].asset_type).toEqual(APTOS_COIN);
-    expect(data[1].asset_type).toEqual(APTOS_COIN);
+    expect(data[0].asset_type).toEqual(CEDRA_COIN);
+    expect(data[1].asset_type).toEqual(CEDRA_COIN);
   });
 
   test("it should fetch current fungible asset balance", async () => {
@@ -63,7 +63,7 @@ describe("FungibleAsset", () => {
       options: {
         where: {
           owner_address: { _eq: userAccount.accountAddress.toString() },
-          asset_type: { _eq: APTOS_COIN },
+          asset_type: { _eq: CEDRA_COIN },
         },
       },
     });

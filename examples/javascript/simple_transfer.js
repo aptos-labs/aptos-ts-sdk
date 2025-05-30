@@ -14,11 +14,11 @@ const {
   U64,
 } = require("@cedra-labs/ts-sdk");
 
-const APTOS_COIN = "0x1::cedra_coin::CedraCoin";
+const CEDRA_COIN = "0x1::cedra_coin::CedraCoin";
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 100;
-const APTOS_NETWORK = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
+const CEDRA_NETWORK = NetworkToNetworkName[process.env.CEDRA_NETWORK] || Network.DEVNET;
 
 /**
  * Prints the balance of an account
@@ -46,7 +46,7 @@ const example = async () => {
   console.log("This example will create two accounts (Alice and Bob), fund them, and transfer between them.");
 
   // Set up the client
-  const config = new CedraConfig({ network: APTOS_NETWORK });
+  const config = new CedraConfig({ network: CEDRA_NETWORK });
   const sdk = new Cedra(config);
 
   // Create two accounts
@@ -85,7 +85,7 @@ const example = async () => {
     sender: alice.accountAddress,
     data: {
       function: "0x1::coin::transfer",
-      typeArguments: [parseTypeTag(APTOS_COIN)],
+      typeArguments: [parseTypeTag(CEDRA_COIN)],
       functionArguments: [AccountAddress.from(bob.accountAddress), new U64(TRANSFER_AMOUNT)],
     },
   });

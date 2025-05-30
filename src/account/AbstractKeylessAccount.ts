@@ -515,7 +515,7 @@ export class TransactionAndProof extends Serializable {
    * @group Implementation
    * @category Account (On-Chain Model)
    */
-  readonly domainSeparator = "APTOS::TransactionAndProof";
+  readonly domainSeparator = "CEDRA::TransactionAndProof";
 
   constructor(transaction: AnyRawTransactionInstance, proof?: ZkProof) {
     super();

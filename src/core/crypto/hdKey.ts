@@ -20,13 +20,13 @@ export type DerivedKeys = {
  * @group Implementation
  * @category Serialization
  */
-export const APTOS_HARDENED_REGEX = /^m\/44'\/637'\/[0-9]+'\/[0-9]+'\/[0-9]+'?$/;
+export const CEDRA_HARDENED_REGEX = /^m\/44'\/637'\/[0-9]+'\/[0-9]+'\/[0-9]+'?$/;
 
 /**
  * @group Implementation
  * @category Serialization
  */
-export const APTOS_BIP44_REGEX = /^m\/44'\/637'\/[0-9]+'\/[0-9]+\/[0-9]+$/;
+export const CEDRA_BIP44_REGEX = /^m\/44'\/637'\/[0-9]+'\/[0-9]+\/[0-9]+$/;
 
 /**
  * Supported key types and their associated seeds.
@@ -56,7 +56,7 @@ export const HARDENED_OFFSET = 0x80000000;
  * @category Serialization
  */
 export function isValidBIP44Path(path: string): boolean {
-  return APTOS_BIP44_REGEX.test(path);
+  return CEDRA_BIP44_REGEX.test(path);
 }
 
 /**
@@ -78,7 +78,7 @@ export function isValidBIP44Path(path: string): boolean {
  * @category Serialization
  */
 export function isValidHardenedPath(path: string): boolean {
-  return APTOS_HARDENED_REGEX.test(path);
+  return CEDRA_HARDENED_REGEX.test(path);
 }
 
 /**

@@ -20,7 +20,7 @@ const DEFAULT_CONFIG: Options = {
   target: "es2020",
   platform: "node",
   env: {
-    APTOS_NETWORK: process.env.APTOS_NETWORK ?? "Devnet",
+    CEDRA_NETWORK: process.env.CEDRA_NETWORK ?? "Devnet",
     ANS_TEST_ACCOUNT_PRIVATE_KEY:
       process.env.ANS_TEST_ACCOUNT_PRIVATE_KEY ?? "0x37368b46ce665362562c6d1d4ec01a08c8644c488690df5a17e13ba163e20221",
     ANS_TEST_ACCOUNT_ADDRESS:

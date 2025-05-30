@@ -62,7 +62,7 @@ import {
 import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey, createObjectAddress } from "../core";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 import { getTableItem } from "./table";
-import { APTOS_COIN } from "../utils";
+import { CEDRA_COIN } from "../utils";
 import { CedraApiError } from "../errors";
 import { signAndSubmitTransaction, generateTransaction } from "./transactionSubmission";
 import { EntryFunctionABI, RotationProofChallenge, TypeTagU8, TypeTagVector } from "../transactions";
@@ -595,7 +595,7 @@ export async function getAccountCoinAmount(args: {
     faAddress = AccountAddress.from(faMetadataAddress).toStringLong();
   } else if (coinType !== undefined && faMetadataAddress === undefined) {
     // TODO Move to a separate function as defined in the AIP for coin migration
-    if (coinType === APTOS_COIN) {
+    if (coinType === CEDRA_COIN) {
       faAddress = AccountAddress.A.toStringLong();
     } else {
       faAddress = createObjectAddress(AccountAddress.A, coinType).toStringLong();
@@ -604,7 +604,7 @@ export async function getAccountCoinAmount(args: {
     const addr = AccountAddress.from(faMetadataAddress);
     faAddress = addr.toStringLong();
     if (addr === AccountAddress.A) {
-      coinAssetType = APTOS_COIN;
+      coinAssetType = CEDRA_COIN;
     }
     // The paired CoinType should be populated outside of this function in another
     // async call. We cannot do this internally due to dependency cycles issue.

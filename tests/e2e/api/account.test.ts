@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
-  APTOS_COIN,
+  CEDRA_COIN,
   Account,
   Cedra,
   CedraConfig,
@@ -292,7 +292,7 @@ describe("account api", () => {
       // APT Cedra coin
       const accountAPTAmount = await cedra.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
-        coinType: APTOS_COIN,
+        coinType: CEDRA_COIN,
         minimumLedgerVersion: BigInt(fundTxn.version),
       });
       expect(accountAPTAmount).toBe(100000000);
@@ -308,7 +308,7 @@ describe("account api", () => {
       // APT Cedra coin by fungible asset metadata
       const accountAPTAmount3 = await cedra.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
-        coinType: APTOS_COIN,
+        coinType: CEDRA_COIN,
         faMetadataAddress: "0xA",
         minimumLedgerVersion: BigInt(fundTxn.version),
       });

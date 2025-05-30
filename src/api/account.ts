@@ -43,7 +43,7 @@ import {
   getTransactions,
   lookupOriginalAccountAddress,
 } from "../internal/account";
-import { APTOS_COIN, APTOS_FA, ProcessorType } from "../utils/const";
+import { CEDRA_COIN, CEDRA_FA, ProcessorType } from "../utils/const";
 import { CedraConfig } from "./cedraConfig";
 import { waitForIndexerOnVersion } from "./utils";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
@@ -765,7 +765,7 @@ export class Account {
     accountAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
   }): Promise<number> {
-    return this.getAccountCoinAmount({ coinType: APTOS_COIN, faMetadataAddress: APTOS_FA, ...args });
+    return this.getAccountCoinAmount({ coinType: CEDRA_COIN, faMetadataAddress: CEDRA_FA, ...args });
   }
 
   /**
@@ -852,7 +852,7 @@ export class Account {
       faAddress = AccountAddress.from(faMetadataAddress).toStringLong();
     } else if (coinType !== undefined && faMetadataAddress === undefined) {
       // TODO Move to a separate function as defined in the AIP for coin migration
-      if (coinType === APTOS_COIN) {
+      if (coinType === CEDRA_COIN) {
         faAddress = AccountAddress.A.toStringLong();
       } else {
         faAddress = createObjectAddress(AccountAddress.A, coinType).toStringLong();
@@ -861,7 +861,7 @@ export class Account {
       const addr = AccountAddress.from(faMetadataAddress);
       faAddress = addr.toStringLong();
       if (addr === AccountAddress.A) {
-        coinAssetType = APTOS_COIN;
+        coinAssetType = CEDRA_COIN;
       }
       // The paired CoinType should be populated outside of this function in another
       // async call. We cannot do this internally due to dependency cycles issue.

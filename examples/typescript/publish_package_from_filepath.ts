@@ -16,11 +16,11 @@ import assert from "assert";
 import { Account, Cedra, CedraConfig, Hex, Network, NetworkToNetworkName } from "@cedra-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils";
 
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
+const CEDRA_NETWORK: Network = NetworkToNetworkName[process.env.CEDRA_NETWORK ?? Network.DEVNET];
 
 /** run our demo! */
 async function main() {
-  const config = new CedraConfig({ network: APTOS_NETWORK });
+  const config = new CedraConfig({ network: CEDRA_NETWORK });
   const cedra = new Cedra(config);
 
   const alice = Account.generate();

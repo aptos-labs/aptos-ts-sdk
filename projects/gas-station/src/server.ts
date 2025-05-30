@@ -14,9 +14,9 @@ app.use(express.json());
 
 const PORT = 3000;
 
-const APTOS_NETWORK = NetworkToNetworkName[process.env.APTOS_NETWORK || ''] || Network.DEVNET;
+const CEDRA_NETWORK = NetworkToNetworkName[process.env.CEDRA_NETWORK || ''] || Network.DEVNET;
 
-const config = new CedraConfig({network: APTOS_NETWORK});
+const config = new CedraConfig({network: CEDRA_NETWORK});
 const cedra = new Cedra(config);
 
 const feePayerAccount = Account.generate();

@@ -240,7 +240,7 @@ export function truncateAddress(address: string, start: number = 6, end: number 
 /**
  * Constants for metadata address calculation
  */
-const APTOS_COIN_TYPE_STR = "0x1::cedra_coin::CedraCoin";
+const CEDRA_COIN_TYPE_STR = "0x1::cedra_coin::CedraCoin";
 const APT_METADATA_ADDRESS_HEX = AccountAddress.A.toStringLong();
 
 /**
@@ -281,7 +281,7 @@ export function pairedFaMetadataAddress(coinType: `0x${string}::${string}::${str
   // Standardize the coin type string to handle any address format
   const standardizedMoveTypeName = standardizeMoveTypeString(coinType);
 
-  return standardizedMoveTypeName === APTOS_COIN_TYPE_STR
+  return standardizedMoveTypeName === CEDRA_COIN_TYPE_STR
     ? AccountAddress.A
     : createObjectAddress(AccountAddress.A, standardizedMoveTypeName);
 }

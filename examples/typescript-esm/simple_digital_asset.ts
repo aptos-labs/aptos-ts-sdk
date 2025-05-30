@@ -12,8 +12,8 @@ import { Account, Cedra, CedraConfig, Network, NetworkToNetworkName } from "@ced
 const INITIAL_BALANCE = 100_000_000;
 
 // Set up the client
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
-const config = new CedraConfig({ network: APTOS_NETWORK });
+const CEDRA_NETWORK: Network = NetworkToNetworkName[process.env.CEDRA_NETWORK] || Network.DEVNET;
+const config = new CedraConfig({ network: CEDRA_NETWORK });
 const cedra = new Cedra(config);
 
 const example = async () => {

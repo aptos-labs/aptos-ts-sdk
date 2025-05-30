@@ -9,7 +9,7 @@ import {
   Account,
   AccountAddress,
   Cedra,
-  APTOS_COIN,
+  CEDRA_COIN,
   CedraConfig,
   EntryFunctionABI,
   InputViewFunctionJsonData,
@@ -22,13 +22,13 @@ import {
   U64,
 } from "@cedra-labs/ts-sdk";
 
-const APTOS_COIN_TYPE = parseTypeTag(APTOS_COIN);
+const CEDRA_COIN_TYPE = parseTypeTag(CEDRA_COIN);
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 100;
 
 // Default to devnet, but allow for overriding
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
+const CEDRA_NETWORK: Network = NetworkToNetworkName[process.env.CEDRA_NETWORK] || Network.DEVNET;
 
 /**
  * Prints the balance of an account
@@ -78,7 +78,7 @@ const example = async () => {
   console.log("This example will show you how to increase performance of known entry functions");
 
   // Set up the client
-  const config = new CedraConfig({ network: APTOS_NETWORK });
+  const config = new CedraConfig({ network: CEDRA_NETWORK });
   const cedra = new Cedra(config);
 
   // Create two accounts
@@ -125,7 +125,7 @@ const example = async () => {
       sender: aliceAddressString,
       data: {
         function: "0x1::coin::transfer",
-        typeArguments: [APTOS_COIN_TYPE],
+        typeArguments: [CEDRA_COIN_TYPE],
         functionArguments: [bobAddressString, TRANSFER_AMOUNT],
       },
     }),
@@ -137,7 +137,7 @@ const example = async () => {
       sender: alice.accountAddress,
       data: {
         function: "0x1::coin::transfer",
-        typeArguments: [APTOS_COIN_TYPE],
+        typeArguments: [CEDRA_COIN_TYPE],
         functionArguments: [bob.accountAddress, new U64(TRANSFER_AMOUNT)],
       },
     }),
@@ -149,7 +149,7 @@ const example = async () => {
       sender: alice.accountAddress,
       data: {
         function: "0x1::coin::transfer",
-        typeArguments: [APTOS_COIN_TYPE],
+        typeArguments: [CEDRA_COIN_TYPE],
         functionArguments: [bobAddressString, TRANSFER_AMOUNT],
         abi: transferAbi,
       },
@@ -162,7 +162,7 @@ const example = async () => {
       sender: alice.accountAddress,
       data: {
         function: "0x1::coin::transfer",
-        typeArguments: [APTOS_COIN_TYPE],
+        typeArguments: [CEDRA_COIN_TYPE],
         functionArguments: [bob.accountAddress, new U64(TRANSFER_AMOUNT)],
         abi: transferAbi,
       },
@@ -177,7 +177,7 @@ const example = async () => {
       sender: alice.accountAddress,
       data: {
         function: "0x1::coin::transfer",
-        typeArguments: [APTOS_COIN_TYPE],
+        typeArguments: [CEDRA_COIN_TYPE],
         functionArguments: [bob.accountAddress, new U64(TRANSFER_AMOUNT)],
         abi: transferAbi,
       },
@@ -193,7 +193,7 @@ const example = async () => {
       sender: alice.accountAddress,
       data: {
         function: "0x1::coin::transfer",
-        typeArguments: [APTOS_COIN_TYPE],
+        typeArguments: [CEDRA_COIN_TYPE],
         functionArguments: [bob.accountAddress, new U64(TRANSFER_AMOUNT)],
         abi: transferAbi,
       },

@@ -53,22 +53,22 @@ export const DEFAULT_TXN_TIMEOUT_SEC = 20;
  * @group Implementation
  * @category Utils
  */
-export const APTOS_COIN = "0x1::cedra_coin::CedraCoin";
+export const CEDRA_COIN = "0x1::cedra_coin::CedraCoin";
 /**
  * @group Implementation
  * @category Utils
  */
-export const APTOS_FA = "0x000000000000000000000000000000000000000000000000000000000000000a";
+export const CEDRA_FA = "0x000000000000000000000000000000000000000000000000000000000000000a";
 /**
  * @group Implementation
  * @category Utils
  */
-export const RAW_TRANSACTION_SALT = "APTOS::RawTransaction";
+export const RAW_TRANSACTION_SALT = "CEDRA::RawTransaction";
 /**
  * @group Implementation
  * @category Utils
  */
-export const RAW_TRANSACTION_WITH_DATA_SALT = "APTOS::RawTransactionWithData";
+export const RAW_TRANSACTION_WITH_DATA_SALT = "CEDRA::RawTransactionWithData";
 
 /**
  * Supported processor types for the indexer API, sourced from the processor_status table in the indexer database.

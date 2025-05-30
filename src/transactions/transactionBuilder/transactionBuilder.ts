@@ -738,7 +738,7 @@ export function hashValues(input: (Uint8Array | string)[]): Uint8Array {
  * @group Implementation
  * @category Transactions
  */
-const TRANSACTION_PREFIX = hashValues(["APTOS::Transaction"]);
+const TRANSACTION_PREFIX = hashValues(["CEDRA::Transaction"]);
 
 /**
  * Generates a user transaction hash for the provided transaction payload, which must already have an authenticator.

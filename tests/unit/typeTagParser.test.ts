@@ -26,7 +26,7 @@ import {
   TypeTagReference,
   cedraCoinStructTag,
   Identifier,
-  APTOS_COIN,
+  CEDRA_COIN,
 } from "../../src";
 
 const TAG_STRUCT_NAME = "0x1::tag::Tag";
@@ -61,7 +61,7 @@ const primitives = [
  */
 const structTypes = [
   { str: "0x1::string::String", type: new TypeTagStruct(stringStructTag()) },
-  { str: APTOS_COIN, type: new TypeTagStruct(cedraCoinStructTag()) },
+  { str: CEDRA_COIN, type: new TypeTagStruct(cedraCoinStructTag()) },
   { str: "0x1::option::Option<u8>", type: new TypeTagStruct(optionStructTag(new TypeTagU8())) },
   { str: "0x1::object::Object<u8>", type: new TypeTagStruct(objectStructTag(new TypeTagU8())) },
   { str: TAG_STRUCT_NAME, type: structTagType() },

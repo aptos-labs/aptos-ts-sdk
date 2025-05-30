@@ -2,7 +2,7 @@ import { CedraConfig } from "../api/cedraConfig";
 import { AccountAddressInput } from "../core";
 import { EntryFunctionABI, InputGenerateTransactionOptions } from "../transactions/types";
 import { AnyNumber, MoveStructId } from "../types";
-import { APTOS_COIN } from "../utils/const";
+import { CEDRA_COIN } from "../utils/const";
 import { generateTransaction } from "./transactionSubmission";
 import { TypeTagAddress, TypeTagU64 } from "../transactions";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
@@ -34,7 +34,7 @@ export async function transferCoinTransaction(args: {
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
   const { cedraConfig, sender, recipient, amount, coinType, options } = args;
-  const coinStructType = coinType ?? APTOS_COIN;
+  const coinStructType = coinType ?? CEDRA_COIN;
   return generateTransaction({
     cedraConfig,
     sender,

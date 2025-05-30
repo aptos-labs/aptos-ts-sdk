@@ -22,13 +22,13 @@ import {
   InputViewFunctionJsonData,
 } from "@cedra-labs/ts-sdk";
 
-const APTOS_COIN = "0x1::cedra_coin::CedraCoin";
+const CEDRA_COIN = "0x1::cedra_coin::CedraCoin";
 const COLD_INITIAL_BALANCE = 100_000_000;
 const HOT_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 100;
 
 // Default to devnet, but allow for overriding
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
+const CEDRA_NETWORK: Network = NetworkToNetworkName[process.env.CEDRA_NETWORK ?? Network.DEVNET];
 
 const balance = async (cedra: Cedra, account: Account, name: string): Promise<any> => {
   const payload: InputViewFunctionJsonData = {
@@ -59,7 +59,7 @@ class ExternalSigner {
   private extractedPrivateKey: Uint8Array;
 
   constructor(name: string, initialBalance: number) {
-    const config = new CedraConfig({ network: APTOS_NETWORK });
+    const config = new CedraConfig({ network: CEDRA_NETWORK });
     this.cedra = new Cedra(config);
     this.account = Account.generate();
     this.name = name;
@@ -122,7 +122,7 @@ const example = async () => {
   console.log("This example will pretend that hot is on a separate server, and never accesses information from it");
 
   // Set up the client
-  const config = new CedraConfig({ network: APTOS_NETWORK });
+  const config = new CedraConfig({ network: CEDRA_NETWORK });
   const cedra = new Cedra(config);
 
   // Create two accounts
@@ -146,7 +146,7 @@ const example = async () => {
     sender: cold.address(),
     data: {
       function: "0x1::coin::transfer",
-      typeArguments: [APTOS_COIN],
+      typeArguments: [CEDRA_COIN],
       functionArguments: [hot.accountAddress, TRANSFER_AMOUNT],
     },
   });

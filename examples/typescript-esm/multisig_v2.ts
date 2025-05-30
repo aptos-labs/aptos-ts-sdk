@@ -36,10 +36,10 @@ import {
 } from "@cedra-labs/ts-sdk";
 
 // Default to devnet, but allow for overriding
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
+const CEDRA_NETWORK: Network = NetworkToNetworkName[process.env.CEDRA_NETWORK] || Network.DEVNET;
 
 // Set up the client
-const config = new CedraConfig({ network: APTOS_NETWORK });
+const config = new CedraConfig({ network: CEDRA_NETWORK });
 const cedra = new Cedra(config);
 
 // Generate 3 accounts that will be the owners of the multisig account.

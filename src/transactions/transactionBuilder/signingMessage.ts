@@ -46,7 +46,7 @@ export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTra
  * This function combines a domain separator with the byte representation of the message to create a signing message.
  *
  * @param bytes - The byte representation of the message to be signed and sent to the chain.
- * @param domainSeparator - A domain separator that starts with 'APTOS::'.
+ * @param domainSeparator - A domain separator that starts with 'CEDRA::'.
  *
  * @returns The Uint8Array of the signing message.
  * @group Implementation
@@ -55,8 +55,8 @@ export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTra
 export function generateSigningMessage(bytes: Uint8Array, domainSeparator: string): Uint8Array {
   const hash = sha3Hash.create();
 
-  if (!domainSeparator.startsWith("APTOS::")) {
-    throw new Error(`Domain separator needs to start with 'APTOS::'.  Provided - ${domainSeparator}`);
+  if (!domainSeparator.startsWith("CEDRA::")) {
+    throw new Error(`Domain separator needs to start with 'CEDRA::'.  Provided - ${domainSeparator}`);
   }
 
   hash.update(domainSeparator);
@@ -86,7 +86,7 @@ export function generateSigningMessage(bytes: Uint8Array, domainSeparator: strin
  * @category Transactions
  */
 export function generateSigningMessageForSerializable(serializable: Serializable): Uint8Array {
-  return generateSigningMessage(serializable.bcsToBytes(), `APTOS::${serializable.constructor.name}`);
+  return generateSigningMessage(serializable.bcsToBytes(), `CEDRA::${serializable.constructor.name}`);
 }
 
 /**

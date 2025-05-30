@@ -55,8 +55,8 @@ import { rotateAuthKey } from "../internal/account";
  * ```typescript
  * import { Account, Cedra, CedraConfig, Network } from "@cedra-labs/ts-sdk";
  *
- * const APTOS_COIN = "0x1::cedra_coin::CedraCoin";
- * const COIN_STORE = `0x1::coin::CoinStore<${APTOS_COIN}>`;
+ * const CEDRA_COIN = "0x1::cedra_coin::CedraCoin";
+ * const COIN_STORE = `0x1::coin::CoinStore<${CEDRA_COIN}>`;
  * const ALICE_INITIAL_BALANCE = 100_000_000;
  * const TRANSFER_AMOUNT = 100;
  *

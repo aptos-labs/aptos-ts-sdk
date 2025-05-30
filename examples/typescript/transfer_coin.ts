@@ -14,8 +14,8 @@ const BOB_INITIAL_BALANCE = 0;
 const TRANSFER_AMOUNT = 1_000_000;
 
 // Set up the client
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
-const config = new CedraConfig({ network: APTOS_NETWORK });
+const CEDRA_NETWORK: Network = NetworkToNetworkName[process.env.CEDRA_NETWORK ?? Network.DEVNET];
+const config = new CedraConfig({ network: CEDRA_NETWORK });
 const cedra = new Cedra(config);
 
 /**

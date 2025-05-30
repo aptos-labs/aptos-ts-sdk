@@ -18,13 +18,13 @@ import {
 import dotenv from "dotenv";
 dotenv.config();
 
-// TODO: There currently isn't a way to use the APTOS_COIN in the COIN_STORE due to a regex
-const APTOS_COIN = "0x1::cedra_coin::CedraCoin";
+// TODO: There currently isn't a way to use the CEDRA_COIN in the COIN_STORE due to a regex
+const CEDRA_COIN = "0x1::cedra_coin::CedraCoin";
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100_000_000;
 const TRANSFER_AMOUNT = 10;
 // Default to devnet, but allow for overriding
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
+const CEDRA_NETWORK: Network = NetworkToNetworkName[process.env.CEDRA_NETWORK ?? Network.DEVNET];
 
 /**
  * Prints the balance of an account
@@ -57,7 +57,7 @@ const example = async () => {
   );
 
   // Set up the client
-  const config = new CedraConfig({ network: APTOS_NETWORK });
+  const config = new CedraConfig({ network: CEDRA_NETWORK });
   const cedra = new Cedra(config);
 
   // Create two accounts
@@ -123,7 +123,7 @@ const example = async () => {
     secondarySignerAddresses: [bob.accountAddress],
     data: {
       bytecode: TRANSFER_SCRIPT,
-      typeArguments: [parseTypeTag(APTOS_COIN)],
+      typeArguments: [parseTypeTag(CEDRA_COIN)],
       functionArguments: [AccountAddress.fromString(objectAddress), new U64(TRANSFER_AMOUNT)],
     },
   });

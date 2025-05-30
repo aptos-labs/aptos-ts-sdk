@@ -968,7 +968,7 @@ export class Groth16ProofAndStatement extends Serializable {
    * @group Implementation
    * @category Account (On-Chain Model)
    */
-  readonly domainSeparator = "APTOS::Groth16ProofAndStatement";
+  readonly domainSeparator = "CEDRA::Groth16ProofAndStatement";
 
   constructor(proof: Groth16Zkp, publicInputsHash: HexInput | bigint) {
     super();

@@ -14,7 +14,7 @@ const SPONSOR_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 0;
 const TRANSFER_AMOUNT = 10;
 // Default to devnet, but allow for overriding
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
+const CEDRA_NETWORK: Network = NetworkToNetworkName[process.env.CEDRA_NETWORK] || Network.DEVNET;
 
 const example = async () => {
   console.log(
@@ -22,7 +22,7 @@ const example = async () => {
   );
 
   // Set up the client
-  const cedraConfig = new CedraConfig({ network: APTOS_NETWORK });
+  const cedraConfig = new CedraConfig({ network: CEDRA_NETWORK });
   const cedra = new Cedra(cedraConfig);
 
   // Create three accounts

@@ -17,7 +17,7 @@ dotenv.config();
 const superagent = require("superagent");
 
 // Default to devnet, but allow for overriding
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
+const CEDRA_NETWORK: Network = NetworkToNetworkName[process.env.CEDRA_NETWORK ?? Network.DEVNET];
 
 export async function superagentCustomClient<Req, Res>(
   requestOptions: ClientRequest<Req>,
@@ -55,7 +55,7 @@ const example = async () => {
   console.log("This example demonstrate how one can config for a custom client to be used by the SDK");
 
   async function withSuperagentClient() {
-    const config = new CedraConfig({ network: APTOS_NETWORK, client: { provider: superagentCustomClient } });
+    const config = new CedraConfig({ network: CEDRA_NETWORK, client: { provider: superagentCustomClient } });
     const cedra = new Cedra(config);
 
     console.log(`\nclient being used ${config.client.provider.name}`);
