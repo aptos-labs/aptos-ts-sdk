@@ -257,9 +257,9 @@ describe("Generate 'confidential coin' proofs", () => {
     "Generate key rotation sigma proof",
     async () => {
       confidentialKeyRotation = await ConfidentialKeyRotation.create({
-        currDecryptionKey: aliceConfidentialDecryptionKey,
+        senderDecryptionKey: aliceConfidentialDecryptionKey,
         currEncryptedBalance: aliceEncryptedBalanceCipherText,
-        newDecryptionKey: newAliceConfidentialPrivateKey,
+        newSenderDecryptionKey: newAliceConfidentialPrivateKey,
       });
 
       confidentialKeyRotationSigmaProof = await confidentialKeyRotation.genSigmaProof();

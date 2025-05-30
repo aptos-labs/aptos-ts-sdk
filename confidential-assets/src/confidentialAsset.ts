@@ -105,7 +105,7 @@ export class ConfidentialAsset {
    */
   async getBalance(args: {
     accountAddress: AccountAddress;
-    tokenAddress: string;
+    tokenAddress: AccountAddressInput;
     decryptionKey: TwistedEd25519PrivateKey;
     options?: LedgerVersionArg;
   }): Promise<ConfidentialBalance> {
@@ -131,8 +131,8 @@ export class ConfidentialAsset {
    * @returns The encrypted balance as an object with pending and available balances
    */
   async getBalanceCipherText(args: {
-    accountAddress: AccountAddress;
-    tokenAddress: AccountAddress;
+    accountAddress: AccountAddressInput;
+    tokenAddress: AccountAddressInput;
     options?: LedgerVersionArg;
   }): Promise<{
     pending: TwistedElGamalCiphertext[];
@@ -177,7 +177,7 @@ export class ConfidentialAsset {
    */
   async getEncryptionKey(args: {
     accountAddress: AccountAddress;
-    tokenAddress: string;
+    tokenAddress: AccountAddressInput;
     options?: LedgerVersionArg;
   }): Promise<TwistedEd25519PublicKey> {
     const [{ point }] = await this.client.view<[{ point: { data: string } }]>({
@@ -203,7 +203,7 @@ export class ConfidentialAsset {
    */
   async registerBalance(args: {
     sender: AccountAddressInput;
-    tokenAddress: string;
+    tokenAddress: AccountAddressInput;
     decryptionKey: TwistedEd25519PrivateKey;
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
@@ -233,42 +233,26 @@ export class ConfidentialAsset {
    */
   async deposit(args: {
     sender: AccountAddressInput;
-    tokenAddress?: string;
+    tokenAddress: AccountAddressInput;
     amount: AnyNumber;
     /** If not set we will use the sender's address. */
     recipient?: AccountAddress;
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    const { tokenAddress, coinType, amount, recipient = args.sender } = args;
+    const { tokenAddress, amount, recipient = args.sender } = args;
     validateAmount({ amount });
     await this.ensurePreloaded();
 
-    if (tokenAddress && coinType) {
-      throw new Error("Only one of tokenAddress or coinType can be set");
-    }
-
     const amountString = String(amount);
-    if (tokenAddress) {
-      return this.client.transaction.build.simple({
-        ...args,
-        data: {
-          function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::deposit_to`,
-          functionArguments: [tokenAddress, recipient, amountString],
-        },
-      });
-    } else if (coinType) {
-      return this.client.transaction.build.simple({
-        ...args,
-        data: {
-          function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::deposit_coins_to`,
-          functionArguments: [recipient, amountString],
-          typeArguments: [coinType],
-        },
-      });
-    } else {
-      throw new Error("Must set either tokenAddress or coinType");
-    }
+
+    return this.client.transaction.build.simple({
+      ...args,
+      data: {
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::deposit_to`,
+        functionArguments: [tokenAddress, recipient, amountString],
+      },
+    });
   }
 
   /**
@@ -288,7 +272,7 @@ export class ConfidentialAsset {
   async withdraw(args: {
     sender: AccountAddressInput;
     senderDecryptionKey: TwistedEd25519PrivateKey;
-    tokenAddress: string;
+    tokenAddress: AccountAddressInput;
     amount: AnyNumber;
     /** If not set we will use the sender's address. */
     recipient?: AccountAddressInput;
@@ -342,7 +326,7 @@ export class ConfidentialAsset {
    */
   async rolloverPendingBalance(args: {
     sender: AccountAddressInput;
-    tokenAddress: string;
+    tokenAddress: AccountAddressInput;
     withFreezeBalance?: boolean;
     withFeePayer?: boolean;
     checkNormalized?: boolean;
@@ -382,7 +366,7 @@ export class ConfidentialAsset {
    * @returns The encryption key for the asset auditor or undefined if no auditor is set
    */
   async getAssetAuditorEncryptionKey(args: {
-    tokenAddress: string;
+    tokenAddress: AccountAddressInput;
     options?: LedgerVersionArg;
   }): Promise<TwistedEd25519PublicKey | undefined> {
     const [{ vec: globalAuditorPubKey }] = await this.client.view<[{ vec: Uint8Array }]>({
@@ -419,7 +403,7 @@ export class ConfidentialAsset {
   async transfer(args: {
     sender: AccountAddressInput;
     recipient: AccountAddressInput;
-    tokenAddress: string;
+    tokenAddress: AccountAddressInput;
     amount: AnyNumber;
     senderDecryptionKey: TwistedEd25519PrivateKey;
     additionalAuditorEncryptionKeys?: TwistedEd25519PublicKey[];
@@ -443,8 +427,13 @@ export class ConfidentialAsset {
     } catch (e) {
       throw new Error(`Failed to get encryption key for recipient - ${e}`);
     }
-    check that recipient balance is not frozen
-
+    const isFrozen = await this.isPendingBalanceFrozen({
+      accountAddress: recipient,
+      tokenAddress,
+    });
+    if (isFrozen) {
+      throw new Error("Recipient balance is frozen");
+    }
     // Get the sender's available balance from the chain
     const { available: senderEncryptedAvailableBalance } = await this.getBalanceCipherText({
       accountAddress: AccountAddress.from(args.sender),
@@ -511,8 +500,8 @@ export class ConfidentialAsset {
    * @throws {AptosApiError} If the there is no registered confidential balance for token address on the account
    */
   async isPendingBalanceFrozen(args: {
-    accountAddress: AccountAddress;
-    tokenAddress: string;
+    accountAddress: AccountAddressInput;
+    tokenAddress: AccountAddressInput;
     options?: LedgerVersionArg;
   }): Promise<boolean> {
     const [isFrozen] = await this.client.view<[boolean]>({
@@ -550,24 +539,28 @@ export class ConfidentialAsset {
     sender: AccountAddressInput;
     senderDecryptionKey: TwistedEd25519PrivateKey;
     newSenderDecryptionKey: TwistedEd25519PrivateKey;
-    tokenAddress: string;
+    tokenAddress: AccountAddressInput;
     checkPendingBalanceEmpty?: boolean;
-    withUnfreezeBalance123?: boolean;
+    withUnfreezePendingBalance?: boolean;
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     const {
+      sender,
+      senderDecryptionKey,
+      newSenderDecryptionKey,
       checkPendingBalanceEmpty = true,
-      withUnfreezeBalance = await this.isBalanceFrozen({
-        accountAddress: AccountAddress.from(args.sender),
-        tokenAddress: args.tokenAddress,
+      tokenAddress,
+      withUnfreezePendingBalance = await this.isPendingBalanceFrozen({
+        accountAddress: sender,
+        tokenAddress,
       }),
     } = args;
     await this.ensurePreloaded();
     // Get the sender's balance from the chain
     const { available: currEncryptedBalance, pending: currPendingEncryptedBalance } = await this.getBalanceCipherText({
-      accountAddress: AccountAddress.from(args.sender),
-      tokenAddress: args.tokenAddress,
+      accountAddress: sender,
+      tokenAddress,
     });
 
     if (checkPendingBalanceEmpty) {
@@ -582,8 +575,8 @@ export class ConfidentialAsset {
 
     // Create the confidential key rotation object
     const confidentialKeyRotation = await ConfidentialKeyRotation.create({
-      currDecryptionKey: toTwistedEd25519PrivateKey(args.senderDecryptionKey),
-      newDecryptionKey: toTwistedEd25519PrivateKey(args.newDecryptionKey),
+      senderDecryptionKey,
+      newSenderDecryptionKey,
       currEncryptedBalance,
     });
 
@@ -591,9 +584,9 @@ export class ConfidentialAsset {
     const [{ sigmaProof, rangeProof }, newEncryptedAvailableBalance] =
       await confidentialKeyRotation.authorizeKeyRotation();
 
-    const newPublicKeyBytes = toTwistedEd25519PrivateKey(args.newDecryptionKey).publicKey().toUint8Array();
+    const newPublicKeyBytes = toTwistedEd25519PrivateKey(args.newSenderDecryptionKey).publicKey().toUint8Array();
 
-    const method = withUnfreezeBalance ? "rotate_encryption_key_and_unfreeze" : "rotate_encryption_key";
+    const method = withUnfreezePendingBalance ? "rotate_encryption_key_and_unfreeze" : "rotate_encryption_key";
 
     return this.client.transaction.build.simple({
       ...args,
@@ -623,7 +616,7 @@ export class ConfidentialAsset {
    */
   async hasUserRegistered(args: {
     accountAddress: AccountAddress;
-    tokenAddress: string;
+    tokenAddress: AccountAddressInput;
     options?: LedgerVersionArg;
   }): Promise<boolean> {
     const [isRegister] = await this.client.view<[boolean]>({
@@ -651,7 +644,7 @@ export class ConfidentialAsset {
    */
   async isBalanceNormalized(args: {
     accountAddress: AccountAddress;
-    tokenAddress: string;
+    tokenAddress: AccountAddressInput;
     options?: LedgerVersionArg;
   }): Promise<boolean> {
     const [isNormalized] = await this.client.view<[boolean]>({
@@ -680,7 +673,7 @@ export class ConfidentialAsset {
   async normalizeBalance(args: {
     sender: AccountAddressInput;
     senderDecryptionKey: TwistedEd25519PrivateKey;
-    tokenAddress: string;
+    tokenAddress: AccountAddressInput;
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {

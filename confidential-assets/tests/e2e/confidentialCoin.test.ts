@@ -51,7 +51,7 @@ describe.skip("Confidential balance api", () => {
   }
 
   async function checkAliceBalanceFrozenStatus(expectedStatus: boolean) {
-    const isFrozen = await confidentialAsset.isBalanceFrozen({
+    const isFrozen = await confidentialAsset.isPendingBalanceFrozen({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
@@ -354,7 +354,7 @@ describe.skip("Confidential balance api", () => {
   test(
     "it should check is Alice's balance not frozen",
     async () => {
-      const isFrozen = await confidentialAsset.isBalanceFrozen({
+      const isFrozen = await confidentialAsset.isPendingBalanceFrozen({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
       });
@@ -368,7 +368,7 @@ describe.skip("Confidential balance api", () => {
     "it should throw if checking is Bob's balance not frozen",
     async () => {
       await expect(
-        confidentialAsset.isBalanceFrozen({
+        confidentialAsset.isPendingBalanceFrozen({
           accountAddress: bob.accountAddress,
           tokenAddress: TOKEN_ADDRESS,
         }),
@@ -507,8 +507,8 @@ describe.skip("Confidential balance api", () => {
           sender: alice.accountAddress,
 
           senderDecryptionKey: aliceConfidential,
-          newDecryptionKey: ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY,
-          withUnfreezeBalance: true,
+          newSenderDecryptionKey: ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY,
+          withUnfreezePendingBalance: true,
           tokenAddress: TOKEN_ADDRESS,
         }),
       ).rejects.toThrow("Pending balance must be 0 before rotating encryption key");
@@ -535,7 +535,7 @@ describe.skip("Confidential balance api", () => {
       const keyRotationAndUnfreezeTx = await confidentialAsset.rotateEncryptionKey({
         sender: alice.accountAddress,
         senderDecryptionKey: aliceConfidential,
-        newDecryptionKey: ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY,
+        newSenderDecryptionKey: ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY,
         tokenAddress: TOKEN_ADDRESS,
       });
       txResp = await sendAndWaitTx(keyRotationAndUnfreezeTx, alice);

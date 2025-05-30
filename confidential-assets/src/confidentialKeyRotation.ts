@@ -23,8 +23,8 @@ export type ConfidentialKeyRotationSigmaProof = {
 };
 
 export type CreateConfidentialKeyRotationOpArgs = {
-  currDecryptionKey: TwistedEd25519PrivateKey;
-  newDecryptionKey: TwistedEd25519PrivateKey;
+  senderDecryptionKey: TwistedEd25519PrivateKey;
+  newSenderDecryptionKey: TwistedEd25519PrivateKey;
   currEncryptedBalance: TwistedElGamalCiphertext[];
   randomness?: bigint[];
 };
@@ -60,24 +60,24 @@ export class ConfidentialKeyRotation {
     const {
       randomness = ed25519GenListOfRandom(ChunkedAmount.CHUNKS_COUNT),
       currEncryptedBalance,
-      currDecryptionKey,
-      newDecryptionKey,
+      senderDecryptionKey,
+      newSenderDecryptionKey,
     } = args;
 
     const currentEncryptedAvailableBalance = await EncryptedAmount.fromCipherTextAndPrivateKey(
       currEncryptedBalance,
-      currDecryptionKey,
+      senderDecryptionKey,
     );
 
     const newEncryptedAvailableBalance = EncryptedAmount.fromAmountAndPublicKey({
       amount: currentEncryptedAvailableBalance.getAmount(),
-      publicKey: newDecryptionKey.publicKey(),
+      publicKey: newSenderDecryptionKey.publicKey(),
       randomness,
     });
 
     return new ConfidentialKeyRotation({
-      currentDecryptionKey: currDecryptionKey,
-      newDecryptionKey,
+      currentDecryptionKey: senderDecryptionKey,
+      newDecryptionKey: newSenderDecryptionKey,
       currentEncryptedAvailableBalance,
       newEncryptedAvailableBalance,
       randomness,
