@@ -102,7 +102,7 @@ export class ConfidentialAsset {
    * @returns A ConfidentialBalance object with available and pending amounts and cipher texts
    */
   async getBalance(args: {
-    accountAddress: AccountAddressInput
+    accountAddress: AccountAddressInput;
     tokenAddress: AccountAddressInput;
     decryptionKey: TwistedEd25519PrivateKey;
     options?: LedgerVersionArg;
@@ -174,7 +174,7 @@ export class ConfidentialAsset {
    * @returns The encryption key as a TwistedEd25519PublicKey
    */
   async getEncryptionKey(args: {
-    accountAddress: AccountAddressInput
+    accountAddress: AccountAddressInput;
     tokenAddress: AccountAddressInput;
     options?: LedgerVersionArg;
   }): Promise<TwistedEd25519PublicKey> {
@@ -234,7 +234,7 @@ export class ConfidentialAsset {
     tokenAddress: AccountAddressInput;
     amount: AnyNumber;
     /** If not set we will use the sender's address. */
-    recipient?: AccountAddressInput
+    recipient?: AccountAddressInput;
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
@@ -641,7 +641,7 @@ export class ConfidentialAsset {
    * @throws {AptosApiError} If the there is no registered confidential balance for token address on the account
    */
   async isBalanceNormalized(args: {
-    accountAddress: AccountAddressInput
+    accountAddress: AccountAddressInput;
     tokenAddress: AccountAddressInput;
     options?: LedgerVersionArg;
   }): Promise<boolean> {
