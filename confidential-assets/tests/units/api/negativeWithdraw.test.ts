@@ -59,7 +59,7 @@ describe("Negative withdraw", () => {
   it("should deposit money to Alice's account", async () => {
     const depositTx = await confidentialAsset.deposit({
       sender: alice.accountAddress,
-      coinType,
+      tokenAddress,
       amount: depositAmount,
     });
 
