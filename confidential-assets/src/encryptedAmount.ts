@@ -1,7 +1,7 @@
 import { TwistedElGamal, TwistedElGamalCiphertext } from "./twistedElGamal";
 import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
 import { ed25519GenRandom } from "./utils";
-import { ChunkedAmount } from "./chunkedAmount";
+import { CHUNK_BITS, ChunkedAmount } from "./chunkedAmount";
 import { concatBytes } from "@noble/hashes/utils";
 
 export class EncryptedAmount {
@@ -113,7 +113,7 @@ export class EncryptedAmount {
     },
   ) {
     const chunksCount = opts?.chunksCount || cipherText.length;
-    const chunkBits = opts?.chunkBits || ChunkedAmount.CHUNK_BITS;
+    const chunkBits = opts?.chunkBits || CHUNK_BITS;
 
     const decryptedAmountChunks: bigint[] = EncryptedAmount.decryptBalanceFn
       ? await EncryptedAmount.decryptBalanceFn(cipherText, privateKey)

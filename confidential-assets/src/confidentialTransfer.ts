@@ -3,7 +3,13 @@ import { RistrettoPoint } from "@noble/curves/ed25519";
 import { utf8ToBytes } from "@noble/hashes/utils";
 import { PROOF_CHUNK_SIZE, SIGMA_PROOF_TRANSFER_SIZE } from "./consts";
 import { genFiatShamirChallenge, publicKeyToU8 } from "./helpers";
-import { ChunkedAmount } from "./chunkedAmount";
+import {
+  AVAILABLE_BALANCE_CHUNK_COUNT,
+  CHUNK_BITS,
+  CHUNK_BITS_BIG_INT,
+  ChunkedAmount,
+  TRANSFER_AMOUNT_CHUNK_COUNT,
+} from "./chunkedAmount";
 import { AnyNumber, HexInput } from "@aptos-labs/ts-sdk";
 import { RangeProofExecutor } from "./rangeProof";
 import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey, H_RISTRETTO } from "./twistedEd25519";
@@ -144,10 +150,10 @@ export class ConfidentialTransfer {
       senderDecryptionKey,
       recipientEncryptionKey,
       auditorEncryptionKeys = [],
-      transferAmountRandomness = ed25519GenListOfRandom(ChunkedAmount.CHUNKS_COUNT),
+      transferAmountRandomness = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT),
     } = args;
     const amount = BigInt(args.amount);
-    const newBalanceRandomness = ed25519GenListOfRandom(ChunkedAmount.CHUNKS_COUNT);
+    const newBalanceRandomness = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT);
 
     const senderEncryptedAvailableBalance = await EncryptedAmount.fromCipherTextAndPrivateKey(
       senderAvailableBalanceCipherText,
@@ -160,9 +166,7 @@ export class ConfidentialTransfer {
       randomness: newBalanceRandomness,
     });
 
-    const chunkedAmount = ChunkedAmount.fromAmount(amount, {
-      chunksCount: ChunkedAmount.CHUNKS_COUNT_HALF,
-    });
+    const chunkedAmount = ChunkedAmount.createTransferAmount(amount);
     const transferAmountEncryptedBySender = new EncryptedAmount({
       chunkedAmount,
       publicKey: senderDecryptionKey.publicKey(),
@@ -247,42 +251,42 @@ export class ConfidentialTransfer {
       }
     }
 
-    const half = ChunkedAmount.CHUNKS_COUNT_HALF;
+    const half = TRANSFER_AMOUNT_CHUNK_COUNT;
 
     const alpha1List = baseProofArray.slice(0, half);
     const alpha2 = baseProofArray[half];
-    const alpha3List = baseProofArray.slice(half + 1, half + 1 + ChunkedAmount.CHUNKS_COUNT);
+    const alpha3List = baseProofArray.slice(half + 1, half + 1 + AVAILABLE_BALANCE_CHUNK_COUNT);
     const alpha4List = baseProofArray.slice(
-      half + 1 + ChunkedAmount.CHUNKS_COUNT,
-      half + 1 + ChunkedAmount.CHUNKS_COUNT + ChunkedAmount.CHUNKS_COUNT,
+      half + 1 + AVAILABLE_BALANCE_CHUNK_COUNT,
+      half + 1 + AVAILABLE_BALANCE_CHUNK_COUNT + AVAILABLE_BALANCE_CHUNK_COUNT,
     );
-    const alpha5 = baseProofArray[half + 1 + ChunkedAmount.CHUNKS_COUNT + ChunkedAmount.CHUNKS_COUNT];
+    const alpha5 = baseProofArray[half + 1 + AVAILABLE_BALANCE_CHUNK_COUNT + AVAILABLE_BALANCE_CHUNK_COUNT];
     const alpha6List = baseProofArray.slice(
-      half + 1 + ChunkedAmount.CHUNKS_COUNT + ChunkedAmount.CHUNKS_COUNT + 1,
-      half + 1 + ChunkedAmount.CHUNKS_COUNT * 2 + 1,
+      half + 1 + AVAILABLE_BALANCE_CHUNK_COUNT + AVAILABLE_BALANCE_CHUNK_COUNT + 1,
+      half + 1 + AVAILABLE_BALANCE_CHUNK_COUNT * 2 + 1,
     );
 
-    const X1 = baseProofArray[half + 1 + ChunkedAmount.CHUNKS_COUNT * 2 + 1];
+    const X1 = baseProofArray[half + 1 + AVAILABLE_BALANCE_CHUNK_COUNT * 2 + 1];
     const X2List = baseProofArray.slice(
-      half + 1 + ChunkedAmount.CHUNKS_COUNT * 2 + 1 + 1,
-      half + 1 + ChunkedAmount.CHUNKS_COUNT * 3 + 1,
+      half + 1 + AVAILABLE_BALANCE_CHUNK_COUNT * 2 + 1 + 1,
+      half + 1 + AVAILABLE_BALANCE_CHUNK_COUNT * 3 + 1,
     );
     const X3List = baseProofArray.slice(
-      half + 1 + ChunkedAmount.CHUNKS_COUNT * 3 + 1,
-      half + 1 + ChunkedAmount.CHUNKS_COUNT * 4 + 1,
+      half + 1 + AVAILABLE_BALANCE_CHUNK_COUNT * 3 + 1,
+      half + 1 + AVAILABLE_BALANCE_CHUNK_COUNT * 4 + 1,
     );
     const X4List = baseProofArray.slice(
-      half + 1 + ChunkedAmount.CHUNKS_COUNT * 4 + 1,
-      half + 1 + ChunkedAmount.CHUNKS_COUNT * 5 + 1,
+      half + 1 + AVAILABLE_BALANCE_CHUNK_COUNT * 4 + 1,
+      half + 1 + AVAILABLE_BALANCE_CHUNK_COUNT * 5 + 1,
     );
-    const X5 = baseProofArray[half + 1 + ChunkedAmount.CHUNKS_COUNT * 5 + 1];
+    const X5 = baseProofArray[half + 1 + AVAILABLE_BALANCE_CHUNK_COUNT * 5 + 1];
     const X6List = baseProofArray.slice(
-      half + 1 + ChunkedAmount.CHUNKS_COUNT * 5 + 1 + 1,
-      half + 1 + ChunkedAmount.CHUNKS_COUNT * 6 + 1,
+      half + 1 + AVAILABLE_BALANCE_CHUNK_COUNT * 5 + 1 + 1,
+      half + 1 + AVAILABLE_BALANCE_CHUNK_COUNT * 6 + 1,
     );
     const X8List = baseProofArray.slice(
-      half + 1 + ChunkedAmount.CHUNKS_COUNT * 6 + 1,
-      half + 1 + ChunkedAmount.CHUNKS_COUNT * 7 + 1,
+      half + 1 + AVAILABLE_BALANCE_CHUNK_COUNT * 6 + 1,
+      half + 1 + AVAILABLE_BALANCE_CHUNK_COUNT * 7 + 1,
     );
 
     return {
@@ -304,18 +308,18 @@ export class ConfidentialTransfer {
   }
 
   async genSigmaProof(): Promise<ConfidentialTransferSigmaProof> {
-    if (this.transferAmountRandomness && this.transferAmountRandomness.length !== ChunkedAmount.CHUNKS_COUNT)
+    if (this.transferAmountRandomness && this.transferAmountRandomness.length !== AVAILABLE_BALANCE_CHUNK_COUNT)
       throw new TypeError("Invalid length list of randomness");
 
-    if (this.transferAmountEncryptedBySender.getAmount() > 2n ** (2n * ChunkedAmount.CHUNK_BITS_BIG_INT) - 1n)
-      throw new TypeError(`Amount must be less than 2n**${ChunkedAmount.CHUNK_BITS_BIG_INT * 2n}`);
+    if (this.transferAmountEncryptedBySender.getAmount() > 2n ** (2n * CHUNK_BITS_BIG_INT) - 1n)
+      throw new TypeError(`Amount must be less than 2n**${CHUNK_BITS_BIG_INT * 2n}`);
 
     const senderPKRistretto = RistrettoPoint.fromHex(this.senderDecryptionKey.publicKey().toUint8Array());
     const recipientPKRistretto = RistrettoPoint.fromHex(this.recipientEncryptionKey.toUint8Array());
 
     // Prover selects random x1, x2, x3i[], x4j[], x5, x6i[], where i in {0, 3} and j in {0, 1}
-    const i = ChunkedAmount.CHUNKS_COUNT;
-    const j = ChunkedAmount.CHUNKS_COUNT_HALF;
+    const i = AVAILABLE_BALANCE_CHUNK_COUNT;
+    const j = TRANSFER_AMOUNT_CHUNK_COUNT;
 
     const x1List = ed25519GenListOfRandom(i);
     const x2 = ed25519GenRandom();
@@ -333,7 +337,7 @@ export class ConfidentialTransfer {
     const X1 = RistrettoPoint.BASE.multiply(
       ed25519modN(
         x1List.reduce((acc, el, i) => {
-          const coef = 2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT);
+          const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
           const x1i = el * coef;
 
           return acc + x1i;
@@ -344,7 +348,7 @@ export class ConfidentialTransfer {
         H_RISTRETTO.multiply(
           ed25519modN(
             x6List.reduce((acc, el, i) => {
-              const coef = 2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT);
+              const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
               const x6i = el * coef;
 
               return acc + x6i;
@@ -354,7 +358,7 @@ export class ConfidentialTransfer {
           H_RISTRETTO.multiply(
             ed25519modN(
               x3List.reduce((acc, el, i) => {
-                const coef = 2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT);
+                const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
                 const x3i = el * coef;
 
                 return acc + x3i;
@@ -367,7 +371,7 @@ export class ConfidentialTransfer {
         this.senderEncryptedAvailableBalance
           .getCipherText()
           .reduce(
-            (acc, { D }, idx) => acc.add(D.multiply(2n ** (BigInt(idx) * ChunkedAmount.CHUNK_BITS_BIG_INT))),
+            (acc, { D }, idx) => acc.add(D.multiply(2n ** (BigInt(idx) * CHUNK_BITS_BIG_INT))),
             RistrettoPoint.ZERO,
           )
           .multiply(x2),
@@ -376,7 +380,7 @@ export class ConfidentialTransfer {
         this.senderEncryptedAvailableBalanceAfterTransfer
           .getCipherText()
           .reduce(
-            (acc, { D }, idx) => acc.add(D.multiply(2n ** (BigInt(idx) * ChunkedAmount.CHUNK_BITS_BIG_INT))),
+            (acc, { D }, idx) => acc.add(D.multiply(2n ** (BigInt(idx) * CHUNK_BITS_BIG_INT))),
             RistrettoPoint.ZERO,
           )
           .multiply(x2),
@@ -385,7 +389,7 @@ export class ConfidentialTransfer {
       //   lastHalfIndexesOfChunksCount.reduce(
       //     (acc, curr) =>
       //       acc.add(
-      //         H_RISTRETTO.multiply(x3List[curr]).multiply(2n ** (ChunkedAmount.CHUNK_BITS_BI * BigInt(curr))),
+      //         H_RISTRETTO.multiply(x3List[curr]).multiply(2n ** (CHUNK_BITS_BI * BigInt(curr))),
       //       ),
       //     RistrettoPoint.ZERO,
       //   ),
@@ -517,7 +521,7 @@ export class ConfidentialTransfer {
 
     const { oldDSum, oldCSum } = opts.encryptedActualBalance.reduce(
       (acc, { C, D }, i) => {
-        const coef = 2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT);
+        const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
         return {
           oldDSum: acc.oldDSum.add(D.multiply(coef)),
           oldCSum: acc.oldCSum.add(C.multiply(coef)),
@@ -527,11 +531,11 @@ export class ConfidentialTransfer {
     );
 
     const newDSum = opts.encryptedActualBalanceAfterTransfer.getCipherText().reduce((acc, { D }, i) => {
-      const coef = 2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT);
+      const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
       return acc.add(D.multiply(coef));
     }, RistrettoPoint.ZERO);
 
-    const j = ChunkedAmount.CHUNKS_COUNT_HALF;
+    const j = TRANSFER_AMOUNT_CHUNK_COUNT;
 
     // const lastHalfIndexesOfChunksCount = Array.from(
     //   { length: ChunkedAmount.CHUNKS_COUNT_HALF },
@@ -542,14 +546,14 @@ export class ConfidentialTransfer {
       .getCipherText()
       .slice(0, j)
       .reduce((acc, { C }, i) => {
-        const coef = 2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT);
+        const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
         return acc.add(C.multiply(coef));
       }, RistrettoPoint.ZERO);
 
     const X1 = RistrettoPoint.BASE.multiply(
       ed25519modN(
         alpha1LEList.reduce((acc, curr, i) => {
-          const coef = 2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT);
+          const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
           const a1i = curr * coef;
 
           return acc + a1i;
@@ -560,7 +564,7 @@ export class ConfidentialTransfer {
         H_RISTRETTO.multiply(
           ed25519modN(
             alpha6LEList.reduce((acc, el, i) => {
-              const coef = 2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT);
+              const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
               const a6i = el * coef;
 
               return acc + a6i;
@@ -570,7 +574,7 @@ export class ConfidentialTransfer {
           H_RISTRETTO.multiply(
             ed25519modN(
               alpha3LEList.reduce((acc, el, i) => {
-                const coef = 2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT);
+                const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
                 const a3i = el * coef;
 
                 return acc + a3i;
@@ -588,7 +592,7 @@ export class ConfidentialTransfer {
     //     (acc, curr) =>
     //       acc.add(
     //         H_RISTRETTO.multiply(alpha3LEList[curr]).multiply(
-    //           2n ** (ChunkedAmount.CHUNK_BITS_BI * BigInt(curr)),
+    //           2n ** (CHUNK_BITS_BI * BigInt(curr)),
     //         ),
     //       ),
     //     RistrettoPoint.ZERO,
@@ -645,10 +649,10 @@ export class ConfidentialTransfer {
   async genRangeProof(): Promise<ConfidentialTransferRangeProof> {
     const rangeProofAmount = await RangeProofExecutor.genBatchRangeZKP({
       v: this.transferAmountEncryptedBySender.getAmountChunks(),
-      rs: this.transferAmountRandomness.slice(0, ChunkedAmount.CHUNKS_COUNT_HALF).map((el) => numberToBytesLE(el, 32)),
+      rs: this.transferAmountRandomness.slice(0, TRANSFER_AMOUNT_CHUNK_COUNT).map((el) => numberToBytesLE(el, 32)),
       val_base: RistrettoPoint.BASE.toRawBytes(),
       rand_base: H_RISTRETTO.toRawBytes(),
-      num_bits: ChunkedAmount.CHUNK_BITS,
+      num_bits: CHUNK_BITS,
     });
 
     const rangeProofNewBalance = await RangeProofExecutor.genBatchRangeZKP({
@@ -656,7 +660,7 @@ export class ConfidentialTransfer {
       rs: this.newBalanceRandomness.map((el) => numberToBytesLE(el, 32)),
       val_base: RistrettoPoint.BASE.toRawBytes(),
       rand_base: H_RISTRETTO.toRawBytes(),
-      num_bits: ChunkedAmount.CHUNK_BITS,
+      num_bits: CHUNK_BITS,
     });
 
     return {
@@ -699,14 +703,14 @@ export class ConfidentialTransfer {
       comm: opts.encryptedAmountByRecipient.getCipherText().map((el) => el.C.toRawBytes()),
       val_base: RistrettoPoint.BASE.toRawBytes(),
       rand_base: H_RISTRETTO.toRawBytes(),
-      num_bits: ChunkedAmount.CHUNK_BITS,
+      num_bits: CHUNK_BITS,
     });
     const rangeProofNewBalance = await RangeProofExecutor.verifyBatchRangeZKP({
       proof: opts.rangeProofNewBalance,
       comm: opts.encryptedActualBalanceAfterTransfer.getCipherText().map((el) => el.C.toRawBytes()),
       val_base: RistrettoPoint.BASE.toRawBytes(),
       rand_base: H_RISTRETTO.toRawBytes(),
-      num_bits: ChunkedAmount.CHUNK_BITS,
+      num_bits: CHUNK_BITS,
     });
 
     return isRangeProofAmountValid && rangeProofNewBalance;

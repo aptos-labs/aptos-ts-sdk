@@ -7,7 +7,7 @@ import { TwistedEd25519PrivateKey, RistrettoPoint, H_RISTRETTO, TwistedEd25519Pu
 import { TwistedElGamalCiphertext } from "./twistedElGamal";
 import { ed25519GenListOfRandom, ed25519GenRandom, ed25519modN, ed25519InvertN } from "./utils";
 import { EncryptedAmount } from "./encryptedAmount";
-import { ChunkedAmount } from "./chunkedAmount";
+import { AVAILABLE_BALANCE_CHUNK_COUNT, CHUNK_BITS, CHUNK_BITS_BIG_INT } from "./chunkedAmount";
 
 export type ConfidentialKeyRotationSigmaProof = {
   alpha1List: Uint8Array[];
@@ -58,7 +58,7 @@ export class ConfidentialKeyRotation {
 
   static async create(args: CreateConfidentialKeyRotationOpArgs) {
     const {
-      randomness = ed25519GenListOfRandom(ChunkedAmount.CHUNKS_COUNT),
+      randomness = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT),
       currEncryptedBalance,
       senderDecryptionKey,
       newSenderDecryptionKey,
@@ -115,12 +115,12 @@ export class ConfidentialKeyRotation {
     const alpha2 = proofArr[3];
     const alpha3 = proofArr[4];
     const alpha4 = proofArr[5];
-    const alpha5List = proofArr.slice(6, 6 + ChunkedAmount.CHUNKS_COUNT);
-    const X1 = proofArr[6 + ChunkedAmount.CHUNKS_COUNT];
-    const X2 = proofArr[7 + ChunkedAmount.CHUNKS_COUNT];
-    const X3 = proofArr[8 + ChunkedAmount.CHUNKS_COUNT];
-    const X4List = proofArr.slice(8 + ChunkedAmount.CHUNKS_COUNT, 8 + 2 * ChunkedAmount.CHUNKS_COUNT);
-    const X5List = proofArr.slice(8 + 2 * ChunkedAmount.CHUNKS_COUNT);
+    const alpha5List = proofArr.slice(6, 6 + AVAILABLE_BALANCE_CHUNK_COUNT);
+    const X1 = proofArr[6 + AVAILABLE_BALANCE_CHUNK_COUNT];
+    const X2 = proofArr[7 + AVAILABLE_BALANCE_CHUNK_COUNT];
+    const X3 = proofArr[8 + AVAILABLE_BALANCE_CHUNK_COUNT];
+    const X4List = proofArr.slice(8 + AVAILABLE_BALANCE_CHUNK_COUNT, 8 + 2 * AVAILABLE_BALANCE_CHUNK_COUNT);
+    const X5List = proofArr.slice(8 + 2 * AVAILABLE_BALANCE_CHUNK_COUNT);
 
     return {
       alpha1List,
@@ -137,21 +137,21 @@ export class ConfidentialKeyRotation {
   }
 
   async genSigmaProof(): Promise<ConfidentialKeyRotationSigmaProof> {
-    if (this.randomness && this.randomness.length !== ChunkedAmount.CHUNKS_COUNT) {
+    if (this.randomness && this.randomness.length !== AVAILABLE_BALANCE_CHUNK_COUNT) {
       throw new Error("Invalid length list of randomness");
     }
 
-    const x1List = ed25519GenListOfRandom(ChunkedAmount.CHUNKS_COUNT);
+    const x1List = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT);
     const x2 = ed25519GenRandom();
     const x3 = ed25519GenRandom();
     const x4 = ed25519GenRandom();
 
-    const x5List = ed25519GenListOfRandom(ChunkedAmount.CHUNKS_COUNT);
+    const x5List = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT);
 
     const X1 = RistrettoPoint.BASE.multiply(
       ed25519modN(
         x1List.reduce((acc, el, i) => {
-          const coef = 2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT);
+          const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
           const x1i = el * coef;
 
           return acc + x1i;
@@ -160,10 +160,7 @@ export class ConfidentialKeyRotation {
     ).add(
       this.currentEncryptedAvailableBalance
         .getCipherText()
-        .reduce(
-          (acc, el, i) => acc.add(el.D.multiply(2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT))),
-          RistrettoPoint.ZERO,
-        )
+        .reduce((acc, el, i) => acc.add(el.D.multiply(2n ** (BigInt(i) * CHUNK_BITS_BIG_INT))), RistrettoPoint.ZERO)
         .multiply(x2),
     );
     const X2 = H_RISTRETTO.multiply(x3);
@@ -260,7 +257,7 @@ export class ConfidentialKeyRotation {
 
     const { DOldSum, COldSum } = opts.currEncryptedBalance.reduce(
       (acc, { C, D }, i) => {
-        const coef = 2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT);
+        const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
         return {
           DOldSum: acc.DOldSum.add(D.multiply(coef)),
           COldSum: acc.COldSum.add(C.multiply(coef)),
@@ -272,7 +269,7 @@ export class ConfidentialKeyRotation {
     const X1 = RistrettoPoint.BASE.multiply(
       ed25519modN(
         alpha1LEList.reduce((acc, el, i) => {
-          const coef = 2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT);
+          const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
           const a1i = el * coef;
 
           return acc + a1i;
@@ -311,7 +308,7 @@ export class ConfidentialKeyRotation {
       rs: this.randomness.map((chunk) => numberToBytesLE(chunk, 32)),
       val_base: RistrettoPoint.BASE.toRawBytes(),
       rand_base: H_RISTRETTO.toRawBytes(),
-      num_bits: ChunkedAmount.CHUNK_BITS,
+      num_bits: CHUNK_BITS,
     });
 
     return rangeProof.proof;
@@ -345,7 +342,7 @@ export class ConfidentialKeyRotation {
       comm: opts.newEncryptedBalance.map((el) => el.C.toRawBytes()),
       val_base: RistrettoPoint.BASE.toRawBytes(),
       rand_base: H_RISTRETTO.toRawBytes(),
-      num_bits: ChunkedAmount.CHUNK_BITS,
+      num_bits: CHUNK_BITS,
     });
   }
 }

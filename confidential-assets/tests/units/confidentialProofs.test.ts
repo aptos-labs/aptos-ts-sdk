@@ -1,4 +1,6 @@
 import {
+  AVAILABLE_BALANCE_CHUNK_COUNT,
+  CHUNK_BITS_BIG_INT,
   ChunkedAmount,
   ConfidentialKeyRotation,
   ConfidentialKeyRotationSigmaProof,
@@ -320,7 +322,7 @@ describe("Generate 'confidential coin' proofs", () => {
   );
 
   const unnormalizedAliceConfidentialAmount = ChunkedAmount.fromChunks([
-    ...Array.from({ length: ChunkedAmount.CHUNKS_COUNT - 1 }, () => 2n ** ChunkedAmount.CHUNK_BITS_BIG_INT + 100n),
+    ...Array.from({ length: AVAILABLE_BALANCE_CHUNK_COUNT - 1 }, () => 2n ** CHUNK_BITS_BIG_INT + 100n),
     0n,
   ]);
   const unnormalizedEncryptedBalance = new EncryptedAmount({

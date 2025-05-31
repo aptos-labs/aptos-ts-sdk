@@ -8,7 +8,7 @@ import { TwistedEd25519PrivateKey, H_RISTRETTO, TwistedEd25519PublicKey } from "
 import { TwistedElGamalCiphertext } from "./twistedElGamal";
 import { ed25519GenListOfRandom, ed25519GenRandom, ed25519modN, ed25519InvertN } from "./utils";
 import { EncryptedAmount } from "./encryptedAmount";
-import { ChunkedAmount } from "./chunkedAmount";
+import { AVAILABLE_BALANCE_CHUNK_COUNT, CHUNK_BITS, CHUNK_BITS_BIG_INT, ChunkedAmount } from "./chunkedAmount";
 
 export type ConfidentialNormalizationSigmaProof = {
   alpha1List: Uint8Array[];
@@ -52,7 +52,7 @@ export class ConfidentialNormalization {
   }
 
   static async create(args: CreateConfidentialNormalizationOpArgs) {
-    const { decryptionKey, randomness = ed25519GenListOfRandom(ChunkedAmount.CHUNKS_COUNT) } = args;
+    const { decryptionKey, randomness = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT) } = args;
 
     const unnormalizedEncryptedAvailableBalance = await EncryptedAmount.fromCipherTextAndPrivateKey(
       args.unnormalizedAvailableBalanceCipherText,
@@ -101,11 +101,11 @@ export class ConfidentialNormalization {
     const alpha1List = proofArr.slice(0, 3);
     const alpha2 = proofArr[3];
     const alpha3 = proofArr[4];
-    const alpha4List = proofArr.slice(5, 5 + ChunkedAmount.CHUNKS_COUNT);
-    const X1 = proofArr[5 + 2 * ChunkedAmount.CHUNKS_COUNT];
-    const X2 = proofArr[5 + 2 * ChunkedAmount.CHUNKS_COUNT + 1];
-    const X3List = proofArr.slice(5 + 2 * ChunkedAmount.CHUNKS_COUNT + 2, 5 + 3 * ChunkedAmount.CHUNKS_COUNT + 2);
-    const X4List = proofArr.slice(5 + 3 * ChunkedAmount.CHUNKS_COUNT + 2, 5 + 4 * ChunkedAmount.CHUNKS_COUNT + 2);
+    const alpha4List = proofArr.slice(5, 5 + AVAILABLE_BALANCE_CHUNK_COUNT);
+    const X1 = proofArr[5 + 2 * AVAILABLE_BALANCE_CHUNK_COUNT];
+    const X2 = proofArr[5 + 2 * AVAILABLE_BALANCE_CHUNK_COUNT + 1];
+    const X3List = proofArr.slice(5 + 2 * AVAILABLE_BALANCE_CHUNK_COUNT + 2, 5 + 3 * AVAILABLE_BALANCE_CHUNK_COUNT + 2);
+    const X4List = proofArr.slice(5 + 3 * AVAILABLE_BALANCE_CHUNK_COUNT + 2, 5 + 4 * AVAILABLE_BALANCE_CHUNK_COUNT + 2);
 
     return {
       alpha1List,
@@ -120,20 +120,20 @@ export class ConfidentialNormalization {
   }
 
   async genSigmaProof(): Promise<ConfidentialNormalizationSigmaProof> {
-    if (this.randomness && this.randomness.length !== ChunkedAmount.CHUNKS_COUNT) {
+    if (this.randomness && this.randomness.length !== AVAILABLE_BALANCE_CHUNK_COUNT) {
       throw new Error("Invalid length list of randomness");
     }
 
-    const x1List = ed25519GenListOfRandom(ChunkedAmount.CHUNKS_COUNT);
+    const x1List = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT);
     const x2 = ed25519GenRandom();
     const x3 = ed25519GenRandom();
 
-    const x4List = ed25519GenListOfRandom(ChunkedAmount.CHUNKS_COUNT);
+    const x4List = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT);
 
     const X1 = RistrettoPoint.BASE.multiply(
       ed25519modN(
         x1List.reduce((acc, el, i) => {
-          const coef = 2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT);
+          const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
           const x1i = el * coef;
 
           return acc + x1i;
@@ -143,7 +143,7 @@ export class ConfidentialNormalization {
       this.unnormalizedEncryptedAvailableBalance
         .getCipherText()
         .reduce(
-          (acc, ciphertext, i) => acc.add(ciphertext.D.multiply(2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT))),
+          (acc, ciphertext, i) => acc.add(ciphertext.D.multiply(2n ** (BigInt(i) * CHUNK_BITS_BIG_INT))),
           RistrettoPoint.ZERO,
         )
         .multiply(x2),
@@ -231,15 +231,12 @@ export class ConfidentialNormalization {
     );
     const alpha2D = opts.unnormalizedEncryptedBalance
       .getCipherText()
-      .reduce(
-        (acc, { D }, i) => acc.add(D.multiply(2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT))),
-        RistrettoPoint.ZERO,
-      )
+      .reduce((acc, { D }, i) => acc.add(D.multiply(2n ** (BigInt(i) * CHUNK_BITS_BIG_INT))), RistrettoPoint.ZERO)
       .multiply(alpha2LE);
     const pBalOld = opts.unnormalizedEncryptedBalance
       .getCipherText()
       .reduce((acc, ciphertext, i) => {
-        const chunk = ciphertext.C.multiply(2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT));
+        const chunk = ciphertext.C.multiply(2n ** (BigInt(i) * CHUNK_BITS_BIG_INT));
         return acc.add(chunk);
       }, RistrettoPoint.ZERO)
       .multiply(p);
@@ -250,7 +247,7 @@ export class ConfidentialNormalization {
     const X1 = RistrettoPoint.BASE.multiply(
       ed25519modN(
         alpha1LEList.reduce((acc, el, i) => {
-          const coef = 2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT);
+          const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
           const alpha1i = el * coef;
           return acc + alpha1i;
         }, 0n),
@@ -286,7 +283,7 @@ export class ConfidentialNormalization {
       rs: this.randomness.map((el) => numberToBytesLE(el, 32)),
       val_base: RistrettoPoint.BASE.toRawBytes(),
       rand_base: H_RISTRETTO.toRawBytes(),
-      num_bits: ChunkedAmount.CHUNK_BITS,
+      num_bits: CHUNK_BITS,
     });
 
     return rangeProof.proof;
@@ -301,7 +298,7 @@ export class ConfidentialNormalization {
       comm: opts.normalizedEncryptedBalance.getCipherText().map((el) => el.C.toRawBytes()),
       val_base: RistrettoPoint.BASE.toRawBytes(),
       rand_base: H_RISTRETTO.toRawBytes(),
-      num_bits: ChunkedAmount.CHUNK_BITS,
+      num_bits: CHUNK_BITS,
     });
   }
 

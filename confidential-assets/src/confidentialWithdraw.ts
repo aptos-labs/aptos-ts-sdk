@@ -3,7 +3,13 @@ import { RistrettoPoint } from "@noble/curves/ed25519";
 import { utf8ToBytes } from "@noble/hashes/utils";
 import { genFiatShamirChallenge, publicKeyToU8 } from "./helpers";
 import { PROOF_CHUNK_SIZE, SIGMA_PROOF_WITHDRAW_SIZE } from "./consts";
-import { ChunkedAmount } from "./chunkedAmount";
+import {
+  AVAILABLE_BALANCE_CHUNK_COUNT,
+  CHUNK_BITS,
+  CHUNK_BITS_BIG_INT,
+  ChunkedAmount,
+  TRANSFER_AMOUNT_CHUNK_COUNT,
+} from "./chunkedAmount";
 import { RangeProofExecutor } from "./rangeProof";
 import { TwistedEd25519PrivateKey, H_RISTRETTO } from "./twistedEd25519";
 import { TwistedElGamalCiphertext } from "./twistedElGamal";
@@ -62,9 +68,7 @@ export class ConfidentialWithdraw {
       );
     }
 
-    this.amount = ChunkedAmount.fromAmount(amount, {
-      chunksCount: ChunkedAmount.CHUNKS_COUNT_HALF,
-    });
+    this.amount = ChunkedAmount.createTransferAmount(amount);
     this.decryptionKey = decryptionKey;
     this.senderEncryptedAvailableBalance = senderEncryptedAvailableBalance;
     this.randomness = randomness;
@@ -72,7 +76,7 @@ export class ConfidentialWithdraw {
   }
 
   static async create(args: CreateConfidentialWithdrawOpArgs) {
-    const { amount, randomness = ed25519GenListOfRandom(ChunkedAmount.CHUNKS_COUNT) } = args;
+    const { amount, randomness = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT) } = args;
 
     const senderEncryptedAvailableBalance = await EncryptedAmount.fromCipherTextAndPrivateKey(
       args.senderAvailableBalanceCipherText,
@@ -123,11 +127,11 @@ export class ConfidentialWithdraw {
     const alpha1List = proofArr.slice(0, 3);
     const alpha2 = proofArr[3];
     const alpha3 = proofArr[4];
-    const alpha4List = proofArr.slice(5, 5 + ChunkedAmount.CHUNKS_COUNT);
+    const alpha4List = proofArr.slice(5, 5 + AVAILABLE_BALANCE_CHUNK_COUNT);
     const X1 = proofArr[11];
     const X2 = proofArr[12];
-    const X3List = proofArr.slice(13, 13 + ChunkedAmount.CHUNKS_COUNT);
-    const X4List = proofArr.slice(13 + ChunkedAmount.CHUNKS_COUNT, 13 + 2 * ChunkedAmount.CHUNKS_COUNT);
+    const X3List = proofArr.slice(13, 13 + AVAILABLE_BALANCE_CHUNK_COUNT);
+    const X4List = proofArr.slice(13 + AVAILABLE_BALANCE_CHUNK_COUNT, 13 + 2 * AVAILABLE_BALANCE_CHUNK_COUNT);
 
     return {
       alpha1List,
@@ -142,21 +146,21 @@ export class ConfidentialWithdraw {
   }
 
   async genSigmaProof(): Promise<ConfidentialWithdrawSigmaProof> {
-    if (this.randomness && this.randomness.length !== ChunkedAmount.CHUNKS_COUNT) {
+    if (this.randomness && this.randomness.length !== AVAILABLE_BALANCE_CHUNK_COUNT) {
       throw new Error("Invalid length list of randomness");
     }
 
-    const x1List = ed25519GenListOfRandom(ChunkedAmount.CHUNKS_COUNT);
+    const x1List = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT);
     const x2 = ed25519GenRandom();
     const x3 = ed25519GenRandom();
 
-    const x4List = ed25519GenListOfRandom(ChunkedAmount.CHUNKS_COUNT);
+    const x4List = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT);
     // const x5List = ed25519GenListOfRandom(ChunkedAmount.CHUNKS_COUNT);
 
     const X1 = RistrettoPoint.BASE.multiply(
       ed25519modN(
         x1List.reduce((acc, el, i) => {
-          const coef = 2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT);
+          const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
           const x1i = el * coef;
 
           return acc + x1i;
@@ -165,7 +169,7 @@ export class ConfidentialWithdraw {
     ).add(
       this.senderEncryptedAvailableBalance.getCipherText().reduce((acc, el, i) => {
         const { D } = el;
-        const coef = 2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT);
+        const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
 
         const DCoef = D.multiply(coef);
 
@@ -185,9 +189,7 @@ export class ConfidentialWithdraw {
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
       this.decryptionKey.publicKey().toUint8Array(),
-      concatBytes(
-        ...this.amount.amountChunks.slice(0, ChunkedAmount.CHUNKS_COUNT_HALF).map((a) => numberToBytesLE(a, 32)),
-      ),
+      concatBytes(...this.amount.amountChunks.slice(0, TRANSFER_AMOUNT_CHUNK_COUNT).map((a) => numberToBytesLE(a, 32))),
       concatBytes(
         ...this.senderEncryptedAvailableBalance
           .getCipherText()
@@ -237,7 +239,7 @@ export class ConfidentialWithdraw {
   }): boolean {
     const publicKeyU8 = publicKeyToU8(opts.senderEncryptedAvailableBalance.publicKey);
     const confidentialAmountToWithdraw = ChunkedAmount.fromAmount(opts.amountToWithdraw, {
-      chunksCount: ChunkedAmount.CHUNKS_COUNT_HALF,
+      chunksCount: TRANSFER_AMOUNT_CHUNK_COUNT,
     });
 
     const alpha1LEList = opts.sigmaProof.alpha1List.map((a) => bytesToNumberLE(a));
@@ -251,7 +253,7 @@ export class ConfidentialWithdraw {
       H_RISTRETTO.toRawBytes(),
       publicKeyU8,
       ...confidentialAmountToWithdraw.amountChunks
-        .slice(0, ChunkedAmount.CHUNKS_COUNT_HALF)
+        .slice(0, TRANSFER_AMOUNT_CHUNK_COUNT)
         .map((a) => numberToBytesLE(a, 32)),
       opts.senderEncryptedAvailableBalance.getCipherTextBytes(),
       opts.sigmaProof.X1,
@@ -262,7 +264,7 @@ export class ConfidentialWithdraw {
 
     const { DOldSum, COldSum } = opts.senderEncryptedAvailableBalance.getCipherText().reduce(
       (acc, { C, D }, i) => {
-        const coef = 2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT);
+        const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
         return {
           DOldSum: acc.DOldSum.add(D.multiply(coef)),
           COldSum: acc.COldSum.add(C.multiply(coef)),
@@ -274,7 +276,7 @@ export class ConfidentialWithdraw {
     const X1 = RistrettoPoint.BASE.multiply(
       ed25519modN(
         alpha1LEList.reduce((acc, el, i) => {
-          const coef = 2n ** (BigInt(i) * ChunkedAmount.CHUNK_BITS_BIG_INT);
+          const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
           const elCoef = el * coef;
 
           return acc + elCoef;
@@ -314,7 +316,7 @@ export class ConfidentialWithdraw {
       rs: this.randomness.map((chunk) => numberToBytesLE(chunk, 32)),
       val_base: RistrettoPoint.BASE.toRawBytes(),
       rand_base: H_RISTRETTO.toRawBytes(),
-      num_bits: ChunkedAmount.CHUNK_BITS,
+      num_bits: CHUNK_BITS,
     });
 
     return rangeProof.proof;
@@ -344,7 +346,7 @@ export class ConfidentialWithdraw {
       comm: opts.senderEncryptedAvailableBalanceAfterWithdrawal.getCipherText().map((el) => el.C.toRawBytes()),
       val_base: RistrettoPoint.BASE.toRawBytes(),
       rand_base: H_RISTRETTO.toRawBytes(),
-      num_bits: ChunkedAmount.CHUNK_BITS,
+      num_bits: CHUNK_BITS,
     });
   }
 }

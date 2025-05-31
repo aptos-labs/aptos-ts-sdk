@@ -3,29 +3,28 @@ import { AnyNumber } from "@aptos-labs/ts-sdk";
 /**
  * Number of chunks for confidential balance
  */
-const CHUNKS_COUNT = 8;
+export const AVAILABLE_BALANCE_CHUNK_COUNT = 8;
 
 /**
  * Max bits of amount in a chunk for normalized confidential balance
  */
-const CHUNK_BITS = 16;
+export const CHUNK_BITS = 16;
+
+export const CHUNK_BITS_BIG_INT = BigInt(CHUNK_BITS);
+
+/**
+ * Number of chunks for confidential transfer/withdrawal amount
+ */
+export const TRANSFER_AMOUNT_CHUNK_COUNT = AVAILABLE_BALANCE_CHUNK_COUNT / 2;
 
 export class ChunkedAmount {
   amount: bigint;
 
   amountChunks: bigint[];
 
-  chunksCount = CHUNKS_COUNT;
+  chunksCount = AVAILABLE_BALANCE_CHUNK_COUNT;
 
   chunkBits = CHUNK_BITS;
-
-  static CHUNKS_COUNT = CHUNKS_COUNT;
-
-  static CHUNK_BITS = CHUNK_BITS;
-
-  static CHUNK_BITS_BIG_INT = BigInt(ChunkedAmount.CHUNK_BITS);
-
-  static CHUNKS_COUNT_HALF = ChunkedAmount.CHUNKS_COUNT / 2;
 
   constructor(args: { amount?: AnyNumber; amountChunks: bigint[]; chunksCount?: number; chunkBits?: number }) {
     this.amount = args.amount ? BigInt(args.amount) : ChunkedAmount.chunksToAmount(args.amountChunks);
@@ -46,7 +45,7 @@ export class ChunkedAmount {
    *
    * amount = a0 + a1 * (2 ** 32) + a2 * (2 ** 64) ... a_i * (2 ** 32 * i)
    */
-  static chunksToAmount(chunks: bigint[], chunkBits = ChunkedAmount.CHUNK_BITS): bigint {
+  static chunksToAmount(chunks: bigint[], chunkBits = CHUNK_BITS): bigint {
     const chunkBitsBi = BigInt(chunkBits);
 
     return chunks.reduce((acc, chunk, i) => acc + chunk * 2n ** (chunkBitsBi * BigInt(i)), 0n);
@@ -60,10 +59,10 @@ export class ChunkedAmount {
    * @param chunkBits - The number of bits each chunk should contain (default is ConfidentialAmount.CHUNK_BITS).
    * @returns An array of bigints, where each element represents a segment of the original amount.
    */
-  static amountToChunks(
+  private static amountToChunks(
     amount: AnyNumber,
-    chunksCount = ChunkedAmount.CHUNKS_COUNT,
-    chunkBits = ChunkedAmount.CHUNK_BITS,
+    chunksCount = AVAILABLE_BALANCE_CHUNK_COUNT,
+    chunkBits = CHUNK_BITS,
   ): bigint[] {
     // Initialize an empty array that will hold the chunked values.
     const chunks: bigint[] = [];
@@ -99,6 +98,11 @@ export class ChunkedAmount {
   ): ChunkedAmount {
     const amountChunks = ChunkedAmount.amountToChunks(amount, opts?.chunksCount, opts?.chunkBits);
     return new ChunkedAmount({ amount, amountChunks, ...opts });
+  }
+
+  static createTransferAmount(amount: AnyNumber): ChunkedAmount {
+    const amountChunks = ChunkedAmount.amountToChunks(amount, TRANSFER_AMOUNT_CHUNK_COUNT, CHUNK_BITS);
+    return new ChunkedAmount({ amount, amountChunks });
   }
 
   static fromChunks(chunks: bigint[]): ChunkedAmount {
