@@ -10,7 +10,7 @@
     "url": "https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose"
   },
   "homepage": "https://aptos-labs.github.io/aptos-ts-sdk/",
-  "version": "0.2.13",
+  "version": "0.3.0",
   "sideEffects": false,
   "main": "dist/common/index.js",
   "module": "dist/esm/index.mjs",
