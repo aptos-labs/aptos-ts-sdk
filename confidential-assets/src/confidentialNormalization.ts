@@ -1,7 +1,7 @@
 import { RistrettoPoint } from "@noble/curves/ed25519";
 import { utf8ToBytes } from "@noble/hashes/utils";
 import { bytesToNumberLE, concatBytes, numberToBytesLE } from "@noble/curves/abstract/utils";
-import { PROOF_CHUNK_SIZE, SIGMA_PROOF_NORMALIZATION_SIZE } from "./consts";
+import { MODULE_NAME, PROOF_CHUNK_SIZE, SIGMA_PROOF_NORMALIZATION_SIZE } from "./consts";
 import { genFiatShamirChallenge, publicKeyToU8 } from "./helpers";
 import { RangeProofExecutor } from "./rangeProof";
 import { TwistedEd25519PrivateKey, H_RISTRETTO, TwistedEd25519PublicKey } from "./twistedEd25519";
@@ -9,6 +9,7 @@ import { TwistedElGamalCiphertext } from "./twistedElGamal";
 import { ed25519GenListOfRandom, ed25519GenRandom, ed25519modN, ed25519InvertN } from "./utils";
 import { EncryptedAmount } from "./encryptedAmount";
 import { AVAILABLE_BALANCE_CHUNK_COUNT, CHUNK_BITS, CHUNK_BITS_BIG_INT, ChunkedAmount } from "./chunkedAmount";
+import { Aptos, SimpleTransaction, AccountAddressInput, InputGenerateTransactionOptions } from "@aptos-labs/ts-sdk";
 
 export type ConfidentialNormalizationSigmaProof = {
   alpha1List: Uint8Array[];
@@ -23,7 +24,7 @@ export type ConfidentialNormalizationSigmaProof = {
 
 export type CreateConfidentialNormalizationOpArgs = {
   decryptionKey: TwistedEd25519PrivateKey;
-  unnormalizedAvailableBalanceCipherText: TwistedElGamalCiphertext[];
+  unnormalizedAvailableBalance: EncryptedAmount;
   randomness?: bigint[];
 };
 
@@ -54,10 +55,7 @@ export class ConfidentialNormalization {
   static async create(args: CreateConfidentialNormalizationOpArgs) {
     const { decryptionKey, randomness = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT) } = args;
 
-    const unnormalizedEncryptedAvailableBalance = await EncryptedAmount.fromCipherTextAndPrivateKey(
-      args.unnormalizedAvailableBalanceCipherText,
-      decryptionKey,
-    );
+    const unnormalizedEncryptedAvailableBalance = args.unnormalizedAvailableBalance;
 
     const normalizedEncryptedAvailableBalance = EncryptedAmount.fromAmountAndPublicKey({
       amount: unnormalizedEncryptedAvailableBalance.getAmount(),
@@ -309,5 +307,30 @@ export class ConfidentialNormalization {
     const rangeProof = await this.genRangeProof();
 
     return [{ sigmaProof, rangeProof }, this.normalizedEncryptedAvailableBalance];
+  }
+
+  async createTransaction(args: {
+    client: Aptos;
+    sender: AccountAddressInput;
+    confidentialAssetModuleAddress: string;
+    tokenAddress: AccountAddressInput;
+    withFeePayer?: boolean;
+    options?: InputGenerateTransactionOptions;
+  }): Promise<SimpleTransaction> {
+    const [{ sigmaProof, rangeProof }, normalizedCB] = await this.authorizeNormalization();
+
+    return args.client.transaction.build.simple({
+      ...args,
+      data: {
+        function: `${args.confidentialAssetModuleAddress}::${MODULE_NAME}::normalize`,
+        functionArguments: [
+          args.tokenAddress,
+          normalizedCB.getCipherTextBytes(),
+          rangeProof,
+          ConfidentialNormalization.serializeSigmaProof(sigmaProof),
+        ],
+      },
+      options: args.options,
+    });
   }
 }

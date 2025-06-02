@@ -33,10 +33,11 @@ describe("Generate 'confidential coin' proofs", () => {
   const bobConfidentialDecryptionKey: TwistedEd25519PrivateKey = TwistedEd25519PrivateKey.generate();
 
   const aliceConfidentialAmount = ChunkedAmount.fromAmount(ALICE_BALANCE);
-  const aliceEncryptedBalanceCipherText = new EncryptedAmount({
+  const aliceEncryptedBalance = new EncryptedAmount({
     chunkedAmount: aliceConfidentialAmount,
     publicKey: aliceConfidentialDecryptionKey.publicKey(),
-  }).getCipherText();
+  });
+  const aliceEncryptedBalanceCipherText = aliceEncryptedBalance.getCipherText();
 
   const WITHDRAW_AMOUNT = 2n ** 16n;
   let confidentialWithdraw: ConfidentialWithdraw;
@@ -260,7 +261,7 @@ describe("Generate 'confidential coin' proofs", () => {
     async () => {
       confidentialKeyRotation = await ConfidentialKeyRotation.create({
         senderDecryptionKey: aliceConfidentialDecryptionKey,
-        currEncryptedBalance: aliceEncryptedBalanceCipherText,
+        currentEncryptedAvailableBalance: aliceEncryptedBalance,
         newSenderDecryptionKey: newAliceConfidentialPrivateKey,
       });
 
@@ -337,7 +338,7 @@ describe("Generate 'confidential coin' proofs", () => {
     async () => {
       confidentialNormalization = await ConfidentialNormalization.create({
         decryptionKey: aliceConfidentialDecryptionKey,
-        unnormalizedAvailableBalanceCipherText: unnormalizedEncryptedBalance.getCipherText(),
+        unnormalizedAvailableBalance: unnormalizedEncryptedBalance,
       });
 
       confidentialNormalizationSigmaProof = await confidentialNormalization.genSigmaProof();

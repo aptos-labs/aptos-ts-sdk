@@ -10,7 +10,7 @@ import {
   LedgerVersionArg,
   SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
-import { TwistedElGamalCiphertext } from "./twistedElGamal";
+import { TwistedElGamal, TwistedElGamalCiphertext } from "./twistedElGamal";
 import { ConfidentialNormalization } from "./confidentialNormalization";
 import { ConfidentialKeyRotation } from "./confidentialKeyRotation";
 import { toTwistedEd25519PrivateKey, toTwistedEd25519PublicKey } from "./helpers";
@@ -19,8 +19,8 @@ import { ConfidentialTransfer } from "./confidentialTransfer";
 import { ConfidentialWithdraw } from "./confidentialWithdraw";
 import { TwistedEd25519PublicKey, TwistedEd25519PrivateKey } from "./twistedEd25519";
 import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS, MODULE_NAME } from "./consts";
-import { preloadTables } from "./preloadKangarooTables";
 import { EncryptedAmount } from "./encryptedAmount";
+import { getCache, memoizeAsync, setCache } from "./memoize";
 
 export type ConfidentialBalanceResponse = {
   chunks: {
@@ -61,36 +61,18 @@ export class ConfidentialBalance {
  * TODO: Add key caching to avoid fetching the same key multiple times
  */
 export class ConfidentialAsset {
-  client: Aptos;
-  confidentialAssetModuleAddress: string;
-  private preloadTablesPromise: Promise<void>;
-  private tablesPreloaded: boolean;
+  readonly client: Aptos;
+  readonly confidentialAssetModuleAddress: string;
 
   constructor(
-    readonly config: AptosConfig,
+    config: AptosConfig,
     {
       confidentialAssetModuleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS,
     }: { confidentialAssetModuleAddress?: string } = {},
   ) {
     this.client = new Aptos(config);
     this.confidentialAssetModuleAddress = confidentialAssetModuleAddress;
-    this.tablesPreloaded = false;
-    this.preloadTablesPromise = this.preloadTables();
-  }
-
-  private async preloadTables(): Promise<void> {
-    try {
-      await preloadTables();
-      this.tablesPreloaded = true;
-    } catch (error) {
-      throw new Error(`Failed to preload tables: ${error}`);
-    }
-  }
-
-  private async ensurePreloaded(): Promise<void> {
-    if (!this.tablesPreloaded) {
-      await this.preloadTablesPromise;
-    }
+    TwistedElGamal.initializeKangaroos();
   }
 
   /**
@@ -105,9 +87,52 @@ export class ConfidentialAsset {
     accountAddress: AccountAddressInput;
     tokenAddress: AccountAddressInput;
     decryptionKey: TwistedEd25519PrivateKey;
+    useCachedValue?: boolean;
     options?: LedgerVersionArg;
   }): Promise<ConfidentialBalance> {
-    await this.ensurePreloaded();
+    const { accountAddress, tokenAddress, decryptionKey, options, useCachedValue = false } = args;
+    try {
+      if (useCachedValue) {
+        const cachedAvailableBalance = getCache<EncryptedAmount>(
+          `${accountAddress}-available-encrypted-balance-for-${tokenAddress}-${this.client.config.network}`,
+          1000 * 30, // 30 seconds
+        );
+        const cachedPendingBalance = getCache<EncryptedAmount>(
+          `${accountAddress}-pending-encrypted-balance-for-${tokenAddress}-${this.client.config.network}`,
+          1000 * 30, // 30 seconds
+        );
+        if (cachedAvailableBalance !== undefined && cachedPendingBalance !== undefined) {
+          return new ConfidentialBalance(cachedAvailableBalance, cachedPendingBalance);
+        }
+      }
+
+      const balance = await this.getBalanceInternal({
+        accountAddress,
+        tokenAddress,
+        decryptionKey,
+        options,
+      });
+
+      setCache(
+        `${accountAddress}-available-encrypted-balance-for-${tokenAddress}-${this.client.config.network}`,
+        balance.available,
+      );
+      setCache(
+        `${accountAddress}-pending-encrypted-balance-for-${tokenAddress}-${this.client.config.network}`,
+        balance.pending,
+      );
+      return balance;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  private async getBalanceInternal(args: {
+    accountAddress: AccountAddressInput;
+    tokenAddress: AccountAddressInput;
+    decryptionKey: TwistedEd25519PrivateKey;
+    options?: LedgerVersionArg;
+  }): Promise<ConfidentialBalance> {
     const { accountAddress, tokenAddress, decryptionKey, options } = args;
     const { available, pending } = await this.getBalanceCipherText({
       accountAddress,
@@ -117,7 +142,6 @@ export class ConfidentialAsset {
 
     const decryptedActualBalance = await EncryptedAmount.fromCipherTextAndPrivateKey(available, decryptionKey);
     const decryptedPendingBalance = await EncryptedAmount.fromCipherTextAndPrivateKey(pending, decryptionKey);
-
     return new ConfidentialBalance(decryptedActualBalance, decryptedPendingBalance);
   }
 
@@ -171,22 +195,35 @@ export class ConfidentialAsset {
    * @param args.accountAddress - The account address to get the encryption key for
    * @param args.tokenAddress - The token address of the asset to get the encryption key for
    * @param args.options.ledgerVersion - The ledger version to use for the lookup
+   * @param args.useCachedValue - Whether to use the cached value. Default is false.
    * @returns The encryption key as a TwistedEd25519PublicKey
    */
   async getEncryptionKey(args: {
     accountAddress: AccountAddressInput;
     tokenAddress: AccountAddressInput;
+    useCachedValue?: boolean;
     options?: LedgerVersionArg;
   }): Promise<TwistedEd25519PublicKey> {
-    const [{ point }] = await this.client.view<[{ point: { data: string } }]>({
-      options: args.options,
-      payload: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::encryption_key`,
-        functionArguments: [args.accountAddress, args.tokenAddress],
-      },
-    });
-
-    return toTwistedEd25519PublicKey(point.data);
+    const { accountAddress, tokenAddress, options, useCachedValue = false } = args;
+    try {
+      return await memoizeAsync(
+        async () => {
+          const [{ point }] = await this.client.view<[{ point: { data: string } }]>({
+            options,
+            payload: {
+              function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::encryption_key`,
+              functionArguments: [accountAddress, tokenAddress],
+            },
+          });
+          return toTwistedEd25519PublicKey(point.data);
+        },
+        `${accountAddress}-encryption-key-for-${tokenAddress}-${this.client.config.network}`,
+        1000 * 60 * 60, // 1 hour cache duration
+        useCachedValue,
+      )();
+    } catch (error) {
+      throw error;
+    }
   }
 
   /**
@@ -240,7 +277,6 @@ export class ConfidentialAsset {
   }): Promise<SimpleTransaction> {
     const { tokenAddress, amount, recipient = args.sender } = args;
     validateAmount({ amount });
-    await this.ensurePreloaded();
 
     const amountString = String(amount);
 
@@ -279,7 +315,7 @@ export class ConfidentialAsset {
   }): Promise<SimpleTransaction> {
     const { sender, tokenAddress, amount, senderDecryptionKey, recipient = args.sender, options } = args;
     validateAmount({ amount });
-    await this.ensurePreloaded();
+
     // Get the sender's available balance from the chain
     const { available: senderEncryptedAvailableBalance } = await this.getBalanceCipherText({
       accountAddress: sender,
@@ -331,7 +367,6 @@ export class ConfidentialAsset {
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     const { checkNormalized = true, withFreezeBalance = false } = args;
-    await this.ensurePreloaded();
     if (checkNormalized) {
       const isNormalized = await this.isBalanceNormalized({
         accountAddress: args.sender,
@@ -410,7 +445,7 @@ export class ConfidentialAsset {
   }): Promise<SimpleTransaction> {
     const { senderDecryptionKey, recipient, tokenAddress, amount, additionalAuditorEncryptionKeys = [] } = args;
     validateAmount({ amount });
-    await this.ensurePreloaded();
+
     // Get the auditor public key for the token
     const globalAuditorPubKey = await this.getAssetAuditorEncryptionKey({
       tokenAddress,
@@ -554,19 +589,17 @@ export class ConfidentialAsset {
         tokenAddress,
       }),
     } = args;
-    await this.ensurePreloaded();
+
     // Get the sender's balance from the chain
-    const { available: currEncryptedBalance, pending: currPendingEncryptedBalance } = await this.getBalanceCipherText({
-      accountAddress: sender,
-      tokenAddress,
-    });
+    const { available: currentEncryptedAvailableBalance, pending: currentEncryptedPendingBalance } =
+      await this.getBalance({
+        accountAddress: sender,
+        tokenAddress,
+        decryptionKey: senderDecryptionKey,
+      });
 
     if (checkPendingBalanceEmpty) {
-      const currPendingConfidentialAmount = await EncryptedAmount.fromCipherTextAndPrivateKey(
-        currPendingEncryptedBalance,
-        args.senderDecryptionKey,
-      );
-      if (currPendingConfidentialAmount.getAmount() > 0n) {
+      if (currentEncryptedPendingBalance.getAmount() > 0n) {
         throw new Error("Pending balance must be 0 before rotating encryption key");
       }
     }
@@ -575,7 +608,7 @@ export class ConfidentialAsset {
     const confidentialKeyRotation = await ConfidentialKeyRotation.create({
       senderDecryptionKey,
       newSenderDecryptionKey,
-      currEncryptedBalance,
+      currentEncryptedAvailableBalance,
     });
 
     // Create the sigma proof and range proof
@@ -675,32 +708,25 @@ export class ConfidentialAsset {
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    const { sender, senderDecryptionKey, tokenAddress } = args;
-    await this.ensurePreloaded();
-    const { available: unnormalizedEncryptedAvailableBalance } = await this.getBalanceCipherText({
+    const { sender, senderDecryptionKey, tokenAddress, withFeePayer, options } = args;
+    const { available } = await this.getBalance({
       accountAddress: sender,
       tokenAddress,
+      decryptionKey: senderDecryptionKey,
     });
 
     const confidentialNormalization = await ConfidentialNormalization.create({
       decryptionKey: senderDecryptionKey,
-      unnormalizedAvailableBalanceCipherText: unnormalizedEncryptedAvailableBalance,
+      unnormalizedAvailableBalance: available,
     });
 
-    const [{ sigmaProof, rangeProof }, normalizedCB] = await confidentialNormalization.authorizeNormalization();
-
-    return this.client.transaction.build.simple({
-      ...args,
-      data: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::normalize`,
-        functionArguments: [
-          tokenAddress,
-          normalizedCB.getCipherTextBytes(),
-          rangeProof,
-          ConfidentialNormalization.serializeSigmaProof(sigmaProof),
-        ],
-      },
-      options: args.options,
+    return confidentialNormalization.createTransaction({
+      client: this.client,
+      sender,
+      confidentialAssetModuleAddress: this.confidentialAssetModuleAddress,
+      tokenAddress,
+      withFeePayer,
+      options,
     });
   }
 }
