@@ -2,12 +2,12 @@ import { confidentialAsset, TOKEN_ADDRESS } from "../../helpers";
 
 describe("Global auditor", () => {
   it("it should get global auditor", async () => {
-    const [{ vec }] = await confidentialAsset.getAssetAuditor({
+    const globalAuditorPubKey = await confidentialAsset.getAssetAuditorEncryptionKey({
       tokenAddress: TOKEN_ADDRESS,
     });
 
-    console.log(vec);
+    console.log(globalAuditorPubKey);
 
-    expect(vec).toBeDefined();
+    expect(globalAuditorPubKey).toBeDefined();
   });
 });

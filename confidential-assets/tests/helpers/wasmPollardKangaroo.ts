@@ -4,7 +4,8 @@
 import initWasm, { create_kangaroo, WASMKangaroo } from "@aptos-labs/confidential-asset-wasm-bindings/pollard-kangaroo";
 
 import { bytesToNumberLE } from "@noble/curves/abstract/utils";
-import { ConfidentialAmount, TwistedEd25519PrivateKey, TwistedElGamal, TwistedElGamalCiphertext } from "../../src";
+import { TwistedEd25519PrivateKey, TwistedElGamal, TwistedElGamalCiphertext } from "../../src";
+import { EncryptedAmount } from "../../src/encryptedAmount";
 
 const POLLARD_KANGAROO_WASM_URL =
   "https://unpkg.com/@aptos-labs/confidential-asset-wasm-bindings@0.0.2/pollard-kangaroo/aptos_pollard_kangaroo_wasm_bg.wasm";
@@ -53,7 +54,7 @@ export const preloadTablesForBalances = async () => {
     return result;
   };
 
-  ConfidentialAmount.setDecryptBalanceFn(
+  EncryptedAmount.setDecryptBalanceFn(
     async (encrypted: TwistedElGamalCiphertext[], privateKey: TwistedEd25519PrivateKey) => {
       const mGs = encrypted.map((el) => TwistedElGamal.calculateCiphertextMG(el, privateKey));
 

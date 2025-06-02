@@ -17,7 +17,6 @@ import {
   PrivateKeyVariants,
   Ed25519Account,
 } from "@aptos-labs/ts-sdk";
-import { ConfidentialAmount } from "../../src/confidentialAmount";
 import { ConfidentialAsset } from "../../src/confidentialAsset";
 import { RangeProofExecutor } from "../../src/rangeProof";
 import { TwistedEd25519PrivateKey } from "../../src/twistedEd25519";
@@ -51,24 +50,11 @@ export const getBalances = async (
   accountAddress: AccountAddress,
   tokenAddress = TOKEN_ADDRESS,
 ) => {
-  const aliceChunkedConfidentialBalance = await confidentialAsset.getBalance({
+  return confidentialAsset.getBalance({
+    decryptionKey,
     accountAddress,
     tokenAddress,
   });
-
-  const aliceConfidentialAmountPending = await ConfidentialAmount.fromEncrypted(
-    aliceChunkedConfidentialBalance.pending,
-    decryptionKey,
-  );
-  const aliceConfidentialAmountActual = await ConfidentialAmount.fromEncrypted(
-    aliceChunkedConfidentialBalance.actual,
-    decryptionKey,
-  );
-
-  return {
-    pending: aliceConfidentialAmountPending,
-    actual: aliceConfidentialAmountActual,
-  };
 };
 
 export const sendAndWaitTx = async (
@@ -115,7 +101,10 @@ export const getTestAccount = () => {
     });
   }
 
-  return Account.generate();
+  console.log("Generating new account");
+  const account = Account.generate();
+  console.log(`Account generated: ${account.accountAddress}`);
+  return account;
 };
 
 export const getTestConfidentialAccount = (account?: Ed25519Account) => {

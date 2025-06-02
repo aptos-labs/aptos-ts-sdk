@@ -1,5 +1,7 @@
 import {
-  ConfidentialAmount,
+  AVAILABLE_BALANCE_CHUNK_COUNT,
+  CHUNK_BITS_BIG_INT,
+  ChunkedAmount,
   ConfidentialKeyRotation,
   ConfidentialKeyRotationSigmaProof,
   ConfidentialNormalization,
@@ -14,6 +16,7 @@ import {
 } from "../../src";
 import { preloadTables } from "../helpers/wasmPollardKangaroo";
 import { longTestTimeout } from "../helpers";
+import { EncryptedAmount } from "../../src/encryptedAmount";
 
 describe("Generate 'confidential coin' proofs", () => {
   it(
@@ -29,8 +32,12 @@ describe("Generate 'confidential coin' proofs", () => {
   const aliceConfidentialDecryptionKey: TwistedEd25519PrivateKey = TwistedEd25519PrivateKey.generate();
   const bobConfidentialDecryptionKey: TwistedEd25519PrivateKey = TwistedEd25519PrivateKey.generate();
 
-  const aliceConfidentialAmount = ConfidentialAmount.fromAmount(ALICE_BALANCE);
-  const aliceEncryptedBalance = aliceConfidentialAmount.getAmountEncrypted(aliceConfidentialDecryptionKey.publicKey());
+  const aliceConfidentialAmount = ChunkedAmount.fromAmount(ALICE_BALANCE);
+  const aliceEncryptedBalance = new EncryptedAmount({
+    chunkedAmount: aliceConfidentialAmount,
+    publicKey: aliceConfidentialDecryptionKey.publicKey(),
+  });
+  const aliceEncryptedBalanceCipherText = aliceEncryptedBalance.getCipherText();
 
   const WITHDRAW_AMOUNT = 2n ** 16n;
   let confidentialWithdraw: ConfidentialWithdraw;
@@ -40,8 +47,8 @@ describe("Generate 'confidential coin' proofs", () => {
     async () => {
       confidentialWithdraw = await ConfidentialWithdraw.create({
         decryptionKey: toTwistedEd25519PrivateKey(aliceConfidentialDecryptionKey),
-        encryptedCurrentBalance: aliceEncryptedBalance,
-        amountToWithdraw: WITHDRAW_AMOUNT,
+        senderAvailableBalanceCipherText: aliceEncryptedBalanceCipherText,
+        amount: WITHDRAW_AMOUNT,
       });
 
       confidentialWithdrawSigmaProof = await confidentialWithdraw.genSigmaProof();
@@ -55,9 +62,9 @@ describe("Generate 'confidential coin' proofs", () => {
     "Verify withdraw sigma proof",
     async () => {
       const isValid = ConfidentialWithdraw.verifySigmaProof({
-        publicKey: aliceConfidentialDecryptionKey.publicKey(),
-        encryptedCurrentBalance: confidentialWithdraw.encryptedCurrentBalance,
-        encryptedBalanceAfterWithdrawal: confidentialWithdraw.encryptedBalanceAfterWithdrawal,
+        senderEncryptedAvailableBalance: confidentialWithdraw.senderEncryptedAvailableBalance,
+        senderEncryptedAvailableBalanceAfterWithdrawal:
+          confidentialWithdraw.senderEncryptedAvailableBalanceAfterWithdrawal,
         amountToWithdraw: WITHDRAW_AMOUNT,
         sigmaProof: confidentialWithdrawSigmaProof,
       });
@@ -80,7 +87,8 @@ describe("Generate 'confidential coin' proofs", () => {
     async () => {
       const isValid = ConfidentialWithdraw.verifyRangeProof({
         rangeProof: confidentialWithdrawRangeProof,
-        encryptedBalanceAfterWithdrawal: confidentialWithdraw.encryptedBalanceAfterWithdrawal,
+        senderEncryptedAvailableBalanceAfterWithdrawal:
+          confidentialWithdraw.senderEncryptedAvailableBalanceAfterWithdrawal,
       });
 
       expect(isValid).toBeTruthy();
@@ -96,8 +104,8 @@ describe("Generate 'confidential coin' proofs", () => {
     async () => {
       confidentialTransfer = await ConfidentialTransfer.create({
         senderDecryptionKey: aliceConfidentialDecryptionKey,
-        encryptedSenderBalance: aliceEncryptedBalance,
-        amountToTransfer: TRANSFER_AMOUNT,
+        senderAvailableBalanceCipherText: aliceEncryptedBalanceCipherText,
+        amount: TRANSFER_AMOUNT,
         recipientEncryptionKey: bobConfidentialDecryptionKey.publicKey(),
       });
 
@@ -114,9 +122,9 @@ describe("Generate 'confidential coin' proofs", () => {
       const isValid = ConfidentialTransfer.verifySigmaProof({
         senderPrivateKey: aliceConfidentialDecryptionKey,
         recipientPublicKey: bobConfidentialDecryptionKey.publicKey(),
-        encryptedActualBalance: aliceEncryptedBalance,
+        encryptedActualBalance: aliceEncryptedBalanceCipherText,
         encryptedTransferAmountBySender: confidentialTransfer.transferAmountEncryptedBySender,
-        encryptedActualBalanceAfterTransfer: confidentialTransfer.encryptedSenderBalanceAfterTransfer,
+        encryptedActualBalanceAfterTransfer: confidentialTransfer.senderEncryptedAvailableBalanceAfterTransfer,
         encryptedTransferAmountByRecipient: confidentialTransfer.transferAmountEncryptedByRecipient,
         sigmaProof: confidentialTransferSigmaProof,
       });
@@ -139,7 +147,7 @@ describe("Generate 'confidential coin' proofs", () => {
     async () => {
       const isValid = await ConfidentialTransfer.verifyRangeProof({
         encryptedAmountByRecipient: confidentialTransfer.transferAmountEncryptedByRecipient,
-        encryptedActualBalanceAfterTransfer: confidentialTransfer.encryptedSenderBalanceAfterTransfer,
+        encryptedActualBalanceAfterTransfer: confidentialTransfer.senderEncryptedAvailableBalanceAfterTransfer,
         rangeProofAmount: confidentialTransferRangeProofs.rangeProofAmount,
         rangeProofNewBalance: confidentialTransferRangeProofs.rangeProofNewBalance,
       });
@@ -157,8 +165,8 @@ describe("Generate 'confidential coin' proofs", () => {
     async () => {
       confidentialTransferWithAuditors = await ConfidentialTransfer.create({
         senderDecryptionKey: aliceConfidentialDecryptionKey,
-        encryptedSenderBalance: aliceEncryptedBalance,
-        amountToTransfer: TRANSFER_AMOUNT,
+        senderAvailableBalanceCipherText: aliceEncryptedBalanceCipherText,
+        amount: TRANSFER_AMOUNT,
         recipientEncryptionKey: bobConfidentialDecryptionKey.publicKey(),
         auditorEncryptionKeys: [auditor.publicKey()],
       });
@@ -175,14 +183,17 @@ describe("Generate 'confidential coin' proofs", () => {
       const isValid = ConfidentialTransfer.verifySigmaProof({
         senderPrivateKey: aliceConfidentialDecryptionKey,
         recipientPublicKey: bobConfidentialDecryptionKey.publicKey(),
-        encryptedActualBalance: aliceEncryptedBalance,
-        encryptedActualBalanceAfterTransfer: confidentialTransferWithAuditors.encryptedSenderBalanceAfterTransfer,
+        encryptedActualBalance: aliceEncryptedBalanceCipherText,
+        encryptedActualBalanceAfterTransfer:
+          confidentialTransferWithAuditors.senderEncryptedAvailableBalanceAfterTransfer,
         encryptedTransferAmountByRecipient: confidentialTransferWithAuditors.transferAmountEncryptedByRecipient,
         encryptedTransferAmountBySender: confidentialTransferWithAuditors.transferAmountEncryptedBySender,
         sigmaProof: confidentialTransferWithAuditorsSigmaProof,
         auditors: {
           publicKeys: [auditor.publicKey()],
-          auditorsCBList: confidentialTransferWithAuditors.transferAmountEncryptedByAuditors!,
+          auditorsCBList: confidentialTransferWithAuditors.transferAmountEncryptedByAuditors!.map((el) =>
+            el.getCipherText(),
+          ),
         },
       });
 
@@ -198,15 +209,17 @@ describe("Generate 'confidential coin' proofs", () => {
       const isValid = ConfidentialTransfer.verifySigmaProof({
         senderPrivateKey: aliceConfidentialDecryptionKey,
         recipientPublicKey: bobConfidentialDecryptionKey.publicKey(),
-        encryptedActualBalance: aliceEncryptedBalance,
-        encryptedActualBalanceAfterTransfer: confidentialTransferWithAuditors.encryptedSenderBalanceAfterTransfer,
+        encryptedActualBalance: aliceEncryptedBalanceCipherText,
+        encryptedActualBalanceAfterTransfer:
+          confidentialTransferWithAuditors.senderEncryptedAvailableBalanceAfterTransfer,
         encryptedTransferAmountByRecipient: confidentialTransferWithAuditors.transferAmountEncryptedByRecipient,
         encryptedTransferAmountBySender: confidentialTransferWithAuditors.transferAmountEncryptedBySender,
         sigmaProof: confidentialTransferWithAuditorsSigmaProof,
         auditors: {
           publicKeys: [invalidAuditor.publicKey()],
-          // decryptionKeys: auditorsDList,
-          auditorsCBList: confidentialTransferWithAuditors.transferAmountEncryptedByAuditors!,
+          auditorsCBList: confidentialTransferWithAuditors.transferAmountEncryptedByAuditors!.map((el) =>
+            el.getCipherText(),
+          ),
         },
       });
 
@@ -229,7 +242,8 @@ describe("Generate 'confidential coin' proofs", () => {
     async () => {
       const isValid = await ConfidentialTransfer.verifyRangeProof({
         encryptedAmountByRecipient: confidentialTransferWithAuditors.transferAmountEncryptedByRecipient,
-        encryptedActualBalanceAfterTransfer: confidentialTransferWithAuditors.encryptedSenderBalanceAfterTransfer,
+        encryptedActualBalanceAfterTransfer:
+          confidentialTransferWithAuditors.senderEncryptedAvailableBalanceAfterTransfer,
         rangeProofAmount: confidentialTransferWithAuditorsRangeProofs.rangeProofAmount,
         rangeProofNewBalance: confidentialTransferWithAuditorsRangeProofs.rangeProofNewBalance,
       });
@@ -246,9 +260,9 @@ describe("Generate 'confidential coin' proofs", () => {
     "Generate key rotation sigma proof",
     async () => {
       confidentialKeyRotation = await ConfidentialKeyRotation.create({
-        currDecryptionKey: aliceConfidentialDecryptionKey,
-        currEncryptedBalance: aliceEncryptedBalance,
-        newDecryptionKey: newAliceConfidentialPrivateKey,
+        senderDecryptionKey: aliceConfidentialDecryptionKey,
+        currentEncryptedAvailableBalance: aliceEncryptedBalance,
+        newSenderDecryptionKey: newAliceConfidentialPrivateKey,
       });
 
       confidentialKeyRotationSigmaProof = await confidentialKeyRotation.genSigmaProof();
@@ -264,8 +278,8 @@ describe("Generate 'confidential coin' proofs", () => {
         sigmaProof: confidentialKeyRotationSigmaProof,
         currPublicKey: aliceConfidentialDecryptionKey.publicKey(),
         newPublicKey: newAliceConfidentialPrivateKey.publicKey(),
-        currEncryptedBalance: aliceEncryptedBalance,
-        newEncryptedBalance: confidentialKeyRotation.newEncryptedBalance,
+        currEncryptedBalance: aliceEncryptedBalanceCipherText,
+        newEncryptedBalance: confidentialKeyRotation.newEncryptedAvailableBalance.getCipherText(),
       });
 
       expect(isValid).toBeTruthy();
@@ -288,7 +302,7 @@ describe("Generate 'confidential coin' proofs", () => {
     async () => {
       const isValid = ConfidentialKeyRotation.verifyRangeProof({
         rangeProof: confidentialKeyRotationRangeProof,
-        newEncryptedBalance: confidentialKeyRotation.newEncryptedBalance,
+        newEncryptedBalance: confidentialKeyRotation.newEncryptedAvailableBalance.getCipherText(),
       });
 
       expect(isValid).toBeTruthy();
@@ -308,13 +322,14 @@ describe("Generate 'confidential coin' proofs", () => {
     longTestTimeout,
   );
 
-  const unnormalizedAliceConfidentialAmount = ConfidentialAmount.fromChunks([
-    ...Array.from({ length: ConfidentialAmount.CHUNKS_COUNT - 1 }, () => 2n ** ConfidentialAmount.CHUNK_BITS_BI + 100n),
+  const unnormalizedAliceConfidentialAmount = ChunkedAmount.fromChunks([
+    ...Array.from({ length: AVAILABLE_BALANCE_CHUNK_COUNT - 1 }, () => 2n ** CHUNK_BITS_BIG_INT + 100n),
     0n,
   ]);
-  const unnormalizedEncryptedBalance = unnormalizedAliceConfidentialAmount.getAmountEncrypted(
-    aliceConfidentialDecryptionKey.publicKey(),
-  );
+  const unnormalizedEncryptedBalance = new EncryptedAmount({
+    chunkedAmount: unnormalizedAliceConfidentialAmount,
+    publicKey: aliceConfidentialDecryptionKey.publicKey(),
+  });
 
   let confidentialNormalization: ConfidentialNormalization;
   let confidentialNormalizationSigmaProof: ConfidentialNormalizationSigmaProof;
@@ -323,8 +338,7 @@ describe("Generate 'confidential coin' proofs", () => {
     async () => {
       confidentialNormalization = await ConfidentialNormalization.create({
         decryptionKey: aliceConfidentialDecryptionKey,
-        unnormalizedEncryptedBalance,
-        balanceAmount: unnormalizedAliceConfidentialAmount.amount,
+        unnormalizedAvailableBalance: unnormalizedEncryptedBalance,
       });
 
       confidentialNormalizationSigmaProof = await confidentialNormalization.genSigmaProof();
@@ -339,8 +353,8 @@ describe("Generate 'confidential coin' proofs", () => {
       const isValid = ConfidentialNormalization.verifySigmaProof({
         publicKey: aliceConfidentialDecryptionKey.publicKey(),
         sigmaProof: confidentialNormalizationSigmaProof,
-        unnormalizedEncryptedBalance,
-        normalizedEncryptedBalance: confidentialNormalization.normalizedEncryptedBalance,
+        unnormalizedEncryptedBalance: confidentialNormalization.unnormalizedEncryptedAvailableBalance,
+        normalizedEncryptedBalance: confidentialNormalization.normalizedEncryptedAvailableBalance,
       });
 
       expect(isValid).toBeTruthy();
@@ -362,7 +376,7 @@ describe("Generate 'confidential coin' proofs", () => {
     async () => {
       const isValid = ConfidentialNormalization.verifyRangeProof({
         rangeProof: confidentialNormalizationRangeProof,
-        normalizedEncryptedBalance: confidentialNormalization.normalizedEncryptedBalance,
+        normalizedEncryptedBalance: confidentialNormalization.normalizedEncryptedAvailableBalance,
       });
 
       expect(isValid).toBeTruthy();

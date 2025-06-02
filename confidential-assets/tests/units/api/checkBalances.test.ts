@@ -1,5 +1,5 @@
+import { preloadTables } from "../../../src/preloadKangarooTables";
 import { getBalances, getTestAccount, getTestConfidentialAccount, longTestTimeout } from "../../helpers";
-import { preloadTables } from "../../helpers/wasmPollardKangaroo";
 
 describe("Check balance", () => {
   const alice = getTestAccount();
@@ -14,22 +14,21 @@ describe("Check balance", () => {
   );
   it("should check balance", async () => {
     const balances = await getBalances(aliceConfidential, alice.accountAddress);
-    const alicePublicKey = aliceConfidential.publicKey();
 
     console.log({
       pending: {
-        encrypted: balances.pending.getAmountEncrypted(alicePublicKey).map((el) => el.serialize()),
-        amount: balances.pending.amount.toString(),
-        amountChunks: balances.pending.amountChunks.map((chunk) => chunk.toString()),
+        encrypted: balances.pendingBalanceCipherText().map((el) => el.serialize()),
+        amount: balances.pendingBalance(),
+        amountChunks: balances.pending.getAmountChunks().map((chunk) => chunk.toString()),
       },
       actual: {
-        encrypted: balances.actual.getAmountEncrypted(alicePublicKey).map((el) => el.serialize()),
-        amount: balances.actual.amount.toString(),
-        amountChunks: balances.actual.amountChunks.map((chunk) => chunk.toString()),
+        encrypted: balances.availableBalanceCipherText().map((el) => el.serialize()),
+        amount: balances.availableBalance(),
+        amountChunks: balances.available.getAmountChunks().map((chunk) => chunk.toString()),
       },
     });
 
-    expect(balances.pending.amount).toBeDefined();
-    expect(balances.actual.amount).toBeDefined();
+    expect(balances.pendingBalance()).toBeDefined();
+    expect(balances.availableBalance()).toBeDefined();
   });
 });
