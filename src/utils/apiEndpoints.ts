@@ -19,7 +19,7 @@ export const NetworkToIndexerAPI: Record<string, string> = {
 export const NetworkToNodeAPI: Record<string, string> = {
   mainnet: "https://api.mainnet.cedralabs.com/v1",
   testnet: "https://testnet.cedra.dev/v1",
-  devnet: "https://api.devnet.cedralabs.com/v1",
+  devnet: "https://testnet.cedra.dev/v1",
   local: "http://127.0.0.1:8080/v1",
 };
 
