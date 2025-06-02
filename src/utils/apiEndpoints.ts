@@ -8,7 +8,7 @@
 export const NetworkToIndexerAPI: Record<string, string> = {
   mainnet: "https://api.mainnet.cedralabs.com/v1/graphql",
   testnet: "https://api.testnet.cedralabs.com/v1/graphql",
-  devnet: "https://api.devnet.cedralabs.com/v1/graphql",
+  devnet: "https://testnet.cedra.dev/v1/graphql",
   local: "http://127.0.0.1:8090/v1/graphql",
 };
 
@@ -39,9 +39,9 @@ export const NetworkToFaucetAPI: Record<string, string> = {
 export const NetworkToPepperAPI: Record<string, string> = {
   mainnet: "https://api.mainnet.cedralabs.com/keyless/pepper/v0",
   testnet: "https://api.testnet.cedralabs.com/keyless/pepper/v0",
-  devnet: "https://api.devnet.cedralabs.com/keyless/pepper/v0",
+  devnet: "https://testnet.cedra.dev/keyless/pepper/v0",
   // Use the devnet service for local environment
-  local: "https://api.devnet.cedralabs.com/keyless/pepper/v0",
+  local: "https://testnet.cedra.dev/keyless/pepper/v0",
 };
 
 /**
@@ -51,9 +51,9 @@ export const NetworkToPepperAPI: Record<string, string> = {
 export const NetworkToProverAPI: Record<string, string> = {
   mainnet: "https://api.mainnet.cedralabs.com/keyless/prover/v0",
   testnet: "https://api.testnet.cedralabs.com/keyless/prover/v0",
-  devnet: "https://api.devnet.cedralabs.com/keyless/prover/v0",
+  devnet: "https://testnet.cedra.dev/keyless/prover/v0",
   // Use the devnet service for local environment
-  local: "https://api.devnet.cedralabs.com/keyless/prover/v0",
+  local: "https://testnet.cedra.dev/keyless/prover/v0",
 };
 
 /**
