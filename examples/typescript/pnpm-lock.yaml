@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@cedra-labs/ts-sdk':
-        specifier: ^2.0.0
-        version: 2.0.3(got@11.8.6)
+        specifier: ^2.0.5
+        version: 2.0.5(got@11.8.6)
       '@noble/curves':
         specifier: 1.8.1
         version: 1.8.1
@@ -52,8 +52,8 @@ packages:
     peerDependencies:
       got: ^11.8.6
 
-  '@cedra-labs/ts-sdk@2.0.3':
-    resolution: {integrity: sha512-8XQeeVNL1OpIFcR5ADeBeM5yc5Gsol9h3FmbpOr5fC8qrn7O+d29c7p5MQOLyA6mM442DWLQBYbo52q7FQ0wiA==}
+  '@cedra-labs/ts-sdk@2.0.5':
+    resolution: {integrity: sha512-Zr38whiPGAwgRMtw1OiZXroq1zJrv5XnHqRfdbHyYt3JtIYmdKyRNCQ4vTAcg+egem+B4OsRTHFoH3mJrijaLQ==}
     engines: {node: '>=20.0.0'}
 
   '@cspotcode/source-map-support@0.8.1':
@@ -886,7 +886,7 @@ snapshots:
     dependencies:
       got: 11.8.6
 
-  '@cedra-labs/ts-sdk@2.0.3(got@11.8.6)':
+  '@cedra-labs/ts-sdk@2.0.5(got@11.8.6)':
     dependencies:
       '@cedra-labs/cedra-cli': 1.1.1
       '@cedra-labs/cedra-client': 2.0.1(got@11.8.6)

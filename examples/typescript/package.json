@@ -38,7 +38,7 @@
     "superagent": "10.2.0"
   },
   "peerDependencies": {
-    "@cedra-labs/ts-sdk": "^2.0.0"
+    "@cedra-labs/ts-sdk": "^2.0.5"
   },
   "devDependencies": {
     "@types/node": "^22.13.11",
