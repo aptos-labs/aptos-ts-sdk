@@ -28,7 +28,7 @@ export const NetworkToNodeAPI: Record<string, string> = {
  * @category Network
  */
 export const NetworkToFaucetAPI: Record<string, string> = {
-  devnet: "https://faucet-api.cedra.dev/",
+  devnet: "https://faucet-api.cedra.dev",
   local: "http://127.0.0.1:8081",
 };
 
