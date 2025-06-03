@@ -8,11 +8,11 @@ import { Serializable, Serializer } from "../../bcs/serializer";
 import { EntryFunctionBytes } from "../../bcs/serializable/entryFunctionBytes";
 import { Bool, U128, U16, U256, U32, U64, U8 } from "../../bcs/serializable/movePrimitives";
 import { MoveVector, Serialized } from "../../bcs/serializable/moveStructs";
-import { AccountAddress } from "../../core";
+import { AccountAddress, Hex } from "../../core";
 import { Identifier } from "./identifier";
 import { ModuleId } from "./moduleId";
 import type { EntryFunctionArgument, ScriptFunctionArgument, TransactionArgument } from "./transactionArgument";
-import { MoveModuleId, ScriptTransactionArgumentVariants, TransactionPayloadVariants } from "../../types";
+import { AnyNumber, MoveModuleId, ScriptTransactionArgumentVariants, TransactionPayloadVariants } from "../../types";
 import { TypeTag } from "../typeTag";
 
 /**
@@ -95,6 +95,8 @@ export abstract class TransactionPayload extends Serializable {
         return TransactionPayloadEntryFunction.load(deserializer);
       case TransactionPayloadVariants.Multisig:
         return TransactionPayloadMultiSig.load(deserializer);
+      case TransactionPayloadVariants.Payload:
+        return TransactionPayloadPayload.load(deserializer);
       default:
         throw new Error(`Unknown variant index for TransactionPayload: ${index}`);
     }
@@ -509,5 +511,189 @@ export class MultiSigTransactionPayload extends Serializable {
     // This is the enum value indicating which type of payload the multisig tx contains.
     deserializer.deserializeUleb128AsU32();
     return new MultiSigTransactionPayload(EntryFunction.deserialize(deserializer));
+  }
+}
+
+export enum TransactionInnerPayloadVariants {
+  V1 = 0,
+}
+
+/**
+ * Represents any transaction payload that can be submitted to the Aptos chain for execution.
+ *
+ * This is specifically used for orderless transactions.
+ */
+export class TransactionPayloadPayload extends TransactionPayload {
+  public readonly innerPayload: TransactionInnerPayload;
+
+  constructor(innerPayload: TransactionInnerPayload) {
+    super();
+    this.innerPayload = innerPayload;
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(TransactionPayloadVariants.Payload);
+    this.innerPayload.serialize(serializer);
+  }
+
+  static load(deserializer: Deserializer): TransactionPayloadPayload {
+    const value = TransactionInnerPayload.deserialize(deserializer);
+    return new TransactionPayloadPayload(value);
+  }
+}
+
+export abstract class TransactionInnerPayload {
+  abstract serialize(serializer: Serializer): void;
+
+  static deserialize(deserializer: Deserializer): TransactionInnerPayload {
+    // index enum variant
+    const index = deserializer.deserializeUleb128AsU32();
+    switch (index) {
+      case TransactionInnerPayloadVariants.V1:
+        return TransactionInnerPayloadV1.load(deserializer);
+      default:
+        throw new Error(`Unknown variant index for TransactionInnerPayload: ${index}`);
+    }
+  }
+}
+
+export class TransactionInnerPayloadV1 extends TransactionInnerPayload {
+  executable: TransactionExecutable;
+  extra_config: TransactionExtraConfig;
+
+  constructor(executable: TransactionExecutable, extra_config: TransactionExtraConfig) {
+    super();
+    this.executable = executable;
+    this.extra_config = extra_config;
+  }
+
+  serialize(serializer: Serializer): void {
+    // V1 is serialized as 0
+    serializer.serializeU32AsUleb128(TransactionInnerPayloadVariants.V1);
+    this.executable.serialize(serializer);
+    this.extra_config.serialize(serializer);
+  }
+
+  static load(deserializer: Deserializer): TransactionInnerPayloadV1 {
+    let executable = TransactionExecutable.deserialize(deserializer);
+    let extra_config = TransactionExtraConfig.deserialize(deserializer);
+    return new TransactionInnerPayloadV1(executable, extra_config);
+  }
+}
+
+export enum TransactionExecutableVariants {
+  Script = 0,
+  EntryFunction = 1,
+  Empty = 2,
+}
+
+export abstract class TransactionExecutable {
+  abstract serialize(serializer: Serializer): void;
+
+  static deserialize(deserializer: Deserializer): TransactionExecutable {
+    // index enum variant
+    const index = deserializer.deserializeUleb128AsU32();
+    switch (index) {
+      case TransactionExecutableVariants.Script:
+        return TransactionExecutableScript.load(deserializer);
+      case TransactionExecutableVariants.EntryFunction:
+        return TransactionExecutableEntryFunction.load(deserializer);
+      case TransactionExecutableVariants.Empty:
+        return TransactionExecutableEmpty.load(deserializer);
+      default:
+        throw new Error(`Unknown variant index for TransactionExecutable: ${index}`);
+    }
+  }
+}
+
+export class TransactionExecutableScript extends TransactionExecutable {
+  script: Script;
+
+  constructor(script: Script) {
+    super();
+    this.script = script;
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(TransactionExecutableVariants.Script);
+    this.script.serialize(serializer);
+  }
+
+  static load(deserializer: Deserializer): TransactionExecutableScript {
+    let script = Script.deserialize(deserializer);
+    return new TransactionExecutableScript(script);
+  }
+}
+
+export class TransactionExecutableEntryFunction extends TransactionExecutable {
+  entryFunction: EntryFunction;
+
+  constructor(entryFunction: EntryFunction) {
+    super();
+    this.entryFunction = entryFunction;
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(TransactionExecutableVariants.EntryFunction);
+    this.entryFunction.serialize(serializer);
+  }
+
+  static load(deserializer: Deserializer): TransactionExecutableEntryFunction {
+    let entryFunction = EntryFunction.deserialize(deserializer);
+    return new TransactionExecutableEntryFunction(entryFunction);
+  }
+}
+
+export class TransactionExecutableEmpty extends TransactionExecutable {
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(TransactionExecutableVariants.Empty);
+  }
+
+  static load(_: Deserializer): TransactionExecutableEmpty {
+    return new TransactionExecutableEmpty();
+  }
+}
+
+export enum TransactionExtraConfigVariants {
+  V1 = 0,
+}
+
+export abstract class TransactionExtraConfig {
+  abstract serialize(serializer: Serializer): void;
+
+  static deserialize(deserializer: Deserializer): TransactionExecutable {
+    // index enum variant
+    const index = deserializer.deserializeUleb128AsU32();
+    switch (index) {
+      case TransactionExtraConfigVariants.V1:
+        return TransactionExtraConfigV1.load(deserializer);
+      default:
+        throw new Error(`Unknown variant index for TransactionExtraConfig: ${index}`);
+    }
+  }
+}
+
+export class TransactionExtraConfigV1 extends TransactionExtraConfig {
+  multisigAddress?: AccountAddress;
+  replayProtectionNonce?: bigint;
+
+  constructor(multisigAddress?: AccountAddress, replayProtectionNonce?: AnyNumber) {
+    super();
+    this.multisigAddress = multisigAddress;
+    this.replayProtectionNonce = replayProtectionNonce !== undefined ? BigInt(replayProtectionNonce) : undefined;
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(TransactionExtraConfigVariants.V1);
+    serializer.serializeOption<AccountAddress>(this.multisigAddress);
+    serializer.serializeOption<U64>(
+      this.replayProtectionNonce !== undefined ? new U64(this.replayProtectionNonce) : undefined,
+    );
+  }
+
+  static load(deserializer: Deserializer): TransactionExtraConfigV1 {
+    const multisigAddress = deserializer.deserializeOption(AccountAddress);
+    const replayProtectionNonce = deserializer.deserializeOption(U64);
+    return new TransactionExtraConfigV1(multisigAddress, replayProtectionNonce?.value);
   }
 }

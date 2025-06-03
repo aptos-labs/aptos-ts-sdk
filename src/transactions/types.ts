@@ -21,6 +21,7 @@ import { AccountAuthenticator } from "./authenticator/account";
 import { SimpleTransaction } from "./instances/simpleTransaction";
 import { MultiAgentTransaction } from "./instances/multiAgentTransaction";
 import { Serialized } from "../bcs";
+import { TransactionPayloadPayload } from "./instances/transactionPayload";
 
 /**
  * Entry function arguments for building a raw transaction using remote ABI, supporting various data types including primitives and arrays.
@@ -113,11 +114,22 @@ export type AnyRawTransactionInstance = RawTransaction | MultiAgentRawTransactio
  * @group Implementation
  * @category Transactions
  */
-export type InputGenerateTransactionOptions = {
+export type InputGenerateTransactionOptions =
+  | InputGenerateSequenceNumberTransactionOptions
+  | InputGenerateOrderlessTransactionOptions;
+
+export type InputGenerateSequenceNumberTransactionOptions = {
   maxGasAmount?: number;
   gasUnitPrice?: number;
   expireTimestamp?: number;
   accountSequenceNumber?: AnyNumber;
+};
+
+export type InputGenerateOrderlessTransactionOptions = {
+  maxGasAmount?: number;
+  gasUnitPrice?: number;
+  expireTimestamp?: number;
+  replayNonce: AnyNumber;
 };
 
 /**
@@ -129,7 +141,8 @@ export type InputGenerateTransactionOptions = {
 export type AnyTransactionPayloadInstance =
   | TransactionPayloadEntryFunction
   | TransactionPayloadScript
-  | TransactionPayloadMultiSig;
+  | TransactionPayloadMultiSig
+  | TransactionPayloadPayload;
 
 /**
  * The data needed to generate a transaction payload for Entry Function, Script, or Multi Sig types.
