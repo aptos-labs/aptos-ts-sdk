@@ -1,8 +1,8 @@
 import { bytesToNumberLE, concatBytes, numberToBytesLE } from "@noble/curves/abstract/utils";
 import { RistrettoPoint } from "@noble/curves/ed25519";
 import { utf8ToBytes } from "@noble/hashes/utils";
-import { PROOF_CHUNK_SIZE, SIGMA_PROOF_TRANSFER_SIZE } from "./consts";
-import { genFiatShamirChallenge, publicKeyToU8 } from "./helpers";
+import { PROOF_CHUNK_SIZE, SIGMA_PROOF_TRANSFER_SIZE } from "../consts";
+import { genFiatShamirChallenge } from "../helpers";
 import {
   AVAILABLE_BALANCE_CHUNK_COUNT,
   CHUNK_BITS,
@@ -12,9 +12,9 @@ import {
 } from "./chunkedAmount";
 import { AnyNumber, HexInput } from "@aptos-labs/ts-sdk";
 import { RangeProofExecutor } from "./rangeProof";
-import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey, H_RISTRETTO } from "./twistedEd25519";
+import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey, H_RISTRETTO } from ".";
 import { TwistedElGamalCiphertext } from "./twistedElGamal";
-import { ed25519GenListOfRandom, ed25519GenRandom, ed25519modN, ed25519InvertN } from "./utils";
+import { ed25519GenListOfRandom, ed25519GenRandom, ed25519modN, ed25519InvertN } from "../utils";
 import { EncryptedAmount } from "./encryptedAmount";
 
 export type ConfidentialTransferSigmaProof = {
@@ -118,12 +118,12 @@ export class ConfidentialTransfer {
     this.auditorEncryptionKeys = auditorEncryptionKeys;
     this.senderEncryptedAvailableBalance = senderEncryptedAvailableBalance;
     if (amount < 0n) {
-      throw new Error("Amount to transfer must not be positive");
+      throw new Error("Amount to transfer must not be negative");
     }
     const remainingBalance = senderEncryptedAvailableBalance.getAmount() - amount;
     if (remainingBalance < 0n) {
       throw new Error(
-        `Insufficient balance. Available balance: ${senderEncryptedAvailableBalance.getAmount()}, Amount to transfer: ${amount}`,
+        `Insufficient balance. Available balance: ${senderEncryptedAvailableBalance.getAmount().toString()}, Amount to transfer: ${amount.toString()}`,
       );
     }
     this.transferAmountEncryptedBySender = transferAmountEncryptedBySender;
@@ -409,7 +409,7 @@ export class ConfidentialTransfer {
     });
     const X7List =
       this.auditorEncryptionKeys
-        .map((pk) => publicKeyToU8(pk))
+        .map((pk) => pk.toUint8Array())
         .map((pk) => x3List.slice(0, j).map((el) => RistrettoPoint.fromHex(pk).multiply(el).toRawBytes())) ?? [];
     const X8List = x3List.map((el) => senderPKRistretto.multiply(el).toRawBytes());
 
@@ -419,7 +419,7 @@ export class ConfidentialTransfer {
       H_RISTRETTO.toRawBytes(),
       this.senderDecryptionKey.publicKey().toUint8Array(),
       this.recipientEncryptionKey.toUint8Array(),
-      ...this.auditorEncryptionKeys.map((pk) => publicKeyToU8(pk)),
+      ...this.auditorEncryptionKeys.map((pk) => pk.toUint8Array()),
       this.senderEncryptedAvailableBalance.getCipherTextBytes(),
       this.transferAmountEncryptedByRecipient.getCipherTextBytes(),
       ...this.transferAmountEncryptedByAuditors.map((el) => el.getCipherTextDPointBytes()).flat(),
@@ -478,11 +478,11 @@ export class ConfidentialTransfer {
     encryptedTransferAmountBySender: EncryptedAmount;
     sigmaProof: ConfidentialTransferSigmaProof;
     auditors?: {
-      publicKeys: (TwistedEd25519PublicKey | HexInput)[];
+      publicKeys: TwistedEd25519PublicKey[];
       auditorsCBList: TwistedElGamalCiphertext[][];
     };
   }): boolean {
-    const auditorPKs = opts?.auditors?.publicKeys.map((pk) => publicKeyToU8(pk)) ?? [];
+    const auditorPKs = opts?.auditors?.publicKeys.map((pk) => pk.toUint8Array()) ?? [];
     const proofX7List = opts.sigmaProof.X7List ?? [];
 
     const alpha1LEList = opts.sigmaProof.alpha1List.map((a) => bytesToNumberLE(a));
@@ -492,8 +492,8 @@ export class ConfidentialTransfer {
     const alpha5LE = bytesToNumberLE(opts.sigmaProof.alpha5);
     const alpha6LEList = opts.sigmaProof.alpha6List.map((a) => bytesToNumberLE(a));
 
-    const senderPublicKeyU8 = publicKeyToU8(opts.senderPrivateKey.publicKey());
-    const recipientPublicKeyU8 = publicKeyToU8(opts.recipientPublicKey);
+    const senderPublicKeyU8 = opts.senderPrivateKey.publicKey().toUint8Array();
+    const recipientPublicKeyU8 = opts.recipientPublicKey.toUint8Array();
     const senderPKRistretto = RistrettoPoint.fromHex(senderPublicKeyU8);
     const recipientPKRistretto = RistrettoPoint.fromHex(recipientPublicKeyU8);
 

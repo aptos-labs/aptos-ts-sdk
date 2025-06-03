@@ -8,13 +8,23 @@ import {
   getTestConfidentialAccount,
   aptos,
   TOKEN_ADDRESS,
-  sendAndWaitTx,
-  mintFungibleTokens,
+  mintUsdt,
   longTestTimeout,
   confidentialAsset,
 } from "../helpers";
+import { getCache } from "../../src/utils/memoize";
+import { ConfidentialBalance } from "../../src/internal/viewFunctions";
 
-describe.skip("Confidential balance api", () => {
+function getCachedBalance(accountAddress: AccountAddressInput, tokenAddress: AccountAddressInput): ConfidentialBalance {
+  const cacheKey = `${accountAddress}-balance-for-${tokenAddress}-${aptos.config.network}`;
+  const result = getCache<ConfidentialBalance>(cacheKey);
+  if (!result) {
+    throw new Error("No cached balance found");
+  }
+  return result;
+}
+
+describe.skip("Confidential Asset Sender API", () => {
   const alice = getTestAccount();
   const aliceConfidential = getTestConfidentialAccount(alice);
 
@@ -35,6 +45,7 @@ describe.skip("Confidential balance api", () => {
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       decryptionKey: decryptionKey || aliceConfidential,
+      useCachedValue: false,
     });
 
     expect(confidentialBalance.availableBalance()).toBe(BigInt(expectedAvailable));
@@ -67,53 +78,37 @@ describe.skip("Confidential balance api", () => {
       amount: 100000000,
     });
 
+    console.log("Funded accounts");
+
     const isAliceRegistered = await confidentialAsset.hasUserRegistered({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
     expect(isAliceRegistered).toBeFalsy();
     const registerBalanceTx = await confidentialAsset.registerBalance({
-      sender: alice.accountAddress,
+      signer: alice,
       tokenAddress: TOKEN_ADDRESS,
       decryptionKey: aliceConfidential,
     });
-    const registerBalanceTxResp = await sendAndWaitTx(registerBalanceTx, alice);
-
-    expect(registerBalanceTxResp.success).toBeTruthy();
+    expect(registerBalanceTx.success).toBeTruthy();
 
     await checkAliceDecryptedBalance(0, 0);
 
-    const resp = await mintFungibleTokens(alice);
+    const resp = await mintUsdt(alice, 100n);
     expect(resp.success).toBeTruthy();
   }, longTestTimeout);
-
-  test(
-    "it should check Alice encrypted confidential balances",
-    async () => {
-      const [aliceConfidentialBalances] = await Promise.all([
-        confidentialAsset.getBalanceCipherText({
-          accountAddress: alice.accountAddress,
-          tokenAddress: TOKEN_ADDRESS,
-        }),
-      ]);
-      expect(aliceConfidentialBalances.pending.length).toBeDefined();
-      expect(aliceConfidentialBalances.available.length).toBeDefined();
-    },
-    longTestTimeout,
-  );
 
   const DEPOSIT_AMOUNT = 5;
   test(
     "it should deposit Alice's balance of fungible token to her confidential balance and check the balance",
     async () => {
       const depositTx = await confidentialAsset.deposit({
-        sender: alice.accountAddress,
+        signer: alice,
         tokenAddress: TOKEN_ADDRESS,
         amount: DEPOSIT_AMOUNT,
       });
-      const resp = await sendAndWaitTx(depositTx, alice);
 
-      expect(resp.success).toBeTruthy();
+      expect(depositTx.success).toBeTruthy();
 
       // Verify the confidential balance has been updated correctly.
       await checkAliceDecryptedBalance(0, DEPOSIT_AMOUNT);
@@ -124,13 +119,14 @@ describe.skip("Confidential balance api", () => {
   test(
     "it should rollover Alice's confidential balance and check the balance",
     async () => {
-      const rolloverTx = await confidentialAsset.rolloverPendingBalance({
-        sender: alice.accountAddress,
+      const rolloverTxs = await confidentialAsset.rolloverPendingBalance({
+        signer: alice,
         tokenAddress: TOKEN_ADDRESS,
       });
 
-      const txResp = await sendAndWaitTx(rolloverTx, alice);
-      expect(txResp.success).toBeTruthy();
+      for (const tx of rolloverTxs) {
+        expect(tx.success).toBeTruthy();
+      }
 
       // This should be false after a rollover
       checkAliceNormalizedBalanceStatus(false);
@@ -150,23 +146,10 @@ describe.skip("Confidential balance api", () => {
       // Attempting to rollover should throw an error as the balance is not normalized
       await expect(
         confidentialAsset.rolloverPendingBalance({
-          sender: alice.accountAddress,
+          signer: alice,
           tokenAddress: TOKEN_ADDRESS,
         }),
-      ).rejects.toThrow("Balance must be normalized before rollover");
-
-      // We can force creation of the transaction by setting checkNormalized to false
-      const rolloverTx = await confidentialAsset.rolloverPendingBalance({
-        sender: alice.accountAddress,
-        tokenAddress: TOKEN_ADDRESS,
-        checkNormalized: false,
-      });
-
-      // Sending the transaction should result in an error thrown as the chain will fail the transaction
-      // since the balance is not normalized
-      await expect(sendAndWaitTx(rolloverTx, alice)).rejects.toThrow(
-        "The operation requires the actual balance to be normalized.",
-      );
+      ).rejects.toThrow("Available balance is not normalized and no sender decryption key was provided.");
     },
     longTestTimeout,
   );
@@ -183,14 +166,12 @@ describe.skip("Confidential balance api", () => {
 
       // Withdraw the amount from the confidential balance to the public balance
       const withdrawTx = await confidentialAsset.withdraw({
-        sender: alice.accountAddress,
+        signer: alice,
         tokenAddress: TOKEN_ADDRESS,
         senderDecryptionKey: aliceConfidential,
         amount: WITHDRAW_AMOUNT,
       });
-      const txResp = await sendAndWaitTx(withdrawTx, alice);
-
-      expect(txResp.success).toBeTruthy();
+      expect(withdrawTx.success).toBeTruthy();
 
       // Verify the confidential balance has been updated correctly
       await checkAliceDecryptedBalance(DEPOSIT_AMOUNT - WITHDRAW_AMOUNT, 0);
@@ -221,7 +202,7 @@ describe.skip("Confidential balance api", () => {
       // Withdraw the amount from the confidential balance to the public balance
       await expect(
         confidentialAsset.withdraw({
-          sender: alice.accountAddress,
+          signer: alice,
           tokenAddress: TOKEN_ADDRESS,
           senderDecryptionKey: aliceConfidential,
           amount: confidentialBalance.availableBalance() + BigInt(1),
@@ -259,7 +240,7 @@ describe.skip("Confidential balance api", () => {
         confidentialAsset.transfer({
           senderDecryptionKey: aliceConfidential,
           amount: TRANSFER_AMOUNT,
-          sender: alice.accountAddress,
+          signer: alice,
           tokenAddress: TOKEN_ADDRESS,
           recipient: bob.accountAddress,
         }),
@@ -280,7 +261,7 @@ describe.skip("Confidential balance api", () => {
       // Withdraw the amount from the confidential balance to the public balance
       await expect(
         confidentialAsset.transfer({
-          sender: alice.accountAddress,
+          signer: alice,
           tokenAddress: TOKEN_ADDRESS,
           senderDecryptionKey: aliceConfidential,
           amount: confidentialBalance.availableBalance() + BigInt(1),
@@ -303,14 +284,12 @@ describe.skip("Confidential balance api", () => {
       const transferTx = await confidentialAsset.transfer({
         senderDecryptionKey: aliceConfidential,
         amount: TRANSFER_AMOUNT,
-        sender: alice.accountAddress,
+        signer: alice,
         tokenAddress: TOKEN_ADDRESS,
         recipient: alice.accountAddress,
       });
-      const txResp = await sendAndWaitTx(transferTx, alice);
 
-      expect(txResp.success).toBeTruthy();
-
+      expect(transferTx.success).toBeTruthy();
       // Verify the confidential balance has been updated correctly
       await checkAliceDecryptedBalance(
         confidentialBalance.availableBalance() - TRANSFER_AMOUNT,
@@ -333,14 +312,13 @@ describe.skip("Confidential balance api", () => {
       const transferTx = await confidentialAsset.transfer({
         senderDecryptionKey: aliceConfidential,
         amount: TRANSFER_AMOUNT,
-        sender: alice.accountAddress,
+        signer: alice,
         tokenAddress: TOKEN_ADDRESS,
         recipient: alice.accountAddress,
         additionalAuditorEncryptionKeys: [AUDITOR.publicKey()],
       });
-      const txResp = await sendAndWaitTx(transferTx, alice);
 
-      expect(txResp.success).toBeTruthy();
+      expect(transferTx.success).toBeTruthy();
 
       // Verify the confidential balance has been updated correctly
       await checkAliceDecryptedBalance(
@@ -380,25 +358,59 @@ describe.skip("Confidential balance api", () => {
   test(
     "it should normalize Alice's confidential balance",
     async () => {
-      const rolloverTx = await confidentialAsset.rolloverPendingBalance({
-        sender: alice.accountAddress,
+      const depositTx = await confidentialAsset.deposit({
+        signer: alice,
+        tokenAddress: TOKEN_ADDRESS,
+        amount: DEPOSIT_AMOUNT,
+      });
+
+      expect(depositTx.success).toBeTruthy();
+
+      const rolloverTxs = await confidentialAsset.rolloverPendingBalance({
+        signer: alice,
         tokenAddress: TOKEN_ADDRESS,
       });
 
-      const txResp = await sendAndWaitTx(rolloverTx, alice);
-      expect(txResp.success).toBeTruthy();
+      for (const tx of rolloverTxs) {
+        expect(tx.success).toBeTruthy();
+      }
 
       // This should be false after a rollover
       checkAliceNormalizedBalanceStatus(false);
 
+      const preNormalizationBalance = await confidentialAsset.getBalance({
+        accountAddress: alice.accountAddress,
+        tokenAddress: TOKEN_ADDRESS,
+        decryptionKey: aliceConfidential,
+        useCachedValue: false,
+      });
+
       const normalizeTx = await confidentialAsset.normalizeBalance({
         tokenAddress: TOKEN_ADDRESS,
         senderDecryptionKey: aliceConfidential,
-        sender: alice.accountAddress,
+        signer: alice,
       });
 
-      const normalizeTxResp = await sendAndWaitTx(normalizeTx, alice);
-      expect(normalizeTxResp.success).toBeTruthy();
+      // Check that caching works
+      const cachedNormalizedBalance = getCachedBalance(alice.accountAddress, TOKEN_ADDRESS);
+      expect(preNormalizationBalance.availableBalanceCipherText()).not.toEqual(
+        cachedNormalizedBalance.availableBalanceCipherText(),
+      );
+      expect(preNormalizationBalance.pendingBalanceCipherText()).toEqual(
+        cachedNormalizedBalance.pendingBalanceCipherText(),
+      );
+
+      const fetchedBalance = await confidentialAsset.getBalance({
+        accountAddress: alice.accountAddress,
+        tokenAddress: TOKEN_ADDRESS,
+        decryptionKey: aliceConfidential,
+        useCachedValue: false,
+      });
+
+      expect(cachedNormalizedBalance.availableBalanceCipherText()).toEqual(fetchedBalance.availableBalanceCipherText());
+      expect(cachedNormalizedBalance.pendingBalanceCipherText()).toEqual(fetchedBalance.pendingBalanceCipherText());
+
+      expect(normalizeTx.success).toBeTruthy();
 
       // This should be true after normalization
       checkAliceNormalizedBalanceStatus(true);
@@ -432,14 +444,13 @@ describe.skip("Confidential balance api", () => {
 
       // Withdraw the amount from the confidential balance to the public balance
       const withdrawTx = await confidentialAsset.withdraw({
-        sender: alice.accountAddress,
+        signer: alice,
         tokenAddress: TOKEN_ADDRESS,
         senderDecryptionKey: aliceConfidential,
         amount: WITHDRAW_AMOUNT,
         recipient: bob.accountAddress,
       });
-      const txResp = await sendAndWaitTx(withdrawTx, alice);
-      expect(txResp.success).toBeTruthy();
+      expect(withdrawTx.success).toBeTruthy();
 
       const bobNewTokenBalance = await getPublicTokenBalance(bob.accountAddress);
       expect(bobNewTokenBalance).toBe(bobTokenBalance + WITHDRAW_AMOUNT);
@@ -457,34 +468,33 @@ describe.skip("Confidential balance api", () => {
     "it should check that transferring normalizes Alice's confidential balance",
     async () => {
       const depositTx = await confidentialAsset.deposit({
-        sender: alice.accountAddress,
+        signer: alice,
         tokenAddress: TOKEN_ADDRESS,
         amount: DEPOSIT_AMOUNT,
       });
-      const resp = await sendAndWaitTx(depositTx, alice);
-      expect(resp.success).toBeTruthy();
+      expect(depositTx.success).toBeTruthy();
 
-      const rolloverTx = await confidentialAsset.rolloverPendingBalance({
-        sender: alice.accountAddress,
+      const rolloverTxs = await confidentialAsset.rolloverPendingBalance({
+        signer: alice,
         tokenAddress: TOKEN_ADDRESS,
       });
-      const txResp = await sendAndWaitTx(rolloverTx, alice);
-      expect(txResp.success).toBeTruthy();
+      for (const tx of rolloverTxs) {
+        expect(tx.success).toBeTruthy();
+      }
 
-      // This should be false after normalization
+      // This should be false after rollover
       checkAliceNormalizedBalanceStatus(false);
 
       const transferTx = await confidentialAsset.transfer({
         senderDecryptionKey: aliceConfidential,
         amount: TRANSFER_AMOUNT,
-        sender: alice.accountAddress,
+        signer: alice,
         tokenAddress: TOKEN_ADDRESS,
         recipient: alice.accountAddress,
       });
-      const transferTxResp = await sendAndWaitTx(transferTx, alice);
-      expect(transferTxResp.success).toBeTruthy();
+      expect(transferTx.success).toBeTruthy();
 
-      // This should be true after normalization
+      // This should be true after a transfer
       checkAliceNormalizedBalanceStatus(true);
     },
     longTestTimeout,
@@ -495,33 +505,11 @@ describe.skip("Confidential balance api", () => {
     "it should rotate Alice's confidential balance key",
     async () => {
       const depositTx = await confidentialAsset.deposit({
-        sender: alice.accountAddress,
+        signer: alice,
         tokenAddress: TOKEN_ADDRESS,
         amount: DEPOSIT_AMOUNT,
       });
-      let txResp = await sendAndWaitTx(depositTx, alice);
-      expect(txResp.success).toBeTruthy();
-
-      await expect(
-        confidentialAsset.rotateEncryptionKey({
-          sender: alice.accountAddress,
-
-          senderDecryptionKey: aliceConfidential,
-          newSenderDecryptionKey: ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY,
-          withUnfreezePendingBalance: true,
-          tokenAddress: TOKEN_ADDRESS,
-        }),
-      ).rejects.toThrow("Pending balance must be 0 before rotating encryption key");
-
-      const rolloverTx = await confidentialAsset.rolloverPendingBalance({
-        sender: alice.accountAddress,
-        tokenAddress: TOKEN_ADDRESS,
-        withFreezeBalance: true,
-      });
-      txResp = await sendAndWaitTx(rolloverTx, alice);
-      expect(txResp.success).toBeTruthy();
-
-      await checkAliceBalanceFrozenStatus(true);
+      expect(depositTx.success).toBeTruthy();
 
       // Get the current balance before rotation
       const confidentialBalance = await confidentialAsset.getBalance({
@@ -533,21 +521,22 @@ describe.skip("Confidential balance api", () => {
       // This should unfreeze the balance even though withUnfreezeBalance is unset as it will check the
       // chain for frozen state.
       const keyRotationAndUnfreezeTx = await confidentialAsset.rotateEncryptionKey({
-        sender: alice.accountAddress,
+        signer: alice,
         senderDecryptionKey: aliceConfidential,
         newSenderDecryptionKey: ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY,
         tokenAddress: TOKEN_ADDRESS,
       });
-      txResp = await sendAndWaitTx(keyRotationAndUnfreezeTx, alice);
-      expect(txResp.success).toBeTruthy();
+      for (const tx of keyRotationAndUnfreezeTx) {
+        expect(tx.success).toBeTruthy();
+      }
 
       // Check that the balance is unfrozen
       await checkAliceBalanceFrozenStatus(false);
 
       // If this decrypts correctly, then the key rotation worked.
       await checkAliceDecryptedBalance(
-        confidentialBalance.availableBalance(),
-        confidentialBalance.pendingBalance(),
+        confidentialBalance.availableBalance() + confidentialBalance.pendingBalance(),
+        0,
         ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY,
       );
     },

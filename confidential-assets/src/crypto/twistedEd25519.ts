@@ -3,7 +3,7 @@
 
 import { ed25519, RistrettoPoint } from "@noble/curves/ed25519";
 import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/abstract/utils";
-import { ed25519InvertN, ed25519modN } from "./utils";
+import { ed25519InvertN, ed25519modN } from "../utils";
 import {
   HexInput,
   Hex,

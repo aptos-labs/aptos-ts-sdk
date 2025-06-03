@@ -1,11 +1,11 @@
 import { bytesToNumberLE, concatBytes, numberToBytesLE } from "@noble/curves/abstract/utils";
 import { utf8ToBytes } from "@noble/hashes/utils";
-import { PROOF_CHUNK_SIZE, SIGMA_PROOF_KEY_ROTATION_SIZE } from "./consts";
-import { genFiatShamirChallenge } from "./helpers";
+import { PROOF_CHUNK_SIZE, SIGMA_PROOF_KEY_ROTATION_SIZE } from "../consts";
+import { genFiatShamirChallenge } from "../helpers";
 import { RangeProofExecutor } from "./rangeProof";
-import { TwistedEd25519PrivateKey, RistrettoPoint, H_RISTRETTO, TwistedEd25519PublicKey } from "./twistedEd25519";
+import { TwistedEd25519PrivateKey, RistrettoPoint, H_RISTRETTO, TwistedEd25519PublicKey } from ".";
 import { TwistedElGamalCiphertext } from "./twistedElGamal";
-import { ed25519GenListOfRandom, ed25519GenRandom, ed25519modN, ed25519InvertN } from "./utils";
+import { ed25519GenListOfRandom, ed25519GenRandom, ed25519modN, ed25519InvertN } from "../utils";
 import { EncryptedAmount } from "./encryptedAmount";
 import { AVAILABLE_BALANCE_CHUNK_COUNT, CHUNK_BITS, CHUNK_BITS_BIG_INT } from "./chunkedAmount";
 

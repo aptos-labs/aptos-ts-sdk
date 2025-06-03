@@ -1,6 +1,5 @@
 import path from "path";
 import fs from "fs";
-import { genBatchRangeZKP, generateRangeZKP, verifyBatchRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
 import {
   Network,
   NetworkToNetworkName,
@@ -16,22 +15,61 @@ import {
   PrivateKey,
   PrivateKeyVariants,
   Ed25519Account,
+  AptosApiType,
+  SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
-import { ConfidentialAsset } from "../../src/confidentialAsset";
-import { RangeProofExecutor } from "../../src/rangeProof";
-import { TwistedEd25519PrivateKey } from "../../src/twistedEd25519";
+import { ConfidentialAssetTransactionBuilder } from "../../src";
+import { TwistedEd25519PrivateKey } from "../../src";
+import { ConfidentialAsset } from "../../src";
 
 export const longTestTimeout = 120 * 1000;
 
 /**
- * Address of the mocked fungible token on the testnet
+ * Address usdt token on the testnet
  */
-export const TOKEN_ADDRESS = "0x8b4dd7ebf8150f349675dde8bd2e9daa66461107b181a67e764de85d82bbac21";
+export const TOKEN_ADDRESS = "0xd5d0d561493ea2b9410f67da804653ae44e793c2423707d4f11edb2e38192050";
 
-const APTOS_NETWORK: Network = NetworkToNetworkName[Network.DEVNET];
-const config = new AptosConfig({ network: APTOS_NETWORK });
-export const confidentialAsset = new ConfidentialAsset(config, {
-  confidentialAssetModuleAddress: "0xd4aa5d2b93935bae55ef5aee8043e78e09e91ad1d31ea9532963a036b1cd5df1",
+/**
+ * This handles the nonsense where we have to use network = custom if we want to use
+ * the faucet on testnet with a token.
+ */
+function getConfig(networkRaw: Network, apiKey: string | undefined, faucetToken: string | undefined) {
+  const network = faucetToken !== undefined ? Network.CUSTOM : networkRaw;
+  let customSettings;
+  if (network === Network.CUSTOM) {
+    const baseConfig = new AptosConfig({ network: Network.TESTNET });
+    const tempAptos = new Aptos(baseConfig);
+    customSettings = {
+      fullnode: tempAptos.config.getRequestUrl(AptosApiType.FULLNODE),
+      faucet: "https://faucet.testnet.aptoslabs.com",
+      indexer: tempAptos.config.getRequestUrl(AptosApiType.INDEXER),
+    };
+  }
+  return new AptosConfig({
+    network,
+    clientConfig: { API_KEY: apiKey },
+    faucetConfig: { AUTH_TOKEN: faucetToken },
+    ...(customSettings ?? {}),
+  });
+}
+
+// We have to use a custom network if we have a faucet token to make the SDK happy.
+const API_KEY = process.env.APTOS_API_KEY;
+export const FAUCET_TOKEN = process.env.FAUCET_TOKEN;
+if (!FAUCET_TOKEN) {
+  throw new Error("FAUCET_TOKEN is not set for testnet");
+}
+if (!API_KEY) {
+  throw new Error("API_KEY is not set for testnet");
+}
+const APTOS_NETWORK: Network = FAUCET_TOKEN ? Network.CUSTOM : NetworkToNetworkName[Network.TESTNET];
+const config = getConfig(APTOS_NETWORK, API_KEY, FAUCET_TOKEN);
+export const transactionBuilder = new ConfidentialAssetTransactionBuilder(config, {
+  confidentialAssetModuleAddress: "0xbe14a545c8e1f0024a1665f39fc1227c066727a70236e784fb203ec619fedf4c",
+});
+export const confidentialAsset = new ConfidentialAsset({
+  config,
+  confidentialAssetModuleAddress: "0xbe14a545c8e1f0024a1665f39fc1227c066727a70236e784fb203ec619fedf4c",
 });
 export const aptos = new Aptos(config);
 
@@ -128,7 +166,7 @@ export const mintFungibleTokens = async (account: Account) => {
   const transaction = await aptos.transaction.build.simple({
     sender: account.accountAddress,
     data: {
-      function: `${confidentialAsset.confidentialAssetModuleAddress}::mock_token::mint_to`,
+      function: `${transactionBuilder.confidentialAssetModuleAddress}::mock_token::mint_to`,
       functionArguments: [500],
     },
   });
@@ -136,7 +174,21 @@ export const mintFungibleTokens = async (account: Account) => {
   return aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 };
 
-RangeProofExecutor.setGenBatchRangeZKP(genBatchRangeZKP);
-RangeProofExecutor.setVerifyBatchRangeZKP(verifyBatchRangeZKP);
-RangeProofExecutor.setGenerateRangeZKP(generateRangeZKP);
-RangeProofExecutor.setVerifyRangeZKP(verifyRangeZKP);
+export async function mintUsdt(account: Ed25519Account, amountInUsdt: bigint) {
+  const transaction = await aptos.transaction.build.simple({
+    sender: account.accountAddress,
+    data: {
+      // TODO: Do something smarter than just hardcode this.
+      // function: `0x33c6f1c080cffdb8bc57dbd93bf2e4f10420f729bedb430ffd79c788518e0f86::mock_token::mint_to`,
+      // This is testnet USDT:
+      function: `0x24246c14448a5994d9f23e3b978da2a354e64b6dfe54220debb8850586c448cc::usdt::faucet`,
+      functionArguments: [amountInUsdt * 10n ** 6n],
+    },
+  });
+  return await sendTxn(account, transaction);
+}
+
+async function sendTxn(account: Ed25519Account, transaction: SimpleTransaction) {
+  const res = await aptos.signAndSubmitTransaction({ signer: account, transaction });
+  return await aptos.waitForTransaction({ transactionHash: res.hash });
+}
