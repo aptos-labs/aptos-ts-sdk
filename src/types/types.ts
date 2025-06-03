@@ -73,6 +73,7 @@ export enum TransactionPayloadVariants {
   Script = 0,
   EntryFunction = 2,
   Multisig = 3,
+  Payload = 4,
 }
 
 /**
