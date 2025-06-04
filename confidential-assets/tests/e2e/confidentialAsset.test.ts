@@ -284,7 +284,6 @@ describe.skip("Confidential Asset Sender API", () => {
   test(
     "it should throw if transferring more than the available balance",
     async () => {
-
       await confidentialAsset.deposit({
         signer: alice,
         tokenAddress: TOKEN_ADDRESS,
@@ -313,13 +312,12 @@ describe.skip("Confidential Asset Sender API", () => {
   test(
     "it should transfer more than the available balance if the total balance is used",
     async () => {
-
       await confidentialAsset.deposit({
         signer: alice,
         tokenAddress: TOKEN_ADDRESS,
         amount: DEPOSIT_AMOUNT,
       });
-      
+
       const confidentialBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
