@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Unreleased
 
+- Adds restriction on construction of a `MultiKey`s with more than 3 Keyless public keys when signature threshold is more than 3 as well. The limit on the number of keyless signatures is 3 so to prevent sending funds to accounts that are not accessible we add this safeguard.
+
 # 2.0.1 (2025-05-21)
 - Adds `deserializePublicKey` and `deserializeSignature` which takes in `HexInput` and will try all possible ways to deserialize so callers no longer need to derive a proper type before deserializing.
 
