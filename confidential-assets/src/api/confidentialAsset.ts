@@ -345,7 +345,7 @@ export class ConfidentialAsset {
       senderDecryptionKey: TwistedEd25519PrivateKey;
       additionalAuditorEncryptionKeys?: TwistedEd25519PublicKey[];
     },
-  ): Promise<CommittedTransactionResponse | CommittedTransactionResponse[]> {
+  ): Promise<CommittedTransactionResponse[]> {
     const { signer, ...rest } = args;
     const results: CommittedTransactionResponse[] = [];
 
