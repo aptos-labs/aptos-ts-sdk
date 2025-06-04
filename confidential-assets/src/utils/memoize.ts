@@ -1,6 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { AccountAddressInput, Network } from "@aptos-labs/ts-sdk";
+
 /**
  * The global cache Map shared across all functions.  Must keep care to ensure that the
  * cache keys are unique across all functions.
@@ -90,4 +92,44 @@ export function memoize<T>(func: (...args: any[]) => T, key: string, ttlMs?: num
 
     return result;
   };
+}
+
+export function clearBalanceCache(address: AccountAddressInput, tokenAddress: AccountAddressInput, network: Network) {
+  const pendingBalanceCacheKey = getPendingBalanceCacheKey(address, tokenAddress, network);
+  clearCache(pendingBalanceCacheKey);
+  const availableBalanceCacheKey = getAvailableBalanceCacheKey(address, tokenAddress, network);
+  clearCache(availableBalanceCacheKey);
+}
+
+export function clearEncryptionKeyCache(
+  address: AccountAddressInput,
+  tokenAddress: AccountAddressInput,
+  network: Network,
+) {
+  const encryptionKeyCacheKey = getEncryptionKeyCacheKey(address, tokenAddress, network);
+  clearCache(encryptionKeyCacheKey);
+}
+
+export function getPendingBalanceCacheKey(
+  address: AccountAddressInput,
+  tokenAddress: AccountAddressInput,
+  network: Network,
+) {
+  return `${address}-pending-encrypted-balance-for-${tokenAddress}-${network}`;
+}
+
+export function getAvailableBalanceCacheKey(
+  address: AccountAddressInput,
+  tokenAddress: AccountAddressInput,
+  network: Network,
+) {
+  return `${address}-available-encrypted-balance-for-${tokenAddress}-${network}`;
+}
+
+export function getEncryptionKeyCacheKey(
+  address: AccountAddressInput,
+  tokenAddress: AccountAddressInput,
+  network: Network,
+) {
+  return `${address}-encryption-key-for-${tokenAddress}-${network}`;
 }

@@ -11,22 +11,12 @@ import {
   ConfidentialTransferSigmaProof,
   ConfidentialWithdraw,
   ConfidentialWithdrawSigmaProof,
-  toTwistedEd25519PrivateKey,
+  EncryptedAmount,
   TwistedEd25519PrivateKey,
 } from "../../src";
-import { preloadTables } from "../helpers/wasmPollardKangaroo";
 import { longTestTimeout } from "../helpers";
-import { EncryptedAmount } from "../../src/encryptedAmount";
 
 describe("Generate 'confidential coin' proofs", () => {
-  it(
-    "Pre load wasm table map",
-    async () => {
-      await preloadTables();
-    },
-    longTestTimeout,
-  );
-
   const ALICE_BALANCE = 18446744073709551716n;
 
   const aliceConfidentialDecryptionKey: TwistedEd25519PrivateKey = TwistedEd25519PrivateKey.generate();
@@ -46,7 +36,7 @@ describe("Generate 'confidential coin' proofs", () => {
     "Generate withdraw sigma proof",
     async () => {
       confidentialWithdraw = await ConfidentialWithdraw.create({
-        decryptionKey: toTwistedEd25519PrivateKey(aliceConfidentialDecryptionKey),
+        decryptionKey: aliceConfidentialDecryptionKey,
         senderAvailableBalanceCipherText: aliceEncryptedBalanceCipherText,
         amount: WITHDRAW_AMOUNT,
       });

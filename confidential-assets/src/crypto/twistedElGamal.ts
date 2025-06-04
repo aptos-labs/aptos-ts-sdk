@@ -4,10 +4,19 @@
 import { ed25519, RistrettoPoint } from "@noble/curves/ed25519";
 import { bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { H_RISTRETTO, RistPoint, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
-import { ed25519GenRandom, ed25519modN } from "./utils";
+import { ed25519GenRandom, ed25519modN } from "../utils";
 import { HexInput } from "@aptos-labs/ts-sdk";
-import { WASMKangaroo } from "@aptos-labs/confidential-asset-wasm-bindings/pollard-kangaroo";
-import { createKangaroo } from "../tests/helpers/wasmPollardKangaroo";
+import { create_kangaroo, WASMKangaroo } from "@aptos-labs/confidential-asset-wasm-bindings/pollard-kangaroo";
+import initWasm from "@aptos-labs/confidential-asset-wasm-bindings/pollard-kangaroo";
+
+const POLLARD_KANGAROO_WASM_URL =
+  "https://unpkg.com/@aptos-labs/confidential-asset-wasm-bindings@0.0.2/pollard-kangaroo/aptos_pollard_kangaroo_wasm_bg.wasm";
+
+export async function createKangaroo(secret_size: number) {
+  await initWasm({ module_or_path: POLLARD_KANGAROO_WASM_URL });
+
+  return create_kangaroo(secret_size);
+}
 
 class AsyncLock {
   private locks: Map<string, Promise<void>> = new Map();

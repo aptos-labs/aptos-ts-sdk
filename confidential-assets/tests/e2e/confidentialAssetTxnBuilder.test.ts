@@ -9,8 +9,9 @@ import {
   aptos,
   TOKEN_ADDRESS,
   sendAndWaitTx,
-  mintFungibleTokens,
+  mintUsdt,
   longTestTimeout,
+  transactionBuilder,
   confidentialAsset,
 } from "../helpers";
 
@@ -67,12 +68,14 @@ describe.skip("Confidential balance api", () => {
       amount: 100000000,
     });
 
+    console.log("Funded accounts");
+
     const isAliceRegistered = await confidentialAsset.hasUserRegistered({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
     expect(isAliceRegistered).toBeFalsy();
-    const registerBalanceTx = await confidentialAsset.registerBalance({
+    const registerBalanceTx = await transactionBuilder.registerBalance({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       decryptionKey: aliceConfidential,
@@ -83,7 +86,7 @@ describe.skip("Confidential balance api", () => {
 
     await checkAliceDecryptedBalance(0, 0);
 
-    const resp = await mintFungibleTokens(alice);
+    const resp = await mintUsdt(alice, 100n);
     expect(resp.success).toBeTruthy();
   }, longTestTimeout);
 
@@ -91,13 +94,14 @@ describe.skip("Confidential balance api", () => {
     "it should check Alice encrypted confidential balances",
     async () => {
       const [aliceConfidentialBalances] = await Promise.all([
-        confidentialAsset.getBalanceCipherText({
+        confidentialAsset.getBalance({
           accountAddress: alice.accountAddress,
           tokenAddress: TOKEN_ADDRESS,
+          decryptionKey: aliceConfidential,
         }),
       ]);
-      expect(aliceConfidentialBalances.pending.length).toBeDefined();
-      expect(aliceConfidentialBalances.available.length).toBeDefined();
+      expect(aliceConfidentialBalances.pendingBalance()).toBe(0n);
+      expect(aliceConfidentialBalances.availableBalance()).toBe(100n);
     },
     longTestTimeout,
   );
@@ -106,7 +110,7 @@ describe.skip("Confidential balance api", () => {
   test(
     "it should deposit Alice's balance of fungible token to her confidential balance and check the balance",
     async () => {
-      const depositTx = await confidentialAsset.deposit({
+      const depositTx = await transactionBuilder.deposit({
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         amount: DEPOSIT_AMOUNT,
@@ -124,7 +128,7 @@ describe.skip("Confidential balance api", () => {
   test(
     "it should rollover Alice's confidential balance and check the balance",
     async () => {
-      const rolloverTx = await confidentialAsset.rolloverPendingBalance({
+      const rolloverTx = await transactionBuilder.rolloverPendingBalance({
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
       });
@@ -149,14 +153,14 @@ describe.skip("Confidential balance api", () => {
 
       // Attempting to rollover should throw an error as the balance is not normalized
       await expect(
-        confidentialAsset.rolloverPendingBalance({
+        transactionBuilder.rolloverPendingBalance({
           sender: alice.accountAddress,
           tokenAddress: TOKEN_ADDRESS,
         }),
       ).rejects.toThrow("Balance must be normalized before rollover");
 
       // We can force creation of the transaction by setting checkNormalized to false
-      const rolloverTx = await confidentialAsset.rolloverPendingBalance({
+      const rolloverTx = await transactionBuilder.rolloverPendingBalance({
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         checkNormalized: false,
@@ -182,7 +186,7 @@ describe.skip("Confidential balance api", () => {
       });
 
       // Withdraw the amount from the confidential balance to the public balance
-      const withdrawTx = await confidentialAsset.withdraw({
+      const withdrawTx = await transactionBuilder.withdraw({
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         senderDecryptionKey: aliceConfidential,
@@ -220,7 +224,7 @@ describe.skip("Confidential balance api", () => {
 
       // Withdraw the amount from the confidential balance to the public balance
       await expect(
-        confidentialAsset.withdraw({
+        transactionBuilder.withdraw({
           sender: alice.accountAddress,
           tokenAddress: TOKEN_ADDRESS,
           senderDecryptionKey: aliceConfidential,
@@ -235,7 +239,7 @@ describe.skip("Confidential balance api", () => {
   test.skip(
     "it should get global auditor",
     async () => {
-      const globalAuditor = await confidentialAsset.getAssetAuditorEncryptionKey({
+      const globalAuditor = await transactionBuilder.getAssetAuditorEncryptionKey({
         tokenAddress: TOKEN_ADDRESS,
       });
 
@@ -256,7 +260,7 @@ describe.skip("Confidential balance api", () => {
       expect(isBobRegistered).toBeFalsy();
 
       await expect(
-        confidentialAsset.transfer({
+        transactionBuilder.transfer({
           senderDecryptionKey: aliceConfidential,
           amount: TRANSFER_AMOUNT,
           sender: alice.accountAddress,
@@ -279,7 +283,7 @@ describe.skip("Confidential balance api", () => {
 
       // Withdraw the amount from the confidential balance to the public balance
       await expect(
-        confidentialAsset.transfer({
+        transactionBuilder.transfer({
           sender: alice.accountAddress,
           tokenAddress: TOKEN_ADDRESS,
           senderDecryptionKey: aliceConfidential,
@@ -300,7 +304,7 @@ describe.skip("Confidential balance api", () => {
         decryptionKey: aliceConfidential,
       });
 
-      const transferTx = await confidentialAsset.transfer({
+      const transferTx = await transactionBuilder.transfer({
         senderDecryptionKey: aliceConfidential,
         amount: TRANSFER_AMOUNT,
         sender: alice.accountAddress,
@@ -330,7 +334,7 @@ describe.skip("Confidential balance api", () => {
         decryptionKey: aliceConfidential,
       });
 
-      const transferTx = await confidentialAsset.transfer({
+      const transferTx = await transactionBuilder.transfer({
         senderDecryptionKey: aliceConfidential,
         amount: TRANSFER_AMOUNT,
         sender: alice.accountAddress,
@@ -380,7 +384,7 @@ describe.skip("Confidential balance api", () => {
   test(
     "it should normalize Alice's confidential balance",
     async () => {
-      const rolloverTx = await confidentialAsset.rolloverPendingBalance({
+      const rolloverTx = await transactionBuilder.rolloverPendingBalance({
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
       });
@@ -391,7 +395,7 @@ describe.skip("Confidential balance api", () => {
       // This should be false after a rollover
       checkAliceNormalizedBalanceStatus(false);
 
-      const normalizeTx = await confidentialAsset.normalizeBalance({
+      const normalizeTx = await transactionBuilder.normalizeBalance({
         tokenAddress: TOKEN_ADDRESS,
         senderDecryptionKey: aliceConfidential,
         sender: alice.accountAddress,
@@ -431,7 +435,7 @@ describe.skip("Confidential balance api", () => {
       });
 
       // Withdraw the amount from the confidential balance to the public balance
-      const withdrawTx = await confidentialAsset.withdraw({
+      const withdrawTx = await transactionBuilder.withdraw({
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         senderDecryptionKey: aliceConfidential,
@@ -456,7 +460,7 @@ describe.skip("Confidential balance api", () => {
   test(
     "it should check that transferring normalizes Alice's confidential balance",
     async () => {
-      const depositTx = await confidentialAsset.deposit({
+      const depositTx = await transactionBuilder.deposit({
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         amount: DEPOSIT_AMOUNT,
@@ -464,7 +468,7 @@ describe.skip("Confidential balance api", () => {
       const resp = await sendAndWaitTx(depositTx, alice);
       expect(resp.success).toBeTruthy();
 
-      const rolloverTx = await confidentialAsset.rolloverPendingBalance({
+      const rolloverTx = await transactionBuilder.rolloverPendingBalance({
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
       });
@@ -474,7 +478,7 @@ describe.skip("Confidential balance api", () => {
       // This should be false after normalization
       checkAliceNormalizedBalanceStatus(false);
 
-      const transferTx = await confidentialAsset.transfer({
+      const transferTx = await transactionBuilder.transfer({
         senderDecryptionKey: aliceConfidential,
         amount: TRANSFER_AMOUNT,
         sender: alice.accountAddress,
@@ -494,7 +498,7 @@ describe.skip("Confidential balance api", () => {
   test(
     "it should rotate Alice's confidential balance key",
     async () => {
-      const depositTx = await confidentialAsset.deposit({
+      const depositTx = await transactionBuilder.deposit({
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         amount: DEPOSIT_AMOUNT,
@@ -503,7 +507,7 @@ describe.skip("Confidential balance api", () => {
       expect(txResp.success).toBeTruthy();
 
       await expect(
-        confidentialAsset.rotateEncryptionKey({
+        transactionBuilder.rotateEncryptionKey({
           sender: alice.accountAddress,
 
           senderDecryptionKey: aliceConfidential,
@@ -513,7 +517,7 @@ describe.skip("Confidential balance api", () => {
         }),
       ).rejects.toThrow("Pending balance must be 0 before rotating encryption key");
 
-      const rolloverTx = await confidentialAsset.rolloverPendingBalance({
+      const rolloverTx = await transactionBuilder.rolloverPendingBalance({
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         withFreezeBalance: true,
@@ -532,7 +536,7 @@ describe.skip("Confidential balance api", () => {
 
       // This should unfreeze the balance even though withUnfreezeBalance is unset as it will check the
       // chain for frozen state.
-      const keyRotationAndUnfreezeTx = await confidentialAsset.rotateEncryptionKey({
+      const keyRotationAndUnfreezeTx = await transactionBuilder.rotateEncryptionKey({
         sender: alice.accountAddress,
         senderDecryptionKey: aliceConfidential,
         newSenderDecryptionKey: ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY,
