@@ -1,12 +1,11 @@
 import { RistrettoPoint } from "@noble/curves/ed25519";
 import { utf8ToBytes } from "@noble/hashes/utils";
 import { bytesToNumberLE, concatBytes, numberToBytesLE } from "@noble/curves/abstract/utils";
-import { MODULE_NAME, PROOF_CHUNK_SIZE, SIGMA_PROOF_NORMALIZATION_SIZE } from "./consts";
-import { genFiatShamirChallenge, publicKeyToU8 } from "./helpers";
+import { MODULE_NAME, PROOF_CHUNK_SIZE, SIGMA_PROOF_NORMALIZATION_SIZE } from "../consts";
+import { genFiatShamirChallenge } from "../helpers";
 import { RangeProofExecutor } from "./rangeProof";
-import { TwistedEd25519PrivateKey, H_RISTRETTO, TwistedEd25519PublicKey } from "./twistedEd25519";
-import { TwistedElGamalCiphertext } from "./twistedElGamal";
-import { ed25519GenListOfRandom, ed25519GenRandom, ed25519modN, ed25519InvertN } from "./utils";
+import { TwistedEd25519PrivateKey, H_RISTRETTO, TwistedEd25519PublicKey } from ".";
+import { ed25519GenListOfRandom, ed25519GenRandom, ed25519modN, ed25519InvertN } from "../utils";
 import { EncryptedAmount } from "./encryptedAmount";
 import { AVAILABLE_BALANCE_CHUNK_COUNT, CHUNK_BITS, CHUNK_BITS_BIG_INT, ChunkedAmount } from "./chunkedAmount";
 import { Aptos, SimpleTransaction, AccountAddressInput, InputGenerateTransactionOptions } from "@aptos-labs/ts-sdk";
@@ -208,7 +207,7 @@ export class ConfidentialNormalization {
     unnormalizedEncryptedBalance: EncryptedAmount;
     normalizedEncryptedBalance: EncryptedAmount;
   }): boolean {
-    const publicKeyU8 = publicKeyToU8(opts.publicKey);
+    const publicKeyU8 = opts.publicKey.toUint8Array();
 
     const alpha1LEList = opts.sigmaProof.alpha1List.map((a) => bytesToNumberLE(a));
     const alpha2LE = bytesToNumberLE(opts.sigmaProof.alpha2);

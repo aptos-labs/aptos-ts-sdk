@@ -1,20 +1,21 @@
 import { bytesToNumberLE, concatBytes, numberToBytesLE } from "@noble/curves/abstract/utils";
 import { RistrettoPoint } from "@noble/curves/ed25519";
 import { utf8ToBytes } from "@noble/hashes/utils";
-import { genFiatShamirChallenge, publicKeyToU8 } from "./helpers";
-import { PROOF_CHUNK_SIZE, SIGMA_PROOF_WITHDRAW_SIZE } from "./consts";
+import { genFiatShamirChallenge } from "../helpers";
+import { PROOF_CHUNK_SIZE, SIGMA_PROOF_WITHDRAW_SIZE } from "../consts";
+import { ed25519GenListOfRandom, ed25519GenRandom, ed25519modN, ed25519InvertN } from "../utils";
 import {
   AVAILABLE_BALANCE_CHUNK_COUNT,
   CHUNK_BITS,
   CHUNK_BITS_BIG_INT,
   ChunkedAmount,
   TRANSFER_AMOUNT_CHUNK_COUNT,
-} from "./chunkedAmount";
-import { RangeProofExecutor } from "./rangeProof";
-import { TwistedEd25519PrivateKey, H_RISTRETTO } from "./twistedEd25519";
-import { TwistedElGamalCiphertext } from "./twistedElGamal";
-import { ed25519GenListOfRandom, ed25519GenRandom, ed25519modN, ed25519InvertN } from "./utils";
-import { EncryptedAmount } from "./encryptedAmount";
+  RangeProofExecutor,
+  TwistedEd25519PrivateKey,
+  H_RISTRETTO,
+  TwistedElGamalCiphertext,
+  EncryptedAmount,
+} from ".";
 
 export type ConfidentialWithdrawSigmaProof = {
   alpha1List: Uint8Array[];
@@ -64,7 +65,7 @@ export class ConfidentialWithdraw {
     }
     if (senderEncryptedAvailableBalanceAfterWithdrawal.getAmount() < 0n) {
       throw new Error(
-        `Insufficient balance. Available balance: ${senderEncryptedAvailableBalanceAfterWithdrawal.getAmount()}, Amount to withdraw: ${amount}`,
+        `Insufficient balance. Available balance: ${senderEncryptedAvailableBalanceAfterWithdrawal.getAmount().toString()}, Amount to withdraw: ${amount.toString()}`,
       );
     }
 
@@ -237,7 +238,7 @@ export class ConfidentialWithdraw {
     senderEncryptedAvailableBalanceAfterWithdrawal: EncryptedAmount;
     amountToWithdraw: bigint;
   }): boolean {
-    const publicKeyU8 = publicKeyToU8(opts.senderEncryptedAvailableBalance.publicKey);
+    const publicKeyU8 = opts.senderEncryptedAvailableBalance.publicKey.toUint8Array();
     const confidentialAmountToWithdraw = ChunkedAmount.fromAmount(opts.amountToWithdraw, {
       chunksCount: TRANSFER_AMOUNT_CHUNK_COUNT,
     });

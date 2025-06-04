@@ -1,8 +1,7 @@
-import { TwistedElGamal, TwistedElGamalCiphertext } from "./twistedElGamal";
-import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
-import { ed25519GenRandom } from "./utils";
-import { CHUNK_BITS, ChunkedAmount } from "./chunkedAmount";
 import { concatBytes } from "@noble/hashes/utils";
+import { ed25519GenRandom } from "../utils";
+import { TwistedElGamal, TwistedElGamalCiphertext } from "./twistedElGamal";
+import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey, CHUNK_BITS, ChunkedAmount } from ".";
 
 export class EncryptedAmount {
   // private amount: bigint;

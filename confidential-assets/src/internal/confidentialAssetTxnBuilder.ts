@@ -10,57 +10,23 @@ import {
   LedgerVersionArg,
   SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
-import { TwistedElGamal, TwistedElGamalCiphertext } from "./twistedElGamal";
-import { ConfidentialNormalization } from "./confidentialNormalization";
-import { ConfidentialKeyRotation } from "./confidentialKeyRotation";
-import { toTwistedEd25519PrivateKey, toTwistedEd25519PublicKey } from "./helpers";
 import { concatBytes } from "@noble/hashes/utils";
-import { ConfidentialTransfer } from "./confidentialTransfer";
-import { ConfidentialWithdraw } from "./confidentialWithdraw";
-import { TwistedEd25519PublicKey, TwistedEd25519PrivateKey } from "./twistedEd25519";
-import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS, MODULE_NAME } from "./consts";
-import { EncryptedAmount } from "./encryptedAmount";
-import { getCache, memoizeAsync, setCache } from "./memoize";
-
-export type ConfidentialBalanceResponse = {
-  chunks: {
-    left: { data: string };
-    right: { data: string };
-  }[];
-}[];
-
-export class ConfidentialBalance {
-  available: EncryptedAmount;
-  pending: EncryptedAmount;
-
-  constructor(available: EncryptedAmount, pending: EncryptedAmount) {
-    this.available = available;
-    this.pending = pending;
-  }
-
-  availableBalance(): bigint {
-    return this.available.getAmount();
-  }
-
-  pendingBalance(): bigint {
-    return this.pending.getAmount();
-  }
-
-  availableBalanceCipherText(): TwistedElGamalCiphertext[] {
-    return this.available.getCipherText();
-  }
-
-  pendingBalanceCipherText(): TwistedElGamalCiphertext[] {
-    return this.pending.getCipherText();
-  }
-}
+import {
+  TwistedElGamal,
+  ConfidentialNormalization,
+  ConfidentialKeyRotation,
+  ConfidentialTransfer,
+  ConfidentialWithdraw,
+  TwistedEd25519PublicKey,
+  TwistedEd25519PrivateKey,
+} from "../crypto";
+import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS, MODULE_NAME } from "../consts";
+import { getBalance, getEncryptionKey, isBalanceNormalized, isPendingBalanceFrozen } from "./viewFunctions";
 
 /**
- * A class to handle confidential balance operations
- *
- * TODO: Add key caching to avoid fetching the same key multiple times
+ * A class to handle creating transactions for confidential asset operations
  */
-export class ConfidentialAsset {
+export class ConfidentialAssetTransactionBuilder {
   readonly client: Aptos;
   readonly confidentialAssetModuleAddress: string;
 
@@ -73,157 +39,6 @@ export class ConfidentialAsset {
     this.client = new Aptos(config);
     this.confidentialAssetModuleAddress = confidentialAssetModuleAddress;
     TwistedElGamal.initializeKangaroos();
-  }
-
-  /**
-   * Get the balance for an account
-   * @param args.accountAddress - The account address to get the balance for
-   * @param args.tokenAddress - The token address of the asset to get the balance for
-   * @param args.decryptionKey - The decryption key to decrypt the encrypted balance fetched from the chain
-   * @param args.options.ledgerVersion - The ledger version to use for the lookup
-   * @returns A ConfidentialBalance object with available and pending amounts and cipher texts
-   */
-  async getBalance(args: {
-    accountAddress: AccountAddressInput;
-    tokenAddress: AccountAddressInput;
-    decryptionKey: TwistedEd25519PrivateKey;
-    useCachedValue?: boolean;
-    options?: LedgerVersionArg;
-  }): Promise<ConfidentialBalance> {
-    const { accountAddress, tokenAddress, decryptionKey, options, useCachedValue = false } = args;
-    try {
-      if (useCachedValue) {
-        const cachedAvailableBalance = getCache<EncryptedAmount>(
-          `${accountAddress}-available-encrypted-balance-for-${tokenAddress}-${this.client.config.network}`,
-          1000 * 30, // 30 seconds
-        );
-        const cachedPendingBalance = getCache<EncryptedAmount>(
-          `${accountAddress}-pending-encrypted-balance-for-${tokenAddress}-${this.client.config.network}`,
-          1000 * 30, // 30 seconds
-        );
-        if (cachedAvailableBalance !== undefined && cachedPendingBalance !== undefined) {
-          return new ConfidentialBalance(cachedAvailableBalance, cachedPendingBalance);
-        }
-      }
-
-      const balance = await this.getBalanceInternal({
-        accountAddress,
-        tokenAddress,
-        decryptionKey,
-        options,
-      });
-
-      setCache(
-        `${accountAddress}-available-encrypted-balance-for-${tokenAddress}-${this.client.config.network}`,
-        balance.available,
-      );
-      setCache(
-        `${accountAddress}-pending-encrypted-balance-for-${tokenAddress}-${this.client.config.network}`,
-        balance.pending,
-      );
-      return balance;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  private async getBalanceInternal(args: {
-    accountAddress: AccountAddressInput;
-    tokenAddress: AccountAddressInput;
-    decryptionKey: TwistedEd25519PrivateKey;
-    options?: LedgerVersionArg;
-  }): Promise<ConfidentialBalance> {
-    const { accountAddress, tokenAddress, decryptionKey, options } = args;
-    const { available, pending } = await this.getBalanceCipherText({
-      accountAddress,
-      tokenAddress,
-      options,
-    });
-
-    const decryptedActualBalance = await EncryptedAmount.fromCipherTextAndPrivateKey(available, decryptionKey);
-    const decryptedPendingBalance = await EncryptedAmount.fromCipherTextAndPrivateKey(pending, decryptionKey);
-    return new ConfidentialBalance(decryptedActualBalance, decryptedPendingBalance);
-  }
-
-  /**
-   * Get the encrypted balance for an account
-   * @param args.accountAddress - The account address to get the balance for
-   * @param args.tokenAddress - The token address of the asset to get the balance for
-   * @param args.options.ledgerVersion - The ledger version to use for the lookup
-   * @returns The encrypted balance as an object with pending and available balances
-   */
-  async getBalanceCipherText(args: {
-    accountAddress: AccountAddressInput;
-    tokenAddress: AccountAddressInput;
-    options?: LedgerVersionArg;
-  }): Promise<{
-    pending: TwistedElGamalCiphertext[];
-    available: TwistedElGamalCiphertext[];
-  }> {
-    const { accountAddress, tokenAddress, options } = args;
-    const [[chunkedPendingBalance], [chunkedActualBalances]] = await Promise.all([
-      this.client.view<ConfidentialBalanceResponse>({
-        payload: {
-          function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::pending_balance`,
-          typeArguments: [],
-          functionArguments: [accountAddress, tokenAddress],
-        },
-        options,
-      }),
-      this.client.view<ConfidentialBalanceResponse>({
-        payload: {
-          function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::actual_balance`,
-          typeArguments: [],
-          functionArguments: [accountAddress, tokenAddress],
-        },
-        options,
-      }),
-    ]);
-
-    return {
-      pending: chunkedPendingBalance.chunks.map(
-        (el) => new TwistedElGamalCiphertext(el.left.data.slice(2), el.right.data.slice(2)),
-      ),
-      available: chunkedActualBalances.chunks.map(
-        (el) => new TwistedElGamalCiphertext(el.left.data.slice(2), el.right.data.slice(2)),
-      ),
-    };
-  }
-
-  /**
-   * Get the encryption key for an account for a given token
-   * @param args.accountAddress - The account address to get the encryption key for
-   * @param args.tokenAddress - The token address of the asset to get the encryption key for
-   * @param args.options.ledgerVersion - The ledger version to use for the lookup
-   * @param args.useCachedValue - Whether to use the cached value. Default is false.
-   * @returns The encryption key as a TwistedEd25519PublicKey
-   */
-  async getEncryptionKey(args: {
-    accountAddress: AccountAddressInput;
-    tokenAddress: AccountAddressInput;
-    useCachedValue?: boolean;
-    options?: LedgerVersionArg;
-  }): Promise<TwistedEd25519PublicKey> {
-    const { accountAddress, tokenAddress, options, useCachedValue = false } = args;
-    try {
-      return await memoizeAsync(
-        async () => {
-          const [{ point }] = await this.client.view<[{ point: { data: string } }]>({
-            options,
-            payload: {
-              function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::encryption_key`,
-              functionArguments: [accountAddress, tokenAddress],
-            },
-          });
-          return toTwistedEd25519PublicKey(point.data);
-        },
-        `${accountAddress}-encryption-key-for-${tokenAddress}-${this.client.config.network}`,
-        1000 * 60 * 60, // 1 hour cache duration
-        useCachedValue,
-      )();
-    } catch (error) {
-      throw error;
-    }
   }
 
   /**
@@ -317,14 +132,17 @@ export class ConfidentialAsset {
     validateAmount({ amount });
 
     // Get the sender's available balance from the chain
-    const { available: senderEncryptedAvailableBalance } = await this.getBalanceCipherText({
+    const { available: senderEncryptedAvailableBalance } = await getBalance({
+      client: this.client,
+      moduleAddress: this.confidentialAssetModuleAddress,
       accountAddress: sender,
       tokenAddress,
+      decryptionKey: senderDecryptionKey,
     });
 
     const confidentialWithdraw = await ConfidentialWithdraw.create({
       decryptionKey: senderDecryptionKey,
-      senderAvailableBalanceCipherText: senderEncryptedAvailableBalance,
+      senderAvailableBalanceCipherText: senderEncryptedAvailableBalance.getCipherText(),
       amount: BigInt(amount),
     });
 
@@ -368,7 +186,9 @@ export class ConfidentialAsset {
   }): Promise<SimpleTransaction> {
     const { checkNormalized = true, withFreezeBalance = false } = args;
     if (checkNormalized) {
-      const isNormalized = await this.isBalanceNormalized({
+      const isNormalized = await isBalanceNormalized({
+        client: this.client,
+        moduleAddress: this.confidentialAssetModuleAddress,
         accountAddress: args.sender,
         tokenAddress: args.tokenAddress,
       });
@@ -412,7 +232,7 @@ export class ConfidentialAsset {
     if (globalAuditorPubKey.length === 0) {
       return undefined;
     }
-    return toTwistedEd25519PublicKey(globalAuditorPubKey);
+    return new TwistedEd25519PublicKey(globalAuditorPubKey);
   }
 
   /**
@@ -453,14 +273,18 @@ export class ConfidentialAsset {
 
     let recipientEncryptionKey: TwistedEd25519PublicKey;
     try {
-      recipientEncryptionKey = await this.getEncryptionKey({
+      recipientEncryptionKey = await getEncryptionKey({
+        client: this.client,
+        moduleAddress: this.confidentialAssetModuleAddress,
         accountAddress: recipient,
         tokenAddress,
       });
     } catch (e) {
       throw new Error(`Failed to get encryption key for recipient - ${e}`);
     }
-    const isFrozen = await this.isPendingBalanceFrozen({
+    const isFrozen = await isPendingBalanceFrozen({
+      client: this.client,
+      moduleAddress: this.confidentialAssetModuleAddress,
       accountAddress: recipient,
       tokenAddress,
     });
@@ -468,15 +292,18 @@ export class ConfidentialAsset {
       throw new Error("Recipient balance is frozen");
     }
     // Get the sender's available balance from the chain
-    const { available: senderEncryptedAvailableBalance } = await this.getBalanceCipherText({
+    const { available: senderEncryptedAvailableBalance } = await getBalance({
+      client: this.client,
+      moduleAddress: this.confidentialAssetModuleAddress,
       accountAddress: args.sender,
       tokenAddress,
+      decryptionKey: senderDecryptionKey,
     });
 
     // Create the confidential transfer object
     const confidentialTransfer = await ConfidentialTransfer.create({
       senderDecryptionKey,
-      senderAvailableBalanceCipherText: senderEncryptedAvailableBalance,
+      senderAvailableBalanceCipherText: senderEncryptedAvailableBalance.getCipherText(),
       amount,
       recipientEncryptionKey,
       auditorEncryptionKeys: [
@@ -520,36 +347,6 @@ export class ConfidentialAsset {
   }
 
   /**
-   * Check if a user's balance is frozen.
-   *
-   * A user's balance would likely be frozen if they plan to rotate their encryption key after a rollover. Rotating the encryption key requires
-   * the pending balance to be empty so a user may want to freeze their balance to prevent others from transferring into their pending balance
-   * which would interfere with the rotation, as it would require a user to rollover their pending balance.
-   *
-   * @param args.accountAddress - The account address to check
-   * @param args.tokenAddress - The token address of the asset to check
-   * @param args.options.ledgerVersion - The ledger version to use for the view call
-   * @returns A boolean indicating if the user's balance is frozen
-   * @throws {AptosApiError} If the there is no registered confidential balance for token address on the account
-   */
-  async isPendingBalanceFrozen(args: {
-    accountAddress: AccountAddressInput;
-    tokenAddress: AccountAddressInput;
-    options?: LedgerVersionArg;
-  }): Promise<boolean> {
-    const [isFrozen] = await this.client.view<[boolean]>({
-      options: args.options,
-      payload: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::is_frozen`,
-        typeArguments: [],
-        functionArguments: [args.accountAddress, args.tokenAddress],
-      },
-    });
-
-    return isFrozen;
-  }
-
-  /**
    * Rotate the encryption key for a confidential asset balance.
    *
    * This will by default check if the pending balance is empty and throw an error if it is not. It also checks if the balance is frozen and
@@ -584,19 +381,22 @@ export class ConfidentialAsset {
       newSenderDecryptionKey,
       checkPendingBalanceEmpty = true,
       tokenAddress,
-      withUnfreezePendingBalance = await this.isPendingBalanceFrozen({
+      withUnfreezePendingBalance = await isPendingBalanceFrozen({
+        client: this.client,
+        moduleAddress: this.confidentialAssetModuleAddress,
         accountAddress: sender,
         tokenAddress,
       }),
     } = args;
 
     // Get the sender's balance from the chain
-    const { available: currentEncryptedAvailableBalance, pending: currentEncryptedPendingBalance } =
-      await this.getBalance({
-        accountAddress: sender,
-        tokenAddress,
-        decryptionKey: senderDecryptionKey,
-      });
+    const { available: currentEncryptedAvailableBalance, pending: currentEncryptedPendingBalance } = await getBalance({
+      client: this.client,
+      moduleAddress: this.confidentialAssetModuleAddress,
+      accountAddress: sender,
+      tokenAddress,
+      decryptionKey: senderDecryptionKey,
+    });
 
     if (checkPendingBalanceEmpty) {
       if (currentEncryptedPendingBalance.getAmount() > 0n) {
@@ -615,7 +415,7 @@ export class ConfidentialAsset {
     const [{ sigmaProof, rangeProof }, newEncryptedAvailableBalance] =
       await confidentialKeyRotation.authorizeKeyRotation();
 
-    const newPublicKeyBytes = toTwistedEd25519PrivateKey(args.newSenderDecryptionKey).publicKey().toUint8Array();
+    const newPublicKeyBytes = args.newSenderDecryptionKey.publicKey().toUint8Array();
 
     const method = withUnfreezePendingBalance ? "rotate_encryption_key_and_unfreeze" : "rotate_encryption_key";
 
@@ -638,59 +438,6 @@ export class ConfidentialAsset {
   }
 
   /**
-   * Check if a user has registered a confidential asset balance for a particular token.
-   *
-   * @param args.accountAddress - The account address to check
-   * @param args.tokenAddress - The token address of the asset to check
-   * @param args.options.ledgerVersion - The ledger version to use for the view call
-   * @returns A boolean indicating if the user has registered a confidential asset balance
-   */
-  async hasUserRegistered(args: {
-    accountAddress: AccountAddressInput;
-    tokenAddress: AccountAddressInput;
-    options?: LedgerVersionArg;
-  }): Promise<boolean> {
-    const [isRegister] = await this.client.view<[boolean]>({
-      payload: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::has_confidential_asset_store`,
-        typeArguments: [],
-        functionArguments: [args.accountAddress, args.tokenAddress],
-      },
-      options: args.options,
-    });
-
-    return isRegister;
-  }
-
-  /**
-   * Check if a user's balance is normalized.
-   *
-   * This can be used to check if a user's balance is normalized for a given token address.
-   *
-   * @param args.accountAddress - The account address to check
-   * @param args.tokenAddress - The token address of the asset to check
-   * @param args.options.ledgerVersion - The ledger version to use for the view call
-   * @returns A boolean indicating if the user's balance is normalized
-   * @throws {AptosApiError} If the there is no registered confidential balance for token address on the account
-   */
-  async isBalanceNormalized(args: {
-    accountAddress: AccountAddressInput;
-    tokenAddress: AccountAddressInput;
-    options?: LedgerVersionArg;
-  }): Promise<boolean> {
-    const [isNormalized] = await this.client.view<[boolean]>({
-      payload: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::is_normalized`,
-        typeArguments: [],
-        functionArguments: [args.accountAddress, args.tokenAddress],
-      },
-      options: args.options,
-    });
-
-    return isNormalized;
-  }
-
-  /**
    * Normalize a user's balance.
    *
    * This can be used to normalize a user's balance for a given token address.
@@ -709,7 +456,9 @@ export class ConfidentialAsset {
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     const { sender, senderDecryptionKey, tokenAddress, withFeePayer, options } = args;
-    const { available } = await this.getBalance({
+    const { available } = await getBalance({
+      client: this.client,
+      moduleAddress: this.confidentialAssetModuleAddress,
       accountAddress: sender,
       tokenAddress,
       decryptionKey: senderDecryptionKey,
