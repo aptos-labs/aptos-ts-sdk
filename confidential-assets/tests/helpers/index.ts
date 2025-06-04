@@ -57,10 +57,10 @@ function getConfig(networkRaw: Network, apiKey: string | undefined, faucetToken:
 const API_KEY = process.env.APTOS_API_KEY;
 export const FAUCET_TOKEN = process.env.FAUCET_TOKEN;
 if (!FAUCET_TOKEN) {
-  throw new Error("FAUCET_TOKEN is not set for testnet");
+  console.log("FAUCET_TOKEN is not set for testnet");
 }
 if (!API_KEY) {
-  throw new Error("API_KEY is not set for testnet");
+  console.log("API_KEY is not set for testnet");
 }
 const APTOS_NETWORK: Network = FAUCET_TOKEN ? Network.CUSTOM : NetworkToNetworkName[Network.TESTNET];
 const config = getConfig(APTOS_NETWORK, API_KEY, FAUCET_TOKEN);
