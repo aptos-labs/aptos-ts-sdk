@@ -173,7 +173,6 @@ export class ConfidentialAsset {
    * @param args.amount - The amount to withdraw
    * @param args.recipient - The account address to withdraw to. This is the signer's address if not set
    * @param args.withFeePayer - Whether to use the fee payer for the transaction
-   * @param args.usePendingBalance - If true, will attempt to rollover pending balance if needed
    * @param args.options - Optional transaction options
    * @param args.signAndSubmitCallback - Optional callback for custom transaction submission
    * @returns A single transaction response, or array of responses if using pending balance
@@ -183,63 +182,52 @@ export class ConfidentialAsset {
     args: ConfidentialAssetSubmissionParams & {
       senderDecryptionKey: TwistedEd25519PrivateKey;
       amount: AnyNumber;
-      usePendingBalance: true;
       recipient?: AccountAddressInput;
     },
-  ): Promise<CommittedTransactionResponse[]>;
-
-  async withdraw(
-    args: ConfidentialAssetSubmissionParams & {
-      senderDecryptionKey: TwistedEd25519PrivateKey;
-      amount: AnyNumber;
-      usePendingBalance?: false;
-      recipient?: AccountAddressInput;
-    },
-  ): Promise<CommittedTransactionResponse>;
-
-  async withdraw(
-    args: ConfidentialAssetSubmissionParams & {
-      senderDecryptionKey: TwistedEd25519PrivateKey;
-      amount: AnyNumber;
-      usePendingBalance?: boolean;
-      recipient?: AccountAddressInput;
-    },
-  ): Promise<CommittedTransactionResponse | CommittedTransactionResponse[]> {
+  ): Promise<CommittedTransactionResponse> {
     const { signer, ...rest } = args;
 
-    if (args.usePendingBalance) {
-      const results: CommittedTransactionResponse[] = [];
+    const tx = await this.transaction.withdraw({ ...rest, sender: signer.accountAddress });
+    const result = await this.submitTxn({
+      signer,
+      transaction: tx,
+      signAndSubmitCallback: args.signAndSubmitCallback,
+    });
+    clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
+    return result;
+  }
 
-      const committedRolloverTxs = await this.checkSufficientBalanceAndRolloverIfNeeded({
-        signer,
-        tokenAddress: args.tokenAddress,
-        amount: args.amount,
-        senderDecryptionKey: args.senderDecryptionKey,
-        withFeePayer: args.withFeePayer,
-        options: args.options,
-      });
-      results.push(...committedRolloverTxs);
+  async withdrawWithTotalBalance(
+    args: ConfidentialAssetSubmissionParams & {
+      senderDecryptionKey: TwistedEd25519PrivateKey;
+      amount: AnyNumber;
+      recipient?: AccountAddressInput;
+    },
+  ): Promise<CommittedTransactionResponse[]> {
+    const { signer, ...rest } = args;
 
-      const tx = await this.transaction.withdraw({ ...rest, sender: signer.accountAddress });
-      results.push(
-        await this.submitTxn({
-          signer,
-          transaction: tx,
-          signAndSubmitCallback: args.signAndSubmitCallback,
-        }),
-      );
-      clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
-      return results;
-    } else {
-      const tx = await this.transaction.withdraw({ ...rest, sender: signer.accountAddress });
-      const result = await this.submitTxn({
+    const results: CommittedTransactionResponse[] = [];
+
+    const committedRolloverTxs = await this.checkSufficientBalanceAndRolloverIfNeeded({
+      signer,
+      tokenAddress: args.tokenAddress,
+      amount: args.amount,
+      senderDecryptionKey: args.senderDecryptionKey,
+      withFeePayer: args.withFeePayer,
+      options: args.options,
+    });
+    results.push(...committedRolloverTxs);
+
+    const tx = await this.transaction.withdraw({ ...rest, sender: signer.accountAddress });
+    results.push(
+      await this.submitTxn({
         signer,
         transaction: tx,
         signAndSubmitCallback: args.signAndSubmitCallback,
-      });
-      clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
-      return result;
-    }
+      }),
+    );
+    clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
+    return results;
   }
 
   /**
@@ -322,7 +310,6 @@ export class ConfidentialAsset {
    * @param args.tokenAddress - The token address of the asset to transfer
    * @param args.amount - The amount to transfer
    * @param args.senderDecryptionKey - The decryption key of the sender
-   * @param args.usePendingBalance - If true, will attempt to rollover pending balance if needed
    * @param args.additionalAuditorEncryptionKeys - Optional additional auditor encryption keys
    * @param args.withFeePayer - Whether to use the fee payer for the transaction
    * @param args.options - Optional transaction options
@@ -336,63 +323,51 @@ export class ConfidentialAsset {
       recipient: AccountAddressInput;
       amount: AnyNumber;
       senderDecryptionKey: TwistedEd25519PrivateKey;
-      usePendingBalance: true;
       additionalAuditorEncryptionKeys?: TwistedEd25519PublicKey[];
     },
-  ): Promise<CommittedTransactionResponse[]>;
+  ): Promise<CommittedTransactionResponse> {
+    const { signer, ...rest } = args;
 
-  async transfer(
+    const transaction = await this.transaction.transfer({ ...rest, sender: signer.accountAddress });
+    const result = await this.submitTxn({
+      signer,
+      transaction,
+      signAndSubmitCallback: args.signAndSubmitCallback,
+    });
+    clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
+    return result;
+  }
+
+  async transferWithTotalBalance(
     args: ConfidentialAssetSubmissionParams & {
       recipient: AccountAddressInput;
       amount: AnyNumber;
       senderDecryptionKey: TwistedEd25519PrivateKey;
-      usePendingBalance?: false;
-      additionalAuditorEncryptionKeys?: TwistedEd25519PublicKey[];
-    },
-  ): Promise<CommittedTransactionResponse>;
-
-  async transfer(
-    args: ConfidentialAssetSubmissionParams & {
-      recipient: AccountAddressInput;
-      amount: AnyNumber;
-      senderDecryptionKey: TwistedEd25519PrivateKey;
-      usePendingBalance?: boolean;
       additionalAuditorEncryptionKeys?: TwistedEd25519PublicKey[];
     },
   ): Promise<CommittedTransactionResponse | CommittedTransactionResponse[]> {
     const { signer, ...rest } = args;
     const results: CommittedTransactionResponse[] = [];
 
-    if (args.usePendingBalance) {
-      const committedRolloverTxs = await this.checkSufficientBalanceAndRolloverIfNeeded({
-        signer,
-        tokenAddress: args.tokenAddress,
-        amount: args.amount,
-        senderDecryptionKey: args.senderDecryptionKey,
-        withFeePayer: args.withFeePayer,
-      });
-      results.push(...committedRolloverTxs);
-      const transaction = await this.transaction.transfer({ ...rest, sender: signer.accountAddress });
+    const committedRolloverTxs = await this.checkSufficientBalanceAndRolloverIfNeeded({
+      signer,
+      tokenAddress: args.tokenAddress,
+      amount: args.amount,
+      senderDecryptionKey: args.senderDecryptionKey,
+      withFeePayer: args.withFeePayer,
+    });
+    results.push(...committedRolloverTxs);
+    const transaction = await this.transaction.transfer({ ...rest, sender: signer.accountAddress });
 
-      results.push(
-        await this.submitTxn({
-          signer,
-          transaction,
-          signAndSubmitCallback: args.signAndSubmitCallback,
-        }),
-      );
-      clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
-      return results;
-    } else {
-      const transaction = await this.transaction.transfer({ ...rest, sender: signer.accountAddress });
-      const result = await this.submitTxn({
+    results.push(
+      await this.submitTxn({
         signer,
         transaction,
         signAndSubmitCallback: args.signAndSubmitCallback,
-      });
-      clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
-      return result;
-    }
+      }),
+    );
+    clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
+    return results;
   }
 
   /**

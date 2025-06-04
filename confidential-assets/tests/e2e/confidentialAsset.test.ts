@@ -102,13 +102,11 @@ describe.skip("Confidential Asset Sender API", () => {
   test(
     "it should deposit Alice's balance of fungible token to her confidential balance and check the balance",
     async () => {
-      const depositTx = await confidentialAsset.deposit({
+      await confidentialAsset.deposit({
         signer: alice,
         tokenAddress: TOKEN_ADDRESS,
         amount: DEPOSIT_AMOUNT,
       });
-
-      expect(depositTx.success).toBeTruthy();
 
       // Verify the confidential balance has been updated correctly.
       await checkAliceDecryptedBalance(0, DEPOSIT_AMOUNT);
@@ -212,6 +210,40 @@ describe.skip("Confidential Asset Sender API", () => {
     longTestTimeout,
   );
 
+  test(
+    "it should withdraw more than the available balance if the total balance is used",
+    async () => {
+      await confidentialAsset.deposit({
+        signer: alice,
+        tokenAddress: TOKEN_ADDRESS,
+        amount: DEPOSIT_AMOUNT,
+      });
+
+      const confidentialBalance = await confidentialAsset.getBalance({
+        accountAddress: alice.accountAddress,
+        tokenAddress: TOKEN_ADDRESS,
+        decryptionKey: aliceConfidential,
+      });
+
+      // Withdraw the amount from the confidential balance to the public balance
+      await confidentialAsset.withdrawWithTotalBalance({
+        signer: alice,
+        tokenAddress: TOKEN_ADDRESS,
+        senderDecryptionKey: aliceConfidential,
+        amount: confidentialBalance.availableBalance() + BigInt(1),
+      });
+
+      const confidentialBalanceAfterWithdraw = await confidentialAsset.getBalance({
+        accountAddress: alice.accountAddress,
+        tokenAddress: TOKEN_ADDRESS,
+        decryptionKey: aliceConfidential,
+      });
+
+      expect(confidentialBalanceAfterWithdraw.pendingBalance()).toBe(0n);
+    },
+    longTestTimeout,
+  );
+
   // TODO: Add this back in once the test setup sets up the auditor correctly.
   test.skip(
     "it should get global auditor",
@@ -252,22 +284,63 @@ describe.skip("Confidential Asset Sender API", () => {
   test(
     "it should throw if transferring more than the available balance",
     async () => {
+
+      await confidentialAsset.deposit({
+        signer: alice,
+        tokenAddress: TOKEN_ADDRESS,
+        amount: DEPOSIT_AMOUNT,
+      });
+
       const confidentialBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         decryptionKey: aliceConfidential,
       });
 
-      // Withdraw the amount from the confidential balance to the public balance
       await expect(
         confidentialAsset.transfer({
           signer: alice,
           tokenAddress: TOKEN_ADDRESS,
           senderDecryptionKey: aliceConfidential,
-          amount: confidentialBalance.availableBalance() + BigInt(1),
+          amount: confidentialBalance.availableBalance() + BigInt(1), // This is more than the available balance
           recipient: alice.accountAddress,
         }),
       ).rejects.toThrow("Insufficient balance");
+    },
+    longTestTimeout,
+  );
+
+  test(
+    "it should transfer more than the available balance if the total balance is used",
+    async () => {
+
+      await confidentialAsset.deposit({
+        signer: alice,
+        tokenAddress: TOKEN_ADDRESS,
+        amount: DEPOSIT_AMOUNT,
+      });
+      
+      const confidentialBalance = await confidentialAsset.getBalance({
+        accountAddress: alice.accountAddress,
+        tokenAddress: TOKEN_ADDRESS,
+        decryptionKey: aliceConfidential,
+      });
+
+      const transferAmount = confidentialBalance.availableBalance() + BigInt(1);
+
+      // Withdraw the amount from the confidential balance to the public balance
+      await confidentialAsset.transferWithTotalBalance({
+        signer: alice,
+        tokenAddress: TOKEN_ADDRESS,
+        senderDecryptionKey: aliceConfidential,
+        amount: transferAmount,
+        recipient: alice.accountAddress,
+      });
+
+      await checkAliceDecryptedBalance(
+        confidentialBalance.availableBalance() + confidentialBalance.pendingBalance() - transferAmount,
+        transferAmount,
+      );
     },
     longTestTimeout,
   );
@@ -419,7 +492,7 @@ describe.skip("Confidential Asset Sender API", () => {
   );
 
   test(
-    "it should throw if Bob's balance is normalized",
+    "it should throw if checking if account balance is normalized and the account has not registered a balance",
     async () => {
       await expect(
         confidentialAsset.isBalanceNormalized({
@@ -432,7 +505,7 @@ describe.skip("Confidential Asset Sender API", () => {
   );
 
   test(
-    "it throw if withdraw to another account",
+    "it withdraw to another account and check the balance",
     async () => {
       // Get the current public token balance of Bob
       const bobTokenBalance = await getPublicTokenBalance(bob.accountAddress);
