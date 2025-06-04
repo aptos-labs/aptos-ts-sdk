@@ -154,7 +154,8 @@ describe("MultiKey", () => {
     ).not.toThrow();
   });
 
-  it("should not throw when there are more than 3 keyless public keys but signatures required is 3 or less", () => {    expect(
+  it("should not throw when there are more than 3 keyless public keys but signatures required is 3 or less", () => {
+    expect(
       () =>
         new MultiKey({
           publicKeys: [
