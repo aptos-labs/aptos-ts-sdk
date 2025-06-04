@@ -1577,7 +1577,7 @@ export async function getKeylessJWKs(args: {
           path: `accounts/0x1/resource/${resourceType}`,
           params: { ledger_version: options?.ledgerVersion },
         }),
-      `keyless-jwks-${aptosConfig.network}`,
+      `${resourceType}-${aptosConfig.network}`,
       1000 * 60 * 5, // 5 minutes
     )();
     resource = data;
@@ -1591,7 +1591,7 @@ export async function getKeylessJWKs(args: {
           path: `accounts/${AccountAddress.from(jwkAddr).toString()}/resource/${resourceType}`,
           params: { ledger_version: options?.ledgerVersion },
         }),
-      `federated-keyless-jwks-${jwkAddr}-${aptosConfig.network}`,
+      `${resourceType}-${jwkAddr}-${aptosConfig.network}`,
       1000 * 60 * 5, // 5 minutes
     )();
     resource = data;
