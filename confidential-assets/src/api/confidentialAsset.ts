@@ -155,9 +155,9 @@ export class ConfidentialAsset {
    * @returns A SimpleTransaction to deposit the amount
    */
   async deposit(args: DepositParams): Promise<CommittedTransactionResponse> {
-    const { signer, ...rest } = args;
+    const { signer, signAndSubmitCallback, ...rest } = args;
     const tx = await this.transaction.deposit({ ...rest, sender: signer.accountAddress });
-    const result = await this.submitTxn({ signer, transaction: tx });
+    const result = await this.submitTxn({ signer, transaction: tx, signAndSubmitCallback });
     clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
     return result;
   }
@@ -185,13 +185,13 @@ export class ConfidentialAsset {
       recipient?: AccountAddressInput;
     },
   ): Promise<CommittedTransactionResponse> {
-    const { signer, ...rest } = args;
+    const { signer, signAndSubmitCallback, ...rest } = args;
 
     const tx = await this.transaction.withdraw({ ...rest, sender: signer.accountAddress });
     const result = await this.submitTxn({
       signer,
       transaction: tx,
-      signAndSubmitCallback: args.signAndSubmitCallback,
+      signAndSubmitCallback,
     });
     clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
     return result;
@@ -204,17 +204,12 @@ export class ConfidentialAsset {
       recipient?: AccountAddressInput;
     },
   ): Promise<CommittedTransactionResponse[]> {
-    const { signer, ...rest } = args;
+    const { signer, signAndSubmitCallback, ...rest } = args;
 
     const results: CommittedTransactionResponse[] = [];
 
     const committedRolloverTxs = await this.checkSufficientBalanceAndRolloverIfNeeded({
-      signer,
-      tokenAddress: args.tokenAddress,
-      amount: args.amount,
-      senderDecryptionKey: args.senderDecryptionKey,
-      withFeePayer: args.withFeePayer,
-      options: args.options,
+      ...args,
     });
     results.push(...committedRolloverTxs);
 
@@ -223,7 +218,7 @@ export class ConfidentialAsset {
       await this.submitTxn({
         signer,
         transaction: tx,
-        signAndSubmitCallback: args.signAndSubmitCallback,
+        signAndSubmitCallback,
       }),
     );
     clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
@@ -242,7 +237,7 @@ export class ConfidentialAsset {
    * @throws {Error} If the balance is not normalized before rolling over, unless checkNormalized is false.
    */
   async rolloverPendingBalance(args: RolloverParams): Promise<CommittedTransactionResponse[]> {
-    const { signer, ...rest } = args;
+    const { signer, signAndSubmitCallback, ...rest } = args;
     const results: CommittedTransactionResponse[] = [];
     const isNormalized = await this.isBalanceNormalized({
       accountAddress: signer.accountAddress,
@@ -255,11 +250,8 @@ export class ConfidentialAsset {
         );
       }
       const commitedNormalizeTx = await this.normalizeBalance({
-        signer,
         senderDecryptionKey: args.senderDecryptionKey,
-        tokenAddress: args.tokenAddress,
-        withFeePayer: args.withFeePayer,
-        options: args.options,
+        ...args,
       });
       results.push(commitedNormalizeTx);
     }
@@ -270,6 +262,7 @@ export class ConfidentialAsset {
     const committedRolloverTx = await this.submitTxn({
       signer,
       transaction,
+      signAndSubmitCallback,
     });
     clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
     results.push(committedRolloverTx);
@@ -326,13 +319,13 @@ export class ConfidentialAsset {
       additionalAuditorEncryptionKeys?: TwistedEd25519PublicKey[];
     },
   ): Promise<CommittedTransactionResponse> {
-    const { signer, ...rest } = args;
+    const { signer, signAndSubmitCallback, ...rest } = args;
 
     const transaction = await this.transaction.transfer({ ...rest, sender: signer.accountAddress });
     const result = await this.submitTxn({
       signer,
       transaction,
-      signAndSubmitCallback: args.signAndSubmitCallback,
+      signAndSubmitCallback,
     });
     clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
     return result;
@@ -346,15 +339,11 @@ export class ConfidentialAsset {
       additionalAuditorEncryptionKeys?: TwistedEd25519PublicKey[];
     },
   ): Promise<CommittedTransactionResponse[]> {
-    const { signer, ...rest } = args;
+    const { signer, signAndSubmitCallback, ...rest } = args;
     const results: CommittedTransactionResponse[] = [];
 
     const committedRolloverTxs = await this.checkSufficientBalanceAndRolloverIfNeeded({
-      signer,
-      tokenAddress: args.tokenAddress,
-      amount: args.amount,
-      senderDecryptionKey: args.senderDecryptionKey,
-      withFeePayer: args.withFeePayer,
+      ...args,
     });
     results.push(...committedRolloverTxs);
     const transaction = await this.transaction.transfer({ ...rest, sender: signer.accountAddress });
@@ -363,7 +352,7 @@ export class ConfidentialAsset {
       await this.submitTxn({
         signer,
         transaction,
-        signAndSubmitCallback: args.signAndSubmitCallback,
+        signAndSubmitCallback,
       }),
     );
     clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
@@ -411,7 +400,7 @@ export class ConfidentialAsset {
    * @throws {Error} If the pending balance is not empty and cannot be rolled over
    */
   async rotateEncryptionKey(args: RotateKeyParams): Promise<CommittedTransactionResponse[]> {
-    const { signer, senderDecryptionKey, newSenderDecryptionKey, tokenAddress, withFeePayer, options } = args;
+    const { signer, signAndSubmitCallback, senderDecryptionKey, newSenderDecryptionKey, tokenAddress } = args;
     const results: CommittedTransactionResponse[] = [];
 
     const balance = await this.getBalance({
@@ -421,27 +410,20 @@ export class ConfidentialAsset {
     });
     if (balance.pendingBalance() > 0n) {
       const rolloverTxs = await this.rolloverPendingBalance({
-        signer,
-        senderDecryptionKey,
-        tokenAddress,
+        ...args,
         withFreezeBalance: true,
-        withFeePayer,
-        options,
       });
       results.push(...rolloverTxs);
     }
-    const tx = await this.transaction.rotateEncryptionKey({
+    const transaction = await this.transaction.rotateEncryptionKey({
+      ...args,
       sender: signer.accountAddress,
-      senderDecryptionKey,
-      newSenderDecryptionKey,
-      tokenAddress,
-      withFeePayer,
-      options,
     });
     results.push(
       await this.submitTxn({
         signer,
-        transaction: tx,
+        transaction,
+        signAndSubmitCallback,
       }),
     );
     clearEncryptionKeyCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
@@ -535,7 +517,7 @@ export class ConfidentialAsset {
    * @throws {Error} If normalization fails
    */
   async normalizeBalance(args: NormalizeBalanceParams): Promise<CommittedTransactionResponse> {
-    const { signer, senderDecryptionKey, tokenAddress, withFeePayer, options } = args;
+    const { signer, signAndSubmitCallback, senderDecryptionKey, tokenAddress, withFeePayer, options } = args;
     const { available, pending } = await this.getBalance({
       accountAddress: signer.accountAddress,
       tokenAddress,
@@ -559,6 +541,7 @@ export class ConfidentialAsset {
     const committedTransaction = await this.submitTxn({
       signer,
       transaction,
+      signAndSubmitCallback,
     });
     const newBalance = new ConfidentialBalance(confidentialNormalization.normalizedEncryptedAvailableBalance, pending);
     setCache(`${signer.accountAddress}-balance-for-${tokenAddress}-${this.client().config.network}`, newBalance);
@@ -568,7 +551,7 @@ export class ConfidentialAsset {
   private async submitTxn(args: {
     signer: Account;
     transaction: SimpleTransaction;
-    signAndSubmitCallback?: (transaction: SimpleTransaction, account: Account) => Promise<HexInput>;
+    signAndSubmitCallback: ((transaction: SimpleTransaction, account: Account) => Promise<HexInput>) | undefined;
   }) {
     const { signer, transaction, signAndSubmitCallback } = args;
     let transactionHash: HexInput;
@@ -586,18 +569,15 @@ export class ConfidentialAsset {
     return committedTx;
   }
 
-  private async checkSufficientBalanceAndRolloverIfNeeded(args: {
-    signer: Account;
-    tokenAddress: AccountAddressInput;
-    amount: AnyNumber;
-    senderDecryptionKey: TwistedEd25519PrivateKey;
-    withFeePayer?: boolean;
-    options?: InputGenerateTransactionOptions;
-  }): Promise<CommittedTransactionResponse[]> {
-    const { signer, ...rest } = args;
+  private async checkSufficientBalanceAndRolloverIfNeeded(
+    args: ConfidentialAssetSubmissionParams & {
+      amount: AnyNumber;
+      senderDecryptionKey: TwistedEd25519PrivateKey;
+    },
+  ): Promise<CommittedTransactionResponse[]> {
     const results: CommittedTransactionResponse[] = [];
     const balance = await this.getBalance({
-      accountAddress: signer.accountAddress,
+      accountAddress: args.signer.accountAddress,
       tokenAddress: args.tokenAddress,
       decryptionKey: args.senderDecryptionKey,
     });
@@ -608,11 +588,7 @@ export class ConfidentialAsset {
         );
       }
       const committedRolloverTx = await this.rolloverPendingBalance({
-        signer,
-        senderDecryptionKey: args.senderDecryptionKey,
-        tokenAddress: args.tokenAddress,
-        withFeePayer: args.withFeePayer,
-        options: args.options,
+        ...args,
       });
       results.push(...committedRolloverTx);
     }
