@@ -1,8 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Deserializer, Ed25519PublicKey, Secp256k1PublicKey, MultiKey } from "../../src";
-import { multiKeyTestObject } from "./helper";
+import { Deserializer, Ed25519PublicKey, Secp256k1PublicKey, MultiKey, KeylessPublicKey } from "../../src";
+import { keylessTestObject, multiKeyTestObject } from "./helper";
 
 describe("MultiKey", () => {
   it("should throw when number of required signatures is less then 1", () => {
@@ -116,5 +116,56 @@ describe("MultiKey", () => {
     });
     const bitmap = multiKey.createBitmap({ bits: [0, 2] });
     expect(bitmap).toEqual(new Uint8Array(multiKeyTestObject.bitmap));
+  });
+
+  const keylessPublicKey = KeylessPublicKey.fromJwtAndPepper({
+    jwt: keylessTestObject.JWT,
+    pepper: keylessTestObject.pepper,
+  });
+
+  it("should throw when there are too many keyless public keys and signatures required is greater than 3", () => {
+    expect(
+      () =>
+        new MultiKey({
+          publicKeys: [
+            keylessPublicKey,
+            keylessPublicKey,
+            keylessPublicKey,
+            keylessPublicKey, // 4 keyless keys
+          ],
+          signaturesRequired: 4,
+        }),
+    ).toThrow();
+  });
+
+  it("should not throw when there are 3 or fewer keyless public keys and signatures required is greater than 3", () => {
+    expect(
+      () =>
+        new MultiKey({
+          publicKeys: [
+            keylessPublicKey,
+            keylessPublicKey,
+            keylessPublicKey, // 3 keyless keys
+            new Ed25519PublicKey(multiKeyTestObject.publicKeys[1]),
+            new Ed25519PublicKey(multiKeyTestObject.publicKeys[2]),
+          ],
+          signaturesRequired: 4,
+        }),
+    ).not.toThrow();
+  });
+
+  it("should not throw when there are more than 3 keyless public keys but signatures required is 3 or less", () => {
+    expect(
+      () =>
+        new MultiKey({
+          publicKeys: [
+            keylessPublicKey,
+            keylessPublicKey,
+            keylessPublicKey,
+            keylessPublicKey, // 4 keyless keys
+          ],
+          signaturesRequired: 3, // but only 3 signatures required
+        }),
+    ).not.toThrow();
   });
 });
