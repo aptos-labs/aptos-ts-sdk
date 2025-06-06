@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { ScriptComposerWasm } from "@aptos-labs/script-composer-pack";
+import { ScriptComposerWasm, TransactionComposer } from "@aptos-labs/script-composer-pack";
 import { AptosApiType, getFunctionParts } from "../../utils";
 import { AptosConfig } from "../../api/aptosConfig";
 import { InputBatchedFunctionData } from "../types";
@@ -18,9 +18,9 @@ import { convertArgument, fetchModuleAbi } from "../transactionBuilder/remoteAbi
 export class AptosScriptComposer {
   private config: AptosConfig;
 
-  private builder?: any;
+  private builder?: TransactionComposer;
 
-  private static transactionComposer?: any;
+  private static transactionComposer?: typeof TransactionComposer;
 
   constructor(aptosConfig: AptosConfig) {
     this.config = aptosConfig;
@@ -50,17 +50,21 @@ export class AptosScriptComposer {
   //
   // The function would also return a list of `CallArgument` that can be passed on to future calls.
   async addBatchedCalls(input: InputBatchedFunctionData): Promise<CallArgument[]> {
+    if (!this.builder) {
+      throw new Error("TransactionComposer not initialized");
+    }
     const { moduleAddress, moduleName, functionName } = getFunctionParts(input.function);
     const module = input.module;
     const nodeUrl = this.config.getRequestUrl(AptosApiType.FULLNODE);
+    const apiKey = this.config.clientConfig?.API_KEY;
 
     // Load the calling module into the builder.
-    await this.builder.load_module(nodeUrl, `${moduleAddress}::${moduleName}`);
+    await this.builder?.load_module(nodeUrl, apiKey || "",`${moduleAddress}::${moduleName}`);
 
     // Load the calling type arguments into the loader.
     if (input.typeArguments !== undefined) {
       for (const typeArgument of input.typeArguments) {
-        await this.builder.load_type_tag(nodeUrl, typeArgument.toString());
+        await this.builder.load_type_tag(nodeUrl, apiKey || "", typeArgument.toString());
       }
     }
     const typeArguments = standardizeTypeTags(input.typeArguments);
@@ -103,6 +107,9 @@ export class AptosScriptComposer {
   }
 
   build(): Uint8Array {
+    if (!this.builder) {
+      throw new Error("TransactionComposer not initialized");
+    }
     return this.builder.generate_batched_calls(true);
   }
 }

@@ -4,146 +4,144 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-importers:
+dependencies:
+  '@aptos-labs/aptos-cli':
+    specifier: ^1.0.2
+    version: 1.0.2
+  '@aptos-labs/aptos-client':
+    specifier: ^1.2.0
+    version: 1.2.0(axios@1.8.4)(got@11.8.6)
+  '@aptos-labs/script-composer-pack':
+    specifier: 0.0.10-beta.2
+    version: 0.0.10-beta.2
+  '@noble/curves':
+    specifier: ^1.6.0
+    version: 1.6.0
+  '@noble/hashes':
+    specifier: ^1.5.0
+    version: 1.5.0
+  '@scure/bip32':
+    specifier: ^1.4.0
+    version: 1.5.0
+  '@scure/bip39':
+    specifier: ^1.3.0
+    version: 1.4.0
+  eventemitter3:
+    specifier: ^5.0.1
+    version: 5.0.1
+  form-data:
+    specifier: ^4.0.0
+    version: 4.0.1
+  js-base64:
+    specifier: ^3.7.7
+    version: 3.7.7
+  jwt-decode:
+    specifier: ^4.0.0
+    version: 4.0.0
+  poseidon-lite:
+    specifier: ^0.2.0
+    version: 0.2.1
 
-  .:
-    dependencies:
-      '@aptos-labs/aptos-cli':
-        specifier: ^1.0.2
-        version: 1.0.2
-      '@aptos-labs/aptos-client':
-        specifier: ^1.2.0
-        version: 1.2.0(axios@1.8.4)(got@11.8.6)
-      '@aptos-labs/script-composer-pack':
-        specifier: ^0.0.9
-        version: 0.0.9
-      '@noble/curves':
-        specifier: ^1.6.0
-        version: 1.6.0
-      '@noble/hashes':
-        specifier: ^1.5.0
-        version: 1.5.0
-      '@scure/bip32':
-        specifier: ^1.4.0
-        version: 1.5.0
-      '@scure/bip39':
-        specifier: ^1.3.0
-        version: 1.4.0
-      eventemitter3:
-        specifier: ^5.0.1
-        version: 5.0.1
-      form-data:
-        specifier: ^4.0.0
-        version: 4.0.1
-      js-base64:
-        specifier: ^3.7.7
-        version: 3.7.7
-      jwt-decode:
-        specifier: ^4.0.0
-        version: 4.0.0
-      poseidon-lite:
-        specifier: ^0.2.0
-        version: 0.2.1
-    devDependencies:
-      '@babel/traverse':
-        specifier: ^7.26.10
-        version: 7.26.10
-      '@cucumber/cucumber':
-        specifier: ^11.2.0
-        version: 11.2.0
-      '@eslint/eslintrc':
-        specifier: ^3.3.1
-        version: 3.3.1
-      '@graphql-codegen/cli':
-        specifier: ^5.0.5
-        version: 5.0.5(@types/node@20.17.25)(graphql@16.10.0)(typescript@5.8.2)
-      '@graphql-codegen/import-types-preset':
-        specifier: ^3.0.0
-        version: 3.0.0(graphql@16.10.0)
-      '@graphql-codegen/typescript':
-        specifier: ^4.1.5
-        version: 4.1.5(graphql@16.10.0)
-      '@graphql-codegen/typescript-graphql-request':
-        specifier: ^6.2.0
-        version: 6.2.0(graphql-request@7.1.2)(graphql-tag@2.12.6)(graphql@16.10.0)
-      '@graphql-codegen/typescript-operations':
-        specifier: ^4.5.1
-        version: 4.5.1(graphql@16.10.0)
-      '@types/base-64':
-        specifier: ^1.0.2
-        version: 1.0.2
-      '@types/jest':
-        specifier: ^29.5.14
-        version: 29.5.14
-      '@types/jsonwebtoken':
-        specifier: ^9.0.9
-        version: 9.0.9
-      '@types/node':
-        specifier: ^20.17.25
-        version: 20.17.25
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^8.27.0
-        version: 8.27.0(@typescript-eslint/parser@8.27.0)(eslint@9.23.0)(typescript@5.8.2)
-      '@typescript-eslint/parser':
-        specifier: ^8.27.0
-        version: 8.27.0(eslint@9.23.0)(typescript@5.8.2)
-      dotenv:
-        specifier: ^16.4.7
-        version: 16.4.7
-      eslint:
-        specifier: ^9.23.0
-        version: 9.23.0
-      eslint-config-airbnb-base:
-        specifier: ^15.0.0
-        version: 15.0.0(eslint-plugin-import@2.31.0)(eslint@9.23.0)
-      eslint-config-prettier:
-        specifier: ^10.1.1
-        version: 10.1.1(eslint@9.23.0)
-      eslint-plugin-import:
-        specifier: ^2.31.0
-        version: 2.31.0(@typescript-eslint/parser@8.27.0)(eslint@9.23.0)
-      globals:
-        specifier: ^16.0.0
-        version: 16.0.0
-      graphql:
-        specifier: ^16.10.0
-        version: 16.10.0
-      graphql-request:
-        specifier: ^7.1.2
-        version: 7.1.2(graphql@16.10.0)
-      jest:
-        specifier: ^29.7.0
-        version: 29.7.0(@types/node@20.17.25)(ts-node@10.9.2)
-      jsonwebtoken:
-        specifier: ^9.0.2
-        version: 9.0.2
-      prettier:
-        specifier: ^3.5.3
-        version: 3.5.3
-      tree-kill:
-        specifier: ^1.2.2
-        version: 1.2.2
-      ts-jest:
-        specifier: ^29.2.5
-        version: 29.2.5(@babel/core@7.25.8)(esbuild@0.25.1)(jest@29.7.0)(typescript@5.8.2)
-      ts-loader:
-        specifier: ^9.5.2
-        version: 9.5.2(typescript@5.8.2)(webpack@5.95.0)
-      ts-node:
-        specifier: ^10.9.2
-        version: 10.9.2(@types/node@20.17.25)(typescript@5.8.2)
-      tsup:
-        specifier: ^8.4.0
-        version: 8.4.0(typescript@5.8.2)
-      typedoc:
-        specifier: ^0.28.1
-        version: 0.28.1(typescript@5.8.2)
-      typedoc-plugin-missing-exports:
-        specifier: ^4.0.0
-        version: 4.0.0(typedoc@0.28.1)
-      typescript:
-        specifier: ^5.8.2
-        version: 5.8.2
+devDependencies:
+  '@babel/traverse':
+    specifier: ^7.26.10
+    version: 7.26.10
+  '@cucumber/cucumber':
+    specifier: ^11.2.0
+    version: 11.2.0
+  '@eslint/eslintrc':
+    specifier: ^3.3.1
+    version: 3.3.1
+  '@graphql-codegen/cli':
+    specifier: ^5.0.5
+    version: 5.0.5(@types/node@20.17.25)(graphql@16.10.0)(typescript@5.8.2)
+  '@graphql-codegen/import-types-preset':
+    specifier: ^3.0.0
+    version: 3.0.0(graphql@16.10.0)
+  '@graphql-codegen/typescript':
+    specifier: ^4.1.5
+    version: 4.1.5(graphql@16.10.0)
+  '@graphql-codegen/typescript-graphql-request':
+    specifier: ^6.2.0
+    version: 6.2.0(graphql-request@7.1.2)(graphql-tag@2.12.6)(graphql@16.10.0)
+  '@graphql-codegen/typescript-operations':
+    specifier: ^4.5.1
+    version: 4.5.1(graphql@16.10.0)
+  '@types/base-64':
+    specifier: ^1.0.2
+    version: 1.0.2
+  '@types/jest':
+    specifier: ^29.5.14
+    version: 29.5.14
+  '@types/jsonwebtoken':
+    specifier: ^9.0.9
+    version: 9.0.9
+  '@types/node':
+    specifier: ^20.17.25
+    version: 20.17.25
+  '@typescript-eslint/eslint-plugin':
+    specifier: ^8.27.0
+    version: 8.27.0(@typescript-eslint/parser@8.27.0)(eslint@9.23.0)(typescript@5.8.2)
+  '@typescript-eslint/parser':
+    specifier: ^8.27.0
+    version: 8.27.0(eslint@9.23.0)(typescript@5.8.2)
+  dotenv:
+    specifier: ^16.4.7
+    version: 16.4.7
+  eslint:
+    specifier: ^9.23.0
+    version: 9.23.0
+  eslint-config-airbnb-base:
+    specifier: ^15.0.0
+    version: 15.0.0(eslint-plugin-import@2.31.0)(eslint@9.23.0)
+  eslint-config-prettier:
+    specifier: ^10.1.1
+    version: 10.1.1(eslint@9.23.0)
+  eslint-plugin-import:
+    specifier: ^2.31.0
+    version: 2.31.0(@typescript-eslint/parser@8.27.0)(eslint@9.23.0)
+  globals:
+    specifier: ^16.0.0
+    version: 16.0.0
+  graphql:
+    specifier: ^16.10.0
+    version: 16.10.0
+  graphql-request:
+    specifier: ^7.1.2
+    version: 7.1.2(graphql@16.10.0)
+  jest:
+    specifier: ^29.7.0
+    version: 29.7.0(@types/node@20.17.25)(ts-node@10.9.2)
+  jsonwebtoken:
+    specifier: ^9.0.2
+    version: 9.0.2
+  prettier:
+    specifier: ^3.5.3
+    version: 3.5.3
+  tree-kill:
+    specifier: ^1.2.2
+    version: 1.2.2
+  ts-jest:
+    specifier: ^29.2.5
+    version: 29.2.5(@babel/core@7.25.8)(esbuild@0.25.1)(jest@29.7.0)(typescript@5.8.2)
+  ts-loader:
+    specifier: ^9.5.2
+    version: 9.5.2(typescript@5.8.2)(webpack@5.95.0)
+  ts-node:
+    specifier: ^10.9.2
+    version: 10.9.2(@types/node@20.17.25)(typescript@5.8.2)
+  tsup:
+    specifier: ^8.4.0
+    version: 8.4.0(typescript@5.8.2)
+  typedoc:
+    specifier: ^0.28.1
+    version: 0.28.1(typescript@5.8.2)
+  typedoc-plugin-missing-exports:
+    specifier: ^4.0.0
+    version: 4.0.0(typedoc@0.28.1)
+  typescript:
+    specifier: ^5.8.2
+    version: 5.8.2
 
 packages:
 
@@ -161,11 +159,15 @@ packages:
     peerDependencies:
       got: ^11.8.6
 
-  '@aptos-labs/aptos-dynamic-transaction-composer@0.1.3':
-    resolution: {integrity: sha512-bJl+Zq5QbhpcPIJakAkl9tnT3T02mxCYhZThQDhUmjsOZ5wMRlKJ0P7aaq1dmlybSHkVj7vRgOy2t86/NDKKng==}
+  /@aptos-labs/aptos-dynamic-transaction-composer@0.1.3-beta.2:
+    resolution: {integrity: sha512-2oDBUSKSFJOT2wNpuYgdlHAUVa0rD6WVDL207w1lgqr56/TWQY6hEb8aZiZeMSlOPXLRzdxHfbbgEyx63XR4Kg==}
+    dev: false
 
-  '@aptos-labs/script-composer-pack@0.0.9':
-    resolution: {integrity: sha512-Y3kA1rgF65HETgoTn2omDymsgO+fnZouPLrKJZ9sbxTGdOekIIHtGee3A2gk84eCqa02ZKBumZmP+IDCXRtU/g==}
+  /@aptos-labs/script-composer-pack@0.0.10-beta.2:
+    resolution: {integrity: sha512-YK490G9apKLnH3XiUW8SD6SNpggWBwWGx+zfHjFDqzzzZaFkF/MeI/B6MY9454tM0oMQPE5DU3cmSDkkTt0JQA==}
+    dependencies:
+      '@aptos-labs/aptos-dynamic-transaction-composer': 0.1.3-beta.2
+    dev: false
 
   '@ardatan/relay-compiler@12.0.0':
     resolution: {integrity: sha512-9anThAaj1dQr6IGmzBMcfzOQKTa5artjuPmw8NYK/fiGEMjADbSguBY2FMDykt+QhilR3wc9VA/3yVju7JHg7Q==}
