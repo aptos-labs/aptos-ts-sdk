@@ -64,9 +64,7 @@ if (!API_KEY) {
 }
 const APTOS_NETWORK: Network = FAUCET_TOKEN ? Network.CUSTOM : NetworkToNetworkName[Network.TESTNET];
 const config = getConfig(APTOS_NETWORK, API_KEY, FAUCET_TOKEN);
-export const transactionBuilder = new ConfidentialAssetTransactionBuilder(config, {
-  confidentialAssetModuleAddress: "0xbe14a545c8e1f0024a1665f39fc1227c066727a70236e784fb203ec619fedf4c",
-});
+export const transactionBuilder = new ConfidentialAssetTransactionBuilder(config, "0xbe14a545c8e1f0024a1665f39fc1227c066727a70236e784fb203ec619fedf4c");
 export const confidentialAsset = new ConfidentialAsset({
   config,
   confidentialAssetModuleAddress: "0xbe14a545c8e1f0024a1665f39fc1227c066727a70236e784fb203ec619fedf4c",
