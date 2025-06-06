@@ -10,7 +10,7 @@
     "url": "https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose"
   },
   "homepage": "https://aptos-labs.github.io/aptos-ts-sdk/",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "sideEffects": false,
   "main": "dist/common/index.js",
   "module": "dist/esm/index.mjs",
@@ -45,6 +45,7 @@
   "dependencies": {
     "@aptos-labs/confidential-asset-wasm-bindings": "^0.0.2",
     "@aptos-labs/ts-sdk": "^1.38.0",
+    "@aptos-labs/gas-station-client": "^1.0.0",
     "@noble/curves": "^1.6.0",
     "@noble/hashes": "^1.5.0"
   },
