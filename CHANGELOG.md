@@ -3,6 +3,8 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
+- Add account derivation APIs, `getAccountsForPublicKey` and `deriveOwnedAccountsFromSigner` which handle multi-key accounts and key rotations 
+- Update the deprecated function deriveAccountFromPrivateKey to use the new account derivation API
 
 - Adds restriction on construction of a `MultiKey`s with more than 3 Keyless public keys when signature threshold is more than 3 as well. The limit on the number of keyless signatures is 3 so to prevent sending funds to accounts that are not accessible we add this safeguard.
 
