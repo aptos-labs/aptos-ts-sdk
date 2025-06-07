@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import aptosClient from "@aptos-labs/aptos-client";
-import { AptosSettings, ClientConfig, Client, FullNodeConfig, IndexerConfig, FaucetConfig } from "../types";
+import { AptosSettings, ClientConfig, Client, FullNodeConfig, IndexerConfig, FaucetConfig, TransactionGenerationConfig } from "../types";
 import {
   NetworkToNodeAPI,
   NetworkToFaucetAPI,
@@ -11,7 +11,7 @@ import {
   NetworkToPepperAPI,
   NetworkToProverAPI,
 } from "../utils/apiEndpoints";
-import { AptosApiType } from "../utils/const";
+import { AptosApiType, DEFAULT_MAX_GAS_AMOUNT, DEFAULT_TXN_EXP_SEC_FROM_NOW } from "../utils/const";
 
 /**
  * Represents the configuration settings for an Aptos SDK client instance.
@@ -102,6 +102,12 @@ export class AptosConfig {
   readonly faucetConfig?: FaucetConfig;
 
   /**
+   * Optional specific Transaction Generation configurations
+   * @group Client
+   */
+  readonly transactionGenerationConfig?: TransactionGenerationConfig;
+
+  /**
    * Initializes an instance of the Aptos client with the specified settings.
    * This allows users to configure various aspects of the client, such as network and endpoints.
    *
@@ -154,6 +160,10 @@ export class AptosConfig {
     this.fullnodeConfig = settings?.fullnodeConfig ?? {};
     this.indexerConfig = settings?.indexerConfig ?? {};
     this.faucetConfig = settings?.faucetConfig ?? {};
+    this.transactionGenerationConfig = settings?.transactionGenerationConfig ?? {
+      DEFAULT_MAX_GAS_AMOUNT: 200000,
+      DEFAULT_TXN_EXPIRY_SEC_FROM_NOW: 20,
+    };
   }
 
   /**
@@ -264,5 +274,13 @@ export class AptosConfig {
    */
   isProverServiceRequest(url: string): boolean {
     return NetworkToProverAPI[this.network] === url;
+  }
+
+  getDefaultMaxGasAmount(): number {
+    return this.transactionGenerationConfig?.DEFAULT_MAX_GAS_AMOUNT ?? DEFAULT_MAX_GAS_AMOUNT;
+  }
+
+  getDefaultTxnExpirySecFromNow(): number {
+    return this.transactionGenerationConfig?.DEFAULT_TXN_EXPIRY_SEC_FROM_NOW ?? DEFAULT_TXN_EXP_SEC_FROM_NOW;
   }
 }

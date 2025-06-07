@@ -225,6 +225,8 @@ export type AptosSettings = {
   readonly indexerConfig?: IndexerConfig;
 
   readonly faucetConfig?: FaucetConfig;
+
+  readonly transactionGenerationConfig?: TransactionGenerationConfig;
 };
 
 /**
@@ -291,6 +293,14 @@ export type IndexerConfig = ClientHeadersType;
  */
 export type FaucetConfig = ClientHeadersType & {
   AUTH_TOKEN?: string;
+};
+
+/**
+ * A configuration object for default parameters for transaction generation.
+ */
+export type TransactionGenerationConfig = {
+  DEFAULT_MAX_GAS_AMOUNT?: number;
+  DEFAULT_TXN_EXPIRY_SEC_FROM_NOW?: number;
 };
 
 /**
