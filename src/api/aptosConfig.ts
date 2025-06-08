@@ -2,7 +2,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import aptosClient from "@aptos-labs/aptos-client";
-import { AptosSettings, ClientConfig, Client, FullNodeConfig, IndexerConfig, FaucetConfig, TransactionGenerationConfig } from "../types";
+import {
+  AptosSettings,
+  ClientConfig,
+  Client,
+  FullNodeConfig,
+  IndexerConfig,
+  FaucetConfig,
+  TransactionGenerationConfig,
+} from "../types";
 import {
   NetworkToNodeAPI,
   NetworkToFaucetAPI,
