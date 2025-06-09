@@ -63,9 +63,12 @@ export class ConfidentialWithdraw {
     if (amount < 0n) {
       throw new Error("Amount to withdraw must not be negative");
     }
+    if (senderEncryptedAvailableBalanceAfterWithdrawal.getAmount() !== senderEncryptedAvailableBalance.getAmount() - amount) {
+      throw new Error("Balance after withdrawal doesn't equal the balance before withdrawal minus the amount to withdraw");
+    }
     if (senderEncryptedAvailableBalanceAfterWithdrawal.getAmount() < 0n) {
       throw new Error(
-        `Insufficient balance. Available balance: ${senderEncryptedAvailableBalanceAfterWithdrawal.getAmount().toString()}, Amount to withdraw: ${amount.toString()}`,
+        `Insufficient balance. Available balance: ${senderEncryptedAvailableBalance.getAmount().toString()}, Amount to withdraw: ${amount.toString()}`,
       );
     }
 
