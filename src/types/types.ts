@@ -299,8 +299,8 @@ export type FaucetConfig = ClientHeadersType & {
  * A configuration object for default parameters for transaction generation.
  */
 export type TransactionGenerationConfig = {
-  DEFAULT_MAX_GAS_AMOUNT?: number;
-  DEFAULT_TXN_EXPIRY_SEC_FROM_NOW?: number;
+  defaultMaxGasAmount?: number;
+  defaultTxnExpirySecFromNow?: number;
 };
 
 /**

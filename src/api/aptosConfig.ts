@@ -168,10 +168,7 @@ export class AptosConfig {
     this.fullnodeConfig = settings?.fullnodeConfig ?? {};
     this.indexerConfig = settings?.indexerConfig ?? {};
     this.faucetConfig = settings?.faucetConfig ?? {};
-    this.transactionGenerationConfig = settings?.transactionGenerationConfig ?? {
-      DEFAULT_MAX_GAS_AMOUNT: 200000,
-      DEFAULT_TXN_EXPIRY_SEC_FROM_NOW: 20,
-    };
+    this.transactionGenerationConfig = settings?.transactionGenerationConfig ?? {};
   }
 
   /**
@@ -285,10 +282,10 @@ export class AptosConfig {
   }
 
   getDefaultMaxGasAmount(): number {
-    return this.transactionGenerationConfig?.DEFAULT_MAX_GAS_AMOUNT ?? DEFAULT_MAX_GAS_AMOUNT;
+    return this.transactionGenerationConfig?.defaultMaxGasAmount ?? DEFAULT_MAX_GAS_AMOUNT;
   }
 
   getDefaultTxnExpirySecFromNow(): number {
-    return this.transactionGenerationConfig?.DEFAULT_TXN_EXPIRY_SEC_FROM_NOW ?? DEFAULT_TXN_EXP_SEC_FROM_NOW;
+    return this.transactionGenerationConfig?.defaultTxnExpirySecFromNow ?? DEFAULT_TXN_EXP_SEC_FROM_NOW;
   }
 }
