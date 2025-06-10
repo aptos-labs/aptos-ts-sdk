@@ -30,12 +30,7 @@ export class ConfidentialAssetTransactionBuilder {
   readonly client: Aptos;
   readonly confidentialAssetModuleAddress: string;
 
-  constructor(
-    config: AptosConfig,
-    {
-      confidentialAssetModuleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS,
-    }: { confidentialAssetModuleAddress?: string } = {},
-  ) {
+  constructor(config: AptosConfig, confidentialAssetModuleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS) {
     this.client = new Aptos(config);
     this.confidentialAssetModuleAddress = confidentialAssetModuleAddress;
     TwistedElGamal.initializeKangaroos();

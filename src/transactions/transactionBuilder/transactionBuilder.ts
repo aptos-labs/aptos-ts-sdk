@@ -24,7 +24,6 @@ import { getInfo } from "../../internal/utils";
 import { getLedgerInfo } from "../../internal/general";
 import { getGasPriceEstimation } from "../../internal/transaction";
 import { NetworkToChainId } from "../../utils/apiEndpoints";
-import { DEFAULT_MAX_GAS_AMOUNT, DEFAULT_TXN_EXP_SEC_FROM_NOW } from "../../utils/const";
 import { normalizeBundle } from "../../utils/normalizeBundle";
 import {
   AccountAuthenticator,
@@ -411,9 +410,10 @@ export async function generateRawTransaction(args: {
   ]);
 
   const { maxGasAmount, gasUnitPrice, expireTimestamp } = {
-    maxGasAmount: options?.maxGasAmount ? BigInt(options.maxGasAmount) : BigInt(DEFAULT_MAX_GAS_AMOUNT),
+    maxGasAmount: options?.maxGasAmount ? BigInt(options.maxGasAmount) : BigInt(aptosConfig.getDefaultMaxGasAmount()),
     gasUnitPrice: options?.gasUnitPrice ?? BigInt(gasEstimate),
-    expireTimestamp: options?.expireTimestamp ?? BigInt(Math.floor(Date.now() / 1000) + DEFAULT_TXN_EXP_SEC_FROM_NOW),
+    expireTimestamp:
+      options?.expireTimestamp ?? BigInt(Math.floor(Date.now() / 1000) + aptosConfig.getDefaultTxnExpirySecFromNow()),
   };
 
   return new RawTransaction(

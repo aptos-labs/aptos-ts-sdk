@@ -8,6 +8,9 @@ dependencies:
   '@aptos-labs/confidential-asset-wasm-bindings':
     specifier: ^0.0.2
     version: 0.0.2
+  '@aptos-labs/gas-station-client':
+    specifier: ^1.0.0
+    version: 1.0.0(axios@1.9.0)(got@11.8.6)
   '@aptos-labs/ts-sdk':
     specifier: ^1.38.0
     version: 1.38.0(axios@1.9.0)(got@11.8.6)
@@ -93,6 +96,15 @@ packages:
 
   /@aptos-labs/confidential-asset-wasm-bindings@0.0.2:
     resolution: {integrity: sha512-xfgRVc4WX4N7hjSHP91a3o686gC4307PGa9eDT7eWhp2VN9YgYhDIKRFRITpKT5JC7IXbuh6pGq1MqrqTjBokA==}
+    dev: false
+
+  /@aptos-labs/gas-station-client@1.0.0(axios@1.9.0)(got@11.8.6):
+    resolution: {integrity: sha512-8iN+nYIDKLCxshlbisIYuzlffDbx/mjgakyl5W/5XOC0exR74+YI513XHQO7o3VX6ENIEhPzOPcGk21lv4MdFw==}
+    dependencies:
+      '@aptos-labs/ts-sdk': 1.38.0(axios@1.9.0)(got@11.8.6)
+    transitivePeerDependencies:
+      - axios
+      - got
     dev: false
 
   /@aptos-labs/script-composer-pack@0.0.9:
