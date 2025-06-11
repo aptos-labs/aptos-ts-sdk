@@ -14,6 +14,7 @@ import {
   TransactionPayloadEntryFunction,
   TransactionPayloadMultiSig,
   TransactionPayloadScript,
+  TransactionInnerPayload,
 } from "./instances";
 import { AnyNumber, HexInput, MoveFunctionGenericTypeParam, MoveFunctionId, MoveStructId, MoveValue } from "../types";
 import { TypeTag } from "./typeTag";
@@ -21,7 +22,6 @@ import { AccountAuthenticator } from "./authenticator/account";
 import { SimpleTransaction } from "./instances/simpleTransaction";
 import { MultiAgentTransaction } from "./instances/multiAgentTransaction";
 import { Serialized } from "../bcs";
-import { TransactionPayloadPayload } from "./instances/transactionPayload";
 
 /**
  * Entry function arguments for building a raw transaction using remote ABI, supporting various data types including primitives and arrays.
@@ -150,7 +150,7 @@ export type AnyTransactionPayloadInstance =
   | TransactionPayloadEntryFunction
   | TransactionPayloadScript
   | TransactionPayloadMultiSig
-  | TransactionPayloadPayload;
+  | TransactionInnerPayload;
 
 /**
  * The data needed to generate a transaction payload for Entry Function, Script, or Multi Sig types.

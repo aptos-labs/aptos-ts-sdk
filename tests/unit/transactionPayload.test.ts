@@ -5,7 +5,6 @@ import {
   TransactionExtraConfigV1,
   TransactionInnerPayloadV1,
   TransactionPayload,
-  TransactionPayloadPayload,
 } from "../../src";
 import { Serializer, Deserializer } from "../../src";
 
@@ -35,11 +34,9 @@ describe("parseEncodedTransactions", () => {
   });
 
   test("building a turbo transaction payload", () => {
-    const payload = new TransactionPayloadPayload(
-      new TransactionInnerPayloadV1(
-        new TransactionExecutableEntryFunction(EntryFunction.build("0x1::aptos_account", "transfer", [], [])),
-        new TransactionExtraConfigV1(),
-      ),
+    const payload = new TransactionInnerPayloadV1(
+      new TransactionExecutableEntryFunction(EntryFunction.build("0x1::aptos_account", "transfer", [], [])),
+      new TransactionExtraConfigV1(),
     );
 
     const ser = new Serializer();

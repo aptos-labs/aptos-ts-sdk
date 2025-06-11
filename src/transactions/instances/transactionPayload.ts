@@ -638,7 +638,7 @@ export class TransactionExecutableEmpty extends TransactionExecutable {
 export abstract class TransactionExtraConfig {
   abstract serialize(serializer: Serializer): void;
 
-  static deserialize(deserializer: Deserializer): TransactionExecutable {
+  static deserialize(deserializer: Deserializer): TransactionExtraConfig {
     // index enum variant
     const index = deserializer.deserializeUleb128AsU32();
     switch (index) {
