@@ -50,6 +50,7 @@ import {
   MultiSigTransactionPayload,
   RawTransaction,
   Script,
+  TransactionInnerPayload,
   TransactionPayloadEntryFunction,
   TransactionPayloadMultiSig,
   TransactionPayloadScript,
@@ -75,7 +76,6 @@ import {
   InputViewFunctionDataWithRemoteABI,
   InputViewFunctionDataWithABI,
   FunctionABI,
-  InputGenerateOrderlessTransactionOptions,
 } from "../types";
 import { convertArgument, fetchEntryFunctionAbi, fetchViewFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
@@ -90,7 +90,6 @@ import {
   TransactionExecutableScript,
   TransactionExtraConfigV1,
   TransactionInnerPayloadV1,
-  TransactionPayloadPayload,
 } from "../instances/transactionPayload";
 
 /**
@@ -369,7 +368,7 @@ export async function generateRawTransaction(args: {
 }): Promise<RawTransaction> {
   const { aptosConfig, sender, payload, options, feePayerAddress } = args;
 
-  if (options && "replayNonce" in options && "accountSequenceNumber" in options) {
+  if (options?.replayNonce !== undefined && options?.accountSequenceNumber !== undefined) {
     throw new Error("Cannot specify both replayNonce and accountSequenceNumber in options.");
   }
 
@@ -391,12 +390,12 @@ export async function generateRawTransaction(args: {
 
   const getSequenceNumberForAny = async () => {
     const getSequenceNumber = async () => {
-      if (options && "accountSequenceNumber" in options && options?.accountSequenceNumber !== undefined) {
+      if (options?.accountSequenceNumber !== undefined) {
         return options.accountSequenceNumber;
-      } else if (options && "replayNonce" in options && options?.replayNonce !== undefined) {
+      } else if (options?.replayNonce !== undefined) {
         // If replay nonce is provided, use it as the sequence number
-        // TODO: Verify this
-        return 18446744073709551615n;
+        // This is an unused value, so it's specifically to show that the sequence number is not used
+        return 0xdeadbeefn;
       }
 
       return (await getInfo({ aptosConfig, accountAddress: sender })).sequence_number;
@@ -432,13 +431,13 @@ export async function generateRawTransaction(args: {
     gasUnitPrice: options?.gasUnitPrice ?? BigInt(gasEstimate),
     expireTimestamp:
       options?.expireTimestamp ?? BigInt(Math.floor(Date.now() / 1000) + aptosConfig.getDefaultTxnExpirySecFromNow()),
-    replayNonce: options && "replayNonce" in options && options?.replayNonce ? BigInt(options.replayNonce) : undefined,
+    replayNonce: options?.replayNonce ? BigInt(options.replayNonce) : undefined,
   };
 
   // If we're using replay nonce, we must convert the original payload
   let txnPayload = payload;
   if (replayNonce !== undefined) {
-    txnPayload = convertPayloadToPayloadPayload(payload, replayNonce);
+    txnPayload = convertPayloadToInnerPayload(payload, replayNonce);
   }
 
   return new RawTransaction(
@@ -452,23 +451,19 @@ export async function generateRawTransaction(args: {
   );
 }
 
-export function convertPayloadToPayloadPayload(
+export function convertPayloadToInnerPayload(
   payload: AnyTransactionPayloadInstance,
   replayNonce?: bigint,
-): TransactionPayloadPayload {
+): TransactionInnerPayload {
   if (payload instanceof TransactionPayloadScript) {
-    return new TransactionPayloadPayload(
-      new TransactionInnerPayloadV1(
-        new TransactionExecutableScript(payload.script),
-        new TransactionExtraConfigV1(undefined, replayNonce),
-      ),
+    return new TransactionInnerPayloadV1(
+      new TransactionExecutableScript(payload.script),
+      new TransactionExtraConfigV1(undefined, replayNonce),
     );
   } else if (payload instanceof TransactionPayloadEntryFunction) {
-    return new TransactionPayloadPayload(
-      new TransactionInnerPayloadV1(
-        new TransactionExecutableEntryFunction(payload.entryFunction),
-        new TransactionExtraConfigV1(undefined, replayNonce),
-      ),
+    return new TransactionInnerPayloadV1(
+      new TransactionExecutableEntryFunction(payload.entryFunction),
+      new TransactionExtraConfigV1(undefined, replayNonce),
     );
   } else if (payload instanceof TransactionPayloadMultiSig) {
     const innerPayload = payload.multiSig.transaction_payload;
@@ -482,11 +477,9 @@ export function convertPayloadToPayloadPayload(
       throw new Error("Scripts are not supported in multi-sig transactions.");
     }
 
-    return new TransactionPayloadPayload(
-      new TransactionInnerPayloadV1(
-        executable,
-        new TransactionExtraConfigV1(payload.multiSig.multisig_address, replayNonce),
-      ),
+    return new TransactionInnerPayloadV1(
+      executable,
+      new TransactionExtraConfigV1(payload.multiSig.multisig_address, replayNonce),
     );
   } else {
     throw new Error(`Unsupported payload type: ${payload}`);

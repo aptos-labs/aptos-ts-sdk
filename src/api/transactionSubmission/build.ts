@@ -6,7 +6,7 @@ import { generateTransaction } from "../../internal/transactionSubmission";
 import {
   InputGenerateTransactionPayloadData,
   InputGenerateTransactionOptions,
-  InputGenerateOrderlessTransactionOptions,
+  InputGenerateTurboTransactionOptions,
 } from "../../transactions";
 import { MultiAgentTransaction } from "../../transactions/instances/multiAgentTransaction";
 import { SimpleTransaction } from "../../transactions/instances/simpleTransaction";

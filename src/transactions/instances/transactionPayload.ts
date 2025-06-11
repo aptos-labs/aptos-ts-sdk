@@ -12,7 +12,15 @@ import { AccountAddress, Hex } from "../../core";
 import { Identifier } from "./identifier";
 import { ModuleId } from "./moduleId";
 import type { EntryFunctionArgument, ScriptFunctionArgument, TransactionArgument } from "./transactionArgument";
-import { AnyNumber, MoveModuleId, ScriptTransactionArgumentVariants, TransactionPayloadVariants } from "../../types";
+import {
+  AnyNumber,
+  MoveModuleId,
+  ScriptTransactionArgumentVariants,
+  TransactionExecutableVariants,
+  TransactionExtraConfigVariants,
+  TransactionInnerPayloadVariants,
+  TransactionPayloadVariants,
+} from "../../types";
 import { TypeTag } from "../typeTag";
 
 /**
@@ -96,7 +104,7 @@ export abstract class TransactionPayload extends Serializable {
       case TransactionPayloadVariants.Multisig:
         return TransactionPayloadMultiSig.load(deserializer);
       case TransactionPayloadVariants.Payload:
-        return TransactionPayloadPayload.load(deserializer);
+        return TransactionInnerPayload.deserialize(deserializer);
       default:
         throw new Error(`Unknown variant index for TransactionPayload: ${index}`);
     }
@@ -514,35 +522,12 @@ export class MultiSigTransactionPayload extends Serializable {
   }
 }
 
-export enum TransactionInnerPayloadVariants {
-  V1 = 0,
-}
-
 /**
  * Represents any transaction payload that can be submitted to the Aptos chain for execution.
  *
- * This is specifically used for orderless transactions.
+ * This is specifically required for turbo transactions, but can be used for any transaction payload.
  */
-export class TransactionPayloadPayload extends TransactionPayload {
-  public readonly innerPayload: TransactionInnerPayload;
-
-  constructor(innerPayload: TransactionInnerPayload) {
-    super();
-    this.innerPayload = innerPayload;
-  }
-
-  serialize(serializer: Serializer): void {
-    serializer.serializeU32AsUleb128(TransactionPayloadVariants.Payload);
-    this.innerPayload.serialize(serializer);
-  }
-
-  static load(deserializer: Deserializer): TransactionPayloadPayload {
-    const value = TransactionInnerPayload.deserialize(deserializer);
-    return new TransactionPayloadPayload(value);
-  }
-}
-
-export abstract class TransactionInnerPayload {
+export abstract class TransactionInnerPayload extends TransactionPayload {
   abstract serialize(serializer: Serializer): void;
 
   static deserialize(deserializer: Deserializer): TransactionInnerPayload {
@@ -568,6 +553,8 @@ export class TransactionInnerPayloadV1 extends TransactionInnerPayload {
   }
 
   serialize(serializer: Serializer): void {
+    // This payload must be serialized as a top level TransactionPayload, so we add that here
+    serializer.serializeU32AsUleb128(TransactionPayloadVariants.Payload);
     // V1 is serialized as 0
     serializer.serializeU32AsUleb128(TransactionInnerPayloadVariants.V1);
     this.executable.serialize(serializer);
@@ -579,12 +566,6 @@ export class TransactionInnerPayloadV1 extends TransactionInnerPayload {
     let extra_config = TransactionExtraConfig.deserialize(deserializer);
     return new TransactionInnerPayloadV1(executable, extra_config);
   }
-}
-
-export enum TransactionExecutableVariants {
-  Script = 0,
-  EntryFunction = 1,
-  Empty = 2,
 }
 
 export abstract class TransactionExecutable {
@@ -652,10 +633,6 @@ export class TransactionExecutableEmpty extends TransactionExecutable {
   static load(_: Deserializer): TransactionExecutableEmpty {
     return new TransactionExecutableEmpty();
   }
-}
-
-export enum TransactionExtraConfigVariants {
-  V1 = 0,
 }
 
 export abstract class TransactionExtraConfig {
