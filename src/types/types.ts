@@ -632,6 +632,7 @@ export type UserTransactionResponse = {
   changes: Array<WriteSetChange>;
   sender: string;
   sequence_number: string;
+  replay_protection_nonce: string;
   max_gas_amount: string;
   gas_unit_price: string;
   expiration_timestamp_secs: string;

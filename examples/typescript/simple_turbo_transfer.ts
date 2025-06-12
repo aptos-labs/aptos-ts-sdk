@@ -93,7 +93,7 @@ const example = async () => {
       functionArguments: [bob.accountAddress, TRANSFER_AMOUNT],
     },
     options: {
-      replayNonce: 12345,
+      replayProtectionNonce: 12345,
     },
   });
 

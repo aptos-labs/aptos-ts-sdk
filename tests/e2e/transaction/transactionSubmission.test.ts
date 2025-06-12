@@ -988,7 +988,7 @@ describe("transaction submission", () => {
           functionArguments: [1, receiverAccounts[0].accountAddress],
         },
         options: {
-          replayNonce: 0xcafebabedeadbeefn,
+          replayProtectionNonce: 0xcafebabedeadbeefn,
         },
       });
       const response = await aptos.signAndSubmitTransaction({
@@ -1009,7 +1009,7 @@ describe("transaction submission", () => {
         functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
       },
       options: {
-        replayNonce: 101,
+        replayProtectionNonce: 101,
       },
     });
     const response = await aptos.signAndSubmitTransaction({

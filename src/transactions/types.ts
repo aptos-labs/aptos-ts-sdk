@@ -126,7 +126,7 @@ export type InputGenerateSequenceNumberTransactionOptions = {
   gasUnitPrice?: number;
   expireTimestamp?: number;
   accountSequenceNumber?: AnyNumber;
-  replayNonce?: undefined;
+  replayProtectionNonce?: undefined;
 };
 
 /**
@@ -137,7 +137,7 @@ export type InputGenerateTurboTransactionOptions = {
   gasUnitPrice?: number;
   expireTimestamp?: number;
   accountSequenceNumber?: undefined;
-  replayNonce: AnyNumber;
+  replayProtectionNonce: AnyNumber;
 };
 
 /**

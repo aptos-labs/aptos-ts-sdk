@@ -368,8 +368,8 @@ export async function generateRawTransaction(args: {
 }): Promise<RawTransaction> {
   const { aptosConfig, sender, payload, options, feePayerAddress } = args;
 
-  if (options?.replayNonce !== undefined && options?.accountSequenceNumber !== undefined) {
-    throw new Error("Cannot specify both replayNonce and accountSequenceNumber in options.");
+  if (options?.replayProtectionNonce !== undefined && options?.accountSequenceNumber !== undefined) {
+    throw new Error("Cannot specify both replayProtectionNonce and accountSequenceNumber in options.");
   }
 
   const getChainId = async () => {
@@ -392,7 +392,7 @@ export async function generateRawTransaction(args: {
     const getSequenceNumber = async () => {
       if (options?.accountSequenceNumber !== undefined) {
         return options.accountSequenceNumber;
-      } else if (options?.replayNonce !== undefined) {
+      } else if (options?.replayProtectionNonce !== undefined) {
         // If replay nonce is provided, use it as the sequence number
         // This is an unused value, so it's specifically to show that the sequence number is not used
         return 0xdeadbeefn;
@@ -426,18 +426,18 @@ export async function generateRawTransaction(args: {
     getSequenceNumberForAny(),
   ]);
 
-  const { maxGasAmount, gasUnitPrice, expireTimestamp, replayNonce } = {
+  const { maxGasAmount, gasUnitPrice, expireTimestamp, replayProtectionNonce } = {
     maxGasAmount: options?.maxGasAmount ? BigInt(options.maxGasAmount) : BigInt(aptosConfig.getDefaultMaxGasAmount()),
     gasUnitPrice: options?.gasUnitPrice ?? BigInt(gasEstimate),
     expireTimestamp:
       options?.expireTimestamp ?? BigInt(Math.floor(Date.now() / 1000) + aptosConfig.getDefaultTxnExpirySecFromNow()),
-    replayNonce: options?.replayNonce ? BigInt(options.replayNonce) : undefined,
+    replayProtectionNonce: options?.replayProtectionNonce ? BigInt(options.replayProtectionNonce) : undefined,
   };
 
   // If we're using replay nonce, we must convert the original payload
   let txnPayload = payload;
-  if (replayNonce !== undefined) {
-    txnPayload = convertPayloadToInnerPayload(payload, replayNonce);
+  if (replayProtectionNonce !== undefined) {
+    txnPayload = convertPayloadToInnerPayload(payload, replayProtectionNonce);
   }
 
   return new RawTransaction(
@@ -453,17 +453,17 @@ export async function generateRawTransaction(args: {
 
 export function convertPayloadToInnerPayload(
   payload: AnyTransactionPayloadInstance,
-  replayNonce?: bigint,
+  replayProtectionNonce?: bigint,
 ): TransactionInnerPayload {
   if (payload instanceof TransactionPayloadScript) {
     return new TransactionInnerPayloadV1(
       new TransactionExecutableScript(payload.script),
-      new TransactionExtraConfigV1(undefined, replayNonce),
+      new TransactionExtraConfigV1(undefined, replayProtectionNonce),
     );
   } else if (payload instanceof TransactionPayloadEntryFunction) {
     return new TransactionInnerPayloadV1(
       new TransactionExecutableEntryFunction(payload.entryFunction),
-      new TransactionExtraConfigV1(undefined, replayNonce),
+      new TransactionExtraConfigV1(undefined, replayProtectionNonce),
     );
   } else if (payload instanceof TransactionPayloadMultiSig) {
     const innerPayload = payload.multiSig.transaction_payload;
@@ -479,7 +479,7 @@ export function convertPayloadToInnerPayload(
 
     return new TransactionInnerPayloadV1(
       executable,
-      new TransactionExtraConfigV1(payload.multiSig.multisig_address, replayNonce),
+      new TransactionExtraConfigV1(payload.multiSig.multisig_address, replayProtectionNonce),
     );
   } else {
     throw new Error(`Unsupported payload type: ${payload}`);
