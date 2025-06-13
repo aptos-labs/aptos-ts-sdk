@@ -42,7 +42,7 @@
     "@aptos-labs/ts-sdk": "link:../.."
   },
   "devDependencies": {
-    "@types/node": "^22.15.29",
+    "@types/node": "^22.15.31",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }
