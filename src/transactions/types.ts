@@ -116,7 +116,7 @@ export type AnyRawTransactionInstance = RawTransaction | MultiAgentRawTransactio
  */
 export type InputGenerateTransactionOptions =
   | InputGenerateSequenceNumberTransactionOptions
-  | InputGenerateTurboTransactionOptions;
+  | InputGenerateOrderlessTransactionOptions;
 
 /**
  * Input options for generating a transaction that requires an account sequence number, which is the default method.
@@ -130,9 +130,9 @@ export type InputGenerateSequenceNumberTransactionOptions = {
 };
 
 /**
- * Input options for generating a transaction using the turbo method, which does not require an account sequence number.
+ * Input options for generating a transaction using the orderless method, which does not require an account sequence number.
  */
-export type InputGenerateTurboTransactionOptions = {
+export type InputGenerateOrderlessTransactionOptions = {
   maxGasAmount?: number;
   gasUnitPrice?: number;
   expireTimestamp?: number;

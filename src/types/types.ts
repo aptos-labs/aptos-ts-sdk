@@ -77,7 +77,7 @@ export enum TransactionPayloadVariants {
 }
 
 /**
- * The inner payload type to support turbo transactions and all future transaction types.
+ * The inner payload type to support orderless transactions and all future transaction types.
  * {@link https://github.com/aptos-labs/aptos-core/blob/main/types/src/transaction/mod.rs#L478}
  */
 export enum TransactionInnerPayloadVariants {

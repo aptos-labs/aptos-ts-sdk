@@ -979,8 +979,8 @@ describe("transaction submission", () => {
       }
     });
   });
-  describe("turbo transactions", () => {
-    test("it submits a turbo transaction with an entry function payload", async () => {
+  describe("orderless transactions", () => {
+    test("it submits a orderless transaction with an entry function payload", async () => {
       const transaction = await aptos.transaction.build.simple({
         sender: legacyED25519SenderAccount.accountAddress,
         data: {
@@ -1001,7 +1001,7 @@ describe("transaction submission", () => {
       expect(response.signature?.type).toBe("ed25519_signature");
     });
   });
-  test("it submits a turbo transaction with a script payload", async () => {
+  test("it submits a orderless transaction with a script payload", async () => {
     const transaction = await aptos.transaction.build.simple({
       sender: legacyED25519SenderAccount.accountAddress,
       data: {

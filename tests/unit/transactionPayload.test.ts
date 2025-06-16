@@ -13,13 +13,13 @@ const TURBO_TXN =
 
 // This is specifically to ensure compatibility with other SDKs and nodes
 describe("parseEncodedTransactions", () => {
-  test("parse a valid turbo transaction", () => {
+  test("parse a valid orderless transaction", () => {
     const des = new Deserializer(Hex.fromHexInput(TURBO_TXN).toUint8Array());
     const payload = TransactionPayload.deserialize(des);
     expect(payload).toBeDefined();
   });
 
-  test("serializes and deserializes a turbo transaction", () => {
+  test("serializes and deserializes a orderless transaction", () => {
     const input = Hex.fromHexInput(TURBO_TXN).toUint8Array();
     const des = new Deserializer(input);
     const payload = TransactionPayload.deserialize(des);
@@ -33,7 +33,7 @@ describe("parseEncodedTransactions", () => {
     expect(rePayload).toEqual(payload);
   });
 
-  test("building a turbo transaction payload", () => {
+  test("building a orderless transaction payload", () => {
     const payload = new TransactionInnerPayloadV1(
       new TransactionExecutableEntryFunction(EntryFunction.build("0x1::aptos_account", "transfer", [], [])),
       new TransactionExtraConfigV1(),

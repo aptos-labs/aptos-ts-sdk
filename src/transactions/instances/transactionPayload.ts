@@ -525,7 +525,7 @@ export class MultiSigTransactionPayload extends Serializable {
 /**
  * Represents any transaction payload that can be submitted to the Aptos chain for execution.
  *
- * This is specifically required for turbo transactions, but can be used for any transaction payload.
+ * This is specifically required for orderless transactions, but can be used for any transaction payload.
  */
 export abstract class TransactionInnerPayload extends TransactionPayload {
   abstract serialize(serializer: Serializer): void;

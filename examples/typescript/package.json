@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "simple_transfer": "ts-node simple_transfer.ts",
-    "simple_turbo_transfer": "ts-node simple_turbo_transfer.ts",
+    "simple_orderless_transfer": "ts-node simple_orderless_transfer.ts",
     "multi_agent_transfer": "ts-node multi_agent_transfer.ts",
     "simple_sponsored_transaction": "ts-node simple_sponsored_transaction.ts",
     "transfer_coin": "ts-node transfer_coin.ts",
