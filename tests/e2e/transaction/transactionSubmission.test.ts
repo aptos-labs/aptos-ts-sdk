@@ -979,4 +979,46 @@ describe("transaction submission", () => {
       }
     });
   });
+  describe("orderless transactions", () => {
+    test("it submits a orderless transaction with an entry function payload", async () => {
+      const transaction = await aptos.transaction.build.simple({
+        sender: legacyED25519SenderAccount.accountAddress,
+        data: {
+          function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
+          functionArguments: [1, receiverAccounts[0].accountAddress],
+        },
+        options: {
+          replayProtectionNonce: 0xcafebabedeadbeefn,
+        },
+      });
+      const response = await aptos.signAndSubmitTransaction({
+        signer: legacyED25519SenderAccount,
+        transaction,
+      });
+      await aptos.waitForTransaction({
+        transactionHash: response.hash,
+      });
+      expect(response.signature?.type).toBe("ed25519_signature");
+    });
+  });
+  test("it submits a orderless transaction with a script payload", async () => {
+    const transaction = await aptos.transaction.build.simple({
+      sender: legacyED25519SenderAccount.accountAddress,
+      data: {
+        bytecode: singleSignerScriptBytecode,
+        functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+      },
+      options: {
+        replayProtectionNonce: 101,
+      },
+    });
+    const response = await aptos.signAndSubmitTransaction({
+      signer: legacyED25519SenderAccount,
+      transaction,
+    });
+    await aptos.waitForTransaction({
+      transactionHash: response.hash,
+    });
+    expect(response.signature?.type).toBe("ed25519_signature");
+  });
 });

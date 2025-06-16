@@ -340,7 +340,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
       aptosConfig: this.aptosConfig,
       sender: account.accountAddress,
       data: transactionData,
-      options: { ...options, accountSequenceNumber: sequenceNumber },
+      options: { ...options, accountSequenceNumber: sequenceNumber, replayProtectionNonce: undefined },
     });
   }
 

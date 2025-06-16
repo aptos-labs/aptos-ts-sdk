@@ -73,6 +73,35 @@ export enum TransactionPayloadVariants {
   Script = 0,
   EntryFunction = 2,
   Multisig = 3,
+  Payload = 4,
+}
+
+/**
+ * The inner payload type to support orderless transactions and all future transaction types.
+ * {@link https://github.com/aptos-labs/aptos-core/blob/main/types/src/transaction/mod.rs#L478}
+ */
+export enum TransactionInnerPayloadVariants {
+  V1 = 0,
+}
+
+/**
+ * Executable types for transactions, which can be either a script or an entry function.
+ *
+ * Empty is reserved for Multisig voting transactions, which do not have an executable payload.
+ * {@link https://github.com/aptos-labs/aptos-core/blob/main/types/src/transaction/mod.rs#L685}
+ */
+export enum TransactionExecutableVariants {
+  Script = 0,
+  EntryFunction = 1,
+  Empty = 2,
+}
+
+/**
+ * Variants of transaction extra configurations, which can include additional settings or parameters.
+ * {@link https://github.com/aptos-labs/aptos-core/blob/main/types/src/transaction/mod.rs#L737}
+ */
+export enum TransactionExtraConfigVariants {
+  V1 = 0,
 }
 
 /**
@@ -603,6 +632,7 @@ export type UserTransactionResponse = {
   changes: Array<WriteSetChange>;
   sender: string;
   sequence_number: string;
+  replay_protection_nonce: string;
   max_gas_amount: string;
   gas_unit_price: string;
   expiration_timestamp_secs: string;
