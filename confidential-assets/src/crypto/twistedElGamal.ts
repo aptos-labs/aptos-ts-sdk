@@ -169,7 +169,7 @@ export class TwistedElGamal {
                 result = TwistedElGamal.kangaroo32.solve_dlp(pk, 120n);
               }
               if (!result) {
-                result = TwistedElGamal.kangaroo48.solve_dlp(pk, 5000n);
+                result = TwistedElGamal.kangaroo48.solve_dlp(pk, 4000n);
               }
               if (!result) throw new TypeError("Decryption failed. Timed out.");
               return result;
