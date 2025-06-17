@@ -50,6 +50,7 @@ import {
   MultiSigTransactionPayload,
   RawTransaction,
   Script,
+  TransactionInnerPayload,
   TransactionPayloadEntryFunction,
   TransactionPayloadMultiSig,
   TransactionPayloadScript,
@@ -82,6 +83,14 @@ import { isScriptDataInput } from "./helpers";
 import { SimpleTransaction } from "../instances/simpleTransaction";
 import { MultiAgentTransaction } from "../instances/multiAgentTransaction";
 import { getFunctionParts } from "../../utils/helpers";
+import {
+  TransactionExecutable,
+  TransactionExecutableEmpty,
+  TransactionExecutableEntryFunction,
+  TransactionExecutableScript,
+  TransactionExtraConfigV1,
+  TransactionInnerPayloadV1,
+} from "../instances/transactionPayload";
 
 /**
  * Builds a transaction payload based on the provided arguments and returns a transaction payload.
@@ -359,6 +368,10 @@ export async function generateRawTransaction(args: {
 }): Promise<RawTransaction> {
   const { aptosConfig, sender, payload, options, feePayerAddress } = args;
 
+  if (options?.replayProtectionNonce !== undefined && options?.accountSequenceNumber !== undefined) {
+    throw new Error("Cannot specify both replayProtectionNonce and accountSequenceNumber in options.");
+  }
+
   const getChainId = async () => {
     if (NetworkToChainId[aptosConfig.network]) {
       return { chainId: NetworkToChainId[aptosConfig.network] };
@@ -379,6 +392,10 @@ export async function generateRawTransaction(args: {
     const getSequenceNumber = async () => {
       if (options?.accountSequenceNumber !== undefined) {
         return options.accountSequenceNumber;
+      } else if (options?.replayProtectionNonce !== undefined) {
+        // If replay nonce is provided, use it as the sequence number
+        // This is an unused value, so it's specifically to show that the sequence number is not used
+        return 0xdeadbeefn;
       }
 
       return (await getInfo({ aptosConfig, accountAddress: sender })).sequence_number;
@@ -409,22 +426,64 @@ export async function generateRawTransaction(args: {
     getSequenceNumberForAny(),
   ]);
 
-  const { maxGasAmount, gasUnitPrice, expireTimestamp } = {
+  const { maxGasAmount, gasUnitPrice, expireTimestamp, replayProtectionNonce } = {
     maxGasAmount: options?.maxGasAmount ? BigInt(options.maxGasAmount) : BigInt(aptosConfig.getDefaultMaxGasAmount()),
     gasUnitPrice: options?.gasUnitPrice ?? BigInt(gasEstimate),
     expireTimestamp:
       options?.expireTimestamp ?? BigInt(Math.floor(Date.now() / 1000) + aptosConfig.getDefaultTxnExpirySecFromNow()),
+    replayProtectionNonce: options?.replayProtectionNonce ? BigInt(options.replayProtectionNonce) : undefined,
   };
+
+  // If we're using replay nonce, we must convert the original payload
+  let txnPayload = payload;
+  if (replayProtectionNonce !== undefined) {
+    txnPayload = convertPayloadToInnerPayload(payload, replayProtectionNonce);
+  }
 
   return new RawTransaction(
     AccountAddress.from(sender),
     BigInt(sequenceNumber),
-    payload,
+    txnPayload,
     BigInt(maxGasAmount),
     BigInt(gasUnitPrice),
     BigInt(expireTimestamp),
     new ChainId(chainId),
   );
+}
+
+export function convertPayloadToInnerPayload(
+  payload: AnyTransactionPayloadInstance,
+  replayProtectionNonce?: bigint,
+): TransactionInnerPayload {
+  if (payload instanceof TransactionPayloadScript) {
+    return new TransactionInnerPayloadV1(
+      new TransactionExecutableScript(payload.script),
+      new TransactionExtraConfigV1(undefined, replayProtectionNonce),
+    );
+  } else if (payload instanceof TransactionPayloadEntryFunction) {
+    return new TransactionInnerPayloadV1(
+      new TransactionExecutableEntryFunction(payload.entryFunction),
+      new TransactionExtraConfigV1(undefined, replayProtectionNonce),
+    );
+  } else if (payload instanceof TransactionPayloadMultiSig) {
+    const innerPayload = payload.multiSig.transaction_payload;
+    let executable: TransactionExecutable;
+    if (innerPayload === undefined || innerPayload?.transaction_payload === undefined) {
+      executable = new TransactionExecutableEmpty();
+    } else if (innerPayload.transaction_payload instanceof EntryFunction) {
+      executable = new TransactionExecutableEntryFunction(innerPayload.transaction_payload);
+    } else {
+      // TODO For now, scripts are not supported in multi-sig transactions, so it's always entry function
+      throw new Error("Scripts are not supported in multi-sig transactions.");
+    }
+
+    return new TransactionInnerPayloadV1(
+      executable,
+      new TransactionExtraConfigV1(payload.multiSig.multisig_address, replayProtectionNonce),
+    );
+  } else {
+    throw new Error(`Unsupported payload type: ${payload}`);
+  }
 }
 
 /**
