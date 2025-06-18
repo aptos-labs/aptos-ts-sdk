@@ -357,6 +357,9 @@ export class NewTransactionWorker {
 
       for (const response of this.pendingResponses) {
         if (sequenceNumber > response.sequenceNumber) {
+          // The increased sequence number is enough information to know that the transaction
+          // was committed to the chain. We return the hash so that the caller can decide
+          // whether to fetch the UserTransactionResponse or just track.
           response.deferred.resolve(response.hash);
           this.pendingResponses.delete(response);
         } else if (Math.floor(Date.now() / 1000) > response.expirationTimestamp) {
