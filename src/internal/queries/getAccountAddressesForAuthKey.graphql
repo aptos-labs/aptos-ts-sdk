@@ -1,0 +1,8 @@
+query getAccountAddressesForAuthKey($where_condition: auth_key_account_addresses_bool_exp, $order_by: [auth_key_account_addresses_order_by!]) {
+  auth_key_account_addresses(where: $where_condition, order_by: $order_by) {
+    auth_key
+    account_address
+    last_transaction_version
+    is_auth_key_used
+  }
+}
