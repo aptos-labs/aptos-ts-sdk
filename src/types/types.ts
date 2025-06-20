@@ -1235,8 +1235,22 @@ export type MoveStructId = `${string}::${string}::${string}`;
  */
 export type MoveFunctionId = MoveStructId;
 
-// TODO: Add support for looking up ABI to add proper typing
-export type MoveStructType = {};
+/**
+ * Represents a Move struct type with proper ABI support.
+ * This type allows for dynamic lookup of struct fields and their types from the ABI.
+ */
+export type MoveStructType = {
+  /** The fully qualified name of the struct in format address::module::name */
+  type: MoveStructId;
+  /** The fields of the struct as defined in the ABI */
+  fields: {
+    [key: string]: MoveType;
+  };
+  /** Optional generic type parameters */
+  genericTypeParams?: Array<MoveFunctionGenericTypeParam>;
+  /** The abilities of the struct as defined in the ABI */
+  abilities?: Array<MoveAbility>;
+};
 
 /**
  * A union type that encompasses various data types used in Move, including primitive types, address types, object types, and
@@ -1275,7 +1289,7 @@ export type MoveType =
  *
  * `Object -> 0x${string}`
  *
- * `Vector -> Array<MoveValue>`
+ * `Vector -> Array<MoveValue> | { vec: MoveValue[] }`
  *
  * `Option -> MoveValue | null | undefined`
  */
@@ -1292,7 +1306,9 @@ export type MoveValue =
   | MoveObjectType
   | MoveStructId
   | MoveOptionType
-  | Array<MoveValue>;
+  | Array<MoveValue>
+  | { vec: MoveValue[] }
+  | { [key: string]: MoveValue };
 
 /**
  * A string representation of a Move module, formatted as `module_name::function_name`.
