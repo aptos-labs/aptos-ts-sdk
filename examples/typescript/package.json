@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "simple_transfer": "ts-node simple_transfer.ts",
+    "simple_orderless_transfer": "ts-node simple_orderless_transfer.ts",
     "multi_agent_transfer": "ts-node multi_agent_transfer.ts",
     "simple_sponsored_transaction": "ts-node simple_sponsored_transaction.ts",
     "transfer_coin": "ts-node transfer_coin.ts",
@@ -24,25 +25,25 @@
     "keyless_mainnet": "ts-node keyless_mainnet.ts",
     "local_node": "ts-node local_node.ts",
     "swap": "ts-node swap.ts",
-    "test": "run-s simple_transfer multi_agent_transfer simple_sponsored_transaction transfer_coin custom_client publish_package_from_filepath external_signing sign_struct your_coin your_fungible_asset public_key_authenticator_account_abstraction hello_world_authenticator_account_abstraction"
+    "test": "run-s simple_transfer simple_orderless_transfer multi_agent_transfer simple_sponsored_transaction transfer_coin custom_client publish_package_from_filepath external_signing sign_struct your_coin your_fungible_asset public_key_authenticator_account_abstraction hello_world_authenticator_account_abstraction"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@noble/curves": "1.8.1",
+    "@noble/curves": "1.9.1",
     "@types/readline-sync": "1.4.8",
-    "dotenv": "16.4.7",
+    "dotenv": "16.5.0",
     "npm-run-all": "4.1.5",
     "readline-sync": "1.4.10",
-    "superagent": "10.2.0"
+    "superagent": "10.2.1"
   },
   "peerDependencies": {
     "@aptos-labs/ts-sdk": "link:../.."
   },
   "devDependencies": {
-    "@types/node": "^22.13.11",
+    "@types/node": "^22.15.29",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.3"
   }
 }

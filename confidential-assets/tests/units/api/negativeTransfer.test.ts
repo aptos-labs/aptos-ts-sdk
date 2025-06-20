@@ -1,4 +1,4 @@
-import { Account, AccountAddress } from "@aptos-labs/ts-sdk";
+import { Account } from "@aptos-labs/ts-sdk";
 import {
   aptos,
   confidentialAsset,
@@ -9,7 +9,7 @@ import {
 } from "../../helpers";
 import { numberToBytesLE, bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { bytesToHex } from "@noble/hashes/utils";
-import { ed25519modN, TwistedEd25519PublicKey } from "../../../src";
+import { ed25519modN } from "../../../src";
 import { preloadTables } from "../../helpers/wasmPollardKangaroo";
 
 describe("Transfer", () => {
@@ -50,7 +50,7 @@ describe("Transfer", () => {
     const aliceRegisterVBTxBody = await confidentialAsset.registerBalance({
       sender: alice.accountAddress,
       tokenAddress: tokenAddress,
-      publicKey: aliceConfidential.publicKey(),
+      decryptionKey: aliceConfidential,
     });
 
     const aliceTxResp = await sendAndWaitTx(aliceRegisterVBTxBody, alice);
@@ -59,9 +59,9 @@ describe("Transfer", () => {
   });
 
   it.skip("should deposit money to Alice's account", async () => {
-    const depositTx = await confidentialAsset.depositCoin({
+    const depositTx = await confidentialAsset.deposit({
       sender: alice.accountAddress,
-      coinType,
+      tokenAddress,
       amount: depositAmount,
     });
 
@@ -71,23 +71,12 @@ describe("Transfer", () => {
   });
 
   it("should transfer money from Alice actual to pending balance", async () => {
-    const balances = await getBalances(aliceConfidential, alice.accountAddress, tokenAddress);
-
-    const recipientEncKey = await confidentialAsset.getEncryptionByAddr({
-      accountAddress: AccountAddress.from(recipientAccAddr),
-      tokenAddress,
-    });
-
-    console.log({ recipientEncKey: recipientEncKey.toString() });
-
-    const transferTx = await confidentialAsset.transferCoin({
+    const transferTx = await confidentialAsset.transfer({
       senderDecryptionKey: aliceConfidential,
-      recipientEncryptionKey: new TwistedEd25519PublicKey(recipientEncKey),
-      encryptedActualBalance: balances.actual.getAmountEncrypted(aliceConfidential.publicKey()),
-      amountToTransfer: transferAmount,
+      recipient: recipientAccAddr,
+      amount: transferAmount,
       sender: alice.accountAddress,
       tokenAddress,
-      recipientAddress: recipientAccAddr,
     });
     const txResp = await sendAndWaitTx(transferTx, alice);
 
@@ -95,7 +84,7 @@ describe("Transfer", () => {
 
     const balancesAfterTransfer = await getBalances(aliceConfidential, alice.accountAddress, tokenAddress);
 
-    console.log(balancesAfterTransfer.actual);
+    console.log(balancesAfterTransfer.availableBalance());
 
     expect(txResp.success).toBeTruthy();
   });

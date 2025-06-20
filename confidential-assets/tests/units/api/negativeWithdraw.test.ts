@@ -1,8 +1,6 @@
-import { AccountAddress } from "@aptos-labs/ts-sdk";
 import {
   aptos,
   confidentialAsset,
-  getBalances,
   getTestAccount,
   getTestConfidentialAccount,
   longTestTimeout,
@@ -21,7 +19,6 @@ describe("Negative withdraw", () => {
   const tokenAddress = "0x000000000000000000000000000000000000000000000000000000000000000a";
   const fundAmount = 1 * 10 ** 8;
   const depositAmount = 0.5 * 10 ** 8;
-  const recipientAccAddr = "0x82094619a5e8621f2bf9e6479a62ed694dca9b8fd69b0383fce359a3070aa0d4";
   const withdrawAmount = BigInt(0.1 * 10 ** 8);
 
   console.log("pk", alice.privateKey.toString());
@@ -51,7 +48,7 @@ describe("Negative withdraw", () => {
     const aliceRegisterVBTxBody = await confidentialAsset.registerBalance({
       sender: alice.accountAddress,
       tokenAddress: tokenAddress,
-      publicKey: aliceConfidential.publicKey(),
+      decryptionKey: aliceConfidential,
     });
 
     const aliceTxResp = await sendAndWaitTx(aliceRegisterVBTxBody, alice);
@@ -60,9 +57,9 @@ describe("Negative withdraw", () => {
   });
 
   it("should deposit money to Alice's account", async () => {
-    const depositTx = await confidentialAsset.depositCoin({
+    const depositTx = await confidentialAsset.deposit({
       sender: alice.accountAddress,
-      coinType,
+      tokenAddress,
       amount: depositAmount,
     });
 
@@ -72,21 +69,11 @@ describe("Negative withdraw", () => {
   });
 
   it("should throw error withdrawing money from Alice actual balance", async () => {
-    const balances = await getBalances(aliceConfidential, alice.accountAddress, tokenAddress);
-
-    const recipientEncKey = await confidentialAsset.getEncryptionByAddr({
-      accountAddress: AccountAddress.from(recipientAccAddr),
-      tokenAddress,
-    });
-
-    console.log({ recipientEncKey: recipientEncKey.toString() });
-
     const withdrawTx = await confidentialAsset.withdraw({
       sender: alice.accountAddress,
       tokenAddress,
-      decryptionKey: aliceConfidential,
-      encryptedActualBalance: balances.actual.getAmountEncrypted(aliceConfidential.publicKey()),
-      amountToWithdraw: withdrawAmount,
+      senderDecryptionKey: aliceConfidential,
+      amount: withdrawAmount,
     });
 
     const txRespPromise = sendAndWaitTx(withdrawTx, alice);

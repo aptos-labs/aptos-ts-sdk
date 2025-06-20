@@ -4,8 +4,41 @@
 import { ed25519, RistrettoPoint } from "@noble/curves/ed25519";
 import { bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { H_RISTRETTO, RistPoint, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
-import { ed25519GenRandom, ed25519modN } from "./utils";
+import { ed25519GenRandom, ed25519modN } from "../utils";
 import { HexInput } from "@aptos-labs/ts-sdk";
+import { create_kangaroo, WASMKangaroo } from "@aptos-labs/confidential-asset-wasm-bindings/pollard-kangaroo";
+import initWasm from "@aptos-labs/confidential-asset-wasm-bindings/pollard-kangaroo";
+
+const POLLARD_KANGAROO_WASM_URL =
+  "https://unpkg.com/@aptos-labs/confidential-asset-wasm-bindings@0.0.2/pollard-kangaroo/aptos_pollard_kangaroo_wasm_bg.wasm";
+
+export async function createKangaroo(secret_size: number) {
+  await initWasm({ module_or_path: POLLARD_KANGAROO_WASM_URL });
+
+  return create_kangaroo(secret_size);
+}
+
+class AsyncLock {
+  private locks: Map<string, Promise<void>> = new Map();
+
+  async acquire<T>(key: string, fn: () => Promise<T>): Promise<T> {
+    while (this.locks.has(key)) {
+      await this.locks.get(key);
+    }
+
+    let resolve: () => void;
+    const promise = new Promise<void>((r) => (resolve = r));
+    this.locks.set(key, promise);
+
+    try {
+      const result = await fn();
+      return result;
+    } finally {
+      this.locks.delete(key);
+      resolve!();
+    }
+  }
+}
 
 export interface DecryptionRange {
   start?: bigint;
@@ -92,7 +125,71 @@ export class TwistedElGamal {
     return new TwistedElGamalCiphertext(C.toRawBytes(), RistrettoPoint.ZERO.toRawBytes());
   }
 
-  static decryptionFn: (pk: Uint8Array) => Promise<bigint>;
+  static tablePreloadPromise: Promise<void> | undefined;
+  static tablesPreloaded = false;
+  private static initializationLock = new AsyncLock();
+
+  static kangaroo16: WASMKangaroo;
+  static kangaroo32: WASMKangaroo;
+  static kangaroo48: WASMKangaroo;
+
+  static decryptionFn: ((pk: Uint8Array) => Promise<bigint>) | undefined;
+
+  static async initializeKangaroos() {
+    return this.initializationLock.acquire("kangaroo-init", async () => {
+      try {
+        if (TwistedElGamal.tablesPreloaded && TwistedElGamal.decryptionFn !== undefined) {
+          return;
+        }
+
+        if (!TwistedElGamal.tablePreloadPromise) {
+          const createKangaroos = async () => {
+            try {
+              TwistedElGamal.kangaroo16 = await createKangaroo(16);
+              TwistedElGamal.kangaroo32 = await createKangaroo(32);
+              TwistedElGamal.kangaroo48 = await createKangaroo(48);
+            } catch (error) {
+              // Reset state on failure
+              TwistedElGamal.tablePreloadPromise = undefined;
+              TwistedElGamal.tablesPreloaded = false;
+              throw error;
+            }
+          };
+          TwistedElGamal.tablePreloadPromise = createKangaroos();
+        }
+
+        await TwistedElGamal.tablePreloadPromise;
+
+        if (!TwistedElGamal.decryptionFn) {
+          TwistedElGamal.setDecryptionFn(async (pk) => {
+            if (bytesToNumberLE(pk) === 0n) return 0n;
+            try {
+              let result = TwistedElGamal.kangaroo16.solve_dlp(pk, 30n);
+              if (!result) {
+                result = TwistedElGamal.kangaroo32.solve_dlp(pk, 120n);
+              }
+              if (!result) {
+                result = TwistedElGamal.kangaroo48.solve_dlp(pk, 2000n);
+              }
+              if (!result) throw new TypeError("Decryption failed. Timed out.");
+              return result;
+            } catch (e) {
+              console.error("Decryption failed:", e);
+              throw e;
+            }
+          });
+        }
+
+        TwistedElGamal.tablesPreloaded = true;
+      } catch (error) {
+        // Reset state on any initialization failure
+        TwistedElGamal.tablePreloadPromise = undefined;
+        TwistedElGamal.tablesPreloaded = false;
+        TwistedElGamal.decryptionFn = undefined;
+        throw error;
+      }
+    });
+  }
 
   static setDecryptionFn(fn: (pk: Uint8Array) => Promise<bigint>) {
     this.decryptionFn = fn;
@@ -117,9 +214,10 @@ export class TwistedElGamal {
     ciphertext: TwistedElGamalCiphertext,
     privateKey: TwistedEd25519PrivateKey,
   ): Promise<bigint> {
+    await TwistedElGamal.ensureInitialized();
     const mG = TwistedElGamal.calculateCiphertextMG(ciphertext, privateKey);
 
-    return TwistedElGamal.decryptionFn(mG.toRawBytes());
+    return TwistedElGamal.decryptionFn!(mG.toRawBytes());
   }
 
   /**
@@ -161,6 +259,36 @@ export class TwistedElGamal {
         return operand1.subtractCiphertext(operand2);
       default:
         throw new Error("Unsupported operation");
+    }
+  }
+
+  static async cleanup() {
+    return this.initializationLock.acquire("kangaroo-cleanup", async () => {
+      try {
+        if (TwistedElGamal.kangaroo16) TwistedElGamal.kangaroo16.free();
+        if (TwistedElGamal.kangaroo32) TwistedElGamal.kangaroo32.free();
+        if (TwistedElGamal.kangaroo48) TwistedElGamal.kangaroo48.free();
+      } finally {
+        TwistedElGamal.tablePreloadPromise = undefined;
+        TwistedElGamal.tablesPreloaded = false;
+        TwistedElGamal.decryptionFn = undefined;
+      }
+    });
+  }
+
+  static isInitialized(): boolean {
+    return (
+      TwistedElGamal.tablesPreloaded &&
+      TwistedElGamal.decryptionFn !== undefined &&
+      TwistedElGamal.kangaroo16 !== undefined &&
+      TwistedElGamal.kangaroo32 !== undefined &&
+      TwistedElGamal.kangaroo48 !== undefined
+    );
+  }
+
+  private static async ensureInitialized() {
+    if (!this.isInitialized()) {
+      await this.initializeKangaroos();
     }
   }
 }
