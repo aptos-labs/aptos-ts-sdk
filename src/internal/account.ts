@@ -914,7 +914,7 @@ async function doesAccountExistAtAddress(args: {
     if (error.status === 404) {
       return false;
     }
-    throw new Error(`Error while looking for an account info ${accountAddress.toString()}`);
+    throw new Error(`Error while looking for an account info ${accountAddress.toString()}: ${error}`);
   }
 }
 
