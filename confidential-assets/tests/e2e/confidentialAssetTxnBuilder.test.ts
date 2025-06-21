@@ -9,15 +9,15 @@ import {
   aptos,
   TOKEN_ADDRESS,
   sendAndWaitTx,
-  mintUsdt,
   longTestTimeout,
-  transactionBuilder,
   confidentialAsset,
 } from "../helpers";
 
 describe.skip("Confidential balance api", () => {
   const alice = getTestAccount();
   const aliceConfidential = getTestConfidentialAccount(alice);
+
+  const transactionBuilder = confidentialAsset.transaction;
 
   const bob = Account.generate();
 
@@ -85,9 +85,6 @@ describe.skip("Confidential balance api", () => {
     expect(registerBalanceTxResp.success).toBeTruthy();
 
     await checkAliceDecryptedBalance(0, 0);
-
-    const resp = await mintUsdt(alice, 100n);
-    expect(resp.success).toBeTruthy();
   }, longTestTimeout);
 
   test(
