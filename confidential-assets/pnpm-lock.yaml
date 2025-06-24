@@ -12,8 +12,8 @@ dependencies:
     specifier: ^1.0.0
     version: 1.0.0(axios@1.9.0)(got@11.8.6)
   '@aptos-labs/ts-sdk':
-    specifier: ^1.38.0
-    version: 1.38.0(axios@1.9.0)(got@11.8.6)
+    specifier: ^2.0.1
+    version: 2.0.1(got@11.8.6)
   '@noble/curves':
     specifier: ^1.6.0
     version: 1.9.0
@@ -90,6 +90,15 @@ packages:
       got: 11.8.6
     dev: false
 
+  /@aptos-labs/aptos-client@2.0.0(got@11.8.6):
+    resolution: {integrity: sha512-A23T3zTCRXEKURodp00dkadVtIrhWjC9uo08dRDBkh69OhCnBAxkENmUy/rcBarfLoFr60nRWt7cBkc8wxr1mg==}
+    engines: {node: '>=20.0.0'}
+    peerDependencies:
+      got: ^11.8.6
+    dependencies:
+      got: 11.8.6
+    dev: false
+
   /@aptos-labs/aptos-dynamic-transaction-composer@0.1.3:
     resolution: {integrity: sha512-bJl+Zq5QbhpcPIJakAkl9tnT3T02mxCYhZThQDhUmjsOZ5wMRlKJ0P7aaq1dmlybSHkVj7vRgOy2t86/NDKKng==}
     dev: false
@@ -131,6 +140,25 @@ packages:
       poseidon-lite: 0.2.1
     transitivePeerDependencies:
       - axios
+      - got
+    dev: false
+
+  /@aptos-labs/ts-sdk@2.0.1(got@11.8.6):
+    resolution: {integrity: sha512-k39Ks+qNcWxWujQrixMaV3ZIO8G9/qzIpDuV7+Td12GWNxXxKze5BqD6pFI3Q1iwI4mw65v1yxTi/jt5ted39Q==}
+    engines: {node: '>=20.0.0'}
+    dependencies:
+      '@aptos-labs/aptos-cli': 1.0.2
+      '@aptos-labs/aptos-client': 2.0.0(got@11.8.6)
+      '@noble/curves': 1.9.0
+      '@noble/hashes': 1.8.0
+      '@scure/bip32': 1.7.0
+      '@scure/bip39': 1.6.0
+      eventemitter3: 5.0.1
+      form-data: 4.0.2
+      js-base64: 3.7.7
+      jwt-decode: 4.0.0
+      poseidon-lite: 0.2.1
+    transitivePeerDependencies:
       - got
     dev: false
 
