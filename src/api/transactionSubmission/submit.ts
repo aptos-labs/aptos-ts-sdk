@@ -91,6 +91,7 @@ export class Submit {
     transaction: AnyRawTransaction;
     senderAuthenticator: AccountAuthenticator;
     feePayerAuthenticator?: AccountAuthenticator;
+    pluginParams?: Record<string, any>;
   }): Promise<PendingTransactionResponse> {
     return submitTransaction({ aptosConfig: this.config, ...args });
   }
@@ -146,6 +147,7 @@ export class Submit {
     senderAuthenticator: AccountAuthenticator;
     additionalSignersAuthenticators: Array<AccountAuthenticator>;
     feePayerAuthenticator?: AccountAuthenticator;
+    pluginParams?: Record<string, any>;
   }): Promise<PendingTransactionResponse> {
     return submitTransaction({ aptosConfig: this.config, ...args });
   }

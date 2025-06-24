@@ -1,6 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import type { AptosConfig } from "../api";
+import { InputSubmitTransactionData } from "../transactions";
 import { Network } from "../utils/apiEndpoints";
 import { OrderBy, TokenStandard } from "./indexer";
 
@@ -256,6 +258,8 @@ export type AptosSettings = {
   readonly faucetConfig?: FaucetConfig;
 
   readonly transactionGenerationConfig?: TransactionGenerationConfig;
+
+  readonly pluginSettings?: PluginSettings;
 };
 
 /**
@@ -338,6 +342,72 @@ export type TransactionGenerationConfig = {
 export type ClientHeadersType = {
   HEADERS?: Record<string, string | number | boolean>;
 };
+
+/**
+ * Config for plugins. This can be used to override certain client behavior.
+ */
+export type PluginConfig = {
+  /**
+   * If given, this will be used for submitting transactions instead of the default
+   * implementation (which submits transactions directly via a node).
+   */
+  TRANSACTION_SUBMITTER?: TransactionSubmitter;
+
+  /**
+   * If true, we won't use the TRANSACTION_SUBMITTER if set.
+   */
+  IGNORE_TRANSACTION_SUBMITTER?: boolean;
+};
+
+export type PluginSettings = Omit<PluginConfig, "IGNORE_TRANSACTION_SUBMITTER">;
+
+/**
+ * You can implement this interface and set it in {@link PluginSettings} when building a
+ * client to override the default transaction submission behavior. This is useful if
+ * you'd like to submit transactions via a gas station for example.
+ *
+ * @example
+ * ```typescript
+ * class MyGasStationClient implements TransactionSubmitter {
+ *   async submitTransaction(
+ *     args: { aptosConfig: AptosConfig } & InputSubmitTransactionData,
+ *   ): Promise<PendingTransactionResponse> {
+ *     // TODO: Implement the logic to submit the transaction to the gas station
+ *   }
+ * }
+ *
+ * const network = Network.MAINNET;
+ * const myGasStationClient = new MyGasStationClient(network);
+ * const config = new AptosConfig({
+ *   network,
+ *   pluginConfig: {
+ *     transactionSubmitter: myGasStationClient,
+ *   },
+ * });
+ * const aptos = new Aptos(config);
+ * ```
+ */
+export interface TransactionSubmitter {
+  /**
+   * Submit a transaction to the Aptos blockchain or something that will do it on your
+   * behalf, for example a gas station. See the comments of {@link TransactionSubmitter} for more.
+   *
+   * @param args - The arguments for submitting the transaction.
+   * @param args.aptosConfig - The configuration for connecting to the Aptos network.
+   * @param args.transaction - The Aptos transaction data to be submitted.
+   * @param args.senderAuthenticator - The account authenticator of the transaction sender.
+   * @param args.secondarySignerAuthenticators - Optional. Authenticators for additional signers in a multi-signer transaction.
+   * @param args.pluginParams - Optional. Additional parameters for the plugin.
+   *
+   * @returns PendingTransactionResponse - The response containing the status of the submitted transaction.
+   * @group Implementation
+   */
+  submitTransaction(
+    args: {
+      aptosConfig: AptosConfig;
+    } & InputSubmitTransactionData,
+  ): Promise<PendingTransactionResponse>;
+}
 
 /**
  * Represents a client for making requests to a service provider.

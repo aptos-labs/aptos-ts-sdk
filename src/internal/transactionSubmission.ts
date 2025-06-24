@@ -320,6 +320,10 @@ export async function submitTransaction(
   } & InputSubmitTransactionData,
 ): Promise<PendingTransactionResponse> {
   const { aptosConfig } = args;
+  const maybeTransactionSubmitter = aptosConfig.getTransactionSubmitter();
+  if (maybeTransactionSubmitter) {
+    return maybeTransactionSubmitter.submitTransaction(args);
+  }
   const signedTransaction = generateSignedTransaction({ ...args });
   try {
     const { data } = await postAptosFullNode<Uint8Array, PendingTransactionResponse>({
@@ -358,9 +362,10 @@ export async function signAndSubmitTransaction(
     aptosConfig: AptosConfig;
     signer: Account;
     transaction: AnyRawTransaction;
+    pluginParams?: Record<string, any>;
   },
 ): Promise<PendingTransactionResponse> {
-  const { aptosConfig, signer, feePayer, transaction } = args;
+  const { aptosConfig, signer, feePayer, transaction, pluginParams } = args;
   // If the signer contains a KeylessAccount, await proof fetching in case the proof
   // was fetched asynchronously.
   if (isKeylessSigner(signer)) {
@@ -378,6 +383,7 @@ export async function signAndSubmitTransaction(
     transaction,
     senderAuthenticator,
     feePayerAuthenticator,
+    pluginParams,
   });
 }
 
@@ -386,8 +392,9 @@ export async function signAndSubmitAsFeePayer(args: {
   feePayer: Account;
   senderAuthenticator: AccountAuthenticator;
   transaction: AnyRawTransaction;
+  pluginParams?: Record<string, any>;
 }): Promise<PendingTransactionResponse> {
-  const { aptosConfig, senderAuthenticator, feePayer, transaction } = args;
+  const { aptosConfig, senderAuthenticator, feePayer, transaction, pluginParams } = args;
 
   if (isKeylessSigner(feePayer)) {
     await feePayer.checkKeylessAccountValidity(aptosConfig);
@@ -400,6 +407,7 @@ export async function signAndSubmitAsFeePayer(args: {
     transaction,
     senderAuthenticator,
     feePayerAuthenticator,
+    pluginParams,
   });
 }
 

@@ -717,6 +717,7 @@ export class Transaction {
     args: FeePayerOrFeePayerAuthenticatorOrNeither & {
       signer: Account;
       transaction: AnyRawTransaction;
+      pluginParams?: Record<string, any>;
     },
   ): Promise<PendingTransactionResponse> {
     return signAndSubmitTransaction({
@@ -748,6 +749,7 @@ export class Transaction {
     feePayer: Account;
     senderAuthenticator: AccountAuthenticator;
     transaction: AnyRawTransaction;
+    pluginParams?: Record<string, any>;
   }): Promise<PendingTransactionResponse> {
     return signAndSubmitAsFeePayer({
       aptosConfig: this.config,

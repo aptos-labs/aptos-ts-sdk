@@ -476,7 +476,10 @@ export type InputGenerateTransactionData =
  * @param transaction - The raw transaction data.
  * @param senderAuthenticator - The authenticator for the sender's account.
  * @param feePayerAuthenticator - Optional authenticator for the fee payer's account.
- * @param additionalSignersAuthenticators - Optional array of authenticators for additional signers.
+ * @param additionalSignersAuthenticators - Optional array of authenticators for
+ * additional signers.
+ * @param pluginParams - Optional additional parameters that will be passed to the
+ * transaction submitter plugin if configured.
  * @group Implementation
  * @category Transactions
  */
@@ -485,4 +488,5 @@ export interface InputSubmitTransactionData {
   senderAuthenticator: AccountAuthenticator;
   feePayerAuthenticator?: AccountAuthenticator;
   additionalSignersAuthenticators?: Array<AccountAuthenticator>;
+  pluginParams?: Record<string, any>;
 }
