@@ -16,7 +16,15 @@ import {
   TransactionPayloadScript,
   TransactionInnerPayload,
 } from "./instances";
-import { AnyNumber, HexInput, MoveFunctionGenericTypeParam, MoveFunctionId, MoveStructId, MoveValue } from "../types";
+import {
+  AnyNumber,
+  HexInput,
+  MoveFunctionGenericTypeParam,
+  MoveFunctionId,
+  MoveStructId,
+  MoveValue,
+  TransactionSubmitter,
+} from "../types";
 import { TypeTag } from "./typeTag";
 import { AccountAuthenticator } from "./authenticator/account";
 import { SimpleTransaction } from "./instances/simpleTransaction";
@@ -470,6 +478,27 @@ export type InputGenerateTransactionData =
   | InputGenerateSingleSignerRawTransactionData
   | InputGenerateMultiAgentRawTransactionData;
 
+interface InputSubmitTransactionDataInner {
+  transaction: AnyRawTransaction;
+  senderAuthenticator: AccountAuthenticator;
+  feePayerAuthenticator?: AccountAuthenticator;
+  additionalSignersAuthenticators?: Array<AccountAuthenticator>;
+}
+
+export interface InputTransactionPluginData {
+  /**
+   * Additional parameters that will be passed to the transaction submitter plugin if
+   * configured.
+   */
+  pluginParams?: Record<string, any>;
+
+  /**
+   * You can set this to override the configured transaction submitter (if any).
+   * Conversely you can set this to null to ignore any configured transaction submitter.
+   */
+  transactionSubmitter?: TransactionSubmitter | null;
+}
+
 /**
  * Holds user data input for submitting a transaction.
  *
@@ -478,15 +507,12 @@ export type InputGenerateTransactionData =
  * @param feePayerAuthenticator - Optional authenticator for the fee payer's account.
  * @param additionalSignersAuthenticators - Optional array of authenticators for
  * additional signers.
- * @param pluginParams - Optional additional parameters that will be passed to the
- * transaction submitter plugin if configured.
+ * @param pluginParams - Additional parameters that will be passed to the transaction
+ * submitter plugin if configured.
+ * @param transactionSubmitter - You can set this to override the configured transaction
+ * submitter (if any). Conversely you can set this to null to ignore any configured
+ * transaction submitter.
  * @group Implementation
  * @category Transactions
  */
-export interface InputSubmitTransactionData {
-  transaction: AnyRawTransaction;
-  senderAuthenticator: AccountAuthenticator;
-  feePayerAuthenticator?: AccountAuthenticator;
-  additionalSignersAuthenticators?: Array<AccountAuthenticator>;
-  pluginParams?: Record<string, any>;
-}
+export type InputSubmitTransactionData = InputSubmitTransactionDataInner & InputTransactionPluginData;

@@ -398,6 +398,7 @@ export interface TransactionSubmitter {
    * @param args.senderAuthenticator - The account authenticator of the transaction sender.
    * @param args.secondarySignerAuthenticators - Optional. Authenticators for additional signers in a multi-signer transaction.
    * @param args.pluginParams - Optional. Additional parameters for the plugin.
+   * @param args.transactionSubmitter - Optional. An override for the transaction submitter.
    *
    * @returns PendingTransactionResponse - The response containing the status of the submitted transaction.
    * @group Implementation
@@ -405,7 +406,7 @@ export interface TransactionSubmitter {
   submitTransaction(
     args: {
       aptosConfig: AptosConfig;
-    } & InputSubmitTransactionData,
+    } & Omit<InputSubmitTransactionData, "transactionSubmitter">,
   ): Promise<PendingTransactionResponse>;
 }
 

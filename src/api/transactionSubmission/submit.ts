@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { submitTransaction } from "../../internal/transactionSubmission";
-import { AccountAuthenticator, AnyRawTransaction } from "../../transactions";
+import { AccountAuthenticator, AnyRawTransaction, InputTransactionPluginData } from "../../transactions";
 import { PendingTransactionResponse } from "../../types";
 import { AptosConfig } from "../aptosConfig";
 import { ValidateFeePayerDataOnSubmission } from "./helpers";
@@ -87,12 +87,13 @@ export class Submit {
    * @group Implementation
    */
   @ValidateFeePayerDataOnSubmission
-  async simple(args: {
-    transaction: AnyRawTransaction;
-    senderAuthenticator: AccountAuthenticator;
-    feePayerAuthenticator?: AccountAuthenticator;
-    pluginParams?: Record<string, any>;
-  }): Promise<PendingTransactionResponse> {
+  async simple(
+    args: {
+      transaction: AnyRawTransaction;
+      senderAuthenticator: AccountAuthenticator;
+      feePayerAuthenticator?: AccountAuthenticator;
+    } & InputTransactionPluginData,
+  ): Promise<PendingTransactionResponse> {
     return submitTransaction({ aptosConfig: this.config, ...args });
   }
 
@@ -142,13 +143,14 @@ export class Submit {
    * @group Implementation
    */
   @ValidateFeePayerDataOnSubmission
-  async multiAgent(args: {
-    transaction: AnyRawTransaction;
-    senderAuthenticator: AccountAuthenticator;
-    additionalSignersAuthenticators: Array<AccountAuthenticator>;
-    feePayerAuthenticator?: AccountAuthenticator;
-    pluginParams?: Record<string, any>;
-  }): Promise<PendingTransactionResponse> {
+  async multiAgent(
+    args: {
+      transaction: AnyRawTransaction;
+      senderAuthenticator: AccountAuthenticator;
+      additionalSignersAuthenticators: Array<AccountAuthenticator>;
+      feePayerAuthenticator?: AccountAuthenticator;
+    } & InputTransactionPluginData,
+  ): Promise<PendingTransactionResponse> {
     return submitTransaction({ aptosConfig: this.config, ...args });
   }
 }
