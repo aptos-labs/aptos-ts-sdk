@@ -255,10 +255,10 @@ export class ConfidentialTransfer {
       (acc, { D }, idx) => acc.add(D.multiply(2n ** (BigInt(idx) * ConfidentialAmount.CHUNK_BITS_BI))),
       RistrettoPoint.ZERO,
     );
-    const DNewBal = senderNewEncryptedBalance.reduce(
-      (acc, { D }, idx) => acc.add(D.multiply(2n ** (BigInt(idx) * ConfidentialAmount.CHUNK_BITS_BI))),
-      RistrettoPoint.ZERO,
-    );
+    // const DNewBal = senderNewEncryptedBalance.reduce(
+    //   (acc, { D }, idx) => acc.add(D.multiply(2n ** (BigInt(idx) * ConfidentialAmount.CHUNK_BITS_BI))),
+    //   RistrettoPoint.ZERO,
+    // );
 
     const lastHalfIndexesOfChunksCount = Array.from(
       { length: ConfidentialAmount.CHUNKS_COUNT / 2 },
@@ -276,9 +276,7 @@ export class ConfidentialTransfer {
         }, 0n)
       )
     )
-      .add(DBal.multiply(x2))
-      .subtract(DNewBal.multiply(x2))
-      .add(
+      .subtract(
         lastHalfIndexesOfChunksCount.reduce(
           (acc, curr) =>
             acc.add(
@@ -287,6 +285,7 @@ export class ConfidentialTransfer {
           RistrettoPoint.ZERO,
         ),
       )
+      .add(DBal.multiply(x2))
       .toRawBytes();
     const X2List = x3List.map((x3) => senderPKRistretto.multiply(x3).toRawBytes());
     const X3List = x3List.slice(0, j).map((x3) => recipientPKRistretto.multiply(x3).toRawBytes());
@@ -414,10 +413,10 @@ export class ConfidentialTransfer {
       { oldDSum: RistrettoPoint.ZERO, oldCSum: RistrettoPoint.ZERO },
     );
 
-    const newDSum = opts.encryptedActualBalanceAfterTransfer.reduce((acc, { D }, i) => {
-      const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
-      return acc.add(D.multiply(coef));
-    }, RistrettoPoint.ZERO);
+    // const newDSum = opts.encryptedActualBalanceAfterTransfer.reduce((acc, { D }, i) => {
+    //   const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
+    //   return acc.add(D.multiply(coef));
+    // }, RistrettoPoint.ZERO);
 
     const j = ConfidentialAmount.CHUNKS_COUNT / 2;
 
@@ -441,9 +440,7 @@ export class ConfidentialTransfer {
         }, 0n)
       )
     )
-      .add(oldDSum.multiply(alpha2LE))
-      .subtract(newDSum.multiply(alpha2LE))
-      .add(
+      .subtract(
         lastHalfIndexesOfChunksCount.reduce(
           (acc, curr) =>
             acc.add(
@@ -454,6 +451,7 @@ export class ConfidentialTransfer {
           RistrettoPoint.ZERO,
         ),
       )
+      .add(oldDSum.multiply(alpha2LE))
       .add(oldCSum.multiply(p))
       .subtract(amountCSum.multiply(p));
     const X2List = alpha3LEList.map((a3, i) =>
