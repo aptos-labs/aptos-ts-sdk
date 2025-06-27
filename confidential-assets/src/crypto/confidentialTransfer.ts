@@ -328,42 +328,26 @@ export class ConfidentialTransfer {
     const x5 = ed25519GenRandom();
     const x6List = ed25519GenListOfRandom(i);
 
-    // const lastHalfIndexesOfChunksCount = Array.from(
-    //   { length: ChunkedAmount.CHUNKS_COUNT_HALF },
-    //   // eslint-disable-next-line @typescript-eslint/no-shadow
-    //   (_, i) => i + ChunkedAmount.CHUNKS_COUNT_HALF,
-    // );
+    const X1 = RistrettoPoint.BASE
+      .multiply(
+        ed25519modN(
+          x1List.reduce((acc, el, i) => {
+            const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
+            const x1i = el * coef;
 
-    const X1 = RistrettoPoint.BASE.multiply(
-      ed25519modN(
-        x1List.reduce((acc, el, i) => {
-          const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
-          const x1i = el * coef;
-
-          return acc + x1i;
-        }, 0n),
-      ),
-    )
-      .add(
+            return acc + x1i;
+          }, 0n),
+        ),
+      )
+      .subtract(
         H_RISTRETTO.multiply(
           ed25519modN(
-            x6List.reduce((acc, el, i) => {
+            x3List.reduce((acc, el, i) => {
               const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
-              const x6i = el * coef;
+              const x3i = el * coef;
 
-              return acc + x6i;
+              return acc + x3i;
             }, 0n),
-          ),
-        ).subtract(
-          H_RISTRETTO.multiply(
-            ed25519modN(
-              x3List.reduce((acc, el, i) => {
-                const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
-                const x3i = el * coef;
-
-                return acc + x3i;
-              }, 0n),
-            ),
           ),
         ),
       )
@@ -376,24 +360,6 @@ export class ConfidentialTransfer {
           )
           .multiply(x2),
       )
-      .subtract(
-        this.senderEncryptedAvailableBalanceAfterTransfer
-          .getCipherText()
-          .reduce(
-            (acc, { D }, idx) => acc.add(D.multiply(2n ** (BigInt(idx) * CHUNK_BITS_BIG_INT))),
-            RistrettoPoint.ZERO,
-          )
-          .multiply(x2),
-      )
-      // .add(
-      //   lastHalfIndexesOfChunksCount.reduce(
-      //     (acc, curr) =>
-      //       acc.add(
-      //         H_RISTRETTO.multiply(x3List[curr]).multiply(2n ** (CHUNK_BITS_BI * BigInt(curr))),
-      //       ),
-      //     RistrettoPoint.ZERO,
-      //   ),
-      // )
       .toRawBytes();
     const X2List = x6List.map((el) => senderPKRistretto.multiply(el).toRawBytes());
     const X3List = x3List.slice(0, j).map((x3) => recipientPKRistretto.multiply(x3).toRawBytes());
@@ -530,17 +496,7 @@ export class ConfidentialTransfer {
       { oldDSum: RistrettoPoint.ZERO, oldCSum: RistrettoPoint.ZERO },
     );
 
-    const newDSum = opts.encryptedActualBalanceAfterTransfer.getCipherText().reduce((acc, { D }, i) => {
-      const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
-      return acc.add(D.multiply(coef));
-    }, RistrettoPoint.ZERO);
-
     const j = TRANSFER_AMOUNT_CHUNK_COUNT;
-
-    // const lastHalfIndexesOfChunksCount = Array.from(
-    //   { length: ChunkedAmount.CHUNKS_COUNT_HALF },
-    //   (_, i) => i + ChunkedAmount.CHUNKS_COUNT_HALF,
-    // );
 
     const amountCSum = opts.encryptedTransferAmountByRecipient
       .getCipherText()
@@ -550,54 +506,32 @@ export class ConfidentialTransfer {
         return acc.add(C.multiply(coef));
       }, RistrettoPoint.ZERO);
 
-    const X1 = RistrettoPoint.BASE.multiply(
-      ed25519modN(
-        alpha1LEList.reduce((acc, curr, i) => {
-          const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
-          const a1i = curr * coef;
+    const X1 = RistrettoPoint.BASE
+      .multiply(
+        ed25519modN(
+          alpha1LEList.reduce((acc, curr, i) => {
+            const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
+            const a1i = curr * coef;
 
-          return acc + a1i;
-        }, 0n),
-      ),
-    )
-      .add(
+            return acc + a1i;
+          }, 0n),
+        ),
+      )
+      .subtract(
         H_RISTRETTO.multiply(
           ed25519modN(
-            alpha6LEList.reduce((acc, el, i) => {
+            alpha3LEList.reduce((acc, el, i) => {
               const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
-              const a6i = el * coef;
+              const a3i = el * coef;
 
-              return acc + a6i;
+              return acc + a3i;
             }, 0n),
-          ),
-        ).subtract(
-          H_RISTRETTO.multiply(
-            ed25519modN(
-              alpha3LEList.reduce((acc, el, i) => {
-                const coef = 2n ** (BigInt(i) * CHUNK_BITS_BIG_INT);
-                const a3i = el * coef;
-
-                return acc + a3i;
-              }, 0n),
-            ),
           ),
         ),
       )
       .add(oldDSum.multiply(alpha2LE))
-      .subtract(newDSum.multiply(alpha2LE))
       .add(oldCSum.multiply(p))
       .subtract(amountCSum.multiply(p));
-    // .add(
-    //   lastHalfIndexesOfChunksCount.reduce(
-    //     (acc, curr) =>
-    //       acc.add(
-    //         H_RISTRETTO.multiply(alpha3LEList[curr]).multiply(
-    //           2n ** (CHUNK_BITS_BI * BigInt(curr)),
-    //         ),
-    //       ),
-    //     RistrettoPoint.ZERO,
-    //   ),
-    // )
     const X2List = alpha6LEList.map((el, i) =>
       senderPKRistretto.multiply(el).add(opts.encryptedActualBalanceAfterTransfer.getCipherText()[i].D.multiply(p)),
     );
