@@ -15,7 +15,7 @@
     "external_signing": "ts-node external_signing.ts",
     "sign_struct": "ts-node sign_struct.ts",
     "your_coin": "ts-node your_coin.ts",
-    "your_fungible_asset": "ts-node your_fungible_asset.ts",
+    "your_fungible_asset": "rm -rf node-modules && pnpm i && ts-node your_fungible_asset.ts",
     "public_key_authenticator_account_abstraction": "ts-node public_key_authenticator_account_abstraction.ts",
     "hello_world_authenticator_account_abstraction": "ts-node hello_world_authenticator_account_abstraction.ts",
     "federated_keyless": "ts-node federated_keyless.ts",
@@ -30,6 +30,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@cedra-labs/ts-sdk":"2.0.9",
     "@noble/curves": "1.8.1",
     "@types/readline-sync": "1.4.8",
     "dotenv": "16.4.7",
@@ -37,8 +38,10 @@
     "readline-sync": "1.4.10",
     "superagent": "10.2.0"
   },
-  "peerDependencies": {
-    "@cedra-labs/ts-sdk": "^2.0.5"
+    "pnpm": {
+    "overrides": {
+      "@cedra-labs/ts-sdk": "file:../../"
+    }
   },
   "devDependencies": {
     "@types/node": "^22.13.11",

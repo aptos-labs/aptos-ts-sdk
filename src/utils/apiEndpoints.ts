@@ -6,9 +6,9 @@
  * @category Network
  */
 export const NetworkToIndexerAPI: Record<string, string> = {
-  mainnet: "https://api.mainnet.cedralabs.com/v1/graphql",
-  testnet: "https://api.testnet.cedralabs.com/v1/graphql",
-  devnet: "https://testnet.cedra.dev/v1/graphql",
+  mainnet: "https://graphql.cedra.dev/v1/graphql",
+  testnet: "https://graphql.cedra.dev/v1/graphql",
+  devnet: "https://graphql.cedra.dev/v1/graphql",
   local: "http://127.0.0.1:8090/v1/graphql",
 };
 
@@ -17,7 +17,7 @@ export const NetworkToIndexerAPI: Record<string, string> = {
  * @category Network
  */
 export const NetworkToNodeAPI: Record<string, string> = {
-  mainnet: "https://api.mainnet.cedralabs.com/v1",
+  mainnet: "https://testnet.cedra.dev/v1",
   testnet: "https://testnet.cedra.dev/v1",
   devnet: "https://testnet.cedra.dev/v1",
   local: "http://127.0.0.1:8080/v1",

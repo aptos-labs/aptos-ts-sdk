@@ -11,6 +11,9 @@ dependencies:
   '@cedra-labs/cedra-client':
     specifier: ^2.0.0
     version: 2.0.1(got@11.8.6)
+  '@cedra-labs/ts-sdk':
+    specifier: link:./cedra-ts-sdk
+    version: link:cedra-ts-sdk
   '@noble/curves':
     specifier: ^1.6.0
     version: 1.9.1

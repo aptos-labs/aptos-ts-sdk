@@ -16,5 +16,5 @@
     "strict": true,
     "target": "es2020"
   },
-  "include": ["src", "tests", "tsup.config.ts"]
+  "include": ["src", "example.ts","tests", "tsup.config.ts"]
 }
