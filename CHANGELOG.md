@@ -3,6 +3,15 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
+- Add account derivation APIs, `getAccountsForPublicKey` and `deriveOwnedAccountsFromSigner` which handle multi-key accounts and key rotations
+- Update the deprecated function deriveAccountFromPrivateKey to use the new account derivation API
+
+# 3.0.0 (2025-06-26)
+- Make the default max gas amount and exipry time from now values for transaction generation configurable.
+- Adds restriction on construction of a `MultiKey`s with more than 3 Keyless public keys when signature threshold is more than 3 as well. The limit on the number of keyless signatures is 3 so to prevent sending funds to accounts that are not accessible we add this safeguard.
+- Adds support for `OrderlessTransactions` which allow for submitting transactions with a nonce rather than a sequence number.
+- [`Breaking`] Change possible inputs to the `InputGenerateTransactionOptions` to include orderless
+- Adds support for setting a transaction submission plugin to override the default transaction submission behavior, e.g. to use a gas station instead.
 
 - Adds caching for PatchedJWKs query
 

@@ -1,7 +1,4 @@
-import { TwistedEd25519PrivateKey, TwistedElGamal } from "../../src";
-import { EncryptedAmount } from "../../src/encryptedAmount";
-import { longTestTimeout } from "../helpers";
-import { preloadTables, preloadTablesForBalances } from "../helpers/wasmPollardKangaroo";
+import { EncryptedAmount, TwistedEd25519PrivateKey, TwistedElGamal } from "../../src";
 
 function generateRandomInteger(bits: number): bigint {
   // eslint-disable-next-line no-bitwise
@@ -87,7 +84,7 @@ const executionBalance = async (
     `Average time: ${averageTime} ms\n`,
     `Lowest time: ${lowestTime} ms\n`,
     `Highest time: ${highestTime} ms`,
-    decryptedAmounts,
+    // decryptedAmounts,
   );
 
   return {
@@ -97,14 +94,6 @@ const executionBalance = async (
 };
 
 describe("decrypt amount", () => {
-  it.skip(
-    "Pre load wasm table map",
-    async () => {
-      await preloadTables();
-    },
-    longTestTimeout,
-  );
-
   it.skip("kangarooWasmAll(16): Should decrypt 50 rand numbers", async () => {
     console.log("WASM:");
 
@@ -134,14 +123,6 @@ describe("decrypt amount", () => {
       expect(result).toEqual(randBalances[i]);
     });
   });
-
-  it(
-    "Pre load wasm table map for balances",
-    async () => {
-      await preloadTablesForBalances();
-    },
-    longTestTimeout,
-  );
 
   it("kangarooWasmAll(16): Should decrypt 50 rand numbers", async () => {
     const { randBalances, results } = await executionBalance(16);

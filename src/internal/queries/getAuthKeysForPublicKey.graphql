@@ -1,0 +1,11 @@
+query getAuthKeysForPublicKey($where_condition: public_key_auth_keys_bool_exp, $order_by: [public_key_auth_keys_order_by!]) {
+  public_key_auth_keys(where: $where_condition, order_by: $order_by) {
+    public_key
+    public_key_type
+    auth_key
+    account_public_key
+    last_transaction_version
+    is_public_key_used
+    signature_type
+  }
+}
