@@ -82,6 +82,16 @@ export const CurrentTokenOwnershipFieldsFragmentDoc = `
   }
 }
     `;
+export const GetAccountAddressesForAuthKey = `
+    query getAccountAddressesForAuthKey($where_condition: auth_key_account_addresses_bool_exp, $order_by: [auth_key_account_addresses_order_by!]) {
+  auth_key_account_addresses(where: $where_condition, order_by: $order_by) {
+    auth_key
+    account_address
+    last_transaction_version
+    is_auth_key_used
+  }
+}
+    `;
 export const GetAccountCoinsCount = `
     query getAccountCoinsCount($address: String) {
   current_fungible_asset_balances_aggregate(
@@ -217,6 +227,19 @@ export const GetAccountTransactionsCount = `
     aggregate {
       count
     }
+  }
+}
+    `;
+export const GetAuthKeysForPublicKey = `
+    query getAuthKeysForPublicKey($where_condition: public_key_auth_keys_bool_exp, $order_by: [public_key_auth_keys_order_by!]) {
+  public_key_auth_keys(where: $where_condition, order_by: $order_by) {
+    public_key
+    public_key_type
+    auth_key
+    account_public_key
+    last_transaction_version
+    is_public_key_used
+    signature_type
   }
 }
     `;
@@ -512,6 +535,21 @@ const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationTy
 
 export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
   return {
+    getAccountAddressesForAuthKey(
+      variables?: Types.GetAccountAddressesForAuthKeyQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<Types.GetAccountAddressesForAuthKeyQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetAccountAddressesForAuthKeyQuery>(GetAccountAddressesForAuthKey, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getAccountAddressesForAuthKey",
+        "query",
+        variables,
+      );
+    },
     getAccountCoinsCount(
       variables?: Types.GetAccountCoinsCountQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
@@ -630,6 +668,21 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
             ...wrappedRequestHeaders,
           }),
         "getAccountTransactionsCount",
+        "query",
+        variables,
+      );
+    },
+    getAuthKeysForPublicKey(
+      variables?: Types.GetAuthKeysForPublicKeyQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<Types.GetAuthKeysForPublicKeyQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetAuthKeysForPublicKeyQuery>(GetAuthKeysForPublicKey, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getAuthKeysForPublicKey",
         "query",
         variables,
       );
