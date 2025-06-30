@@ -14,8 +14,17 @@ import {
   TransactionPayloadEntryFunction,
   TransactionPayloadMultiSig,
   TransactionPayloadScript,
+  TransactionInnerPayload,
 } from "./instances";
-import { AnyNumber, HexInput, MoveFunctionGenericTypeParam, MoveFunctionId, MoveStructId, MoveValue } from "../types";
+import {
+  AnyNumber,
+  HexInput,
+  MoveFunctionGenericTypeParam,
+  MoveFunctionId,
+  MoveStructId,
+  MoveValue,
+  TransactionSubmitter,
+} from "../types";
 import { TypeTag } from "./typeTag";
 import { AccountAuthenticator } from "./authenticator/account";
 import { SimpleTransaction } from "./instances/simpleTransaction";
@@ -113,11 +122,30 @@ export type AnyRawTransactionInstance = RawTransaction | MultiAgentRawTransactio
  * @group Implementation
  * @category Transactions
  */
-export type InputGenerateTransactionOptions = {
+export type InputGenerateTransactionOptions =
+  | InputGenerateSequenceNumberTransactionOptions
+  | InputGenerateOrderlessTransactionOptions;
+
+/**
+ * Input options for generating a transaction that requires an account sequence number, which is the default method.
+ */
+export type InputGenerateSequenceNumberTransactionOptions = {
   maxGasAmount?: number;
   gasUnitPrice?: number;
   expireTimestamp?: number;
   accountSequenceNumber?: AnyNumber;
+  replayProtectionNonce?: undefined;
+};
+
+/**
+ * Input options for generating a transaction using the orderless method, which does not require an account sequence number.
+ */
+export type InputGenerateOrderlessTransactionOptions = {
+  maxGasAmount?: number;
+  gasUnitPrice?: number;
+  expireTimestamp?: number;
+  accountSequenceNumber?: undefined;
+  replayProtectionNonce: AnyNumber;
 };
 
 /**
@@ -129,7 +157,8 @@ export type InputGenerateTransactionOptions = {
 export type AnyTransactionPayloadInstance =
   | TransactionPayloadEntryFunction
   | TransactionPayloadScript
-  | TransactionPayloadMultiSig;
+  | TransactionPayloadMultiSig
+  | TransactionInnerPayload;
 
 /**
  * The data needed to generate a transaction payload for Entry Function, Script, or Multi Sig types.
@@ -449,19 +478,41 @@ export type InputGenerateTransactionData =
   | InputGenerateSingleSignerRawTransactionData
   | InputGenerateMultiAgentRawTransactionData;
 
+interface InputSubmitTransactionDataInner {
+  transaction: AnyRawTransaction;
+  senderAuthenticator: AccountAuthenticator;
+  feePayerAuthenticator?: AccountAuthenticator;
+  additionalSignersAuthenticators?: Array<AccountAuthenticator>;
+}
+
+export interface InputTransactionPluginData {
+  /**
+   * Additional parameters that will be passed to the transaction submitter plugin if
+   * configured.
+   */
+  pluginParams?: Record<string, any>;
+
+  /**
+   * You can set this to override the configured transaction submitter (if any).
+   * Conversely you can set this to null to ignore any configured transaction submitter.
+   */
+  transactionSubmitter?: TransactionSubmitter | null;
+}
+
 /**
  * Holds user data input for submitting a transaction.
  *
  * @param transaction - The raw transaction data.
  * @param senderAuthenticator - The authenticator for the sender's account.
  * @param feePayerAuthenticator - Optional authenticator for the fee payer's account.
- * @param additionalSignersAuthenticators - Optional array of authenticators for additional signers.
+ * @param additionalSignersAuthenticators - Optional array of authenticators for
+ * additional signers.
+ * @param pluginParams - Additional parameters that will be passed to the transaction
+ * submitter plugin if configured.
+ * @param transactionSubmitter - You can set this to override the configured transaction
+ * submitter (if any). Conversely you can set this to null to ignore any configured
+ * transaction submitter.
  * @group Implementation
  * @category Transactions
  */
-export interface InputSubmitTransactionData {
-  transaction: AnyRawTransaction;
-  senderAuthenticator: AccountAuthenticator;
-  feePayerAuthenticator?: AccountAuthenticator;
-  additionalSignersAuthenticators?: Array<AccountAuthenticator>;
-}
+export type InputSubmitTransactionData = InputSubmitTransactionDataInner & InputTransactionPluginData;

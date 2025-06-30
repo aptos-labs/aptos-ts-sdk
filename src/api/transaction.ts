@@ -34,6 +34,7 @@ import {
   AnyRawTransaction,
   InputGenerateTransactionOptions,
   InputGenerateTransactionPayloadData,
+  InputTransactionPluginData,
 } from "../transactions";
 import { AccountAddressInput, AuthenticationKey, Ed25519PrivateKey } from "../core";
 import { Account } from "../account";
@@ -717,7 +718,7 @@ export class Transaction {
     args: FeePayerOrFeePayerAuthenticatorOrNeither & {
       signer: Account;
       transaction: AnyRawTransaction;
-    },
+    } & InputTransactionPluginData,
   ): Promise<PendingTransactionResponse> {
     return signAndSubmitTransaction({
       aptosConfig: this.config,
@@ -744,11 +745,13 @@ export class Transaction {
    * @return PendingTransactionResponse
    * @group Transaction
    */
-  async signAndSubmitAsFeePayer(args: {
-    feePayer: Account;
-    senderAuthenticator: AccountAuthenticator;
-    transaction: AnyRawTransaction;
-  }): Promise<PendingTransactionResponse> {
+  async signAndSubmitAsFeePayer(
+    args: {
+      feePayer: Account;
+      senderAuthenticator: AccountAuthenticator;
+      transaction: AnyRawTransaction;
+    } & InputTransactionPluginData,
+  ): Promise<PendingTransactionResponse> {
     return signAndSubmitAsFeePayer({
       aptosConfig: this.config,
       ...args,
