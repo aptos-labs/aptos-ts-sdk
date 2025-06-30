@@ -3,6 +3,8 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
+- Add account derivation APIs, `getAccountsForPublicKey` and `deriveOwnedAccountsFromSigner` which handle multi-key accounts and key rotations
+- Update the deprecated function deriveAccountFromPrivateKey to use the new account derivation API
 
 # 3.0.0 (2025-06-26)
 - Make the default max gas amount and exipry time from now values for transaction generation configurable.

@@ -186,6 +186,16 @@ export async function deriveKeylessAccount(args: {
   uidKey?: string;
   pepper?: HexInput;
   proofFetchCallback?: ProofFetchCallback;
+}): Promise<KeylessAccount | FederatedKeylessAccount>;
+
+export async function deriveKeylessAccount(args: {
+  aptosConfig: AptosConfig;
+  jwt: string;
+  ephemeralKeyPair: EphemeralKeyPair;
+  jwkAddress?: AccountAddressInput;
+  uidKey?: string;
+  pepper?: HexInput;
+  proofFetchCallback?: ProofFetchCallback;
 }): Promise<KeylessAccount | FederatedKeylessAccount> {
   const { aptosConfig, jwt, jwkAddress, uidKey, proofFetchCallback, pepper = await getPepper(args) } = args;
   const { verificationKey, maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });

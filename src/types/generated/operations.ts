@@ -77,6 +77,20 @@ export type CurrentTokenOwnershipFieldsFragment = {
   } | null;
 };
 
+export type GetAccountAddressesForAuthKeyQueryVariables = Types.Exact<{
+  where_condition?: Types.InputMaybe<Types.AuthKeyAccountAddressesBoolExp>;
+  order_by?: Types.InputMaybe<Array<Types.AuthKeyAccountAddressesOrderBy> | Types.AuthKeyAccountAddressesOrderBy>;
+}>;
+
+export type GetAccountAddressesForAuthKeyQuery = {
+  auth_key_account_addresses: Array<{
+    auth_key: string;
+    account_address: string;
+    last_transaction_version: any;
+    is_auth_key_used: boolean;
+  }>;
+};
+
 export type GetAccountCoinsCountQueryVariables = Types.Exact<{
   address?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
 }>;
@@ -96,15 +110,15 @@ export type GetAccountCoinsDataQueryVariables = Types.Exact<{
 
 export type GetAccountCoinsDataQuery = {
   current_fungible_asset_balances: Array<{
-    amount?: any | null;
-    asset_type?: string | null;
+    amount: any;
+    asset_type: string;
     is_frozen: boolean;
-    is_primary?: boolean | null;
+    is_primary: boolean;
     last_transaction_timestamp?: any | null;
     last_transaction_version?: any | null;
     owner_address: string;
     storage_id: string;
-    token_standard?: string | null;
+    token_standard: string;
     metadata?: {
       token_standard: string;
       symbol: string;
@@ -346,6 +360,23 @@ export type GetAccountTransactionsCountQuery = {
   account_transactions_aggregate: { aggregate?: { count: number } | null };
 };
 
+export type GetAuthKeysForPublicKeyQueryVariables = Types.Exact<{
+  where_condition?: Types.InputMaybe<Types.PublicKeyAuthKeysBoolExp>;
+  order_by?: Types.InputMaybe<Array<Types.PublicKeyAuthKeysOrderBy> | Types.PublicKeyAuthKeysOrderBy>;
+}>;
+
+export type GetAuthKeysForPublicKeyQuery = {
+  public_key_auth_keys: Array<{
+    public_key: string;
+    public_key_type: string;
+    auth_key: string;
+    account_public_key?: string | null;
+    last_transaction_version: any;
+    is_public_key_used: boolean;
+    signature_type: string;
+  }>;
+};
+
 export type GetChainTopUserTransactionsQueryVariables = Types.Exact<{
   limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
 }>;
@@ -394,15 +425,15 @@ export type GetCurrentFungibleAssetBalancesQueryVariables = Types.Exact<{
 
 export type GetCurrentFungibleAssetBalancesQuery = {
   current_fungible_asset_balances: Array<{
-    amount?: any | null;
-    asset_type?: string | null;
+    amount: any;
+    asset_type: string;
     is_frozen: boolean;
-    is_primary?: boolean | null;
+    is_primary: boolean;
     last_transaction_timestamp?: any | null;
     last_transaction_version?: any | null;
     owner_address: string;
     storage_id: string;
-    token_standard?: string | null;
+    token_standard: string;
   }>;
 };
 
