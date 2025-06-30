@@ -17,6 +17,7 @@ import {
 } from "../client";
 import {
   AccountData,
+  AnyNumber,
   anyPublicKeyVariantToString,
   CommittedTransactionResponse,
   CursorPaginationArgs,
@@ -96,8 +97,9 @@ import {
   TypeTagVector,
 } from "../transactions";
 import { U8, MoveVector } from "../bcs";
-import { waitForTransaction } from "./transaction";
+import { waitForTransaction, waitForIndexer } from "./transaction";
 import { view } from "./view";
+import { getLedgerInfo } from "./general";
 
 /**
  * Retrieves account information for a specified account address.
@@ -865,27 +867,26 @@ async function doesAccountExistAtAddress(args: {
   try {
     // Get the account resources and the balance of the account.  We need to check both because
     // an account resource can exist with 0 balance and a balance can exist without an account resource (light accounts).
-    const [resources, [balanceStr]] = await Promise.all([
+    const [resources, ownedObjects] = await Promise.all([
       getResources({
         aptosConfig,
         accountAddress,
       }),
-      view<[string]>({
+      getAccountOwnedObjects({
         aptosConfig,
-        payload: {
-          function: "0x1::coin::balance",
-          typeArguments: ["0x1::aptos_coin::AptosCoin"],
-          functionArguments: [accountAddress],
+        accountAddress,
+        options: {
+          limit: 1,
         },
       }),
     ]);
-    const balance = parseInt(balanceStr, 10);
+
     const accountResource: MoveResource<{ authentication_key: string }> | undefined = resources.find(
       (r) => r.type === "0x1::account::Account",
     ) as MoveResource<{ authentication_key: string }> | undefined;
 
     // If the account resource is not found and the balance is 0, then the account does not exist.
-    if (!accountResource && balance === 0) {
+    if (!accountResource && ownedObjects.length === 0) {
       return false;
     }
 
@@ -910,11 +911,7 @@ async function doesAccountExistAtAddress(args: {
     // Else the account exists and the auth key matches.
     return true;
   } catch (error: any) {
-    // account not found
-    if (error.status === 404) {
-      return false;
-    }
-    throw new Error(`Error while looking for an account info ${accountAddress.toString()}: ${error}`);
+    throw new Error(`Error while checking if account exists at ${accountAddress.toString()}: ${error}`);
   }
 }
 

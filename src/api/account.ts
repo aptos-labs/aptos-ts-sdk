@@ -998,6 +998,11 @@ export class Account {
       minimumLedgerVersion: args.minimumLedgerVersion,
       processorType: ProcessorType.ACCOUNT_RESTORATION_PROCESSOR,
     });
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.OBJECT_PROCESSOR,
+    });
     return deriveAccountFromPrivateKey({ aptosConfig: this.config, ...args });
   }
 
@@ -1043,6 +1048,11 @@ export class Account {
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
       processorType: ProcessorType.ACCOUNT_RESTORATION_PROCESSOR,
+    });
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.OBJECT_PROCESSOR,
     });
     return deriveOwnedAccountsFromSigner({ aptosConfig: this.config, ...args });
   }
@@ -1092,6 +1102,11 @@ export class Account {
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
       processorType: ProcessorType.ACCOUNT_RESTORATION_PROCESSOR,
+    });
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.OBJECT_PROCESSOR,
     });
     return getAccountsForPublicKey({
       aptosConfig: this.config,
