@@ -1,2 +1,2 @@
-overrides:
-  ts-sdk: link:../../../../../.local/share/pnpm/global/5/node_modules/@cedra-labs/ts-sdk
+# overrides:
+  # ts-sdk: link:../../../../../.local/share/pnpm/global/5/node_modules/@cedra-labs/ts-sdk

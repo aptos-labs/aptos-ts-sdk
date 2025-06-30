@@ -162,11 +162,11 @@ export async function simpleCoinTransactionHeler(cedra: Cedra, sender: Account, 
     amount: FUND_AMOUNT,
   });
 
-  const senderOldBalance = await cedra.getAccountAPTAmount({
+  const senderOldBalance = await cedra.getAccountCEDRAAmount({
     accountAddress: sender.accountAddress,
     minimumLedgerVersion: Number(senderFundTxn.version),
   });
-  const recipientOldBalance = await cedra.getAccountAPTAmount({
+  const recipientOldBalance = await cedra.getAccountCEDRAAmount({
     accountAddress: recipient.accountAddress,
     minimumLedgerVersion: Number(recipientFundTxn.version),
   });
@@ -181,11 +181,11 @@ export async function simpleCoinTransactionHeler(cedra: Cedra, sender: Account, 
   const committedTxn = await cedra.waitForTransaction({ transactionHash: pendingTxn.hash });
   const version = Number(committedTxn.version);
 
-  const senderNewBalance = await cedra.getAccountAPTAmount({
+  const senderNewBalance = await cedra.getAccountCEDRAAmount({
     accountAddress: sender.accountAddress,
     minimumLedgerVersion: version,
   });
-  const recipientNewBalance = await cedra.getAccountAPTAmount({
+  const recipientNewBalance = await cedra.getAccountCEDRAAmount({
     accountAddress: recipient.accountAddress,
     minimumLedgerVersion: version,
   });

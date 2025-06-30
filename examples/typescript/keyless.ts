@@ -21,7 +21,7 @@ const TRANSFER_AMOUNT = 10_000;
  *
  */
 const balance = async (cedra: Cedra, name: string, address: AccountAddress): Promise<any> => {
-  const amount = await cedra.getAccountAPTAmount({
+  const amount = await cedra.getAccountCEDRAAmount({
     accountAddress: address,
   });
   console.log(`${name}'s balance is: ${amount}`);

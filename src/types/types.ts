@@ -30,7 +30,7 @@ export type HexInput = string | Uint8Array;
 
 /**
  * Variants of type tags used in the system, encompassing various data types and structures.
- * {@link https://github.com/cedra-labs/cedra-core/blob/main/third_party/move/move-core/types/src/language_storage.rs#L27}
+ * {@link https://github.com/cedra-labs/cedra-network/blob/main/third_party/move/move-core/types/src/language_storage.rs#L27}
  */
 export enum TypeTagVariants {
   Bool = 0,
@@ -50,7 +50,7 @@ export enum TypeTagVariants {
 
 /**
  * Variants of script transaction arguments used in Rust, encompassing various data types for transaction processing.
- * {@link https://github.com/cedra-labs/cedra-core/blob/main/third_party/move/move-core/types/src/transaction_argument.rs#L11}
+ * {@link https://github.com/cedra-labs/cedra-network/blob/main/third_party/move/move-core/types/src/transaction_argument.rs#L11}
  */
 export enum ScriptTransactionArgumentVariants {
   U8 = 0,
@@ -67,7 +67,7 @@ export enum ScriptTransactionArgumentVariants {
 
 /**
  * The payload for various transaction types in the system.
- * {@link https://github.com/cedra-labs/cedra-core/blob/main/types/src/transaction/mod.rs#L478}
+ * {@link https://github.com/cedra-labs/cedra-network/blob/main/types/src/transaction/mod.rs#L478}
  */
 export enum TransactionPayloadVariants {
   Script = 0,
@@ -77,7 +77,7 @@ export enum TransactionPayloadVariants {
 
 /**
  * Variants of transactions used in the system.
- * {@link https://github.com/cedra-labs/cedra-core/blob/main/types/src/transaction/mod.rs#L440}
+ * {@link https://github.com/cedra-labs/cedra-network/blob/main/types/src/transaction/mod.rs#L440}
  */
 export enum TransactionVariants {
   MultiAgentTransaction = 0,
@@ -86,7 +86,7 @@ export enum TransactionVariants {
 
 /**
  * Variants of transaction authenticators used in the system.
- * {@link https://github.com/cedra-labs/cedra-core/blob/main/types/src/transaction/authenticator.rs#L44}
+ * {@link https://github.com/cedra-labs/cedra-network/blob/main/types/src/transaction/authenticator.rs#L44}
  */
 export enum TransactionAuthenticatorVariant {
   Ed25519 = 0,
@@ -98,7 +98,7 @@ export enum TransactionAuthenticatorVariant {
 
 /**
  * Variants of account authenticators used in transactions.
- * {@link https://github.com/cedra-labs/cedra-core/blob/main/types/src/transaction/authenticator.rs#L414}
+ * {@link https://github.com/cedra-labs/cedra-network/blob/main/types/src/transaction/authenticator.rs#L414}
  */
 export enum AccountAuthenticatorVariant {
   Ed25519 = 0,

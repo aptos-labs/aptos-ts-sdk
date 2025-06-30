@@ -4,7 +4,7 @@
  * This example demonstrates the new multisig account module (MultiSig V2) and transaction execution flow
  * where in that module, there is no off-chain signature aggregation step.
  * Each owner sends its transactions to the chain on its own, and so the "voting" process occurs on-chain.
- * {@link https://github.com/cedra-labs/cedra-core/blob/main/cedra-move/framework/cedra-framework/sources/multisig_account.move}
+ * {@link https://github.com/cedra-labs/cedra-network/blob/main/cedra-move/framework/cedra-framework/sources/multisig_account.move}
  *
  * This example demonstrates different interaction with the module
  * - create a multi sig account

@@ -96,15 +96,15 @@ export type GetAccountCoinsDataQueryVariables = Types.Exact<{
 
 export type GetAccountCoinsDataQuery = {
   current_fungible_asset_balances: Array<{
-    amount?: any | null;
-    asset_type?: string | null;
+    amount: any;
+    asset_type: string;
     is_frozen: boolean;
-    is_primary?: boolean | null;
-    last_transaction_timestamp?: any | null;
-    last_transaction_version?: any | null;
+    is_primary: boolean;
+    last_transaction_timestamp: any;
+    last_transaction_version: any;
     owner_address: string;
     storage_id: string;
-    token_standard?: string | null;
+    token_standard: string;
     metadata?: {
       token_standard: string;
       symbol: string;
@@ -394,15 +394,15 @@ export type GetCurrentFungibleAssetBalancesQueryVariables = Types.Exact<{
 
 export type GetCurrentFungibleAssetBalancesQuery = {
   current_fungible_asset_balances: Array<{
-    amount?: any | null;
-    asset_type?: string | null;
+    amount: any;
+    asset_type: string;
     is_frozen: boolean;
-    is_primary?: boolean | null;
-    last_transaction_timestamp?: any | null;
-    last_transaction_version?: any | null;
+    is_primary: boolean;
+    last_transaction_timestamp: any;
+    last_transaction_version: any;
     owner_address: string;
     storage_id: string;
-    token_standard?: string | null;
+    token_standard: string;
   }>;
 };
 
@@ -545,11 +545,11 @@ export type GetObjectDataQuery = {
 };
 
 export type GetProcessorStatusQueryVariables = Types.Exact<{
-  where_condition?: Types.InputMaybe<Types.ProcessorStatusBoolExp>;
+  where_condition?: Types.InputMaybe<Types.ProcessorMetadataProcessorStatusBoolExp>;
 }>;
 
 export type GetProcessorStatusQuery = {
-  processor_status: Array<{ last_success_version: any; processor: string; last_updated: any }>;
+  processor_metadata_processor_status: Array<{ last_success_version: any; processor: string; last_updated: any }>;
 };
 
 export type GetTableItemsDataQueryVariables = Types.Exact<{

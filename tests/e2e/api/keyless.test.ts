@@ -78,7 +78,7 @@ describe("keyless api", () => {
     const jwkTransaction = await cedra.updateFederatedKeylessJwkSetTransaction({
       sender: jwkAccount,
       iss: "test.federated.oidc.provider",
-      jwksUrl: "https://github.com/cedra-labs/cedra-core/raw/main/types/src/jwks/rsa/secure_test_jwk.json",
+      jwksUrl: "https://github.com/cedra-labs/cedra-network/raw/main/types/src/jwks/rsa/secure_test_jwk.json",
     });
     const committedJwkTxn = await cedra.signAndSubmitTransaction({ signer: jwkAccount, transaction: jwkTransaction });
     await cedra.waitForTransaction({ transactionHash: committedJwkTxn.hash });

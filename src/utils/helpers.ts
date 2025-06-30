@@ -241,7 +241,7 @@ export function truncateAddress(address: string, start: number = 6, end: number 
  * Constants for metadata address calculation
  */
 const CEDRA_COIN_TYPE_STR = "0x1::cedra_coin::CedraCoin";
-const APT_METADATA_ADDRESS_HEX = AccountAddress.A.toStringLong();
+const CEDRA_METADATA_ADDRESS_HEX = AccountAddress.A.toStringLong();
 
 /**
  * Helper function to standardize Move type string by converting all addresses to short form,

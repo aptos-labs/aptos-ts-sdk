@@ -58,7 +58,7 @@ describe("FungibleAsset", () => {
     const userAccount = Account.generate();
     await cedra.fundAccount({ accountAddress: userAccount.accountAddress, amount: 1_000 });
 
-    const APT_COIN_TYPE = "0x1::cedra_coin::CedraCoin";
+    const CEDRA_COIN_TYPE = "0x1::cedra_coin::CedraCoin";
     const data = await cedra.getCurrentFungibleAssetBalances({
       options: {
         where: {
@@ -68,7 +68,7 @@ describe("FungibleAsset", () => {
       },
     });
     expect(data.length).toEqual(1);
-    expect(data[0].asset_type).toEqual(APT_COIN_TYPE);
+    expect(data[0].asset_type).toEqual(CEDRA_COIN_TYPE);
     expect(data[0].amount).toEqual(1_000);
   });
 });

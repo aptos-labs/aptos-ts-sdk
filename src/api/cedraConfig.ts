@@ -186,11 +186,6 @@ export class CedraConfig {
         return NetworkToNodeAPI[this.network];
       case CedraApiType.FAUCET:
         if (this.faucet !== undefined) return this.faucet;
-        if (this.network === Network.TESTNET) {
-          throw new Error(
-            "There is no way to programmatically mint testnet APT, you must use the minting site at https://cedra.dev/network/faucet",
-          );
-        }
         if (this.network === Network.MAINNET) {
           throw new Error("There is no mainnet faucet");
         }

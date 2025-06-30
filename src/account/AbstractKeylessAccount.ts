@@ -535,7 +535,7 @@ export class TransactionAndProof extends Serializable {
   }
 
   /**
-   * Hashes the bcs serialized from of the class. This is the typescript corollary to the BCSCryptoHash macro in cedra-core.
+   * Hashes the bcs serialized from of the class. This is the typescript corollary to the BCSCryptoHash macro in cedra-network.
    *
    * @returns Uint8Array
    * @group Implementation

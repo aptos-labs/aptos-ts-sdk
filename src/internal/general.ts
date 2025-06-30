@@ -108,7 +108,7 @@ export async function getProcessorStatuses(args: { cedraConfig: CedraConfig }): 
     originMethod: "getProcessorStatuses",
   });
 
-  return data.processor_status;
+  return data.processor_metadata_processor_status;
 }
 
 /**
@@ -157,5 +157,5 @@ export async function getProcessorStatus(args: {
     originMethod: "getProcessorStatus",
   });
 
-  return data.processor_status[0];
+  return data.processor_metadata_processor_status[0];
 }

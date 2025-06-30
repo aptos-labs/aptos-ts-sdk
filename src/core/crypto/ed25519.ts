@@ -31,7 +31,7 @@ const L: number[] = [
  * @returns A boolean indicating whether the signature is non-canonical.
  *
  * Comes from Cedra Core
- * https://github.com/cedra-labs/cedra-core/blob/main/crates/cedra-crypto/src/ed25519/ed25519_sigs.rs#L47-L85
+ * https://github.com/cedra-labs/cedra-network/blob/main/crates/cedra-crypto/src/ed25519/ed25519_sigs.rs#L47-L85
  * @group Implementation
  * @category Serialization
  */

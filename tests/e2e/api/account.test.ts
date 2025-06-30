@@ -42,7 +42,7 @@ describe("account api", () => {
     });
 
     test("it fetches account modules with a limit", async () => {
-      const config = new CedraConfig({ network: Network.LOCAL });
+      const config = new CedraConfig({ network: Network.TESTNET });
       const cedra = new Cedra(config);
       const data = await cedra.getAccountModules({
         accountAddress: "0x1",
@@ -54,7 +54,7 @@ describe("account api", () => {
     });
 
     test("it fetches account modules with pagination", async () => {
-      const config = new CedraConfig({ network: Network.LOCAL });
+      const config = new CedraConfig({ network: Network.TESTNET });
       const cedra = new Cedra(config);
       let { modules, cursor } = await cedra.getAccountModulesPage({
         accountAddress: "0x1",
@@ -81,7 +81,7 @@ describe("account api", () => {
     });
 
     test("it fetches an account module", async () => {
-      const config = new CedraConfig({ network: Network.LOCAL });
+      const config = new CedraConfig({ network: Network.TESTNET });
       const cedra = new Cedra(config);
       const data = await cedra.getAccountModule({
         accountAddress: "0x1",
@@ -91,7 +91,7 @@ describe("account api", () => {
     });
 
     test("it fetches account resources", async () => {
-      const config = new CedraConfig({ network: Network.LOCAL });
+      const config = new CedraConfig({ network: Network.TESTNET });
       const cedra = new Cedra(config);
       const data = await cedra.getAccountResources({
         accountAddress: "0x1",
@@ -100,7 +100,7 @@ describe("account api", () => {
     });
 
     test("it fetches account resources with a limit", async () => {
-      const config = new CedraConfig({ network: Network.LOCAL });
+      const config = new CedraConfig({ network: Network.TESTNET });
       const cedra = new Cedra(config);
       const data = await cedra.getAccountResources({
         accountAddress: "0x1",
@@ -112,7 +112,7 @@ describe("account api", () => {
     });
 
     test("it fetches account resources with pagination", async () => {
-      const config = new CedraConfig({ network: Network.LOCAL });
+      const config = new CedraConfig({ network: Network.TESTNET });
       const cedra = new Cedra(config);
       const { resources, cursor } = await cedra.getAccountResourcesPage({
         accountAddress: "0x1",
@@ -135,7 +135,7 @@ describe("account api", () => {
     });
 
     test("it fetches an account resource without a type", async () => {
-      const config = new CedraConfig({ network: Network.LOCAL });
+      const config = new CedraConfig({ network: Network.TESTNET });
       const cedra = new Cedra(config);
       const data = await cedra.getAccountResource({
         accountAddress: "0x1",
@@ -148,7 +148,7 @@ describe("account api", () => {
     });
 
     test("it fetches an account resource typed", async () => {
-      const config = new CedraConfig({ network: Network.LOCAL });
+      const config = new CedraConfig({ network: Network.TESTNET });
       const cedra = new Cedra(config);
       type AccountRes = {
         authentication_key: string;
@@ -185,7 +185,7 @@ describe("account api", () => {
     });
 
     test("it fetches account transactions", async () => {
-      const config = new CedraConfig({ network: Network.LOCAL });
+      const config = new CedraConfig({ network: Network.TESTNET });
       const cedra = new Cedra(config);
       const senderAccount = Account.generate();
       await cedra.fundAccount({
@@ -216,7 +216,7 @@ describe("account api", () => {
     });
 
     test("it fetches account transactions count", async () => {
-      const config = new CedraConfig({ network: Network.LOCAL });
+      const config = new CedraConfig({ network: Network.TESTNET });
       const cedra = new Cedra(config);
       const senderAccount = Account.generate();
       const response = await cedra.fundAccount({
@@ -232,7 +232,7 @@ describe("account api", () => {
     });
 
     test("it fetches account coins data", async () => {
-      const config = new CedraConfig({ network: Network.LOCAL });
+      const config = new CedraConfig({ network: Network.TESTNET });
       const cedra = new Cedra(config);
       const senderAccount = Account.generate();
       const fundTxn = await cedra.fundAccount({
@@ -249,7 +249,7 @@ describe("account api", () => {
     });
 
     test("it fetches account coins count", async () => {
-      const config = new CedraConfig({ network: Network.LOCAL });
+      const config = new CedraConfig({ network: Network.TESTNET });
       const cedra = new Cedra(config);
       const senderAccount = Account.generate();
       const fundTxn = await cedra.fundAccount({
@@ -265,7 +265,7 @@ describe("account api", () => {
     });
 
     test("it fetches account's coin amount", async () => {
-      const config = new CedraConfig({ network: Network.LOCAL });
+      const config = new CedraConfig({ network: Network.TESTNET });
       const cedra = new Cedra(config);
       const senderAccount = Account.generate();
       const fundTxn = await cedra.fundAccount({
@@ -289,30 +289,30 @@ describe("account api", () => {
       });
       expect(getOtherCoinAmount).toBe(0);
 
-      // APT Cedra coin
-      const accountAPTAmount = await cedra.getAccountCoinAmount({
+      // CEDRA Cedra coin
+      const accountCEDRAAmount = await cedra.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
         coinType: CEDRA_COIN,
         minimumLedgerVersion: BigInt(fundTxn.version),
       });
-      expect(accountAPTAmount).toBe(100000000);
+      expect(accountCEDRAAmount).toBe(100000000);
 
-      // APT Cedra coin by fungible asset metadata
-      const accountAPTAmount2 = await cedra.getAccountCoinAmount({
+      // CEDRA Cedra coin by fungible asset metadata
+      const accountCEDRAAmount2 = await cedra.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
         faMetadataAddress: AccountAddress.A,
         minimumLedgerVersion: BigInt(fundTxn.version),
       });
-      expect(accountAPTAmount2).toBe(100000000);
+      expect(accountCEDRAAmount2).toBe(100000000);
       // By both
-      // APT Cedra coin by fungible asset metadata
-      const accountAPTAmount3 = await cedra.getAccountCoinAmount({
+      // CEDRA Cedra coin by fungible asset metadata
+      const accountCEDRAAmount3 = await cedra.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
         coinType: CEDRA_COIN,
         faMetadataAddress: "0xA",
         minimumLedgerVersion: BigInt(fundTxn.version),
       });
-      expect(accountAPTAmount3).toBe(100000000);
+      expect(accountCEDRAAmount3).toBe(100000000);
       // By neither
       const failForNoCoinTypeGiven = cedra.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
@@ -322,7 +322,7 @@ describe("account api", () => {
     });
 
     test("lookupOriginalAccountAddress - Look up account address before key rotation", async () => {
-      const config = new CedraConfig({ network: Network.LOCAL });
+      const config = new CedraConfig({ network: Network.TESTNET });
       const cedra = new Cedra(config);
       const account = Account.generate();
 
@@ -336,7 +336,7 @@ describe("account api", () => {
     });
 
     test("it fetches account owned token from collection", async () => {
-      const config = new CedraConfig({ network: Network.LOCAL });
+      const config = new CedraConfig({ network: Network.TESTNET });
       const cedra = new Cedra(config);
       const creator = Account.generate();
       await cedra.fundAccount({ accountAddress: creator.accountAddress, amount: FUND_AMOUNT });
@@ -380,7 +380,7 @@ describe("account api", () => {
 
     describe("it derives an account from a private key", () => {
       test("single sender ed25519", async () => {
-        const config = new CedraConfig({ network: Network.LOCAL });
+        const config = new CedraConfig({ network: Network.TESTNET });
         const cedra = new Cedra(config);
         const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
         await cedra.fundAccount({ accountAddress: account.accountAddress, amount: 100 });
@@ -390,7 +390,7 @@ describe("account api", () => {
         expect(derivedAccount.accountAddress.equals(account.accountAddress)).toEqual(false);
       });
       test("single sender secp256k1", async () => {
-        const config = new CedraConfig({ network: Network.LOCAL });
+        const config = new CedraConfig({ network: Network.TESTNET });
         const cedra = new Cedra(config);
         const account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
 
@@ -398,7 +398,7 @@ describe("account api", () => {
         expect(derivedAccount).toStrictEqual(account);
       });
       test("legacy ed25519", async () => {
-        const config = new CedraConfig({ network: Network.LOCAL });
+        const config = new CedraConfig({ network: Network.TESTNET });
         const cedra = new Cedra(config);
         const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
         await cedra.fundAccount({ accountAddress: account.accountAddress, amount: 100 });
@@ -411,7 +411,7 @@ describe("account api", () => {
 
   describe("Key Rotation", () => {
     test("it should rotate ed25519 to ed25519 auth key correctly", async () => {
-      const config = new CedraConfig({ network: Network.LOCAL });
+      const config = new CedraConfig({ network: Network.TESTNET });
       const cedra = new Cedra(config);
 
       // Current Account
@@ -442,7 +442,7 @@ describe("account api", () => {
     }, 10000);
 
     test("it should rotate ed25519 to multi-ed25519 auth key correctly", async () => {
-      const config = new CedraConfig({ network: Network.LOCAL });
+      const config = new CedraConfig({ network: Network.TESTNET });
       const cedra = new Cedra(config);
 
       // Current Account
@@ -480,7 +480,7 @@ describe("account api", () => {
     }, 10000);
 
     test("it should rotate ed25519 to multikey auth key correctly", async () => {
-      const config = new CedraConfig({ network: Network.LOCAL });
+      const config = new CedraConfig({ network: Network.TESTNET });
       const cedra = new Cedra(config);
 
       // Current Account
@@ -514,7 +514,7 @@ describe("account api", () => {
     }, 10000);
 
     test("it should rotate ed25519 to unverified auth key correctly", async () => {
-      const config = new CedraConfig({ network: Network.LOCAL });
+      const config = new CedraConfig({ network: Network.TESTNET });
       const cedra = new Cedra(config);
 
       // Current Account

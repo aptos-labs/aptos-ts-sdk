@@ -1,6 +1,8 @@
 // Copyright © Cedra Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import TestRunHookDefinition from "@cucumber/cucumber/lib/models/test_run_hook_definition";
+
 /**
  * @group Implementation
  * @category Network
@@ -29,6 +31,7 @@ export const NetworkToNodeAPI: Record<string, string> = {
  */
 export const NetworkToFaucetAPI: Record<string, string> = {
   devnet: "https://faucet-api.cedra.dev",
+  testnet: "https://faucet-api.cedra.dev",
   local: "http://127.0.0.1:8081",
 };
 

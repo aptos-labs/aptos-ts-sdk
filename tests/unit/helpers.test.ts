@@ -3,7 +3,7 @@ import { AccountAddress } from "../../src/core/accountAddress";
 
 describe("pairedFaMetadataAddress", () => {
   test("matches the ground truth cases on chain", () => {
-    // Test case 1: Cedra Coin should return APT_METADATA_ADDRESS_HEX
+    // Test case 1: Cedra Coin should return CEDRA_METADATA_ADDRESS_HEX
     expect(pairedFaMetadataAddress("0x1::cedra_coin::CedraCoin")).toEqual(AccountAddress.A);
 
     // Test case 2: Moon Coin should match the specific hash

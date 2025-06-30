@@ -33,7 +33,7 @@
     "src"
   ],
   "scripts": {
-    "build:clean": "rm -rf dist && rm -rf node-modeules",
+    "build:clean": "rm -rf dist && rm -rf node-modules",
     "build": "pnpm i && pnpm build:clean && tsup",
     "prepublishOnly": "pnpm run build",
     "_fmt": "prettier 'src/**/*.ts' 'tests/**/*.ts' 'examples/**/*.js' 'examples/**/*.ts' 'confidential-assets/**/*.ts' 'eslint.config.cjs'",
@@ -51,7 +51,7 @@
     "example": "ts-node example.ts"
   },
   "dependencies": {
-    "@cedra-labs/cedra-cli": "^1.0.2",
+    "@cedra-labs/cedra-cli": "^1.2.0",
     "@cedra-labs/cedra-client": "^2.0.0",
     "@noble/curves": "^1.6.0",
     "@noble/hashes": "^1.5.0",
@@ -99,5 +99,5 @@
     "typedoc-plugin-missing-exports": "^4.0.0",
     "typescript": "^5.8.2"
   },
-  "version": "2.1.0"
+  "version": "2.2.0"
 }

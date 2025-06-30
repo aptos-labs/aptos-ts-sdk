@@ -127,7 +127,7 @@ export type GetTokenDataResponse = GetTokenDataQuery["current_token_datas_v2"][0
  * @group Implementation
  * @category Types
  */
-export type GetProcessorStatusResponse = GetProcessorStatusQuery["processor_status"];
+export type GetProcessorStatusResponse = GetProcessorStatusQuery["processor_metadata_processor_status"];
 
 /**
  * The response containing metadata for a fungible asset.

@@ -10,6 +10,6 @@ my_addr = "_"
 my_addr = "0x12345"
 
 [dependencies.CedraFramework]
-git = "https://github.com/cedra-labs/cedra-core.git"
+git = "https://github.com/cedra-labs/cedra-network.git"
 rev = "mainnet"
 subdir = "cedra-move/framework/cedra-framework"

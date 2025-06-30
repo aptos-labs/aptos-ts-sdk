@@ -217,10 +217,10 @@ describe("ANS", () => {
   describe("isValidANSName", () => {
     test("it returns true for valid names", () => {
       expect(isValidANSName("primary")).toEqual({ domainName: "primary", subdomainName: undefined });
-      expect(isValidANSName("primary.apt")).toEqual({ domainName: "primary", subdomainName: undefined });
+      expect(isValidANSName("primary.cedra")).toEqual({ domainName: "primary", subdomainName: undefined });
 
       expect(isValidANSName("secondary.primary")).toEqual({ domainName: "primary", subdomainName: "secondary" });
-      expect(isValidANSName("secondary.primary.apt")).toEqual({ domainName: "primary", subdomainName: "secondary" });
+      expect(isValidANSName("secondary.primary.cedra")).toEqual({ domainName: "primary", subdomainName: "secondary" });
     });
 
     test("it returns false for invalid names", () => {
@@ -229,16 +229,16 @@ describe("ANS", () => {
       expect(() => isValidANSName("..")).toThrow();
       expect(() => isValidANSName(" . ")).toThrow();
       expect(() => isValidANSName(" test ")).toThrow();
-      expect(() => isValidANSName(".apt")).toThrow();
-      expect(() => isValidANSName(".apt.apt")).toThrow();
-      expect(() => isValidANSName(".apt.")).toThrow();
+      expect(() => isValidANSName(".cedra")).toThrow();
+      expect(() => isValidANSName(".cedra.cedra")).toThrow();
+      expect(() => isValidANSName(".cedra.")).toThrow();
       expect(() => isValidANSName("1")).toThrow();
-      expect(() => isValidANSName("1.apt")).toThrow();
+      expect(() => isValidANSName("1.cedra")).toThrow();
       expect(() => isValidANSName("bad.bad.bad")).toThrow();
       expect(() => isValidANSName("-bad-")).toThrow();
-      expect(() => isValidANSName("-bad.apt")).toThrow();
-      expect(() => isValidANSName("bad-.apt")).toThrow();
-      expect(() => isValidANSName("b.a.d.apt")).toThrow();
+      expect(() => isValidANSName("-bad.cedra")).toThrow();
+      expect(() => isValidANSName("bad-.cedra")).toThrow();
+      expect(() => isValidANSName("b.a.d.cedra")).toThrow();
     });
   });
 

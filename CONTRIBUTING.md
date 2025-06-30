@@ -18,7 +18,7 @@ repository. For more information on how to fork see the [GitHub documentation](h
 ### Documentation
 
 Cedra's developer website is also open source (the code can be found in this
-[repository](https://github.com/cedra-labs/cedra-core/tree/main/developers-docs-site/). It is built using
+[repository](https://github.com/cedra-labs/cedra-network/tree/main/developers-docs-site/). It is built using
 [Docusaurus](https://docusaurus.io/):
 
 If you know Markdown, you can already contribute!

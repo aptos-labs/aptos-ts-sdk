@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@cedra-labs/cedra-cli':
-    specifier: ^1.0.2
-    version: 1.1.1
+    specifier: ^1.2.0
+    version: 1.2.0
   '@cedra-labs/cedra-client':
     specifier: ^2.0.0
     version: 2.0.1(got@11.8.6)
@@ -868,8 +868,8 @@ packages:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
     dev: true
 
-  /@cedra-labs/cedra-cli@1.1.1:
-    resolution: {integrity: sha512-FSjzKDLzaw01eiblJM8+EYX0r22ig2qHDS0aOheuTwZ7vd3bTaiVPXzvYdv4zVh4iAzaOmmtDK0fzUS9luEt9Q==}
+  /@cedra-labs/cedra-cli@1.2.0:
+    resolution: {integrity: sha512-Cr0ZoX31wKwbIpW7VjLfu1CsiJt89T4OKe6QnX5sQ96EnBZAYgu/fxXuZiGiDpnK6DIJFwptECn7tywyrMA97A==}
     hasBin: true
     dependencies:
       commander: 12.1.0

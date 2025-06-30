@@ -104,6 +104,7 @@ const example = async () => {
   });
   const pendingObjectTxn = await cedra.signAndSubmitTransaction({ signer: alice, transaction: createObject });
   const response = await cedra.waitForTransaction({ transactionHash: pendingObjectTxn.hash });
+  console.log(response);
 
   const objects = await cedra.getAccountOwnedObjects({
     accountAddress: alice.accountAddress,

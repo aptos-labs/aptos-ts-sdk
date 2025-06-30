@@ -22,7 +22,7 @@ const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 100;
 
 // Default to devnet, but allow for overriding
-const CEDRA_NETWORK: Network = NetworkToNetworkName[process.env.CEDRA_NETWORK ?? Network.DEVNET];
+const CEDRA_NETWORK: Network = NetworkToNetworkName[process.env.CEDRA_NETWORK ?? Network.TESTNET];
 
 /**
  * Prints the balance of an account

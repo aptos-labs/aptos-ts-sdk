@@ -8,7 +8,7 @@ authors = []
 [dev-addresses]
 
 [dependencies.CedraFramework]
-git = "https://github.com/cedra-labs/cedra-core.git"
+git = "https://github.com/cedra-labs/cedra-network.git"
 rev = "devnet"
 subdir = "cedra-move/framework/cedra-framework"
 

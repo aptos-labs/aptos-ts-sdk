@@ -21,7 +21,7 @@ import { waitForTransaction } from "./transaction";
  * This function is useful for quickly providing a new or existing account with tokens to facilitate transactions.
  *
  * Note that only devnet has a publicly accessible faucet. For testnet, you must use
- * the minting page at https://cedra.dev/network/faucet.
+ * the minting page at https://faucet-api.cedra.dev.
  *
  * @param args - The arguments for funding the account.
  * @param args.cedraConfig - The configuration settings for connecting to the Cedra network.

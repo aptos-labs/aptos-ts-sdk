@@ -49,11 +49,11 @@ export function isValidANSSegment(fragment: string): boolean {
 /**
  * Checks if an ANS name is valid or not.
  *
- * @param name - A string of the domain name, which can include or exclude the .apt suffix.
+ * @param name - A string of the domain name, which can include or exclude the .cedra suffix.
  * @group Implementation
  */
 export function isValidANSName(name: string): { domainName: string; subdomainName?: string } {
-  const [first, second, ...rest] = name.replace(/\.apt$/, "").split(".");
+  const [first, second, ...rest] = name.replace(/\.cedra$/, "").split(".");
 
   if (rest.length > 0) {
     throw new Error(`${name} is invalid. A name can only have two parts, a domain and a subdomain separated by a "."`);

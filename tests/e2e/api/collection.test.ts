@@ -8,7 +8,7 @@ import { getCedraClient } from "../helper";
 // use it here since all tests use the same configuration
 const { cedra } = getCedraClient();
 
-// Disable these tests for now until we can test against LOCAL
+// Disable these tests for now until we can test against TESTNET
 describe("Collection", () => {
   test("it creates a new collection on chain and fetches its data", async () => {
     const creator = Account.generate();

@@ -88,10 +88,8 @@ export class LocalNode {
     const cliCommand = "npx";
     const cliArgs = ["cedra", "node", "run-localnet", "--force-restart", "--assume-yes", "--with-indexer-api"];
 
-    const currentPlatform = platform();
     const spawnConfig = {
       env: { ...process.env, ENABLE_KEYLESS_DEFAULT: "1" },
-      ...(currentPlatform === "win32" && { shell: true }),
     };
 
     this.process = spawn(cliCommand, cliArgs, spawnConfig);

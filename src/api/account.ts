@@ -754,14 +754,14 @@ export class Account {
    *
    * async function runExample() {
    *   // Get the APT amount for a specific account
-   *   const accountAPTAmount = await cedra.getAccountAPTAmount({ accountAddress: "0x1" }); // replace with a real account address
+   *   const accountAPTAmount = await cedra.getAccountCEDRAAmount({ accountAddress: "0x1" }); // replace with a real account address
    *   console.log("Account APT Amount:", accountAPTAmount);
    * }
    * runExample().catch(console.error);
    * ```
    * @group Account
    */
-  async getAccountAPTAmount(args: {
+  async getAccountCEDRAAmount(args: {
     accountAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
   }): Promise<number> {

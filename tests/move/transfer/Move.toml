@@ -3,7 +3,7 @@ name = "transaction_test"
 version = "0.0.0"
 
 [dependencies.CedraFramework]
-git = 'https://github.com/cedra-labs/cedra-core.git'
+git = 'https://github.com/cedra-labs/cedra-network.git'
 rev = 'main'
 subdir = 'cedra-move/framework/cedra-framework'
 

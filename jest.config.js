@@ -15,7 +15,7 @@ module.exports = {
   coveragePathIgnorePatterns: [
     "./src/internal/queries/",
     "./src/types/generated",
-    "./tests/e2e/ans/publishANSContracts.ts",
+    // "./tests/e2e/ans/publishANSContracts.ts",
     "./confidential-assets/*",
   ],
   testPathIgnorePatterns: ["dist/*", "examples/*", "confidential-assets/*"],
@@ -31,6 +31,6 @@ module.exports = {
   },
   // To help avoid exhausting all the available fds.
   maxWorkers: 4,
-  globalSetup: "./tests/preTest.cjs",
-  globalTeardown: "./tests/postTest.cjs",
+  // globalSetup: "./tests/preTest.cjs",
+  // globalTeardown: "./tests/postTest.cjs",
 };

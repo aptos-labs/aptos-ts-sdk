@@ -125,7 +125,7 @@ export class ANS {
    *
    * @param args - The arguments for retrieving the target address.
    * @param args.name - A string representing the name, which can be a primary name, a subdomain, or a combination (e.g.,
-   * "primary", "primary.apt", "secondary.primary", "secondary.primary.apt").
+   * "primary", "primary.cedra", "secondary.primary", "secondary.primary.cedra").
    *
    * @returns AccountAddress if the name has a target, undefined otherwise.
    *
@@ -268,8 +268,8 @@ export class ANS {
    * This function allows you to register a domain or subdomain name with specific expiration policies and options.
    *
    * @param args.sender - The sender account.
-   * @param args.name - A string of the name to register. This can be inclusive or exclusive of the .apt suffix. Examples include:
-   * "test", "test.apt", "test.cedra.apt", etc.
+   * @param args.name - A string of the name to register. This can be inclusive or exclusive of the .cedra suffix. Examples include:
+   * "test", "test.cedra", "test.cedra.cedra", etc.
    * @param args.expiration  - An object with the expiration policy of the name.
    * @param args.expiration.policy - 'domain' | 'subdomain:follow-domain' | 'subdomain:independent'.
    * - domain: Years is required and the name will expire after the given number of years.
@@ -293,10 +293,10 @@ export class ANS {
    * const cedra = new Cedra(config);
    *
    * async function runExample() {
-   *   // Registering a subdomain name assuming def.apt is already registered and belongs to the sender alice.
+   *   // Registering a subdomain name assuming def.cedra is already registered and belongs to the sender alice.
    *   const txn = await cedra.registerName({
    *     sender: "0x1", // replace with a real sender account
-   *     name: "test.cedra.apt",
+   *     name: "test.cedra.cedra",
    *     expiration: {
    *       policy: "subdomain:independent",
    *       expirationDate: Date.now() + 30 * 24 * 60 * 60 * 1000, // expires in 30 days
@@ -358,8 +358,8 @@ export class ANS {
    * Fetches a single name from the indexer based on the provided name argument.
    *
    * @param args - The arguments for retrieving the name.
-   * @param args.name - A string of the name to retrieve, e.g. "test.cedra.apt" or "test.apt" or "test".
-   *                    Can be inclusive or exclusive of the .apt suffix and can be a subdomain.
+   * @param args.name - A string of the name to retrieve, e.g. "test.cedra.cedra" or "test.cedra" or "test".
+   *                    Can be inclusive or exclusive of the .cedra suffix and can be a subdomain.
    *
    * @returns A promise of an ANSName or undefined if the name is not active.
    *
@@ -511,7 +511,7 @@ export class ANS {
    * Fetches all subdomain names for a given domain, excluding the domain itself.
    *
    * @param args - The arguments for fetching subdomains.
-   * @param args.domain - A string of the domain name, e.g., "test.apt" or "test" (without the suffix of .apt).
+   * @param args.domain - A string of the domain name, e.g., "test.cedra" or "test" (without the suffix of .cedra).
    * @param args.options - Optional parameters for fetching subdomains.
    * @param args.options.offset - Optional, the offset to start from when fetching names.
    * @param args.options.limit - Optional, the number of names to fetch per request.

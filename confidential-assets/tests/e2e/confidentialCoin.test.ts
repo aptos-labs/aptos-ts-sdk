@@ -38,7 +38,7 @@ describe.skip("Confidential balance api", () => {
     "it should ensure Alice able to afford transactions",
     async () => {
       const [aliceBalance] = await Promise.all([
-        cedra.getAccountAPTAmount({
+        cedra.getAccountCEDRAAmount({
           accountAddress: alice.accountAddress,
         }),
       ]);

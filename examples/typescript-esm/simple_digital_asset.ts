@@ -40,10 +40,10 @@ const example = async () => {
 
   const collectionName = "Example Collection";
   const collectionDescription = "Example description.";
-  const collectionURI = "cedra.dev";
+  const collectionURI = "https://cedra.dev";
 
   // Create the collection
-  const createCollectionTransaction = await cedra.createCollectionTransaction({
+  const transaction = await cedra.createCollectionTransaction({
     creator: alice,
     description: collectionDescription,
     name: collectionName,
@@ -51,17 +51,9 @@ const example = async () => {
   });
 
   console.log("\n=== Create the collection ===\n");
-  let committedTxn = await cedra.signAndSubmitTransaction({ signer: alice, transaction: createCollectionTransaction });
+  let committedTxn = await cedra.signAndSubmitTransaction({ signer: alice, transaction });
 
   let pendingTxn = await cedra.waitForTransaction({ transactionHash: committedTxn.hash });
-
-  const aliceCollection = await cedra.getCollectionData({
-    creatorAddress: alice.accountAddress,
-    collectionName,
-    minimumLedgerVersion: BigInt(pendingTxn.version),
-  });
-  console.log(`Alice's collection: ${JSON.stringify(aliceCollection, null, 4)}`);
-
   const tokenName = "Example Asset";
   const tokenDescription = "Example asset description.";
   const tokenURI = "cedra.dev/asset";

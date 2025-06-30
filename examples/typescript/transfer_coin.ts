@@ -27,7 +27,7 @@ const cedra = new Cedra(config);
  *
  */
 const balance = async (name: string, accountAddress: AccountAddress, versionToWaitFor?: bigint): Promise<number> => {
-  const amount = await cedra.getAccountAPTAmount({
+  const amount = await cedra.getAccountCEDRAAmount({
     accountAddress,
     minimumLedgerVersion: versionToWaitFor,
   });
@@ -56,7 +56,6 @@ const example = async () => {
     accountAddress: alice.accountAddress,
     amount: ALICE_INITIAL_BALANCE,
   });
-
   // Show the balances
   console.log("\n=== Initial Balances ===\n");
   const aliceBalance = await balance("Alice", alice.accountAddress);

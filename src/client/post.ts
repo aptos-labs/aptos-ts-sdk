@@ -179,7 +179,7 @@ export async function postCedraIndexer<Req extends {}, Res extends {}>(
  * This function modifies the provided configuration to ensure that the API_KEY is not included in the request.
  *
  * Note that only devnet has a publicly accessible faucet. For testnet, you must use
- * the minting page at https://cedra.dev/network/faucet.
+ * the minting page at https://faucet-api.cedra.dev.
  *
  * @param options - The options for the request.
  * @param options.cedraConfig - The configuration settings for the Cedra client.

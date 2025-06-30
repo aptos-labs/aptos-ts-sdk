@@ -17,7 +17,7 @@ export class Faucet {
    * Initializes a new instance of the Cedra client with the specified configuration.
    *
    * Note that only devnet has a publicly accessible faucet. For testnet, you must use
-   * the minting page at https://cedra.dev/network/faucet.
+   * the minting page at https://faucet-api.cedra.dev.
    *
    * @param config - The configuration settings for the Cedra client.
    *
@@ -44,7 +44,7 @@ export class Faucet {
    * This function creates an account if it does not exist and mints the specified amount of coins into that account.
    *
    * Note that only devnet has a publicly accessible faucet. For testnet, you must use
-   * the minting page at https://cedra.dev/network/faucet.
+   * the minting page at https://faucet-api.cedra.dev.
    *
    * @param args - The arguments for funding the account.
    * @param args.accountAddress - The address of the account to fund.

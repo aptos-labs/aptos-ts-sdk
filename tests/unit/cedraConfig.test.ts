@@ -14,13 +14,13 @@ import {
 describe("cedra config", () => {
   test("it should set urls based on a local network", async () => {
     const settings: CedraSettings = {
-      network: Network.LOCAL,
+      network: Network.TESTNET,
     };
     const cedraConfig = new CedraConfig(settings);
     expect(cedraConfig.network).toEqual("local");
-    expect(cedraConfig.getRequestUrl(CedraApiType.FULLNODE)).toBe(NetworkToNodeAPI[Network.LOCAL]);
-    expect(cedraConfig.getRequestUrl(CedraApiType.FAUCET)).toBe(NetworkToFaucetAPI[Network.LOCAL]);
-    expect(cedraConfig.getRequestUrl(CedraApiType.INDEXER)).toBe(NetworkToIndexerAPI[Network.LOCAL]);
+    expect(cedraConfig.getRequestUrl(CedraApiType.FULLNODE)).toBe(NetworkToNodeAPI[Network.TESTNET]);
+    expect(cedraConfig.getRequestUrl(CedraApiType.FAUCET)).toBe(NetworkToFaucetAPI[Network.TESTNET]);
+    expect(cedraConfig.getRequestUrl(CedraApiType.INDEXER)).toBe(NetworkToIndexerAPI[Network.TESTNET]);
   });
 
   test("it should set urls based on testnet", async () => {

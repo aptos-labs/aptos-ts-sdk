@@ -134,7 +134,7 @@ import {
 } from "@cedra-labs/ts-sdk";
  
 async function example() {
-    console.log("This example will create two accounts (Alice and Bob) and send a transaction transferring APT to Bob's account.");
+    console.log("This example will create two accounts (Alice and Bob) and send a transaction transferring CEDRA to Bob's account.");
  
     // 0. Setup the client and test accounts
     const config = new CedraConfig({ network: Network.TESTNET });

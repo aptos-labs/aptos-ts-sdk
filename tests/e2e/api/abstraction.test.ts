@@ -10,7 +10,7 @@ import {
 } from "../transaction/helper";
 
 describe("abstraction api", () => {
-  const { cedra } = getCedraClient({ network: Network.LOCAL });
+  const { cedra } = getCedraClient({ network: Network.TESTNET });
 
   describe("account abstraction", () => {
     describe("enable and disable account abstraction", () => {
@@ -99,7 +99,7 @@ describe("abstraction api", () => {
 
         const response = await cedra.waitForTransaction({ transactionHash: txn.hash });
         expect(response.success).toBe(true);
-        expect(await cedra.getAccountAPTAmount({ accountAddress: recipient.accountAddress })).toBe(100);
+        expect(await cedra.getAccountCEDRAAmount({ accountAddress: recipient.accountAddress })).toBe(100);
       });
 
       it("should disable account abstraction without specifying authentication function", async () => {
@@ -159,7 +159,7 @@ describe("abstraction api", () => {
 
         const response = await cedra.waitForTransaction({ transactionHash: txn.hash });
         expect(response.success).toBe(true);
-        expect(await cedra.getAccountAPTAmount({ accountAddress: recipient.accountAddress })).toBe(100);
+        expect(await cedra.getAccountCEDRAAmount({ accountAddress: recipient.accountAddress })).toBe(100);
       });
 
       it("should fail to send a transaction with wrong custom signer", async () => {

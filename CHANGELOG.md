@@ -494,7 +494,7 @@ Release Stable version `1.0.0`
 ## 0.0.0 (2023-10-18)
 
 - Fetch data from chain
-- Fund account with APT coins
+- Fund account with CEDRA coins
 - Proper formatting and parsing of account addresses as defined by [AIP-40](https://github.com/cedra-foundation/AIPs/blob/main/aips/aip-40.md)
 - Submit transactions
   - Single signer
