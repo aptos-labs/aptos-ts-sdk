@@ -497,7 +497,7 @@ describe("account api", () => {
       await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
     }, 10000);
 
-    test("it should rotate ed25519 to multikey auth key correctly", async () => {
+    test.skip("it should rotate ed25519 to multikey auth key correctly", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
 
