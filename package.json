@@ -62,7 +62,7 @@
     "js-base64": "^3.7.7",
     "jwt-decode": "^4.0.0",
     "poseidon-lite": "^0.2.0",
-    "@cedra-labs/ts-sdk": "link:./cedra-ts-sdk"
+    "@cedra-labs/ts-sdk": "file:../cedra-ts-sdk"
   },
   "devDependencies": {
     "@babel/traverse": "^7.26.10",
