@@ -369,10 +369,15 @@ function parseArg(
      */
     throwTypeMismatch("boolean", position);
   }
-  // TODO: support uint8array?
   if (param.isAddress()) {
     if (isString(arg)) {
       return AccountAddress.fromString(arg);
+    }
+    // Support for Uint8Array coming from external sources
+    // Usually, dapps will be getting the account address as a Uint8Array from the wallet (following
+    // the wallet standard).
+    if (arg && typeof arg === "object" && "data" in arg && arg.data instanceof Uint8Array) {
+      return new AccountAddress(arg.data);
     }
     throwTypeMismatch("string | AccountAddress", position);
   }
@@ -473,6 +478,10 @@ function parseArg(
       // The inner type of Object doesn't matter, since it's just syntactic sugar
       if (isString(arg)) {
         return AccountAddress.fromString(arg);
+      }
+      // Support for Uint8Array coming from external sources
+      if (arg && typeof arg === "object" && "data" in arg && arg.data instanceof Uint8Array) {
+        return new AccountAddress(arg.data);
       }
       throwTypeMismatch("string | AccountAddress", position);
     }
