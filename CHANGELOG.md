@@ -3,6 +3,8 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
+
+# 3.1.1 (2025-07-01)
 - Skip `validateFeePayerDataOnSubmission` if a custom txn submitter is provided.
 
 # 3.1.0 (2025-06-30)
