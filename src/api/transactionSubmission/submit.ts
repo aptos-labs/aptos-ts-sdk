@@ -5,7 +5,7 @@ import { submitTransaction } from "../../internal/transactionSubmission";
 import { AccountAuthenticator, AnyRawTransaction, InputTransactionPluginData } from "../../transactions";
 import { PendingTransactionResponse } from "../../types";
 import { AptosConfig } from "../aptosConfig";
-import { ValidateFeePayerDataOnSubmission } from "./helpers";
+import { validateFeePayerDataOnSubmission } from "./helpers";
 
 /**
  * A class to handle all `Submit` transaction operations.
@@ -86,7 +86,6 @@ export class Submit {
    * ```
    * @group Implementation
    */
-  @ValidateFeePayerDataOnSubmission
   async simple(
     args: {
       transaction: AnyRawTransaction;
@@ -94,6 +93,7 @@ export class Submit {
       feePayerAuthenticator?: AccountAuthenticator;
     } & InputTransactionPluginData,
   ): Promise<PendingTransactionResponse> {
+    validateFeePayerDataOnSubmission(this.config, args);
     return submitTransaction({ aptosConfig: this.config, ...args });
   }
 
@@ -142,7 +142,6 @@ export class Submit {
    * ```
    * @group Implementation
    */
-  @ValidateFeePayerDataOnSubmission
   async multiAgent(
     args: {
       transaction: AnyRawTransaction;
@@ -151,6 +150,7 @@ export class Submit {
       feePayerAuthenticator?: AccountAuthenticator;
     } & InputTransactionPluginData,
   ): Promise<PendingTransactionResponse> {
+    validateFeePayerDataOnSubmission(this.config, args);
     return submitTransaction({ aptosConfig: this.config, ...args });
   }
 }
