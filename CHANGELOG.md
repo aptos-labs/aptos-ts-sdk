@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Unreleased
 
+# 4.0.0 (2025-07-03)
+
+- [Breaking] Deprecate queries to the Indexer API `events` table. Follow the details in [migration guide](https://aptoslabs.notion.site/Indexer-Feature-Updates-Events-v1-table-deprecation-and-end-of-support-July-1st-1ec8b846eb7280ffa042c0d3d7f45633?source=copy_link) to migrate your events queries. 
+
 # 3.1.2 (2025-07-01)
 
 - Support `Uint8Array` for parsing `AccountAddress` with remote ABI

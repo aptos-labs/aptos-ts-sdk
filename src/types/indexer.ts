@@ -23,7 +23,6 @@ import {
   GetNumberOfDelegatorsQuery,
   GetCollectionDataQuery,
   GetChainTopUserTransactionsQuery,
-  GetEventsQuery,
   GetTokenDataQuery,
   GetProcessorStatusQuery,
   GetFungibleAssetMetadataQuery,
@@ -94,13 +93,6 @@ export type GetAccountAddressesForAuthKeyResponse = GetAccountAddressesForAuthKe
  * @category Types
  */
 export type GetChainTopUserTransactionsResponse = GetChainTopUserTransactionsQuery["user_transactions"];
-
-/**
- * The response containing the events from the GetEventsQuery.
- * @group Implementation
- * @category Types
- */
-export type GetEventsResponse = GetEventsQuery["events"];
 
 /**
  * The number of active delegators per pool in response to a query.
