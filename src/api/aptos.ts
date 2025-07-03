@@ -5,7 +5,6 @@ import { Account } from "./account";
 import { AptosConfig } from "./aptosConfig";
 import { Coin } from "./coin";
 import { DigitalAsset } from "./digitalAsset";
-import { Event } from "./event";
 import { Faucet } from "./faucet";
 import { FungibleAsset } from "./fungibleAsset";
 import { General } from "./general";
@@ -53,8 +52,6 @@ export class Aptos {
 
   readonly digitalAsset: DigitalAsset;
 
-  readonly event: Event;
-
   readonly faucet: Faucet;
 
   readonly fungibleAsset: FungibleAsset;
@@ -73,7 +70,7 @@ export class Aptos {
 
   /**
    * Initializes a new instance of the Aptos client with the provided configuration settings.
-   * This allows you to interact with various Aptos functionalities such as accounts, transactions, and events.
+   * This allows you to interact with various Aptos functionalities such as accounts and transactions.
    *
    * @param settings - Configuration settings for the Aptos client.
    *
@@ -99,7 +96,6 @@ export class Aptos {
     this.ans = new ANS(this.config);
     this.coin = new Coin(this.config);
     this.digitalAsset = new DigitalAsset(this.config);
-    this.event = new Event(this.config);
     this.faucet = new Faucet(this.config);
     this.fungibleAsset = new FungibleAsset(this.config);
     this.general = new General(this.config);
@@ -122,7 +118,6 @@ export interface Aptos
     ANS,
     Coin,
     DigitalAsset,
-    Event,
     Faucet,
     FungibleAsset,
     General,
@@ -159,7 +154,6 @@ applyMixin(Aptos, AccountAbstraction, "abstraction");
 applyMixin(Aptos, ANS, "ans");
 applyMixin(Aptos, Coin, "coin");
 applyMixin(Aptos, DigitalAsset, "digitalAsset");
-applyMixin(Aptos, Event, "event");
 applyMixin(Aptos, Faucet, "faucet");
 applyMixin(Aptos, FungibleAsset, "fungibleAsset");
 applyMixin(Aptos, General, "general");
