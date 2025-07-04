@@ -1,7 +1,6 @@
 {
   "name": "@cedra-labs/ts-sdk",
   "description": "Cedra TypeScript SDK",
-  "packageManager": "pnpm@8.15.1",
   "license": "Apache-2.0",
   "engines": {
     "node": ">=20.0.0"
@@ -52,7 +51,7 @@
   },
   "dependencies": {
     "@cedra-labs/cedra-cli": "^1.2.0",
-    "@cedra-labs/cedra-client": "^2.0.0",
+    "@cedra-labs/cedra-client": "^2.0.2",
     "@noble/curves": "^1.6.0",
     "@noble/hashes": "^1.5.0",
     "@scure/bip32": "^1.4.0",
@@ -61,8 +60,7 @@
     "form-data": "^4.0.0",
     "js-base64": "^3.7.7",
     "jwt-decode": "^4.0.0",
-    "poseidon-lite": "^0.2.0",
-    "@cedra-labs/ts-sdk": "file:../cedra-ts-sdk"
+    "poseidon-lite": "^0.2.0"
   },
   "devDependencies": {
     "@babel/traverse": "^7.26.10",
@@ -99,5 +97,5 @@
     "typedoc-plugin-missing-exports": "^4.0.0",
     "typescript": "^5.8.2"
   },
-  "version": "2.2.0"
+  "version": "2.2.2"
 }

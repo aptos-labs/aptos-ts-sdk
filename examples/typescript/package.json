@@ -30,18 +30,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@cedra-labs/ts-sdk":"2.1.0",
+    "@cedra-labs/ts-sdk": "file:../..",
     "@noble/curves": "1.8.1",
     "@types/readline-sync": "1.4.8",
     "dotenv": "16.4.7",
+    "got": "^14.4.7",
     "npm-run-all": "4.1.5",
     "readline-sync": "1.4.10",
     "superagent": "10.2.0"
-  },
-    "pnpm": {
-    "overrides": {
-      "@cedra-labs/ts-sdk": "file:../../"
-    }
   },
   "devDependencies": {
     "@types/node": "^22.13.11",
