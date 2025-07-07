@@ -18,7 +18,7 @@ The [TypeScript SDK](https://www.npmjs.com/package/@cedra-labs/ts-sdk) allows yo
 ## Essential Links
 
 - **[Cedra Documentation](https://docs.cedra.network/)** - Official Cedra blockchain documentation
-- **[Examples](./examples/README.md)** - Code examples for common tasks
+- **[Code Examples](https://github.com/cedra-labs/cedra-ts-sdk/tree/main/examples)** - Practical code examples for common tasks
 - **[NPM Package](https://www.npmjs.com/package/@cedra-labs/ts-sdk)** - Latest SDK version and stats
 - **[GitHub Repository](https://github.com/cedra-labs/cedra-ts-sdk)** - Source code and issues
 - **[Discord Community](https://discord.gg/cedranetwork)** - Get help and connect with developers
