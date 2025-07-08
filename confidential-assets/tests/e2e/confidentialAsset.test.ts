@@ -10,6 +10,7 @@ import {
   TOKEN_ADDRESS,
   longTestTimeout,
   confidentialAsset,
+  feePayerAccount,
 } from "../helpers";
 import { getCache } from "../../src/utils/memoize";
 import { ConfidentialBalance } from "../../src/internal/viewFunctions";
@@ -28,7 +29,6 @@ describe("Confidential Asset Sender API", () => {
   const aliceConfidential = getTestConfidentialAccount(alice);
 
   const bob = Account.generate();
-  const gasPayer = Account.generate();
 
   async function getPublicTokenBalance(accountAddress: AccountAddressInput) {
     return await aptos.getAccountCoinAmount({
@@ -78,15 +78,8 @@ describe("Confidential Asset Sender API", () => {
       amount: 100000000,
     });
     await aptos.fundAccount({
-      accountAddress: gasPayer.accountAddress,
+      accountAddress: feePayerAccount.accountAddress,
       amount: 100000000,
-    });
-
-    // Set the fee payer to Bob
-    confidentialAsset.setSignAndSubmitCallback(async (transaction, account) => {
-      transaction.feePayerAddress = gasPayer.accountAddress;
-      const pendingTxn = await aptos.signAndSubmitTransaction({ transaction, signer: account, feePayer: gasPayer });
-      return pendingTxn.hash;
     });
 
     console.log("Funded accounts");

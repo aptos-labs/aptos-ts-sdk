@@ -17,6 +17,9 @@ import {
   Ed25519Account,
   AptosApiType,
   SimpleTransaction,
+  PendingTransactionResponse,
+  InputSubmitTransactionData,
+  TransactionSubmitter,
 } from "@aptos-labs/ts-sdk";
 import { ConfidentialAssetTransactionBuilder } from "../../src";
 import { TwistedEd25519PrivateKey } from "../../src";
@@ -30,12 +33,39 @@ export const longTestTimeout = 120 * 1000;
 export const TOKEN_ADDRESS = "0x000000000000000000000000000000000000000000000000000000000000000a";
 
 const APTOS_NETWORK: Network = Network.LOCAL;
+
+export const feePayerAccount = Account.generate();
+
+// Create a custom transaction submitter that implements the TransactionSubmitter interface
+class CustomTransactionSubmitter implements TransactionSubmitter {
+  async submitTransaction(
+    args: {
+      aptosConfig: AptosConfig;
+    } & Omit<InputSubmitTransactionData, "transactionSubmitter">,
+  ): Promise<PendingTransactionResponse> {
+    const newConfig = new AptosConfig({
+      ...args.aptosConfig,
+    });
+    const aptos = new Aptos(newConfig);
+    const feePayerAuthenticator = aptos.signAsFeePayer({ signer: feePayerAccount, transaction: args.transaction });
+    return aptos.transaction.submit.simple({
+      transaction: args.transaction,
+      senderAuthenticator: args.senderAuthenticator,
+      feePayerAuthenticator,
+    });
+  }
+}
+
 const config = new AptosConfig({
   network: APTOS_NETWORK,
+  pluginSettings: {
+    TRANSACTION_SUBMITTER: new CustomTransactionSubmitter(),
+  },
 });
 export const confidentialAsset = new ConfidentialAsset({
   config,
   confidentialAssetModuleAddress: "0x7",
+  withFeePayer: true,
 });
 export const aptos = new Aptos(config);
 

@@ -7,7 +7,6 @@ import {
   AnyNumber,
   AptosConfig,
   CommittedTransactionResponse,
-  HexInput,
   InputGenerateTransactionOptions,
   LedgerVersionArg,
   SimpleTransaction,
@@ -22,7 +21,6 @@ import {
   isBalanceNormalized,
   isPendingBalanceFrozen,
 } from "../internal";
-import { GasStationClient } from "@aptos-labs/gas-station-client";
 
 // Constants
 import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS, MODULE_NAME } from "../consts";
@@ -33,7 +31,6 @@ type ConfidentialAssetSubmissionParams = {
   tokenAddress: AccountAddressInput;
   withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
-  signAndSubmitCallback?: (transaction: SimpleTransaction, account: Account) => Promise<HexInput>;
 };
 
 type RegisterBalanceParams = ConfidentialAssetSubmissionParams & {
@@ -76,55 +73,12 @@ type NormalizeBalanceParams = ConfidentialAssetSubmissionParams & {
  */
 export class ConfidentialAsset {
   transaction: ConfidentialAssetTransactionBuilder;
-  signAndSubmitCallback: (transaction: SimpleTransaction, account: Account) => Promise<HexInput>;
-  gasStation?: GasStationClient;
-  constructor(args: {
-    config: AptosConfig;
-    confidentialAssetModuleAddress?: string;
-    signAndSubmitCallback?: (transaction: SimpleTransaction, account: Account) => Promise<HexInput>;
-    gasStation?: GasStationClient;
-  }) {
-    const {
-      config,
-      confidentialAssetModuleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS,
-      signAndSubmitCallback,
-      gasStation,
-    } = args;
-    this.gasStation = gasStation;
+  withFeePayer: boolean;
+  constructor(args: { config: AptosConfig; confidentialAssetModuleAddress?: string; withFeePayer?: boolean }) {
+    const { confidentialAssetModuleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS } = args;
+    let config = args.config;
     this.transaction = new ConfidentialAssetTransactionBuilder(config, confidentialAssetModuleAddress);
-    if (gasStation !== undefined && signAndSubmitCallback !== undefined) {
-      throw new Error("Cannot provide both gas station and sign and submit callback");
-    }
-    this.signAndSubmitCallback =
-      signAndSubmitCallback ??
-      (async (transaction: SimpleTransaction, account: Account) => {
-        if (this.gasStation) {
-          const senderAuth = account.signTransactionWithAuthenticator(transaction);
-
-          const response = await this.gasStation.simpleSignAndSubmitTransaction(transaction, senderAuth);
-
-          if (response.error !== undefined || response.data === undefined) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const err = response.error as any;
-            const errorInner = err.error;
-            const statusCode = err.statusCode;
-            const message = err.message;
-            throw new Error(
-              `[${statusCode}] Error signing and submitting transaction with gas station for sender ${transaction.rawTransaction.sender} (seq num: ${transaction.rawTransaction.sequence_number}): ${errorInner} ${message}`,
-            );
-          }
-          return response.data.transactionHash;
-        }
-
-        const pendingTx = await this.client().signAndSubmitTransaction({ transaction, signer: account });
-        return pendingTx.hash;
-      });
-  }
-
-  setSignAndSubmitCallback(
-    signAndSubmitCallback: (transaction: SimpleTransaction, account: Account) => Promise<HexInput>,
-  ) {
-    this.signAndSubmitCallback = signAndSubmitCallback;
+    this.withFeePayer = args.withFeePayer ?? false;
   }
 
   private client() {
@@ -160,10 +114,9 @@ export class ConfidentialAsset {
    * @returns A SimpleTransaction to register the balance
    */
   async registerBalance(args: RegisterBalanceParams): Promise<CommittedTransactionResponse> {
-    const { signer, withFeePayer = this.gasStation !== undefined, ...rest } = args;
+    const { signer, withFeePayer = this.withFeePayer, ...rest } = args;
     const tx = await this.transaction.registerBalance({ ...rest, sender: signer.accountAddress, withFeePayer });
-    const transactionHash = await this.signAndSubmitCallback(tx, signer);
-    return this.client().waitForTransaction({ transactionHash });
+    return this.submitTxn({ signer, transaction: tx });
   }
 
   /**
@@ -181,9 +134,9 @@ export class ConfidentialAsset {
    * @returns A SimpleTransaction to deposit the amount
    */
   async deposit(args: DepositParams): Promise<CommittedTransactionResponse> {
-    const { signer, signAndSubmitCallback, withFeePayer = this.gasStation !== undefined, ...rest } = args;
+    const { signer, withFeePayer = this.withFeePayer !== undefined, ...rest } = args;
     const tx = await this.transaction.deposit({ ...rest, sender: signer.accountAddress, withFeePayer });
-    const result = await this.submitTxn({ signer, transaction: tx, signAndSubmitCallback });
+    const result = await this.submitTxn({ signer, transaction: tx });
     clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
     return result;
   }
@@ -200,7 +153,6 @@ export class ConfidentialAsset {
    * @param args.recipient - The account address to withdraw to. This is the signer's address if not set
    * @param args.withFeePayer - Whether to use the fee payer for the transaction
    * @param args.options - Optional transaction options
-   * @param args.signAndSubmitCallback - Optional callback for custom transaction submission
    * @returns A single transaction response, or array of responses if using pending balance
    * @throws {Error} If the amount to withdraw is greater than the available balance
    */
@@ -211,13 +163,12 @@ export class ConfidentialAsset {
       recipient?: AccountAddressInput;
     },
   ): Promise<CommittedTransactionResponse> {
-    const { signer, signAndSubmitCallback, withFeePayer = this.gasStation !== undefined, ...rest } = args;
+    const { signer, withFeePayer = this.withFeePayer !== undefined, ...rest } = args;
 
     const transaction = await this.transaction.withdraw({ ...rest, sender: signer.accountAddress, withFeePayer });
     const result = await this.submitTxn({
       signer,
       transaction,
-      signAndSubmitCallback,
     });
     clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
     return result;
@@ -230,7 +181,7 @@ export class ConfidentialAsset {
       recipient?: AccountAddressInput;
     },
   ): Promise<CommittedTransactionResponse[]> {
-    const { signer, signAndSubmitCallback, withFeePayer = this.gasStation !== undefined, ...rest } = args;
+    const { signer, withFeePayer = this.withFeePayer !== undefined, ...rest } = args;
 
     const results: CommittedTransactionResponse[] = [];
 
@@ -244,7 +195,6 @@ export class ConfidentialAsset {
       await this.submitTxn({
         signer,
         transaction: tx,
-        signAndSubmitCallback,
       }),
     );
     clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
@@ -263,7 +213,7 @@ export class ConfidentialAsset {
    * @throws {Error} If the balance is not normalized before rolling over, unless checkNormalized is false.
    */
   async rolloverPendingBalance(args: RolloverParams): Promise<CommittedTransactionResponse[]> {
-    const { signer, signAndSubmitCallback, withFeePayer = this.gasStation !== undefined, ...rest } = args;
+    const { signer, withFeePayer = this.withFeePayer !== undefined, ...rest } = args;
     const results: CommittedTransactionResponse[] = [];
     const isNormalized = await this.isBalanceNormalized({
       accountAddress: signer.accountAddress,
@@ -289,7 +239,6 @@ export class ConfidentialAsset {
     const committedRolloverTx = await this.submitTxn({
       signer,
       transaction,
-      signAndSubmitCallback,
     });
     clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
     results.push(committedRolloverTx);
@@ -346,13 +295,12 @@ export class ConfidentialAsset {
       additionalAuditorEncryptionKeys?: TwistedEd25519PublicKey[];
     },
   ): Promise<CommittedTransactionResponse> {
-    const { signer, signAndSubmitCallback, withFeePayer = this.gasStation !== undefined, ...rest } = args;
+    const { signer, withFeePayer = this.withFeePayer !== undefined, ...rest } = args;
 
     const transaction = await this.transaction.transfer({ ...rest, sender: signer.accountAddress, withFeePayer });
     const result = await this.submitTxn({
       signer,
       transaction,
-      signAndSubmitCallback,
     });
     clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
     return result;
@@ -366,7 +314,7 @@ export class ConfidentialAsset {
       additionalAuditorEncryptionKeys?: TwistedEd25519PublicKey[];
     },
   ): Promise<CommittedTransactionResponse[]> {
-    const { signer, signAndSubmitCallback, withFeePayer = this.gasStation !== undefined, ...rest } = args;
+    const { signer, withFeePayer = this.withFeePayer !== undefined, ...rest } = args;
     const results: CommittedTransactionResponse[] = [];
 
     const committedRolloverTxs = await this.checkSufficientBalanceAndRolloverIfNeeded({
@@ -379,7 +327,6 @@ export class ConfidentialAsset {
       await this.submitTxn({
         signer,
         transaction,
-        signAndSubmitCallback,
       }),
     );
     clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
@@ -429,11 +376,10 @@ export class ConfidentialAsset {
   async rotateEncryptionKey(args: RotateKeyParams): Promise<CommittedTransactionResponse[]> {
     const {
       signer,
-      signAndSubmitCallback,
       senderDecryptionKey,
       newSenderDecryptionKey,
       tokenAddress,
-      withFeePayer = this.gasStation !== undefined,
+      withFeePayer = this.withFeePayer !== undefined,
       options,
     } = args;
     const results: CommittedTransactionResponse[] = [];
@@ -459,7 +405,6 @@ export class ConfidentialAsset {
       await this.submitTxn({
         signer,
         transaction,
-        signAndSubmitCallback,
       }),
     );
     clearEncryptionKeyCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
@@ -553,14 +498,7 @@ export class ConfidentialAsset {
    * @throws {Error} If normalization fails
    */
   async normalizeBalance(args: NormalizeBalanceParams): Promise<CommittedTransactionResponse> {
-    const {
-      signer,
-      signAndSubmitCallback,
-      senderDecryptionKey,
-      tokenAddress,
-      withFeePayer = this.gasStation !== undefined,
-      options,
-    } = args;
+    const { signer, senderDecryptionKey, tokenAddress, withFeePayer = this.withFeePayer !== undefined, options } = args;
     const { available, pending } = await this.getBalance({
       accountAddress: signer.accountAddress,
       tokenAddress,
@@ -584,30 +522,26 @@ export class ConfidentialAsset {
     const committedTransaction = await this.submitTxn({
       signer,
       transaction,
-      signAndSubmitCallback,
     });
     const newBalance = new ConfidentialBalance(confidentialNormalization.normalizedEncryptedAvailableBalance, pending);
     setCache(`${signer.accountAddress}-balance-for-${tokenAddress}-${this.client().config.network}`, newBalance);
     return committedTransaction;
   }
 
-  private async submitTxn(args: {
-    signer: Account;
-    transaction: SimpleTransaction;
-    signAndSubmitCallback: ((transaction: SimpleTransaction, account: Account) => Promise<HexInput>) | undefined;
-  }) {
-    const { signer, transaction, signAndSubmitCallback } = args;
-    if (this.gasStation && !transaction.feePayerAddress) {
+  private async submitTxn(args: { signer: Account; transaction: SimpleTransaction }) {
+    const { signer, transaction } = args;
+    if (this.withFeePayer && !transaction.feePayerAddress) {
       throw new Error(
-        "Gas station is enabled but transaction has no fee payer address. Please set the fee payer address.",
+        "Fee payer is enabled but transaction has no fee payer address. Please set the fee payer address.",
       );
     }
-    let transactionHash: HexInput;
-    if (signAndSubmitCallback) {
-      transactionHash = await signAndSubmitCallback(transaction, signer);
-    } else {
-      transactionHash = await this.signAndSubmitCallback(transaction, signer);
-    }
+    const senderAuthenticator = signer.signTransactionWithAuthenticator(transaction);
+
+    const pendingTxResponse = await this.client().transaction.submit.simple({
+      transaction,
+      senderAuthenticator,
+    });
+    const transactionHash = pendingTxResponse.hash;
     const committedTx = await this.client().waitForTransaction({
       transactionHash,
       options: {
