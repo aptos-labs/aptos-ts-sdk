@@ -169,7 +169,19 @@ export class TwistedElGamal {
                 result = TwistedElGamal.kangaroo32.solve_dlp(pk, 120n);
               }
               if (!result) {
-                result = TwistedElGamal.kangaroo48.solve_dlp(pk, 2000n);
+                // Exponential backoff
+                const maxRetries = 3;
+                const baseTimeout = 2000n;
+
+                for (let attempt = 0; attempt < maxRetries; attempt++) {
+                  const timeout = baseTimeout * 2n ** BigInt(attempt); // 2000, 4000, 8000
+                  result = TwistedElGamal.kangaroo48.solve_dlp(pk, timeout);
+                  if (result) return result;
+
+                  if (attempt < maxRetries - 1) {
+                    console.warn(`decryption attempt ${attempt + 1} failed, retrying with timeout ${timeout}...`);
+                  }
+                }
               }
               if (!result) throw new TypeError("Decryption failed. Timed out.");
               return result;
