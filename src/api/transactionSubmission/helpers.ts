@@ -1,11 +1,15 @@
+import { AccountAuthenticator, AnyRawTransaction, InputTransactionPluginData } from "../../transactions";
+import { AptosConfig } from "../aptosConfig";
+
 /**
- * Validates the fee payer data when submitting a transaction to ensure that the fee payer authenticator is provided if a fee
- * payer address is specified.
- * This helps prevent errors in transaction submission related to fee payer authentication.
+ * Validates the fee payer data when submitting a transaction to ensure that the fee
+ * payer authenticator is provided if a fee payer address is specified. This helps
+ * prevent errors in transaction submission related to fee payer authentication.
  *
- * @param target - The target object where the method is defined.
- * @param propertyKey - The name of the method being decorated.
- * @param descriptor - The property descriptor for the method.
+ * The validation is skipped if a custom transaction submitter is defined.
+ *
+ * @param config - The Aptos configuration that may contain a transaction submitter.
+ * @param args - The method arguments containing transaction data and optional transaction submitter.
  *
  * @example
  * ```typescript
@@ -15,8 +19,8 @@
  * const aptos = new Aptos(config);
  *
  * class TransactionHandler {
- *   @ValidateFeePayerDataOnSubmission
  *   async submitTransaction(methodArgs: { transaction: { feePayerAddress: string }, feePayerAuthenticator?: string }) {
+ *     validateFeePayerDataOnSubmission(this.config, methodArgs);
  *     // Logic to submit the transaction
  *   }
  * }
@@ -45,20 +49,22 @@
  * ```
  * @group Implementation
  */
-export function ValidateFeePayerDataOnSubmission(target: unknown, propertyKey: string, descriptor: PropertyDescriptor) {
-  const originalMethod = descriptor.value;
-  /* eslint-disable-next-line func-names, no-param-reassign */
-  descriptor.value = async function (...args: any[]) {
-    const [methodArgs] = args;
+export function validateFeePayerDataOnSubmission(
+  config: AptosConfig,
+  args: {
+    transaction: AnyRawTransaction;
+    senderAuthenticator: AccountAuthenticator;
+    feePayerAuthenticator?: AccountAuthenticator;
+  } & InputTransactionPluginData,
+): void {
+  // Skip validation if a transaction submitter is defined.
+  if (config.getTransactionSubmitter() !== undefined || args.transactionSubmitter !== undefined) {
+    return;
+  }
 
-    if (methodArgs.transaction.feePayerAddress && !methodArgs.feePayerAuthenticator) {
-      throw new Error("You are submitting a Fee Payer transaction but missing the feePayerAuthenticator");
-    }
-
-    return originalMethod.apply(this, args);
-  };
-
-  return descriptor;
+  if (args.transaction.feePayerAddress && !args.feePayerAuthenticator) {
+    throw new Error("You are submitting a Fee Payer transaction but missing the feePayerAuthenticator");
+  }
 }
 
 /**

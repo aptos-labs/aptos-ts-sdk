@@ -10,6 +10,8 @@ import {
   IndexerConfig,
   FaucetConfig,
   TransactionGenerationConfig,
+  PluginConfig,
+  TransactionSubmitter,
 } from "../types";
 import {
   NetworkToNodeAPI,
@@ -116,6 +118,12 @@ export class AptosConfig {
   readonly transactionGenerationConfig?: TransactionGenerationConfig;
 
   /**
+   * Optional plugin config to override client behavior.
+   * @group Client
+   */
+  private pluginConfig?: PluginConfig;
+
+  /**
    * Initializes an instance of the Aptos client with the specified settings.
    * This allows users to configure various aspects of the client, such as network and endpoints.
    *
@@ -169,6 +177,12 @@ export class AptosConfig {
     this.indexerConfig = settings?.indexerConfig ?? {};
     this.faucetConfig = settings?.faucetConfig ?? {};
     this.transactionGenerationConfig = settings?.transactionGenerationConfig ?? {};
+    this.pluginConfig = settings?.pluginSettings
+      ? {
+          ...settings.pluginSettings,
+          IGNORE_TRANSACTION_SUBMITTER: false,
+        }
+      : undefined;
   }
 
   /**
@@ -287,5 +301,39 @@ export class AptosConfig {
 
   getDefaultTxnExpirySecFromNow(): number {
     return this.transactionGenerationConfig?.defaultTxnExpirySecFromNow ?? DEFAULT_TXN_EXP_SEC_FROM_NOW;
+  }
+
+  /**
+   * If you have set a custom transaction submitter, you can use this to determine
+   * whether to use it or not. For example, to stop using the transaction submitter:
+   *
+   * @example
+   * ```
+   * aptos.config.setIgnoreTransactionSubmitter(true);
+   * ```
+   *
+   * @group Client
+   */
+  setIgnoreTransactionSubmitter(ignore: boolean) {
+    if (this.pluginConfig) {
+      this.pluginConfig.IGNORE_TRANSACTION_SUBMITTER = ignore;
+    }
+  }
+
+  /**
+   * If a custom transaction submitter has been specified in the PluginConfig and
+   * IGNORE_TRANSACTION_SUBMITTER is false, this will return a transaction submitter
+   * that should be used instead of the default transaction submission behavior.
+   */
+  getTransactionSubmitter(): TransactionSubmitter | undefined {
+    if (this.pluginConfig === undefined) {
+      return undefined;
+    }
+
+    if (this.pluginConfig.IGNORE_TRANSACTION_SUBMITTER === true) {
+      return undefined;
+    }
+
+    return this.pluginConfig.TRANSACTION_SUBMITTER;
   }
 }

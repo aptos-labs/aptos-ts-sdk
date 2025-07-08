@@ -4,12 +4,33 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Unreleased
 
+# 3.1.3 (2025-07-08) 
+
+- Add a warning to Indexer API events queries that the endpoint will be deprecated by the end of July. To migrate your events queries, follow the details in https://aptoslabs.notion.site/Indexer-Feature-Updates-Events-v1-table-deprecation-and-end-of-support-July-1st-1ec8b846eb7280ffa042c0d3d7f45633?source=copy_link.
+
+# 3.1.2 (2025-07-01)
+
+- Support `Uint8Array` for parsing `AccountAddress` with remote ABI
+
+# 3.1.1 (2025-07-01)
+
+- Skip `validateFeePayerDataOnSubmission` if a custom txn submitter is provided.
+
+# 3.1.0 (2025-06-30)
+
+- Add account derivation APIs, `getAccountsForPublicKey` and `deriveOwnedAccountsFromSigner` which handle multi-key accounts and key rotations
+- Update the deprecated function deriveAccountFromPrivateKey to use the new account derivation API
+
+# 3.0.0 (2025-06-26)
+
 - Make the default max gas amount and exipry time from now values for transaction generation configurable.
 - Adds restriction on construction of a `MultiKey`s with more than 3 Keyless public keys when signature threshold is more than 3 as well. The limit on the number of keyless signatures is 3 so to prevent sending funds to accounts that are not accessible we add this safeguard.
-- Adds support for `TurboTransactions` which allow for submitting transactions with a nonce rather than a sequence number.
-- [`Breaking`] Change possible inputs to the `GenerateTransactionOptions` to include orderless
+- Adds support for `OrderlessTransactions` which allow for submitting transactions with a nonce rather than a sequence number.
+- [`Breaking`] Change possible inputs to the `InputGenerateTransactionOptions` to include orderless
+- Adds support for setting a transaction submission plugin to override the default transaction submission behavior, e.g. to use a gas station instead.
 
 # 2.0.1 (2025-05-21)
+
 - Adds `deserializePublicKey` and `deserializeSignature` which takes in `HexInput` and will try all possible ways to deserialize so callers no longer need to derive a proper type before deserializing.
 
 # 2.0.0 (2025-05-06)

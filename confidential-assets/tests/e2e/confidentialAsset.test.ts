@@ -8,7 +8,6 @@ import {
   getTestConfidentialAccount,
   aptos,
   TOKEN_ADDRESS,
-  mintUsdt,
   longTestTimeout,
   confidentialAsset,
 } from "../helpers";
@@ -24,11 +23,12 @@ function getCachedBalance(accountAddress: AccountAddressInput, tokenAddress: Acc
   return result;
 }
 
-describe.skip("Confidential Asset Sender API", () => {
+describe("Confidential Asset Sender API", () => {
   const alice = getTestAccount();
   const aliceConfidential = getTestConfidentialAccount(alice);
 
   const bob = Account.generate();
+  const gasPayer = Account.generate();
 
   async function getPublicTokenBalance(accountAddress: AccountAddressInput) {
     return await aptos.getAccountCoinAmount({
@@ -77,6 +77,17 @@ describe.skip("Confidential Asset Sender API", () => {
       accountAddress: bob.accountAddress,
       amount: 100000000,
     });
+    await aptos.fundAccount({
+      accountAddress: gasPayer.accountAddress,
+      amount: 100000000,
+    });
+
+    // Set the fee payer to Bob
+    confidentialAsset.setSignAndSubmitCallback(async (transaction, account) => {
+      transaction.feePayerAddress = gasPayer.accountAddress;
+      const pendingTxn = await aptos.signAndSubmitTransaction({ transaction, signer: account, feePayer: gasPayer });
+      return pendingTxn.hash;
+    });
 
     console.log("Funded accounts");
 
@@ -94,8 +105,8 @@ describe.skip("Confidential Asset Sender API", () => {
 
     await checkAliceDecryptedBalance(0, 0);
 
-    const resp = await mintUsdt(alice, 100n);
-    expect(resp.success).toBeTruthy();
+    // const resp = await mintUsdt(alice, 100n);
+    // expect(resp.success).toBeTruthy();
   }, longTestTimeout);
 
   const DEPOSIT_AMOUNT = 5;

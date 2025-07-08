@@ -143,8 +143,23 @@ export class KeylessAccount extends AbstractKeylessAccount {
     uidKey?: string;
     proofFetchCallback?: ProofFetchCallback;
     verificationKey?: Groth16VerificationKey;
+    verificationKeyHash?: Uint8Array;
   }): KeylessAccount {
-    const { address, proof, jwt, ephemeralKeyPair, pepper, uidKey = "sub", proofFetchCallback, verificationKey } = args;
+    const {
+      address,
+      proof,
+      jwt,
+      ephemeralKeyPair,
+      pepper,
+      uidKey = "sub",
+      proofFetchCallback,
+      verificationKey,
+      verificationKeyHash,
+    } = args;
+
+    if (verificationKeyHash && verificationKey) {
+      throw new Error("Cannot provide both verificationKey and verificationKeyHash");
+    }
 
     const { iss, aud, uidVal } = getIssAudAndUidVal({ jwt, uidKey });
     return new KeylessAccount({
@@ -158,7 +173,7 @@ export class KeylessAccount extends AbstractKeylessAccount {
       pepper,
       jwt,
       proofFetchCallback,
-      verificationKeyHash: verificationKey ? verificationKey.hash() : undefined,
+      verificationKeyHash: verificationKeyHash ?? (verificationKey ? verificationKey.hash() : undefined),
     });
   }
 }
