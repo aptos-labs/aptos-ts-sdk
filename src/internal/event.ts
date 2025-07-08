@@ -129,6 +129,11 @@ export async function getEvents(args: {
   aptosConfig: AptosConfig;
   options?: PaginationArgs & OrderByArg<GetEventsResponse[0]> & WhereArg<EventsBoolExp>;
 }): Promise<GetEventsResponse> {
+  // eslint-disable-next-line no-console
+  console.warn(
+    // eslint-disable-next-line max-len
+    `[Aptos SDK] Events queries will be deprecated by the end of July 2025. Follow the details in https://aptoslabs.notion.site/Indexer-Feature-Updates-Events-v1-table-deprecation-and-end-of-support-July-1st-1ec8b846eb7280ffa042c0d3d7f45633?source=copy_link to migrate your events queries.`,
+  );
   const { aptosConfig, options } = args;
 
   /**
