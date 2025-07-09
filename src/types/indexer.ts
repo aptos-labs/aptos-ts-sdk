@@ -78,7 +78,7 @@ export type GetAccountCollectionsWithOwnedTokenResponse =
  * @group Implementation
  * @category Types
  */
-export type GetAccountCoinsDataResponse = GetAccountCoinsDataQuery["current_fungible_asset_balances"];
+export type GetAccountCoinsDataResponse = GetAccountCoinsDataQuery["current_fungible_asset_balances_new"];
 
 /**
  * The response structure for retrieving user transactions from the top of the blockchain.
@@ -149,7 +149,7 @@ export type GetFungibleAssetActivitiesResponse = GetFungibleAssetActivitiesQuery
  * @category Types
  */
 export type GetCurrentFungibleAssetBalancesResponse =
-  GetCurrentFungibleAssetBalancesQuery["current_fungible_asset_balances"];
+  GetCurrentFungibleAssetBalancesQuery["current_fungible_asset_balances_new"];
 
 /**
  * The response structure for retrieving token activity data.

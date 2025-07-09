@@ -674,7 +674,7 @@ export async function getAccountCoinsData(args: {
     originMethod: "getAccountCoinsData",
   });
 
-  return data.current_fungible_asset_balances;
+  return data.current_fungible_asset_balances_new;
 }
 
 /**
@@ -704,11 +704,11 @@ export async function getAccountCoinsCount(args: {
     originMethod: "getAccountCoinsCount",
   });
 
-  if (!data.current_fungible_asset_balances_aggregate.aggregate) {
+  if (!data.current_fungible_asset_balances_new_aggregate.aggregate) {
     throw Error("Failed to get the count of account coins");
   }
 
-  return data.current_fungible_asset_balances_aggregate.aggregate.count;
+  return data.current_fungible_asset_balances_new_aggregate.aggregate.count;
 }
 
 /**

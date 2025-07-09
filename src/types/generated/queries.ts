@@ -84,7 +84,7 @@ export const CurrentTokenOwnershipFieldsFragmentDoc = `
     `;
 export const GetAccountCoinsCount = `
     query getAccountCoinsCount($address: String) {
-  current_fungible_asset_balances_aggregate(
+  current_fungible_asset_balances_new_aggregate(
     where: {owner_address: {_eq: $address}}
   ) {
     aggregate {
@@ -94,8 +94,8 @@ export const GetAccountCoinsCount = `
 }
     `;
 export const GetAccountCoinsData = `
-    query getAccountCoinsData($where_condition: current_fungible_asset_balances_bool_exp!, $offset: Int, $limit: Int, $order_by: [current_fungible_asset_balances_order_by!]) {
-  current_fungible_asset_balances(
+    query getAccountCoinsData($where_condition: current_fungible_asset_balances_new_bool_exp!, $offset: Int, $limit: Int, $order_by: [current_fungible_asset_balances_new_order_by!]) {
+  current_fungible_asset_balances_new(
     where: $where_condition
     offset: $offset
     limit: $limit
@@ -259,8 +259,8 @@ export const GetCollectionData = `
 }
     `;
 export const GetCurrentFungibleAssetBalances = `
-    query getCurrentFungibleAssetBalances($where_condition: current_fungible_asset_balances_bool_exp, $offset: Int, $limit: Int) {
-  current_fungible_asset_balances(
+    query getCurrentFungibleAssetBalances($where_condition: current_fungible_asset_balances_new_bool_exp, $offset: Int, $limit: Int) {
+  current_fungible_asset_balances_new(
     where: $where_condition
     offset: $offset
     limit: $limit

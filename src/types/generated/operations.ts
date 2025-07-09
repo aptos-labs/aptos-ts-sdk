@@ -82,26 +82,26 @@ export type GetAccountCoinsCountQueryVariables = Types.Exact<{
 }>;
 
 export type GetAccountCoinsCountQuery = {
-  current_fungible_asset_balances_aggregate: { aggregate?: { count: number } | null };
+  current_fungible_asset_balances_new_aggregate: { aggregate?: { count: number } | null };
 };
 
 export type GetAccountCoinsDataQueryVariables = Types.Exact<{
-  where_condition: Types.CurrentFungibleAssetBalancesBoolExp;
+  where_condition: Types.CurrentFungibleAssetBalancesNewBoolExp;
   offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
   limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
   order_by?: Types.InputMaybe<
-    Array<Types.CurrentFungibleAssetBalancesOrderBy> | Types.CurrentFungibleAssetBalancesOrderBy
+    Array<Types.CurrentFungibleAssetBalancesNewOrderBy> | Types.CurrentFungibleAssetBalancesNewOrderBy
   >;
 }>;
 
 export type GetAccountCoinsDataQuery = {
-  current_fungible_asset_balances: Array<{
+  current_fungible_asset_balances_new: Array<{
     amount: any;
     asset_type: string;
     is_frozen: boolean;
     is_primary: boolean;
-    last_transaction_timestamp: any;
-    last_transaction_version: any;
+    last_transaction_timestamp?: any | null;
+    last_transaction_version?: any | null;
     owner_address: string;
     storage_id: string;
     token_standard: string;
@@ -387,19 +387,19 @@ export type GetCollectionDataQuery = {
 };
 
 export type GetCurrentFungibleAssetBalancesQueryVariables = Types.Exact<{
-  where_condition?: Types.InputMaybe<Types.CurrentFungibleAssetBalancesBoolExp>;
+  where_condition?: Types.InputMaybe<Types.CurrentFungibleAssetBalancesNewBoolExp>;
   offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
   limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
 }>;
 
 export type GetCurrentFungibleAssetBalancesQuery = {
-  current_fungible_asset_balances: Array<{
+  current_fungible_asset_balances_new: Array<{
     amount: any;
     asset_type: string;
     is_frozen: boolean;
     is_primary: boolean;
-    last_transaction_timestamp: any;
-    last_transaction_version: any;
+    last_transaction_timestamp?: any | null;
+    last_transaction_version?: any | null;
     owner_address: string;
     storage_id: string;
     token_standard: string;

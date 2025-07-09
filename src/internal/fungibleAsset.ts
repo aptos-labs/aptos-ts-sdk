@@ -152,7 +152,7 @@ export async function getCurrentFungibleAssetBalances(args: {
     originMethod: "getCurrentFungibleAssetBalances",
   });
 
-  return data.current_fungible_asset_balances;
+  return data.current_fungible_asset_balances_new;
 }
 
 const faTransferAbi: EntryFunctionABI = {

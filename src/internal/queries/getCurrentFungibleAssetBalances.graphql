@@ -1,9 +1,9 @@
 query getCurrentFungibleAssetBalances(
-  $where_condition: current_fungible_asset_balances_bool_exp
+  $where_condition: current_fungible_asset_balances_new_bool_exp
   $offset: Int
   $limit: Int
 ) {
-  current_fungible_asset_balances(where: $where_condition, offset: $offset, limit: $limit) {
+  current_fungible_asset_balances_new(where: $where_condition, offset: $offset, limit: $limit) {
     amount
     asset_type
     is_frozen
