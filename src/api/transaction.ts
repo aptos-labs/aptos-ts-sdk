@@ -36,7 +36,7 @@ import {
   InputGenerateTransactionPayloadData,
   InputTransactionPluginData,
 } from "../transactions";
-import { AccountAddressInput, AuthenticationKey, Ed25519PrivateKey } from "../core";
+import { AccountAddressInput, AccountPublicKey, AuthenticationKey, Ed25519PrivateKey } from "../core";
 import { Account } from "../account";
 import { Build } from "./transactionSubmission/build";
 import { Simulate } from "./transactionSubmission/simulate";
@@ -524,12 +524,8 @@ export class Transaction {
     args: {
       fromAccount: Account;
       options?: InputGenerateTransactionOptions;
-    } & (
-      | { toAccount: Account; dangerouslySkipVerification?: never }
-      | { toNewPrivateKey: Ed25519PrivateKey; dangerouslySkipVerification?: never }
-      | { toAuthKey: AuthenticationKey; dangerouslySkipVerification: true }
-    ),
-  ): Promise<PendingTransactionResponse> {
+    } & ({ toAccount: Account } | { toNewPrivateKey: Ed25519PrivateKey } | { toNewPublicKey: AccountPublicKey }),
+  ): Promise<SimpleTransaction> {
     return rotateAuthKey({ aptosConfig: this.config, ...args });
   }
 

@@ -93,6 +93,7 @@ import {
   EntryFunctionABI,
   InputGenerateTransactionOptions,
   RotationProofChallenge,
+  SimpleTransaction,
   TypeTagU8,
   TypeTagVector,
 } from "../transactions";
@@ -100,6 +101,7 @@ import { U8, MoveVector } from "../bcs";
 import { waitForTransaction, waitForIndexer } from "./transaction";
 import { view } from "./view";
 import { getLedgerInfo } from "./general";
+import { accountPublicKeyToBaseAccountPublicKey, accountPublicKeyToSigningScheme } from "../core/crypto/utils";
 
 /**
  * Retrieves account information for a specified account address.
@@ -959,13 +961,9 @@ export async function rotateAuthKey(
     aptosConfig: AptosConfig;
     fromAccount: Account;
     options?: InputGenerateTransactionOptions;
-  } & (
-    | { toAccount: Account; dangerouslySkipVerification?: never }
-    | { toNewPrivateKey: Ed25519PrivateKey; dangerouslySkipVerification?: never }
-    | { toAuthKey: AuthenticationKey; dangerouslySkipVerification: true }
-  ),
-): Promise<PendingTransactionResponse> {
-  const { aptosConfig, fromAccount, dangerouslySkipVerification, options } = args;
+  } & ({ toAccount: Account } | { toNewPrivateKey: Ed25519PrivateKey } | { toNewPublicKey: AccountPublicKey }),
+): Promise<SimpleTransaction> {
+  const { aptosConfig, fromAccount, options } = args;
   if ("toNewPrivateKey" in args) {
     return rotateAuthKeyWithChallenge({
       aptosConfig,
@@ -974,7 +972,7 @@ export async function rotateAuthKey(
       options,
     });
   }
-  let authKey: AuthenticationKey;
+  let accountPublicKey: AccountPublicKey;
   if ("toAccount" in args) {
     if (args.toAccount instanceof Ed25519Account) {
       return rotateAuthKeyWithChallenge({
@@ -987,47 +985,18 @@ export async function rotateAuthKey(
     if (args.toAccount instanceof MultiEd25519Account) {
       return rotateAuthKeyWithChallenge({ aptosConfig, fromAccount, toAccount: args.toAccount, options });
     }
-    authKey = args.toAccount.publicKey.authKey();
-  } else if ("toAuthKey" in args) {
-    authKey = args.toAuthKey;
+    accountPublicKey = args.toAccount.publicKey;
+  } else if ("toNewPublicKey" in args) {
+    accountPublicKey = args.toNewPublicKey;
   } else {
     throw new Error("Invalid arguments");
   }
 
-  const pendingTxn = await rotateAuthKeyUnverified({
+  return rotateAuthKeyUnverified({
     aptosConfig,
     fromAccount,
-    toAuthKey: authKey,
+    toNewPublicKey: accountPublicKey,
     options,
-  });
-
-  if (dangerouslySkipVerification === true) {
-    return pendingTxn;
-  }
-
-  const rotateAuthKeyTxnResponse = await waitForTransaction({
-    aptosConfig,
-    transactionHash: pendingTxn.hash,
-  });
-  if (!rotateAuthKeyTxnResponse.success) {
-    throw new Error(`Failed to rotate authentication key - ${rotateAuthKeyTxnResponse}`);
-  }
-
-  // Verify the rotation by setting the originating address to the new account.
-  // This verifies the rotation even if the transaction payload fails to execute successfully.
-  const verificationTxn = await generateTransaction({
-    aptosConfig,
-    sender: fromAccount.accountAddress,
-    data: {
-      function: "0x1::account::set_originating_address",
-      functionArguments: [],
-    },
-  });
-
-  return signAndSubmitTransaction({
-    aptosConfig,
-    signer: args.toAccount, // Use the new account to sign
-    transaction: verificationTxn,
   });
 }
 
@@ -1037,7 +1006,7 @@ async function rotateAuthKeyWithChallenge(
     fromAccount: Account;
     options?: InputGenerateTransactionOptions;
   } & ({ toNewPrivateKey: Ed25519PrivateKey } | { toAccount: MultiEd25519Account }),
-): Promise<PendingTransactionResponse> {
+): Promise<SimpleTransaction> {
   const { aptosConfig, fromAccount, options } = args;
   const accountInfo = await getInfo({
     aptosConfig,
@@ -1064,7 +1033,7 @@ async function rotateAuthKeyWithChallenge(
   const proofSignedByNewKey = newAccount.sign(challengeHex);
 
   // Generate transaction
-  const rawTxn = await generateTransaction({
+  return generateTransaction({
     aptosConfig,
     sender: fromAccount.accountAddress,
     data: {
@@ -1081,40 +1050,33 @@ async function rotateAuthKeyWithChallenge(
     },
     options,
   });
-  return signAndSubmitTransaction({
-    aptosConfig,
-    signer: fromAccount,
-    transaction: rawTxn,
-  });
 }
 
 const rotateAuthKeyUnverifiedAbi: EntryFunctionABI = {
   typeParameters: [],
-  parameters: [TypeTagVector.u8()],
+  parameters: [new TypeTagU8(), TypeTagVector.u8()],
 };
 
 async function rotateAuthKeyUnverified(args: {
   aptosConfig: AptosConfig;
   fromAccount: Account;
-  toAuthKey: AuthenticationKey;
+  toNewPublicKey: AccountPublicKey;
   options?: InputGenerateTransactionOptions;
-}): Promise<PendingTransactionResponse> {
-  const { aptosConfig, fromAccount, toAuthKey, options } = args;
-  const authKey = toAuthKey;
-  const rawTxn = await generateTransaction({
+}): Promise<SimpleTransaction> {
+  const { aptosConfig, fromAccount, toNewPublicKey, options } = args;
+
+  return generateTransaction({
     aptosConfig,
     sender: fromAccount.accountAddress,
     data: {
-      function: "0x1::account::rotate_authentication_key_call",
-      functionArguments: [MoveVector.U8(authKey.toUint8Array())],
+      function: "0x1::account::rotate_authentication_key_from_public_key",
+      functionArguments: [
+        new U8(accountPublicKeyToSigningScheme(toNewPublicKey)), // to scheme
+        MoveVector.U8(accountPublicKeyToBaseAccountPublicKey(toNewPublicKey).toUint8Array()),
+      ],
       abi: rotateAuthKeyUnverifiedAbi,
     },
     options,
-  });
-  return signAndSubmitTransaction({
-    aptosConfig,
-    signer: fromAccount,
-    transaction: rawTxn,
   });
 }
 
