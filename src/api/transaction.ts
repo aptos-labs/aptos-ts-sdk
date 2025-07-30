@@ -480,43 +480,35 @@ export class Transaction {
    *
    * @param args - The arguments for rotating the authentication key.
    * @param args.fromAccount - The account from which the authentication key will be rotated.
-   * @param args.toAccount - (Optional) The target account to rotate to. Required if not using toNewPrivateKey or toAuthKey.
-   * @param args.toNewPrivateKey - (Optional) The new private key to rotate to. Required if not using toAccount or toAuthKey.
-   * @param args.toAuthKey - (Optional) The new authentication key to rotate to. Can only be used with dangerouslySkipVerification=true.
-   * @param args.dangerouslySkipVerification - (Optional) If true, skips verification steps after rotation. Required when using toAuthKey.
+   * @param args.toAccount - (Optional) The target account to rotate to. Required if not using toNewPrivateKey or toNewPublicKey.
+   * @param args.toNewPrivateKey - (Optional) The new private key to rotate to. Required if not using toAccount or toNewPublicKey.
+   * @param args.toNewPublicKey - (Optional) The new public key to rotate to. Required if not using toAccount or toNewPrivateKey.
    *
    * @remarks
    * This function supports three modes of rotation:
    * 1. Using a target Account object (toAccount)
-   * 2. Using a new private key (toNewPrivateKey)
-   * 3. Using a raw authentication key (toAuthKey) - requires dangerouslySkipVerification=true
+   * 2. Using a new private key (toNewPrivateKey) 
+   * 3. Using a new public key (toNewPublicKey)
+   * 
+   * For Ed25519 accounts, the function will use a challenge-based rotation that requires signatures from both the old and new keys.
+   * For multi-key accounts like MultiEd25519Account, the function will use a challenge-based rotation that requires signatures from both keys.
+   * For other account types, the function will use an unverified rotation that only requires the new public key.
    *
-   * When not using dangerouslySkipVerification, the function performs additional safety checks and account setup.
-   *
-   * If the new key is a multi key, skipping verification is dangerous because verification will publish the public key onchain and
-   * prevent users from being locked out of the account from loss of knowledge of one of the public keys.
-   *
-   * @returns PendingTransactionResponse
+   * @returns SimpleTransaction that can be submitted to rotate the auth key
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network, Account, PrivateKey } from "@aptos-labs/ts-sdk";
+   * // Create and submit transaction to rotate the auth key
+   * const transaction = await aptos.rotateAuthKey({
+   *   fromAccount,
+   *   toAccount: toAccount,
+   * });
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
-   * const aptos = new Aptos(config);
-   *
-   * async function runExample() {
-   *   // Rotate the authentication key for an account
-   *   const response = await aptos.rotateAuthKey({
-   *     // replace with a real account
-   *     fromAccount: Account.generate(),
-   *     // replace with a real private key
-   *     toNewPrivateKey: new PrivateKey("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"),
-   *   });
-   *
-   *   console.log(response);
-   * }
-   * runExample().catch(console.error);
+   * // Sign and submit the transaction
+   * const pendingTransaction = await aptos.signAndSubmitTransaction({
+   *   signer: fromAccount,
+   *   transaction,
+   * });
    * ```
    * @group Transaction
    */

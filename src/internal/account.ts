@@ -935,23 +935,17 @@ const rotateAuthKeyAbi: EntryFunctionABI = {
  * @param args - The arguments for rotating the authentication key.
  * @param args.aptosConfig - The configuration settings for the Aptos network.
  * @param args.fromAccount - The account from which the authentication key will be rotated.
- * @param args.toAccount - (Optional) The target account to rotate to. Required if not using toNewPrivateKey or toAuthKey.
- * @param args.toNewPrivateKey - (Optional) The new private key to rotate to. Required if not using toAccount or toAuthKey.
- * @param args.toAuthKey - (Optional) The new authentication key to rotate to. Can only be used with dangerouslySkipVerification=true.
- * @param args.dangerouslySkipVerification - (Optional) If true, skips verification steps after rotation. Required when using toAuthKey.
+ * @param args.toAccount - (Optional) The target account to rotate to. Required if not using toNewPrivateKey or toNewPublicKey.
+ * @param args.toNewPrivateKey - (Optional) The new private key to rotate to. Required if not using toAccount or toNewPublicKey.
+ * @param args.toNewPublicKey - (Optional) The new public key to rotate to. Required if not using toAccount or toNewPrivateKey.
  *
  * @remarks
  * This function supports three modes of rotation:
  * 1. Using a target Account object (toAccount)
  * 2. Using a new private key (toNewPrivateKey)
- * 3. Using a raw authentication key (toAuthKey) - requires dangerouslySkipVerification=true
+ * 3. Using a new public key (toNewPublicKey)
  *
- * When not using dangerouslySkipVerification, the function performs additional safety checks and account setup.
- *
- * If the new key is a multi key, skipping verification is dangerous because verification will publish the public key onchain and
- * prevent users from being locked out of the account from loss of knowledge of one of the public keys.
- *
- * @returns A promise that resolves to the pending transaction response.
+ * @returns A simple transaction object that can be submitted to the network.
  * @throws Error if the rotation fails or verification fails.
  *
  * @group Implementation
