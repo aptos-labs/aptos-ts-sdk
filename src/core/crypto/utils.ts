@@ -34,7 +34,12 @@ export const convertSigningMessage = (message: HexInput): HexInput => {
 };
 
 export const accountPublicKeyToBaseAccountPublicKey = (publicKey: AccountPublicKey): BaseAccountPublicKey => {
-  if (publicKey instanceof Ed25519PublicKey || publicKey instanceof AnyPublicKey || publicKey instanceof MultiEd25519PublicKey || publicKey instanceof MultiKey) {
+  if (
+    publicKey instanceof Ed25519PublicKey ||
+    publicKey instanceof AnyPublicKey ||
+    publicKey instanceof MultiEd25519PublicKey ||
+    publicKey instanceof MultiKey
+  ) {
     return publicKey;
   }
   if (publicKey instanceof KeylessPublicKey || publicKey instanceof FederatedKeylessPublicKey) {
