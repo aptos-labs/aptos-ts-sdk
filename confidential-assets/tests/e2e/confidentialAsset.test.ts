@@ -425,7 +425,7 @@ describe("Confidential Asset Sender API", () => {
           accountAddress: bob.accountAddress,
           tokenAddress: TOKEN_ADDRESS,
         }),
-      ).rejects.toThrow("393219"); // TODO: Currently when view functions fails a nice error is not returned. :(. Fix the contract to return a nice error.
+      ).rejects.toThrow("ECA_STORE_NOT_PUBLISHED");
     },
     longTestTimeout,
   );
@@ -501,7 +501,7 @@ describe("Confidential Asset Sender API", () => {
           tokenAddress: TOKEN_ADDRESS,
           accountAddress: bob.accountAddress,
         }),
-      ).rejects.toThrow("393219"); // TODO: Currently when view functions fails a nice error is not returned. :(. Fix the contract to return a nice error.
+      ).rejects.toThrow("ECA_STORE_NOT_PUBLISHED");
     },
     longTestTimeout,
   );
