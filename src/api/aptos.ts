@@ -5,7 +5,6 @@ import { Account } from "./account";
 import { AptosConfig } from "./aptosConfig";
 import { Coin } from "./coin";
 import { DigitalAsset } from "./digitalAsset";
-import { Event } from "./event";
 import { Faucet } from "./faucet";
 import { FungibleAsset } from "./fungibleAsset";
 import { General } from "./general";
@@ -53,8 +52,6 @@ export class Aptos {
 
   readonly digitalAsset: DigitalAsset;
 
-  readonly event: Event;
-
   readonly faucet: Faucet;
 
   readonly fungibleAsset: FungibleAsset;
@@ -99,7 +96,6 @@ export class Aptos {
     this.ans = new ANS(this.config);
     this.coin = new Coin(this.config);
     this.digitalAsset = new DigitalAsset(this.config);
-    this.event = new Event(this.config);
     this.faucet = new Faucet(this.config);
     this.fungibleAsset = new FungibleAsset(this.config);
     this.general = new General(this.config);

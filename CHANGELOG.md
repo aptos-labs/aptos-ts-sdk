@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Unreleased
 
+# 4.0.0 (2025-07-31)
+
+- Remove Indexer API event queries. To migrate your events queries, follow the details in https://aptoslabs.notion.site/Indexer-Feature-Updates-Events-v1-table-deprecation-and-end-of-support-July-1st-1ec8b846eb7280ffa042c0d3d7f45633?source=copy_link.
+
 # 3.1.3 (2025-07-08) 
 
 - Add a warning to Indexer API events queries that the endpoint will be deprecated by the end of July. To migrate your events queries, follow the details in https://aptoslabs.notion.site/Indexer-Feature-Updates-Events-v1-table-deprecation-and-end-of-support-July-1st-1ec8b846eb7280ffa042c0d3d7f45633?source=copy_link.
