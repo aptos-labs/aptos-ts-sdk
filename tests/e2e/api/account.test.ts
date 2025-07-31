@@ -516,7 +516,10 @@ describe("account api", () => {
       });
 
       // Rotate the key
-      const txn = await aptos.rotateAuthKey({ fromAccount: account, toAccount: multiKeyAccount });
+      const txn = await aptos.rotateAuthKeyUnverified({
+        fromAccount: account,
+        toNewPublicKey: multiKeyAccount.publicKey,
+      });
       const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account, transaction: txn });
       await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
@@ -547,7 +550,7 @@ describe("account api", () => {
       const newAuthKey = newAccount.publicKey.authKey();
 
       // Rotate the key
-      const txn = await aptos.rotateAuthKey({
+      const txn = await aptos.rotateAuthKeyUnverified({
         fromAccount: account,
         toNewPublicKey: newAccount.publicKey,
       });
@@ -644,7 +647,7 @@ describe("account api", () => {
         await createAccount(account);
       }
       // Rotate account2 to account1's auth key, skipping verification.
-      const rotateTxn = await aptos.rotateAuthKey({
+      const rotateTxn = await aptos.rotateAuthKeyUnverified({
         fromAccount: account2,
         toNewPublicKey: account1.publicKey,
         options: {
@@ -802,7 +805,7 @@ describe("account api", () => {
         await createAccount(account);
       }
       // Rotate account2 to account1's auth key, skipping verification.
-      const rotateTxn = await aptos.rotateAuthKey({
+      const rotateTxn = await aptos.rotateAuthKeyUnverified({
         fromAccount: account2,
         toNewPublicKey: account1.publicKey,
         options: {

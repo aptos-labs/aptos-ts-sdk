@@ -4,6 +4,11 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Unreleased
 
+- [`Breaking`] Updates the `rotateAuthKey` to return a `SimpleTransaction`. Additionally, it no longer will accept the `toAuthKey` parameter and `toAccount` will only accept `Ed25519Account` and  `MultiEd25519Account`. Thus any key rotations using `rotateAuthKey` will be verified and indexed, thus accessible via the `getAccountsForPublicKey` and `deriveOwnedAccountsFromSigner`functions.
+- Adds a `rotateAuthKeyUnverified` function to support key rotations for auth schemes using the single signer/multi-key account signing scheme. It will generate a `SimpleTransaction` calling the `rotate_authentication_key_from_public_key` entry function. Accounts using `rotateAuthKeyUnverified` are accessible via the `getAccountsForPublicKey` and `deriveOwnedAccountsFromSigner` with `includeUnverified` set to `true`.
+
+, instead it will take `toNewPublicKey` from which the auth key will be derived. Additionally, the rotate_authentication_key_from_public_key entry function will be called instead of rotate_authentication_key_call. This will allow for account derivation via the `getAccountsForPublicKey` and `deriveOwnedAccountsFromSigner` functions.
+
 # 3.1.3 (2025-07-08) 
 
 - Add a warning to Indexer API events queries that the endpoint will be deprecated by the end of July. To migrate your events queries, follow the details in https://aptoslabs.notion.site/Indexer-Feature-Updates-Events-v1-table-deprecation-and-end-of-support-July-1st-1ec8b846eb7280ffa042c0d3d7f45633?source=copy_link.

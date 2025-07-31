@@ -935,15 +935,13 @@ const rotateAuthKeyAbi: EntryFunctionABI = {
  * @param args - The arguments for rotating the authentication key.
  * @param args.aptosConfig - The configuration settings for the Aptos network.
  * @param args.fromAccount - The account from which the authentication key will be rotated.
- * @param args.toAccount - (Optional) The target account to rotate to. Required if not using toNewPrivateKey or toNewPublicKey.
- * @param args.toNewPrivateKey - (Optional) The new private key to rotate to. Required if not using toAccount or toNewPublicKey.
- * @param args.toNewPublicKey - (Optional) The new public key to rotate to. Required if not using toAccount or toNewPrivateKey.
+ * @param args.toAccount - (Optional) The target account to rotate to. Required if not using toNewPrivateKey.
+ * @param args.toNewPrivateKey - (Optional) The new private key to rotate to. Required if not using toAccount.
  *
  * @remarks
  * This function supports three modes of rotation:
  * 1. Using a target Account object (toAccount)
  * 2. Using a new private key (toNewPrivateKey)
- * 3. Using a new public key (toNewPublicKey)
  *
  * @returns A simple transaction object that can be submitted to the network.
  * @throws Error if the rotation fails or verification fails.
@@ -955,7 +953,7 @@ export async function rotateAuthKey(
     aptosConfig: AptosConfig;
     fromAccount: Account;
     options?: InputGenerateTransactionOptions;
-  } & ({ toAccount: Account } | { toNewPrivateKey: Ed25519PrivateKey } | { toNewPublicKey: AccountPublicKey }),
+  } & ({ toAccount: Ed25519Account | MultiEd25519Account } | { toNewPrivateKey: Ed25519PrivateKey }),
 ): Promise<SimpleTransaction> {
   const { aptosConfig, fromAccount, options } = args;
   if ("toNewPrivateKey" in args) {
@@ -965,9 +963,7 @@ export async function rotateAuthKey(
       toNewPrivateKey: args.toNewPrivateKey,
       options,
     });
-  }
-  let accountPublicKey: AccountPublicKey;
-  if ("toAccount" in args) {
+  } else if ("toAccount" in args) {
     if (args.toAccount instanceof Ed25519Account) {
       return rotateAuthKeyWithChallenge({
         aptosConfig,
@@ -975,23 +971,12 @@ export async function rotateAuthKey(
         toNewPrivateKey: args.toAccount.privateKey,
         options,
       });
-    }
-    if (args.toAccount instanceof MultiEd25519Account) {
+    } else {
       return rotateAuthKeyWithChallenge({ aptosConfig, fromAccount, toAccount: args.toAccount, options });
     }
-    accountPublicKey = args.toAccount.publicKey;
-  } else if ("toNewPublicKey" in args) {
-    accountPublicKey = args.toNewPublicKey;
   } else {
     throw new Error("Invalid arguments");
   }
-
-  return rotateAuthKeyUnverified({
-    aptosConfig,
-    fromAccount,
-    toNewPublicKey: accountPublicKey,
-    options,
-  });
 }
 
 async function rotateAuthKeyWithChallenge(
@@ -1051,7 +1036,19 @@ const rotateAuthKeyUnverifiedAbi: EntryFunctionABI = {
   parameters: [new TypeTagU8(), TypeTagVector.u8()],
 };
 
-async function rotateAuthKeyUnverified(args: {
+/**
+ * Rotates the authentication key for a given account without verifying the new key.
+ *
+ * @param args - The arguments for rotating the authentication key.
+ * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.fromAccount - The account from which the authentication key will be rotated.
+ * @param args.toNewPublicKey - The new public key to rotate to.
+ * @returns A simple transaction object that can be submitted to the network.
+ * @throws Error if the rotation fails or verification fails.
+ *
+ * @group Implementation
+ */
+export async function rotateAuthKeyUnverified(args: {
   aptosConfig: AptosConfig;
   fromAccount: Account;
   toNewPublicKey: AccountPublicKey;

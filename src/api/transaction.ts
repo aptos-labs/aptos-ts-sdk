@@ -37,13 +37,13 @@ import {
   InputTransactionPluginData,
 } from "../transactions";
 import { AccountAddressInput, AccountPublicKey, AuthenticationKey, Ed25519PrivateKey } from "../core";
-import { Account } from "../account";
+import { Account, Ed25519Account, MultiEd25519Account } from "../account";
 import { Build } from "./transactionSubmission/build";
 import { Simulate } from "./transactionSubmission/simulate";
 import { Submit } from "./transactionSubmission/submit";
 import { TransactionManagement } from "./transactionSubmission/management";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
-import { rotateAuthKey } from "../internal/account";
+import { rotateAuthKey, rotateAuthKeyUnverified } from "../internal/account";
 
 /**
  * Represents a transaction in the Aptos blockchain,
@@ -480,15 +480,13 @@ export class Transaction {
    *
    * @param args - The arguments for rotating the authentication key.
    * @param args.fromAccount - The account from which the authentication key will be rotated.
-   * @param args.toAccount - (Optional) The target account to rotate to. Required if not using toNewPrivateKey or toNewPublicKey.
-   * @param args.toNewPrivateKey - (Optional) The new private key to rotate to. Required if not using toAccount or toNewPublicKey.
-   * @param args.toNewPublicKey - (Optional) The new public key to rotate to. Required if not using toAccount or toNewPrivateKey.
+   * @param args.toAccount - (Optional) The target account to rotate to. Required if not using toNewPrivateKey.
+   * @param args.toNewPrivateKey - (Optional) The new private key to rotate to. Required if not using toAccount.
    *
    * @remarks
    * This function supports three modes of rotation:
    * 1. Using a target Account object (toAccount)
    * 2. Using a new private key (toNewPrivateKey)
-   * 3. Using a new public key (toNewPublicKey)
    *
    * For Ed25519 accounts, the function will use a challenge-based rotation that requires signatures from both the old and new keys.
    * For multi-key accounts like MultiEd25519Account, the function will use a challenge-based rotation that requires signatures from both keys.
@@ -516,9 +514,46 @@ export class Transaction {
     args: {
       fromAccount: Account;
       options?: InputGenerateTransactionOptions;
-    } & ({ toAccount: Account } | { toNewPrivateKey: Ed25519PrivateKey } | { toNewPublicKey: AccountPublicKey }),
+    } & ({ toAccount: Ed25519Account | MultiEd25519Account } | { toNewPrivateKey: Ed25519PrivateKey }),
   ): Promise<SimpleTransaction> {
     return rotateAuthKey({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Rotates the authentication key for a given account without verifying the new key.
+   *
+   * Accounts with their auth key rotated via this function will be derivable via the `getAccountsForPublicKey` and
+   * `deriveOwnedAccountsFromSigner` functions however the public key will be unverified (no proof of ownership). Thus
+   * includeUnverified must be set to true to derive the account until the public key is verified via signing a transaction.
+   *
+   * @param args - The arguments for rotating the authentication key.
+   * @param args.fromAccount - The account from which the authentication key will be rotated.
+   * @param args.toNewPublicKey - The new public key to rotate to.
+   *
+   * @returns A simple transaction object that can be submitted to the network.
+   *
+   * @example
+   * ```typescript
+   * // Create and submit transaction to rotate the auth key
+   * const transaction = await aptos.rotateAuthKeyUnverified({
+   *   fromAccount,
+   *   toNewPublicKey,
+   * });
+   *
+   * // Sign and submit the transaction
+   * const pendingTransaction = await aptos.signAndSubmitTransaction({
+   *   signer: fromAccount,
+   *   transaction,
+   * });
+   * ```
+   * @group Transaction
+   */
+  async rotateAuthKeyUnverified(args: {
+    fromAccount: Account;
+    options?: InputGenerateTransactionOptions;
+    toNewPublicKey: AccountPublicKey;
+  }): Promise<SimpleTransaction> {
+    return rotateAuthKeyUnverified({ aptosConfig: this.config, ...args });
   }
 
   /**
