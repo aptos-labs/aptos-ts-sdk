@@ -142,11 +142,16 @@ function applyMixin(targetClass: any, baseClass: any, baseClassProp: string) {
   Object.getOwnPropertyNames(baseClass.prototype).forEach((propertyName) => {
     const propertyDescriptor = Object.getOwnPropertyDescriptor(baseClass.prototype, propertyName);
     if (!propertyDescriptor) return;
-    // eslint-disable-next-line func-names
-    propertyDescriptor.value = function (...args: any) {
-      return (this as any)[baseClassProp][propertyName](...args);
-    };
-    Object.defineProperty(targetClass.prototype, propertyName, propertyDescriptor);
+
+    // Define new method that calls through baseClassProp
+    Object.defineProperty(targetClass.prototype, propertyName, {
+      value: function (...args: any[]) {
+        return (this as any)[baseClassProp][propertyName](...args);
+      },
+      writable: propertyDescriptor.writable,
+      configurable: propertyDescriptor.configurable,
+      enumerable: propertyDescriptor.enumerable,
+    });
   });
 }
 
