@@ -487,9 +487,9 @@ export class Transaction {
    * @remarks
    * This function supports three modes of rotation:
    * 1. Using a target Account object (toAccount)
-   * 2. Using a new private key (toNewPrivateKey) 
+   * 2. Using a new private key (toNewPrivateKey)
    * 3. Using a new public key (toNewPublicKey)
-   * 
+   *
    * For Ed25519 accounts, the function will use a challenge-based rotation that requires signatures from both the old and new keys.
    * For multi-key accounts like MultiEd25519Account, the function will use a challenge-based rotation that requires signatures from both keys.
    * For other account types, the function will use an unverified rotation that only requires the new public key.
