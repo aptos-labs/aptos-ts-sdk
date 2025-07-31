@@ -92,8 +92,8 @@ export class Aptos {
    * ```
    * @group Client
    */
-  constructor(settings?: AptosConfig) {
-    this.config = new AptosConfig(settings);
+  constructor(config?: AptosConfig) {
+    this.config = config ?? new AptosConfig();
     this.account = new Account(this.config);
     this.abstraction = new AccountAbstraction(this.config);
     this.ans = new ANS(this.config);
@@ -108,6 +108,10 @@ export class Aptos {
     this.table = new Table(this.config);
     this.keyless = new Keyless(this.config);
     this.object = new AptosObject(this.config);
+  }
+
+  setIgnoreTransactionSubmitter(ignore: boolean) {
+    this.config.setIgnoreTransactionSubmitter(ignore);
   }
 }
 

@@ -36,10 +36,10 @@
     "build:clean": "rm -rf dist",
     "build": "pnpm build:clean && tsup",
     "prepublishOnly": "pnpm run build",
-    "_fmt": "prettier 'src/**/*.ts' 'tests/**/*.ts' 'examples/**/*.js' 'examples/**/*.ts' 'eslint.config.cjs'",
+    "_fmt": "prettier 'src/**/*.ts' 'tests/**/*.ts' 'examples/**/*.js' 'examples/**/*.ts' 'confidential-assets/**/*.ts' 'eslint.config.cjs'",
     "fmt": "pnpm _fmt --write",
     "lint": "eslint '**/*.{cts,mts,ts}'",
-    "test": "pnpm jest ./tests/**/*.test.ts --passWithNoTests",
+    "test": "pnpm jest",
     "unit-test": "pnpm jest tests/unit",
     "e2e-test": "pnpm jest tests/e2e",
     "indexer-codegen": "graphql-codegen --config ./src/types/codegen.yaml && pnpm fmt",
@@ -51,12 +51,11 @@
   },
   "dependencies": {
     "@aptos-labs/aptos-cli": "^1.0.2",
-    "@aptos-labs/aptos-client": "^1.2.0",
+    "@aptos-labs/aptos-client": "^2.0.0",
     "@noble/curves": "^1.6.0",
     "@noble/hashes": "^1.5.0",
     "@scure/bip32": "^1.4.0",
     "@scure/bip39": "^1.3.0",
-    "@aptos-labs/script-composer-pack": "^0.0.9",
     "eventemitter3": "^5.0.1",
     "form-data": "^4.0.0",
     "js-base64": "^3.7.7",
@@ -98,5 +97,5 @@
     "typedoc-plugin-missing-exports": "^4.0.0",
     "typescript": "^5.8.2"
   },
-  "version": "1.39.0"
+  "version": "3.1.3"
 }

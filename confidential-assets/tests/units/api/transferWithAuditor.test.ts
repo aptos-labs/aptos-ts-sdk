@@ -1,7 +1,6 @@
 import { TwistedEd25519PrivateKey } from "../../../src";
 import {
   confidentialAsset,
-  getBalances,
   getTestAccount,
   getTestConfidentialAccount,
   longTestTimeout,
@@ -25,17 +24,13 @@ describe("Transfer with auditor", () => {
   const AUDITOR = TwistedEd25519PrivateKey.generate();
   const TRANSFER_AMOUNT = 2n;
   test("it should transfer Alice's tokens to Alice's confidential balance with auditor", async () => {
-    const balances = await getBalances(aliceConfidential, alice.accountAddress);
-
-    const transferTx = await confidentialAsset.transferCoin({
+    const transferTx = await confidentialAsset.transfer({
       senderDecryptionKey: aliceConfidential,
-      recipientEncryptionKey: aliceConfidential.publicKey(),
-      encryptedActualBalance: balances.actual.amountEncrypted!,
-      amountToTransfer: TRANSFER_AMOUNT,
+      recipient: alice.accountAddress,
+      amount: TRANSFER_AMOUNT,
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
-      recipientAddress: alice.accountAddress,
-      auditorEncryptionKeys: [AUDITOR.publicKey()],
+      additionalAuditorEncryptionKeys: [AUDITOR.publicKey()],
     });
     const txResp = await sendAndWaitTx(transferTx, alice);
 

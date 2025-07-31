@@ -4,7 +4,44 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Unreleased
 
-# 1.39.0 (2025-04-02)
+# 3.1.3 (2025-07-08) 
+
+- Add a warning to Indexer API events queries that the endpoint will be deprecated by the end of July. To migrate your events queries, follow the details in https://aptoslabs.notion.site/Indexer-Feature-Updates-Events-v1-table-deprecation-and-end-of-support-July-1st-1ec8b846eb7280ffa042c0d3d7f45633?source=copy_link.
+
+# 3.1.2 (2025-07-01)
+
+- Support `Uint8Array` for parsing `AccountAddress` with remote ABI
+
+# 3.1.1 (2025-07-01)
+
+- Skip `validateFeePayerDataOnSubmission` if a custom txn submitter is provided.
+
+# 3.1.0 (2025-06-30)
+
+- Add account derivation APIs, `getAccountsForPublicKey` and `deriveOwnedAccountsFromSigner` which handle multi-key accounts and key rotations
+- Update the deprecated function deriveAccountFromPrivateKey to use the new account derivation API
+
+# 3.0.0 (2025-06-26)
+
+- Make the default max gas amount and exipry time from now values for transaction generation configurable.
+- Adds restriction on construction of a `MultiKey`s with more than 3 Keyless public keys when signature threshold is more than 3 as well. The limit on the number of keyless signatures is 3 so to prevent sending funds to accounts that are not accessible we add this safeguard.
+- Adds support for `OrderlessTransactions` which allow for submitting transactions with a nonce rather than a sequence number.
+- [`Breaking`] Change possible inputs to the `InputGenerateTransactionOptions` to include orderless
+- Adds support for setting a transaction submission plugin to override the default transaction submission behavior, e.g. to use a gas station instead.
+
+# 2.0.1 (2025-05-21)
+
+- Adds `deserializePublicKey` and `deserializeSignature` which takes in `HexInput` and will try all possible ways to deserialize so callers no longer need to derive a proper type before deserializing.
+
+# 2.0.0 (2025-05-06)
+
+- Remove `scriptComposer` api due to increase in the sdk bundle size, If you wish to continue using it, please use version 1.39.0: [https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.39.0](https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.39.0)
+- [`Breaking`] Ed25519 and Secp256k1 private keys will now default to the AIP-80 format when calling `toString()`.
+- [`Breaking`] Custom networks now need to set the `network` field in the client config to the correct network type. This is needed to reduce network calls.
+- Add info message if using `CUSTOM` network
+- Update `@aptos-labs/aptos-client` to version `2.0.0`
+
+# 1.39.0 (2025-05-05)
 
 - Add a `transferFungibleAssetBetweenStores` function to transfer Fungible Assets between any (primary or secondary) fungible stores.
 - Include an example file `transfer_between_fungible_stores.ts` which uses a new example Move module `secondary_store.move`.

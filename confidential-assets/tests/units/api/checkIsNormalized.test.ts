@@ -4,7 +4,7 @@ describe("Check is normalized", () => {
   const alice = getTestAccount();
 
   it("should check if user confidential balance is normalized", async () => {
-    const isAliceBalanceNormalized = await confidentialAsset.isUserBalanceNormalized({
+    const isAliceBalanceNormalized = await confidentialAsset.isBalanceNormalized({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });

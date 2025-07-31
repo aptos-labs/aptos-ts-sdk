@@ -45,7 +45,7 @@ import {
   throwTypeMismatch,
   convertNumber,
 } from "./helpers";
-import { CallArgument, MoveFunction, MoveModule } from "../../types";
+import { MoveFunction, MoveModule } from "../../types";
 
 const TEXT_ENCODER = new TextEncoder();
 
@@ -229,31 +229,6 @@ export async function fetchViewFunctionAbi(
 }
 
 /**
- * @deprecated Handle this inline
- *
- * @example
- * ```typescript
- * const callArgument = argument instanceof CallArgument ? argument : CallArgument.newBytes(
- *   convertArgument(functionName, functionAbi, argument, position, genericTypeParams).bcsToBytes()
- * );
- * ```
- */
-export function convertCallArgument(
-  argument: CallArgument | EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes,
-  functionName: string,
-  functionAbi: FunctionABI,
-  position: number,
-  genericTypeParams: Array<TypeTag>,
-): CallArgument {
-  if (argument instanceof CallArgument) {
-    return argument;
-  }
-  return CallArgument.newBytes(
-    convertArgument(functionName, functionAbi, argument, position, genericTypeParams).bcsToBytes(),
-  );
-}
-
-/**
  * Converts a non-BCS encoded argument into BCS encoded, if necessary.
  * This function checks the provided argument against the expected parameter type and converts it accordingly.
  *
@@ -394,10 +369,15 @@ function parseArg(
      */
     throwTypeMismatch("boolean", position);
   }
-  // TODO: support uint8array?
   if (param.isAddress()) {
     if (isString(arg)) {
       return AccountAddress.fromString(arg);
+    }
+    // Support for Uint8Array coming from external sources
+    // Usually, dapps will be getting the account address as a Uint8Array from the wallet (following
+    // the wallet standard).
+    if (arg && typeof arg === "object" && "data" in arg && arg.data instanceof Uint8Array) {
+      return new AccountAddress(arg.data);
     }
     throwTypeMismatch("string | AccountAddress", position);
   }
@@ -498,6 +478,10 @@ function parseArg(
       // The inner type of Object doesn't matter, since it's just syntactic sugar
       if (isString(arg)) {
         return AccountAddress.fromString(arg);
+      }
+      // Support for Uint8Array coming from external sources
+      if (arg && typeof arg === "object" && "data" in arg && arg.data instanceof Uint8Array) {
+        return new AccountAddress(arg.data);
       }
       throwTypeMismatch("string | AccountAddress", position);
     }
