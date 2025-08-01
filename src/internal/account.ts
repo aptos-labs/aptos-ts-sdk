@@ -93,6 +93,7 @@ import {
   EntryFunctionABI,
   InputGenerateTransactionOptions,
   RotationProofChallenge,
+  SimpleTransaction,
   TypeTagU8,
   TypeTagVector,
 } from "../transactions";
@@ -100,6 +101,7 @@ import { U8, MoveVector } from "../bcs";
 import { waitForTransaction, waitForIndexer } from "./transaction";
 import { view } from "./view";
 import { getLedgerInfo } from "./general";
+import { accountPublicKeyToBaseAccountPublicKey, accountPublicKeyToSigningScheme } from "../core/crypto/utils";
 
 /**
  * Retrieves account information for a specified account address.
@@ -933,23 +935,15 @@ const rotateAuthKeyAbi: EntryFunctionABI = {
  * @param args - The arguments for rotating the authentication key.
  * @param args.aptosConfig - The configuration settings for the Aptos network.
  * @param args.fromAccount - The account from which the authentication key will be rotated.
- * @param args.toAccount - (Optional) The target account to rotate to. Required if not using toNewPrivateKey or toAuthKey.
- * @param args.toNewPrivateKey - (Optional) The new private key to rotate to. Required if not using toAccount or toAuthKey.
- * @param args.toAuthKey - (Optional) The new authentication key to rotate to. Can only be used with dangerouslySkipVerification=true.
- * @param args.dangerouslySkipVerification - (Optional) If true, skips verification steps after rotation. Required when using toAuthKey.
+ * @param args.toAccount - (Optional) The target account to rotate to. Required if not using toNewPrivateKey.
+ * @param args.toNewPrivateKey - (Optional) The new private key to rotate to. Required if not using toAccount.
  *
  * @remarks
  * This function supports three modes of rotation:
  * 1. Using a target Account object (toAccount)
  * 2. Using a new private key (toNewPrivateKey)
- * 3. Using a raw authentication key (toAuthKey) - requires dangerouslySkipVerification=true
  *
- * When not using dangerouslySkipVerification, the function performs additional safety checks and account setup.
- *
- * If the new key is a multi key, skipping verification is dangerous because verification will publish the public key onchain and
- * prevent users from being locked out of the account from loss of knowledge of one of the public keys.
- *
- * @returns A promise that resolves to the pending transaction response.
+ * @returns A simple transaction object that can be submitted to the network.
  * @throws Error if the rotation fails or verification fails.
  *
  * @group Implementation
@@ -959,13 +953,9 @@ export async function rotateAuthKey(
     aptosConfig: AptosConfig;
     fromAccount: Account;
     options?: InputGenerateTransactionOptions;
-  } & (
-    | { toAccount: Account; dangerouslySkipVerification?: never }
-    | { toNewPrivateKey: Ed25519PrivateKey; dangerouslySkipVerification?: never }
-    | { toAuthKey: AuthenticationKey; dangerouslySkipVerification: true }
-  ),
-): Promise<PendingTransactionResponse> {
-  const { aptosConfig, fromAccount, dangerouslySkipVerification, options } = args;
+  } & ({ toAccount: Ed25519Account | MultiEd25519Account } | { toNewPrivateKey: Ed25519PrivateKey }),
+): Promise<SimpleTransaction> {
+  const { aptosConfig, fromAccount, options } = args;
   if ("toNewPrivateKey" in args) {
     return rotateAuthKeyWithChallenge({
       aptosConfig,
@@ -973,9 +963,7 @@ export async function rotateAuthKey(
       toNewPrivateKey: args.toNewPrivateKey,
       options,
     });
-  }
-  let authKey: AuthenticationKey;
-  if ("toAccount" in args) {
+  } else if ("toAccount" in args) {
     if (args.toAccount instanceof Ed25519Account) {
       return rotateAuthKeyWithChallenge({
         aptosConfig,
@@ -983,52 +971,12 @@ export async function rotateAuthKey(
         toNewPrivateKey: args.toAccount.privateKey,
         options,
       });
-    }
-    if (args.toAccount instanceof MultiEd25519Account) {
+    } else {
       return rotateAuthKeyWithChallenge({ aptosConfig, fromAccount, toAccount: args.toAccount, options });
     }
-    authKey = args.toAccount.publicKey.authKey();
-  } else if ("toAuthKey" in args) {
-    authKey = args.toAuthKey;
   } else {
     throw new Error("Invalid arguments");
   }
-
-  const pendingTxn = await rotateAuthKeyUnverified({
-    aptosConfig,
-    fromAccount,
-    toAuthKey: authKey,
-    options,
-  });
-
-  if (dangerouslySkipVerification === true) {
-    return pendingTxn;
-  }
-
-  const rotateAuthKeyTxnResponse = await waitForTransaction({
-    aptosConfig,
-    transactionHash: pendingTxn.hash,
-  });
-  if (!rotateAuthKeyTxnResponse.success) {
-    throw new Error(`Failed to rotate authentication key - ${rotateAuthKeyTxnResponse}`);
-  }
-
-  // Verify the rotation by setting the originating address to the new account.
-  // This verifies the rotation even if the transaction payload fails to execute successfully.
-  const verificationTxn = await generateTransaction({
-    aptosConfig,
-    sender: fromAccount.accountAddress,
-    data: {
-      function: "0x1::account::set_originating_address",
-      functionArguments: [],
-    },
-  });
-
-  return signAndSubmitTransaction({
-    aptosConfig,
-    signer: args.toAccount, // Use the new account to sign
-    transaction: verificationTxn,
-  });
 }
 
 async function rotateAuthKeyWithChallenge(
@@ -1037,7 +985,7 @@ async function rotateAuthKeyWithChallenge(
     fromAccount: Account;
     options?: InputGenerateTransactionOptions;
   } & ({ toNewPrivateKey: Ed25519PrivateKey } | { toAccount: MultiEd25519Account }),
-): Promise<PendingTransactionResponse> {
+): Promise<SimpleTransaction> {
   const { aptosConfig, fromAccount, options } = args;
   const accountInfo = await getInfo({
     aptosConfig,
@@ -1064,7 +1012,7 @@ async function rotateAuthKeyWithChallenge(
   const proofSignedByNewKey = newAccount.sign(challengeHex);
 
   // Generate transaction
-  const rawTxn = await generateTransaction({
+  return generateTransaction({
     aptosConfig,
     sender: fromAccount.accountAddress,
     data: {
@@ -1081,40 +1029,45 @@ async function rotateAuthKeyWithChallenge(
     },
     options,
   });
-  return signAndSubmitTransaction({
-    aptosConfig,
-    signer: fromAccount,
-    transaction: rawTxn,
-  });
 }
 
 const rotateAuthKeyUnverifiedAbi: EntryFunctionABI = {
   typeParameters: [],
-  parameters: [TypeTagVector.u8()],
+  parameters: [new TypeTagU8(), TypeTagVector.u8()],
 };
 
-async function rotateAuthKeyUnverified(args: {
+/**
+ * Rotates the authentication key for a given account without verifying the new key.
+ *
+ * @param args - The arguments for rotating the authentication key.
+ * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.fromAccount - The account from which the authentication key will be rotated.
+ * @param args.toNewPublicKey - The new public key to rotate to.
+ * @returns A simple transaction object that can be submitted to the network.
+ * @throws Error if the rotation fails or verification fails.
+ *
+ * @group Implementation
+ */
+export async function rotateAuthKeyUnverified(args: {
   aptosConfig: AptosConfig;
   fromAccount: Account;
-  toAuthKey: AuthenticationKey;
+  toNewPublicKey: AccountPublicKey;
   options?: InputGenerateTransactionOptions;
-}): Promise<PendingTransactionResponse> {
-  const { aptosConfig, fromAccount, toAuthKey, options } = args;
-  const authKey = toAuthKey;
-  const rawTxn = await generateTransaction({
+}): Promise<SimpleTransaction> {
+  const { aptosConfig, fromAccount, toNewPublicKey, options } = args;
+
+  return generateTransaction({
     aptosConfig,
     sender: fromAccount.accountAddress,
     data: {
-      function: "0x1::account::rotate_authentication_key_call",
-      functionArguments: [MoveVector.U8(authKey.toUint8Array())],
+      function: "0x1::account::rotate_authentication_key_from_public_key",
+      functionArguments: [
+        new U8(accountPublicKeyToSigningScheme(toNewPublicKey)), // to scheme
+        MoveVector.U8(accountPublicKeyToBaseAccountPublicKey(toNewPublicKey).toUint8Array()),
+      ],
       abi: rotateAuthKeyUnverifiedAbi,
     },
     options,
-  });
-  return signAndSubmitTransaction({
-    aptosConfig,
-    signer: fromAccount,
-    transaction: rawTxn,
   });
 }
 

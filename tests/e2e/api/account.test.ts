@@ -381,7 +381,7 @@ describe("account api", () => {
 
     describe("it derives an account from a private key", () => {
       const config = new AptosConfig({
-        network: Network.DEVNET,
+        network: Network.LOCAL,
       });
       const aptos = new Aptos(config);
 
@@ -440,7 +440,8 @@ describe("account api", () => {
       const rotateToPrivateKey = Ed25519PrivateKey.generate();
 
       // Rotate the key
-      const pendingTxn = await aptos.rotateAuthKey({ fromAccount: account, toNewPrivateKey: rotateToPrivateKey });
+      const txn = await aptos.rotateAuthKey({ fromAccount: account, toNewPrivateKey: rotateToPrivateKey });
+      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account, transaction: txn });
       const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
       // lookup original account address
@@ -478,7 +479,8 @@ describe("account api", () => {
       });
 
       // Rotate the key
-      const pendingTxn = await aptos.rotateAuthKey({ fromAccount: account, toAccount: multiEdAccount });
+      const txn = await aptos.rotateAuthKey({ fromAccount: account, toAccount: multiEdAccount });
+      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account, transaction: txn });
       await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
       const accountInfo = await aptos.account.getAccountInfo({
@@ -497,7 +499,7 @@ describe("account api", () => {
       await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
     }, 10000);
 
-    test.skip("it should rotate ed25519 to multikey auth key correctly", async () => {
+    test("it should rotate ed25519 to multikey auth key correctly", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
 
@@ -514,7 +516,11 @@ describe("account api", () => {
       });
 
       // Rotate the key
-      const pendingTxn = await aptos.rotateAuthKey({ fromAccount: account, toAccount: multiKeyAccount });
+      const txn = await aptos.rotateAuthKeyUnverified({
+        fromAccount: account,
+        toNewPublicKey: multiKeyAccount.publicKey,
+      });
+      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account, transaction: txn });
       await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
       const accountInfo = await aptos.account.getAccountInfo({
@@ -544,11 +550,11 @@ describe("account api", () => {
       const newAuthKey = newAccount.publicKey.authKey();
 
       // Rotate the key
-      const pendingTxn = await aptos.rotateAuthKey({
+      const txn = await aptos.rotateAuthKeyUnverified({
         fromAccount: account,
-        toAuthKey: newAuthKey,
-        dangerouslySkipVerification: true,
+        toNewPublicKey: newAccount.publicKey,
       });
+      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account, transaction: txn });
       await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
       const accountInfo = await aptos.account.getAccountInfo({
@@ -641,15 +647,15 @@ describe("account api", () => {
         await createAccount(account);
       }
       // Rotate account2 to account1's auth key, skipping verification.
-      const rotateTxn = await aptos.rotateAuthKey({
+      const rotateTxn = await aptos.rotateAuthKeyUnverified({
         fromAccount: account2,
-        toAuthKey: account1.publicKey.authKey(),
-        dangerouslySkipVerification: true,
+        toNewPublicKey: account1.publicKey,
         options: {
           maxGasAmount: DEFAULT_MAX_GAS_AMOUNT,
         },
       });
-      await aptos.waitForTransaction({ transactionHash: rotateTxn.hash });
+      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account2, transaction: rotateTxn });
+      await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
       // Send noop txns for the multikey accounts with account3 as the signer. These accounts
       // are not verified as owned by account1.
@@ -714,7 +720,8 @@ describe("account api", () => {
           maxGasAmount: DEFAULT_MAX_GAS_AMOUNT,
         },
       });
-      const response = await aptos.waitForTransaction({ transactionHash: rotateTxn.hash });
+      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account2, transaction: rotateTxn });
+      const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
       accounts = await aptos.deriveOwnedAccountsFromSigner({
         signer: account1,
@@ -768,7 +775,8 @@ describe("account api", () => {
           maxGasAmount: DEFAULT_MAX_GAS_AMOUNT,
         },
       });
-      const response = await aptos.waitForTransaction({ transactionHash: rotateTxn.hash });
+      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account1, transaction: rotateTxn });
+      const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
       accounts = await aptos.deriveOwnedAccountsFromSigner({
         signer: account1,
@@ -797,15 +805,15 @@ describe("account api", () => {
         await createAccount(account);
       }
       // Rotate account2 to account1's auth key, skipping verification.
-      const rotateTxn = await aptos.rotateAuthKey({
+      const rotateTxn = await aptos.rotateAuthKeyUnverified({
         fromAccount: account2,
-        toAuthKey: account1.publicKey.authKey(),
-        dangerouslySkipVerification: true,
+        toNewPublicKey: account1.publicKey,
         options: {
           maxGasAmount: DEFAULT_MAX_GAS_AMOUNT,
         },
       });
-      await aptos.waitForTransaction({ transactionHash: rotateTxn.hash });
+      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account2, transaction: rotateTxn });
+      await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
       // Send noop txns for the multikey accounts
       // The multiEdAccount has account1 as a signer.
