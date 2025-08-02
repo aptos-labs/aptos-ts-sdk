@@ -164,9 +164,9 @@ export class TwistedElGamal {
           TwistedElGamal.setDecryptionFn(async (pk) => {
             if (bytesToNumberLE(pk) === 0n) return 0n;
             try {
-              let result = TwistedElGamal.kangaroo16.solve_dlp(pk, 30n);
+              let result = TwistedElGamal.kangaroo16.solve_dlp(pk, 100n);
               if (!result) {
-                result = TwistedElGamal.kangaroo32.solve_dlp(pk, 120n);
+                result = TwistedElGamal.kangaroo32.solve_dlp(pk, 1500n);
               }
               if (!result) {
                 // Exponential backoff
