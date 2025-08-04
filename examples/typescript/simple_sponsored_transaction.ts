@@ -5,7 +5,7 @@
  * Example to submit a simple sponsored transaction where Alice transfers APT coin to Bob
  * with a sponsor account to pay for the gas fee
  */
-import { Account, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
+import { Account, Aptos, AptosConfig, Network, NetworkToNetworkName, TransactionManager } from "@aptos-labs/ts-sdk";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -22,7 +22,7 @@ const example = async () => {
   );
 
   // Set up the client
-  const aptosConfig = new AptosConfig({ network: APTOS_NETWORK });
+  const aptosConfig = new AptosConfig({ network: Network.LOCAL });
   const aptos = new Aptos(aptosConfig);
 
   // Create three accounts
@@ -59,31 +59,17 @@ const example = async () => {
   if (aliceBalanceBefore[0].amount !== ALICE_INITIAL_BALANCE) throw new Error("Alice's balance is incorrect");
   if (sponsorBalanceBefore[0].amount !== SPONSOR_INITIAL_BALANCE) throw new Error("Sponsor's balance is incorrect");
 
-  // Generate a fee payer (aka sponsor) transaction
-  // with Alice as the sender and sponsor as the fee payer
-  console.log("\n=== Submitting Transaction ===\n");
-  const transaction = await aptos.transaction.build.simple({
-    sender: aliceAddress,
-    withFeePayer: true,
-    data: {
-      function: "0x1::aptos_account::transfer",
-      functionArguments: [bob.accountAddress, TRANSFER_AMOUNT],
-    },
-  });
-
-  // Sponsor signs
-  const sponsorSignature = aptos.transaction.signAsFeePayer({ signer: sponsor, transaction });
-
-  // Submit the transaction to chain
-  const committedTxn = await aptos.signAndSubmitTransaction({
-    signer: alice,
-    // TODO: This doesn't actually work here?
-    feePayerAuthenticator: sponsorSignature,
-    transaction,
-  });
-
-  console.log(`Submitted transaction: ${committedTxn.hash}`);
-  const response = await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
+  const response = await TransactionManager.new(aptos)
+    .build({
+      data: {
+        function: "0x1::aptos_account::transfer",
+        functionArguments: [bob.accountAddress, TRANSFER_AMOUNT],
+      },
+    })
+    .sender(alice)
+    .feePayer(sponsor)
+    .network(Network.LOCAL)
+    .submit();
 
   console.log("\n=== Balances after transfer ===\n");
   const aliceBalanceAfter = await aptos.getAccountCoinsData({

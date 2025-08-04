@@ -11,6 +11,7 @@ import {
   InputViewFunctionData,
   Network,
   NetworkToNetworkName,
+  TransactionManager,
 } from "@aptos-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils";
 
@@ -25,10 +26,11 @@ import { compilePackage, getPackageBytesToPublish } from "./utils";
  */
 
 // Set up the client
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.LOCAL];
 
 const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
+const txnManager = TransactionManager.new(aptos);
 
 /**
  * Utility function to wait for a specified number of milliseconds
@@ -38,34 +40,32 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** Admin mint the newly created coin to the specified receiver address */
 async function mintCoin(admin: Account, receiver: Account, amount: AnyNumber): Promise<string> {
-  const transaction = await aptos.transaction.build.simple({
-    sender: admin.accountAddress,
-    data: {
-      function: `${admin.accountAddress}::fa_coin::mint`,
-      functionArguments: [receiver.accountAddress, amount],
-    },
-  });
-
-  const senderAuthenticator = aptos.transaction.sign({ signer: admin, transaction });
-  const pendingTxn = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
-
-  return pendingTxn.hash;
+  return (
+    await txnManager
+      .build({
+        data: {
+          function: `${admin.accountAddress}::fa_coin::mint`,
+          functionArguments: [receiver.accountAddress, amount],
+        },
+      })
+      .sender(admin)
+      .submit()
+  ).hash;
 }
 
 /** Create a secondary store for a user */
 async function createSecondaryStore(admin: Account, user: Account, metadata: AccountAddress): Promise<string> {
-  const transaction = await aptos.transaction.build.simple({
-    sender: user.accountAddress,
-    data: {
-      function: `${admin.accountAddress}::secondary_store::create_secondary_store`,
-      functionArguments: [metadata],
-    },
-  });
-
-  const senderAuthenticator = aptos.transaction.sign({ signer: user, transaction });
-  const pendingTxn = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
-
-  return pendingTxn.hash;
+  return (
+    await txnManager
+      .build({
+        data: {
+          function: `${admin.accountAddress}::secondary_store::create_secondary_store`,
+          functionArguments: [metadata],
+        },
+      })
+      .sender(user)
+      .submit()
+  ).hash;
 }
 
 /** Get the primary store address for a user and metadata */
@@ -150,9 +150,9 @@ async function main() {
 
     // Fund accounts
     await Promise.all([
-      aptos.fundAccount({ accountAddress: alice.accountAddress, amount: 100_000_000 }),
-      aptos.fundAccount({ accountAddress: bob.accountAddress, amount: 100_000_000 }),
-      aptos.fundAccount({ accountAddress: charlie.accountAddress, amount: 100_000_000 }),
+      txnManager.defaultSender(alice).fundAccount().submit(),
+      txnManager.defaultSender(bob).fundAccount().submit(),
+      txnManager.defaultSender(charlie).fundAccount().submit(),
     ]);
 
     // Compile and publish package
@@ -162,19 +162,15 @@ async function main() {
     const { metadataBytes, byteCode } = getPackageBytesToPublish("move/facoin/facoin.json");
 
     console.log("\n=== Publishing FACoin package ===");
-    const transaction = await aptos.publishPackageTransaction({
-      account: alice.accountAddress,
-      metadataBytes,
-      moduleBytecode: byteCode,
-    });
-    const response = await aptos.signAndSubmitTransaction({
-      signer: alice,
-      transaction,
-    });
+    const response = await txnManager
+      .publishPackageTransaction({
+        metadataBytes,
+        moduleBytecode: byteCode,
+      })
+      .sender(alice)
+      .submit();
+
     console.log(`Transaction hash: ${response.hash}`);
-    await aptos.waitForTransaction({
-      transactionHash: response.hash,
-    });
 
     const metadataAddress = await getMetadata(alice);
     console.log("metadata address:", metadataAddress);
@@ -188,8 +184,7 @@ async function main() {
 
     // Mint initial coins
     console.log("Alice mints Bob 10 FA coin.");
-    const mintCoinTransactionHash = await mintCoin(alice, bob, 1_000_000_000);
-    await aptos.waitForTransaction({ transactionHash: mintCoinTransactionHash });
+    await mintCoin(alice, bob, 1_000_000_000);
 
     // Get store addresses
     const bobPrimaryStoreAddress = await getPrimaryStore(bob, AccountAddress.from(metadataAddress));
@@ -206,51 +201,42 @@ async function main() {
 
     // Transfer from primary to secondary store
     console.log("\n=== Transferring from primary to secondary store ===");
-    const transferToSecondaryTxn = await aptos.transferFungibleAssetBetweenStores({
-      sender: bob,
-      fromStore: bobPrimaryStoreAddress,
-      toStore: bobSecondaryStore,
-      amount: 800_000_000,
-    });
-    const transferToSecondaryResponse = await aptos.signAndSubmitTransaction({
-      signer: bob,
-      transaction: transferToSecondaryTxn,
-    });
-    await aptos.waitForTransaction({ transactionHash: transferToSecondaryResponse.hash });
+    await txnManager
+      .transferFungibleAssetBetweenStores({
+        fromStore: bobPrimaryStoreAddress,
+        toStore: bobSecondaryStore,
+        amount: 800_000_000,
+      })
+      .sender(bob)
+      .submit();
 
     // Display updated balances
     await printBalances("Updated Balances", metadataAddress, bob, charlie);
 
     // Transfer between secondary stores
     console.log("\n=== Transferring between secondary stores ===");
-    const transferBetweenSecondaryTxn = await aptos.transferFungibleAssetBetweenStores({
-      sender: bob,
-      fromStore: bobSecondaryStore,
-      toStore: charlieSecondaryStore,
-      amount: 600_000_000,
-    });
-    const transferBetweenSecondaryResponse = await aptos.signAndSubmitTransaction({
-      signer: bob,
-      transaction: transferBetweenSecondaryTxn,
-    });
-    await aptos.waitForTransaction({ transactionHash: transferBetweenSecondaryResponse.hash });
+    await txnManager
+      .transferFungibleAssetBetweenStores({
+        fromStore: bobSecondaryStore,
+        toStore: charlieSecondaryStore,
+        amount: 600_000_000,
+      })
+      .sender(bob)
+      .submit();
 
     // Display updated balances
     await printBalances("Updated Balances", metadataAddress, bob, charlie);
 
     // Transfer from secondary store to primary store
     console.log("\n=== Transferring from secondary to primary store ===");
-    const transferFromSecondaryTxn = await aptos.transferFungibleAssetBetweenStores({
-      sender: charlie,
-      fromStore: charlieSecondaryStore,
-      toStore: bobPrimaryStoreAddress,
-      amount: 350_000_000,
-    });
-    const transferFromSecondaryResponse = await aptos.signAndSubmitTransaction({
-      signer: charlie,
-      transaction: transferFromSecondaryTxn,
-    });
-    await aptos.waitForTransaction({ transactionHash: transferFromSecondaryResponse.hash });
+    await txnManager
+      .transferFungibleAssetBetweenStores({
+        fromStore: charlieSecondaryStore,
+        toStore: bobPrimaryStoreAddress,
+        amount: 350_000_000,
+      })
+      .sender(charlie)
+      .submit();
 
     // Display final balances
     await printBalances("Final Balances", metadataAddress, bob, charlie);
