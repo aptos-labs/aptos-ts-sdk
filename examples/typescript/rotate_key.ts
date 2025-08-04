@@ -51,11 +51,14 @@ function formatAccountInfo(account: Ed25519Account): string {
   txnManager.defaultSender(alice);
 
   // Rotate the key!
-  await txnManager.rotateAuthKeyUnverified({ toNewPublicKey: new MultiKey({
-      publicKeys: [bob.publicKey, alice.publicKey],
-      signaturesRequired: 1,
-    }),
-  }).submit();
+  await txnManager
+    .rotateAuthKeyUnverified({
+      toNewPublicKey: new MultiKey({
+        publicKeys: [bob.publicKey, alice.publicKey],
+        signaturesRequired: 1,
+      }),
+    })
+    .submit();
 
   // Transaction manager will derive the correct public key.
   await txnManager.transferCoinTransaction({ recipient: bob.accountAddress, amount: 10 }).submit();

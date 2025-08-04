@@ -24,17 +24,17 @@ import { AptosConfig } from "./aptosConfig";
 
 type FunctionsWithReturnType<T, ReturnType> = {
   [K in keyof T]: T[K] extends (...args: any[]) => ReturnType
-  ? T[K] extends <M extends {} = any>(...args: any[]) => Promise<M>
-  ? never
-  : K
-  : never;
+    ? T[K] extends <M extends {} = any>(...args: any[]) => Promise<M>
+      ? never
+      : K
+    : never;
 }[keyof T];
 
 // Helper type to remove 'sender', 'account', and 'creator' from function parameters
 type RemoveSender<T> = T extends (args: infer Args) => infer Return
-  ? Args extends { sender?: any; account?: any; creator?: any;[key: string]: any }
-  ? (args: Omit<Args, "sender" | "account" | "creator" | "fromAccount">) => Return
-  : T
+  ? Args extends { sender?: any; account?: any; creator?: any; [key: string]: any }
+    ? (args: Omit<Args, "sender" | "account" | "creator" | "fromAccount">) => Return
+    : T
   : T;
 
 // Helper type to transform function return type from Promise<SimpleTransaction> to TransactionContext
@@ -65,24 +65,23 @@ abstract class ContextBase {
   abstract submit(): Promise<UserTransactionResponse>;
 }
 
-
 /**
  * Contains all the information needed to generate and submit a transaction to the Aptos blockchain.
- * 
- * Provides a builder pattern for setting the transaction parameters. Use the `TransactionManager` to 
+ *
+ * Provides a builder pattern for setting the transaction parameters. Use the `TransactionManager` to
  * create `TransactionContext` instances for interacting with the Aptos blockchain.
- * 
+ *
  * Each `TransactionContext` instance has its own Aptos client which is copied at creation time.
- * 
+ *
  * @example
  * ```typescript
  * const account = Account.generate();
  * const recipient = Account.generate();
- * 
+ *
  * const txnManager = TransactionManager.new(aptos);
- * 
+ *
  * await txnManager.fundAccount(account).submit();
- * 
+ *
  * const response = await txnManager
  *   .transferCoinTransaction({
  *     recipient: recipient.accountAddress,
@@ -169,7 +168,7 @@ export class TransactionContext extends ContextBase {
   }
   /**
    * Override the client configuration for this transaction context.
-   * 
+   *
    * @param aptos - The Aptos client instance to use
    * @returns This transaction context instance
    */
@@ -181,7 +180,7 @@ export class TransactionContext extends ContextBase {
 
   /**
    * Set the network for this transaction context.
-   * 
+   *
    * @param network - The network to use
    * @returns This transaction context instance
    */
@@ -193,7 +192,7 @@ export class TransactionContext extends ContextBase {
 
   /**
    * Set this transaction to be orderless with a replay protection nonce.
-   * 
+   *
    * @param replayProtectionNonce - The nonce to use for replay protection
    * @returns This transaction context instance
    */
@@ -205,7 +204,7 @@ export class TransactionContext extends ContextBase {
 
   /**
    * Set this transaction to be sequential with an optional account sequence number.
-   * 
+   *
    * @param accountSequenceNumber - The account sequence number to use
    * @returns This transaction context instance
    */
@@ -217,7 +216,7 @@ export class TransactionContext extends ContextBase {
 
   /**
    * Set the maximum gas amount for this transaction.
-   * 
+   *
    * @param amount - The maximum gas amount
    * @returns This transaction context instance
    */
@@ -228,7 +227,7 @@ export class TransactionContext extends ContextBase {
 
   /**
    * Set the gas unit price for this transaction.
-   * 
+   *
    * @param gasUnitPrice - The gas unit price
    * @returns This transaction context instance
    */
@@ -239,7 +238,7 @@ export class TransactionContext extends ContextBase {
 
   /**
    * Set the transaction expiry time in seconds from now.
-   * 
+   *
    * @param txnExpirySecsFromNow - The number of seconds from now when the transaction expires
    * @returns This transaction context instance
    */
@@ -250,7 +249,7 @@ export class TransactionContext extends ContextBase {
 
   /**
    * Set the transaction expiry timestamp.
-   * 
+   *
    * @param expiryTimestampSecs - The timestamp in seconds when the transaction expires
    * @returns This transaction context instance
    */
@@ -261,7 +260,7 @@ export class TransactionContext extends ContextBase {
 
   /**
    * Configure this transaction to use a gas station for fee payment.
-   * 
+   *
    * @param gasStation - The gas station transaction submitter
    * @returns This transaction context instance
    */
@@ -273,7 +272,7 @@ export class TransactionContext extends ContextBase {
 
   /**
    * Enable or disable fee payer for this transaction.
-   * 
+   *
    * @param useFeePayer - Whether to use a fee payer (defaults to true)
    * @returns This transaction context instance
    */
@@ -284,7 +283,7 @@ export class TransactionContext extends ContextBase {
 
   /**
    * Set the fee payer account for this transaction.
-   * 
+   *
    * @param feePayerAccount - The fee payer account
    * @returns This transaction context instance
    */
@@ -296,7 +295,7 @@ export class TransactionContext extends ContextBase {
 
   /**
    * Configure a transaction submitter with optional plugin parameters.
-   * 
+   *
    * @param transactionSubmitter - The transaction submitter to use
    * @param pluginParams - Optional plugin parameters
    * @returns This transaction context instance
@@ -309,7 +308,7 @@ export class TransactionContext extends ContextBase {
 
   /**
    * Ignore any configured transaction submitter.
-   * 
+   *
    * @returns This transaction context instance
    */
   ignoreSubmitter(): this {
@@ -319,7 +318,7 @@ export class TransactionContext extends ContextBase {
 
   /**
    * Set the timeout duration for waiting for transaction completion.
-   * 
+   *
    * @param timeoutSecs - The timeout duration in seconds
    * @returns This transaction context instance
    */
@@ -330,7 +329,7 @@ export class TransactionContext extends ContextBase {
 
   /**
    * Skip waiting for the transaction to be indexed.
-   * 
+   *
    * @returns This transaction context instance
    */
   skipWaitForIndexer(): this {
@@ -340,7 +339,7 @@ export class TransactionContext extends ContextBase {
 
   /**
    * Skip checking for transaction success.
-   * 
+   *
    * @returns This transaction context instance
    */
   skipCheckSuccess(): this {
@@ -350,7 +349,7 @@ export class TransactionContext extends ContextBase {
 
   /**
    * Set the sender account for this transaction.
-   * 
+   *
    * @param sender - The sender account
    * @returns This transaction context instance
    */
@@ -393,8 +392,14 @@ export class TransactionContext extends ContextBase {
       const accountInfo = await this.aptos.getAccountInfo({ accountAddress });
       if (AccountAddress.from(accountInfo.authentication_key).toStringLong() !== accountAddress.toStringLong()) {
         const ledgerInfo = await this.aptos.getLedgerInfo();
-        const accounts = await this.aptos.deriveOwnedAccountsFromSigner({ signer: this.senderAccount, minimumLedgerVersion: Number(ledgerInfo.ledger_version), options: { includeUnverified: true } });
-        const matchingAccount = accounts.find((account) => account.accountAddress.toStringLong() === accountAddress.toStringLong());
+        const accounts = await this.aptos.deriveOwnedAccountsFromSigner({
+          signer: this.senderAccount,
+          minimumLedgerVersion: Number(ledgerInfo.ledger_version),
+          options: { includeUnverified: true },
+        });
+        const matchingAccount = accounts.find(
+          (account) => account.accountAddress.toStringLong() === accountAddress.toStringLong(),
+        );
         if (matchingAccount) {
           this.senderAccount = matchingAccount;
         } else {
@@ -423,7 +428,9 @@ export class TransactionContext extends ContextBase {
   }
 
   async generateTransaction(): Promise<SimpleTransaction> {
-    const expireTimestamp = this.expiryTimestampSecsVal ?? Math.floor(Date.now() / 1000) + (this.txnExpirySecsFromNow ?? this.defaultTxnExpirySecsFromNow);
+    const expireTimestamp =
+      this.expiryTimestampSecsVal ??
+      Math.floor(Date.now() / 1000) + (this.txnExpirySecsFromNow ?? this.defaultTxnExpirySecsFromNow);
 
     let options: InputGenerateTransactionOptions;
     if (this.orderMode === "sequential") {
@@ -498,7 +505,7 @@ class FaucetContext extends ContextBase {
   }
 
   account(account: AccountAddressInput | Account): this {
-    if (typeof account === 'object' && 'accountAddress' in account) {
+    if (typeof account === "object" && "accountAddress" in account) {
       this.accountAddress = account.accountAddress;
     } else {
       this.accountAddress = AccountAddress.from(account);
@@ -511,14 +518,14 @@ type OrderMode = "orderless" | "sequential";
 
 /**
  * TransactionManager is a class that allows for submitting transactions to the Aptos blockchain.
- * 
- * Default parameters for transactions can be set for the transaction manager, and then overridden 
- * on the `TransactionContext` instances. 
- * 
+ *
+ * Default parameters for transactions can be set for the transaction manager, and then overridden
+ * on the `TransactionContext` instances.
+ *
  * @example
  * ```typescript
  * const txnManager = TransactionManager.new(aptos);
- * 
+ *
  * const response = await txnManager.transferCoinTransaction({
  *   recipient: recipient.accountAddress,
  *   amount: TRANSFER_AMOUNT,
@@ -555,7 +562,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a new `TransactionManager` instance.
-   * 
+   *
    * @param aptosOrConfig - The `Aptos` instance or `AptosConfig` object to use for the transaction manager.
    * @returns A new `TransactionManager` instance.
    */
@@ -589,7 +596,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Set the default sender for TransactionContext instances.
-   * 
+   *
    * @param sender - The account to use as the default sender.
    */
   defaultSender(sender: Account): this {
@@ -607,7 +614,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `FaucetContext` instance for funding an account.
-   * 
+   *
    * @param account - The account to fund. If not provided, the default sender will be used.
    * @returns A `FaucetContext` instance.
    */
@@ -650,11 +657,11 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Set whether transactions should use a fee payer by default
-   * 
+   *
    * If a fee payer is used, the transaction manager will automatically set the fee payer address to the zero address.
-   * 
+   *
    * Submission will fail if a gas station or fee payer account is not set if withFeePayer is true.
-   * 
+   *
    * @param withFeePayer Whether to use a fee payer
    * @returns The transaction manager instance for chaining
    */
@@ -665,7 +672,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Set the default order mode for transactions. Transactions will be processed sequentially by default.
-   * 
+   *
    * @param orderMode The order mode to use
    * @returns The transaction manager instance for chaining
    */
@@ -676,7 +683,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Set the default transaction submitter and optional plugin parameters.
-   * 
+   *
    * @param transactionSubmitter The transaction submitter to use, or null to clear
    * @param pluginParams Optional plugin-specific parameters
    * @returns The transaction manager instance for chaining
@@ -702,9 +709,9 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Set the default transaction timeout in seconds.
-   * 
+   *
    * If a timeout is not set, the transaction will wait for the default timeout of 20 seconds after submission.
-   * 
+   *
    * @param txnTimeoutSec The number of seconds to wait for transaction completion
    * @returns The transaction manager instance for chaining
    */
@@ -715,7 +722,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Set whether to wait for the indexer by default.
-   * 
+   *
    * @param waitForIndexer Whether to wait for the indexer
    * @returns The transaction manager instance for chaining
    */
@@ -726,7 +733,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Set whether to check for transaction success by default
-   * 
+   *
    * @param checkSuccess Whether to check if transactions succeeded
    * @returns The transaction manager instance for chaining
    */
@@ -737,7 +744,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Set a gas station as the default transaction submitter and enable fee payer
-   * 
+   *
    * @param gasStation The gas station to use as transaction submitter
    * @returns The transaction manager instance for chaining
    */
@@ -749,7 +756,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Set the default amount to fund accounts with
-   * 
+   *
    * @param amount The amount in Octas to fund accounts with
    * @returns The transaction manager instance for chaining
    */
@@ -824,9 +831,9 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance from a `SimpleTransaction` object.
-   * 
+   *
    * It will use transaction parameters from the `TransactionContext` instance.
-   * 
+   *
    * @param transaction - The `SimpleTransaction` object to create a `TransactionContext` from.
    * @returns A `TransactionContext` instance.
    */
@@ -869,7 +876,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to publish a package to the Aptos blockchain.
-   * 
+   *
    * @param args.metadataBytes - The metadata bytes of the package to publish
    * @param args.moduleBytecode - The bytecode of the modules to publish
    * @returns A `TransactionContext` instance
@@ -886,7 +893,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to rotate an account's authentication key.
-   * 
+   *
    * @param args.toAccount - The new Ed25519 or MultiEd25519 account to rotate to
    * @param args.toNewPrivateKey - The new Ed25519 private key to rotate to
    * @returns A `TransactionContext` instance
@@ -901,7 +908,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to rotate an account's authentication key without verification.
-   * 
+   *
    * @param args.toNewPublicKey - The new public key to rotate to
    * @returns A `TransactionContext` instance
    */
@@ -913,7 +920,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to set a target address for a name.
-   * 
+   *
    * @param args.name - The name to set the target address for
    * @param args.address - The target address to set
    * @returns A `TransactionContext` instance
@@ -926,7 +933,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to set a primary name for an account.
-   * 
+   *
    * @param args.name - The name to set as primary
    * @returns A `TransactionContext` instance
    */
@@ -938,7 +945,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to register a name.
-   * 
+   *
    * @param args - The parameters for registering a name, excluding aptosConfig and sender
    * @returns A `TransactionContext` instance
    */
@@ -950,7 +957,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to renew a domain name.
-   * 
+   *
    * @param args.name - The domain name to renew
    * @param args.years - The number of years to renew for (default: 1)
    * @returns A `TransactionContext` instance
@@ -963,7 +970,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to transfer coins.
-   * 
+   *
    * @param args.recipient - The recipient's account address
    * @param args.amount - The amount of coins to transfer
    * @param args.coinType - The type of coin to transfer (optional)
@@ -985,7 +992,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to create a collection.
-   * 
+   *
    * @param args.description - The description of the collection
    * @param args.name - The name of the collection
    * @param args.uri - The URI of the collection
@@ -1005,7 +1012,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to mint a digital asset.
-   * 
+   *
    * @param args.collection - The collection name
    * @param args.description - The description of the digital asset
    * @param args.name - The name of the digital asset
@@ -1035,7 +1042,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to transfer a digital asset.
-   * 
+   *
    * @param args.digitalAssetAddress - The address of the digital asset
    * @param args.recipient - The recipient's account address
    * @param args.digitalAssetType - The type of digital asset (optional)
@@ -1057,7 +1064,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to mint a soul bound token.
-   * 
+   *
    * @param args.collection - The collection name
    * @param args.description - The description of the token
    * @param args.name - The name of the token
@@ -1089,7 +1096,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to burn a digital asset.
-   * 
+   *
    * @param args.digitalAssetAddress - The address of the digital asset
    * @param args.digitalAssetType - The type of digital asset (optional)
    * @returns A `TransactionContext` instance
@@ -1109,7 +1116,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to freeze a digital asset's transfer capability.
-   * 
+   *
    * @param args.digitalAssetAddress - The address of the digital asset
    * @param args.digitalAssetType - The type of digital asset (optional)
    * @returns A `TransactionContext` instance
@@ -1129,7 +1136,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to unfreeze a digital asset's transfer capability.
-   * 
+   *
    * @param args.digitalAssetAddress - The address of the digital asset
    * @param args.digitalAssetType - The type of digital asset (optional)
    * @returns A `TransactionContext` instance
@@ -1149,7 +1156,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to set a digital asset's description.
-   * 
+   *
    * @param args.description - The new description
    * @param args.digitalAssetAddress - The address of the digital asset
    * @param args.digitalAssetType - The type of digital asset (optional)
@@ -1171,7 +1178,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to set a digital asset's name.
-   * 
+   *
    * @param args.name - The new name
    * @param args.digitalAssetAddress - The address of the digital asset
    * @param args.digitalAssetType - The type of digital asset (optional)
@@ -1193,7 +1200,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to set a digital asset's URI.
-   * 
+   *
    * @param args.uri - The new URI
    * @param args.digitalAssetAddress - The address of the digital asset
    * @param args.digitalAssetType - The type of digital asset (optional)
@@ -1215,7 +1222,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to add a property to a digital asset.
-   * 
+   *
    * @param args.propertyKey - The key of the property
    * @param args.propertyType - The type of the property
    * @param args.propertyValue - The value of the property
@@ -1241,7 +1248,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to remove a property from a digital asset.
-   * 
+   *
    * @param args.propertyKey - The key of the property
    * @param args.propertyType - The type of the property
    * @param args.propertyValue - The value of the property
@@ -1267,7 +1274,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to update a property of a digital asset.
-   * 
+   *
    * @param args.propertyKey - The key of the property
    * @param args.propertyType - The type of the property
    * @param args.propertyValue - The value of the property
@@ -1293,7 +1300,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to add a typed property to a digital asset.
-   * 
+   *
    * @param args.propertyKey - The key of the property
    * @param args.propertyType - The type of the property
    * @param args.propertyValue - The value of the property
@@ -1319,7 +1326,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to update a typed property of a digital asset.
-   * 
+   *
    * @param args.propertyKey - The key of the property
    * @param args.propertyType - The type of the property
    * @param args.propertyValue - The value of the property
@@ -1345,7 +1352,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to transfer a fungible asset.
-   * 
+   *
    * @param args.fungibleAssetMetadataAddress - The metadata address of the fungible asset
    * @param args.recipient - The recipient's account address
    * @param args.amount - The amount to transfer
@@ -1367,7 +1374,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to transfer a fungible asset between stores.
-   * 
+   *
    * @param args.fromStore - The source store address
    * @param args.toStore - The destination store address
    * @param args.amount - The amount to transfer
@@ -1389,7 +1396,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
 
   /**
    * Create a `TransactionContext` instance to update a federated keyless JWK set.
-   * 
+   *
    * @param args.iss - The issuer
    * @param args.jwksUrl - The JWKS URL (optional)
    * @returns A `TransactionContext` instance
