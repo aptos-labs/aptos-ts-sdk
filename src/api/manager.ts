@@ -93,29 +93,55 @@ abstract class ContextBase {
  * ```
  */
 export class TransactionContext extends ContextBase {
+  /** Sender account for the transaction */
   senderAccount?: Account;
 
+  /** Function to generate the transaction */
   transactionGenerationFunction: TransactionGenerationFunction;
 
+  /** Maximum amount of gas units that can be used to execute the transaction */
   maxGasAmountVal: number;
-  gasUnitPriceVal: number | undefined;
-  defaultTxnExpirySecsFromNow: number;
-  txnExpirySecsFromNow?: number;
-  withFeePayerBool: boolean;
-  expiryTimestampSecsVal?: number;
 
+  /** Price per gas unit for the transaction */
+  gasUnitPriceVal: number | undefined;
+
+  /** Transaction ordering mode - either "sequential" or "orderless" */
   orderMode?: OrderMode;
 
-  accountSequenceNumberVal: AnyNumber | undefined;
+  /** Nonce used for replay protection in orderless transactions */
   replayProtectionNonceVal: AnyNumber | undefined;
 
+  /** Account sequence number used for sequential transactions */
+  accountSequenceNumberVal: AnyNumber | undefined;
+
+  /** Default transaction expiry time in seconds from now */
+  defaultTxnExpirySecsFromNow: number;
+
+  /** Transaction expiry time in seconds from now, overrides default if set */
+  txnExpirySecsFromNow?: number;
+
+  /** Absolute transaction expiry timestamp in seconds, overrides txnExpirySecsFromNow if set */
+  expiryTimestampSecsVal?: number;
+
+  /** Whether this transaction uses a fee payer */
+  withFeePayerBool: boolean;
+
+  /** Optional parameters passed to transaction plugins */
   pluginParams?: Record<string, any>;
+
+  /** Optional custom transaction submitter */
   transactionSubmitter?: TransactionSubmitter | null;
 
+  /** Timeout in seconds when waiting for transaction */
   timeoutSecs: number;
+
+  /** Whether to wait for transaction to be indexed */
   waitForIndexerBool: boolean;
+
+  /** Whether to check transaction success status */
   checkSuccessBool: boolean;
 
+  /** Optional fee payer account */
   feePayerAccount: Account | undefined;
 
   constructor(manager: TransactionManager, transactionGenerationFunction: TransactionGenerationFunction) {
@@ -141,86 +167,193 @@ export class TransactionContext extends ContextBase {
     });
     return new Aptos(newConfig);
   }
+  /**
+   * Override the client configuration for this transaction context.
+   * 
+   * @param aptos - The Aptos client instance to use
+   * @returns This transaction context instance
+   */
   clientOverride(aptos: Aptos): this {
     this.aptos = this.createAptosWithConfig({ ...aptos.config });
     this.validateSettings();
     return this;
   }
+
+  /**
+   * Set the network for this transaction context.
+   * 
+   * @param network - The network to use
+   * @returns This transaction context instance
+   */
   network(network: Network): this {
     this.aptos = this.createAptosWithConfig({ network });
     this.validateSettings();
     return this;
   }
 
-  // InputGenerateTransactionOptions
+  /**
+   * Set this transaction to be orderless with a replay protection nonce.
+   * 
+   * @param replayProtectionNonce - The nonce to use for replay protection
+   * @returns This transaction context instance
+   */
   orderless(replayProtectionNonce: AnyNumber): this {
     this.setProperty("orderMode", "orderless");
     this.setProperty("replayProtectionNonceVal", replayProtectionNonce);
     return this;
   }
+
+  /**
+   * Set this transaction to be sequential with an optional account sequence number.
+   * 
+   * @param accountSequenceNumber - The account sequence number to use
+   * @returns This transaction context instance
+   */
   sequential(accountSequenceNumber?: AnyNumber): this {
     this.setProperty("orderMode", "sequential");
     this.setProperty("accountSequenceNumberVal", accountSequenceNumber);
     return this;
   }
+
+  /**
+   * Set the maximum gas amount for this transaction.
+   * 
+   * @param amount - The maximum gas amount
+   * @returns This transaction context instance
+   */
   maxGasAmount(amount: number): this {
     this.setProperty("maxGasAmountVal", amount);
     return this;
   }
+
+  /**
+   * Set the gas unit price for this transaction.
+   * 
+   * @param gasUnitPrice - The gas unit price
+   * @returns This transaction context instance
+   */
   gasUnitPrice(gasUnitPrice: number): this {
     this.setProperty("gasUnitPriceVal", gasUnitPrice);
     return this;
   }
+
+  /**
+   * Set the transaction expiry time in seconds from now.
+   * 
+   * @param txnExpirySecsFromNow - The number of seconds from now when the transaction expires
+   * @returns This transaction context instance
+   */
   expiresAfter(txnExpirySecsFromNow: number): this {
     this.setProperty("txnExpirySecsFromNow", txnExpirySecsFromNow);
     return this;
   }
+
+  /**
+   * Set the transaction expiry timestamp.
+   * 
+   * @param expiryTimestampSecs - The timestamp in seconds when the transaction expires
+   * @returns This transaction context instance
+   */
   expiresAt(expiryTimestampSecs: number): this {
     this.setProperty("expiryTimestampSecsVal", expiryTimestampSecs);
     return this;
   }
+
+  /**
+   * Configure this transaction to use a gas station for fee payment.
+   * 
+   * @param gasStation - The gas station transaction submitter
+   * @returns This transaction context instance
+   */
   withGasStation(gasStation: TransactionSubmitter): this {
     this.setProperty("transactionSubmitter", gasStation);
     this.setProperty("withFeePayerBool", true);
     return this;
   }
+
+  /**
+   * Enable or disable fee payer for this transaction.
+   * 
+   * @param useFeePayer - Whether to use a fee payer (defaults to true)
+   * @returns This transaction context instance
+   */
   useFeePayer(useFeePayer?: boolean): this {
     this.setProperty("withFeePayerBool", useFeePayer ?? true);
     return this;
   }
+
+  /**
+   * Set the fee payer account for this transaction.
+   * 
+   * @param feePayerAccount - The fee payer account
+   * @returns This transaction context instance
+   */
   feePayer(feePayerAccount: Account | undefined): this {
     this.setProperty("withFeePayerBool", true);
     this.setProperty("feePayerAccount", feePayerAccount);
     return this;
   }
 
-  // InputTransactionPluginData
+  /**
+   * Configure a transaction submitter with optional plugin parameters.
+   * 
+   * @param transactionSubmitter - The transaction submitter to use
+   * @param pluginParams - Optional plugin parameters
+   * @returns This transaction context instance
+   */
   withSubmitter(transactionSubmitter: TransactionSubmitter, pluginParams?: Record<string, any>): this {
     this.setProperty("transactionSubmitter", transactionSubmitter);
     this.setProperty("pluginParams", pluginParams);
     return this;
   }
 
+  /**
+   * Ignore any configured transaction submitter.
+   * 
+   * @returns This transaction context instance
+   */
   ignoreSubmitter(): this {
     this.setProperty("transactionSubmitter", null);
     return this;
   }
 
-  // WaitForTransactionOptions
+  /**
+   * Set the timeout duration for waiting for transaction completion.
+   * 
+   * @param timeoutSecs - The timeout duration in seconds
+   * @returns This transaction context instance
+   */
   timeoutAfter(timeoutSecs: number): this {
     this.setProperty("timeoutSecs", timeoutSecs);
     return this;
   }
+
+  /**
+   * Skip waiting for the transaction to be indexed.
+   * 
+   * @returns This transaction context instance
+   */
   skipWaitForIndexer(): this {
     this.setProperty("waitForIndexerBool", false);
     return this;
   }
+
+  /**
+   * Skip checking for transaction success.
+   * 
+   * @returns This transaction context instance
+   */
   skipCheckSuccess(): this {
     this.setProperty("checkSuccessBool", false);
     return this;
   }
 
-  // Sender
+  /**
+   * Set the sender account for this transaction.
+   * 
+   * @param sender - The sender account
+   * @returns This transaction context instance
+   */
   sender(sender: Account): this {
     this.setProperty("senderAccount", sender);
     return this;
