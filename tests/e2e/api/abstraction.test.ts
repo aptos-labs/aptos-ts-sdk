@@ -13,7 +13,8 @@ describe("abstraction api", () => {
   const { aptos } = getAptosClient({ network: Network.LOCAL });
 
   describe("account abstraction", () => {
-    describe("enable and disable account abstraction", () => {
+    // disable permission delegation write until it is fixed in proluge
+    describe.skip("enable and disable account abstraction", () => {
       const alice = Ed25519Account.generate();
 
       const authenticationFunction = "0x1::permissioned_delegation::authenticate";
@@ -182,7 +183,8 @@ describe("abstraction api", () => {
       });
     });
 
-    describe("enable permissioned delegation and send a transaction with permissions", () => {
+    // disable permission delegation write until it is fixed in proluge
+    describe.skip("enable permissioned delegation and send a transaction with permissions", () => {
       const alice = Ed25519Account.generate();
       const bob = Ed25519Account.generate();
       const recipient = Ed25519Account.generate();

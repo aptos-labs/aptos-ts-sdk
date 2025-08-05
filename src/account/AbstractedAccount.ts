@@ -4,11 +4,15 @@ import { AbstractPublicKey, AbstractSignature } from "../core/crypto/abstraction
 import { SigningScheme, HexInput } from "../types";
 import { Account } from "./Account";
 import { AnyRawTransaction } from "../transactions/types";
-import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
-import { AccountAuthenticatorAbstraction } from "../transactions/authenticator/account";
+import {
+  generateSigningMessage,
+  generateSigningMessageForTransaction,
+} from "../transactions/transactionBuilder/signingMessage";
+import { AccountAbstractionMessage, AccountAuthenticatorAbstraction } from "../transactions/authenticator/account";
 import { Ed25519Account } from "./Ed25519Account";
 import { Serializer } from "../bcs/serializer";
 import { isValidFunctionInfo } from "../utils/helpers";
+import { AA_SIGNING_DATA_SALT } from "../utils/const";
 
 type AbstractedAccountConstructorArgs = {
   /**
@@ -82,10 +86,13 @@ export class AbstractedAccount extends Account {
   }
 
   signWithAuthenticator(message: HexInput): AccountAuthenticatorAbstraction {
+    const aaMessage = new AccountAbstractionMessage(message, this.authenticationFunction);
+    // generate a signing message with aaMessage, with a specific domain separator
+    const messageToSign = generateSigningMessage(aaMessage.bcsToBytes(), AA_SIGNING_DATA_SALT);
     return new AccountAuthenticatorAbstraction(
       this.authenticationFunction,
-      sha3_256(message),
-      this.sign(sha3_256(message)).toUint8Array(),
+      sha3_256(messageToSign),
+      this.sign(sha3_256(messageToSign)).toUint8Array(),
     );
   }
 

@@ -9,7 +9,7 @@ import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { MultiEd25519PublicKey, MultiEd25519Signature } from "../../core/crypto/multiEd25519";
 import { MultiKey, MultiKeySignature } from "../../core/crypto/multiKey";
 import { AccountAuthenticatorVariant, HexInput, MoveFunctionId } from "../../types";
-import { AbstractionAuthDataVariant } from "../../types/abstraction";
+import { AASigningDataVariant, AbstractionAuthDataVariant } from "../../types/abstraction";
 import { AccountAddress, Hex } from "../../core";
 import { getFunctionParts, isValidFunctionInfo } from "../../utils/helpers";
 
@@ -337,7 +337,6 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
     if (variant === AbstractionAuthDataVariant.DerivableV1) {
       const signingMessageDigest = deserializer.deserializeBytes();
       const abstractSignature = deserializer.deserializeBytes();
-
       const abstractPublicKey = deserializer.deserializeBytes();
       return new AccountAuthenticatorAbstraction(
         `${moduleAddress}::${moduleName}::${functionName}`,
@@ -347,5 +346,39 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
       );
     }
     throw new Error(`Unknown variant index for AccountAuthenticatorAbstraction: ${variant}`);
+  }
+}
+
+export class AccountAbstractionMessage extends Serializable {
+  public readonly original_signing_message: Hex;
+
+  public readonly function_info: string;
+
+  constructor(original_signing_message: HexInput, function_info: string) {
+    super();
+    this.original_signing_message = Hex.fromHexInput(Hex.fromHexInput(original_signing_message).toUint8Array());
+    this.function_info = function_info;
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(AASigningDataVariant.V1);
+    serializer.serializeBytes(this.original_signing_message.toUint8Array());
+    const { moduleAddress, moduleName, functionName } = getFunctionParts(this.function_info as MoveFunctionId);
+    AccountAddress.fromString(moduleAddress).serialize(serializer);
+    serializer.serializeStr(moduleName);
+    serializer.serializeStr(functionName);
+  }
+
+  static deserialize(deserializer: Deserializer): AccountAbstractionMessage {
+    const variant = deserializer.deserializeUleb128AsU32();
+    if (variant !== AASigningDataVariant.V1) {
+      throw new Error(`Unknown variant index for AccountAbstractionMessage: ${variant}`);
+    }
+    const original_signing_message = deserializer.deserializeBytes();
+    const function_info_module_address = AccountAddress.deserialize(deserializer);
+    const function_info_module_name = deserializer.deserializeStr();
+    const function_info_function_name = deserializer.deserializeStr();
+    const function_info = `${function_info_module_address}::${function_info_module_name}::${function_info_function_name}`;
+    return new AccountAbstractionMessage(original_signing_message, function_info);
   }
 }
