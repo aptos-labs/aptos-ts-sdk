@@ -8,9 +8,10 @@ import { AccountAddress } from "@aptos-labs/ts-sdk";
 
 /**
  * A convenience function to compile a package locally with the CLI
- * @param packageDir
- * @param outputFile
- * @param namedAddresses
+ * @param packageDir directory of the package to compile
+ * @param outputFile output file for the JSON compiled payload
+ * @param namedAddresses set of named addresses to pass to the compile command
+ * @param args extra arguments to pass to the compile command
  */
 export function compilePackage(
   packageDir: string,
@@ -18,10 +19,10 @@ export function compilePackage(
   namedAddresses: Array<{ name: string; address: AccountAddress }>,
   args?: string[],
 ) {
-  console.log("In order to run compilation, you must have the `aptos` CLI installed.");
   try {
     execSync("aptos --version");
   } catch (e) {
+    console.log("In order to run compilation, you must have the `aptos` CLI installed.");
     console.log("aptos is not installed. Please install it from the instructions on aptos.dev");
   }
 
