@@ -9,10 +9,12 @@ module FACoin::fa_coin {
     use std::signer;
     use std::string::utf8;
     use std::option;
+    use std::string;
 
     /// Only fungible asset metadata owner can make changes.
     const ENOT_OWNER: u64 = 1;
 
+    const ASSET_NAME: vector<u8> = b"FA Coin";
     const ASSET_SYMBOL: vector<u8> = b"FA";
 
     #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
@@ -30,7 +32,7 @@ module FACoin::fa_coin {
         primary_fungible_store::create_primary_store_enabled_fungible_asset(
             constructor_ref,
             option::none(),
-            utf8(b"FA Coin"), /* name */
+            utf8(ASSET_NAME), /* name */
             utf8(ASSET_SYMBOL), /* symbol */
             8, /* decimals */
             utf8(b"http://example.com/favicon.ico"), /* icon */
@@ -53,6 +55,12 @@ module FACoin::fa_coin {
     public fun get_metadata(): Object<Metadata> {
         let asset_address = object::create_object_address(&@FACoin, ASSET_SYMBOL);
         object::address_to_object<Metadata>(asset_address)
+    }
+
+    #[view]
+    public fun get_name(): string::String {
+        let metadata = get_metadata();
+        fungible_asset::name(metadata)
     }
 
     // :!:>mint

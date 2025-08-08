@@ -13,6 +13,7 @@ import {
   NetworkToNetworkName,
 } from "@aptos-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils";
+
 /**
  * This example demonstrate how one can compile, deploy, and mint its own fungible asset (FA)
  * It uses the fa_coin.move module that can be found in the move folder
@@ -113,19 +114,6 @@ async function unfreeze(admin: Account, targetAddress: AccountAddress): Promise<
   return pendingTxn.hash;
 }
 
-const getFaBalance = async (owner: Account, assetType: string): Promise<number> => {
-  const data = await aptos.getCurrentFungibleAssetBalances({
-    options: {
-      where: {
-        owner_address: { _eq: owner.accountAddress.toStringLong() },
-        asset_type: { _eq: assetType },
-      },
-    },
-  });
-
-  return data[0]?.amount ?? 0;
-};
-
 /** Return the address of the managed fungible asset that's created when this module is deployed */
 async function getMetadata(admin: Account): Promise<string> {
   const payload: InputViewFunctionData = {
@@ -134,6 +122,15 @@ async function getMetadata(admin: Account): Promise<string> {
   };
   const res = (await aptos.view<[{ inner: string }]>({ payload }))[0];
   return res.inner;
+}
+
+async function getFaName(admin: Account): Promise<string> {
+  const payload: InputViewFunctionData = {
+    function: `${admin.accountAddress}::fa_coin::get_name`,
+    functionArguments: [],
+  };
+  const res = (await aptos.view<[string]>({ payload }))[0];
+  return res;
 }
 
 async function main() {
@@ -175,17 +172,26 @@ async function main() {
   const metadataAddress = await getMetadata(alice);
   console.log("metadata address:", metadataAddress);
 
+  const facoin_name = await getFaName(alice);
+  console.log("facoin_name:", facoin_name);
+
   console.log("All the balances in this example refer to balance in primary fungible stores of each account.");
-  console.log(`Alice's initial FACoin balance: ${await getFaBalance(alice, metadataAddress)}.`);
-  console.log(`Bob's initial FACoin balance: ${await getFaBalance(bob, metadataAddress)}.`);
-  console.log(`Charlie's initial balance: ${await getFaBalance(charlie, metadataAddress)}.`);
+  console.log(
+    `Alice's initial ${facoin_name} balance: ${await aptos.getAccountCoinAmount({ accountAddress: alice.accountAddress, faMetadataAddress: metadataAddress })}`,
+  );
+  console.log(
+    `Bob's initial ${facoin_name} balance: ${await aptos.getAccountCoinAmount({ accountAddress: bob.accountAddress, faMetadataAddress: metadataAddress })}`,
+  );
+  console.log(
+    `Charlie's initial balance: ${await aptos.getAccountCoinAmount({ accountAddress: charlie.accountAddress, faMetadataAddress: metadataAddress })}`,
+  );
 
   console.log("Alice mints Charlie 100 coins.");
   const mintCoinTransactionHash = await mintCoin(alice, charlie, 100);
 
   await aptos.waitForTransaction({ transactionHash: mintCoinTransactionHash });
   console.log(
-    `Charlie's updated FACoin primary fungible store balance: ${await getFaBalance(charlie, metadataAddress)}.`,
+    `Charlie's updated ${facoin_name} primary fungible store balance: ${await aptos.getAccountCoinAmount({ accountAddress: charlie.accountAddress, faMetadataAddress: metadataAddress })}`,
   );
 
   console.log("Alice freezes Bob's account.");
@@ -197,7 +203,9 @@ async function main() {
   );
   const transferCoinTransactionHash = await transferCoin(alice, charlie.accountAddress, bob.accountAddress, 100);
   await aptos.waitForTransaction({ transactionHash: transferCoinTransactionHash });
-  console.log(`Bob's updated FACoin balance: ${await getFaBalance(bob, metadataAddress)}.`);
+  console.log(
+    `Bob's updated ${facoin_name} balance: ${await aptos.getAccountCoinAmount({ accountAddress: bob.accountAddress, faMetadataAddress: metadataAddress })}`,
+  );
 
   console.log("Alice unfreezes Bob's account.");
   const unfreezeTransactionHash = await unfreeze(alice, bob.accountAddress);
@@ -206,7 +214,9 @@ async function main() {
   console.log("Alice burns 50 coins from Bob.");
   const burnCoinTransactionHash = await burnCoin(alice, bob.accountAddress, 50);
   await aptos.waitForTransaction({ transactionHash: burnCoinTransactionHash });
-  console.log(`Bob's updated FACoin balance: ${await getFaBalance(bob, metadataAddress)}.`);
+  console.log(
+    `Bob's updated ${facoin_name} balance: ${await aptos.getAccountCoinAmount({ accountAddress: bob.accountAddress, faMetadataAddress: metadataAddress })}`,
+  );
 
   /// Normal fungible asset transfer between primary stores
   console.log("Bob transfers 10 coins to Alice as the owner.");
@@ -221,8 +231,12 @@ async function main() {
     transaction: transferFungibleAssetRawTransaction,
   });
   await aptos.waitForTransaction({ transactionHash: transferFungibleAssetTransaction.hash });
-  console.log(`Alice's updated FACoin balance: ${await getFaBalance(alice, metadataAddress)}.`);
-  console.log(`Bob's updated FACoin balance: ${await getFaBalance(bob, metadataAddress)}.`);
+  console.log(
+    `Alice's updated ${facoin_name} balance: ${await aptos.getAccountCoinAmount({ accountAddress: alice.accountAddress, faMetadataAddress: metadataAddress })}`,
+  );
+  console.log(
+    `Bob's updated ${facoin_name} balance: ${await aptos.getAccountCoinAmount({ accountAddress: bob.accountAddress, faMetadataAddress: metadataAddress })}`,
+  );
   console.log("done.");
 }
 
