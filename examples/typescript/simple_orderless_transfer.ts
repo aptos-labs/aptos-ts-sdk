@@ -12,6 +12,7 @@ import {
   InputViewFunctionJsonData,
   Network,
   NetworkToNetworkName,
+  TransactionManager,
 } from "@aptos-labs/ts-sdk";
 import dotenv from "dotenv";
 dotenv.config();
@@ -50,6 +51,7 @@ const example = async () => {
   // Set up the client
   const config = new AptosConfig({ network: APTOS_NETWORK });
   const aptos = new Aptos(config);
+  const sender = TransactionManager.new(aptos);
 
   // Create two accounts
   const alice = Account.generate();
@@ -85,23 +87,21 @@ const example = async () => {
   if (bobBalance !== BOB_INITIAL_BALANCE) throw new Error("Bob's balance is incorrect");
 
   // Transfer between users
-  const txn = await aptos.transaction.build.simple({
-    sender: alice.accountAddress,
-    data: {
-      function: "0x1::coin::transfer",
-      typeArguments: [APTOS_COIN],
-      functionArguments: [bob.accountAddress, TRANSFER_AMOUNT],
-    },
-    options: {
-      replayProtectionNonce: 12345,
-    },
-  });
+  const response = await sender
+    .build({
+      data: {
+        function: "0x1::coin::transfer",
+        typeArguments: [APTOS_COIN],
+        functionArguments: [bob.accountAddress, TRANSFER_AMOUNT],
+      },
+    })
+    .orderless(12345)
+    .sender(alice)
+    .submit();
 
   console.log("\n=== Transfer transaction ===\n");
-  const committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction: txn });
 
-  await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
-  console.log(`Committed transaction: ${committedTxn.hash}`);
+  console.log(`Committed transaction: ${response.hash}`);
 
   console.log("\n=== Balances after transfer ===\n");
   const newAliceBalance = await balance(aptos, "Alice", alice.accountAddress);
