@@ -5,3 +5,7 @@ export enum AbstractionAuthDataVariant {
   V1 = 0,
   DerivableV1 = 1,
 }
+
+export enum AASigningDataVariant {
+  V1 = 0,
+}

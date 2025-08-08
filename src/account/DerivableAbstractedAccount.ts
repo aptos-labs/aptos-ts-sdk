@@ -1,10 +1,12 @@
 import { sha3_256 } from "@noble/hashes/sha3";
 import { Serializer } from "../bcs/serializer";
 import { AccountAddress } from "../core/accountAddress";
-import { AccountAuthenticatorAbstraction } from "../transactions/authenticator/account";
+import { AccountAbstractionMessage, AccountAuthenticatorAbstraction } from "../transactions/authenticator/account";
 import { HexInput } from "../types";
 import { isValidFunctionInfo } from "../utils/helpers";
 import { AbstractedAccount } from "./AbstractedAccount";
+import { generateSigningMessage } from "../transactions/transactionBuilder/signingMessage";
+import { AA_SIGNING_DATA_SALT } from "../utils/const";
 
 type DerivableAbstractedAccountArgs = {
   /**
@@ -91,10 +93,13 @@ export class DerivableAbstractedAccount extends AbstractedAccount {
   }
 
   signWithAuthenticator(message: HexInput): AccountAuthenticatorAbstraction {
+    const aaMessage = new AccountAbstractionMessage(message, this.authenticationFunction);
+    // generate a signing message with aaMessage, with a specific domain separator
+    const messageToSign = generateSigningMessage(aaMessage.bcsToBytes(), AA_SIGNING_DATA_SALT);
     return new AccountAuthenticatorAbstraction(
       this.authenticationFunction,
-      sha3_256(message),
-      this.sign(sha3_256(message)).value,
+      sha3_256(messageToSign),
+      this.sign(sha3_256(messageToSign)).value,
       this.abstractPublicKey,
     );
   }
