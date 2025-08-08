@@ -14,7 +14,7 @@ module FACoin::fa_coin {
     /// Only fungible asset metadata owner can make changes.
     const ENOT_OWNER: u64 = 1;
 
-    const ASSET_NAME: vector<u8> = b"Chris Coin";
+    const ASSET_NAME: vector<u8> = b"FA Coin";
     const ASSET_SYMBOL: vector<u8> = b"FA";
 
     #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
