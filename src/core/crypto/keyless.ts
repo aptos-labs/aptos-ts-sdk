@@ -201,6 +201,7 @@ export class KeylessPublicKey extends AccountPublicKey {
     message: HexInput;
     signature: Signature;
     options?: { throwErrorWithReason?: boolean };
+    ledgerVersion?: LedgerVersionArg;
   }): Promise<boolean> {
     return verifyKeylessSignature({
       ...args,
@@ -341,6 +342,7 @@ export async function verifyKeylessSignature(args: {
   aptosConfig: AptosConfig;
   message: HexInput;
   signature: Signature;
+  ledgerVersion?: LedgerVersionArg;
   keylessConfig?: KeylessConfiguration;
   jwk?: MoveJWK;
   options?: { throwErrorWithReason?: boolean };
@@ -351,7 +353,8 @@ export async function verifyKeylessSignature(args: {
     message,
     signature,
     jwk,
-    keylessConfig = await getKeylessConfig({ aptosConfig }),
+    ledgerVersion,
+    keylessConfig = await getKeylessConfig({ aptosConfig, options: ledgerVersion }),
     options,
   } = args;
   try {
@@ -365,7 +368,7 @@ export async function verifyKeylessSignature(args: {
       message,
       publicKey,
       signature,
-      jwk: jwk ? jwk : await fetchJWK({ aptosConfig, publicKey, kid: signature.getJwkKid() }),
+      jwk: jwk ? jwk : await fetchJWK({ aptosConfig, publicKey, kid: signature.getJwkKid(), ledgerVersion }),
       keylessConfig,
     });
     return true;
@@ -518,15 +521,16 @@ export async function fetchJWK(args: {
   aptosConfig: AptosConfig;
   publicKey: KeylessPublicKey | FederatedKeylessPublicKey;
   kid: string;
+  ledgerVersion?: LedgerVersionArg;
 }): Promise<MoveJWK> {
-  const { aptosConfig, publicKey, kid } = args;
+  const { aptosConfig, publicKey, kid, ledgerVersion } = args;
   const keylessPubKey = publicKey instanceof KeylessPublicKey ? publicKey : publicKey.keylessPublicKey;
   const { iss } = keylessPubKey;
 
   let allJWKs: Map<string, MoveJWK[]>;
   const jwkAddr = publicKey instanceof FederatedKeylessPublicKey ? publicKey.jwkAddress : undefined;
   try {
-    allJWKs = await getKeylessJWKs({ aptosConfig, jwkAddr });
+    allJWKs = await getKeylessJWKs({ aptosConfig, jwkAddr, options: ledgerVersion });
   } catch (error) {
     throw KeylessError.fromErrorType({
       type: KeylessErrorType.FULL_NODE_JWKS_LOOKUP_ERROR,
