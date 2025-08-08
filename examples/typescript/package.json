@@ -31,15 +31,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aptos-labs/ts-sdk": "link:../..",
     "@noble/curves": "1.9.1",
     "@types/readline-sync": "1.4.8",
     "dotenv": "16.5.0",
     "npm-run-all": "4.1.5",
     "readline-sync": "1.4.10",
     "superagent": "10.2.1"
-  },
-  "peerDependencies": {
-    "@aptos-labs/ts-sdk": "link:../.."
   },
   "devDependencies": {
     "@types/node": "^22.15.29",
