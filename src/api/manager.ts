@@ -1,3 +1,4 @@
+import aptosClient from "@aptos-labs/aptos-client";
 import { Account, Ed25519Account, MultiEd25519Account } from "../account";
 import { AccountAddress, AccountAddressInput, AccountPublicKey, Ed25519PrivateKey } from "../core";
 import { AptosApiError } from "../errors";
@@ -5,10 +6,12 @@ import { RegisterNameParameters } from "../internal/ans";
 import { CreateCollectionOptions, PropertyType, PropertyValue } from "../internal/digitalAsset";
 import {
   ChainId,
+  generateRawTransaction,
   InputGenerateTransactionOptions,
   InputGenerateTransactionPayloadData,
   RawTransaction,
   SimpleTransaction,
+  TransactionPayload,
 } from "../transactions";
 import {
   MoveStructId,
@@ -17,6 +20,7 @@ import {
   UserTransactionResponse,
   TransactionSubmitter,
   AptosSettings,
+  PendingTransactionResponse,
 } from "../types";
 import { DEFAULT_TXN_TIMEOUT_SEC, Network, NetworkToChainId } from "../utils";
 import { Aptos } from "./aptos";
@@ -24,22 +28,22 @@ import { AptosConfig } from "./aptosConfig";
 
 type FunctionsWithReturnType<T, ReturnType> = {
   [K in keyof T]: T[K] extends (...args: any[]) => ReturnType
-    ? T[K] extends <M extends {} = any>(...args: any[]) => Promise<M>
-      ? never
-      : K
-    : never;
+  ? T[K] extends <M extends {} = any>(...args: any[]) => Promise<M>
+  ? never
+  : K
+  : never;
 }[keyof T];
 
 // Helper type to remove 'sender', 'account', and 'creator' from function parameters
 type RemoveSender<T> = T extends (args: infer Args) => infer Return
-  ? Args extends { sender?: any; account?: any; creator?: any; [key: string]: any }
-    ? (args: Omit<Args, "sender" | "account" | "creator" | "fromAccount">) => Return
-    : T
+  ? Args extends { sender?: any; account?: any; creator?: any;[key: string]: any }
+  ? (args: Omit<Args, "sender" | "account" | "creator" | "fromAccount">) => Return
+  : T
   : T;
 
 // Helper type to transform function return type from Promise<SimpleTransaction> to TransactionContext
 type TransformReturnType<T> = T extends (...args: infer Args) => Promise<SimpleTransaction>
-  ? (...args: Args) => TransactionContext
+  ? (...args: Args) => SenderlessTransactionContext
   : T;
 
 type SimpleTransactionGenerator = {
@@ -56,13 +60,21 @@ type TransactionGenerationFunction = (args: TransactionGenerationArgs) => Promis
 
 abstract class ContextBase {
   aptos: Aptos;
-  constructor(aptos: Aptos) {
+
+  timeoutSecs: number;
+  checkSuccess: boolean;
+  waitForIndexer: boolean;
+
+  constructor(args: { aptos: Aptos, timeoutSecs: number, checkSuccess: boolean, waitForIndexer: boolean }) {
+    const { aptos, timeoutSecs, checkSuccess, waitForIndexer } = args;
     const aptosConfig = new AptosConfig({
       ...aptos.config,
     });
     this.aptos = new Aptos(aptosConfig);
+    this.timeoutSecs = timeoutSecs;
+    this.checkSuccess = checkSuccess;
+    this.waitForIndexer = waitForIndexer;
   }
-  abstract submit(): Promise<UserTransactionResponse>;
 }
 
 /**
@@ -91,39 +103,24 @@ abstract class ContextBase {
  *   .submit();
  * ```
  */
-export class TransactionContext extends ContextBase {
-  /** Sender account for the transaction */
-  senderAccount?: Account;
-
+export class SenderlessTransactionContext extends ContextBase {
   /** Function to generate the transaction */
   transactionGenerationFunction: TransactionGenerationFunction;
 
   /** Maximum amount of gas units that can be used to execute the transaction */
-  maxGasAmountVal: number;
+  maxGasAmount: number;
 
   /** Price per gas unit for the transaction */
-  gasUnitPriceVal: number | undefined;
+  gasUnitPrice?: number;
 
   /** Transaction ordering mode - either "sequential" or "orderless" */
   orderMode?: OrderMode;
 
-  /** Nonce used for replay protection in orderless transactions */
-  replayProtectionNonceVal: AnyNumber | undefined;
-
-  /** Account sequence number used for sequential transactions */
-  accountSequenceNumberVal: AnyNumber | undefined;
-
-  /** Default transaction expiry time in seconds from now */
-  defaultTxnExpirySecsFromNow: number;
-
   /** Transaction expiry time in seconds from now, overrides default if set */
-  txnExpirySecsFromNow?: number;
-
-  /** Absolute transaction expiry timestamp in seconds, overrides txnExpirySecsFromNow if set */
-  expiryTimestampSecsVal?: number;
+  txnExpirySecsFromNow: number;
 
   /** Whether this transaction uses a fee payer */
-  withFeePayerBool: boolean;
+  withFeePayer: boolean;
 
   /** Optional parameters passed to transaction plugins */
   pluginParams?: Record<string, any>;
@@ -135,28 +132,84 @@ export class TransactionContext extends ContextBase {
   timeoutSecs: number;
 
   /** Whether to wait for transaction to be indexed */
-  waitForIndexerBool: boolean;
+  waitForIndexer: boolean;
 
   /** Whether to check transaction success status */
-  checkSuccessBool: boolean;
+  checkSuccess: boolean;
 
   /** Optional fee payer account */
   feePayerAccount: Account | undefined;
 
-  constructor(manager: TransactionManager, transactionGenerationFunction: TransactionGenerationFunction) {
-    super(manager.getClient());
-    this.maxGasAmountVal = manager.getDefaultMaxGasAmount();
-    this.gasUnitPriceVal = manager.getDefaultGasUnitPrice();
-    this.defaultTxnExpirySecsFromNow = manager.getDefaulTxnExpirySecFromNow();
-    this.withFeePayerBool = manager.getDefaultWithFeePayer();
-    this.orderMode = manager.getDefaultOrderMode();
-    this.senderAccount = manager.getDefaultSender();
-    this.transactionSubmitter = manager.getDefaultTransactionSubmitter();
-    this.pluginParams = manager.getDefaultPluginParams();
-    this.timeoutSecs = manager.getDefaultTxnTimeoutSecs();
-    this.waitForIndexerBool = manager.getDefaultWaitForIndexer();
-    this.checkSuccessBool = manager.getDefaultCheckSuccess();
+  constructor(args: {
+    aptos: Aptos;
+    maxGasAmount: number;
+    gasUnitPrice?: number;
+    txnExpirySecsFromNow: number;
+    withFeePayer: boolean;
+    orderMode?: OrderMode;
+    transactionSubmitter?: TransactionSubmitter | null;
+    pluginParams?: Record<string, any>;
+    timeoutSecs: number;
+    waitForIndexer: boolean;
+    checkSuccess: boolean;
+    transactionGenerationFunction: TransactionGenerationFunction;
+  }) {
+    const { aptos, 
+      maxGasAmount, 
+      gasUnitPrice, 
+      txnExpirySecsFromNow, 
+      withFeePayer,
+      orderMode,
+      transactionSubmitter,
+      pluginParams,
+      timeoutSecs,
+      waitForIndexer,
+      checkSuccess,
+      transactionGenerationFunction
+    } = args;
+    super({ aptos, timeoutSecs, checkSuccess, waitForIndexer });
+    this.maxGasAmount = maxGasAmount;
+    this.gasUnitPrice = gasUnitPrice;
+    this.txnExpirySecsFromNow = txnExpirySecsFromNow;
+    this.withFeePayer = withFeePayer;
+    this.orderMode = orderMode;
+    // this.senderAccount = manager.getDefaultSender();
+    this.transactionSubmitter = transactionSubmitter;
+    this.pluginParams = pluginParams;
+    this.timeoutSecs = timeoutSecs;
+    this.checkSuccess = checkSuccess;
+    this.waitForIndexer = waitForIndexer;
     this.transactionGenerationFunction = transactionGenerationFunction;
+  }
+
+  setSender(sender: Account): TransactionContext {
+    return new TransactionContext({
+      ...this,
+      senderAccount: sender,
+    });
+  }
+}
+
+export class TransactionContext extends SenderlessTransactionContext implements SubmittableContext {
+  sender: Account;
+
+  constructor(args: {
+    aptos: Aptos;
+    maxGasAmount: number;
+    gasUnitPrice?: number;
+    txnExpirySecsFromNow: number;
+    withFeePayer: boolean;
+    orderMode?: OrderMode;
+    transactionSubmitter?: TransactionSubmitter | null;
+    pluginParams?: Record<string, any>;
+    timeoutSecs: number;
+    waitForIndexer: boolean;
+    transactionGenerationFunction: TransactionGenerationFunction;
+    senderAccount: Account
+    checkSuccess: boolean;
+  }) {
+    super(args);
+    this.sender = args.senderAccount;
   }
 
   private createAptosWithConfig(overrides: Partial<AptosSettings> = {}): Aptos {
@@ -172,9 +225,8 @@ export class TransactionContext extends ContextBase {
    * @param aptos - The Aptos client instance to use
    * @returns This transaction context instance
    */
-  clientOverride(aptos: Aptos): this {
+  setClient(aptos: Aptos): this {
     this.aptos = this.createAptosWithConfig({ ...aptos.config });
-    this.validateSettings();
     return this;
   }
 
@@ -184,9 +236,8 @@ export class TransactionContext extends ContextBase {
    * @param network - The network to use
    * @returns This transaction context instance
    */
-  network(network: Network): this {
+  setNetwork(network: Network): this {
     this.aptos = this.createAptosWithConfig({ network });
-    this.validateSettings();
     return this;
   }
 
@@ -196,9 +247,8 @@ export class TransactionContext extends ContextBase {
    * @param replayProtectionNonce - The nonce to use for replay protection
    * @returns This transaction context instance
    */
-  orderless(replayProtectionNonce: AnyNumber): this {
-    this.setProperty("orderMode", "orderless");
-    this.setProperty("replayProtectionNonceVal", replayProtectionNonce);
+  setOrderless(orderless: boolean = true): this {
+    this.orderMode = orderless ? "orderless" : "sequential";
     return this;
   }
 
@@ -208,9 +258,8 @@ export class TransactionContext extends ContextBase {
    * @param accountSequenceNumber - The account sequence number to use
    * @returns This transaction context instance
    */
-  sequential(accountSequenceNumber?: AnyNumber): this {
-    this.setProperty("orderMode", "sequential");
-    this.setProperty("accountSequenceNumberVal", accountSequenceNumber);
+  setSequential(sequential: boolean = true): this {
+    this.orderMode = sequential ? "sequential" : "orderless";
     return this;
   }
 
@@ -220,8 +269,8 @@ export class TransactionContext extends ContextBase {
    * @param amount - The maximum gas amount
    * @returns This transaction context instance
    */
-  maxGasAmount(amount: number): this {
-    this.setProperty("maxGasAmountVal", amount);
+  setMaxGasAmount(amount: number): this {
+    this.maxGasAmount = amount;
     return this;
   }
 
@@ -231,8 +280,8 @@ export class TransactionContext extends ContextBase {
    * @param gasUnitPrice - The gas unit price
    * @returns This transaction context instance
    */
-  gasUnitPrice(gasUnitPrice: number): this {
-    this.setProperty("gasUnitPriceVal", gasUnitPrice);
+  setGasUnitPrice(gasUnitPrice: number): this {
+    this.gasUnitPrice = gasUnitPrice;
     return this;
   }
 
@@ -242,19 +291,8 @@ export class TransactionContext extends ContextBase {
    * @param txnExpirySecsFromNow - The number of seconds from now when the transaction expires
    * @returns This transaction context instance
    */
-  expiresAfter(txnExpirySecsFromNow: number): this {
-    this.setProperty("txnExpirySecsFromNow", txnExpirySecsFromNow);
-    return this;
-  }
-
-  /**
-   * Set the transaction expiry timestamp.
-   *
-   * @param expiryTimestampSecs - The timestamp in seconds when the transaction expires
-   * @returns This transaction context instance
-   */
-  expiresAt(expiryTimestampSecs: number): this {
-    this.setProperty("expiryTimestampSecsVal", expiryTimestampSecs);
+  setExpiresAfter(txnExpirySecsFromNow: number): this {
+    this.txnExpirySecsFromNow = txnExpirySecsFromNow;
     return this;
   }
 
@@ -264,9 +302,9 @@ export class TransactionContext extends ContextBase {
    * @param gasStation - The gas station transaction submitter
    * @returns This transaction context instance
    */
-  withGasStation(gasStation: TransactionSubmitter): this {
-    this.setProperty("transactionSubmitter", gasStation);
-    this.setProperty("withFeePayerBool", true);
+  setGasStation(gasStation: TransactionSubmitter): this {
+    this.transactionSubmitter = gasStation;
+    this.withFeePayer = true;
     return this;
   }
 
@@ -276,8 +314,8 @@ export class TransactionContext extends ContextBase {
    * @param useFeePayer - Whether to use a fee payer (defaults to true)
    * @returns This transaction context instance
    */
-  useFeePayer(useFeePayer?: boolean): this {
-    this.setProperty("withFeePayerBool", useFeePayer ?? true);
+  setWithFeePayer(withFeePayer?: boolean): this {
+    this.withFeePayer = withFeePayer ?? true;
     return this;
   }
 
@@ -287,9 +325,9 @@ export class TransactionContext extends ContextBase {
    * @param feePayerAccount - The fee payer account
    * @returns This transaction context instance
    */
-  feePayer(feePayerAccount: Account | undefined): this {
-    this.setProperty("withFeePayerBool", true);
-    this.setProperty("feePayerAccount", feePayerAccount);
+  setFeePayerAccount(feePayerAccount: Account): this {
+    this.withFeePayer = true;
+    this.feePayerAccount = feePayerAccount;
     return this;
   }
 
@@ -300,9 +338,9 @@ export class TransactionContext extends ContextBase {
    * @param pluginParams - Optional plugin parameters
    * @returns This transaction context instance
    */
-  withSubmitter(transactionSubmitter: TransactionSubmitter, pluginParams?: Record<string, any>): this {
-    this.setProperty("transactionSubmitter", transactionSubmitter);
-    this.setProperty("pluginParams", pluginParams);
+  setSubmitter(transactionSubmitter: TransactionSubmitter, pluginParams?: Record<string, any>): this {
+    this.transactionSubmitter = transactionSubmitter;
+    this.pluginParams = pluginParams;
     return this;
   }
 
@@ -311,8 +349,8 @@ export class TransactionContext extends ContextBase {
    *
    * @returns This transaction context instance
    */
-  ignoreSubmitter(): this {
-    this.setProperty("transactionSubmitter", null);
+  setIgnoreSubmitter(): this {
+    this.transactionSubmitter = null;
     return this;
   }
 
@@ -322,8 +360,8 @@ export class TransactionContext extends ContextBase {
    * @param timeoutSecs - The timeout duration in seconds
    * @returns This transaction context instance
    */
-  timeoutAfter(timeoutSecs: number): this {
-    this.setProperty("timeoutSecs", timeoutSecs);
+  setTimeout(timeoutSecs: number): this {
+    this.timeoutSecs = timeoutSecs;
     return this;
   }
 
@@ -332,8 +370,8 @@ export class TransactionContext extends ContextBase {
    *
    * @returns This transaction context instance
    */
-  skipWaitForIndexer(): this {
-    this.setProperty("waitForIndexerBool", false);
+  setWaitForIndexer(waitForIndexer: boolean): this {
+    this.waitForIndexer = waitForIndexer;
     return this;
   }
 
@@ -342,19 +380,17 @@ export class TransactionContext extends ContextBase {
    *
    * @returns This transaction context instance
    */
-  skipCheckSuccess(): this {
-    this.setProperty("checkSuccessBool", false);
+  setCheckSuccess(checkSuccess?: boolean): this {
+    this.checkSuccess = checkSuccess ?? true;
     return this;
   }
 
   /**
    * Set the sender account for this transaction.
-   *
-   * @param sender - The sender account
-   * @returns This transaction context instance
+   * Returns a new context that is guaranteed to be submittable.
    */
-  sender(sender: Account): this {
-    this.setProperty("senderAccount", sender);
+  setSender(sender: Account): this {
+    this.sender = sender;
     return this;
   }
 
@@ -363,37 +399,16 @@ export class TransactionContext extends ContextBase {
     return this.aptos;
   }
 
-  validateSettings(): void {
-    if (this.orderMode === "orderless" && this.accountSequenceNumberVal !== undefined) {
-      throw new Error("Cannot set accountSequenceNumber when using orderless transactions");
-    }
-    if (this.orderMode === "sequential" && this.replayProtectionNonceVal !== undefined) {
-      throw new Error("Must set orderless to true when using replayProtectionNonce");
-    }
-    if (this.txnExpirySecsFromNow !== undefined && this.expiryTimestampSecsVal !== undefined) {
-      throw new Error("Cannot set both txnExpirySecFromNow and expiryTimestamp");
-    }
-    if (this.feePayerAccount && this.withFeePayerBool === false) {
-      throw new Error("Fee payer account is set but the withFeePayer is false");
-    }
-  }
 
-  private setProperty<K extends keyof TransactionContext>(key: K, value: TransactionContext[K]): void {
-    (this as any)[key] = value;
-    this.validateSettings();
-  }
-
-  async submit(): Promise<UserTransactionResponse> {
-    if (!this.senderAccount) {
-      throw new Error("Sender account is not set");
-    }
+  async submitWithoutWaiting(): Promise<PendingTransactionResponse> {
+    const sender = this.sender;
     try {
-      const accountAddress = this.senderAccount.accountAddress;
+      const accountAddress = sender.accountAddress;
       const accountInfo = await this.aptos.getAccountInfo({ accountAddress });
       if (AccountAddress.from(accountInfo.authentication_key).toStringLong() !== accountAddress.toStringLong()) {
         const ledgerInfo = await this.aptos.getLedgerInfo();
         const accounts = await this.aptos.deriveOwnedAccountsFromSigner({
-          signer: this.senderAccount,
+          signer: sender,
           minimumLedgerVersion: Number(ledgerInfo.ledger_version),
           options: { includeUnverified: true },
         });
@@ -401,7 +416,7 @@ export class TransactionContext extends ContextBase {
           (account) => account.accountAddress.toStringLong() === accountAddress.toStringLong(),
         );
         if (matchingAccount) {
-          this.senderAccount = matchingAccount;
+          this.sender = matchingAccount;
         } else {
           throw new Error(`Invalid auth key for account ${accountAddress.toString()}. Please check your private key.`);
         }
@@ -409,17 +424,28 @@ export class TransactionContext extends ContextBase {
 
       const transaction = await this.generateTransaction();
 
-      const pendingTransaction = await this.getClient().signAndSubmitTransaction({
+      return this.getClient().signAndSubmitTransaction({
         transaction: transaction,
-        signer: this.senderAccount,
+        signer: sender,
         transactionSubmitter: this.transactionSubmitter,
         pluginParams: this.pluginParams,
-        ...(this.feePayerAccount ? { feePayer: this.feePayerAccount } : { feePayer: undefined }),
+        ...(this.feePayerAccount && this.withFeePayer ? { feePayer: this.feePayerAccount } : { feePayer: undefined }),
       });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Submit the transaction. Only available when sender is set.
+   */
+  async submit(): Promise<UserTransactionResponse> {
+    try {
+      const pendingTransaction = await this.submitWithoutWaiting();
 
       const committedTransaction = await this.getClient().transaction.waitForTransaction({
         transactionHash: pendingTransaction.hash,
-        options: { timeoutSecs: this.timeoutSecs },
+        options: { timeoutSecs: this.timeoutSecs, waitForIndexer: this.waitForIndexer, checkSuccess: this.checkSuccess },
       });
       return committedTransaction as UserTransactionResponse;
     } catch (error) {
@@ -427,39 +453,35 @@ export class TransactionContext extends ContextBase {
     }
   }
 
+  /**
+   * Generate transaction. Only available when sender is set.
+   */
   async generateTransaction(): Promise<SimpleTransaction> {
-    const expireTimestamp =
-      this.expiryTimestampSecsVal ??
-      Math.floor(Date.now() / 1000) + (this.txnExpirySecsFromNow ?? this.defaultTxnExpirySecsFromNow);
+    const expireTimestamp = Math.floor(Date.now() / 1000) + (this.txnExpirySecsFromNow ?? this.aptos.config.getDefaultTxnExpirySecFromNow());
 
     let options: InputGenerateTransactionOptions;
     if (this.orderMode === "sequential") {
       options = {
-        maxGasAmount: this.maxGasAmountVal,
-        gasUnitPrice: this.gasUnitPriceVal,
+        maxGasAmount: this.maxGasAmount,
+        gasUnitPrice: this.gasUnitPrice,
         expireTimestamp,
-        accountSequenceNumber: this.accountSequenceNumberVal,
       };
     } else {
       options = {
-        maxGasAmount: this.maxGasAmountVal,
-        gasUnitPrice: this.gasUnitPriceVal,
+        maxGasAmount: this.maxGasAmount,
+        gasUnitPrice: this.gasUnitPrice,
         expireTimestamp,
-        replayProtectionNonce: this.replayProtectionNonceVal,
+        replayProtectionNonce: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER),
       };
     }
 
-    if (!this.senderAccount) {
-      throw new Error("Sender account is not set");
-    }
-
     const transaction = await this.transactionGenerationFunction({
-      sender: this.senderAccount,
+      sender: this.sender!,
       options,
       aptos: this.getClient(),
     });
 
-    if (this.withFeePayerBool) {
+    if (this.withFeePayer) {
       transaction.feePayerAddress = AccountAddress.ZERO;
     }
 
@@ -467,21 +489,22 @@ export class TransactionContext extends ContextBase {
   }
 }
 
-class FaucetContext extends ContextBase {
-  amountVal: number;
+class FaucetContext extends ContextBase implements SubmittableContext {
+  fundAmount: number;
   accountAddress?: AccountAddressInput;
 
-  timeoutSecs: number;
-  checkSuccess: boolean;
-  waitForIndexer: boolean;
-
-  constructor(manager: TransactionManager) {
-    super(manager.getClient());
-    this.amountVal = manager.getDefaultFundAmount();
-    this.accountAddress = manager.getDefaultSender()?.accountAddress;
-    this.timeoutSecs = manager.getDefaultTxnTimeoutSecs();
-    this.checkSuccess = manager.getDefaultCheckSuccess();
-    this.waitForIndexer = manager.getDefaultWaitForIndexer();
+  constructor(args: {
+    fundAmount: number;
+    accountAddress?: AccountAddressInput;
+    aptos: Aptos;
+    timeoutSecs: number;
+    checkSuccess: boolean;
+    waitForIndexer: boolean;
+  }) {
+    const { fundAmount, accountAddress } = args;
+    super(args);
+    this.fundAmount = fundAmount;
+    this.accountAddress = accountAddress;
   }
 
   async submit(): Promise<UserTransactionResponse> {
@@ -496,15 +519,15 @@ class FaucetContext extends ContextBase {
       checkSuccess: this.checkSuccess,
       waitForIndexer: this.waitForIndexer,
     };
-    return this.aptos.fundAccount({ accountAddress: this.accountAddress, amount: this.amountVal, options });
+    return this.aptos.fundAccount({ accountAddress: this.accountAddress, amount: this.fundAmount, options });
   }
 
-  amount(amount: number): this {
-    this.amountVal = amount;
+  setAmount(amount: number): this {
+    this.fundAmount = amount;
     return this;
   }
 
-  account(account: AccountAddressInput | Account): this {
+  setAccountToFund(account: AccountAddressInput | Account): this {
     if (typeof account === "object" && "accountAddress" in account) {
       this.accountAddress = account.accountAddress;
     } else {
@@ -515,6 +538,17 @@ class FaucetContext extends ContextBase {
 }
 
 type OrderMode = "orderless" | "sequential";
+
+interface SubmittableContext extends ContextBase {
+  submit(): Promise<UserTransactionResponse>;
+}
+type HasSender<T> = T extends { sender: Account } ? true : false;
+
+type ConditionalTransactionContext<T> = HasSender<T> extends true
+  ? TransactionContext
+  : SenderlessTransactionContext;
+
+type TransactionManagerWithSender = TransactionManager & { sender: Account };
 
 /**
  * TransactionManager is a class that allows for submitting transactions to the Aptos blockchain.
@@ -536,6 +570,7 @@ type OrderMode = "orderless" | "sequential";
  */
 export class TransactionManager implements SimpleTransactionGenerator {
   sender?: Account;
+
   maxGasAmount?: number;
   gasUnitPrice?: number;
   txnExpirySecFromNow?: number;
@@ -588,6 +623,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
   setClient(aptos: Aptos): void {
     this.aptos = this.createAptosWithConfig({ ...aptos.config });
   }
+
   setDefaultNetwork(network: Network): void {
     this.aptos = this.createAptosWithConfig({ network });
   }
@@ -595,21 +631,21 @@ export class TransactionManager implements SimpleTransactionGenerator {
   // Sender
 
   /**
-   * Set the default sender for TransactionContext instances.
-   *
-   * @param sender - The account to use as the default sender.
-   */
-  defaultSender(sender: Account): this {
-    this.sender = sender;
-    return this;
-  }
-
-  /**
    * Generate a default sender for TransactionContext instances. This is useful for testing.
    */
-  generateDefaultSender(): this {
+  generateDefaultSender(): TransactionManagerWithSender {
     this.sender = Account.generate();
-    return this;
+    return this as TransactionManagerWithSender;
+  }
+
+
+  /**
+   * Set the default sender and return the same instance with mutated type
+   */
+
+  setSenderDefault(sender: Account): TransactionManagerWithSender {
+    this.sender = sender;
+    return this as TransactionManagerWithSender;
   }
 
   /**
@@ -620,9 +656,9 @@ export class TransactionManager implements SimpleTransactionGenerator {
    */
   fundAccount(account?: Account | AccountAddressInput): FaucetContext {
     if (!account) {
-      return new FaucetContext(this);
+      return new FaucetContext(this.getValues());
     }
-    return new FaucetContext(this).account(account);
+    return new FaucetContext(this.getValues()).setAccountToFund(account);
   }
 
   /**
@@ -630,7 +666,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
    * @param maxGasAmount The maximum amount of gas units that can be used for the transaction
    * @returns The transaction manager instance for chaining
    */
-  defaultMaxGasAmount(maxGasAmount: number): this {
+  setMaxGasAmountDefault(maxGasAmount: number): this {
     this.maxGasAmount = maxGasAmount;
     return this;
   }
@@ -640,7 +676,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
    * @param gasUnitPrice The price in Octas for each unit of gas
    * @returns The transaction manager instance for chaining
    */
-  defaultGasUnitPrice(gasUnitPrice: number): this {
+  setGasUnitPriceDefault(gasUnitPrice: number): this {
     this.gasUnitPrice = gasUnitPrice;
     return this;
   }
@@ -650,7 +686,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
    * @param expireTimestamp The number of seconds from now when transactions will expire
    * @returns The transaction manager instance for chaining
    */
-  defaultTxnExpirySecFromNow(txnExpirySecFromNow: number): this {
+  setTxnExpirySecFromNowDefault(txnExpirySecFromNow: number): this {
     this.txnExpirySecFromNow = txnExpirySecFromNow;
     return this;
   }
@@ -665,7 +701,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
    * @param withFeePayer Whether to use a fee payer
    * @returns The transaction manager instance for chaining
    */
-  defaultWithFeePayer(withFeePayer: boolean): this {
+  setWithFeePayerDefault(withFeePayer: boolean): this {
     this.withFeePayer = withFeePayer;
     return this;
   }
@@ -676,7 +712,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
    * @param orderMode The order mode to use
    * @returns The transaction manager instance for chaining
    */
-  defaultOrderMode(orderMode: OrderMode): this {
+  setOrderModeDefault(orderMode: OrderMode): this {
     this.orderMode = orderMode;
     return this;
   }
@@ -688,7 +724,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
    * @param pluginParams Optional plugin-specific parameters
    * @returns The transaction manager instance for chaining
    */
-  defaultTransactionSubmitter(
+  setTransactionSubmitterDefault(
     transactionSubmitter: TransactionSubmitter | null,
     pluginParams?: Record<string, any>,
   ): this {
@@ -702,7 +738,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
    * @param pluginParams The plugin parameters to use
    * @returns The transaction manager instance for chaining
    */
-  defaultPluginParams(pluginParams: Record<string, any>): this {
+  setPluginParamsDefault(pluginParams: Record<string, any>): this {
     this.pluginParams = pluginParams;
     return this;
   }
@@ -715,7 +751,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
    * @param txnTimeoutSec The number of seconds to wait for transaction completion
    * @returns The transaction manager instance for chaining
    */
-  defaultTxnTimeoutSecs(txnTimeoutSec: number): this {
+  setTxnTimeoutSecsDefault(txnTimeoutSec: number): this {
     this.txnTimeoutSecs = txnTimeoutSec;
     return this;
   }
@@ -726,7 +762,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
    * @param waitForIndexer Whether to wait for the indexer
    * @returns The transaction manager instance for chaining
    */
-  defaultWaitForIndexer(waitForIndexer: boolean): this {
+  setWaitForIndexerDefault(waitForIndexer: boolean): this {
     this.waitForIndexer = waitForIndexer;
     return this;
   }
@@ -737,7 +773,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
    * @param checkSuccess Whether to check if transactions succeeded
    * @returns The transaction manager instance for chaining
    */
-  defaultCheckSuccess(checkSuccess: boolean): this {
+  setCheckSuccessDefault(checkSuccess: boolean): this {
     this.checkSuccess = checkSuccess;
     return this;
   }
@@ -748,7 +784,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
    * @param gasStation The gas station to use as transaction submitter
    * @returns The transaction manager instance for chaining
    */
-  defaultGasStation(gasStation: TransactionSubmitter): this {
+  setGasStationDefault(gasStation: TransactionSubmitter): this {
     this.transactionSubmitter = gasStation;
     this.withFeePayer = true;
     return this;
@@ -760,7 +796,7 @@ export class TransactionManager implements SimpleTransactionGenerator {
    * @param amount The amount in Octas to fund accounts with
    * @returns The transaction manager instance for chaining
    */
-  defaultFundAmount(amount: number): this {
+  setFundAmountDefault(amount: number): this {
     this.fundAmount = amount;
     return this;
   }
@@ -790,8 +826,8 @@ export class TransactionManager implements SimpleTransactionGenerator {
   getDefaulTxnExpirySecFromNow(): number {
     return this.txnExpirySecFromNow ?? this.aptos.config.getDefaultTxnExpirySecFromNow();
   }
-  getDefaultOrderMode(): OrderMode | undefined {
-    return this.orderMode;
+  getDefaultOrderMode(): OrderMode {
+    return this.orderMode ?? "sequential";
   }
   getDefaultWithFeePayer(): boolean {
     return this.withFeePayer ?? false;
@@ -820,68 +856,139 @@ export class TransactionManager implements SimpleTransactionGenerator {
     return this.fundAmount ?? 100_000_000;
   }
 
+  getValues(): {
+    aptos: Aptos;
+    maxGasAmount: number;
+    gasUnitPrice?: number;
+    txnExpirySecsFromNow: number;
+    withFeePayer: boolean;
+    orderMode?: OrderMode;
+    transactionSubmitter?: TransactionSubmitter | null;
+    pluginParams?: Record<string, any> | undefined;
+    timeoutSecs: number;
+    fundAmount: number;
+    waitForIndexer: boolean;
+    checkSuccess: boolean;
+  } {
+    return {
+      aptos: this.aptos,
+      maxGasAmount: this.maxGasAmount ?? this.aptos.config.getDefaultMaxGasAmount(),
+      gasUnitPrice: this.getDefaultGasUnitPrice(),
+      txnExpirySecsFromNow: this.txnExpirySecFromNow ?? this.aptos.config.getDefaultTxnExpirySecFromNow(),
+      withFeePayer: this.getDefaultWithFeePayer(),
+      orderMode: this.getDefaultOrderMode(),
+      transactionSubmitter: this.getDefaultTransactionSubmitter(),
+      pluginParams: this.getDefaultPluginParams(),
+      timeoutSecs: this.getDefaultTxnTimeoutSecs(),
+      checkSuccess: this.getDefaultCheckSuccess(),
+      fundAmount: this.getDefaultFundAmount(),
+      waitForIndexer: this.getDefaultWaitForIndexer(),
+    };
+  }
+
   private createTransactionContext<T>(
     args: T,
     transactionBuilder: (txnArgs: TransactionGenerationArgs, args: T) => Promise<SimpleTransaction>,
-  ): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) =>
-      transactionBuilder(txnContextArgs, args),
-    );
+  ): ConditionalTransactionContext<this> {
+    const values = this.getValues();
+    const context = new SenderlessTransactionContext({
+      ...values,
+      transactionGenerationFunction: async (txnContextArgs: TransactionGenerationArgs) =>
+        transactionBuilder(txnContextArgs, args),
+      waitForIndexer: values.waitForIndexer,
+      checkSuccess: values.checkSuccess
+    });
+    if (this.sender) {
+      return context.setSender(this.sender) as ConditionalTransactionContext<this>;
+    }
+    return context as ConditionalTransactionContext<this>;
   }
 
   /**
-   * Create a `TransactionContext` instance from a `SimpleTransaction` object.
+   * Creates a `TransactionContext` instance from a `SimpleTransaction` object.
    *
-   * It will use transaction parameters from the `TransactionContext` instance.
+   * Uses transaction parameters from the current manager instance.
    *
-   * @param transaction - The `SimpleTransaction` object to create a `TransactionContext` from.
-   * @returns A `TransactionContext` instance.
+   * @param transaction - The `SimpleTransaction` object to create a context from
+   * @returns A `TransactionContext` instance
    */
-  fromTransaction(transaction: SimpleTransaction): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) => {
+  fromTransaction(transaction: SimpleTransaction): ConditionalTransactionContext<this> {
+    return this.fromPayload(transaction.rawTransaction.payload);
+  }
+
+  /**
+   * Creates a `TransactionContext` instance from a transaction payload.
+   * 
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param payload - The transaction payload to create a context from
+   * @returns A `TransactionContext` instance
+   */
+  fromPayload(payload: TransactionPayload): ConditionalTransactionContext<this> {
+    return this.createTransactionContext(payload, async (txnContextArgs: TransactionGenerationArgs, payload: TransactionPayload) => {
       const { aptos, sender, options } = txnContextArgs;
-      const { maxGasAmount, gasUnitPrice, expireTimestamp, accountSequenceNumber, replayProtectionNonce } = options;
-      let chainId: ChainId;
-      if (NetworkToChainId[aptos.config.network]) {
-        chainId = new ChainId(NetworkToChainId[aptos.config.network]);
-      } else {
-        const info = await aptos.getLedgerInfo();
-        chainId = new ChainId(info.chain_id);
-      }
-      const newRawTransaction = new RawTransaction(
-        sender.accountAddress,
-        accountSequenceNumber ? BigInt(accountSequenceNumber) : transaction.rawTransaction.sequence_number,
-        transaction.rawTransaction.payload,
-        maxGasAmount ? BigInt(maxGasAmount) : transaction.rawTransaction.max_gas_amount,
-        gasUnitPrice ? BigInt(gasUnitPrice) : transaction.rawTransaction.gas_unit_price,
-        expireTimestamp ? BigInt(expireTimestamp) : transaction.rawTransaction.expiration_timestamp_secs,
-        chainId,
-      );
-      return new SimpleTransaction(newRawTransaction, transaction.feePayerAddress);
+      const rawTransaction = await generateRawTransaction({
+        aptosConfig: aptos.config,
+        sender: sender.accountAddress,
+        payload,
+        options,
+      });
+      return new SimpleTransaction(rawTransaction, undefined);
     });
   }
 
   /**
-   * Create a `TransactionContext` instance from a `InputGenerateTransactionPayloadData` object to build
-   * a simple transaction.
+   * Creates a `TransactionContext` instance from transaction payload data.
    *
-   * @param args - The `InputGenerateTransactionPayloadData` object to create a `TransactionContext` from.
-   * @returns A `TransactionContext` instance.
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - Object containing the transaction payload data
+   * @param args.data - The transaction payload data to build from
+   * @returns A `TransactionContext` instance
    */
-  build(args: { data: InputGenerateTransactionPayloadData }): TransactionContext {
+  build(args: { data: InputGenerateTransactionPayloadData }): ConditionalTransactionContext<this> {
     return this.createTransactionContext(args, (txnArgs, args) =>
       txnArgs.aptos.transaction.build.simple({ ...args, sender: txnArgs.sender.accountAddress }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to publish a package to the Aptos blockchain.
+   * Creates a `TransactionContext` instance for transferring coins.
    *
-   * @param args.metadataBytes - The metadata bytes of the package to publish
-   * @param args.moduleBytecode - The bytecode of the modules to publish
+   * Uses transaction parameters from the current manager instance.
+   * Returns an unsubmittable context if no sender is set.
+   *
+   * @param args - The transfer parameters
+   * @param args.recipient - The recipient's address
+   * @param args.amount - The amount to transfer
+   * @param args.coinType - Optional coin type to transfer (defaults to native APT)
    * @returns A `TransactionContext` instance
    */
-  publishPackageTransaction(args: { metadataBytes: HexInput; moduleBytecode: Array<HexInput> }): TransactionContext {
+  transferCoinTransaction(args: {
+    recipient: AccountAddressInput;
+    amount: AnyNumber;
+    coinType?: MoveStructId;
+  }): ConditionalTransactionContext<this> {
+    return this.createTransactionContext(args, (txnArgs, args) =>
+      txnArgs.aptos.transferCoinTransaction({
+        ...args,
+        sender: txnArgs.sender.accountAddress,
+        options: txnArgs.options,
+      }),
+    );
+  }
+
+  /**
+   * Creates a `TransactionContext` instance for publishing a Move package.
+   *
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The package publishing parameters
+   * @param args.metadataBytes - The package metadata as hex bytes
+   * @param args.moduleBytecode - Array of module bytecodes as hex
+   * @returns A `TransactionContext` instance
+   */
+  publishPackageTransaction(args: { metadataBytes: HexInput; moduleBytecode: Array<HexInput> }): ConditionalTransactionContext<this> {
     return this.createTransactionContext(args, (txnArgs, args) =>
       txnArgs.aptos.publishPackageTransaction({
         ...args,
@@ -892,134 +999,136 @@ export class TransactionManager implements SimpleTransactionGenerator {
   }
 
   /**
-   * Create a `TransactionContext` instance to rotate an account's authentication key.
+   * Creates a `TransactionContext` instance for rotating an account's auth key.
    *
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The key rotation parameters
    * @param args.toAccount - The new Ed25519 or MultiEd25519 account to rotate to
-   * @param args.toNewPrivateKey - The new Ed25519 private key to rotate to
+   * @param args.toNewPrivateKey - Alternative: the new Ed25519 private key to rotate to
    * @returns A `TransactionContext` instance
    */
   rotateAuthKey(
     args: { toAccount: Ed25519Account | MultiEd25519Account } | { toNewPrivateKey: Ed25519PrivateKey },
-  ): TransactionContext {
+  ): ConditionalTransactionContext<this> {
     return this.createTransactionContext(args, (txnArgs, args) =>
       txnArgs.aptos.rotateAuthKey({ ...args, fromAccount: txnArgs.sender, options: txnArgs.options }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to rotate an account's authentication key without verification.
+   * Creates a `TransactionContext` instance for rotating an account's auth key without verification.
    *
+   * Uses transaction parameters from the current manager instance.
+   * WARNING: This is unsafe as it skips signature verification.
+   *
+   * @param args - The key rotation parameters
    * @param args.toNewPublicKey - The new public key to rotate to
    * @returns A `TransactionContext` instance
    */
-  rotateAuthKeyUnverified(args: { toNewPublicKey: AccountPublicKey }): TransactionContext {
+  rotateAuthKeyUnverified(args: { toNewPublicKey: AccountPublicKey }): ConditionalTransactionContext<this> {
     return this.createTransactionContext(args, (txnArgs, args) =>
       txnArgs.aptos.rotateAuthKeyUnverified({ ...args, fromAccount: txnArgs.sender, options: txnArgs.options }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to set a target address for a name.
+   * Creates a `TransactionContext` instance for setting a target address for a name.
    *
-   * @param args.name - The name to set the target address for
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The name target parameters
+   * @param args.name - The name to set the target for
    * @param args.address - The target address to set
    * @returns A `TransactionContext` instance
    */
-  setTargetAddress(args: { name: string; address: AccountAddressInput }): TransactionContext {
+  setTargetAddress(args: { name: string; address: AccountAddressInput }): ConditionalTransactionContext<this> {
     return this.createTransactionContext(args, (txnArgs, args) =>
       txnArgs.aptos.setTargetAddress({ ...args, sender: txnArgs.sender, options: txnArgs.options }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to set a primary name for an account.
+   * Creates a `TransactionContext` instance for setting a primary name.
    *
-   * @param args.name - The name to set as primary
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The primary name parameters
+   * @param args.name - Optional name to set as primary (clears if omitted)
    * @returns A `TransactionContext` instance
    */
-  setPrimaryName(args: { name?: string }): TransactionContext {
+  setPrimaryName(args: { name?: string }): ConditionalTransactionContext<this> {
     return this.createTransactionContext(args, (txnArgs, args) =>
       txnArgs.aptos.setPrimaryName({ ...args, sender: txnArgs.sender, options: txnArgs.options }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to register a name.
+   * Creates a `TransactionContext` instance for registering a name.
    *
-   * @param args - The parameters for registering a name, excluding aptosConfig and sender
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The name registration parameters (excluding aptosConfig and sender)
    * @returns A `TransactionContext` instance
    */
-  registerName(args: Omit<RegisterNameParameters, "aptosConfig" | "sender">): TransactionContext {
+  registerName(args: Omit<RegisterNameParameters, "aptosConfig" | "sender">): ConditionalTransactionContext<this> {
     return this.createTransactionContext(args, (txnArgs, args) =>
       txnArgs.aptos.registerName({ ...args, sender: txnArgs.sender, options: txnArgs.options }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to renew a domain name.
+   * Creates a `TransactionContext` instance for renewing a domain name.
    *
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The domain renewal parameters
    * @param args.name - The domain name to renew
-   * @param args.years - The number of years to renew for (default: 1)
+   * @param args.years - Optional number of years to renew for (default: 1)
    * @returns A `TransactionContext` instance
    */
-  renewDomain(args: { name: string; years?: 1 }): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) =>
-      txnContextArgs.aptos.renewDomain({ ...args, sender: txnContextArgs.sender, options: txnContextArgs.options }),
+  renewDomain(args: { name: string; years?: 1 }): ConditionalTransactionContext<this> {
+    return this.createTransactionContext(args, (txnArgs, args) =>
+      txnArgs.aptos.renewDomain({ ...args, sender: txnArgs.sender, options: txnArgs.options }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to transfer coins.
+   * Creates a `TransactionContext` instance for creating a collection.
    *
-   * @param args.recipient - The recipient's account address
-   * @param args.amount - The amount of coins to transfer
-   * @param args.coinType - The type of coin to transfer (optional)
-   * @returns A `TransactionContext` instance
-   */
-  transferCoinTransaction(args: {
-    recipient: AccountAddressInput;
-    amount: AnyNumber;
-    coinType?: MoveStructId;
-  }): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) =>
-      txnContextArgs.aptos.transferCoinTransaction({
-        ...args,
-        sender: txnContextArgs.sender.accountAddress,
-        options: txnContextArgs.options,
-      }),
-    );
-  }
-
-  /**
-   * Create a `TransactionContext` instance to create a collection.
+   * Uses transaction parameters from the current manager instance.
    *
-   * @param args.description - The description of the collection
-   * @param args.name - The name of the collection
-   * @param args.uri - The URI of the collection
+   * @param args - The collection creation parameters
+   * @param args.description - The collection description
+   * @param args.name - The collection name
+   * @param args.uri - The collection URI
    * @returns A `TransactionContext` instance
    */
   createCollectionTransaction(
     args: { description: string; name: string; uri: string } & CreateCollectionOptions,
-  ): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) =>
-      txnContextArgs.aptos.createCollectionTransaction({
+  ): ConditionalTransactionContext<this> {
+    return this.createTransactionContext(args, (txnArgs, args) =>
+      txnArgs.aptos.createCollectionTransaction({
         ...args,
-        creator: txnContextArgs.sender,
-        options: txnContextArgs.options,
+        creator: txnArgs.sender,
+        options: txnArgs.options,
       }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to mint a digital asset.
+   * Creates a `TransactionContext` instance for minting a digital asset.
    *
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The digital asset minting parameters
    * @param args.collection - The collection name
-   * @param args.description - The description of the digital asset
-   * @param args.name - The name of the digital asset
-   * @param args.uri - The URI of the digital asset
-   * @param args.propertyKeys - The property keys of the digital asset (optional)
-   * @param args.propertyTypes - The property types of the digital asset (optional)
-   * @param args.propertyValues - The property values of the digital asset (optional)
+   * @param args.description - The asset description
+   * @param args.name - The asset name
+   * @param args.uri - The asset URI
+   * @param args.propertyKeys - Optional property keys
+   * @param args.propertyTypes - Optional property types
+   * @param args.propertyValues - Optional property values
    * @returns A `TransactionContext` instance
    */
   mintDigitalAssetTransaction(args: {
@@ -1030,49 +1139,55 @@ export class TransactionManager implements SimpleTransactionGenerator {
     propertyKeys?: Array<string>;
     propertyTypes?: Array<PropertyType>;
     propertyValues?: Array<PropertyValue>;
-  }): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) =>
-      txnContextArgs.aptos.mintDigitalAssetTransaction({
+  }): ConditionalTransactionContext<this> {
+    return this.createTransactionContext(args, (txnArgs, args) =>
+      txnArgs.aptos.mintDigitalAssetTransaction({
         ...args,
-        creator: txnContextArgs.sender,
-        options: txnContextArgs.options,
+        creator: txnArgs.sender,
+        options: txnArgs.options,
       }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to transfer a digital asset.
+   * Creates a `TransactionContext` instance for transferring a digital asset.
    *
-   * @param args.digitalAssetAddress - The address of the digital asset
-   * @param args.recipient - The recipient's account address
-   * @param args.digitalAssetType - The type of digital asset (optional)
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The digital asset transfer parameters
+   * @param args.digitalAssetAddress - The asset address
+   * @param args.recipient - The recipient's address
+   * @param args.digitalAssetType - Optional asset type
    * @returns A `TransactionContext` instance
    */
   transferDigitalAssetTransaction(args: {
     digitalAssetAddress: AccountAddressInput;
     recipient: AccountAddress;
     digitalAssetType?: MoveStructId;
-  }): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) =>
-      txnContextArgs.aptos.transferDigitalAssetTransaction({
+  }): ConditionalTransactionContext<this> {
+    return this.createTransactionContext(args, (txnArgs, args) =>
+      txnArgs.aptos.transferDigitalAssetTransaction({
         ...args,
-        sender: txnContextArgs.sender,
-        options: txnContextArgs.options,
+        sender: txnArgs.sender,
+        options: txnArgs.options,
       }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to mint a soul bound token.
+   * Creates a `TransactionContext` instance for minting a soul bound token.
    *
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The soul bound token minting parameters
    * @param args.collection - The collection name
-   * @param args.description - The description of the token
-   * @param args.name - The name of the token
-   * @param args.uri - The URI of the token
-   * @param args.recipient - The recipient's account address
-   * @param args.propertyKeys - The property keys of the token (optional)
-   * @param args.propertyTypes - The property types of the token (optional)
-   * @param args.propertyValues - The property values of the token (optional)
+   * @param args.description - The token description
+   * @param args.name - The token name
+   * @param args.uri - The token URI
+   * @param args.recipient - The recipient's address
+   * @param args.propertyKeys - Optional property keys
+   * @param args.propertyTypes - Optional property types
+   * @param args.propertyValues - Optional property values
    * @returns A `TransactionContext` instance
    */
   mintSoulBoundTransaction(args: {
@@ -1084,150 +1199,171 @@ export class TransactionManager implements SimpleTransactionGenerator {
     propertyKeys?: Array<string>;
     propertyTypes?: Array<PropertyType>;
     propertyValues?: Array<PropertyValue>;
-  }): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) =>
-      txnContextArgs.aptos.mintSoulBoundTransaction({
+  }): ConditionalTransactionContext<this> {
+    return this.createTransactionContext(args, (txnArgs, args) =>
+      txnArgs.aptos.mintSoulBoundTransaction({
         ...args,
-        account: txnContextArgs.sender,
-        options: txnContextArgs.options,
+        account: txnArgs.sender,
+        options: txnArgs.options,
       }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to burn a digital asset.
+   * Creates a `TransactionContext` instance for burning a digital asset.
    *
-   * @param args.digitalAssetAddress - The address of the digital asset
-   * @param args.digitalAssetType - The type of digital asset (optional)
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The digital asset burn parameters
+   * @param args.digitalAssetAddress - The asset address
+   * @param args.digitalAssetType - Optional asset type
    * @returns A `TransactionContext` instance
    */
   burnDigitalAssetTransaction(args: {
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
-  }): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) =>
-      txnContextArgs.aptos.burnDigitalAssetTransaction({
+  }): ConditionalTransactionContext<this> {
+    return this.createTransactionContext(args, (txnArgs, args) =>
+      txnArgs.aptos.burnDigitalAssetTransaction({
         ...args,
-        creator: txnContextArgs.sender,
-        options: txnContextArgs.options,
+        creator: txnArgs.sender,
+        options: txnArgs.options,
       }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to freeze a digital asset's transfer capability.
+   * Creates a `TransactionContext` instance for freezing a digital asset's transfer capability.
    *
-   * @param args.digitalAssetAddress - The address of the digital asset
-   * @param args.digitalAssetType - The type of digital asset (optional)
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The digital asset freeze parameters
+   * @param args.digitalAssetAddress - The asset address
+   * @param args.digitalAssetType - Optional asset type
    * @returns A `TransactionContext` instance
    */
   freezeDigitalAssetTransaferTransaction(args: {
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
-  }): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) =>
-      txnContextArgs.aptos.freezeDigitalAssetTransaferTransaction({
+  }): ConditionalTransactionContext<this> {
+    return this.createTransactionContext(args, (txnArgs, args) =>
+      txnArgs.aptos.freezeDigitalAssetTransaferTransaction({
         ...args,
-        creator: txnContextArgs.sender,
-        options: txnContextArgs.options,
+        creator: txnArgs.sender,
+        options: txnArgs.options,
       }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to unfreeze a digital asset's transfer capability.
+   * Creates a `TransactionContext` instance for unfreezing a digital asset's transfer capability.
    *
-   * @param args.digitalAssetAddress - The address of the digital asset
-   * @param args.digitalAssetType - The type of digital asset (optional)
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The digital asset unfreeze parameters
+   * @param args.digitalAssetAddress - The asset address
+   * @param args.digitalAssetType - Optional asset type
    * @returns A `TransactionContext` instance
    */
   unfreezeDigitalAssetTransaferTransaction(args: {
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
-  }): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) =>
-      txnContextArgs.aptos.unfreezeDigitalAssetTransaferTransaction({
+  }): ConditionalTransactionContext<this> {
+    return this.createTransactionContext(args, (txnArgs, args) =>
+      txnArgs.aptos.unfreezeDigitalAssetTransaferTransaction({
         ...args,
-        creator: txnContextArgs.sender,
-        options: txnContextArgs.options,
+        creator: txnArgs.sender,
+        options: txnArgs.options,
       }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to set a digital asset's description.
+   * Creates a `TransactionContext` instance for setting a digital asset's description.
    *
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The description update parameters
    * @param args.description - The new description
-   * @param args.digitalAssetAddress - The address of the digital asset
-   * @param args.digitalAssetType - The type of digital asset (optional)
+   * @param args.digitalAssetAddress - The asset address
+   * @param args.digitalAssetType - Optional asset type
    * @returns A `TransactionContext` instance
    */
   setDigitalAssetDescriptionTransaction(args: {
     description: string;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
-  }): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) =>
-      txnContextArgs.aptos.setDigitalAssetDescriptionTransaction({
+  }): ConditionalTransactionContext<this> {
+    return this.createTransactionContext(args, (txnArgs, args) =>
+      txnArgs.aptos.setDigitalAssetDescriptionTransaction({
         ...args,
-        creator: txnContextArgs.sender,
-        options: txnContextArgs.options,
+        creator: txnArgs.sender,
+        options: txnArgs.options,
       }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to set a digital asset's name.
+   * Creates a `TransactionContext` instance for setting a digital asset's name.
    *
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The name update parameters
    * @param args.name - The new name
-   * @param args.digitalAssetAddress - The address of the digital asset
-   * @param args.digitalAssetType - The type of digital asset (optional)
+   * @param args.digitalAssetAddress - The asset address
+   * @param args.digitalAssetType - Optional asset type
    * @returns A `TransactionContext` instance
    */
   setDigitalAssetNameTransaction(args: {
     name: string;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
-  }): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) =>
-      txnContextArgs.aptos.setDigitalAssetNameTransaction({
+  }): ConditionalTransactionContext<this> {
+    return this.createTransactionContext(args, (txnArgs, args) =>
+      txnArgs.aptos.setDigitalAssetNameTransaction({
         ...args,
-        creator: txnContextArgs.sender,
-        options: txnContextArgs.options,
+        creator: txnArgs.sender,
+        options: txnArgs.options,
       }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to set a digital asset's URI.
+   * Creates a `TransactionContext` instance for setting a digital asset's URI.
    *
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The URI update parameters
    * @param args.uri - The new URI
-   * @param args.digitalAssetAddress - The address of the digital asset
-   * @param args.digitalAssetType - The type of digital asset (optional)
+   * @param args.digitalAssetAddress - The asset address
+   * @param args.digitalAssetType - Optional asset type
    * @returns A `TransactionContext` instance
    */
   setDigitalAssetURITransaction(args: {
     uri: string;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
-  }): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) =>
-      txnContextArgs.aptos.setDigitalAssetURITransaction({
+  }): ConditionalTransactionContext<this> {
+    return this.createTransactionContext(args, (txnArgs, args) =>
+      txnArgs.aptos.setDigitalAssetURITransaction({
         ...args,
-        creator: txnContextArgs.sender,
-        options: txnContextArgs.options,
+        creator: txnArgs.sender,
+        options: txnArgs.options,
       }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to add a property to a digital asset.
+   * Creates a `TransactionContext` instance for adding a property to a digital asset.
    *
-   * @param args.propertyKey - The key of the property
-   * @param args.propertyType - The type of the property
-   * @param args.propertyValue - The value of the property
-   * @param args.digitalAssetAddress - The address of the digital asset
-   * @param args.digitalAssetType - The type of digital asset (optional)
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The property addition parameters
+   * @param args.propertyKey - The property key
+   * @param args.propertyType - The property type
+   * @param args.propertyValue - The property value
+   * @param args.digitalAssetAddress - The asset address
+   * @param args.digitalAssetType - Optional asset type
    * @returns A `TransactionContext` instance
    */
   addDigitalAssetPropertyTransaction(args: {
@@ -1236,24 +1372,27 @@ export class TransactionManager implements SimpleTransactionGenerator {
     propertyValue: PropertyValue;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
-  }): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) =>
-      txnContextArgs.aptos.addDigitalAssetPropertyTransaction({
+  }): ConditionalTransactionContext<this> {
+    return this.createTransactionContext(args, (txnArgs, args) =>
+      txnArgs.aptos.addDigitalAssetPropertyTransaction({
         ...args,
-        creator: txnContextArgs.sender,
-        options: txnContextArgs.options,
+        creator: txnArgs.sender,
+        options: txnArgs.options,
       }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to remove a property from a digital asset.
+   * Creates a `TransactionContext` instance for removing a property from a digital asset.
    *
-   * @param args.propertyKey - The key of the property
-   * @param args.propertyType - The type of the property
-   * @param args.propertyValue - The value of the property
-   * @param args.digitalAssetAddress - The address of the digital asset
-   * @param args.digitalAssetType - The type of digital asset (optional)
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The property removal parameters
+   * @param args.propertyKey - The property key
+   * @param args.propertyType - The property type
+   * @param args.propertyValue - The property value
+   * @param args.digitalAssetAddress - The asset address
+   * @param args.digitalAssetType - Optional asset type
    * @returns A `TransactionContext` instance
    */
   removeDigitalAssetPropertyTransaction(args: {
@@ -1262,24 +1401,27 @@ export class TransactionManager implements SimpleTransactionGenerator {
     propertyValue: PropertyValue;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
-  }): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) =>
-      txnContextArgs.aptos.removeDigitalAssetPropertyTransaction({
+  }): ConditionalTransactionContext<this> {
+    return this.createTransactionContext(args, (txnArgs, args) =>
+      txnArgs.aptos.removeDigitalAssetPropertyTransaction({
         ...args,
-        creator: txnContextArgs.sender,
-        options: txnContextArgs.options,
+        creator: txnArgs.sender,
+        options: txnArgs.options,
       }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to update a property of a digital asset.
+   * Creates a `TransactionContext` instance for updating a property of a digital asset.
    *
-   * @param args.propertyKey - The key of the property
-   * @param args.propertyType - The type of the property
-   * @param args.propertyValue - The value of the property
-   * @param args.digitalAssetAddress - The address of the digital asset
-   * @param args.digitalAssetType - The type of digital asset (optional)
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The property update parameters
+   * @param args.propertyKey - The property key
+   * @param args.propertyType - The property type
+   * @param args.propertyValue - The property value
+   * @param args.digitalAssetAddress - The asset address
+   * @param args.digitalAssetType - Optional asset type
    * @returns A `TransactionContext` instance
    */
   updateDigitalAssetPropertyTransaction(args: {
@@ -1288,24 +1430,27 @@ export class TransactionManager implements SimpleTransactionGenerator {
     propertyValue: PropertyValue;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
-  }): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) =>
-      txnContextArgs.aptos.updateDigitalAssetPropertyTransaction({
+  }): ConditionalTransactionContext<this> {
+    return this.createTransactionContext(args, (txnArgs, args) =>
+      txnArgs.aptos.updateDigitalAssetPropertyTransaction({
         ...args,
-        creator: txnContextArgs.sender,
-        options: txnContextArgs.options,
+        creator: txnArgs.sender,
+        options: txnArgs.options,
       }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to add a typed property to a digital asset.
+   * Creates a `TransactionContext` instance for adding a typed property to a digital asset.
    *
-   * @param args.propertyKey - The key of the property
-   * @param args.propertyType - The type of the property
-   * @param args.propertyValue - The value of the property
-   * @param args.digitalAssetAddress - The address of the digital asset
-   * @param args.digitalAssetType - The type of digital asset (optional)
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The typed property addition parameters
+   * @param args.propertyKey - The property key
+   * @param args.propertyType - The property type
+   * @param args.propertyValue - The property value
+   * @param args.digitalAssetAddress - The asset address
+   * @param args.digitalAssetType - Optional asset type
    * @returns A `TransactionContext` instance
    */
   addDigitalAssetTypedPropertyTransaction(args: {
@@ -1314,24 +1459,27 @@ export class TransactionManager implements SimpleTransactionGenerator {
     propertyValue: PropertyValue;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
-  }): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) =>
-      txnContextArgs.aptos.addDigitalAssetTypedPropertyTransaction({
+  }): ConditionalTransactionContext<this> {
+    return this.createTransactionContext(args, (txnArgs, args) =>
+      txnArgs.aptos.addDigitalAssetTypedPropertyTransaction({
         ...args,
-        creator: txnContextArgs.sender,
-        options: txnContextArgs.options,
+        creator: txnArgs.sender,
+        options: txnArgs.options,
       }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to update a typed property of a digital asset.
+   * Creates a `TransactionContext` instance for updating a typed property of a digital asset.
    *
-   * @param args.propertyKey - The key of the property
-   * @param args.propertyType - The type of the property
-   * @param args.propertyValue - The value of the property
-   * @param args.digitalAssetAddress - The address of the digital asset
-   * @param args.digitalAssetType - The type of digital asset (optional)
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The typed property update parameters
+   * @param args.propertyKey - The property key
+   * @param args.propertyType - The property type
+   * @param args.propertyValue - The property value
+   * @param args.digitalAssetAddress - The asset address
+   * @param args.digitalAssetType - Optional asset type
    * @returns A `TransactionContext` instance
    */
   updateDigitalAssetTypedPropertyTransaction(args: {
@@ -1340,21 +1488,24 @@ export class TransactionManager implements SimpleTransactionGenerator {
     propertyValue: PropertyValue;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
-  }): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) =>
-      txnContextArgs.aptos.updateDigitalAssetTypedPropertyTransaction({
+  }): ConditionalTransactionContext<this> {
+    return this.createTransactionContext(args, (txnArgs, args) =>
+      txnArgs.aptos.updateDigitalAssetTypedPropertyTransaction({
         ...args,
-        creator: txnContextArgs.sender,
-        options: txnContextArgs.options,
+        creator: txnArgs.sender,
+        options: txnArgs.options,
       }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to transfer a fungible asset.
+   * Creates a `TransactionContext` instance for transferring a fungible asset.
    *
-   * @param args.fungibleAssetMetadataAddress - The metadata address of the fungible asset
-   * @param args.recipient - The recipient's account address
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The fungible asset transfer parameters
+   * @param args.fungibleAssetMetadataAddress - The asset metadata address
+   * @param args.recipient - The recipient's address
    * @param args.amount - The amount to transfer
    * @returns A `TransactionContext` instance
    */
@@ -1362,19 +1513,22 @@ export class TransactionManager implements SimpleTransactionGenerator {
     fungibleAssetMetadataAddress: AccountAddressInput;
     recipient: AccountAddressInput;
     amount: AnyNumber;
-  }): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) =>
-      txnContextArgs.aptos.transferFungibleAsset({
+  }): ConditionalTransactionContext<this> {
+    return this.createTransactionContext(args, (txnArgs, args) =>
+      txnArgs.aptos.transferFungibleAsset({
         ...args,
-        sender: txnContextArgs.sender,
-        options: txnContextArgs.options,
+        sender: txnArgs.sender,
+        options: txnArgs.options,
       }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to transfer a fungible asset between stores.
+   * Creates a `TransactionContext` instance for transferring a fungible asset between stores.
    *
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The store transfer parameters
    * @param args.fromStore - The source store address
    * @param args.toStore - The destination store address
    * @param args.amount - The amount to transfer
@@ -1384,30 +1538,48 @@ export class TransactionManager implements SimpleTransactionGenerator {
     fromStore: AccountAddressInput;
     toStore: AccountAddressInput;
     amount: AnyNumber;
-  }): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) =>
-      txnContextArgs.aptos.transferFungibleAssetBetweenStores({
+  }): ConditionalTransactionContext<this> {
+    return this.createTransactionContext(args, (txnArgs, args) =>
+      txnArgs.aptos.transferFungibleAssetBetweenStores({
         ...args,
-        sender: txnContextArgs.sender,
-        options: txnContextArgs.options,
+        sender: txnArgs.sender,
+        options: txnArgs.options,
       }),
     );
   }
 
   /**
-   * Create a `TransactionContext` instance to update a federated keyless JWK set.
+   * Creates a `TransactionContext` instance for updating a federated keyless JWK set.
    *
+   * Uses transaction parameters from the current manager instance.
+   *
+   * @param args - The JWK set update parameters
    * @param args.iss - The issuer
-   * @param args.jwksUrl - The JWKS URL (optional)
+   * @param args.jwksUrl - Optional JWKS URL
    * @returns A `TransactionContext` instance
    */
-  updateFederatedKeylessJwkSetTransaction(args: { iss: string; jwksUrl?: string }): TransactionContext {
-    return new TransactionContext(this, async (txnContextArgs: TransactionGenerationArgs) =>
-      txnContextArgs.aptos.updateFederatedKeylessJwkSetTransaction({
+  updateFederatedKeylessJwkSetTransaction(args: { iss: string; jwksUrl?: string }): ConditionalTransactionContext<this> {
+    return this.createTransactionContext(args, (txnArgs, args) =>
+      txnArgs.aptos.updateFederatedKeylessJwkSetTransaction({
         ...args,
-        sender: txnContextArgs.sender,
-        options: txnContextArgs.options,
+        sender: txnArgs.sender,
+        options: txnArgs.options,
       }),
     );
   }
 }
+
+// const aptos = new Aptos(new AptosConfig({
+//   network: Network.DEVNET,
+// }));
+// const senderAccount = Account.generate()
+
+// const manager = TransactionManager.new(aptos).setFundAmountDefault(1000000000000000000);
+
+// const txn = await manager.transferCoinTransaction({
+//   recipient: Account.generate().accountAddress,
+//   amount: 1000000000000000000,
+// }).setSender(senderAccount).submitWithoutWaiting()
+
+
+// console.log(txn)
