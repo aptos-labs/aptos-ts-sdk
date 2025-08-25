@@ -399,6 +399,20 @@ export class TransactionContext extends SenderlessTransactionContext implements 
     return this.aptos;
   }
 
+  async simulate(): Promise<UserTransactionResponse> {
+    const transaction = await this.generateTransaction();
+    const [userTxn] = await this.aptos.transaction.simulate.simple({
+      feePayerPublicKey: this.feePayerAccount?.publicKey,
+      options: {
+        estimateGasUnitPrice: this.gasUnitPrice === undefined,
+        estimateMaxGasAmount: this.maxGasAmount === undefined,
+      },
+      signerPublicKey: this.sender.publicKey,
+      transaction,
+    });
+    return userTxn;
+  }
+
 
   async submitWithoutWaiting(): Promise<PendingTransactionResponse> {
     const sender = this.sender;
