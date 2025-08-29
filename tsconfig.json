@@ -14,7 +14,8 @@
     "outDir": "./dist",
     "sourceMap": true,
     "strict": true,
-    "target": "es2020"
+    "target": "es2020",
+    "types": ["vitest/globals"]
   },
-  "include": ["src", "tests", "tsup.config.ts"]
+  "include": ["src", "tests", "tsup.config.ts", "vitest.config.ts"]
 }
