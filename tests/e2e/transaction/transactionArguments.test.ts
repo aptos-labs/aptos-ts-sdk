@@ -48,7 +48,7 @@ import {
   PUBLISHER_ACCOUNT_ADDRESS,
 } from "./helper";
 
-jest.setTimeout(10000);
+// Vitest timeout is configured in vitest.config.ts
 
 // This test uses lots of helper functions, explained here:
 //  the `transactionArguments` array contains every possible argument type
