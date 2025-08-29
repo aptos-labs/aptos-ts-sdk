@@ -33,7 +33,7 @@ describe("memoize", () => {
 
       // Call the memoized function with an argument
       const promise1 = memoizedAsyncFunction("arg1");
-      
+
       // Advance timers to complete the async operation
       await vi.advanceTimersByTimeAsync(100);
       const result1 = await promise1;

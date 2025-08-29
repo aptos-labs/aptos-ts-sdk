@@ -5,7 +5,6 @@ import { Account, Ed25519PrivateKey, generateSigningMessageForTransaction } from
 import { getAptosClient } from "../helper";
 import { ed25519 } from "../../unit/helper";
 
-
 const { aptos } = getAptosClient();
 const TRANSFER_AMOUNT = 100;
 
