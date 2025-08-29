@@ -191,9 +191,17 @@ export class Secp256r1PrivateKey extends PrivateKey {
 }
 
 /**
+ * Abstract base class for Secp256r1 signatures
+ * Any class extending this will be treated as Secp256r1 type
+ */
+export abstract class Secp256r1SignatureBase extends Signature {
+  // This is an abstract base class that marks any extending class as Secp256r1 type
+}
+
+/**
  * A signature of a message signed using an Secp256r1 ecdsa private key
  */
-export class Secp256r1Signature extends Signature {
+export class Secp256r1Signature extends Secp256r1SignatureBase {
   /**
    * Secp256r1 ecdsa signatures are 256-bit.
    */
