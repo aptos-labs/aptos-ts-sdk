@@ -13,6 +13,7 @@ import { KeylessPublicKey, KeylessSignature } from "./keyless";
 import { Signature } from "./signature";
 import { FederatedKeylessPublicKey } from "./federatedKeyless";
 import { AptosConfig } from "../../api";
+import { Secp256r1PublicKey } from "./secp256r1";
 
 export type PrivateKeyInput = Ed25519PrivateKey | Secp256k1PrivateKey;
 
@@ -59,6 +60,8 @@ export class AnyPublicKey extends AccountPublicKey {
       this.variant = AnyPublicKeyVariant.Ed25519;
     } else if (publicKey instanceof Secp256k1PublicKey) {
       this.variant = AnyPublicKeyVariant.Secp256k1;
+    } else if (publicKey instanceof Secp256r1PublicKey) {
+      this.variant = AnyPublicKeyVariant.Secp256r1;
     } else if (publicKey instanceof KeylessPublicKey) {
       this.variant = AnyPublicKeyVariant.Keyless;
     } else if (publicKey instanceof FederatedKeylessPublicKey) {
@@ -187,6 +190,9 @@ export class AnyPublicKey extends AccountPublicKey {
         break;
       case AnyPublicKeyVariant.Secp256k1:
         publicKey = Secp256k1PublicKey.deserialize(deserializer);
+        break;
+      case AnyPublicKeyVariant.Secp256r1:
+        publicKey = Secp256r1PublicKey.deserialize(deserializer);
         break;
       case AnyPublicKeyVariant.Keyless:
         publicKey = KeylessPublicKey.deserialize(deserializer);
