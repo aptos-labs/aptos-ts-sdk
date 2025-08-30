@@ -89,7 +89,7 @@ describe("transactionWorker", () => {
         setTimeout(async () => {
           transactionWorker.stop();
           const accountData = await aptos.getAccountInfo({ accountAddress: sender.accountAddress });
-          
+
           // expect sender sequence number to be 10
           expect(accountData.sequence_number).toBe("10");
 
@@ -103,7 +103,7 @@ describe("transactionWorker", () => {
               throw new Error(`Transaction is not a user transaction ${userTxn.type}`);
             }
           });
-          
+
           resolve();
         }, 1000 * 30);
       });

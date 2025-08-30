@@ -1,4 +1,4 @@
-2// eslint-disable-next-line import/no-unresolved
+2; // eslint-disable-next-line import/no-unresolved
 import { defineConfig } from "vitest/config";
 
 // 基础配置
@@ -23,11 +23,7 @@ const baseConfig = {
       statements: 50,
     },
   },
-  exclude: [
-    "dist/*",
-    "examples/*",
-    "node_modules/*",
-  ],
+  exclude: ["dist/*", "examples/*", "node_modules/*"],
   maxConcurrency: 4,
   pool: "forks" as const,
   poolOptions: {
