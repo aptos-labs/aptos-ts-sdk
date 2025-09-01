@@ -171,7 +171,15 @@ export class Secp256k1PublicKey extends PublicKey {
    * @category Serialization
    */
   static isInstance(publicKey: PublicKey): publicKey is Secp256k1PublicKey {
-    return "key" in publicKey && (publicKey.key as any)?.data?.length === Secp256k1PublicKey.LENGTH;
+    if ("key" in publicKey && publicKey.key instanceof Hex) {
+      try {
+        secp256k1.ProjectivePoint.fromHex(publicKey.key.toUint8Array());
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }
+    return false;
   }
 }
 

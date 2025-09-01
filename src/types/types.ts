@@ -147,6 +147,7 @@ export enum AccountAuthenticatorVariant {
 export enum PrivateKeyVariants {
   Ed25519 = "ed25519",
   Secp256k1 = "secp256k1",
+  Secp256r1 = "secp256r1",
 }
 
 /**

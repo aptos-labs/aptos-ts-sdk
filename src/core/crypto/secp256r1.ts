@@ -2,11 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { sha3_256 } from "@noble/hashes/sha3";
-import { p256 } from '@noble/curves/nist.js';
-import { sha256 } from "@noble/hashes/sha2";
+import { p256 } from "@noble/curves/nist.js";
 import { Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
-import { HexInput } from "../../types";
+import { HexInput, PrivateKeyVariants } from "../../types";
 import { PublicKey, VerifySignatureAsyncArgs } from "./publicKey";
 import { PrivateKey } from "./privateKey";
 import { Signature } from "./signature";
@@ -20,6 +19,9 @@ export class Secp256r1PublicKey extends PublicKey {
   // Secp256r1 ecdsa public keys contain a prefix indicating compression and two 32-byte coordinates.
   static readonly LENGTH: number = 65;
 
+  // If it's compressed, it is only 33 bytes
+  static readonly COMPRESSED_LENGTH: number = 33;
+
   // Hex value of the public key
   private readonly key: Hex;
 
@@ -32,10 +34,17 @@ export class Secp256r1PublicKey extends PublicKey {
     super();
 
     const hex = Hex.fromHexInput(hexInput);
-    if (hex.toUint8Array().length !== Secp256r1PublicKey.LENGTH) {
+    if (
+      hex.toUint8Array().length !== Secp256r1PublicKey.LENGTH &&
+      hex.toUint8Array().length !== Secp256r1PublicKey.COMPRESSED_LENGTH
+    ) {
       throw new Error(`PublicKey length should be ${Secp256r1PublicKey.LENGTH}`);
     }
     this.key = hex;
+    if (hex.toUint8Array().length === Secp256r1PublicKey.COMPRESSED_LENGTH) {
+      const point = p256.ProjectivePoint.fromHex(hex.toUint8Array());
+      this.key = Hex.fromHexInput(point.toRawBytes(false));
+    }
   }
 
   /**
@@ -67,8 +76,9 @@ export class Secp256r1PublicKey extends PublicKey {
     const { message, signature } = args;
 
     const msgHex = Hex.fromHexInput(message).toUint8Array();
-    const sha3Message = sha256(msgHex);
+    const sha3Message = sha3_256(msgHex);
     const rawSignature = signature.toUint8Array();
+
     return p256.verify(rawSignature, sha3Message, this.toUint8Array());
   }
 
@@ -96,6 +106,27 @@ export class Secp256r1PublicKey extends PublicKey {
     const bytes = deserializer.deserializeBytes();
     return new Secp256r1PublicKey(bytes);
   }
+
+  /**
+   * Determines if the provided public key is a valid instance of a Secp256r1 public key.
+   * This function checks for the presence of a "key" property and validates the length of the key data.
+   *
+   * @param publicKey - The public key to validate.
+   * @returns A boolean indicating whether the public key is a valid Secp256r1 public key.
+   * @group Implementation
+   * @category Serialization
+   */
+  static isInstance(publicKey: PublicKey): publicKey is Secp256r1PublicKey {
+    if ("key" in publicKey && publicKey.key instanceof Hex) {
+      try {
+        p256.ProjectivePoint.fromHex(publicKey.key.toUint8Array());
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }
+    return false;
+  }
 }
 
 /**
@@ -117,11 +148,12 @@ export class Secp256r1PrivateKey extends PrivateKey {
    * Create a new PrivateKey instance from a Uint8Array or String.
    *
    * @param hexInput A HexInput (string or Uint8Array)
+   * @param strict If true, the hexInput MUST be compliant with AIP-80.
    */
-  constructor(hexInput: HexInput) {
+  constructor(hexInput: HexInput, strict?: boolean) {
     super();
 
-    const privateKeyHex = Hex.fromHexInput(hexInput);
+    const privateKeyHex = PrivateKey.parseHexInput(hexInput, PrivateKeyVariants.Secp256r1, strict);
     if (privateKeyHex.toUint8Array().length !== Secp256r1PrivateKey.LENGTH) {
       throw new Error(`PrivateKey length should be ${Secp256r1PrivateKey.LENGTH}`);
     }
@@ -139,11 +171,20 @@ export class Secp256r1PrivateKey extends PrivateKey {
   }
 
   /**
-   * Get the private key as a hex string with the 0x prefix.
+   * Get the private key as an AIP-80 compliant string with secp256r1-priv- prefix.
    *
    * @returns string representation of the private key
    */
   toString(): string {
+    return PrivateKey.formatPrivateKey(this.key.toString(), PrivateKeyVariants.Secp256r1);
+  }
+
+  /**
+   * Get the private key as a hex string with the 0x prefix.
+   *
+   * @returns hex string representation of the private key
+   */
+  toHexString(): string {
     return this.key.toString();
   }
 
@@ -225,7 +266,7 @@ export class Secp256r1Signature extends Secp256r1SignatureBase {
     if (hex.toUint8Array().length !== Secp256r1Signature.LENGTH) {
       throw new Error(`Signature length should be ${Secp256r1Signature.LENGTH}, recieved ${hex.toUint8Array().length}`);
     }
-    const signature = p256.Signature.fromCompact(hexInput).normalizeS().toCompactRawBytes();
+    const signature = p256.Signature.fromCompact(hex.toUint8Array()).normalizeS().toCompactRawBytes();
     this.data = Hex.fromHexInput(signature);
   }
 
