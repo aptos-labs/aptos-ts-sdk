@@ -5,10 +5,11 @@ import { sha3_256 } from "@noble/hashes/sha3";
 import { p256 } from "@noble/curves/nist.js";
 import { Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
-import { HexInput, PrivateKeyVariants } from "../../types";
+import { HexInput, PrivateKeyVariants, SigningScheme as AuthenticationKeyScheme } from "../../types";
 import { PublicKey, VerifySignatureAsyncArgs } from "./publicKey";
 import { PrivateKey } from "./privateKey";
 import { Signature } from "./signature";
+import { AuthenticationKey } from "../authenticationKey";
 
 /**ßß
  * Represents the Secp256r1 public key
@@ -126,6 +127,13 @@ export class Secp256r1PublicKey extends PublicKey {
       }
     }
     return false;
+  }
+
+  authKey(): AuthenticationKey {
+    return AuthenticationKey.fromSchemeAndBytes({
+      scheme: AuthenticationKeyScheme.SingleKey,
+      input: this.toUint8Array(),
+    });
   }
 }
 
