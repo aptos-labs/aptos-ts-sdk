@@ -13,7 +13,7 @@ import { KeylessPublicKey, KeylessSignature } from "./keyless";
 import { Signature } from "./signature";
 import { FederatedKeylessPublicKey } from "./federatedKeyless";
 import { AptosConfig } from "../../api";
-import { Secp256r1PublicKey, Secp256r1Signature, Secp256r1SignatureBase } from "./secp256r1";
+import { Secp256r1PublicKey, WebAuthnSignature } from "./secp256r1";
 
 export type PrivateKeyInput = Ed25519PrivateKey | Secp256k1PrivateKey;
 
@@ -284,7 +284,7 @@ export class AnySignature extends Signature {
       this.variant = AnySignatureVariant.Ed25519;
     } else if (signature instanceof Secp256k1Signature) {
       this.variant = AnySignatureVariant.Secp256k1;
-    } else if (signature instanceof Secp256r1SignatureBase) {
+    } else if (signature instanceof WebAuthnSignature) {
       this.variant = AnySignatureVariant.Secp256r1;
     } else if (signature instanceof KeylessSignature) {
       this.variant = AnySignatureVariant.Keyless;
@@ -327,7 +327,7 @@ export class AnySignature extends Signature {
         signature = Secp256k1Signature.deserialize(deserializer);
         break;
       case AnySignatureVariant.Secp256r1:
-        signature = Secp256r1Signature.deserialize(deserializer);
+        signature = WebAuthnSignature.deserialize(deserializer);
         break;
       case AnySignatureVariant.Keyless:
         signature = KeylessSignature.deserialize(deserializer);

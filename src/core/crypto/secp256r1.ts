@@ -11,7 +11,7 @@ import { PrivateKey } from "./privateKey";
 import { Signature } from "./signature";
 import { AuthenticationKey } from "../authenticationKey";
 
-/**ßß
+/**
  * Represents the Secp256r1 public key
  *
  * Secp256r1 authentication key is represented in the SDK as `AnyPublicKey`.  It is used to verify WebAuthnSignatures.
@@ -73,7 +73,7 @@ export class Secp256r1PublicKey extends PublicKey {
    * @param args.signature The signature
    * @returns true if the signature is valid
    */
-  verifySignature(args: { message: HexInput; signature: Secp256r1Signature }): boolean {
+  verifySignature(args: { message: HexInput; signature: Signature }): boolean {
     const { message, signature } = args;
 
     const msgHex = Hex.fromHexInput(message).toUint8Array();
@@ -91,7 +91,7 @@ export class Secp256r1PublicKey extends PublicKey {
    * @returns true if the signature is valid
    */
   async verifySignatureAsync(args: VerifySignatureAsyncArgs): Promise<boolean> {
-    return this.verifySignature({ message: args.message, signature: args.signature as Secp256r1Signature });
+    return this.verifySignature({ message: args.message, signature: args.signature });
   }
 
   serialize(serializer: Serializer): void {
@@ -200,7 +200,7 @@ export class Secp256r1PrivateKey extends PrivateKey {
    * Sign the given message with the private key.
    *
    * @param message in HexInput format
-   * @returns Signature
+   * @returns Uint8Array
    */
   sign(message: HexInput): Secp256r1Signature {
     const msgHex = Hex.fromHexInput(message);
@@ -239,18 +239,61 @@ export class Secp256r1PrivateKey extends PrivateKey {
   }
 }
 
-/**
- * Abstract base class for Secp256r1 signatures
- * Any class extending this will be treated as Secp256r1 type
- */
-export abstract class Secp256r1SignatureBase extends Signature {
-  // This is an abstract base class that marks any extending class as Secp256r1 type
+export class WebAuthnSignature extends Signature {
+  signature: Hex;
+
+  authenticatorData: Hex;
+
+  clientDataJSON: Hex;
+
+  constructor(signature: HexInput, authenticatorData: HexInput, clientDataJSON: HexInput) {
+    super();
+    this.signature = Hex.fromHexInput(signature);
+    this.authenticatorData = Hex.fromHexInput(authenticatorData);
+    this.clientDataJSON = Hex.fromHexInput(clientDataJSON);
+  }
+
+  toUint8Array() {
+    return this.signature.toUint8Array();
+  }
+
+  serialize(serializer: Serializer) {
+    serializer.serializeU32AsUleb128(0);
+    serializer.serializeBytes(this.signature.toUint8Array());
+    serializer.serializeBytes(this.authenticatorData.toUint8Array());
+    serializer.serializeBytes(this.clientDataJSON.toUint8Array());
+  }
+
+  bcsToBytes() {
+    const serializer = new Serializer();
+    this.serialize(serializer);
+    return serializer.toUint8Array();
+  }
+
+  bcsToHex() {
+    return Hex.fromHexInput(this.bcsToBytes());
+  }
+
+  toStringWithoutPrefix() {
+    return Hex.fromHexInput(this.bcsToBytes()).toString();
+  }
+
+  static deserialize(deserializer: Deserializer) {
+    const id = deserializer.deserializeUleb128AsU32();
+    if (id !== 0) {
+      throw new Error(`Invalid id for WebAuthnSignature: ${id}`);
+    }
+    const signature = deserializer.deserializeBytes();
+    const authenticatorData = deserializer.deserializeBytes();
+    const clientDataJSON = deserializer.deserializeBytes();
+    return new WebAuthnSignature(signature, authenticatorData, clientDataJSON);
+  }
 }
 
 /**
  * A signature of a message signed using an Secp256r1 ecdsa private key
  */
-export class Secp256r1Signature extends Secp256r1SignatureBase {
+export class Secp256r1Signature extends Signature {
   /**
    * Secp256r1 ecdsa signatures are 256-bit.
    */
