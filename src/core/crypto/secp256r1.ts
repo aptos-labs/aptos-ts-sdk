@@ -12,9 +12,12 @@ import { Signature } from "./signature";
 import { AuthenticationKey } from "../authenticationKey";
 
 /**
- * Represents the Secp256r1 public key
+ * Represents a Secp256r1 ECDSA public key.
  *
- * Secp256r1 authentication key is represented in the SDK as `AnyPublicKey`.  It is used to verify WebAuthnSignatures.
+ * @extends PublicKey
+ * @property LENGTH - The length of the Secp256r1 public key in bytes.
+ * @group Implementation
+ * @category Serialization
  */
 export class Secp256r1PublicKey extends PublicKey {
   // Secp256r1 ecdsa public keys contain a prefix indicating compression and two 32-byte coordinates.
@@ -27,9 +30,13 @@ export class Secp256r1PublicKey extends PublicKey {
   private readonly key: Hex;
 
   /**
-   * Create a new PublicKey instance from a Uint8Array or String.
+   * Create a new PublicKey instance from a HexInput, which can be a string or Uint8Array.
+   * This constructor validates the length of the provided public key data.
    *
-   * @param hexInput A HexInput (string or Uint8Array)
+   * @param hexInput - A HexInput (string or Uint8Array) representing the public key data.
+   * @throws Error if the length of the public key data is not equal to Secp256r1PublicKey.LENGTH or COMPRESSED_LENGTH.
+   * @group Implementation
+   * @category Serialization
    */
   constructor(hexInput: HexInput) {
     super();
@@ -49,9 +56,11 @@ export class Secp256r1PublicKey extends PublicKey {
   }
 
   /**
-   * Get the public key in bytes (Uint8Array).
+   * Get the data as a Uint8Array representation.
    *
-   * @returns Uint8Array representation of the public key
+   * @returns Uint8Array representation of the data.
+   * @group Implementation
+   * @category Serialization
    */
   toUint8Array(): Uint8Array {
     return this.key.toUint8Array();
@@ -60,18 +69,24 @@ export class Secp256r1PublicKey extends PublicKey {
   /**
    * Get the public key as a hex string with the 0x prefix.
    *
-   * @returns string representation of the public key
+   * @returns string representation of the public key.
+   * @group Implementation
+   * @category Serialization
    */
   toString(): string {
     return this.key.toString();
   }
 
   /**
-   * Verifies a signed data with a public key
+   * Verifies a Secp256r1 signature against the public key.
    *
-   * @param args.message message
-   * @param args.signature The signature
-   * @returns true if the signature is valid
+   * This function checks the validity of a signature for a given message.
+   *
+   * @param args - The arguments for verifying the signature.
+   * @param args.message - The message that was signed.
+   * @param args.signature - The signature to verify against the public key.
+   * @group Implementation
+   * @category Serialization
    */
   verifySignature(args: { message: HexInput; signature: Signature }): boolean {
     const { message, signature } = args;
@@ -84,25 +99,54 @@ export class Secp256r1PublicKey extends PublicKey {
   }
 
   /**
-   * Verifies a signed data with a public key
+   * Note: Secp256r1Signatures can be verified synchronously.
    *
-   * @param args.message message
-   * @param args.signature The signature
-   * @returns true if the signature is valid
+   * Verifies the provided signature against the given message.
+   * This function helps ensure the integrity and authenticity of the message by confirming that the signature is valid.
+   *
+   * @param args - The arguments for signature verification.
+   * @param args.message - The message that was signed.
+   * @param args.signature - The signature to verify, which must be an instance of Secp256r1Signature.
+   * @returns A boolean indicating whether the signature is valid for the given message.
+   * @group Implementation
+   * @category Serialization
    */
   async verifySignatureAsync(args: VerifySignatureAsyncArgs): Promise<boolean> {
     return this.verifySignature({ message: args.message, signature: args.signature });
   }
 
+  /**
+   * Serializes the data into a byte array using the provided serializer.
+   * This function is essential for converting data into a format suitable for transmission or storage.
+   *
+   * @param serializer - The serializer instance used to convert the data.
+   * @group Implementation
+   * @category Serialization
+   */
   serialize(serializer: Serializer): void {
     serializer.serializeBytes(this.key.toUint8Array());
   }
 
+  /**
+   * Deserializes a Secp256r1PublicKey from the provided deserializer.
+   * This function allows you to reconstruct a Secp256r1PublicKey object from its serialized byte representation.
+   *
+   * @param deserializer - The deserializer instance used to read the serialized data.
+   * @group Implementation
+   * @category Serialization
+   */
   static deserialize(deserializer: Deserializer): Secp256r1PublicKey {
     const bytes = deserializer.deserializeBytes();
     return new Secp256r1PublicKey(bytes);
   }
 
+  /**
+   * Loads a Secp256r1PublicKey from the provided deserializer.
+   *
+   * @param deserializer - The deserializer instance used to read the serialized data.
+   * @group Implementation
+   * @category Serialization
+   */
   static load(deserializer: Deserializer): Secp256r1PublicKey {
     const bytes = deserializer.deserializeBytes();
     return new Secp256r1PublicKey(bytes);
@@ -129,6 +173,14 @@ export class Secp256r1PublicKey extends PublicKey {
     return false;
   }
 
+  /**
+   * Generates an authentication key from the public key using the Secp256r1 scheme.
+   * This function is essential for creating a secure authentication key that can be used for further cryptographic operations.
+   *
+   * @returns {AuthenticationKey} The generated authentication key.
+   * @group Implementation
+   * @category Serialization
+   */
   authKey(): AuthenticationKey {
     return AuthenticationKey.fromSchemeAndBytes({
       scheme: AuthenticationKeyScheme.SingleKey,
@@ -138,25 +190,36 @@ export class Secp256r1PublicKey extends PublicKey {
 }
 
 /**
- * A Secp256r1 ecdsa private key - this is only used for test purposes as signing is done via passkeys
+ * Represents a Secp256r1 ECDSA private key, providing functionality to create, sign messages,
+ * derive public keys, and serialize/deserialize the key.
+ * @group Implementation
+ * @category Serialization
  */
 export class Secp256r1PrivateKey extends PrivateKey {
   /**
    * Length of Secp256r1 ecdsa private key
+   * @group Implementation
+   * @category Serialization
    */
   static readonly LENGTH: number = 32;
 
   /**
    * The private key bytes
    * @private
+   * @group Implementation
+   * @category Serialization
    */
   private readonly key: Hex;
 
   /**
    * Create a new PrivateKey instance from a Uint8Array or String.
    *
+   * [Read about AIP-80](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md)
+   *
    * @param hexInput A HexInput (string or Uint8Array)
-   * @param strict If true, the hexInput MUST be compliant with AIP-80.
+   * @param strict If true, private key must AIP-80 compliant.
+   * @group Implementation
+   * @category Serialization
    */
   constructor(hexInput: HexInput, strict?: boolean) {
     super();
@@ -173,15 +236,19 @@ export class Secp256r1PrivateKey extends PrivateKey {
    * Get the private key in bytes (Uint8Array).
    *
    * @returns
+   * @group Implementation
+   * @category Serialization
    */
   toUint8Array(): Uint8Array {
     return this.key.toUint8Array();
   }
 
   /**
-   * Get the private key as an AIP-80 compliant string with secp256r1-priv- prefix.
+   * Get the private key as a string representation.
    *
    * @returns string representation of the private key
+   * @group Implementation
+   * @category Serialization
    */
   toString(): string {
     return PrivateKey.formatPrivateKey(this.key.toString(), PrivateKeyVariants.Secp256r1);
@@ -190,7 +257,7 @@ export class Secp256r1PrivateKey extends PrivateKey {
   /**
    * Get the private key as a hex string with the 0x prefix.
    *
-   * @returns hex string representation of the private key
+   * @returns string representation of the private key.
    */
   toHexString(): string {
     return this.key.toString();
@@ -198,9 +265,12 @@ export class Secp256r1PrivateKey extends PrivateKey {
 
   /**
    * Sign the given message with the private key.
+   * This function generates a cryptographic signature for the provided message.
    *
-   * @param message in HexInput format
-   * @returns Uint8Array
+   * @param message - A message in HexInput format to be signed.
+   * @returns Signature - The generated signature for the provided message.
+   * @group Implementation
+   * @category Serialization
    */
   sign(message: HexInput): Secp256r1Signature {
     const msgHex = Hex.fromHexInput(message);
@@ -209,10 +279,26 @@ export class Secp256r1PrivateKey extends PrivateKey {
     return new Secp256r1Signature(signature.toCompactRawBytes());
   }
 
+  /**
+   * Serializes the data into a byte array using the provided serializer.
+   * This function is essential for converting data into a format suitable for transmission or storage.
+   *
+   * @param serializer - The serializer instance used to convert the data.
+   * @group Implementation
+   * @category Serialization
+   */
   serialize(serializer: Serializer): void {
     serializer.serializeBytes(this.toUint8Array());
   }
 
+  /**
+   * Deserializes a Secp256r1PrivateKey from the provided deserializer.
+   * This function allows you to reconstruct a Secp256r1PrivateKey object from its serialized byte representation.
+   *
+   * @param deserializer - The deserializer instance used to read the serialized data.
+   * @group Implementation
+   * @category Serialization
+   */
   static deserialize(deserializer: Deserializer): Secp256r1PrivateKey {
     const bytes = deserializer.deserializeBytes();
     return new Secp256r1PrivateKey(bytes);
@@ -221,7 +307,9 @@ export class Secp256r1PrivateKey extends PrivateKey {
   /**
    * Generate a new random private key.
    *
-   * @returns Secp256r1PrivateKey
+   * @returns Secp256r1PrivateKey - A newly generated Secp256r1 private key.
+   * @group Implementation
+   * @category Serialization
    */
   static generate(): Secp256r1PrivateKey {
     const hexInput = p256.utils.randomPrivateKey();
@@ -231,7 +319,9 @@ export class Secp256r1PrivateKey extends PrivateKey {
   /**
    * Derive the Secp256r1PublicKey from this private key.
    *
-   * @returns Secp256r1PublicKey
+   * @returns Secp256r1PublicKey The derived public key.
+   * @group Implementation
+   * @category Serialization
    */
   publicKey(): Secp256r1PublicKey {
     const bytes = p256.getPublicKey(this.key.toUint8Array(), false);
@@ -291,24 +381,33 @@ export class WebAuthnSignature extends Signature {
 }
 
 /**
- * A signature of a message signed using an Secp256r1 ecdsa private key
+ * Represents a signature of a message signed using a Secp256r1 ECDSA private key.
+ *
+ * @group Implementation
+ * @category Serialization
  */
 export class Secp256r1Signature extends Signature {
   /**
    * Secp256r1 ecdsa signatures are 256-bit.
+   * @group Implementation
+   * @category Serialization
    */
   static readonly LENGTH = 64;
 
   /**
    * The signature bytes
    * @private
+   * @group Implementation
+   * @category Serialization
    */
   private readonly data: Hex;
 
   /**
-   * Create a new Signature instance from a Uint8Array or String.  It will convert the signature to its canonical if needed.
+   * Create a new Signature instance from a Uint8Array or String.
    *
    * @param hexInput A HexInput (string or Uint8Array)
+   * @group Implementation
+   * @category Serialization
    */
   constructor(hexInput: HexInput) {
     super();
@@ -325,6 +424,8 @@ export class Secp256r1Signature extends Signature {
    * Get the signature in bytes (Uint8Array).
    *
    * @returns Uint8Array representation of the signature
+   * @group Implementation
+   * @category Serialization
    */
   toUint8Array(): Uint8Array {
     return this.data.toUint8Array();
@@ -334,20 +435,45 @@ export class Secp256r1Signature extends Signature {
    * Get the signature as a hex string with the 0x prefix.
    *
    * @returns string representation of the signature
+   * @group Implementation
+   * @category Serialization
    */
   toString(): string {
     return this.data.toString();
   }
 
+  /**
+   * Serializes the data into a byte array using the provided serializer.
+   * This function is essential for converting data into a format suitable for transmission or storage.
+   *
+   * @param serializer - The serializer instance used to convert the data.
+   * @group Implementation
+   * @category Serialization
+   */
   serialize(serializer: Serializer): void {
     serializer.serializeBytes(this.data.toUint8Array());
   }
 
+  /**
+   * Deserializes a Secp256r1Signature from the provided deserializer.
+   * This function allows you to reconstruct a Secp256r1Signature object from its serialized byte representation.
+   *
+   * @param deserializer - The deserializer instance used to read the serialized data.
+   * @group Implementation
+   * @category Serialization
+   */
   static deserialize(deserializer: Deserializer): Secp256r1Signature {
     const hex = deserializer.deserializeBytes();
     return new Secp256r1Signature(hex);
   }
 
+  /**
+   * Loads a Secp256r1Signature from the provided deserializer.
+   *
+   * @param deserializer - The deserializer instance used to read the serialized data.
+   * @group Implementation
+   * @category Serialization
+   */
   static load(deserializer: Deserializer): Secp256r1Signature {
     const bytes = deserializer.deserializeBytes();
     return new Secp256r1Signature(bytes);
