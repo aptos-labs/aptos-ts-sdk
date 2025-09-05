@@ -78,6 +78,20 @@ export class Secp256r1PublicKey extends PublicKey {
   }
 
   /**
+   * Converts the public key to BCS (Binary Canonical Serialization) bytes.
+   * This function serializes the public key data into a byte array format suitable for transmission or storage.
+   *
+   * @returns Uint8Array representation of the serialized public key.
+   * @group Implementation
+   * @category Serialization
+   */
+  bcsToBytes() {
+    const serializer = new Serializer();
+    this.serialize(serializer);
+    return serializer.toUint8Array();
+  }
+
+  /**
    * Verifies a Secp256r1 signature against the public key.
    *
    * This function checks the validity of a signature for a given message.
@@ -187,7 +201,7 @@ export class Secp256r1PublicKey extends PublicKey {
     serializer.serializeFixedBytes(this.bcsToBytes());
     return AuthenticationKey.fromSchemeAndBytes({
       scheme: AuthenticationKeyScheme.SingleKey,
-      input: this.toUint8Array(),
+      input: serializer.toUint8Array(),
     });
   }
 }
