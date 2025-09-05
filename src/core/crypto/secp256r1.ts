@@ -5,7 +5,7 @@ import { sha3_256 } from "@noble/hashes/sha3";
 import { p256 } from "@noble/curves/nist.js";
 import { Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
-import { HexInput, PrivateKeyVariants, SigningScheme as AuthenticationKeyScheme } from "../../types";
+import { HexInput, PrivateKeyVariants, SigningScheme as AuthenticationKeyScheme, AnyPublicKeyVariant } from "../../types";
 import { PublicKey, VerifySignatureAsyncArgs } from "./publicKey";
 import { PrivateKey } from "./privateKey";
 import { Signature } from "./signature";
@@ -182,6 +182,9 @@ export class Secp256r1PublicKey extends PublicKey {
    * @category Serialization
    */
   authKey(): AuthenticationKey {
+    const serializer = new Serializer();
+    serializer.serializeU32AsUleb128(AnyPublicKeyVariant.Secp256r1);
+    serializer.serializeFixedBytes(this.bcsToBytes());
     return AuthenticationKey.fromSchemeAndBytes({
       scheme: AuthenticationKeyScheme.SingleKey,
       input: this.toUint8Array(),
