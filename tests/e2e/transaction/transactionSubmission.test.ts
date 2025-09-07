@@ -14,6 +14,12 @@ import {
   MoveString,
   MultiEd25519PublicKey,
   Ed25519PrivateKey,
+  Secp256r1PrivateKey,
+  WebAuthnSignature,
+  AnySignature,
+  AnyPublicKey,
+  AccountAuthenticatorSingleKey,
+  generateSigningMessageForTransaction,
 } from "../../../src";
 import { MAX_U64_BIG_INT } from "../../../src/bcs/consts";
 import { longTestTimeout } from "../../unit/helper";
@@ -1020,5 +1026,118 @@ describe("transaction submission", () => {
       transactionHash: response.hash,
     });
     expect(response.signature?.type).toBe("ed25519_signature");
+  });
+
+  describe("WebAuthn Transaction Submission", () => {
+    test("submits transaction with WebAuthn signature", async () => {
+      // Generate Secp256r1 key pair
+      const privateKey = Secp256r1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      const senderAddress = publicKey.authKey().derivedAddress();
+      
+      // Fund the account
+      await aptos.fundAccount({ accountAddress: senderAddress, amount: 1_000_000_000 });
+      
+      // Build transaction
+      const transaction = await aptos.transaction.build.simple({
+        sender: senderAddress,
+        data: {
+          function: "0x1::aptos_account::transfer",
+          functionArguments: ["0x1", 1],
+        },
+        options: {
+          gasUnitPrice: 100,
+          maxGasAmount: 2000,
+        },
+      });
+
+      // Create WebAuthn signature components
+      const message = generateSigningMessageForTransaction(transaction);
+      const clientDataObj = {
+        type: "webauthn.get",
+        challenge: Buffer.from(message).toString("base64url"),
+        origin: "http://localhost:5173",
+        crossOrigin: false,
+      };
+      const clientDataJSON = new TextEncoder().encode(JSON.stringify(clientDataObj));
+      const authenticatorData = new Uint8Array([
+        73, 150, 13, 229, 136, 14, 140, 104, 116, 52, 23, 15, 100, 118, 96, 91, 143, 228, 174, 185, 162, 134, 50, 199, 153, 92, 243, 186, 131,
+        29, 151, 99, 29, 0, 0, 0, 0,
+      ]);
+
+      // Create WebAuthn signature (using placeholder signature for testing)
+      const webAuthnSignature = new WebAuthnSignature(
+        new Uint8Array(64), // Placeholder signature bytes
+        authenticatorData,
+        clientDataJSON,
+      );
+
+      // Create account authenticator
+      const anySignature = new AnySignature(webAuthnSignature);
+      const anyPublicKey = new AnyPublicKey(publicKey);
+      const senderAuthenticator = new AccountAuthenticatorSingleKey(anyPublicKey, anySignature);
+
+      // Submit transaction
+      const pendingTransaction = await aptos.transaction.submit.simple({
+        transaction,
+        senderAuthenticator,
+      });
+
+      // Wait for transaction to be committed
+      const committedTransaction = await aptos.waitForTransaction({
+        transactionHash: pendingTransaction.hash,
+      });
+
+      expect(committedTransaction.success).toBe(true);
+      expect(committedTransaction.hash).toBe(pendingTransaction.hash);
+    });
+
+    test("submits entry function transaction with WebAuthn signature", async () => {
+      const privateKey = Secp256r1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      const senderAddress = publicKey.authKey().derivedAddress();
+      
+      await aptos.fundAccount({ accountAddress: senderAddress, amount: 1_000_000_000 });
+      
+      const transaction = await aptos.transaction.build.simple({
+        sender: senderAddress,
+        data: {
+          function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
+          functionArguments: [1, receiverAccounts[0].accountAddress],
+        },
+      });
+
+      // Create WebAuthn signature
+      const message = generateSigningMessageForTransaction(transaction);
+      const clientDataObj = {
+        type: "webauthn.get",
+        challenge: Buffer.from(message).toString("base64url"),
+        origin: "http://localhost:5173",
+        crossOrigin: false,
+      };
+      const clientDataJSON = new TextEncoder().encode(JSON.stringify(clientDataObj));
+      const authenticatorData = new Uint8Array(37);
+      
+      const webAuthnSignature = new WebAuthnSignature(
+        new Uint8Array(64),
+        authenticatorData,
+        clientDataJSON,
+      );
+
+      const anySignature = new AnySignature(webAuthnSignature);
+      const anyPublicKey = new AnyPublicKey(publicKey);
+      const senderAuthenticator = new AccountAuthenticatorSingleKey(anyPublicKey, anySignature);
+
+      const response = await aptos.transaction.submit.simple({
+        transaction,
+        senderAuthenticator,
+      });
+
+      await aptos.waitForTransaction({
+        transactionHash: response.hash,
+      });
+
+      expect(response.hash).toBeDefined();
+    });
   });
 });

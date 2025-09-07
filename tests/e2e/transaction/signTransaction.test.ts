@@ -6,6 +6,13 @@ import {
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
   AccountAuthenticatorSingleKey,
+  Secp256r1PrivateKey,
+  Secp256r1PublicKey,
+  WebAuthnSignature,
+  AnySignature,
+  AnyPublicKey,
+  generateSigningMessageForTransaction,
+  Hex,
 } from "../../../src";
 import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
@@ -213,6 +220,97 @@ describe("sign transaction", () => {
           }),
         ).toThrow();
       });
+    });
+  });
+
+  describe("WebAuthn Signature", () => {
+    test("it creates and validates WebAuthn signature", async () => {
+      // Generate a Secp256r1 key pair
+      const privateKey = Secp256r1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      
+      // Create a simple transaction for signing
+      const transaction = await aptos.transaction.build.simple({
+        sender: publicKey.authKey().derivedAddress(),
+        data: {
+          function: "0x1::aptos_account::transfer",
+          functionArguments: ["0x1", 1],
+        },
+        options: {
+          gasUnitPrice: 100,
+          maxGasAmount: 2000,
+        },
+      });
+
+      // Generate signing message
+      const message = generateSigningMessageForTransaction(transaction);
+      
+      // Create WebAuthn client data
+      const clientDataObj = {
+        type: "webauthn.get",
+        challenge: Buffer.from(message).toString("base64url"),
+        origin: "http://localhost:5173",
+        crossOrigin: false,
+      };
+      const clientDataJSON = new TextEncoder().encode(JSON.stringify(clientDataObj));
+      
+      // Use fixed authenticator data for testing
+      const authenticatorData = new Uint8Array([
+        73, 150, 13, 229, 136, 14, 140, 104, 116, 52, 23, 15, 100, 118, 96, 91, 143, 228, 174, 185, 162, 134, 50, 199, 153, 92, 243, 186, 131,
+        29, 151, 99, 29, 0, 0, 0, 0,
+      ]);
+
+      // Create WebAuthn signature
+      const webAuthnSignature = new WebAuthnSignature(
+        new Uint8Array(64), // Placeholder signature bytes
+        authenticatorData,
+        clientDataJSON,
+      );
+
+      // Test serialization/deserialization
+      const serializer = new Deserializer(webAuthnSignature.bcsToBytes());
+      const deserializedSignature = WebAuthnSignature.deserialize(serializer);
+      
+      expect(deserializedSignature.authenticatorData.toUint8Array()).toEqual(authenticatorData);
+      expect(deserializedSignature.clientDataJSON.toUint8Array()).toEqual(clientDataJSON);
+    });
+
+    test("it creates AccountAuthenticatorSingleKey with WebAuthn signature", async () => {
+      const privateKey = Secp256r1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      
+      const transaction = await aptos.transaction.build.simple({
+        sender: publicKey.authKey().derivedAddress(),
+        data: {
+          function: "0x1::aptos_account::transfer",
+          functionArguments: ["0x1", 1],
+        },
+      });
+
+      // Create WebAuthn signature components
+      const clientDataObj = {
+        type: "webauthn.get",
+        challenge: "test-challenge",
+        origin: "http://localhost:5173",
+        crossOrigin: false,
+      };
+      const clientDataJSON = new TextEncoder().encode(JSON.stringify(clientDataObj));
+      const authenticatorData = new Uint8Array(37); // Standard length
+      
+      const webAuthnSignature = new WebAuthnSignature(
+        new Uint8Array(64), // Placeholder signature
+        authenticatorData,
+        clientDataJSON,
+      );
+
+      // Create account authenticator
+      const anySignature = new AnySignature(webAuthnSignature);
+      const anyPublicKey = new AnyPublicKey(publicKey);
+      const accountAuthenticator = new AccountAuthenticatorSingleKey(anyPublicKey, anySignature);
+
+      expect(accountAuthenticator).toBeInstanceOf(AccountAuthenticatorSingleKey);
+      expect(accountAuthenticator.public_key).toBeInstanceOf(AnyPublicKey);
+      expect(accountAuthenticator.signature).toBeInstanceOf(AnySignature);
     });
   });
 });
