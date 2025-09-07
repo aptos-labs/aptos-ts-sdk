@@ -184,7 +184,7 @@ export function anyPublicKeyVariantToString(variant: AnyPublicKeyVariant): strin
 export enum AnySignatureVariant {
   Ed25519 = 0,
   Secp256k1 = 1,
-  Secp256r1 = 2,
+  WebAuthn = 2,
   Keyless = 3,
 }
 

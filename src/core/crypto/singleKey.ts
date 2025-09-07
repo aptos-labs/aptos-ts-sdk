@@ -285,7 +285,7 @@ export class AnySignature extends Signature {
     } else if (signature instanceof Secp256k1Signature) {
       this.variant = AnySignatureVariant.Secp256k1;
     } else if (signature instanceof WebAuthnSignature) {
-      this.variant = AnySignatureVariant.Secp256r1;
+      this.variant = AnySignatureVariant.WebAuthn;
     } else if (signature instanceof KeylessSignature) {
       this.variant = AnySignatureVariant.Keyless;
     } else {
@@ -326,7 +326,7 @@ export class AnySignature extends Signature {
       case AnySignatureVariant.Secp256k1:
         signature = Secp256k1Signature.deserialize(deserializer);
         break;
-      case AnySignatureVariant.Secp256r1:
+      case AnySignatureVariant.WebAuthn:
         signature = WebAuthnSignature.deserialize(deserializer);
         break;
       case AnySignatureVariant.Keyless:
