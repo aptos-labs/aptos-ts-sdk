@@ -20,7 +20,11 @@ import {
   AnyPublicKey,
   AccountAuthenticatorSingleKey,
   generateSigningMessageForTransaction,
+  Hex,
 } from "../../../src";
+import { p256 } from "@noble/curves/nist.js";
+import { sha256 } from "@noble/hashes/sha2";
+import { sha3_256 } from "@noble/hashes/sha3";
 import { MAX_U64_BIG_INT } from "../../../src/bcs/consts";
 import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
@@ -1030,6 +1034,9 @@ describe("transaction submission", () => {
 
   describe("WebAuthn Transaction Submission", () => {
     test("submits transaction with WebAuthn signature", async () => {
+      // Simple base64url encoder
+      const toB64 = (u8: Uint8Array) => Buffer.from(u8).toString("base64");
+      const b64urlEncode = (u8: Uint8Array) => toB64(u8).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
       // Generate Secp256r1 key pair
       const privateKey = Secp256r1PrivateKey.generate();
       const publicKey = privateKey.publicKey();
@@ -1053,24 +1060,29 @@ describe("transaction submission", () => {
 
       // Create WebAuthn signature components
       const message = generateSigningMessageForTransaction(transaction);
+      const challenge = sha3_256(message);
       const clientDataObj = {
         type: "webauthn.get",
-        challenge: Buffer.from(message).toString("base64url"),
+        challenge: b64urlEncode(challenge),
         origin: "http://localhost:5173",
         crossOrigin: false,
-      };
+      } as const;
       const clientDataJSON = new TextEncoder().encode(JSON.stringify(clientDataObj));
       const authenticatorData = new Uint8Array([
         73, 150, 13, 229, 136, 14, 140, 104, 116, 52, 23, 15, 100, 118, 96, 91, 143, 228, 174, 185, 162, 134, 50, 199,
         153, 92, 243, 186, 131, 29, 151, 99, 29, 0, 0, 0, 0,
       ]);
 
-      // Create WebAuthn signature (using placeholder signature for testing)
-      const webAuthnSignature = new WebAuthnSignature(
-        new Uint8Array(64), // Placeholder signature bytes
-        authenticatorData,
-        clientDataJSON,
-      );
+      // Real WebAuthn signature
+      const clientHash = sha256(clientDataJSON);
+      const toBeSigned = new Uint8Array(authenticatorData.length + clientHash.length);
+      toBeSigned.set(authenticatorData, 0);
+      toBeSigned.set(clientHash, authenticatorData.length);
+      const webauthnDigest = sha256(toBeSigned);
+      const privBytes = Hex.fromHexInput(privateKey.toHexString()).toUint8Array();
+      const sig = p256.sign(webauthnDigest, privBytes).normalizeS();
+      const signatureBytes = sig.toCompactRawBytes();
+      const webAuthnSignature = new WebAuthnSignature(signatureBytes, authenticatorData, clientDataJSON);
 
       // Create account authenticator
       const anySignature = new AnySignature(webAuthnSignature);
@@ -1093,6 +1105,8 @@ describe("transaction submission", () => {
     });
 
     test("submits entry function transaction with WebAuthn signature", async () => {
+      const toB64 = (u8: Uint8Array) => Buffer.from(u8).toString("base64");
+      const b64urlEncode = (u8: Uint8Array) => toB64(u8).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
       const privateKey = Secp256r1PrivateKey.generate();
       const publicKey = privateKey.publicKey();
       const senderAddress = publicKey.authKey().derivedAddress();
@@ -1109,16 +1123,28 @@ describe("transaction submission", () => {
 
       // Create WebAuthn signature
       const message = generateSigningMessageForTransaction(transaction);
+      const challenge = sha3_256(message);
       const clientDataObj = {
         type: "webauthn.get",
-        challenge: Buffer.from(message).toString("base64url"),
+        challenge: b64urlEncode(challenge),
         origin: "http://localhost:5173",
         crossOrigin: false,
-      };
+      } as const;
       const clientDataJSON = new TextEncoder().encode(JSON.stringify(clientDataObj));
-      const authenticatorData = new Uint8Array(37);
+      const authenticatorData = new Uint8Array([
+        73, 150, 13, 229, 136, 14, 140, 104, 116, 52, 23, 15, 100, 118, 96, 91, 143, 228, 174, 185, 162, 134, 50, 199,
+        153, 92, 243, 186, 131, 29, 151, 99, 29, 0, 0, 0, 0,
+      ]);
 
-      const webAuthnSignature = new WebAuthnSignature(new Uint8Array(64), authenticatorData, clientDataJSON);
+      const clientHash = sha256(clientDataJSON);
+      const toBeSigned = new Uint8Array(authenticatorData.length + clientHash.length);
+      toBeSigned.set(authenticatorData, 0);
+      toBeSigned.set(clientHash, authenticatorData.length);
+      const webauthnDigest = sha256(toBeSigned);
+      const privBytes = Hex.fromHexInput(privateKey.toHexString()).toUint8Array();
+      const sig = p256.sign(webauthnDigest, privBytes).normalizeS();
+      const signatureBytes = sig.toCompactRawBytes();
+      const webAuthnSignature = new WebAuthnSignature(signatureBytes, authenticatorData, clientDataJSON);
 
       const anySignature = new AnySignature(webAuthnSignature);
       const anyPublicKey = new AnyPublicKey(publicKey);
