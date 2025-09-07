@@ -1034,10 +1034,10 @@ describe("transaction submission", () => {
       const privateKey = Secp256r1PrivateKey.generate();
       const publicKey = privateKey.publicKey();
       const senderAddress = publicKey.authKey().derivedAddress();
-      
+
       // Fund the account
       await aptos.fundAccount({ accountAddress: senderAddress, amount: 1_000_000_000 });
-      
+
       // Build transaction
       const transaction = await aptos.transaction.build.simple({
         sender: senderAddress,
@@ -1061,8 +1061,8 @@ describe("transaction submission", () => {
       };
       const clientDataJSON = new TextEncoder().encode(JSON.stringify(clientDataObj));
       const authenticatorData = new Uint8Array([
-        73, 150, 13, 229, 136, 14, 140, 104, 116, 52, 23, 15, 100, 118, 96, 91, 143, 228, 174, 185, 162, 134, 50, 199, 153, 92, 243, 186, 131,
-        29, 151, 99, 29, 0, 0, 0, 0,
+        73, 150, 13, 229, 136, 14, 140, 104, 116, 52, 23, 15, 100, 118, 96, 91, 143, 228, 174, 185, 162, 134, 50, 199,
+        153, 92, 243, 186, 131, 29, 151, 99, 29, 0, 0, 0, 0,
       ]);
 
       // Create WebAuthn signature (using placeholder signature for testing)
@@ -1096,9 +1096,9 @@ describe("transaction submission", () => {
       const privateKey = Secp256r1PrivateKey.generate();
       const publicKey = privateKey.publicKey();
       const senderAddress = publicKey.authKey().derivedAddress();
-      
+
       await aptos.fundAccount({ accountAddress: senderAddress, amount: 1_000_000_000 });
-      
+
       const transaction = await aptos.transaction.build.simple({
         sender: senderAddress,
         data: {
@@ -1117,12 +1117,8 @@ describe("transaction submission", () => {
       };
       const clientDataJSON = new TextEncoder().encode(JSON.stringify(clientDataObj));
       const authenticatorData = new Uint8Array(37);
-      
-      const webAuthnSignature = new WebAuthnSignature(
-        new Uint8Array(64),
-        authenticatorData,
-        clientDataJSON,
-      );
+
+      const webAuthnSignature = new WebAuthnSignature(new Uint8Array(64), authenticatorData, clientDataJSON);
 
       const anySignature = new AnySignature(webAuthnSignature);
       const anyPublicKey = new AnyPublicKey(publicKey);

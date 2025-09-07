@@ -5,7 +5,12 @@ import { sha3_256 } from "@noble/hashes/sha3";
 import { p256 } from "@noble/curves/nist.js";
 import { Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
-import { HexInput, PrivateKeyVariants, SigningScheme as AuthenticationKeyScheme, AnyPublicKeyVariant } from "../../types";
+import {
+  HexInput,
+  PrivateKeyVariants,
+  SigningScheme as AuthenticationKeyScheme,
+  AnyPublicKeyVariant,
+} from "../../types";
 import { PublicKey, VerifySignatureAsyncArgs } from "./publicKey";
 import { PrivateKey } from "./privateKey";
 import { Signature } from "./signature";
@@ -42,16 +47,18 @@ export class Secp256r1PublicKey extends PublicKey {
     super();
 
     const hex = Hex.fromHexInput(hexInput);
-    if (
-      hex.toUint8Array().length !== Secp256r1PublicKey.LENGTH &&
-      hex.toUint8Array().length !== Secp256r1PublicKey.COMPRESSED_LENGTH
-    ) {
-      throw new Error(`PublicKey length should be ${Secp256r1PublicKey.LENGTH}`);
+    const keyLength = hex.toUint8Array().length;
+    if (keyLength !== Secp256r1PublicKey.LENGTH && keyLength !== Secp256r1PublicKey.COMPRESSED_LENGTH) {
+      throw new Error(
+        `PublicKey length should be ${Secp256r1PublicKey.LENGTH} or ${Secp256r1PublicKey.COMPRESSED_LENGTH}, received ${keyLength}`,
+      );
     }
-    this.key = hex;
-    if (hex.toUint8Array().length === Secp256r1PublicKey.COMPRESSED_LENGTH) {
+
+    if (keyLength === Secp256r1PublicKey.COMPRESSED_LENGTH) {
       const point = p256.ProjectivePoint.fromHex(hex.toUint8Array());
       this.key = Hex.fromHexInput(point.toRawBytes(false));
+    } else {
+      this.key = hex;
     }
   }
 
@@ -242,8 +249,9 @@ export class Secp256r1PrivateKey extends PrivateKey {
     super();
 
     const privateKeyHex = PrivateKey.parseHexInput(hexInput, PrivateKeyVariants.Secp256r1, strict);
-    if (privateKeyHex.toUint8Array().length !== Secp256r1PrivateKey.LENGTH) {
-      throw new Error(`PrivateKey length should be ${Secp256r1PrivateKey.LENGTH}`);
+    const keyLength = privateKeyHex.toUint8Array().length;
+    if (keyLength !== Secp256r1PrivateKey.LENGTH) {
+      throw new Error(`PrivateKey length should be ${Secp256r1PrivateKey.LENGTH}, received ${keyLength}`);
     }
 
     this.key = privateKeyHex;
@@ -430,8 +438,9 @@ export class Secp256r1Signature extends Signature {
     super();
 
     const hex = Hex.fromHexInput(hexInput);
-    if (hex.toUint8Array().length !== Secp256r1Signature.LENGTH) {
-      throw new Error(`Signature length should be ${Secp256r1Signature.LENGTH}, recieved ${hex.toUint8Array().length}`);
+    const signatureLength = hex.toUint8Array().length;
+    if (signatureLength !== Secp256r1Signature.LENGTH) {
+      throw new Error(`Signature length should be ${Secp256r1Signature.LENGTH}, received ${signatureLength}`);
     }
     const signature = p256.Signature.fromCompact(hex.toUint8Array()).normalizeS().toCompactRawBytes();
     this.data = Hex.fromHexInput(signature);
@@ -482,17 +491,5 @@ export class Secp256r1Signature extends Signature {
   static deserialize(deserializer: Deserializer): Secp256r1Signature {
     const hex = deserializer.deserializeBytes();
     return new Secp256r1Signature(hex);
-  }
-
-  /**
-   * Loads a Secp256r1Signature from the provided deserializer.
-   *
-   * @param deserializer - The deserializer instance used to read the serialized data.
-   * @group Implementation
-   * @category Serialization
-   */
-  static load(deserializer: Deserializer): Secp256r1Signature {
-    const bytes = deserializer.deserializeBytes();
-    return new Secp256r1Signature(bytes);
   }
 }

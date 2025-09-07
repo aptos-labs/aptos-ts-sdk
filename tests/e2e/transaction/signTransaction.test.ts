@@ -228,7 +228,7 @@ describe("sign transaction", () => {
       // Generate a Secp256r1 key pair
       const privateKey = Secp256r1PrivateKey.generate();
       const publicKey = privateKey.publicKey();
-      
+
       // Create a simple transaction for signing
       const transaction = await aptos.transaction.build.simple({
         sender: publicKey.authKey().derivedAddress(),
@@ -244,7 +244,7 @@ describe("sign transaction", () => {
 
       // Generate signing message
       const message = generateSigningMessageForTransaction(transaction);
-      
+
       // Create WebAuthn client data
       const clientDataObj = {
         type: "webauthn.get",
@@ -253,11 +253,11 @@ describe("sign transaction", () => {
         crossOrigin: false,
       };
       const clientDataJSON = new TextEncoder().encode(JSON.stringify(clientDataObj));
-      
+
       // Use fixed authenticator data for testing
       const authenticatorData = new Uint8Array([
-        73, 150, 13, 229, 136, 14, 140, 104, 116, 52, 23, 15, 100, 118, 96, 91, 143, 228, 174, 185, 162, 134, 50, 199, 153, 92, 243, 186, 131,
-        29, 151, 99, 29, 0, 0, 0, 0,
+        73, 150, 13, 229, 136, 14, 140, 104, 116, 52, 23, 15, 100, 118, 96, 91, 143, 228, 174, 185, 162, 134, 50, 199,
+        153, 92, 243, 186, 131, 29, 151, 99, 29, 0, 0, 0, 0,
       ]);
 
       // Create WebAuthn signature
@@ -270,7 +270,7 @@ describe("sign transaction", () => {
       // Test serialization/deserialization
       const serializer = new Deserializer(webAuthnSignature.bcsToBytes());
       const deserializedSignature = WebAuthnSignature.deserialize(serializer);
-      
+
       expect(deserializedSignature.authenticatorData.toUint8Array()).toEqual(authenticatorData);
       expect(deserializedSignature.clientDataJSON.toUint8Array()).toEqual(clientDataJSON);
     });
@@ -278,7 +278,7 @@ describe("sign transaction", () => {
     test("it creates AccountAuthenticatorSingleKey with WebAuthn signature", async () => {
       const privateKey = Secp256r1PrivateKey.generate();
       const publicKey = privateKey.publicKey();
-      
+
       const transaction = await aptos.transaction.build.simple({
         sender: publicKey.authKey().derivedAddress(),
         data: {
@@ -296,7 +296,7 @@ describe("sign transaction", () => {
       };
       const clientDataJSON = new TextEncoder().encode(JSON.stringify(clientDataObj));
       const authenticatorData = new Uint8Array(37); // Standard length
-      
+
       const webAuthnSignature = new WebAuthnSignature(
         new Uint8Array(64), // Placeholder signature
         authenticatorData,
