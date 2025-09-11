@@ -171,8 +171,8 @@ export const singleSignerSecp256r1 = {
   publicKey:
     "0x046c761075b12769e9d0cc9995706275352e1bfb8e0085420625aa9cf849e6d62c2c140f0b3b7c53faf78c16648343966d769ccbc8f2fd14bb2c38f6befb91c77b",
   privateKey: "secp256r1-priv-0xa814fde3edc91aedf78c0e75bacbcf5e479cd4b27746961cfa1dc8e9b0e4481c",
-  address: "",
-  authKey: "",
+  address: "0x9a5f9a9614e34f77295791db551e7072ff48d9801b19be97b38db1c05dfde817",
+  authKey: "0x9a5f9a9614e34f77295791db551e7072ff48d9801b19be97b38db1c05dfde817",
   messageEncoded: "68656c6c6f20776f726c64", // "hello world"
   signatureHex:
     "0x4fc4bc5f8ed851aec68c64499fa56360b11ea0c8b73fe3f93279e97b700582e55cb9e2ada7ae38951c2bc33d7755529fffc6201504180405c7960715ae0d4ff5",
