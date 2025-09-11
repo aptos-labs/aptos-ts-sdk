@@ -1,7 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-
 import {
   Account,
   AccountAddress,
@@ -202,7 +201,14 @@ describe("Account", () => {
     });
 
     it("signs a message with single signer Secp256r1 scheme and verifies successfully", () => {
-      const { privateKey: privateKeyBytes, address, authKey: expectedAuthKey, publicKey: expectedPublicKey, messageEncoded, signatureHex } = singleSignerSecp256r1;
+      const {
+        privateKey: privateKeyBytes,
+        address,
+        authKey: expectedAuthKey,
+        publicKey: expectedPublicKey,
+        messageEncoded,
+        signatureHex,
+      } = singleSignerSecp256r1;
       const privateKey = new Secp256r1PrivateKey(privateKeyBytes);
       const publicKey = privateKey.publicKey();
       const authKey = AuthenticationKey.fromPublicKey({ publicKey: publicKey as unknown as AccountPublicKey });
