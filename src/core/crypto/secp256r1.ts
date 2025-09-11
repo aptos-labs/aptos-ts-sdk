@@ -34,6 +34,9 @@ export class Secp256r1PublicKey extends PublicKey {
   // Hex value of the public key
   private readonly key: Hex;
 
+  // Identifier to distinguish from Secp256k1PublicKey
+  public readonly keyType: string = "secp256r1";
+
   /**
    * Create a new PublicKey instance from a HexInput, which can be a string or Uint8Array.
    * This constructor validates the length of the provided public key data.
@@ -183,15 +186,12 @@ export class Secp256r1PublicKey extends PublicKey {
    * @category Serialization
    */
   static isInstance(publicKey: PublicKey): publicKey is Secp256r1PublicKey {
-    if ("key" in publicKey && publicKey.key instanceof Hex) {
-      try {
-        p256.ProjectivePoint.fromHex(publicKey.key.toUint8Array());
-        return true;
-      } catch (error) {
-        return false;
-      }
-    }
-    return false;
+    return (
+      "key" in publicKey &&
+      (publicKey.key as any)?.data?.length === Secp256r1PublicKey.LENGTH &&
+      "keyType" in publicKey &&
+      (publicKey as any).keyType === "secp256r1"
+    );
   }
 
   /**
