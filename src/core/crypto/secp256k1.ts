@@ -174,12 +174,7 @@ export class Secp256k1PublicKey extends PublicKey {
    * @category Serialization
    */
   static isInstance(publicKey: PublicKey): publicKey is Secp256k1PublicKey {
-    return (
-      "key" in publicKey &&
-      (publicKey.key as any)?.data?.length === Secp256k1PublicKey.LENGTH &&
-      "keyType" in publicKey &&
-      (publicKey as any).keyType === "secp256k1"
-    );
+    return "key" in publicKey && (publicKey.key as any)?.data?.length === Secp256k1PublicKey.LENGTH;
   }
 }
 
