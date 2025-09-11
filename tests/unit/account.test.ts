@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountPublicKey, AuthenticationKey } from "../../dist/esm/index.mjs";
+
 import {
   Account,
   AccountAddress,
@@ -19,6 +19,8 @@ import {
   MultiKeyAccount,
   MultiEd25519PublicKey,
   KeylessAccount,
+  AuthenticationKey,
+  AccountPublicKey,
 } from "../../src";
 import { MultiEd25519Account } from "../../src/account/MultiEd25519Account";
 
