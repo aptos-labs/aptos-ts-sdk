@@ -835,15 +835,15 @@ export class Account {
         async () => {
           try {
             const pairedCoinTypeStruct = (
-              await view({
+              await view<[{ vec: [MoveStructId] }]>({
                 aptosConfig: this.config,
                 payload: { function: "0x1::coin::paired_coin", functionArguments: [faMetadataAddress] },
               })
-            ).at(0) as { vec: MoveValue[] };
+            )[0];
 
             // Check if the Option has a value, and if so, parse the struct
             if (pairedCoinTypeStruct.vec.length > 0 && isEncodedStruct(pairedCoinTypeStruct.vec[0])) {
-              return parseEncodedStruct(pairedCoinTypeStruct.vec[0]) as MoveStructId;
+              return parseEncodedStruct(pairedCoinTypeStruct.vec[0]);
             }
           } catch (error) {
             /* No paired coin type found */

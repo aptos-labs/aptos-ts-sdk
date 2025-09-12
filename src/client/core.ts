@@ -94,7 +94,7 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
   // to support both fullnode and indexer responses,
   // check if it is an indexer query, and adjust response.data
   if (apiType === AptosApiType.INDEXER) {
-    const indexerResponse = aptosResponse.data as any;
+    const indexerResponse = aptosResponse.data as { errors?: string[]; data?: Res };
     // Handle Indexer general errors
     if (indexerResponse.errors) {
       throw new AptosApiError({

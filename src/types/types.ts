@@ -1561,7 +1561,7 @@ export type Block = {
   /**
    * The transactions in the block in sequential order
    */
-  transactions?: Array<TransactionResponse>;
+  transactions?: Array<CommittedTransactionResponse>;
 };
 
 // REQUEST TYPES

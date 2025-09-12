@@ -14,11 +14,11 @@ import { getFunctionParts } from "../utils/helpers";
 export async function addAuthenticationFunctionTransaction(args: {
   aptosConfig: AptosConfig;
   sender: AccountAddressInput;
-  authenticationFunction: string;
+  authenticationFunction: MoveFunctionId;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
   const { aptosConfig, sender, authenticationFunction, options } = args;
-  const { moduleAddress, moduleName, functionName } = getFunctionParts(authenticationFunction as MoveFunctionId);
+  const { moduleAddress, moduleName, functionName } = getFunctionParts(authenticationFunction);
   return generateTransaction({
     aptosConfig,
     sender,
@@ -38,11 +38,11 @@ export async function addAuthenticationFunctionTransaction(args: {
 export async function removeAuthenticationFunctionTransaction(args: {
   aptosConfig: AptosConfig;
   sender: AccountAddressInput;
-  authenticationFunction: string;
+  authenticationFunction: MoveFunctionId;
   options?: InputGenerateTransactionOptions;
 }) {
   const { aptosConfig, sender, authenticationFunction, options } = args;
-  const { moduleAddress, moduleName, functionName } = getFunctionParts(authenticationFunction as MoveFunctionId);
+  const { moduleAddress, moduleName, functionName } = getFunctionParts(authenticationFunction);
   return generateTransaction({
     aptosConfig,
     sender,

@@ -204,7 +204,7 @@ export class Transaction {
    * ```
    * @group Transaction
    */
-  async getTransactions(args?: { options?: PaginationArgs }): Promise<TransactionResponse[]> {
+  async getTransactions(args?: { options?: PaginationArgs }): Promise<CommittedTransactionResponse[]> {
     return getTransactions({
       aptosConfig: this.config,
       ...args,

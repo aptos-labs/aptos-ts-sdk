@@ -34,7 +34,7 @@ export class AccountAbstraction {
    */
   public async addAuthenticationFunctionTransaction(args: {
     accountAddress: AccountAddressInput;
-    authenticationFunction: string;
+    authenticationFunction: MoveFunctionId;
     options?: InputGenerateTransactionOptions;
   }) {
     const { accountAddress, authenticationFunction, options } = args;
@@ -67,7 +67,7 @@ export class AccountAbstraction {
    */
   public async removeAuthenticationFunctionTransaction(args: {
     accountAddress: AccountAddressInput;
-    authenticationFunction: string;
+    authenticationFunction: MoveFunctionId;
     options?: InputGenerateTransactionOptions;
   }) {
     const { accountAddress, authenticationFunction, options } = args;
@@ -166,10 +166,10 @@ export class AccountAbstraction {
    */
   public isAccountAbstractionEnabled = async (args: {
     accountAddress: AccountAddressInput;
-    authenticationFunction: string;
+    authenticationFunction: MoveFunctionId;
   }) => {
     const functionInfos = await this.getAuthenticationFunction(args);
-    const { moduleAddress, moduleName, functionName } = getFunctionParts(args.authenticationFunction as MoveFunctionId);
+    const { moduleAddress, moduleName, functionName } = getFunctionParts(args.authenticationFunction);
     return (
       functionInfos?.some(
         (functionInfo) =>
@@ -223,7 +223,7 @@ export class AccountAbstraction {
    */
   public disableAccountAbstractionTransaction = async (args: {
     accountAddress: AccountAddressInput;
-    authenticationFunction?: string;
+    authenticationFunction?: MoveFunctionId;
     options?: InputGenerateTransactionOptions;
   }) => {
     const { accountAddress, authenticationFunction, options } = args;

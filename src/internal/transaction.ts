@@ -41,9 +41,9 @@ import { getIndexerLastSuccessVersion, getProcessorStatus } from "./general";
 export async function getTransactions(args: {
   aptosConfig: AptosConfig;
   options?: PaginationArgs;
-}): Promise<TransactionResponse[]> {
+}): Promise<CommittedTransactionResponse[]> {
   const { aptosConfig, options } = args;
-  return paginateWithCursor<{}, TransactionResponse[]>({
+  return paginateWithCursor<{}, CommittedTransactionResponse[]>({
     aptosConfig,
     originMethod: "getTransactions",
     path: "transactions",
@@ -456,12 +456,12 @@ async function fillBlockTransactions(args: {
     // Transactions should be filled, but this ensures it
     block.transactions = block.transactions ?? [];
 
-    const lastTxn = block.transactions[block.transactions.length - 1];
+    const lastTxn = block.transactions[block.transactions.length - 1] as CommittedTransactionResponse;
     const firstVersion = BigInt(block.first_version);
     const lastVersion = BigInt(block.last_version);
 
     // Convert the transaction to the type
-    const curVersion: string | undefined = (lastTxn as any)?.version;
+    const curVersion: string | undefined = lastTxn.version;
     let latestVersion;
 
     // This time, if we don't have any transactions, we will try once with the start of the block
