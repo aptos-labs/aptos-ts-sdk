@@ -13,6 +13,7 @@ describe("abstraction api", () => {
   const { aptos } = getAptosClient({ network: Network.LOCAL });
 
   describe("account abstraction", () => {
+    // disable permission delegation write until it is fixed in prologue
     describe("enable and disable account abstraction", () => {
       const alice = Ed25519Account.generate();
 
@@ -182,6 +183,7 @@ describe("abstraction api", () => {
       });
     });
 
+    // disable permission delegation write until it is fixed in prologue
     describe("enable permissioned delegation and send a transaction with permissions", () => {
       const alice = Ed25519Account.generate();
       const bob = Ed25519Account.generate();
