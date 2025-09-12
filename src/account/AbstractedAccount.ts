@@ -4,11 +4,15 @@ import { AbstractPublicKey, AbstractSignature } from "../core/crypto/abstraction
 import { SigningScheme, HexInput, MoveFunctionId } from "../types";
 import { Account } from "./Account";
 import { AnyRawTransaction } from "../transactions/types";
-import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
-import { AccountAuthenticatorAbstraction } from "../transactions/authenticator/account";
+import {
+  generateSigningMessage,
+  generateSigningMessageForTransaction,
+} from "../transactions/transactionBuilder/signingMessage";
+import { AccountAbstractionMessage, AccountAuthenticatorAbstraction } from "../transactions/authenticator/account";
 import { Ed25519Account } from "./Ed25519Account";
 import { Serializer } from "../bcs/serializer";
 import { isValidFunctionInfo } from "../utils/helpers";
+import { ACCOUNT_ABSTRACTION_SIGNING_DATA_SALT } from "../utils/const";
 
 type AbstractedAccountConstructorArgs = {
   /**
@@ -81,6 +85,11 @@ export class AbstractedAccount extends Account {
     });
   }
 
+  public static generateAccountAbstractionMessage(message: HexInput, functionInfo: string): HexInput {
+    const accountAbstractionMessage = new AccountAbstractionMessage(message, functionInfo);
+    return generateSigningMessage(accountAbstractionMessage.bcsToBytes(), ACCOUNT_ABSTRACTION_SIGNING_DATA_SALT);
+  }
+
   signWithAuthenticator(message: HexInput): AccountAuthenticatorAbstraction {
     return new AccountAuthenticatorAbstraction(
       this.authenticationFunction,
@@ -90,7 +99,11 @@ export class AbstractedAccount extends Account {
   }
 
   signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorAbstraction {
-    return this.signWithAuthenticator(generateSigningMessageForTransaction(transaction));
+    const message = AbstractedAccount.generateAccountAbstractionMessage(
+      generateSigningMessageForTransaction(transaction),
+      this.authenticationFunction,
+    );
+    return this.signWithAuthenticator(message);
   }
 
   sign: (message: HexInput) => AbstractSignature;

@@ -9,7 +9,7 @@ import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { MultiEd25519PublicKey, MultiEd25519Signature } from "../../core/crypto/multiEd25519";
 import { MultiKey, MultiKeySignature } from "../../core/crypto/multiKey";
 import { AccountAuthenticatorVariant, HexInput, MoveFunctionId } from "../../types";
-import { AbstractionAuthDataVariant } from "../../types/abstraction";
+import { AASigningDataVariant, AbstractAuthenticationDataVariant } from "../../types/abstraction";
 import { AccountAddress, Hex } from "../../core";
 import { getFunctionParts, isValidFunctionInfo } from "../../utils/helpers";
 
@@ -269,12 +269,22 @@ export class AccountAuthenticatorNoAccountAuthenticator extends AccountAuthentic
   }
 }
 
+/**
+ * Represents an account authenticator that supports abstract authentication.
+ *
+ * @param functionInfo - The function info of the authentication function.
+ * @param signingMessageDigest - The digest of the signing message.
+ * @param abstractionSignature - The signature of the authentication function.
+ * @param accountIdentity - optional. The account identity for DAA.
+ * @group Implementation
+ * @category Transactions
+ */
 export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
   public readonly functionInfo: MoveFunctionId;
 
   public readonly signingMessageDigest: Hex;
 
-  public readonly authenticator: Uint8Array;
+  public readonly abstractionSignature: Uint8Array;
 
   /**
    * DAA, which is extended of the AA module, requires an account identity
@@ -284,7 +294,7 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
   constructor(
     functionInfo: MoveFunctionId,
     signingMessageDigest: HexInput,
-    authenticator: Uint8Array,
+    abstractionSignature: Uint8Array,
     accountIdentity?: Uint8Array,
   ) {
     super();
@@ -292,7 +302,7 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
       throw new Error(`Invalid function info ${functionInfo} passed into AccountAuthenticatorAbstraction`);
     }
     this.functionInfo = functionInfo;
-    this.authenticator = authenticator;
+    this.abstractionSignature = abstractionSignature;
     this.signingMessageDigest = Hex.fromHexInput(Hex.fromHexInput(signingMessageDigest).toUint8Array());
     this.accountIdentity = accountIdentity;
   }
@@ -304,15 +314,15 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
     serializer.serializeStr(moduleName);
     serializer.serializeStr(functionName);
     if (this.accountIdentity) {
-      serializer.serializeU32AsUleb128(AbstractionAuthDataVariant.DerivableV1);
+      serializer.serializeU32AsUleb128(AbstractAuthenticationDataVariant.DerivableV1);
     } else {
-      serializer.serializeU32AsUleb128(AbstractionAuthDataVariant.V1);
+      serializer.serializeU32AsUleb128(AbstractAuthenticationDataVariant.V1);
     }
     serializer.serializeBytes(this.signingMessageDigest.toUint8Array());
     if (this.accountIdentity) {
-      serializer.serializeBytes(this.authenticator);
+      serializer.serializeBytes(this.abstractionSignature);
     } else {
-      serializer.serializeFixedBytes(this.authenticator);
+      serializer.serializeFixedBytes(this.abstractionSignature);
     }
 
     if (this.accountIdentity) {
@@ -321,31 +331,75 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
   }
 
   static load(deserializer: Deserializer): AccountAuthenticatorAbstraction {
+    // deserialize the function info
     const moduleAddress = AccountAddress.deserialize(deserializer);
     const moduleName = deserializer.deserializeStr();
     const functionName = deserializer.deserializeStr();
+    // deserialize the variant
     const variant = deserializer.deserializeUleb128AsU32();
-    if (variant === AbstractionAuthDataVariant.V1) {
-      const signingMessageDigest = deserializer.deserializeBytes();
-      const authenticator = deserializer.deserializeFixedBytes(deserializer.remaining());
+    // deserialize the signing message digest
+    const signingMessageDigest = deserializer.deserializeBytes();
+
+    if (variant === AbstractAuthenticationDataVariant.V1) {
+      const abstractionSignature = deserializer.deserializeFixedBytes(deserializer.remaining());
       return new AccountAuthenticatorAbstraction(
         `${moduleAddress}::${moduleName}::${functionName}`,
         signingMessageDigest,
-        authenticator,
+        abstractionSignature,
       );
     }
-    if (variant === AbstractionAuthDataVariant.DerivableV1) {
-      const signingMessageDigest = deserializer.deserializeBytes();
-      const abstractSignature = deserializer.deserializeBytes();
-
+    if (variant === AbstractAuthenticationDataVariant.DerivableV1) {
+      const abstractionSignature = deserializer.deserializeBytes();
       const abstractPublicKey = deserializer.deserializeBytes();
       return new AccountAuthenticatorAbstraction(
         `${moduleAddress}::${moduleName}::${functionName}`,
         signingMessageDigest,
-        abstractSignature,
+        abstractionSignature,
         abstractPublicKey,
       );
     }
     throw new Error(`Unknown variant index for AccountAuthenticatorAbstraction: ${variant}`);
+  }
+}
+
+/**
+ * Represents an account abstraction message that contains the original signing message and the function info.
+ *
+ * @param originalSigningMessage - The original signing message.
+ * @param functionInfo - The function info of the authentication function.
+ * @group Implementation
+ * @category Transactions
+ */
+export class AccountAbstractionMessage extends Serializable {
+  public readonly originalSigningMessage: Hex;
+
+  public readonly functionInfo: string;
+
+  constructor(originalSigningMessage: HexInput, functionInfo: string) {
+    super();
+    this.originalSigningMessage = Hex.fromHexInput(Hex.fromHexInput(originalSigningMessage).toUint8Array());
+    this.functionInfo = functionInfo;
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(AASigningDataVariant.V1);
+    serializer.serializeBytes(this.originalSigningMessage.toUint8Array());
+    const { moduleAddress, moduleName, functionName } = getFunctionParts(this.functionInfo as MoveFunctionId);
+    AccountAddress.fromString(moduleAddress).serialize(serializer);
+    serializer.serializeStr(moduleName);
+    serializer.serializeStr(functionName);
+  }
+
+  static deserialize(deserializer: Deserializer): AccountAbstractionMessage {
+    const variant = deserializer.deserializeUleb128AsU32();
+    if (variant !== AASigningDataVariant.V1) {
+      throw new Error(`Unknown variant index for AccountAbstractionMessage: ${variant}`);
+    }
+    const originalSigningMessage = deserializer.deserializeBytes();
+    const functionInfoModuleAddress = AccountAddress.deserialize(deserializer);
+    const functionInfoModuleName = deserializer.deserializeStr();
+    const functionInfoFunctionName = deserializer.deserializeStr();
+    const functionInfo = `${functionInfoModuleAddress}::${functionInfoModuleName}::${functionInfoFunctionName}`;
+    return new AccountAbstractionMessage(originalSigningMessage, functionInfo);
   }
 }
