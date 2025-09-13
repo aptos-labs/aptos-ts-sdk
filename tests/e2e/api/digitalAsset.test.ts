@@ -57,7 +57,7 @@ async function setupToken(): Promise<string> {
   )[0].current_token_data?.token_data_id!;
 }
 
-jest.setTimeout(20000);
+// Vitest timeout is configured in vitest.config.ts
 
 describe("DigitalAsset", () => {
   let tokenAddress: string;

@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { longTestTimeout } from "../../unit/helper";
 import { Account } from "../../../src/account";
 import * as AccountQueries from "../../../src/internal/account";
@@ -9,7 +10,7 @@ const { aptos, config: aptosConfig } = getAptosClient();
 const account = Account.generate();
 
 const accountSequenceNumber = new AccountSequenceNumber(aptosConfig, account, 30, 100, 10);
-let getAccountInfoSpy: jest.SpyInstance;
+let getAccountInfoSpy: any;
 
 let lastSeqNumber: bigint | null;
 
@@ -19,11 +20,11 @@ describe("account sequence number", () => {
   }, longTestTimeout);
 
   beforeEach(() => {
-    getAccountInfoSpy = jest.spyOn(AccountQueries, "getInfo");
+    getAccountInfoSpy = vi.spyOn(AccountQueries, "getInfo");
   });
 
   afterEach(() => {
-    getAccountInfoSpy.mockRestore();
+    vi.restoreAllMocks();
   });
 
   it(

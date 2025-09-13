@@ -170,7 +170,7 @@ describe("abstraction api", () => {
           authenticationFunction,
         });
 
-        expect(async () => {
+        await expect(async () => {
           await aptos.transaction.signAndSubmitTransaction({
             signer: abstractAccount,
             transaction: await aptos.transferCoinTransaction({

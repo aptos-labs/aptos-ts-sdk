@@ -17,7 +17,7 @@ import { getAptosClient } from "../helper";
 import { publishAnsContract } from "./publishANSContracts";
 
 // This isn't great, we should look into deploying outside the test
-jest.setTimeout(20000);
+// Vitest timeout is configured in vitest.config.ts
 
 describe.skip("ANS", () => {
   const { aptos, config } = getAptosClient();
@@ -619,7 +619,7 @@ describe.skip("ANS", () => {
         }),
       );
 
-      expect(aptos.renewDomain({ name, sender: alice })).rejects.toThrow();
+      await expect(aptos.renewDomain({ name, sender: alice })).rejects.toThrow();
     });
   });
 

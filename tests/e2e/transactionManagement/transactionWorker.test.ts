@@ -21,7 +21,7 @@ describe("transactionWorker", () => {
       // start transactions worker
       const transactionWorker = new TransactionWorker(aptosConfig, sender);
       transactionWorker.start();
-      expect(async () => {
+      await expect(async () => {
         transactionWorker.start();
       }).rejects.toThrow("worker has already started");
     },
@@ -35,7 +35,7 @@ describe("transactionWorker", () => {
       const transactionWorker = new TransactionWorker(aptosConfig, sender);
       transactionWorker.start();
       transactionWorker.stop();
-      expect(async () => {
+      await expect(async () => {
         transactionWorker.stop();
       }).rejects.toThrow("worker has already stopped");
     },
@@ -61,10 +61,7 @@ describe("transactionWorker", () => {
 
   test(
     "submits 5 transactions to chain for a single account",
-    (done) => {
-      // Specify the number of assertions expected
-      expect.assertions(1);
-
+    async () => {
       // create 5 transactions
       const txn: InputGenerateTransactionPayloadData = {
         function: "0x1::aptos_account::transfer",
@@ -87,26 +84,29 @@ describe("transactionWorker", () => {
         transactionWorker.push(payload);
       }
 
-      // stop transaction worker for testing purposes.
-      setTimeout(async () => {
-        transactionWorker.stop();
-        const accountData = await aptos.getAccountInfo({ accountAddress: sender.accountAddress });
-        // call done() when all asynchronous operations are finished
-        done();
-        // expect sender sequence number to be 10
-        expect(accountData.sequence_number).toBe("10");
+      // Wait for transactions to be processed
+      await new Promise<void>((resolve) => {
+        setTimeout(async () => {
+          transactionWorker.stop();
+          const accountData = await aptos.getAccountInfo({ accountAddress: sender.accountAddress });
 
-        // Check all are successful
-        const txns = await aptos.getAccountTransactions({ accountAddress: sender.accountAddress });
-        txns.forEach((userTxn) => {
-          if (userTxn.type === TransactionResponseType.User) {
-            expect(userTxn.success).toBe(true);
-          } else {
-            // All of these should be user transactions, but in the event the API returns an invalid transaction
-            throw new Error(`Transaction is not a user transaction ${userTxn.type}`);
-          }
-        });
-      }, 1000 * 30);
+          // expect sender sequence number to be 10
+          expect(accountData.sequence_number).toBe("10");
+
+          // Check all are successful
+          const txns = await aptos.getAccountTransactions({ accountAddress: sender.accountAddress });
+          txns.forEach((userTxn) => {
+            if (userTxn.type === TransactionResponseType.User) {
+              expect(userTxn.success).toBe(true);
+            } else {
+              // All of these should be user transactions, but in the event the API returns an invalid transaction
+              throw new Error(`Transaction is not a user transaction ${userTxn.type}`);
+            }
+          });
+
+          resolve();
+        }, 1000 * 30);
+      });
     },
     longTestTimeout,
   );

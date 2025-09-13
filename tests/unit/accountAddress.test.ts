@@ -178,11 +178,13 @@ describe("AccountAddress fromString", () => {
 
 // These tests ensure that the constant special addresses in the static AccountAddress class are correct.
 describe("AccountAddress static special addresses", () => {
-  expect(AccountAddress.ZERO.toString()).toBe(ADDRESS_ZERO.shortWith0x);
-  expect(AccountAddress.ONE.toString()).toBe(ADDRESS_ONE.shortWith0x);
-  expect(AccountAddress.TWO.toString()).toBe(ADDRESS_TWO.shortWith0x);
-  expect(AccountAddress.THREE.toString()).toBe(ADDRESS_THREE.shortWith0x);
-  expect(AccountAddress.FOUR.toString()).toBe(ADDRESS_FOUR.shortWith0x);
+  test("should have correct static special addresses", () => {
+    expect(AccountAddress.ZERO.toString()).toBe(ADDRESS_ZERO.shortWith0x);
+    expect(AccountAddress.ONE.toString()).toBe(ADDRESS_ONE.shortWith0x);
+    expect(AccountAddress.TWO.toString()).toBe(ADDRESS_TWO.shortWith0x);
+    expect(AccountAddress.THREE.toString()).toBe(ADDRESS_THREE.shortWith0x);
+    expect(AccountAddress.FOUR.toString()).toBe(ADDRESS_FOUR.shortWith0x);
+  });
 });
 
 // These tests show that fromString only parses addresses with a leading 0x and only

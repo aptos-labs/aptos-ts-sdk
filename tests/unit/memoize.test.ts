@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { memoizeAsync, memoize } from "../../src/utils/memoize";
+import { vi } from "vitest";
 
 describe("memoize", () => {
   describe("memoizeAsync", () => {
     // Define an asynchronous function to mock
-    const asyncFunction = jest.fn(async (arg) => {
+    const asyncFunction = vi.fn(async (arg) => {
       // Simulate some asynchronous operation to be resolved after 100 ms
       await new Promise((resolve) => {
         setTimeout(resolve, 100);
@@ -15,14 +16,14 @@ describe("memoize", () => {
     });
 
     beforeEach(() => {
-      // needed because of a weird bug with jest https://github.com/jestjs/jest/pull/12572
-      jest.useFakeTimers({ doNotFake: ["setTimeout", "performance"] });
+      // Use fake timers for testing
+      vi.useFakeTimers();
     });
 
     afterEach(() => {
       // Restore real timers and clear all timers after each test
-      jest.useRealTimers();
-      jest.clearAllTimers();
+      vi.useRealTimers();
+      vi.clearAllTimers();
       asyncFunction.mockClear();
     });
 
@@ -31,10 +32,14 @@ describe("memoize", () => {
       const memoizedAsyncFunction = memoizeAsync(asyncFunction, "asyncFunction1", 200);
 
       // Call the memoized function with an argument
-      const result1 = await memoizedAsyncFunction("arg1");
+      const promise1 = memoizedAsyncFunction("arg1");
+
+      // Advance timers to complete the async operation
+      await vi.advanceTimersByTimeAsync(100);
+      const result1 = await promise1;
 
       // Advance the timers by 50 milliseconds (before the TTL)
-      jest.advanceTimersByTime(50);
+      vi.advanceTimersByTime(50);
 
       // Call the memoized function again with the same argument
       const result2 = await memoizedAsyncFunction("arg2");
@@ -52,13 +57,17 @@ describe("memoize", () => {
       const memoizedAsyncFunction = memoizeAsync(asyncFunction, "asyncFunction2", 200);
 
       // Call the memoized function with an argument
-      const result1 = await memoizedAsyncFunction("arg1");
+      const promise1 = memoizedAsyncFunction("arg1");
+      await vi.advanceTimersByTimeAsync(100);
+      const result1 = await promise1;
 
       // Advance the timers by 250 milliseconds (beyond the TTL)
-      jest.advanceTimersByTime(250);
+      vi.advanceTimersByTime(250);
 
       // Call the memoized function again with the same argument
-      const result2 = await memoizedAsyncFunction("arg2");
+      const promise2 = memoizedAsyncFunction("arg2");
+      await vi.advanceTimersByTimeAsync(100);
+      const result2 = await promise2;
 
       // Ensure the function was executed again after TTL
       expect(result1).toBe("arg1"); // Result from the first call
@@ -72,10 +81,12 @@ describe("memoize", () => {
       const memoizedAsyncFunction = memoizeAsync(asyncFunction, "asyncFunction3");
 
       // Call the memoized function with an argument
-      const result1 = await memoizedAsyncFunction("arg1");
+      const promise1 = memoizedAsyncFunction("arg1");
+      await vi.advanceTimersByTimeAsync(100);
+      const result1 = await promise1;
 
       // Advance the timers by 250 milliseconds (beyond the TTL)
-      jest.advanceTimersByTime(250);
+      vi.advanceTimersByTime(250);
 
       // Call the memoized function again with the same argument
       const result2 = await memoizedAsyncFunction("arg2");
@@ -93,10 +104,14 @@ describe("memoize", () => {
       const memoizedAsyncFunction5 = memoizeAsync(asyncFunction, "asyncFunction5");
 
       // Call memoized function with an argument
-      const result1 = await memoizedAsyncFunction4("arg1");
+      const promise1 = memoizedAsyncFunction4("arg1");
+      await vi.advanceTimersByTimeAsync(100);
+      const result1 = await promise1;
 
       // Call another memoized function with an argument
-      const result2 = await memoizedAsyncFunction5("arg2");
+      const promise2 = memoizedAsyncFunction5("arg2");
+      await vi.advanceTimersByTimeAsync(100);
+      const result2 = await promise2;
 
       // Ensure the function was executed twice
       expect(result1).toBe("arg1"); // Result from the first call
@@ -109,17 +124,17 @@ describe("memoize", () => {
 
   describe("memoize", () => {
     // Define a function to mock
-    const func = jest.fn((arg) => arg);
+    const func = vi.fn((arg) => arg);
 
     beforeEach(() => {
-      // needed because of a weird bug with jest https://github.com/jestjs/jest/pull/12572
-      jest.useFakeTimers({ doNotFake: ["performance"] });
+      // Use fake timers for testing
+      vi.useFakeTimers();
     });
 
     afterEach(() => {
       // Restore real timers and clear all timers after each test
-      jest.useRealTimers();
-      jest.clearAllTimers();
+      vi.useRealTimers();
+      vi.clearAllTimers();
       func.mockClear();
     });
 
@@ -131,7 +146,7 @@ describe("memoize", () => {
       const result1 = memoizedFunction("arg1");
 
       // Advance the timers by 50 milliseconds (before the TTL)
-      jest.advanceTimersByTime(50);
+      vi.advanceTimersByTime(50);
 
       // Call the memoized function again with the same argument
       const result2 = memoizedFunction("arg2");
@@ -152,7 +167,7 @@ describe("memoize", () => {
       const result1 = memoizedFunction("arg1");
 
       // Advance the timers by 250 milliseconds (beyond the TTL)
-      jest.advanceTimersByTime(250);
+      vi.advanceTimersByTime(250);
 
       // Call the memoized function again with the same argument
       const result2 = memoizedFunction("arg2");
@@ -172,7 +187,7 @@ describe("memoize", () => {
       const result1 = memoizedFunction("arg1");
 
       // Advance the timers by 250 milliseconds (beyond the TTL)
-      jest.advanceTimersByTime(250);
+      vi.advanceTimersByTime(250);
 
       // Call the memoized function again with the same argument
       const result2 = memoizedFunction("arg2");
