@@ -24,6 +24,7 @@
     "keyless": "ts-node keyless.ts",
     "keyless_mainnet": "ts-node keyless_mainnet.ts",
     "local_node": "ts-node local_node.ts",
+    "rotate_key": "ts-node rotate_key.ts",
     "swap": "ts-node swap.ts",
     "test": "run-s simple_transfer simple_orderless_transfer multi_agent_transfer simple_sponsored_transaction transfer_coin custom_client publish_package_from_filepath external_signing sign_struct your_coin your_fungible_asset public_key_authenticator_account_abstraction hello_world_authenticator_account_abstraction"
   },

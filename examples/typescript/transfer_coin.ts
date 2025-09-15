@@ -5,7 +5,15 @@
  * Similar to ./simple_transfer.ts, but uses transferCoinTransaction to generate the transaction.
  */
 
-import { Account, AccountAddress, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
+import {
+  Account,
+  AccountAddress,
+  Aptos,
+  AptosConfig,
+  Network,
+  NetworkToNetworkName,
+  TransactionManager,
+} from "@aptos-labs/ts-sdk";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -17,6 +25,7 @@ const TRANSFER_AMOUNT = 1_000_000;
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
+const txnManager = TransactionManager.new(aptos).defaultFundAmount(ALICE_INITIAL_BALANCE);
 
 /**
  * Prints the balance of an account
@@ -51,11 +60,7 @@ const example = async () => {
   // Fund the accounts
   console.log("\n=== Funding accounts ===\n");
 
-  // Fund alice account
-  await aptos.fundAccount({
-    accountAddress: alice.accountAddress,
-    amount: ALICE_INITIAL_BALANCE,
-  });
+  await txnManager.defaultSender(alice).fundAccount().submit();
 
   // Show the balances
   console.log("\n=== Initial Balances ===\n");
@@ -67,13 +72,14 @@ const example = async () => {
 
   // Transfer between users
   console.log(`\n=== Transfer ${TRANSFER_AMOUNT} from Alice to Bob ===\n`);
-  const transaction = await aptos.transferCoinTransaction({
-    sender: alice.accountAddress,
-    recipient: bob.accountAddress,
-    amount: TRANSFER_AMOUNT,
-  });
-  const pendingTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
-  const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+
+  const response = await txnManager
+    .transferCoinTransaction({
+      recipient: bob.accountAddress,
+      amount: TRANSFER_AMOUNT,
+    })
+    .submit();
+
   console.log(`Committed transaction: ${response.hash}`);
 
   console.log("\n=== Balances after transfer ===\n");

@@ -2,7 +2,15 @@
 /* eslint-disable max-len */
 import dotenv from "dotenv";
 dotenv.config();
-import { Account, AccountAddress, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
+import {
+  Account,
+  AccountAddress,
+  Aptos,
+  AptosConfig,
+  Network,
+  NetworkToNetworkName,
+  TransactionManager,
+} from "@aptos-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils";
 
 /**
@@ -22,22 +30,22 @@ const MOON_COINS_TO_TRANSFER = 100;
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
+const txnSender = TransactionManager.new(aptos);
 
 /** Register the receiver account to receive transfers for the new coin. */
 async function registerCoin(receiver: Account, coinTypeAddress: AccountAddress): Promise<string> {
-  const transaction = await aptos.transaction.build.simple({
-    sender: receiver.accountAddress,
-    data: {
-      function: "0x1::managed_coin::register",
-      typeArguments: [`${coinTypeAddress}::moon_coin::MoonCoin`],
-      functionArguments: [],
-    },
-  });
+  const response = await txnSender
+    .build({
+      data: {
+        function: "0x1::managed_coin::register",
+        typeArguments: [`${coinTypeAddress}::moon_coin::MoonCoin`],
+        functionArguments: [],
+      },
+    })
+    .sender(receiver)
+    .submit();
 
-  const senderAuthenticator = aptos.transaction.sign({ signer: receiver, transaction });
-  const pendingTxn = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
-
-  return pendingTxn.hash;
+  return response.hash;
 }
 
 /** Transfer the newly created coin to a specified receiver address */
@@ -46,19 +54,18 @@ async function transferCoin(
   receiverAddress: AccountAddress,
   amount: number | bigint,
 ): Promise<string> {
-  const transaction = await aptos.transaction.build.simple({
-    sender: sender.accountAddress,
-    data: {
-      function: "0x1::aptos_account::transfer_coins",
-      typeArguments: [`${sender.accountAddress}::moon_coin::MoonCoin`],
-      functionArguments: [receiverAddress, amount],
-    },
-  });
+  const response = await txnSender
+    .build({
+      data: {
+        function: "0x1::aptos_account::transfer_coins",
+        typeArguments: [`${sender.accountAddress}::moon_coin::MoonCoin`],
+        functionArguments: [receiverAddress, amount],
+      },
+    })
+    .sender(sender)
+    .submit();
 
-  const senderAuthenticator = aptos.transaction.sign({ signer: sender, transaction });
-  const pendingTxn = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
-
-  return pendingTxn.hash;
+  return response.hash;
 }
 
 /** Mints amount of the newly created coin to a specified receiver address */
