@@ -32,8 +32,6 @@ export class Secp256k1PublicKey extends PublicKey {
   // Hex value of the public key
   private readonly key: Hex;
 
-  // Identifier to distinguish from Secp256k1PublicKey
-  public readonly keyType: string = "secp256k1";
 
   /**
    * Create a new PublicKey instance from a HexInput, which can be a string or Uint8Array.
