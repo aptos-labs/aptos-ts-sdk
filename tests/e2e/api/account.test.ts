@@ -279,14 +279,12 @@ describe("account api", () => {
       const getInvalidCoinAmount = aptos.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
         coinType: "0x12345::coin::Coin",
-        minimumLedgerVersion: BigInt(fundTxn.version),
       });
       await expect(getInvalidCoinAmount).rejects.toThrow();
       // custom coin type struct that does exist, but is not a coin, will return 0, similar to a coin that exists
       const getOtherCoinAmount = await aptos.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
         coinType: "0x1::string::String",
-        minimumLedgerVersion: BigInt(fundTxn.version),
       });
       expect(getOtherCoinAmount).toBe(0);
 
@@ -294,7 +292,6 @@ describe("account api", () => {
       const accountAPTAmount = await aptos.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
         coinType: APTOS_COIN,
-        minimumLedgerVersion: BigInt(fundTxn.version),
       });
       expect(accountAPTAmount).toBe(100000000);
 
@@ -302,7 +299,6 @@ describe("account api", () => {
       const accountAPTAmount2 = await aptos.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
         faMetadataAddress: AccountAddress.A,
-        minimumLedgerVersion: BigInt(fundTxn.version),
       });
       expect(accountAPTAmount2).toBe(100000000);
       // By both
@@ -311,13 +307,11 @@ describe("account api", () => {
         accountAddress: senderAccount.accountAddress,
         coinType: APTOS_COIN,
         faMetadataAddress: "0xA",
-        minimumLedgerVersion: BigInt(fundTxn.version),
       });
       expect(accountAPTAmount3).toBe(100000000);
       // By neither
       const failForNoCoinTypeGiven = aptos.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
-        minimumLedgerVersion: BigInt(fundTxn.version),
       });
       await expect(failForNoCoinTypeGiven).rejects.toThrow();
     });
