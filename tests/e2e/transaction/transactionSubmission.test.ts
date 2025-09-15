@@ -28,7 +28,7 @@ import { sha3_256 } from "@noble/hashes/sha3";
 import { MAX_U64_BIG_INT } from "../../../src/bcs/consts";
 import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
-import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
+import { b64urlEncode, fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
 import { AccountAuthenticatorNoAccountAuthenticator } from "../../../src/transactions";
 import { MultiEd25519Account } from "../../../src/account/MultiEd25519Account";
 
@@ -1034,9 +1034,6 @@ describe("transaction submission", () => {
 
   describe("WebAuthn Transaction Submission", () => {
     test("submits transaction with WebAuthn signature", async () => {
-      // Simple base64url encoder
-      const toB64 = (u8: Uint8Array) => Buffer.from(u8).toString("base64");
-      const b64urlEncode = (u8: Uint8Array) => toB64(u8).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
       // Generate Secp256r1 key pair
       const privateKey = Secp256r1PrivateKey.generate();
       const publicKey = privateKey.publicKey();
@@ -1105,8 +1102,6 @@ describe("transaction submission", () => {
     });
 
     test("submits entry function transaction with WebAuthn signature", async () => {
-      const toB64 = (u8: Uint8Array) => Buffer.from(u8).toString("base64");
-      const b64urlEncode = (u8: Uint8Array) => toB64(u8).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
       const privateKey = Secp256r1PrivateKey.generate();
       const publicKey = privateKey.publicKey();
       const senderAddress = publicKey.authKey().derivedAddress();
