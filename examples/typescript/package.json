@@ -5,26 +5,26 @@
   "main": "simple_transfer.ts",
   "scripts": {
     "build": "tsc",
-    "simple_transfer": "ts-node simple_transfer.ts",
-    "simple_orderless_transfer": "ts-node simple_orderless_transfer.ts",
-    "multi_agent_transfer": "ts-node multi_agent_transfer.ts",
-    "simple_sponsored_transaction": "ts-node simple_sponsored_transaction.ts",
-    "transfer_coin": "ts-node transfer_coin.ts",
-    "transfer_between_fungible_stores": "ts-node transfer_between_fungible_stores.ts",
-    "custom_client": "ts-node custom_client.ts",
-    "publish_package_from_filepath": "ts-node publish_package_from_filepath.ts",
-    "external_signing": "ts-node external_signing.ts",
-    "sign_struct": "ts-node sign_struct.ts",
-    "your_coin": "ts-node your_coin.ts",
-    "your_fungible_asset": "ts-node your_fungible_asset.ts",
-    "public_key_authenticator_account_abstraction": "ts-node public_key_authenticator_account_abstraction.ts",
-    "hello_world_authenticator_account_abstraction": "ts-node hello_world_authenticator_account_abstraction.ts",
-    "federated_keyless": "ts-node federated_keyless.ts",
-    "jwk_update": "ts-node jwk_update.ts",
-    "keyless": "ts-node keyless.ts",
-    "keyless_mainnet": "ts-node keyless_mainnet.ts",
-    "local_node": "ts-node local_node.ts",
-    "swap": "ts-node swap.ts",
+    "simple_transfer": "tsx simple_transfer.ts",
+    "simple_orderless_transfer": "tsx simple_orderless_transfer.ts",
+    "multi_agent_transfer": "tsx multi_agent_transfer.ts",
+    "simple_sponsored_transaction": "tsx simple_sponsored_transaction.ts",
+    "transfer_coin": "tsx transfer_coin.ts",
+    "transfer_between_fungible_stores": "tsx transfer_between_fungible_stores.ts",
+    "custom_client": "tsx custom_client.ts",
+    "publish_package_from_filepath": "tsx publish_package_from_filepath.ts",
+    "external_signing": "tsx external_signing.ts",
+    "sign_struct": "tsx sign_struct.ts",
+    "your_coin": "tsx your_coin.ts",
+    "your_fungible_asset": "tsx your_fungible_asset.ts",
+    "public_key_authenticator_account_abstraction": "tsx public_key_authenticator_account_abstraction.ts",
+    "hello_world_authenticator_account_abstraction": "tsx hello_world_authenticator_account_abstraction.ts",
+    "federated_keyless": "tsx federated_keyless.ts",
+    "jwk_update": "tsx jwk_update.ts",
+    "keyless": "tsx keyless.ts",
+    "keyless_mainnet": "tsx keyless_mainnet.ts",
+    "local_node": "tsx local_node.ts",
+    "swap": "tsx swap.ts",
     "test": "run-s simple_transfer simple_orderless_transfer multi_agent_transfer simple_sponsored_transaction transfer_coin custom_client publish_package_from_filepath external_signing sign_struct your_coin your_fungible_asset public_key_authenticator_account_abstraction hello_world_authenticator_account_abstraction"
   },
   "keywords": [],
@@ -41,12 +41,12 @@
   },
   "devDependencies": {
     "@types/node": "^24.3.1",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "tsx": "^4.7.0"
   },
   "pnpm": {
     "overrides": {
-      "brace-expansion": ">=1.1.12"
+      "brace-expansion": "1.1.12"
     }
   }
 }
