@@ -62,10 +62,5 @@
     "tslib": "^2.8.1",
     "tsup": "^8.5.0",
     "typescript": "^5.8.3"
-  },
-  "pnpm": {
-    "overrides": {
-      "brace-expansion": ">=2.0.2"
-    }
   }
 }

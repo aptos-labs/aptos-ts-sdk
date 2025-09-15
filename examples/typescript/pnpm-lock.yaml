@@ -4,9 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  brace-expansion: '>=1.1.12'
-
 dependencies:
   '@aptos-labs/ts-sdk':
     specifier: link:../..

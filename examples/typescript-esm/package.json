@@ -34,10 +34,5 @@
     "tsx": "4.20.5",
     "tsup": "8.5.0",
     "typescript": "5.8.2"
-  },
-  "pnpm": {
-    "overrides": {
-      "brace-expansion": ">=2.0.2"
-    }
   }
 }
