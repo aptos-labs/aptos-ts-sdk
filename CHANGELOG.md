@@ -4,8 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Unreleased
 
-- Update dev dependencies for the SDK
 - Add `Secp256r1 (P-256)` cryptographic support for `WebAuthn authentication`, including `Secp256r1PublicKey`, `Secp256r1PrivateKey`, and `WebAuthnSignature` classes with full BCS serialization support
+- Update dev dependencies for the SDK
 - [`Fix`] Changes `.at(0)` to `[0]` syntax for output of a view function
 - [`Breaking`] Updates the `rotateAuthKey` to return a `SimpleTransaction`. Additionally, it no longer will accept the `toAuthKey` parameter and `toAccount` will only accept `Ed25519Account` and `MultiEd25519Account`. Thus any key rotations using `rotateAuthKey` will be verified and indexed, thus accessible via the `getAccountsForPublicKey` and `deriveOwnedAccountsFromSigner`functions.
 - Adds a `rotateAuthKeyUnverified` function to support key rotations for auth schemes using the single signer/multi-key account signing scheme. It will generate a `SimpleTransaction` calling the `rotate_authentication_key_from_public_key` entry function. Accounts using `rotateAuthKeyUnverified` are accessible via the `getAccountsForPublicKey` and `deriveOwnedAccountsFromSigner` with `includeUnverified` set to `true`
