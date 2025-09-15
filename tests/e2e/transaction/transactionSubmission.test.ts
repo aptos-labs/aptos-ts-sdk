@@ -28,7 +28,13 @@ import { sha3_256 } from "@noble/hashes/sha3";
 import { MAX_U64_BIG_INT } from "../../../src/bcs/consts";
 import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
-import { b64urlEncode, fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
+import {
+  b64urlEncode,
+  fundAccounts,
+  multiSignerScriptBytecode,
+  publishTransferPackage,
+  singleSignerScriptBytecode,
+} from "./helper";
 import { AccountAuthenticatorNoAccountAuthenticator } from "../../../src/transactions";
 import { MultiEd25519Account } from "../../../src/account/MultiEd25519Account";
 
