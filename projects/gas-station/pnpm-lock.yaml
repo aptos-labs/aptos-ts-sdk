@@ -5,12 +5,13 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
+  brace-expansion: '>=2.0.2'
   form-data: '>=4.0.4'
 
 dependencies:
   '@aptos-labs/ts-sdk':
-    specifier: ^4.0.0
-    version: 4.0.0(got@11.8.6)
+    specifier: ^5.0.0
+    version: 5.0.0(got@11.8.6)
   dotenv:
     specifier: ^17.2.2
     version: 17.2.2
@@ -53,8 +54,8 @@ packages:
       got: 11.8.6
     dev: false
 
-  /@aptos-labs/ts-sdk@4.0.0(got@11.8.6):
-    resolution: {integrity: sha512-bRB9fT0t86btGyL/b5I4c3K1gZvldSvFv2KkV+1kEHt+yDbDrWI43wsfHLv0fFAVatCrH610NpLONMCnQSqQhA==}
+  /@aptos-labs/ts-sdk@5.0.0(got@11.8.6):
+    resolution: {integrity: sha512-s0vfH9Yduaosv+1eKsHjf5W0Fc02BlEpPL68488D7e4XsGQuzpVMxQPjjajYtSyyd9Bmmjat+wxM3mH5QBZkYg==}
     engines: {node: '>=20.0.0'}
     dependencies:
       '@aptos-labs/aptos-cli': 1.0.2
@@ -731,8 +732,9 @@ packages:
     resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
     dev: false
 
-  /balanced-match@1.0.2:
-    resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
+  /balanced-match@3.0.1:
+    resolution: {integrity: sha512-vjtV3hiLqYDNRoiAv0zC4QaGAMPomEoq83PRmYIofPswwZurCeWR5LByXm7SyoL0Zh5+2z0+HC7jG8gSZJUh0w==}
+    engines: {node: '>= 16'}
     dev: true
 
   /body-parser@2.2.0:
@@ -752,10 +754,11 @@ packages:
       - supports-color
     dev: false
 
-  /brace-expansion@2.0.1:
-    resolution: {integrity: sha512-XnAIvQ8eM+kC6aULx6wuQiwVsnzsi9d3WxzV3FpWTGA19F621kwdbsAcFKXgKUHZWsy+mY6iL1sHTxWEFCytDA==}
+  /brace-expansion@4.0.1:
+    resolution: {integrity: sha512-YClrbvTCXGe70pU2JiEiPLYXO9gQkyxYeKpJIQHVS/gOs6EWMQP2RYBwjFLNT322Ji8TOC3IMPfsYCedNpzKfA==}
+    engines: {node: '>= 18'}
     dependencies:
-      balanced-match: 1.0.2
+      balanced-match: 3.0.1
     dev: true
 
   /bundle-require@5.1.0(esbuild@0.25.1):
@@ -1423,7 +1426,7 @@ packages:
     resolution: {integrity: sha512-G6T0ZX48xgozx7587koeX9Ys2NYy6Gmv//P89sEte9V9whIapMNF4idKxnW2QtCcLiTWlb/wfCabAtAFWhhBow==}
     engines: {node: '>=16 || 14 >=14.17'}
     dependencies:
-      brace-expansion: 2.0.1
+      brace-expansion: 4.0.1
     dev: true
 
   /minipass@7.1.2:

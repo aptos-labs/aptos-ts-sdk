@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@aptos-labs/ts-sdk": "^4.0.0",
+    "@aptos-labs/ts-sdk": "^5.0.0",
     "dotenv": "^17.2.2",
     "express": "^5.1.0"
   },
@@ -25,6 +25,7 @@
   },
   "pnpm": {
     "overrides": {
+      "brace-expansion": ">=2.0.2",
       "form-data": ">=4.0.4"
     }
   }
