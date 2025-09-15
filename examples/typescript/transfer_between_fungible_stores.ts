@@ -157,9 +157,11 @@ async function main() {
 
     // Compile and publish package
     console.log("\n=== Compiling FACoin package locally ===");
-    compilePackage("move/facoin", "move/facoin/facoin.json", [{ name: "FACoin", address: alice.accountAddress }]);
+    compilePackage("move/facoin", "move/facoin/transfer-facoin.json", [
+      { name: "FACoin", address: alice.accountAddress },
+    ]);
 
-    const { metadataBytes, byteCode } = getPackageBytesToPublish("move/facoin/facoin.json");
+    const { metadataBytes, byteCode } = getPackageBytesToPublish("move/facoin/transfer-facoin.json");
 
     console.log("\n=== Publishing FACoin package ===");
     const transaction = await aptos.publishPackageTransaction({

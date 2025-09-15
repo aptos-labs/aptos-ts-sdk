@@ -13,6 +13,7 @@ import {
   NetworkToNetworkName,
   Serializable,
   Serializer,
+  sleep,
   U64,
 } from "@aptos-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils";
@@ -127,6 +128,9 @@ const example = async () => {
 
   console.log("\n=== Compiling the package locally ===");
   compilePackage("move/claims", "move/claims/claims.json", [{ name: "my_addr", address: alice.accountAddress }]);
+
+  // Wait half a second to ensure the file was written
+  sleep(500);
 
   const { metadataBytes, byteCode } = getPackageBytesToPublish("move/claims/claims.json");
 

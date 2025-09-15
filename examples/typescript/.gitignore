@@ -3,3 +3,4 @@ move/moonCoin/test-package.json
 move/facoin/facoin.json
 move/account_abstraction/*.json
 move/claims/claims.json
+move/*/*.json
