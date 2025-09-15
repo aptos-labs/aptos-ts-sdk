@@ -91,7 +91,6 @@
     "tree-kill": "^1.2.2",
     "ts-jest": "^29.4.1",
     "ts-loader": "^9.5.4",
-    "ts-node": "^10.9.2",
     "tsup": "^8.5.0",
     "typedoc": "^0.28.12",
     "typedoc-plugin-missing-exports": "^4.1.0",

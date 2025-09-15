@@ -4,31 +4,40 @@
   "description": "",
   "main": "./dist/simple_transfer.ts",
   "type": "module",
+  "packageManager": "pnpm@8.15.1",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "build": "pnpm _build:esm",
     "_build:esm": "tsup *.ts sponsored_transactions/*.ts --platform node --format esm --dts --out-dir dist",
-    "simple_transfer": "ts-node --esm dist/simple_transfer.js",
-    "simple_sponsored_transaction": "ts-node --esm dist/sponsored_transactions/simple_sponsored_transaction.js",
-    "simple_digital_asset": "ts-node --esm dist/simple_digital_asset.js",
-    "multisig_v2": "ts-node --esm dist/multisig_v2.js",
-    "server_signs_and_submit": "ts-node dist/sponsored_transactions/server_signs_and_submit.js",
-    "server_as_sponsor": "ts-node dist/sponsored_transactions/server_as_sponsor.js",
-    "transaction_with_predefined_abi": "ts-node dist/transaction_with_predefined_abi.js",
+    "simple_transfer": "tsx --esm dist/simple_transfer.js",
+    "simple_sponsored_transaction": "tsx --esm dist/sponsored_transactions/simple_sponsored_transaction.js",
+    "simple_digital_asset": "tsx --esm dist/simple_digital_asset.js",
+    "multisig_v2": "tsx --esm dist/multisig_v2.js",
+    "server_signs_and_submit": "tsx dist/sponsored_transactions/server_signs_and_submit.js",
+    "server_as_sponsor": "tsx dist/sponsored_transactions/server_as_sponsor.js",
+    "transaction_with_predefined_abi": "tsx dist/transaction_with_predefined_abi.js",
     "test": "run-s build simple_transfer simple_sponsored_transaction simple_digital_asset multisig_v2 server_signs_and_submit server_as_sponsor transaction_with_predefined_abi"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
   "dependencies": {
     "@aptos-labs/ts-sdk": "link:../..",
-    "@noble/hashes": "1.7.1",
-    "dotenv": "16.4.7",
+    "@noble/hashes": "^1.7.1",
+    "dotenv": "17.2.2",
     "npm-run-all": "4.1.5"
   },
   "devDependencies": {
-    "@types/node": "22.13.11",
-    "ts-node": "10.9.2",
-    "tsup": "8.4.0",
+    "@types/node": "24.4.0",
+    "tsx": "4.20.5",
+    "tsup": "8.5.0",
     "typescript": "5.8.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "brace-expansion": ">=2.0.2"
+    }
   }
 }

@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "main": "simple_transfer.ts",
+  "packageManager": "pnpm@8.15.1",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "build": "tsc",
     "simple_transfer": "tsx simple_transfer.ts",
@@ -29,7 +34,6 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
   "dependencies": {
     "@aptos-labs/ts-sdk": "link:../..",
     "@noble/curves": "2.0.0",
@@ -42,11 +46,11 @@
   "devDependencies": {
     "@types/node": "^24.3.1",
     "typescript": "^5.8.3",
-    "tsx": "^4.7.0"
+    "tsx": "^4.20.5"
   },
   "pnpm": {
     "overrides": {
-      "brace-expansion": "1.1.12"
+      "brace-expansion": ">=1.1.12"
     }
   }
 }
