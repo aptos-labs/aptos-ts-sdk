@@ -908,7 +908,10 @@ export class Account {
    * ```
    * @group Account
    */
-  async getBalance(args: { accountAddress: AccountAddressInput; asset: MoveStructId | AccountAddressInput }): Promise<number> {
+  async getBalance(args: {
+    accountAddress: AccountAddressInput;
+    asset: MoveStructId | AccountAddressInput;
+  }): Promise<number> {
     return getBalance({ aptosConfig: this.config, ...args });
   }
 
