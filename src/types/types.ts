@@ -147,6 +147,7 @@ export enum AccountAuthenticatorVariant {
 export enum PrivateKeyVariants {
   Ed25519 = "ed25519",
   Secp256k1 = "secp256k1",
+  Secp256r1 = "secp256r1",
 }
 
 /**
@@ -155,6 +156,7 @@ export enum PrivateKeyVariants {
 export enum AnyPublicKeyVariant {
   Ed25519 = 0,
   Secp256k1 = 1,
+  Secp256r1 = 2,
   Keyless = 3,
   FederatedKeyless = 4,
 }
@@ -165,6 +167,8 @@ export function anyPublicKeyVariantToString(variant: AnyPublicKeyVariant): strin
       return "ed25519";
     case AnyPublicKeyVariant.Secp256k1:
       return "secp256k1";
+    case AnyPublicKeyVariant.Secp256r1:
+      return "secp256r1";
     case AnyPublicKeyVariant.Keyless:
       return "keyless";
     case AnyPublicKeyVariant.FederatedKeyless:
@@ -180,6 +184,7 @@ export function anyPublicKeyVariantToString(variant: AnyPublicKeyVariant): strin
 export enum AnySignatureVariant {
   Ed25519 = 0,
   Secp256k1 = 1,
+  WebAuthn = 2,
   Keyless = 3,
 }
 

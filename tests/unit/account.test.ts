@@ -8,6 +8,7 @@ import {
   Ed25519PublicKey,
   Secp256k1PrivateKey,
   Secp256k1PublicKey,
+  Secp256r1PrivateKey,
   SigningScheme as AuthenticationKeyScheme,
   SigningSchemeInput,
   AnyPublicKey,
@@ -17,6 +18,8 @@ import {
   MultiKeyAccount,
   MultiEd25519PublicKey,
   KeylessAccount,
+  AuthenticationKey,
+  AccountPublicKey,
 } from "../../src";
 import { MultiEd25519Account } from "../../src/account/MultiEd25519Account";
 
@@ -25,6 +28,7 @@ import {
   secp256k1TestObject,
   secp256k1WalletTestObject,
   singleSignerED25519,
+  singleSignerSecp256r1,
   wallet,
   Ed25519WalletTestObject,
   keylessTestObject,
@@ -194,6 +198,26 @@ describe("Account", () => {
       const signature = edAccount.sign(messageEncoded);
       expect(signature.signature.toString()).toEqual(signatureHex);
       expect(edAccount.verifySignature({ message: messageEncoded, signature })).toBeTruthy();
+    });
+
+    it("signs a message with single signer Secp256r1 scheme and verifies successfully", () => {
+      const {
+        privateKey: privateKeyBytes,
+        address,
+        authKey: expectedAuthKey,
+        publicKey: expectedPublicKey,
+        messageEncoded,
+        signatureHex,
+      } = singleSignerSecp256r1;
+      const privateKey = new Secp256r1PrivateKey(privateKeyBytes);
+      const publicKey = privateKey.publicKey();
+      const authKey = AuthenticationKey.fromPublicKey({ publicKey: publicKey as unknown as AccountPublicKey });
+      expect(authKey.derivedAddress().toString()).toEqual(address);
+      expect(authKey.toString()).toEqual(expectedAuthKey);
+      expect(publicKey.toString()).toEqual(expectedPublicKey);
+      const signature = privateKey.sign(messageEncoded);
+      expect(signature.toString()).toEqual(signatureHex);
+      expect(publicKey.verifySignature({ message: messageEncoded, signature })).toBeTruthy();
     });
     describe("multikey", () => {
       const singleSignerED25519SenderAccount = Account.generate({

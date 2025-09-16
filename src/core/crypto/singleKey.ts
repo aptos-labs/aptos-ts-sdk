@@ -13,6 +13,7 @@ import { KeylessPublicKey, KeylessSignature } from "./keyless";
 import { Signature } from "./signature";
 import { FederatedKeylessPublicKey } from "./federatedKeyless";
 import { AptosConfig } from "../../api";
+import { Secp256r1PublicKey, WebAuthnSignature } from "./secp256r1";
 
 export type PrivateKeyInput = Ed25519PrivateKey | Secp256k1PrivateKey;
 
@@ -59,6 +60,8 @@ export class AnyPublicKey extends AccountPublicKey {
       this.variant = AnyPublicKeyVariant.Ed25519;
     } else if (publicKey instanceof Secp256k1PublicKey) {
       this.variant = AnyPublicKeyVariant.Secp256k1;
+    } else if (publicKey instanceof Secp256r1PublicKey) {
+      this.variant = AnyPublicKeyVariant.Secp256r1;
     } else if (publicKey instanceof KeylessPublicKey) {
       this.variant = AnyPublicKeyVariant.Keyless;
     } else if (publicKey instanceof FederatedKeylessPublicKey) {
@@ -188,6 +191,9 @@ export class AnyPublicKey extends AccountPublicKey {
       case AnyPublicKeyVariant.Secp256k1:
         publicKey = Secp256k1PublicKey.deserialize(deserializer);
         break;
+      case AnyPublicKeyVariant.Secp256r1:
+        publicKey = Secp256r1PublicKey.deserialize(deserializer);
+        break;
       case AnyPublicKeyVariant.Keyless:
         publicKey = KeylessPublicKey.deserialize(deserializer);
         break;
@@ -278,6 +284,8 @@ export class AnySignature extends Signature {
       this.variant = AnySignatureVariant.Ed25519;
     } else if (signature instanceof Secp256k1Signature) {
       this.variant = AnySignatureVariant.Secp256k1;
+    } else if (signature instanceof WebAuthnSignature) {
+      this.variant = AnySignatureVariant.WebAuthn;
     } else if (signature instanceof KeylessSignature) {
       this.variant = AnySignatureVariant.Keyless;
     } else {
@@ -317,6 +325,9 @@ export class AnySignature extends Signature {
         break;
       case AnySignatureVariant.Secp256k1:
         signature = Secp256k1Signature.deserialize(deserializer);
+        break;
+      case AnySignatureVariant.WebAuthn:
+        signature = WebAuthnSignature.deserialize(deserializer);
         break;
       case AnySignatureVariant.Keyless:
         signature = KeylessSignature.deserialize(deserializer);

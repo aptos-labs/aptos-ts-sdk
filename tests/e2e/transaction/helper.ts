@@ -403,3 +403,6 @@ export async function publishHelloWorldAAPackage(aptos: Aptos, senderAccount: Ac
     ],
   );
 }
+
+export const toB64 = (u8: Uint8Array) => Buffer.from(u8).toString("base64");
+export const b64urlEncode = (u8: Uint8Array) => toB64(u8).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");

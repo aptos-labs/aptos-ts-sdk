@@ -14,11 +14,27 @@ import {
   MoveString,
   MultiEd25519PublicKey,
   Ed25519PrivateKey,
+  Secp256r1PrivateKey,
+  WebAuthnSignature,
+  AnySignature,
+  AnyPublicKey,
+  AccountAuthenticatorSingleKey,
+  generateSigningMessageForTransaction,
+  Hex,
 } from "../../../src";
+import { p256 } from "@noble/curves/nist.js";
+import { sha256 } from "@noble/hashes/sha2";
+import { sha3_256 } from "@noble/hashes/sha3";
 import { MAX_U64_BIG_INT } from "../../../src/bcs/consts";
 import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
-import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
+import {
+  b64urlEncode,
+  fundAccounts,
+  multiSignerScriptBytecode,
+  publishTransferPackage,
+  singleSignerScriptBytecode,
+} from "./helper";
 import { AccountAuthenticatorNoAccountAuthenticator } from "../../../src/transactions";
 import { MultiEd25519Account } from "../../../src/account/MultiEd25519Account";
 
@@ -1020,5 +1036,131 @@ describe("transaction submission", () => {
       transactionHash: response.hash,
     });
     expect(response.signature?.type).toBe("ed25519_signature");
+  });
+
+  describe("WebAuthn Transaction Submission", () => {
+    test("submits transaction with WebAuthn signature", async () => {
+      // Generate Secp256r1 key pair
+      const privateKey = Secp256r1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      const senderAddress = publicKey.authKey().derivedAddress();
+
+      // Fund the account
+      await aptos.fundAccount({ accountAddress: senderAddress, amount: 1_000_000_000 });
+
+      // Build transaction
+      const transaction = await aptos.transaction.build.simple({
+        sender: senderAddress,
+        data: {
+          function: "0x1::aptos_account::transfer",
+          functionArguments: ["0x1", 1],
+        },
+        options: {
+          gasUnitPrice: 100,
+          maxGasAmount: 2000,
+        },
+      });
+
+      // Create WebAuthn signature components
+      const message = generateSigningMessageForTransaction(transaction);
+      const challenge = sha3_256(message);
+      const clientDataObj = {
+        type: "webauthn.get",
+        challenge: b64urlEncode(challenge),
+        origin: "http://localhost:5173",
+        crossOrigin: false,
+      } as const;
+      const clientDataJSON = new TextEncoder().encode(JSON.stringify(clientDataObj));
+      const authenticatorData = new Uint8Array([
+        73, 150, 13, 229, 136, 14, 140, 104, 116, 52, 23, 15, 100, 118, 96, 91, 143, 228, 174, 185, 162, 134, 50, 199,
+        153, 92, 243, 186, 131, 29, 151, 99, 29, 0, 0, 0, 0,
+      ]);
+
+      // Real WebAuthn signature
+      const clientHash = sha256(clientDataJSON);
+      const toBeSigned = new Uint8Array(authenticatorData.length + clientHash.length);
+      toBeSigned.set(authenticatorData, 0);
+      toBeSigned.set(clientHash, authenticatorData.length);
+      const webauthnDigest = sha256(toBeSigned);
+      const privBytes = Hex.fromHexInput(privateKey.toHexString()).toUint8Array();
+      const sig = p256.sign(webauthnDigest, privBytes).normalizeS();
+      const signatureBytes = sig.toCompactRawBytes();
+      const webAuthnSignature = new WebAuthnSignature(signatureBytes, authenticatorData, clientDataJSON);
+
+      // Create account authenticator
+      const anySignature = new AnySignature(webAuthnSignature);
+      const anyPublicKey = new AnyPublicKey(publicKey);
+      const senderAuthenticator = new AccountAuthenticatorSingleKey(anyPublicKey, anySignature);
+
+      // Submit transaction
+      const pendingTransaction = await aptos.transaction.submit.simple({
+        transaction,
+        senderAuthenticator,
+      });
+
+      // Wait for transaction to be committed
+      const committedTransaction = await aptos.waitForTransaction({
+        transactionHash: pendingTransaction.hash,
+      });
+
+      expect(committedTransaction.success).toBe(true);
+      expect(committedTransaction.hash).toBe(pendingTransaction.hash);
+    });
+
+    test("submits entry function transaction with WebAuthn signature", async () => {
+      const privateKey = Secp256r1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      const senderAddress = publicKey.authKey().derivedAddress();
+
+      await aptos.fundAccount({ accountAddress: senderAddress, amount: 1_000_000_000 });
+
+      const transaction = await aptos.transaction.build.simple({
+        sender: senderAddress,
+        data: {
+          function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
+          functionArguments: [1, receiverAccounts[0].accountAddress],
+        },
+      });
+
+      // Create WebAuthn signature
+      const message = generateSigningMessageForTransaction(transaction);
+      const challenge = sha3_256(message);
+      const clientDataObj = {
+        type: "webauthn.get",
+        challenge: b64urlEncode(challenge),
+        origin: "http://localhost:5173",
+        crossOrigin: false,
+      } as const;
+      const clientDataJSON = new TextEncoder().encode(JSON.stringify(clientDataObj));
+      const authenticatorData = new Uint8Array([
+        73, 150, 13, 229, 136, 14, 140, 104, 116, 52, 23, 15, 100, 118, 96, 91, 143, 228, 174, 185, 162, 134, 50, 199,
+        153, 92, 243, 186, 131, 29, 151, 99, 29, 0, 0, 0, 0,
+      ]);
+
+      const clientHash = sha256(clientDataJSON);
+      const toBeSigned = new Uint8Array(authenticatorData.length + clientHash.length);
+      toBeSigned.set(authenticatorData, 0);
+      toBeSigned.set(clientHash, authenticatorData.length);
+      const webauthnDigest = sha256(toBeSigned);
+      const privBytes = Hex.fromHexInput(privateKey.toHexString()).toUint8Array();
+      const sig = p256.sign(webauthnDigest, privBytes).normalizeS();
+      const signatureBytes = sig.toCompactRawBytes();
+      const webAuthnSignature = new WebAuthnSignature(signatureBytes, authenticatorData, clientDataJSON);
+
+      const anySignature = new AnySignature(webAuthnSignature);
+      const anyPublicKey = new AnyPublicKey(publicKey);
+      const senderAuthenticator = new AccountAuthenticatorSingleKey(anyPublicKey, anySignature);
+
+      const response = await aptos.transaction.submit.simple({
+        transaction,
+        senderAuthenticator,
+      });
+
+      await aptos.waitForTransaction({
+        transactionHash: response.hash,
+      });
+
+      expect(response.hash).toBeDefined();
+    });
   });
 });

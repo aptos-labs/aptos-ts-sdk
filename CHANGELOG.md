@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Unreleased
 
+- Add `Secp256r1 (P-256)` cryptographic support for `WebAuthn authentication`, including `Secp256r1PublicKey`, `Secp256r1PrivateKey`, and `WebAuthnSignature` classes with full BCS serialization support
+
 # 5.0.0 (2025-09-15)
 
 - Update dev dependencies for the SDK
