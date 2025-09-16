@@ -765,7 +765,7 @@ export async function getBalance(args: {
 }): Promise<number> {
   const { aptosConfig, accountAddress, asset } = args;
 
-  const response = await getAptosFullNode<{}, { balance: string }>({
+  const response = await getAptosFullNode<{}, number>({
     aptosConfig,
     originMethod: "GET",
     path: `accounts/${accountAddress}/balance/${asset}`,
@@ -774,7 +774,8 @@ export async function getBalance(args: {
       asset: asset instanceof Uint8Array ? AccountAddress.from(asset).toString() : asset.toString(),
     },
   });
-  return parseInt(response.data.balance, 10);
+
+  return parseInt(response.data.toString(), 10);
 }
 
 /**

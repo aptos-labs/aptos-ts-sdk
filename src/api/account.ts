@@ -904,7 +904,7 @@ export class Account {
    * // APT coin by type
    * const apt = await aptos.getBalance({ accountAddress: "0x1", asset: "0x1::aptos_coin::AptosCoin" });
    * // Some FA by metadata address
-   * const fa = await aptos.getBalance({ accountAddress: "0x1", asset: "0xA" });
+   * const fa = await aptos.getBalance({ accountAddress: "0x1", asset: "0xa" });
    * ```
    * @group Account
    */
