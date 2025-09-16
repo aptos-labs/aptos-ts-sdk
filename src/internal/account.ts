@@ -768,7 +768,7 @@ export async function getBalance(args: {
   const response = await getAptosFullNode<{}, { balance: string }>({
     aptosConfig,
     originMethod: "GET",
-    path: `/accounts/${accountAddress}/balance/${asset}`,
+    path: `accounts/${accountAddress}/balance/${asset}`,
     params: {
       accountAddress: accountAddress.toString(),
       asset: asset instanceof Uint8Array ? AccountAddress.from(asset).toString() : asset.toString(),
