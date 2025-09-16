@@ -5,27 +5,22 @@
   "main": "index.js",
   "scripts": {
     "build": "tsup src --out-dir dist --format esm --dts",
-    "start-server": "node dist/server.mjs",
-    "start-client": "node dist/client.mjs"
+    "start-server": "tsx src/server.tsx",
+    "start-client": "tsx src/client.tsx"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@aptos-labs/ts-sdk": "^4.0.0",
+    "@aptos-labs/ts-sdk": "^5.0.0",
     "dotenv": "^17.2.2",
     "express": "^5.1.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/node": "^20.12.18",
-    "ts-node": "^10.9.0",
+    "tsx": "^4.20.5",
     "tsup": "^8.5.0",
     "typescript": "^5.8.3"
-  },
-  "pnpm": {
-    "overrides": {
-      "form-data": ">=4.0.4"
-    }
   }
 }
