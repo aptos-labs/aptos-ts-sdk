@@ -746,6 +746,38 @@ export async function getAccountCoinsCount(args: {
 }
 
 /**
+ * Retrieves an account's balance for the given asset via the fullnode REST API.
+ *
+ * - `asset` may be a coin type (Move struct ID, e.g. `0x1::aptos_coin::AptosCoin`) or an FA metadata address.
+ * - Calls: `GET /accounts/{accountAddress}/balance/{asset}` and returns the numeric balance.
+ *
+ * @param args - The parameters for the request.
+ * @param args.aptosConfig - The Aptos configuration object.
+ * @param args.accountAddress - The account address to query.
+ * @param args.asset - The asset identifier (coin type or FA metadata address).
+ * @returns The balance as a number.
+ * @group Implementation
+ */
+export async function getBalance(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: AccountAddressInput;
+  asset: MoveStructId | AccountAddressInput;
+}): Promise<number> {
+  const { aptosConfig, accountAddress, asset } = args;
+
+  const response = await getAptosFullNode<{}, { balance: string }>({
+    aptosConfig,
+    originMethod: "GET",
+    path: `/accounts/${accountAddress}/balance/${asset}`,
+    params: {
+      accountAddress: accountAddress.toString(),
+      asset: asset instanceof Uint8Array ? AccountAddress.from(asset).toString() : asset.toString(),
+    },
+  });
+  return parseInt(response.data.balance, 10);
+}
+
+/**
  * Retrieves the objects owned by a specified account.
  *
  * @param args - The parameters for the request.
