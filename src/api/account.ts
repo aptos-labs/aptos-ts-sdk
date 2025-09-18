@@ -40,6 +40,7 @@ import {
   getAccountsForPublicKey,
   getAccountTokensCount,
   getAccountTransactionsCount,
+  getBalance,
   getInfo,
   getModule,
   getModules,
@@ -780,6 +781,9 @@ export class Account {
   /**
    * Queries the current amount of a specified coin held by an account.
    *
+   * @deprecated Use `getBalance({ accountAddress, asset })` instead.
+   * This method is slated for removal in a future release.
+   *
    * @param args The parameters for querying the account's coin amount.
    * @param args.accountAddress The account address to query for the coin amount.
    * @param args.coinType The coin type to query. Note: If not provided, it may be automatically populated if `faMetadataAddress`
@@ -796,13 +800,9 @@ export class Account {
    * const aptos = new Aptos(config);
    *
    * async function runExample() {
-   *   // Query the account's coin amount for a specific coin type
-   *   const accountCoinAmount = await aptos.getAccountCoinAmount({
-   *     accountAddress: "0x1", // replace with a real account address
-   *     coinType: "0x1::aptos_coin::AptosCoin" // specify the coin type
-   *   });
-   *
-   *   console.log(`Account coin amount: ${accountCoinAmount}`);
+   *   // Prefer the new API
+   *   const amount = await aptos.getBalance({ accountAddress: "0x1", asset: "0x1::aptos_coin::AptosCoin" });
+   *   console.log(`Balance: ${amount}`);
    * }
    * runExample().catch(console.error);
    * ```
@@ -888,6 +888,31 @@ export class Account {
       },
     });
     return parseInt(balanceStr, 10);
+  }
+
+  /**
+   * Retrieves the balance for an account and asset.
+   *
+   * @param args The parameters for the balance query.
+   * @param args.accountAddress The account address to query.
+   * @param args.asset The asset to query: Move struct ID (e.g., `0x1::aptos_coin::AptosCoin`) or FA metadata address.
+   * @returns The balance as a number.
+   *
+   * @example
+   * ```ts
+   * const aptos = new Aptos(new AptosConfig());
+   * // APT coin by type
+   * const apt = await aptos.getBalance({ accountAddress: "0x1", asset: "0x1::aptos_coin::AptosCoin" });
+   * // Some FA by metadata address
+   * const fa = await aptos.getBalance({ accountAddress: "0x1", asset: "0xa" });
+   * ```
+   * @group Account
+   */
+  async getBalance(args: {
+    accountAddress: AccountAddressInput;
+    asset: MoveStructId | AccountAddressInput;
+  }): Promise<number> {
+    return getBalance({ aptosConfig: this.config, ...args });
   }
 
   /**

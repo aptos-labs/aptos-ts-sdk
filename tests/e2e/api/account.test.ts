@@ -316,6 +316,42 @@ describe("account api", () => {
       await expect(failForNoCoinTypeGiven).rejects.toThrow();
     });
 
+    test("it fetches account balance by coin type (APT)", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
+      const aptos = new Aptos(config);
+      const account = Account.generate();
+
+      const fundTxn = await aptos.fundAccount({
+        accountAddress: account.accountAddress,
+        amount: FUND_AMOUNT,
+      });
+      await aptos.waitForTransaction({ transactionHash: fundTxn.hash });
+
+      const balance = await aptos.getBalance({
+        accountAddress: account.accountAddress,
+        asset: APTOS_COIN,
+      });
+      expect(balance).toBe(FUND_AMOUNT);
+    });
+
+    test("it fetches account balance by FA metadata address (APT)", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
+      const aptos = new Aptos(config);
+      const account = Account.generate();
+
+      const fundTxn = await aptos.fundAccount({
+        accountAddress: account.accountAddress,
+        amount: FUND_AMOUNT,
+      });
+      await aptos.waitForTransaction({ transactionHash: fundTxn.hash });
+
+      const balance = await aptos.getBalance({
+        accountAddress: account.accountAddress,
+        asset: AccountAddress.A,
+      });
+      expect(balance).toBe(FUND_AMOUNT);
+    });
+
     test("lookupOriginalAccountAddress - Look up account address before key rotation", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
