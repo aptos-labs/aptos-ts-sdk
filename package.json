@@ -47,7 +47,8 @@
     "check-version": "scripts/checkVersion.sh",
     "update-version": "scripts/updateVersion.sh && pnpm doc",
     "spec": "pnpm build && pnpm _spec",
-    "_spec": "cucumber-js -p default"
+    "_spec": "cucumber-js -p default",
+    "test:permissions": "INITIALIZE_JWK_CONSENSUS=1 jest --collectCoverage=false tests/e2e/transaction/permissionedSigner.test.ts"
   },
   "dependencies": {
     "@aptos-labs/aptos-cli": "^1.0.2",
