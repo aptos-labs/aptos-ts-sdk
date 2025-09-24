@@ -2,6 +2,8 @@
 
 All notable changes to the Cedra TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+# 2.2.5 (2025-09-25)
+- Adds get_whitelist api function and devnet link to networks
 ## Unreleased
 
 # 2.0.1 (2025-05-21)

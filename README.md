@@ -29,7 +29,7 @@ The [TypeScript SDK](https://www.npmjs.com/package/@cedra-labs/ts-sdk) allows yo
 |---------|-------------|----------|--------|
 | Testnet | `https://testnet.cedra.dev/v1` | TBD | Available via CLI |
 | Mainnet | Coming Soon | TBD | N/A |
-| Devnet | Contact team for access | TBD | Available via CLI |
+| Devnet | `https://devnet.cedra.dev/v1` | TBD | Available via CLI |
 
 ## Installation
 

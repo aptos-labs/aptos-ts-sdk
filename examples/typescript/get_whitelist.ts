@@ -5,19 +5,8 @@
  * Example to get whitelist Registry.
  *
  */
-import "dotenv";
-import {
-  Account,
-  AccountAddress,
-  Cedra,
-  CedraConfig,
-  Ed25519PrivateKey,
-  InputViewFunctionData,
-  Network,
-  NetworkToNetworkName,
-} from "@cedra-labs/ts-sdk";
-import { createInterface } from "readline";
-// Default to devnet, but allow for overriding
+import { Cedra, CedraConfig, Network, NetworkToNetworkName } from "@cedra-labs/ts-sdk";
+
 const CEDRA_NETWORK: Network = NetworkToNetworkName[Network.DEVNET];
 
 const example = async () => {
