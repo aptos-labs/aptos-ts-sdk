@@ -10,7 +10,7 @@ import {
   queryIndexer,
 } from "../internal/general";
 import { getBlockByHeight, getBlockByVersion } from "../internal/transaction";
-import { view, viewJson } from "../internal/view";
+import { view, viewJson, getWhitelist } from "../internal/view";
 import {
   AnyNumber,
   Block,
@@ -227,6 +227,20 @@ export class General {
     options?: LedgerVersionArg;
   }): Promise<T> {
     return viewJson<T>({ cedraConfig: this.config, ...args });
+  }
+
+  /**
+   * Queries for a Move view function
+   * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
+   *
+   * @example
+   * const data = await cedra.view();
+   *
+   * @returns an array of Move values
+   * @group General
+   */
+  async get_whitelist<T extends Array<MoveValue>>(args: { options?: LedgerVersionArg }): Promise<T> {
+    return getWhitelist<T>({ cedraConfig: this.config, ...args });
   }
 
   /**

@@ -10,7 +10,7 @@ import TestRunHookDefinition from "@cucumber/cucumber/lib/models/test_run_hook_d
 export const NetworkToIndexerAPI: Record<string, string> = {
   mainnet: "https://graphql.cedra.dev/v1/graphql",
   testnet: "https://graphql.cedra.dev/v1/graphql",
-  devnet: "https://graphql.cedra.dev/v1/graphql",
+  devnet: "https://graphql-devnet.cedra.dev/v1/graphql",
   local: "http://127.0.0.1:8090/v1/graphql",
 };
 
@@ -21,7 +21,7 @@ export const NetworkToIndexerAPI: Record<string, string> = {
 export const NetworkToNodeAPI: Record<string, string> = {
   mainnet: "https://testnet.cedra.dev/v1",
   testnet: "https://testnet.cedra.dev/v1",
-  devnet: "https://testnet.cedra.dev/v1",
+  devnet: "https://devnet.cedra.dev/v1",
   local: "http://127.0.0.1:8080/v1",
 };
 
@@ -30,7 +30,7 @@ export const NetworkToNodeAPI: Record<string, string> = {
  * @category Network
  */
 export const NetworkToFaucetAPI: Record<string, string> = {
-  devnet: "https://faucet-api.cedra.dev",
+  devnet: "https://devfaucet-api.cedra.dev",
   testnet: "https://faucet-api.cedra.dev",
   local: "http://127.0.0.1:8081",
 };

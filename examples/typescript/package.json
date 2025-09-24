@@ -15,6 +15,7 @@
     "external_signing": "ts-node external_signing.ts",
     "sign_struct": "ts-node sign_struct.ts",
     "your_coin": "ts-node your_coin.ts",
+    "get_whitelist": "ts-node get_whitelist.ts",
     "your_fungible_asset": "ts-node your_fungible_asset.ts",
     "public_key_authenticator_account_abstraction": "ts-node public_key_authenticator_account_abstraction.ts",
     "hello_world_authenticator_account_abstraction": "ts-node hello_world_authenticator_account_abstraction.ts",
