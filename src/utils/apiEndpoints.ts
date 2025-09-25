@@ -79,6 +79,7 @@ export enum Network {
 export const NetworkToChainId: Record<string, number> = {
   mainnet: 1,
   testnet: 2,
+  devnet: 3,
   local: 4,
 };
 

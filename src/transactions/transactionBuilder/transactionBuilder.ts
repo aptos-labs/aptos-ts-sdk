@@ -50,6 +50,7 @@ import {
   MultiSig,
   MultiSigTransactionPayload,
   RawTransaction,
+  CommissionRawTransaction,
   Script,
   TransactionPayloadEntryFunction,
   TransactionPayloadMultiSig,
@@ -83,6 +84,8 @@ import { isScriptDataInput } from "./helpers";
 import { SimpleTransaction } from "../instances/simpleTransaction";
 import { MultiAgentTransaction } from "../instances/multiAgentTransaction";
 import { getFunctionParts } from "../../utils/helpers";
+import { TypeTag } from "../typeTag";
+import { parseTypeTag } from "../typeTag/parser";
 
 /**
  * Builds a transaction payload based on the provided arguments and returns a transaction payload.
@@ -410,21 +413,35 @@ export async function generateRawTransaction(args: {
     getSequenceNumberForAny(),
   ]);
 
-  const { maxGasAmount, gasUnitPrice, expireTimestamp } = {
+  const { maxGasAmount, gasUnitPrice, expireTimestamp, faAddress } = {
     maxGasAmount: options?.maxGasAmount ? BigInt(options.maxGasAmount) : BigInt(DEFAULT_MAX_GAS_AMOUNT),
     gasUnitPrice: options?.gasUnitPrice ?? BigInt(gasEstimate),
     expireTimestamp: options?.expireTimestamp ?? BigInt(Math.floor(Date.now() / 1000) + DEFAULT_TXN_EXP_SEC_FROM_NOW),
+    faAddress: options?.faAddress,
   };
 
-  return new RawTransaction(
-    AccountAddress.from(sender),
-    BigInt(sequenceNumber),
-    payload,
-    BigInt(maxGasAmount),
-    BigInt(gasUnitPrice),
-    BigInt(expireTimestamp),
-    new ChainId(chainId),
-  );
+  if (chainId == 3) {
+    return new CommissionRawTransaction(
+      AccountAddress.from(sender),
+      BigInt(sequenceNumber),
+      payload,
+      BigInt(maxGasAmount),
+      BigInt(gasUnitPrice),
+      BigInt(expireTimestamp),
+      new ChainId(chainId),
+      faAddress ?? parseTypeTag("0x1::CedraCoin::cedra"),
+    );
+  } else {
+    return new RawTransaction(
+      AccountAddress.from(sender),
+      BigInt(sequenceNumber),
+      payload,
+      BigInt(maxGasAmount),
+      BigInt(gasUnitPrice),
+      BigInt(expireTimestamp),
+      new ChainId(chainId),
+    );
+  }
 }
 
 /**

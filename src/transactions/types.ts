@@ -118,6 +118,7 @@ export type InputGenerateTransactionOptions = {
   gasUnitPrice?: number;
   expireTimestamp?: number;
   accountSequenceNumber?: AnyNumber;
+  faAddress?: TypeTag;
 };
 
 /**
