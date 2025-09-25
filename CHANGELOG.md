@@ -4,6 +4,7 @@ All notable changes to the Cedra TypeScript SDK will be captured in this file. T
 
 # 2.2.5 (2025-09-25)
 - Adds get_whitelist api function and devnet link to networks
+- Adds example for fa_address usage
 ## Unreleased
 
 # 2.0.1 (2025-05-21)
