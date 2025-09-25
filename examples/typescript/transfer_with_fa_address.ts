@@ -12,6 +12,8 @@ import {
   InputViewFunctionJsonData,
   Network,
   NetworkToNetworkName,
+  parseTypeTag,
+  TypeTag,
 } from "@cedra-labs/ts-sdk";
 import dotenv from "dotenv";
 dotenv.config();
@@ -91,6 +93,10 @@ const example = async () => {
       function: "0x1::coin::transfer",
       typeArguments: [CEDRA_COIN],
       functionArguments: [bob.accountAddress, TRANSFER_AMOUNT],
+    },
+    options: {
+      maxGasAmount: 5000,
+      faAddress: parseTypeTag("0x1::CedraCoin::cedra"),
     },
   });
 
