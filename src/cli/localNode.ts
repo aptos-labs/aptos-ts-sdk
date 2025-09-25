@@ -86,7 +86,14 @@ export class LocalNode {
    */
   start(): void {
     const cliCommand = "npx";
-    const cliArgs = ["cedra", "node", "run-localnet", "--force-restart", "--assume-yes", "--with-indexer-api"];
+    const cliArgs = [
+      "/home/egor/Desktop/work/cedra-network/target/release/cedra",
+      "node",
+      "run-localnet",
+      "--force-restart",
+      "--assume-yes",
+      "--with-indexer-api",
+    ];
 
     const spawnConfig = {
       env: { ...process.env, ENABLE_KEYLESS_DEFAULT: "1" },

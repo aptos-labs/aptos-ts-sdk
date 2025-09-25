@@ -10,7 +10,7 @@ import {
   ViewFunctionJsonPayload,
 } from "../transactions";
 import { Serializer } from "../bcs";
-import { postCedraFullNode } from "../client";
+import { getCedraFullNode, postCedraFullNode } from "../client";
 
 export async function view<T extends Array<MoveValue> = Array<MoveValue>>(args: {
   cedraConfig: CedraConfig;
@@ -55,6 +55,23 @@ export async function viewJson<T extends Array<MoveValue> = Array<MoveValue>>(ar
       type_arguments: payload.typeArguments ?? [],
       arguments: payload.functionArguments ?? [],
     },
+  });
+
+  return data as T;
+}
+
+export async function getWhitelist<T extends Array<MoveValue> = Array<MoveValue>>(args: {
+  cedraConfig: CedraConfig;
+  options?: LedgerVersionArg;
+}): Promise<T> {
+  const { cedraConfig, options } = args;
+
+  const { data } = await getCedraFullNode<Uint8Array, MoveValue[]>({
+    cedraConfig,
+    path: "whitelist",
+    originMethod: "getWhitelist",
+    contentType: MimeType.BCS_VIEW_FUNCTION,
+    params: { ledger_version: options?.ledgerVersion },
   });
 
   return data as T;

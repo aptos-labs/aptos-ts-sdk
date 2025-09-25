@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "simple_transfer": "ts-node simple_transfer.ts",
+    "transfer_with_fa_address": "ts-node transfer_with_fa_address.ts",
     "multi_agent_transfer": "ts-node multi_agent_transfer.ts",
     "simple_sponsored_transaction": "ts-node simple_sponsored_transaction.ts",
     "transfer_coin": "ts-node transfer_coin.ts",
@@ -15,6 +16,7 @@
     "external_signing": "ts-node external_signing.ts",
     "sign_struct": "ts-node sign_struct.ts",
     "your_coin": "ts-node your_coin.ts",
+    "get_whitelist": "ts-node get_whitelist.ts",
     "your_fungible_asset": "ts-node your_fungible_asset.ts",
     "public_key_authenticator_account_abstraction": "ts-node public_key_authenticator_account_abstraction.ts",
     "hello_world_authenticator_account_abstraction": "ts-node hello_world_authenticator_account_abstraction.ts",
@@ -34,7 +36,7 @@
     "@noble/curves": "1.8.1",
     "@types/readline-sync": "1.4.8",
     "dotenv": "16.4.7",
-    "got": "^14.4.7",
+    "got": "^11.8.6",
     "npm-run-all": "4.1.5",
     "readline-sync": "1.4.10",
     "superagent": "10.2.0"
