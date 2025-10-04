@@ -5,9 +5,11 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 ## Unreleased
 
 - Remove unused dependency `form-data`
+- Add `createUserDerivedObjectAddress` function for creating user-derived object addresses from source and derive_from addresses
 
 # 5.1.1 (2025-9-23)
 
+- Remove unused dependency `form-data`
 - Add `shelbynet` to `apiEndpoints.ts`
 
 # 5.1.0 (2025-9-23)
