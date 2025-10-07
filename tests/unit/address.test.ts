@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import { AccountAddress } from "../../src";
-import { createTokenAddress, createObjectAddress, createResourceAddress } from "../../src/core/account/utils/address";
+import { createTokenAddress, createObjectAddress, createResourceAddress, createUserDerivedObjectAddress } from "../../src/core/account/utils/address";
 
 describe("address", () => {
   /**
@@ -49,5 +49,18 @@ describe("address", () => {
     const seed = Buffer.from("create_resource::create_resource", "utf8");
     const address = createResourceAddress(creatorAddress, seed);
     expect(address.toString()).toEqual("0x764cb760889d5ab6caabf0594d82adfbf0c0076f36268563e5209fa3734d7f3e");
+  });
+
+  /**
+   * Reference: {@link https://explorer.aptoslabs.com/account/0x653a60dab27fe8f3859414973d218e1b7551c778a8650a7055a85c0f8041b2a4/modules/view/create_user_derived_object_address/create_user_derived_object_address?network=testnet}
+   * creatorAddr = 0x653a60dab27fe8f3859414973d218e1b7551c778a8650a7055a85c0f8041b2a4
+   * deriveFromAddr = 0xa
+   * Expect = 0xefaed62f184a6578d84f409082ec530996732a3e4ccdec1cb7b36e7968dbe450
+   */
+  test("create user derived object address", () => {
+    const creatorAddress = AccountAddress.from("0x653a60dab27fe8f3859414973d218e1b7551c778a8650a7055a85c0f8041b2a4");
+    const deriveFromAddress = AccountAddress.from("0xa");
+    const address = createUserDerivedObjectAddress(creatorAddress, deriveFromAddress);
+    expect(address.toString()).toEqual("0xefaed62f184a6578d84f409082ec530996732a3e4ccdec1cb7b36e7968dbe450");
   });
 });
