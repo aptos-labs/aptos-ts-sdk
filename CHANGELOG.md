@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Unreleased
 
+- Remove unused dependency `form-data`
+
 # 5.1.0 (2025-9-23)
 
 - Add `Secp256r1 (P-256)` cryptographic support for `WebAuthn authentication`, including `Secp256r1PublicKey`, `Secp256r1PrivateKey`, and `WebAuthnSignature` classes with full BCS serialization support
