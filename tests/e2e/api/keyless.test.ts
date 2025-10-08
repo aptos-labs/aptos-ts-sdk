@@ -3,6 +3,8 @@
 
 import {
   Account,
+  Aptos,
+  AptosConfig,
   FederatedKeylessAccount,
   Groth16Zkp,
   KeylessAccount,
@@ -10,11 +12,11 @@ import {
   ZeroKnowledgeSig,
   ZkProof,
   ZkpVariant,
+  Network,
 } from "../../../src";
 import { clearMemoizeCache } from "../../../src/utils/memoize";
 
 import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper";
-import { getAptosClient } from "../helper";
 import { EPHEMERAL_KEY_PAIR, simpleCoinTransactionHeler as simpleCoinTransactionHelper } from "../transaction/helper";
 
 export const TEST_JWT_TOKENS = [
@@ -67,7 +69,9 @@ const KEYLESS_TEST_TIMEOUT = 12000;
 
 describe("keyless api", () => {
   const ephemeralKeyPair = EPHEMERAL_KEY_PAIR;
-  const { aptos } = getAptosClient();
+  // Keyless only works in devnet and others
+  const aptosConfig = new AptosConfig({ network: Network.DEVNET });
+  const aptos = new Aptos(aptosConfig);
   const jwkAccount = Account.generate();
 
   beforeEach(async () => {

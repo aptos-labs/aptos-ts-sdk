@@ -3,6 +3,7 @@
 
 import { AptosConfig, Aptos, Network } from "../../../src";
 import { longTestTimeout } from "../../unit/helper";
+import { getAptosClient } from "../helper";
 
 describe("staking api", () => {
   test(
@@ -26,8 +27,7 @@ describe("staking api", () => {
   );
 
   test("it returns 0 if the poolAddress does not exist", async () => {
-    const config = new AptosConfig({ network: Network.DEVNET });
-    const aptos = new Aptos(config);
+    const { aptos } = getAptosClient();
     const badAddress = "0x12345678901234567850020dfd67646b1e46282999483e7064e70f02f7e12345";
     const numDelegators = await aptos.getNumberOfDelegators({ poolAddress: badAddress });
     expect(numDelegators).toBe(0);

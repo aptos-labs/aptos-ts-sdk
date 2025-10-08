@@ -43,8 +43,7 @@ describe("account api", () => {
     });
 
     test("it fetches account modules with a limit", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
       const data = await aptos.getAccountModules({
         accountAddress: "0x1",
         options: {
@@ -55,15 +54,13 @@ describe("account api", () => {
     });
 
     test("it fetches account modules with pagination", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const { modules, cursor: initialCursor } = await aptos.getAccountModulesPage({
+      const { aptos } = getAptosClient();
+      let { modules, cursor } = await aptos.getAccountModulesPage({
         accountAddress: "0x1",
         options: {
           limit: 1,
         },
       });
-      let cursor = initialCursor;
       expect(modules.length).toEqual(1);
       expect(cursor).toBeDefined();
       while (true) {
@@ -83,8 +80,7 @@ describe("account api", () => {
     });
 
     test("it fetches an account module", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
       const data = await aptos.getAccountModule({
         accountAddress: "0x1",
         moduleName: "coin",
@@ -93,8 +89,7 @@ describe("account api", () => {
     });
 
     test("it fetches account resources", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
       const data = await aptos.getAccountResources({
         accountAddress: "0x1",
       });
@@ -102,8 +97,7 @@ describe("account api", () => {
     });
 
     test("it fetches account resources with a limit", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
       const data = await aptos.getAccountResources({
         accountAddress: "0x1",
         options: {
@@ -114,8 +108,7 @@ describe("account api", () => {
     });
 
     test("it fetches account resources with pagination", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
       const { resources, cursor } = await aptos.getAccountResourcesPage({
         accountAddress: "0x1",
         options: {
@@ -137,8 +130,7 @@ describe("account api", () => {
     });
 
     test("it fetches an account resource without a type", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
       const data = await aptos.getAccountResource({
         accountAddress: "0x1",
         resourceType: "0x1::account::Account",
@@ -150,8 +142,7 @@ describe("account api", () => {
     });
 
     test("it fetches an account resource typed", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
       type AccountRes = {
         authentication_key: string;
         coin_register_events: {
@@ -187,8 +178,7 @@ describe("account api", () => {
     });
 
     test("it fetches account transactions", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
       const senderAccount = Account.generate();
       await aptos.fundAccount({
         accountAddress: senderAccount.accountAddress,
@@ -218,8 +208,7 @@ describe("account api", () => {
     });
 
     test("it fetches account transactions count", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
       const senderAccount = Account.generate();
       const response = await aptos.fundAccount({
         accountAddress: senderAccount.accountAddress,
@@ -234,8 +223,7 @@ describe("account api", () => {
     });
 
     test("it fetches account coins data", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
       const senderAccount = Account.generate();
       const fundTxn = await aptos.fundAccount({
         accountAddress: senderAccount.accountAddress,
@@ -251,8 +239,7 @@ describe("account api", () => {
     });
 
     test("it fetches account coins count", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
       const senderAccount = Account.generate();
       const fundTxn = await aptos.fundAccount({
         accountAddress: senderAccount.accountAddress,
@@ -267,8 +254,7 @@ describe("account api", () => {
     });
 
     test("it fetches account's coin amount", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
       const senderAccount = Account.generate();
       const fundTxn = await aptos.fundAccount({
         accountAddress: senderAccount.accountAddress,
@@ -318,8 +304,7 @@ describe("account api", () => {
     });
 
     test("it fetches account balance by coin type (APT)", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
       const account = Account.generate();
 
       const fundTxn = await aptos.fundAccount({
@@ -336,8 +321,7 @@ describe("account api", () => {
     });
 
     test("it fetches account balance by FA metadata address (APT)", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
       const account = Account.generate();
 
       const fundTxn = await aptos.fundAccount({
@@ -354,8 +338,7 @@ describe("account api", () => {
     });
 
     test("lookupOriginalAccountAddress - Look up account address before key rotation", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
       const account = Account.generate();
 
       // Fund and create account on-chain
@@ -368,8 +351,7 @@ describe("account api", () => {
     });
 
     test("it fetches account owned token from collection", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
       const creator = Account.generate();
       await aptos.fundAccount({ accountAddress: creator.accountAddress, amount: FUND_AMOUNT });
       const collectionCreationTransaction = await aptos.createCollectionTransaction({
@@ -412,10 +394,7 @@ describe("account api", () => {
     });
 
     describe("it derives an account from a private key", () => {
-      const config = new AptosConfig({
-        network: Network.LOCAL,
-      });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
 
       test("single sender ed25519", async () => {
         const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
@@ -461,8 +440,7 @@ describe("account api", () => {
 
   describe("Key Rotation", () => {
     test("it should rotate ed25519 to ed25519 auth key correctly", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
 
       // Current Account
       const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
@@ -493,8 +471,7 @@ describe("account api", () => {
     }, 10000);
 
     test("it should rotate ed25519 to multi-ed25519 auth key correctly", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
 
       // Current Account
       const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
@@ -532,8 +509,7 @@ describe("account api", () => {
     }, 10000);
 
     test("it should rotate ed25519 to multikey auth key correctly", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
 
       // Current Account
       const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
@@ -570,8 +546,7 @@ describe("account api", () => {
     }, 10000);
 
     test("it should rotate ed25519 to unverified auth key correctly", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
 
       // Current Account
       const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
@@ -603,8 +578,7 @@ describe("account api", () => {
   });
 
   describe("Account Derivation APIs", () => {
-    const config = new AptosConfig({ network: Network.LOCAL });
-    const aptos = new Aptos(config);
+    const { aptos } = getAptosClient();
 
     const minterAccount = Account.generate();
 

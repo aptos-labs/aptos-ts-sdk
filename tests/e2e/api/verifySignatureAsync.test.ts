@@ -4,32 +4,33 @@
 import {
   Account,
   AccountAddress,
+  AptosConfig,
   Ed25519PrivateKey,
-  Secp256k1PrivateKey,
-  SigningSchemeInput,
-  MultiKey,
-  MultiKeyAccount,
+  Groth16Zkp,
+  KeylessAccount,
   MultiEd25519Account,
   MultiEd25519PublicKey,
-  KeylessAccount,
-  ZkProof,
-  Groth16Zkp,
-  ZkpVariant,
+  MultiKey,
+  MultiKeyAccount,
+  Network,
+  Secp256k1PrivateKey,
+  SigningSchemeInput,
   ZeroKnowledgeSig,
+  ZkProof,
+  ZkpVariant,
 } from "../../../src";
 
 import {
   ed25519,
-  secp256k1TestObject,
-  keylessTestObject,
   EPHEMERAL_KEY_PAIR,
+  keylessTestObject,
+  secp256k1TestObject,
   singleSignerED25519,
 } from "../../unit/helper";
-import { getAptosClient } from "../helper";
 
 describe("verifySignatureAsync", () => {
-  const { aptos } = getAptosClient();
-  const aptosConfig = aptos.config;
+  // This can only run against a real network, so we'll make it devnet
+  const aptosConfig = new AptosConfig({ network: Network.DEVNET });
 
   it("signs a message with single signer Secp256k1 scheme and verifies successfully", async () => {
     const { privateKey: privateKeyBytes, address, signatureHex, messageEncoded, stringMessage } = secp256k1TestObject;
