@@ -122,6 +122,7 @@ const NetworkToAnsContract: Record<Network, string | null> = {
   [Network.LOCAL]: LOCAL_ANS_ACCOUNT_ADDRESS,
   [Network.CUSTOM]: null,
   [Network.DEVNET]: null,
+  [Network.SHELBYNET]: null,
 };
 
 /**

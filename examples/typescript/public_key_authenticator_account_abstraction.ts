@@ -9,10 +9,12 @@ import {
   AptosConfig,
   UserTransactionResponse,
   Serializer,
+  NetworkToNetworkName,
 } from "@aptos-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils";
 
-const aptos = new Aptos(new AptosConfig({ network: Network.DEVNET }));
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
+const aptos = new Aptos(new AptosConfig({ network: APTOS_NETWORK }));
 
 const main = async () => {
   const alice = Account.generate();
