@@ -1,10 +1,19 @@
 /* eslint-disable no-console */
 import dotenv from "dotenv";
 dotenv.config();
-import { Account, AbstractedAccount, Aptos, Network, AptosConfig, UserTransactionResponse } from "@aptos-labs/ts-sdk";
+import {
+  Account,
+  AbstractedAccount,
+  Aptos,
+  Network,
+  AptosConfig,
+  UserTransactionResponse,
+  NetworkToNetworkName,
+} from "@aptos-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils";
 
-const aptos = new Aptos(new AptosConfig({ network: Network.DEVNET }));
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
+const aptos = new Aptos(new AptosConfig({ network: APTOS_NETWORK }));
 
 const main = async () => {
   const alice = Account.generate();
