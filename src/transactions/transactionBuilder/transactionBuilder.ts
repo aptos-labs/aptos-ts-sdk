@@ -8,7 +8,14 @@
  */
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { AptosConfig } from "../../api/aptosConfig";
-import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
+import {
+  AccountAddress,
+  AccountAddressInput,
+  Hex,
+  MultiEd25519PublicKey,
+  MultiEd25519Signature,
+  PublicKey,
+} from "../../core";
 import {
   AnyPublicKey,
   AnySignature,
@@ -646,6 +653,11 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
       accountAuthenticator.public_key,
       accountAuthenticator.signature,
     );
+  } else if (accountAuthenticator instanceof AccountAuthenticatorMultiEd25519) {
+    transactionAuthenticator = new TransactionAuthenticatorMultiEd25519(
+      accountAuthenticator.public_key,
+      accountAuthenticator.signature,
+    );
   } else if (
     accountAuthenticator instanceof AccountAuthenticatorSingleKey ||
     accountAuthenticator instanceof AccountAuthenticatorMultiKey
@@ -683,6 +695,22 @@ export function getAuthenticatorForSimulation(publicKey?: PublicKey) {
     return new AccountAuthenticatorEd25519(accountPublicKey, invalidSignature);
   }
 
+  if (MultiEd25519PublicKey.isInstance(accountPublicKey)) {
+    let threshold = accountPublicKey.threshold;
+    let signatures = [];
+    for (let i = 0; i < threshold; i++) {
+      signatures.push(invalidSignature);
+    }
+
+    return new AccountAuthenticatorMultiEd25519(
+      accountPublicKey,
+      new MultiEd25519Signature({
+        signatures,
+        bitmap: accountPublicKey.createBitmap({ bits: Array.from({ length: threshold }, (_, i) => i) }),
+      }),
+    );
+  }
+
   if (AnyPublicKey.isInstance(accountPublicKey)) {
     if (KeylessPublicKey.isInstance(accountPublicKey.publicKey)) {
       return new AccountAuthenticatorSingleKey(
@@ -712,7 +740,7 @@ export function getAuthenticatorForSimulation(publicKey?: PublicKey) {
     );
   }
 
-  throw new Error("Unsupported PublicKey used for simulations");
+  throw new Error("Unsupported PublicKey used for simulation");
 }
 
 /**
