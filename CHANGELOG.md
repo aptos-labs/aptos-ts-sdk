@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Unreleased
 
+- Remove unused dependency `form-data`
+
 # 5.1.1 (2025-9-23)
 
 - Add `shelbynet` to `apiEndpoints.ts`
