@@ -1521,6 +1521,11 @@ export type MoveStruct = {
    */
   is_event: boolean;
   /**
+   * True if the struct is an enum (e.g. enum MyEnum { A, B, C }), false if it is a
+   * regular struct (e.g. struct MyStruct { a: u8, b: u8 }).
+   */
+  is_enum: boolean;
+  /**
    * Abilities associated with the struct
    */
   abilities: Array<MoveAbility>;
