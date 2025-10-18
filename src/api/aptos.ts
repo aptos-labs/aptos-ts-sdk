@@ -88,7 +88,7 @@ export class Aptos {
    * runExample().catch(console.error);
    * ```
    * @group Client
-  */
+   */
   constructor(config?: AptosConfig) {
     ensureMixinsApplied();
     this.config = config ?? new AptosConfig();
