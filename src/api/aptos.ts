@@ -88,8 +88,9 @@ export class Aptos {
    * runExample().catch(console.error);
    * ```
    * @group Client
-   */
+  */
   constructor(config?: AptosConfig) {
+    ensureMixinsApplied();
     this.config = config ?? new AptosConfig();
     this.account = new Account(this.config);
     this.abstraction = new AccountAbstraction(this.config);
@@ -155,17 +156,27 @@ function applyMixin(targetClass: any, baseClass: any, baseClassProp: string) {
   });
 }
 
-applyMixin(Aptos, Account, "account");
-applyMixin(Aptos, AccountAbstraction, "abstraction");
-applyMixin(Aptos, ANS, "ans");
-applyMixin(Aptos, Coin, "coin");
-applyMixin(Aptos, DigitalAsset, "digitalAsset");
-applyMixin(Aptos, Event, "event");
-applyMixin(Aptos, Faucet, "faucet");
-applyMixin(Aptos, FungibleAsset, "fungibleAsset");
-applyMixin(Aptos, General, "general");
-applyMixin(Aptos, Staking, "staking");
-applyMixin(Aptos, Transaction, "transaction");
-applyMixin(Aptos, Table, "table");
-applyMixin(Aptos, Keyless, "keyless");
-applyMixin(Aptos, AptosObject, "object");
+let mixinsApplied = false;
+
+function ensureMixinsApplied() {
+  if (mixinsApplied) {
+    return;
+  }
+
+  applyMixin(Aptos, Account, "account");
+  applyMixin(Aptos, AccountAbstraction, "abstraction");
+  applyMixin(Aptos, ANS, "ans");
+  applyMixin(Aptos, Coin, "coin");
+  applyMixin(Aptos, DigitalAsset, "digitalAsset");
+  applyMixin(Aptos, Event, "event");
+  applyMixin(Aptos, Faucet, "faucet");
+  applyMixin(Aptos, FungibleAsset, "fungibleAsset");
+  applyMixin(Aptos, General, "general");
+  applyMixin(Aptos, Staking, "staking");
+  applyMixin(Aptos, Transaction, "transaction");
+  applyMixin(Aptos, Table, "table");
+  applyMixin(Aptos, Keyless, "keyless");
+  applyMixin(Aptos, AptosObject, "object");
+
+  mixinsApplied = true;
+}

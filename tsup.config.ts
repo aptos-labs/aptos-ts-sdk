@@ -9,14 +9,11 @@ type MandatoryOptions = Options & {
 
 // Default config, used as a base template
 const DEFAULT_CONFIG: Options = {
-  bundle: true,
   clean: true, // clean up the dist folder
   dts: true, // generate dts files
   minify: true,
-  entry: ["src/index.ts"], // include all files under src
   skipNodeModulesBundle: true,
   sourcemap: true,
-  splitting: true,
   target: "es2020",
   platform: "node",
   env: {
@@ -31,8 +28,10 @@ const DEFAULT_CONFIG: Options = {
 // Common.js config
 const COMMON_CONFIG: MandatoryOptions = {
   ...DEFAULT_CONFIG,
+  bundle: true,
   entry: ["src/index.ts", "src/cli/index.ts"],
   format: "cjs",
+  splitting: true,
   outDir: "dist/common",
 };
 
@@ -41,6 +40,11 @@ const ESM_CONFIG: MandatoryOptions = {
   ...DEFAULT_CONFIG,
   entry: ["src/**/*.ts"],
   format: "esm",
+  bundle: false,
+  splitting: false,
+  outExtension: () => ({
+    js: ".mjs",
+  }),
   outDir: "dist/esm",
 };
 
