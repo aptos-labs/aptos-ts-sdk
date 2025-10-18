@@ -24,6 +24,26 @@
         "default": "./dist/esm/index.mjs"
       }
     },
+    "./core": {
+      "types": "./dist/esm/core/index.d.mts",
+      "import": "./dist/esm/core/index.mjs",
+      "require": {
+        "types": "./dist/common/index.d.ts",
+        "default": "./dist/common/index.js"
+      }
+    },
+    "./core/*": {
+      "types": "./dist/esm/core/*.d.mts",
+      "import": "./dist/esm/core/*.mjs"
+    },
+    "./bcs": {
+      "types": "./dist/esm/bcs/index.d.mts",
+      "import": "./dist/esm/bcs/index.mjs",
+      "require": {
+        "types": "./dist/common/index.d.ts",
+        "default": "./dist/common/index.js"
+      }
+    },
     "./dist/common/cli/index.js": "./dist/common/cli/index.js",
     "./dist/esm/cli/index.mjs": "./dist/esm/cli/index.mjs",
     "./package.json": "./package.json"
