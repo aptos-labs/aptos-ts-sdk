@@ -420,7 +420,7 @@ export async function generateRawTransaction(args: {
     faAddress: options?.faAddress,
   };
 
-  if (chainId == 3) {
+  if (chainId == 3 || chainId == 2) {
     return new CommissionRawTransaction(
       AccountAddress.from(sender),
       BigInt(sequenceNumber),
