@@ -33,6 +33,8 @@ export class RawTransaction extends Serializable {
 
   public readonly chain_id: ChainId;
 
+  public readonly fa_address: TypeTag;
+
   /**
    * RawTransactions contain the metadata and payloads that can be submitted to Cedra chain for execution.
    * RawTransactions must be signed before Cedra chain can execute them.
@@ -58,6 +60,7 @@ export class RawTransaction extends Serializable {
     gas_unit_price: bigint,
     expiration_timestamp_secs: bigint,
     chain_id: ChainId,
+    fa_address: TypeTag,
   ) {
     super();
     this.sender = sender;
@@ -67,6 +70,7 @@ export class RawTransaction extends Serializable {
     this.gas_unit_price = gas_unit_price;
     this.expiration_timestamp_secs = expiration_timestamp_secs;
     this.chain_id = chain_id;
+    this.fa_address = fa_address;
   }
 
   /**
@@ -86,6 +90,7 @@ export class RawTransaction extends Serializable {
     serializer.serializeU64(this.gas_unit_price);
     serializer.serializeU64(this.expiration_timestamp_secs);
     this.chain_id.serialize(serializer);
+    this.fa_address.serialize(serializer);
   }
 
   /**
@@ -104,6 +109,7 @@ export class RawTransaction extends Serializable {
     const gas_unit_price = deserializer.deserializeU64();
     const expiration_timestamp_secs = deserializer.deserializeU64();
     const chain_id = ChainId.deserialize(deserializer);
+    const fa_address = TypeTag.deserialize(deserializer);
     return new RawTransaction(
       sender,
       sequence_number,
@@ -112,6 +118,7 @@ export class RawTransaction extends Serializable {
       gas_unit_price,
       expiration_timestamp_secs,
       chain_id,
+      fa_address,
     );
   }
 }

@@ -420,8 +420,7 @@ export async function generateRawTransaction(args: {
     faAddress: options?.faAddress,
   };
 
-  if (chainId == 3 || chainId == 2) {
-    return new CommissionRawTransaction(
+  return new CommissionRawTransaction(
       AccountAddress.from(sender),
       BigInt(sequenceNumber),
       payload,
@@ -431,17 +430,6 @@ export async function generateRawTransaction(args: {
       new ChainId(chainId),
       faAddress ?? parseTypeTag("0x1::CedraCoin::cedra"),
     );
-  } else {
-    return new RawTransaction(
-      AccountAddress.from(sender),
-      BigInt(sequenceNumber),
-      payload,
-      BigInt(maxGasAmount),
-      BigInt(gasUnitPrice),
-      BigInt(expireTimestamp),
-      new ChainId(chainId),
-    );
-  }
 }
 
 /**
