@@ -43,7 +43,7 @@ export const NetworkToPepperAPI: Record<string, string> = {
   mainnet: "https://api.mainnet.aptoslabs.com/keyless/pepper/v0",
   testnet: "https://api.testnet.aptoslabs.com/keyless/pepper/v0",
   devnet: "https://api.devnet.aptoslabs.com/keyless/pepper/v0",
-  shelbynet: "https://api.devnet.aptoslabs.com/keyless/pepper/v0",
+  shelbynet: "https://api.shelbynet.aptoslabs.com/keyless/pepper/v0",
   // Use the devnet service for local environment
   local: "https://api.devnet.aptoslabs.com/keyless/pepper/v0",
 };
@@ -56,7 +56,7 @@ export const NetworkToProverAPI: Record<string, string> = {
   mainnet: "https://api.mainnet.aptoslabs.com/keyless/prover/v0",
   testnet: "https://api.testnet.aptoslabs.com/keyless/prover/v0",
   devnet: "https://api.devnet.aptoslabs.com/keyless/prover/v0",
-  shelbynet: "https://api.devnet.aptoslabs.com/keyless/prover/v0",
+  shelbynet: "https://api.shelbynet.aptoslabs.com/keyless/prover/v0",
   // Use the devnet service for local environment
   local: "https://api.devnet.aptoslabs.com/keyless/prover/v0",
 };
