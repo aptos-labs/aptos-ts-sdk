@@ -53,7 +53,7 @@ const aptos = new Aptos(config);
 ---
 
 ```ts
-const fund = await aptos.getAccountInfo({ accountAddress: "0x123" });
+const accountInfo = await aptos.getAccountInfo({ accountAddress: "0x123" });
 const modules = await aptos.getAccountModules({ accountAddress: "0x123" });
 const tokens = await aptos.getAccountOwnedTokens({ accountAddress: "0x123" });
 ```
@@ -84,7 +84,7 @@ const privateKey = new Secp256k1PrivateKey("mySecp256k1privatekeystring");
 
 // This is used as a local calculation and therefore is used to instantiate an `Account`
 // that has not had its authentication key rotated
-const account = await Account.fromPrivateKey({ privateKey });
+const account = Account.fromPrivateKey({ privateKey });
 
 // Also, can use this function that resolves the provided private key type and derives the public key from it
 // to support key rotation and differentiation between Legacy Ed25519 and Unified authentications
@@ -102,10 +102,10 @@ const privateKey = new Secp256k1PrivateKey("mySecp256k1privatekeystring");
 
 // Derive an account from private key and address
 
-// create an AccountAddress instance from the account address string
+// Create an AccountAddress instance from the account address string.
 const address = AccountAddress.from("myaccountaddressstring");
 // Derive an account from private key and address
-const account = await Account.fromPrivateKeyAndAddress({ privateKey, address });
+const account = Account.fromPrivateKeyAndAddress({ privateKey, address });
 ```
 
 #### Derive from path
