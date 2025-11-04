@@ -44,29 +44,23 @@ import { AccountAbstraction } from "./account/abstraction";
 export class Aptos {
   readonly config: AptosConfig;
 
-  readonly account: Account;
+  // Private fields to store lazy-loaded instances
+  private _account?: Account;
+  private _abstraction?: AccountAbstraction;
+  private _ans?: ANS;
+  private _coin?: Coin;
+  private _digitalAsset?: DigitalAsset;
+  private _faucet?: Faucet;
+  private _fungibleAsset?: FungibleAsset;
+  private _general?: General;
+  private _staking?: Staking;
+  private _transaction?: Transaction;
+  private _table?: Table;
+  private _keyless?: Keyless;
+  private _object?: AptosObject;
 
-  readonly ans: ANS;
-
-  readonly coin: Coin;
-
-  readonly digitalAsset: DigitalAsset;
-
-  readonly faucet: Faucet;
-
-  readonly fungibleAsset: FungibleAsset;
-
-  readonly general: General;
-
-  readonly staking: Staking;
-
-  readonly transaction: Transaction;
-
-  readonly table: Table;
-
-  readonly keyless: Keyless;
-
-  readonly object: AptosObject;
+  // Track which mixins have been applied
+  static mixinsApplied = new Set<string>();
 
   /**
    * Initializes a new instance of the Aptos client with the provided configuration settings.
@@ -90,21 +84,163 @@ export class Aptos {
    * @group Client
    */
   constructor(config?: AptosConfig) {
-    ensureMixinsApplied();
     this.config = config ?? new AptosConfig();
-    this.account = new Account(this.config);
-    this.abstraction = new AccountAbstraction(this.config);
-    this.ans = new ANS(this.config);
-    this.coin = new Coin(this.config);
-    this.digitalAsset = new DigitalAsset(this.config);
-    this.faucet = new Faucet(this.config);
-    this.fungibleAsset = new FungibleAsset(this.config);
-    this.general = new General(this.config);
-    this.staking = new Staking(this.config);
-    this.transaction = new Transaction(this.config);
-    this.table = new Table(this.config);
-    this.keyless = new Keyless(this.config);
-    this.object = new AptosObject(this.config);
+  }
+
+  /**
+   * Lazy-loaded getter for Account functionality.
+   * Only instantiates and applies mixin when first accessed.
+   */
+  get account(): Account {
+    if (!this._account) {
+      ensureMixinApplied(Aptos, Account, "account");
+      this._account = new Account(this.config);
+    }
+    return this._account;
+  }
+
+  /**
+   * Lazy-loaded getter for AccountAbstraction functionality.
+   * Only instantiates and applies mixin when first accessed.
+   */
+  get abstraction(): AccountAbstraction {
+    if (!this._abstraction) {
+      ensureMixinApplied(Aptos, AccountAbstraction, "abstraction");
+      this._abstraction = new AccountAbstraction(this.config);
+    }
+    return this._abstraction;
+  }
+
+  /**
+   * Lazy-loaded getter for ANS functionality.
+   * Only instantiates and applies mixin when first accessed.
+   */
+  get ans(): ANS {
+    if (!this._ans) {
+      ensureMixinApplied(Aptos, ANS, "ans");
+      this._ans = new ANS(this.config);
+    }
+    return this._ans;
+  }
+
+  /**
+   * Lazy-loaded getter for Coin functionality.
+   * Only instantiates and applies mixin when first accessed.
+   */
+  get coin(): Coin {
+    if (!this._coin) {
+      ensureMixinApplied(Aptos, Coin, "coin");
+      this._coin = new Coin(this.config);
+    }
+    return this._coin;
+  }
+
+  /**
+   * Lazy-loaded getter for DigitalAsset functionality.
+   * Only instantiates and applies mixin when first accessed.
+   */
+  get digitalAsset(): DigitalAsset {
+    if (!this._digitalAsset) {
+      ensureMixinApplied(Aptos, DigitalAsset, "digitalAsset");
+      this._digitalAsset = new DigitalAsset(this.config);
+    }
+    return this._digitalAsset;
+  }
+
+  /**
+   * Lazy-loaded getter for Faucet functionality.
+   * Only instantiates and applies mixin when first accessed.
+   */
+  get faucet(): Faucet {
+    if (!this._faucet) {
+      ensureMixinApplied(Aptos, Faucet, "faucet");
+      this._faucet = new Faucet(this.config);
+    }
+    return this._faucet;
+  }
+
+  /**
+   * Lazy-loaded getter for FungibleAsset functionality.
+   * Only instantiates and applies mixin when first accessed.
+   */
+  get fungibleAsset(): FungibleAsset {
+    if (!this._fungibleAsset) {
+      ensureMixinApplied(Aptos, FungibleAsset, "fungibleAsset");
+      this._fungibleAsset = new FungibleAsset(this.config);
+    }
+    return this._fungibleAsset;
+  }
+
+  /**
+   * Lazy-loaded getter for General functionality.
+   * Only instantiates and applies mixin when first accessed.
+   */
+  get general(): General {
+    if (!this._general) {
+      ensureMixinApplied(Aptos, General, "general");
+      this._general = new General(this.config);
+    }
+    return this._general;
+  }
+
+  /**
+   * Lazy-loaded getter for Staking functionality.
+   * Only instantiates and applies mixin when first accessed.
+   */
+  get staking(): Staking {
+    if (!this._staking) {
+      ensureMixinApplied(Aptos, Staking, "staking");
+      this._staking = new Staking(this.config);
+    }
+    return this._staking;
+  }
+
+  /**
+   * Lazy-loaded getter for Transaction functionality.
+   * Only instantiates and applies mixin when first accessed.
+   */
+  get transaction(): Transaction {
+    if (!this._transaction) {
+      ensureMixinApplied(Aptos, Transaction, "transaction");
+      this._transaction = new Transaction(this.config);
+    }
+    return this._transaction;
+  }
+
+  /**
+   * Lazy-loaded getter for Table functionality.
+   * Only instantiates and applies mixin when first accessed.
+   */
+  get table(): Table {
+    if (!this._table) {
+      ensureMixinApplied(Aptos, Table, "table");
+      this._table = new Table(this.config);
+    }
+    return this._table;
+  }
+
+  /**
+   * Lazy-loaded getter for Keyless functionality.
+   * Only instantiates and applies mixin when first accessed.
+   */
+  get keyless(): Keyless {
+    if (!this._keyless) {
+      ensureMixinApplied(Aptos, Keyless, "keyless");
+      this._keyless = new Keyless(this.config);
+    }
+    return this._keyless;
+  }
+
+  /**
+   * Lazy-loaded getter for AptosObject functionality.
+   * Only instantiates and applies mixin when first accessed.
+   */
+  get object(): AptosObject {
+    if (!this._object) {
+      ensureMixinApplied(Aptos, AptosObject, "object");
+      this._object = new AptosObject(this.config);
+    }
+    return this._object;
   }
 
   setIgnoreTransactionSubmitter(ignore: boolean) {
@@ -114,12 +250,13 @@ export class Aptos {
 
 // extends Aptos interface so all the methods and properties
 // from the other classes will be recognized by typescript.
+// Note: Mixins are applied lazily when the corresponding property is first accessed.
 export interface Aptos
   extends Account,
+    AccountAbstraction,
     ANS,
     Coin,
     DigitalAsset,
-    Event,
     Faucet,
     FungibleAsset,
     General,
@@ -130,7 +267,7 @@ export interface Aptos
     Omit<Transaction, "build" | "simulate" | "submit" | "batch"> {}
 
 /**
-In TypeScript, we can’t inherit or extend from more than one class,
+In TypeScript, we can't inherit or extend from more than one class,
 Mixins helps us to get around that by creating a partial classes
 that we can combine to form a single class that contains all the methods and properties from the partial classes.
 {@link https://www.typescriptlang.org/docs/handbook/mixins.html#alternative-pattern}
@@ -144,6 +281,11 @@ function applyMixin(targetClass: any, baseClass: any, baseClassProp: string) {
     const propertyDescriptor = Object.getOwnPropertyDescriptor(baseClass.prototype, propertyName);
     if (!propertyDescriptor) return;
 
+    // Skip constructor and properties that already exist
+    if (propertyName === "constructor" || targetClass.prototype[propertyName]) {
+      return;
+    }
+
     // Define new method that calls through baseClassProp
     Object.defineProperty(targetClass.prototype, propertyName, {
       value: function (...args: any[]) {
@@ -156,27 +298,16 @@ function applyMixin(targetClass: any, baseClass: any, baseClassProp: string) {
   });
 }
 
-let mixinsApplied = false;
-
-function ensureMixinsApplied() {
-  if (mixinsApplied) {
+/**
+ * Ensures a mixin is applied only once when the corresponding functionality is first accessed.
+ * This enables lazy loading - mixins are only applied when their functionality is actually used.
+ */
+function ensureMixinApplied(targetClass: any, baseClass: any, baseClassProp: string) {
+  const mixinKey = `${targetClass.name}-${baseClass.name}-${baseClassProp}`;
+  if (Aptos.mixinsApplied.has(mixinKey)) {
     return;
   }
 
-  applyMixin(Aptos, Account, "account");
-  applyMixin(Aptos, AccountAbstraction, "abstraction");
-  applyMixin(Aptos, ANS, "ans");
-  applyMixin(Aptos, Coin, "coin");
-  applyMixin(Aptos, DigitalAsset, "digitalAsset");
-  applyMixin(Aptos, Event, "event");
-  applyMixin(Aptos, Faucet, "faucet");
-  applyMixin(Aptos, FungibleAsset, "fungibleAsset");
-  applyMixin(Aptos, General, "general");
-  applyMixin(Aptos, Staking, "staking");
-  applyMixin(Aptos, Transaction, "transaction");
-  applyMixin(Aptos, Table, "table");
-  applyMixin(Aptos, Keyless, "keyless");
-  applyMixin(Aptos, AptosObject, "object");
-
-  mixinsApplied = true;
+  applyMixin(targetClass, baseClass, baseClassProp);
+  Aptos.mixinsApplied.add(mixinKey);
 }
