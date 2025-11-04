@@ -9,19 +9,19 @@
  * @group Implementation
  */
 
-import { AptosConfig } from "../api/aptosConfig";
-import { Account } from "../account";
-import { AccountAddress, AccountAddressInput } from "../core";
-import { InputGenerateTransactionOptions } from "../transactions/types";
-import { GetANSNameResponse, MoveAddressType, OrderByArg, PaginationArgs, WhereArg } from "../types";
-import { GetNamesQuery } from "../types/generated/operations";
-import { GetNames } from "../types/generated/queries";
-import { CurrentAptosNamesBoolExp } from "../types/generated/types";
-import { Network } from "../utils/apiEndpoints";
-import { queryIndexer } from "./general";
-import { view } from "./view";
-import { generateTransaction } from "./transactionSubmission";
-import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
+import { AptosConfig } from "../api/aptosConfig.js";
+import { Account } from "../account/index.js";
+import { AccountAddress, AccountAddressInput } from "../core/index.js";
+import { InputGenerateTransactionOptions } from "../transactions/types.js";
+import { GetANSNameResponse, MoveAddressType, OrderByArg, PaginationArgs, WhereArg } from "../types/index.js";
+import { GetNamesQuery } from "../types/generated/operations.js";
+import { GetNames } from "../types/generated/queries.js";
+import { CurrentAptosNamesBoolExp } from "../types/generated/types.js";
+import { Network } from "../utils/apiEndpoints.js";
+import { queryIndexer } from "./general.js";
+import { view } from "./view.js";
+import { generateTransaction } from "./transactionSubmission.js";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction.js";
 
 export const VALIDATION_RULES_DESCRIPTION = [
   "A name must be between 3 and 63 characters long,",

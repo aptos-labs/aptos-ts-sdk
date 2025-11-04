@@ -9,9 +9,9 @@
  * @group Implementation
  */
 
-import { AptosConfig } from "../api/aptosConfig";
-import { getAptosFullNode, paginateWithCursor } from "../client";
-import { AptosApiError } from "../errors";
+import { AptosConfig } from "../api/aptosConfig.js";
+import { getAptosFullNode, paginateWithCursor } from "../client/index.js";
+import { AptosApiError } from "../errors/index.js";
 import {
   TransactionResponseType,
   type AnyNumber,
@@ -22,11 +22,11 @@ import {
   WaitForTransactionOptions,
   CommittedTransactionResponse,
   Block,
-} from "../types";
-import { DEFAULT_TXN_TIMEOUT_SEC, ProcessorType } from "../utils/const";
-import { sleep } from "../utils/helpers";
-import { memoizeAsync } from "../utils/memoize";
-import { getIndexerLastSuccessVersion, getProcessorStatus } from "./general";
+} from "../types/index.js";
+import { DEFAULT_TXN_TIMEOUT_SEC, ProcessorType } from "../utils/const.js";
+import { sleep } from "../utils/helpers.js";
+import { memoizeAsync } from "../utils/memoize.js";
+import { getIndexerLastSuccessVersion, getProcessorStatus } from "./general.js";
 
 /**
  * Retrieve a list of transactions based on the specified options.

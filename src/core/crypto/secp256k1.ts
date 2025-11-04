@@ -4,15 +4,15 @@
 import { sha3_256 } from "@noble/hashes/sha3";
 import { secp256k1 } from "@noble/curves/secp256k1";
 import { HDKey } from "@scure/bip32";
-import { Serializable, Deserializer, Serializer } from "../../bcs";
-import { Hex } from "../hex";
-import { HexInput, PrivateKeyVariants } from "../../types";
-import { isValidBIP44Path, mnemonicToSeed } from "./hdKey";
-import { PrivateKey } from "./privateKey";
-import { PublicKey } from "./publicKey";
-import { Signature } from "./signature";
-import { convertSigningMessage } from "./utils";
-import { AptosConfig } from "../../api";
+import { Serializable, Deserializer, Serializer } from "../../bcs/index.js";
+import { Hex } from "../hex.js";
+import { HexInput, PrivateKeyVariants } from "../../types/index.js";
+import { isValidBIP44Path, mnemonicToSeed } from "./hdKey.js";
+import { PrivateKey } from "./privateKey.js";
+import { PublicKey } from "./publicKey.js";
+import { Signature } from "./signature.js";
+import { convertSigningMessage } from "./utils.js";
+import { AptosConfig } from "../../api/aptosConfig.js";
 
 /**
  * Represents a Secp256k1 ECDSA public key.

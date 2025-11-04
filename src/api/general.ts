@@ -1,16 +1,16 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "./aptosConfig";
+import { AptosConfig } from "./aptosConfig.js";
 import {
   getChainTopUserTransactions,
   getIndexerLastSuccessVersion,
   getLedgerInfo,
   getProcessorStatus,
   queryIndexer,
-} from "../internal/general";
-import { getBlockByHeight, getBlockByVersion } from "../internal/transaction";
-import { view, viewJson } from "../internal/view";
+} from "../internal/general.js";
+import { getBlockByHeight, getBlockByVersion } from "../internal/transaction.js";
+import { view, viewJson } from "../internal/view.js";
 import {
   AnyNumber,
   Block,
@@ -20,9 +20,9 @@ import {
   LedgerInfo,
   LedgerVersionArg,
   MoveValue,
-} from "../types";
-import { ProcessorType } from "../utils/const";
-import { InputViewFunctionData, InputViewFunctionJsonData } from "../transactions";
+} from "../types/index.js";
+import { ProcessorType } from "../utils/const.js";
+import { InputViewFunctionData, InputViewFunctionJsonData } from "../transactions/types.js";
 
 /**
  * A class to query various Aptos-related information and perform operations on the Aptos blockchain.

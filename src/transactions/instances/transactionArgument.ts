@@ -1,8 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Serializer } from "../../bcs/serializer";
-import { Hex } from "../../core/hex";
+import { Serializer } from "../../bcs/serializer.js";
+import { Hex } from "../../core/hex.js";
 
 export interface TransactionArgument extends EntryFunctionArgument, ScriptFunctionArgument {}
 

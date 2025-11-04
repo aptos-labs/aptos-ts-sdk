@@ -1,12 +1,10 @@
 import { sha3_256 } from "@noble/hashes/sha3";
-import { Serializer } from "../bcs/serializer";
-import { AccountAddress } from "../core/accountAddress";
-import { AccountAbstractionMessage, AccountAuthenticatorAbstraction } from "../transactions/authenticator/account";
-import { HexInput } from "../types";
-import { isValidFunctionInfo } from "../utils/helpers";
-import { AbstractedAccount } from "./AbstractedAccount";
-import { generateSigningMessage } from "../transactions/transactionBuilder/signingMessage";
-import { ACCOUNT_ABSTRACTION_SIGNING_DATA_SALT } from "../utils/const";
+import { Serializer } from "../bcs/serializer.js";
+import { AccountAddress } from "../core/accountAddress.js";
+import { AccountAbstractionMessage, AccountAuthenticatorAbstraction } from "../transactions/authenticator/account.js";
+import { HexInput } from "../types/index.js";
+import { isValidFunctionInfo } from "../utils/helpers.js";
+import { AbstractedAccount } from "./AbstractedAccount.js";
 
 type DerivableAbstractedAccountArgs = {
   /**

@@ -5,12 +5,12 @@ import {
   getDelegatedStakingActivities,
   getNumberOfDelegators,
   getNumberOfDelegatorsForAllPools,
-} from "../internal/staking";
-import { AnyNumber, GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, OrderByArg } from "../types";
-import { AccountAddressInput } from "../core";
-import { ProcessorType } from "../utils/const";
-import { AptosConfig } from "./aptosConfig";
-import { waitForIndexerOnVersion } from "./utils";
+} from "../internal/staking.js";
+import { AnyNumber, GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, OrderByArg } from "../types/index.js";
+import { AccountAddressInput } from "../core/index.js";
+import { ProcessorType } from "../utils/const.js";
+import { AptosConfig } from "./aptosConfig.js";
+import { waitForIndexerOnVersion } from "./utils.js";
 
 /**
  * A class to query all `Staking` related queries on Aptos.

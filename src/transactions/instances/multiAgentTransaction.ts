@@ -3,10 +3,10 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import { Deserializer } from "../../bcs/deserializer";
-import { Serializable, Serializer } from "../../bcs/serializer";
-import { AccountAddress } from "../../core";
-import { RawTransaction } from "./rawTransaction";
+import { Deserializer } from "../../bcs/deserializer.js";
+import { Serializable, Serializer } from "../../bcs/serializer.js";
+import { AccountAddress } from "../../core/index.js";
+import { RawTransaction } from "./rawTransaction.js";
 
 /**
  * Represents a multi-agent transaction that can be serialized and deserialized.

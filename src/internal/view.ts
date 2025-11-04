@@ -1,16 +1,16 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { LedgerVersionArg, MimeType, MoveValue } from "../types";
-import { AptosConfig } from "../api/aptosConfig";
+import { LedgerVersionArg, MimeType, MoveValue } from "../types/index.js";
+import { AptosConfig } from "../api/aptosConfig.js";
 import {
   generateViewFunctionPayload,
   InputViewFunctionData,
   InputViewFunctionJsonData,
   ViewFunctionJsonPayload,
-} from "../transactions";
-import { Serializer } from "../bcs";
-import { postAptosFullNode } from "../client";
+} from "../transactions/index.js";
+import { Serializer } from "../bcs/index.js";
+import { postAptosFullNode } from "../client/index.js";
 
 export async function view<T extends Array<MoveValue> = Array<MoveValue>>(args: {
   aptosConfig: AptosConfig;

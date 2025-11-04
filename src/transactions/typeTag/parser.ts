@@ -17,9 +17,9 @@ import {
   TypeTagU64,
   TypeTagU8,
   TypeTagVector,
-} from ".";
-import { AccountAddress } from "../../core";
-import { Identifier } from "../instances/identifier";
+} from "./index.js";
+import { AccountAddress } from "../../core/index.js";
+import { Identifier } from "../instances/identifier.js";
 
 /**
  * Determines if the provided string is a valid Move identifier, which can only contain alphanumeric characters and underscores.

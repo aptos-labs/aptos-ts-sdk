@@ -1,12 +1,12 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { PublicKey } from "../../core";
-import { simulateTransaction } from "../../internal/transactionSubmission";
-import { AnyRawTransaction, InputSimulateTransactionOptions } from "../../transactions";
-import { UserTransactionResponse } from "../../types";
-import { AptosConfig } from "../aptosConfig";
-import { ValidateFeePayerDataOnSimulation } from "./helpers";
+import { PublicKey } from "../../core/crypto/index.js";
+import { simulateTransaction } from "../../internal/transactionSubmission.js";
+import { AnyRawTransaction, InputSimulateTransactionOptions } from "../../transactions/index.js";
+import { UserTransactionResponse } from "../../types/index.js";
+import { AptosConfig } from "../aptosConfig.js";
+import { ValidateFeePayerDataOnSimulation } from "./helpers.js";
 
 /**
  * A class to handle all `Simulate` transaction operations.

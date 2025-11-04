@@ -1,11 +1,11 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "../api/aptosConfig";
-import { VERSION } from "../version";
-import { AnyNumber, AptosRequest, AptosResponse, Client, ClientRequest, ClientResponse, MimeType } from "../types";
-import { AptosApiType } from "../utils";
-import { AptosApiError } from "../errors";
+import { AptosConfig } from "../api/aptosConfig.js";
+import { VERSION } from "../version.js";
+import { AnyNumber, AptosRequest, AptosResponse, Client, ClientRequest, ClientResponse, MimeType } from "../types/index.js";
+import { AptosApiType } from "../utils/index.js";
+import { AptosApiError } from "../errors/index.js";
 
 /**
  * Sends a request using the specified options and returns the response.

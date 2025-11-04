@@ -1,13 +1,13 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "../../api";
-import { Deserializer, Serializer } from "../../bcs";
-import { SigningScheme as AuthenticationKeyScheme, HexInput } from "../../types";
-import { AuthenticationKey } from "../authenticationKey";
-import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
-import { AbstractMultiKey } from "./multiKey";
-import { Signature } from "./signature";
+import { AptosConfig } from "../../api/aptosConfig.js";
+import { Deserializer, Serializer } from "../../bcs/index.js";
+import { SigningScheme as AuthenticationKeyScheme, HexInput } from "../../types/index.js";
+import { AuthenticationKey } from "../authenticationKey.js";
+import { Ed25519PublicKey, Ed25519Signature } from "./ed25519.js";
+import { AbstractMultiKey } from "./multiKey.js";
+import { Signature } from "./signature.js";
 
 /**
  * Represents the public key of a K-of-N Ed25519 multi-sig transaction.

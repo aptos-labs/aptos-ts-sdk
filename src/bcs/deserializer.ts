@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /* eslint-disable no-bitwise */
-import { MAX_U32_NUMBER } from "./consts";
-import { Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, HexInput } from "../types";
-import { Hex } from "../core/hex";
+import { MAX_U32_NUMBER } from "./consts.js";
+import { Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, HexInput } from "../types/index.js";
+import { Hex } from "../core/hex.js";
 
 /**
  * This interface exists to define Deserializable<T> inputs for functions that

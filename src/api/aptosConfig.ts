@@ -12,7 +12,7 @@ import {
   TransactionGenerationConfig,
   PluginConfig,
   TransactionSubmitter,
-} from "../types";
+} from "../types/index.js";
 import {
   NetworkToNodeAPI,
   NetworkToFaucetAPI,
@@ -20,8 +20,8 @@ import {
   Network,
   NetworkToPepperAPI,
   NetworkToProverAPI,
-} from "../utils/apiEndpoints";
-import { AptosApiType, DEFAULT_MAX_GAS_AMOUNT, DEFAULT_TXN_EXP_SEC_FROM_NOW } from "../utils/const";
+} from "../utils/apiEndpoints.js";
+import { AptosApiType, DEFAULT_MAX_GAS_AMOUNT, DEFAULT_TXN_EXP_SEC_FROM_NOW } from "../utils/const.js";
 
 /**
  * Represents the configuration settings for an Aptos SDK client instance.

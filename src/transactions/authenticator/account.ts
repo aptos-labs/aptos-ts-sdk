@@ -3,15 +3,15 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import { Serializer, Deserializer, Serializable } from "../../bcs";
-import { AnyPublicKey, AnySignature } from "../../core/crypto";
-import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
-import { MultiEd25519PublicKey, MultiEd25519Signature } from "../../core/crypto/multiEd25519";
-import { MultiKey, MultiKeySignature } from "../../core/crypto/multiKey";
-import { AccountAuthenticatorVariant, HexInput, MoveFunctionId } from "../../types";
-import { AASigningDataVariant, AbstractAuthenticationDataVariant } from "../../types/abstraction";
-import { AccountAddress, Hex } from "../../core";
-import { getFunctionParts, isValidFunctionInfo } from "../../utils/helpers";
+import { Serializer, Deserializer, Serializable } from "../../bcs/index.js";
+import { AnyPublicKey, AnySignature } from "../../core/crypto/index.js";
+import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519.js";
+import { MultiEd25519PublicKey, MultiEd25519Signature } from "../../core/crypto/multiEd25519.js";
+import { MultiKey, MultiKeySignature } from "../../core/crypto/multiKey.js";
+import { AccountAuthenticatorVariant, HexInput, MoveFunctionId } from "../../types/index.js";
+import { AASigningDataVariant, AbstractAuthenticationDataVariant } from "../../types/abstraction.js";
+import { AccountAddress, Hex } from "../../core/index.js";
+import { getFunctionParts, isValidFunctionInfo } from "../../utils/helpers.js";
 
 /**
  * Represents an account authenticator that can handle multiple authentication variants.

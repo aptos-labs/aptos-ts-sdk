@@ -3,15 +3,15 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import { Deserializer } from "../../bcs/deserializer";
-import { Serializable, Serializer } from "../../bcs/serializer";
-import { EntryFunctionBytes } from "../../bcs/serializable/entryFunctionBytes";
-import { Bool, U128, U16, U256, U32, U64, U8 } from "../../bcs/serializable/movePrimitives";
-import { MoveVector, Serialized } from "../../bcs/serializable/moveStructs";
-import { AccountAddress, Hex } from "../../core";
-import { Identifier } from "./identifier";
-import { ModuleId } from "./moduleId";
-import type { EntryFunctionArgument, ScriptFunctionArgument, TransactionArgument } from "./transactionArgument";
+import { Deserializer } from "../../bcs/deserializer.js";
+import { Serializable, Serializer } from "../../bcs/serializer.js";
+import { EntryFunctionBytes } from "../../bcs/serializable/entryFunctionBytes.js";
+import { Bool, U128, U16, U256, U32, U64, U8 } from "../../bcs/serializable/movePrimitives.js";
+import { MoveVector, Serialized } from "../../bcs/serializable/moveStructs.js";
+import { AccountAddress, Hex } from "../../core/index.js";
+import { Identifier } from "./identifier.js";
+import { ModuleId } from "./moduleId.js";
+import type { EntryFunctionArgument, ScriptFunctionArgument, TransactionArgument } from "./transactionArgument.js";
 import {
   AnyNumber,
   MoveModuleId,
@@ -20,8 +20,8 @@ import {
   TransactionExtraConfigVariants,
   TransactionInnerPayloadVariants,
   TransactionPayloadVariants,
-} from "../../types";
-import { TypeTag } from "../typeTag";
+} from "../../types/index.js";
+import { TypeTag } from "../typeTag/index.js";
 
 /**
  * Deserialize a Script Transaction Argument.

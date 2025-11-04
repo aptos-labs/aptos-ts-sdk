@@ -1,7 +1,7 @@
-import { AptosConfig } from "../api/aptosConfig";
-import { aptosRequest } from "./core";
-import { AptosResponse, AnyNumber, ClientConfig, MimeType } from "../types";
-import { AptosApiType } from "../utils/const";
+import { AptosConfig } from "../api/aptosConfig.js";
+import { aptosRequest } from "./core.js";
+import { AptosResponse, AnyNumber, ClientConfig, MimeType } from "../types/index.js";
+import { AptosApiType } from "../utils/const.js";
 
 /**
  * Options for making a GET request, including configuration for the API client.

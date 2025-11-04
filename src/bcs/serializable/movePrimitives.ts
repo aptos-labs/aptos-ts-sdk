@@ -8,11 +8,11 @@ import {
   MAX_U64_BIG_INT,
   MAX_U8_NUMBER,
   MAX_U256_BIG_INT,
-} from "../consts";
-import { Deserializer } from "../deserializer";
-import { Serializable, Serializer, ensureBoolean, validateNumberInRange } from "../serializer";
-import { TransactionArgument } from "../../transactions/instances/transactionArgument";
-import { AnyNumber, Uint16, Uint32, Uint8, ScriptTransactionArgumentVariants } from "../../types";
+} from "../consts.js";
+import { Deserializer } from "../deserializer.js";
+import { Serializable, Serializer, ensureBoolean, validateNumberInRange } from "../serializer.js";
+import { TransactionArgument } from "../../transactions/instances/transactionArgument.js";
+import { AnyNumber, Uint16, Uint32, Uint8, ScriptTransactionArgumentVariants } from "../../types/index.js";
 
 /**
  * Represents a boolean value that can be serialized and deserialized.
