@@ -13,7 +13,7 @@ import {
   ConfidentialWithdrawSigmaProof,
   EncryptedAmount,
   TwistedEd25519PrivateKey,
-} from "../../src";
+} from "@aptos-labs/ts-sdk";
 import { longTestTimeout } from "../helpers";
 
 describe("Generate 'confidential coin' proofs", () => {

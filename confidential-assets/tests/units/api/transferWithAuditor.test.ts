@@ -1,4 +1,4 @@
-import { TwistedEd25519PrivateKey } from "../../../src";
+import { TwistedEd25519PrivateKey } from "../@aptos-labs/ts-sdk";
 import {
   confidentialAsset,
   getTestAccount,

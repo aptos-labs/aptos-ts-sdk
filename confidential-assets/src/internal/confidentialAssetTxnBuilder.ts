@@ -10,7 +10,7 @@ import {
   LedgerVersionArg,
   SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
-import { concatBytes } from "@noble/hashes/utils";
+import { concatBytes } from "@noble/hashes/utils.js";
 import {
   TwistedElGamal,
   ConfidentialNormalization,

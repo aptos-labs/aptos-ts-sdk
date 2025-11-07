@@ -1,0 +1,99 @@
+{
+  "name": "@aptos-labs/ts-sdk",
+  "version": "5.1.1",
+  "description": "Aptos TypeScript SDK",
+  "packageManager": "pnpm@8.15.1",
+  "license": "Apache-2.0",
+  "main": "dist/common/index.js",
+  "module": "dist/esm/index.mjs",
+  "homepage": "https://aptos-labs.github.io/aptos-ts-sdk/",
+  "bugs": {
+    "url": "https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "require": {
+        "types": "./dist/common/index.d.ts",
+        "default": "./dist/common/index.js"
+      },
+      "import": {
+        "types": "./dist/esm/index.d.mts",
+        "default": "./dist/esm/index.mjs"
+      }
+    },
+    "./dist/common/cli/index.js": "./dist/common/cli/index.js",
+    "./dist/esm/cli/index.mjs": "./dist/esm/cli/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "prepublishOnly": "pnpm run build",
+    "_fmt": "prettier '../../packages/ts-sdk/src/**/*.ts' '../../tests/**/*.ts' '../../examples/**/*.js' '../../examples/**/*.ts' '../../confidential-assets/**/*.ts' '../../eslint.config.cjs'",
+    "fmt": "pnpm run _fmt --write",
+    "lint": "eslint '../../**/*.{cts,mts,ts}'",
+    "pretest": "pnpm --dir ../.. -r build",
+    "test": "vitest run --coverage --config ./vitest.config.ts",
+    "unit-test": "vitest run tests/unit --coverage --config ./vitest.config.ts",
+    "e2e-test": "vitest run tests/e2e --coverage --config ./vitest.config.ts",
+    "indexer-codegen": "pnpm --dir ../.. graphql-codegen --config packages/ts-types/src/codegen.yaml && pnpm run fmt",
+    "doc": "../../scripts/generateDocs.sh",
+    "check-version": "../../scripts/checkVersion.sh",
+    "update-version": "../../scripts/updateVersion.sh && pnpm run doc",
+    "spec": "(pnpm run build) && (pnpm run _spec)",
+    "_spec": "cucumber-js -p default"
+  },
+  "dependencies": {
+    "@aptos-labs/aptos-cli": "^1.0.2",
+    "@aptos-labs/aptos-client": "^2.0.0",
+    "@noble/curves": "^1.9.0",
+    "@noble/hashes": "^1.5.0",
+    "@scure/bip32": "^1.4.0",
+    "@scure/bip39": "^1.3.0",
+    "eventemitter3": "^5.0.1",
+    "js-base64": "^3.7.7",
+    "jwt-decode": "^4.0.0",
+    "poseidon-lite": "^0.2.0"
+  },
+  "devDependencies": {
+    "@babel/traverse": "^7.28.4",
+    "@cucumber/cucumber": "^12.2.0",
+    "@eslint/eslintrc": "^3.3.1",
+    "@graphql-codegen/cli": "^6.0.0",
+    "@graphql-codegen/import-types-preset": "^3.0.1",
+    "@graphql-codegen/typescript": "^5.0.0",
+    "@graphql-codegen/typescript-graphql-request": "^6.3.0",
+    "@graphql-codegen/typescript-operations": "^5.0.0",
+    "@swc/core": "^1.7.32",
+    "@types/base-64": "^1.0.2",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.3.1",
+    "@typescript-eslint/eslint-plugin": "^8.43.0",
+    "@typescript-eslint/parser": "^8.43.0",
+    "@vitest/coverage-v8": "^2.1.4",
+    "dotenv": "^16.4.7",
+    "eslint": "^9.35.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "globals": "^16.4.0",
+    "graphql": "^16.11.0",
+    "graphql-request": "^7.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "prettier": "^3.6.2",
+    "tree-kill": "^1.2.2",
+    "ts-loader": "^9.5.4",
+    "tsup": "^8.5.0",
+    "typedoc": "^0.28.12",
+    "typedoc-plugin-missing-exports": "^4.1.0",
+    "typescript": "^5.8.3",
+    "vitest": "^2.1.4"
+  }
+}

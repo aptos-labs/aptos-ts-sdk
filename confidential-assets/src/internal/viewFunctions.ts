@@ -14,7 +14,7 @@ import {
   getPendingBalanceCacheKey,
   memoizeAsync,
   setCache,
-} from "../utils/memoize";
+} from "@aptos-labs/ts-core/utils";
 import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS, MODULE_NAME } from "../consts";
 
 type ViewFunctionParams = {

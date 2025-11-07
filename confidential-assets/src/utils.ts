@@ -1,7 +1,7 @@
 import { invert, mod } from "@noble/curves/abstract/modular";
 import { bytesToNumberBE } from "@noble/curves/abstract/utils";
 import { ed25519 } from "@noble/curves/ed25519";
-import { randomBytes } from "@noble/hashes/utils";
+import { randomBytes } from "@noble/hashes/utils.js";
 
 /*
  * Number modulo order of curve ed25519

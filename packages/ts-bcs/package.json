@@ -1,0 +1,36 @@
+{
+  "name": "@aptos-labs/ts-bcs",
+  "version": "5.1.1",
+  "description": "Binary canonical serialization utilities and Move primitive wrappers for the Aptos TypeScript SDK.",
+  "license": "Apache-2.0",
+  "main": "dist/common/index.js",
+  "module": "dist/esm/index.mjs",
+  "types": "dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "types": {
+        "import": "./dist/esm/index.d.ts",
+        "require": "./dist/common/index.d.ts"
+      },
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/common/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup"
+  },
+  "dependencies": {
+    "@aptos-labs/ts-core": "workspace:*",
+    "@aptos-labs/ts-types": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3"
+  }
+}

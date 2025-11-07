@@ -1,0 +1,41 @@
+{
+  "name": "@aptos-labs/ts-api",
+  "version": "5.1.1",
+  "description": "High-level Aptos SDK APIs composed from modular packages.",
+  "license": "Apache-2.0",
+  "main": "dist/common/index.js",
+  "module": "dist/esm/index.mjs",
+  "types": "dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "types": {
+        "import": "./dist/esm/index.d.ts",
+        "require": "./dist/common/index.d.ts"
+      },
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/common/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup"
+  },
+  "dependencies": {
+    "@aptos-labs/ts-accounts": "workspace:*",
+    "@aptos-labs/ts-client": "workspace:*",
+    "@aptos-labs/ts-core": "workspace:*",
+    "@aptos-labs/ts-transactions": "workspace:*",
+    "@aptos-labs/ts-types": "workspace:*",
+    "eventemitter3": "^5.0.1",
+    "jwt-decode": "^4.0.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3"
+  }
+}

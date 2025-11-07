@@ -1,4 +1,4 @@
-import { EncryptedAmount, TwistedEd25519PrivateKey, TwistedElGamal } from "../../src";
+import { EncryptedAmount, TwistedEd25519PrivateKey, TwistedElGamal } from "@aptos-labs/ts-sdk";
 
 function generateRandomInteger(bits: number): bigint {
   // eslint-disable-next-line no-bitwise

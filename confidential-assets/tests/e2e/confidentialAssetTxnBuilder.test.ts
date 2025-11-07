@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account, AccountAddressInput, AnyNumber } from "@aptos-labs/ts-sdk";
-import { TwistedEd25519PrivateKey } from "../../src";
+import { TwistedEd25519PrivateKey } from "@aptos-labs/ts-sdk";
 import {
   getTestAccount,
   getTestConfidentialAccount,

@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "declarationMap": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "module": "esnext",
+    "moduleDetection": "force",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "strict": true,
+    "target": "es2020",
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "typeRoots": ["./types", "./node_modules/@types"],
+    "baseUrl": ".",
+    "paths": {
+      "@aptos-labs/ts-types": ["packages/ts-types/src"],
+      "@aptos-labs/ts-types/*": ["packages/ts-types/src/*"],
+      "@aptos-labs/ts-core": ["packages/ts-core/src"],
+      "@aptos-labs/ts-core/*": ["packages/ts-core/src/*"],
+      "@aptos-labs/ts-bcs": ["packages/ts-bcs/src"],
+      "@aptos-labs/ts-bcs/*": ["packages/ts-bcs/src/*"],
+      "@aptos-labs/ts-transactions": ["packages/ts-transactions/src"],
+      "@aptos-labs/ts-transactions/*": ["packages/ts-transactions/src/*"],
+      "@aptos-labs/ts-accounts": ["packages/ts-accounts/src"],
+      "@aptos-labs/ts-accounts/*": ["packages/ts-accounts/src/*"],
+      "@aptos-labs/ts-client": ["packages/ts-client/src"],
+      "@aptos-labs/ts-client/*": ["packages/ts-client/src/*"],
+      "@aptos-labs/ts-api": ["packages/ts-api/src"],
+      "@aptos-labs/ts-api/*": ["packages/ts-api/src/*"],
+      "@aptos-labs/ts-sdk": ["packages/ts-sdk/src"],
+      "@aptos-labs/ts-sdk/*": ["packages/ts-sdk/src/*"]
+    }
+  }
+}

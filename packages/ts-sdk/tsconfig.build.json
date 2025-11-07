@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "outDir": "dist",
+    "types": ["node"],
+    "typeRoots": ["../../types", "../../node_modules/@types"]
+  },
+  "include": ["src", "tsup.config.ts", "../../types"]
+}

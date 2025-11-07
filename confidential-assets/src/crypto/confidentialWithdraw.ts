@@ -1,6 +1,6 @@
 import { bytesToNumberLE, concatBytes, numberToBytesLE } from "@noble/curves/abstract/utils";
 import { RistrettoPoint } from "@noble/curves/ed25519";
-import { utf8ToBytes } from "@noble/hashes/utils";
+import { utf8ToBytes } from "@noble/hashes/utils.js";
 import { genFiatShamirChallenge } from "../helpers";
 import { PROOF_CHUNK_SIZE, SIGMA_PROOF_WITHDRAW_SIZE } from "../consts";
 import { ed25519GenListOfRandom, ed25519GenRandom, ed25519modN, ed25519InvertN } from "../utils";

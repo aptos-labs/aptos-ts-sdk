@@ -1,4 +1,4 @@
-import { concatBytes } from "@noble/hashes/utils";
+import { concatBytes } from "@noble/hashes/utils.js";
 import { ed25519GenRandom } from "../utils";
 import { TwistedElGamal, TwistedElGamalCiphertext } from "./twistedElGamal";
 import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey, CHUNK_BITS, ChunkedAmount } from ".";

@@ -15,7 +15,7 @@ if [ -d "docs/@aptos-labs/ts-sdk-$npm_package_version" ]; then
   echo "WARNING! Docs folder already exists, overwriting docs for version $npm_package_version";
 fi
 
-# `npx typedoc src/index.ts` generates the typedoc docs for this SDK using the proper formatting.
+# `npx typedoc packages/ts-sdk/src/index.ts` generates the typedoc docs for this SDK using the proper formatting.
 #
 # Explanation of each flag:
 # --options typedoc.json - Loads options from the typedoc.json configuration file
@@ -26,7 +26,7 @@ fi
 # --excludeInternal - Excludes internal symbols from the generated documentation (symbols marked with @internal in comments)
 # --includeVersion - Includes the version of the package in the generated documentation
 # --skipErrorChecking - TODO: Remove this flag when no longer needed. This avoids the docs build failing due to compiler errors in the tests folder. 
-npx typedoc src/index.ts --options typedoc.json --out "docs/@aptos-labs/ts-sdk-$npm_package_version" --plugin typedoc-plugin-missing-exports --internalModule PrivateCode --cleanOutputDir --excludeInternal --includeVersion --skipErrorChecking
+npx typedoc packages/ts-sdk/src/index.ts --options typedoc.json --out "docs/@aptos-labs/ts-sdk-$npm_package_version" --plugin typedoc-plugin-missing-exports --internalModule PrivateCode --cleanOutputDir --excludeInternal --includeVersion --skipErrorChecking
 
 
 # Update the main page

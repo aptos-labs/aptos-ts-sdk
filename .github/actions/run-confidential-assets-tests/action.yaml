@@ -15,7 +15,7 @@ runs:
         registry-url: "https://registry.npmjs.org"
     - uses: pnpm/action-setup@v4
 
-    # Run package install at root. This sets up the parent jest config.
+    # Run package install at root. This ensures shared workspace tooling is available.
     - run: pnpm install --frozen-lockfile
       shell: bash
 

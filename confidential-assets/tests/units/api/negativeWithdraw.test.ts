@@ -7,8 +7,8 @@ import {
   sendAndWaitTx,
 } from "../../helpers";
 import { numberToBytesLE, bytesToNumberLE } from "@noble/curves/abstract/utils";
-import { bytesToHex } from "@noble/hashes/utils";
-import { ed25519modN } from "../../../src";
+import { bytesToHex } from "@noble/hashes/utils.js";
+import { ed25519modN } from "../@aptos-labs/ts-sdk";
 import { preloadTables } from "../../helpers/wasmPollardKangaroo";
 
 describe("Negative withdraw", () => {

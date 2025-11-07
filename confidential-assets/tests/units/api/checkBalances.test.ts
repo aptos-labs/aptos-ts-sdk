@@ -1,4 +1,4 @@
-import { preloadTables } from "../../../src/preloadKangarooTables";
+import { preloadTables } from "../../@aptos-labs/ts-sdk/preloadKangarooTables";
 import { getBalances, getTestAccount, getTestConfidentialAccount, longTestTimeout } from "../../helpers";
 
 describe("Check balance", () => {

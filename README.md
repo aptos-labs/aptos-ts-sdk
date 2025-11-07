@@ -222,10 +222,12 @@ If neither of these describes what you would like to contribute, check out the [
 
 ## Running unit tests
 
-To run a unit test in this repo, for example, the keyless end-to-end unit test in `tests/e2e/api/keyless.test.ts`:
-```
-pnpm jest keyless.test.ts
-```
+- `pnpm test` builds every workspace package (to ensure cross-package type references can be resolved) and then runs the Vitest unit suite under `tests/unit/**`. The test command skips starting a local Aptos node by default so it works in sandboxed environments.
+- End-to-end suites under `tests/e2e/**` still require a locally running node plus network access. You can target them explicitly once your environment has the Aptos CLI installed and listening on the expected ports:
+
+  ```bash
+  APTOS_VITEST_START_LOCAL_NODE=true pnpm vitest run tests/e2e/api/keyless.test.ts
+  ```
 
 [npm-image-version]: https://img.shields.io/npm/v/%40aptos-labs%2Fts-sdk.svg
 [npm-image-downloads]: https://img.shields.io/npm/dm/%40aptos-labs%2Fts-sdk.svg

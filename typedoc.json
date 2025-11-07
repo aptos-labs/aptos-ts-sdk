@@ -1,6 +1,6 @@
 {
-    "entryPoints": ["src/index.ts"],
-    "exclude": ["tests/**/*"],
+    "entryPoints": ["packages/ts-sdk/src/index.ts"],
+    "exclude": ["packages/ts-sdk/tests/**/*"],
     "excludePrivate": true,
     "excludeProtected": true,
     "hideGenerator": true,

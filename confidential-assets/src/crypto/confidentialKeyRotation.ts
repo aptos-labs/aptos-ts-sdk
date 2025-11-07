@@ -1,5 +1,5 @@
 import { bytesToNumberLE, concatBytes, numberToBytesLE } from "@noble/curves/abstract/utils";
-import { utf8ToBytes } from "@noble/hashes/utils";
+import { utf8ToBytes } from "@noble/hashes/utils.js";
 import { PROOF_CHUNK_SIZE, SIGMA_PROOF_KEY_ROTATION_SIZE } from "../consts";
 import { genFiatShamirChallenge } from "../helpers";
 import { RangeProofExecutor } from "./rangeProof";

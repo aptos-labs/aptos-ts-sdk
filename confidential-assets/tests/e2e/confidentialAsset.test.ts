@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account, AccountAddressInput, AnyNumber } from "@aptos-labs/ts-sdk";
-import { TwistedEd25519PrivateKey } from "../../src";
+import { TwistedEd25519PrivateKey } from "@aptos-labs/ts-sdk";
 import {
   getTestAccount,
   getTestConfidentialAccount,
@@ -12,8 +12,8 @@ import {
   confidentialAsset,
   feePayerAccount,
 } from "../helpers";
-import { getCache } from "../../src/utils/memoize";
-import { ConfidentialBalance } from "../../src/internal/viewFunctions";
+import { getCache } from "@aptos-labs/ts-sdk/utils/memoize";
+import { ConfidentialBalance } from "@aptos-labs/ts-sdk/internal/viewFunctions";
 
 function getCachedBalance(accountAddress: AccountAddressInput, tokenAddress: AccountAddressInput): ConfidentialBalance {
   const cacheKey = `${accountAddress}-balance-for-${tokenAddress}-${aptos.config.network}`;

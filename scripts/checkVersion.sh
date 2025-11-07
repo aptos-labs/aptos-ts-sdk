@@ -2,8 +2,8 @@
 
 echo "Version from package.json: $npm_package_version";
 
-# Check that the version in package.json matches the version in src/version.ts
-VERSION_FILE='src/version.ts'
+# Check that the version in package.json matches the version in packages/ts-client/src/version.ts
+VERSION_FILE='packages/ts-client/src/version.ts'
 echo "Checking $VERSION_FILE";
 VERSION_FROM_FILE=$(sed -n '/VERSION/p' $VERSION_FILE | sed 's/^.* \"//' | sed 's/\";.*$//');
 

@@ -12,7 +12,7 @@ import {
   SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
 import { TwistedEd25519PublicKey, TwistedEd25519PrivateKey, ConfidentialNormalization } from "../crypto";
-import { clearBalanceCache, clearEncryptionKeyCache, getEncryptionKeyCacheKey, setCache } from "../utils/memoize";
+import { clearBalanceCache, clearEncryptionKeyCache, getEncryptionKeyCacheKey, setCache } from "@aptos-labs/ts-core/utils";
 import {
   ConfidentialAssetTransactionBuilder,
   ConfidentialBalance,
@@ -20,7 +20,7 @@ import {
   getEncryptionKey,
   isBalanceNormalized,
   isPendingBalanceFrozen,
-} from "../internal";
+} from "@aptos-labs/ts-api/internal";
 
 // Constants
 import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS, MODULE_NAME } from "../consts";

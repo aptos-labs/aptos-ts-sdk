@@ -21,9 +21,9 @@ import {
   InputSubmitTransactionData,
   TransactionSubmitter,
 } from "@aptos-labs/ts-sdk";
-import { ConfidentialAssetTransactionBuilder } from "../../src";
-import { TwistedEd25519PrivateKey } from "../../src";
-import { ConfidentialAsset } from "../../src";
+import { ConfidentialAssetTransactionBuilder } from "@aptos-labs/ts-sdk";
+import { TwistedEd25519PrivateKey } from "@aptos-labs/ts-sdk";
+import { ConfidentialAsset } from "@aptos-labs/ts-sdk";
 
 export const longTestTimeout = 120 * 1000;
 
