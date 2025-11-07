@@ -1,14 +1,18 @@
-const globals = require("globals");
-const parser = require("@typescript-eslint/parser");
-const eslintPlugin = require("@typescript-eslint/eslint-plugin");
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import globals from "globals";
+import tsParser from "@typescript-eslint/parser";
+import tsPlugin from "@typescript-eslint/eslint-plugin";
+import { FlatCompat } from "@eslint/eslintrc";
 
-const eslintRc = require("@eslint/eslintrc");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const compat = new eslintRc.FlatCompat({
+const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
-module.exports = [
+export default [
   {
     ignores: [
       "packages/ts-sdk/src/types/generated/**",
@@ -16,19 +20,25 @@ module.exports = [
       "node_modules/**",
       "**/dist/**",
       "**/node_modules/**",
+      "confidential-assets/**",
+      "eslint.config.ts",
     ],
   },
   {
-    files: ["*.ts", "*.tsx"],
+    files: ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
   },
   ...compat.extends("airbnb-base"),
   ...compat.extends("prettier"),
   {
     languageOptions: {
-      parser: parser,
+      parser: tsParser,
       parserOptions: {
         tsconfigRootDir: __dirname,
-        project: ["tsconfig.json", "examples/*/tsconfig.json"],
+        project: [
+          "tsconfig.json",
+          "examples/*/tsconfig.json",
+          "packages/*/tsconfig.json",
+        ],
         ecmaVersion: "latest",
         sourceType: "module",
       },
@@ -41,7 +51,7 @@ module.exports = [
       },
     },
     plugins: {
-      "@typescript-eslint": eslintPlugin,
+      "@typescript-eslint": tsPlugin,
     },
     rules: {
       quotes: ["error", "double"],
