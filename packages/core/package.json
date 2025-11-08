@@ -1,0 +1,45 @@
+{
+  "name": "@aptos-labs/core",
+  "version": "1.0.0",
+  "description": "Core library for Aptos TypeScript SDK",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.mjs",
+  "types": "./dist/esm/index.d.mts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.mts",
+        "default": "./dist/esm/index.mjs"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "package.json"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "aptos",
+    "core",
+    "sdk"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@aptos-labs/utils": "workspace:*",
+    "@aptos-labs/bcs": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3"
+  }
+}
+
