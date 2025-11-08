@@ -4,6 +4,7 @@
  */
 
 export * from "./AccountAddress";
+export * from "./Bool";
 export * from "./U8";
 export * from "./U16";
 export * from "./U32";
