@@ -3,15 +3,4 @@
  * Core library for Aptos TypeScript SDK
  */
 
-export * from "./AccountAddress";
-export * from "./Bool";
-export * from "./U8";
-export * from "./U16";
-export * from "./U32";
-export * from "./U64";
-export * from "./U128";
-export * from "./U256";
-export * from "./MoveString";
-export * from "./Vector";
-export * from "./Option";
-
+export * from "./primitives/index";
