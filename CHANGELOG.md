@@ -8,6 +8,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add `createUserDerivedObjectAddress` function for creating user-derived object addresses from source and derive_from addresses
 - Add support for passing extra CLI arguments to `LocalNode` via the `extraArgs` constructor parameter
 - Update the default keyless endpoints for shelbynet config
+- Add `netna` network to `apiEndpoints.ts` and ANS configuration
 
 # 5.1.1 (2025-9-23)
 
