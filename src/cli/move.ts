@@ -1,8 +1,8 @@
 import { spawn } from "child_process";
 import { platform } from "os";
 
-import { AccountAddress } from "../core";
-import { Network } from "../utils";
+import { AccountAddress } from "../core/index.js";
+import { Network } from "../utils/index.js";
 
 /**
  * Class representing a Move package management utility for the Aptos blockchain.

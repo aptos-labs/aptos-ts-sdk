@@ -1,13 +1,13 @@
-import { HexInput, SigningScheme } from "../../types";
-import { Hex } from "../hex";
-import { Ed25519PublicKey } from "./ed25519";
-import { FederatedKeylessPublicKey } from "./federatedKeyless";
-import { KeylessPublicKey } from "./keyless";
-import { MultiEd25519PublicKey } from "./multiEd25519";
-import { MultiKey } from "./multiKey";
-import { AccountPublicKey } from "./publicKey";
-import { AnyPublicKey } from "./singleKey";
-import { BaseAccountPublicKey } from "./types";
+import { HexInput, SigningScheme } from "../../types/index.js";
+import { Hex } from "../hex.js";
+import { Ed25519PublicKey } from "./ed25519.js";
+import { FederatedKeylessPublicKey } from "./federatedKeyless.js";
+import { KeylessPublicKey } from "./keyless.js";
+import { MultiEd25519PublicKey } from "./multiEd25519.js";
+import { MultiKey } from "./multiKey.js";
+import { AccountPublicKey } from "./publicKey.js";
+import { AnyPublicKey } from "./singleKey.js";
+import { BaseAccountPublicKey } from "./types.js";
 
 /**
  * Helper function to convert a message to sign or to verify to a valid message input

@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { parseTypeTag } from "../typeTag/parser";
+import { parseTypeTag } from "../typeTag/parser.js";
 import {
   TypeTag,
   TypeTagAddress,
@@ -13,8 +13,8 @@ import {
   TypeTagU32,
   TypeTagU64,
   TypeTagU8,
-} from "../typeTag";
-import { AptosConfig } from "../../api/aptosConfig";
+} from "../typeTag/index.js";
+import { AptosConfig } from "../../api/aptosConfig.js";
 import {
   EntryFunctionArgumentTypes,
   SimpleEntryFunctionArgumentTypes,
@@ -22,10 +22,10 @@ import {
   ViewFunctionABI,
   FunctionABI,
   TypeArgument,
-} from "../types";
-import { Bool, FixedBytes, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs";
-import { AccountAddress } from "../../core";
-import { getModule } from "../../internal/account";
+} from "../types.js";
+import { Bool, FixedBytes, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs/index.js";
+import { AccountAddress } from "../../core/index.js";
+import { getModule } from "../../internal/account.js";
 import {
   findFirstNonSignerArg,
   isBcsAddress,
@@ -44,8 +44,8 @@ import {
   isString,
   throwTypeMismatch,
   convertNumber,
-} from "./helpers";
-import { MoveFunction, MoveModule } from "../../types";
+} from "./helpers.js";
+import { MoveFunction, MoveModule } from "../../types/index.js";
 
 const TEXT_ENCODER = new TextEncoder();
 

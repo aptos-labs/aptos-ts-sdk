@@ -1,9 +1,9 @@
 /* eslint-disable max-len */
 
-import { HexInput, PrivateKeyVariants } from "../../types";
-import { Hex } from "../hex";
-import { PublicKey } from "./publicKey";
-import { Signature } from "./signature";
+import { HexInput, PrivateKeyVariants } from "../../types/index.js";
+import { Hex } from "../hex.js";
+import { PublicKey } from "./publicKey.js";
+import { Signature } from "./signature.js";
 
 /**
  * Represents a private key used for signing messages and deriving the associated public key.

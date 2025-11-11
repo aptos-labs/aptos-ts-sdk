@@ -1,10 +1,10 @@
-import { Serializer, Deserializer } from "../../bcs";
-import { EphemeralPublicKeyVariant, EphemeralSignatureVariant, HexInput } from "../../types";
-import { PublicKey } from "./publicKey";
-import { Signature } from "./signature";
-import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
-import { Hex } from "../hex";
-import { AptosConfig } from "../../api";
+import { Serializer, Deserializer } from "../../bcs/index.js";
+import { EphemeralPublicKeyVariant, EphemeralSignatureVariant, HexInput } from "../../types/index.js";
+import { PublicKey } from "./publicKey.js";
+import { Signature } from "./signature.js";
+import { Ed25519PublicKey, Ed25519Signature } from "./ed25519.js";
+import { Hex } from "../hex.js";
+import { AptosConfig } from "../../api/aptosConfig.js";
 
 /**
  * Represents ephemeral public keys for Aptos Keyless accounts.

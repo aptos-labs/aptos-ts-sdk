@@ -1,4 +1,4 @@
-import { getTableItem, getTableItemsData, getTableItemsMetadata } from "../internal/table";
+import { getTableItem, getTableItemsData, getTableItemsMetadata } from "../internal/table.js";
 import {
   TableItemRequest,
   LedgerVersionArg,
@@ -8,11 +8,11 @@ import {
   OrderByArg,
   GetTableItemsDataResponse,
   GetTableItemsMetadataResponse,
-} from "../types";
-import { TableItemsBoolExp, TableMetadatasBoolExp } from "../types/generated/types";
-import { ProcessorType } from "../utils";
-import { AptosConfig } from "./aptosConfig";
-import { waitForIndexerOnVersion } from "./utils";
+} from "../types/index.js";
+import { TableItemsBoolExp, TableMetadatasBoolExp } from "../types/generated/types.js";
+import { ProcessorType } from "../utils/const.js";
+import { AptosConfig } from "./aptosConfig.js";
+import { waitForIndexerOnVersion } from "./utils.js";
 
 /**
  * A class to query all `Table` Aptos related queries.

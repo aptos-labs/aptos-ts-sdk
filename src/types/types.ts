@@ -1,10 +1,10 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import type { AptosConfig } from "../api";
-import { InputSubmitTransactionData } from "../transactions";
-import { Network } from "../utils/apiEndpoints";
-import { OrderBy, TokenStandard } from "./indexer";
+import type { AptosConfig } from "../api/aptosConfig.js";
+import { InputSubmitTransactionData } from "../transactions/index.js";
+import { Network } from "../utils/apiEndpoints.js";
+import { OrderBy, TokenStandard } from "./indexer.js";
 
 /**
  * Different MIME types used for data interchange in transactions and responses.

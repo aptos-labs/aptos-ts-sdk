@@ -9,8 +9,8 @@
  * @group Implementation
  */
 import { jwtDecode, JwtPayload } from "jwt-decode";
-import { AptosConfig } from "../api/aptosConfig";
-import { postAptosPepperService, postAptosProvingService } from "../client";
+import { AptosConfig } from "../api/aptosConfig.js";
+import { postAptosPepperService, postAptosProvingService } from "../client/index.js";
 import {
   AccountAddressInput,
   EphemeralSignature,
@@ -21,18 +21,18 @@ import {
   ZeroKnowledgeSig,
   ZkProof,
   getKeylessConfig,
-} from "../core";
-import { HexInput, ZkpVariant } from "../types";
-import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
-import { PepperFetchRequest, PepperFetchResponse, ProverRequest, ProverResponse } from "../types/keyless";
-import { lookupOriginalAccountAddress } from "./account";
-import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
-import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
-import { MoveVector } from "../bcs";
-import { generateTransaction } from "./transactionSubmission";
-import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions";
-import { KeylessError, KeylessErrorType } from "../errors";
-import { FIREBASE_AUTH_ISS_PATTERN } from "../utils/const";
+} from "../core/index.js";
+import { HexInput, ZkpVariant } from "../types/index.js";
+import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account/index.js";
+import { PepperFetchRequest, PepperFetchResponse, ProverRequest, ProverResponse } from "../types/keyless.js";
+import { lookupOriginalAccountAddress } from "./account.js";
+import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless.js";
+import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount.js";
+import { MoveVector } from "../bcs/index.js";
+import { generateTransaction } from "./transactionSubmission.js";
+import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions/index.js";
+import { KeylessError, KeylessErrorType } from "../errors/index.js";
+import { FIREBASE_AUTH_ISS_PATTERN } from "../utils/const.js";
 
 /**
  * Retrieves a pepper value based on the provided configuration and authentication details.

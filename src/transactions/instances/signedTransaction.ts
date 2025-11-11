@@ -3,10 +3,10 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import { TransactionAuthenticator } from "../authenticator/transaction";
-import { Deserializer } from "../../bcs/deserializer";
-import { Serializable, Serializer } from "../../bcs/serializer";
-import { RawTransaction } from "./rawTransaction";
+import { TransactionAuthenticator } from "../authenticator/transaction.js";
+import { Deserializer } from "../../bcs/deserializer.js";
+import { Serializable, Serializer } from "../../bcs/serializer.js";
+import { RawTransaction } from "./rawTransaction.js";
 
 /**
  * Represents a signed transaction that includes a raw transaction and an authenticator.

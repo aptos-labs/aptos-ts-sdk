@@ -9,7 +9,7 @@
  * @group Implementation
  */
 
-import { AptosConfig } from "../api/aptosConfig";
+import { AptosConfig } from "../api/aptosConfig.js";
 import {
   AnyNumber,
   GetCurrentFungibleAssetBalancesResponse,
@@ -17,34 +17,34 @@ import {
   GetFungibleAssetMetadataResponse,
   PaginationArgs,
   WhereArg,
-} from "../types";
-import { queryIndexer } from "./general";
+} from "../types/index.js";
+import { queryIndexer } from "./general.js";
 import {
   GetCurrentFungibleAssetBalances,
   GetFungibleAssetActivities,
   GetFungibleAssetMetadata,
-} from "../types/generated/queries";
+} from "../types/generated/queries.js";
 import {
   GetCurrentFungibleAssetBalancesQuery,
   GetFungibleAssetActivitiesQuery,
   GetFungibleAssetMetadataQuery,
-} from "../types/generated/operations";
+} from "../types/generated/operations.js";
 import {
   CurrentFungibleAssetBalancesBoolExp,
   FungibleAssetActivitiesBoolExp,
   FungibleAssetMetadataBoolExp,
-} from "../types/generated/types";
-import { AccountAddressInput } from "../core";
-import { Account } from "../account";
+} from "../types/generated/types.js";
+import { AccountAddressInput } from "../core/index.js";
+import { Account } from "../account/index.js";
 import {
   EntryFunctionABI,
   InputGenerateTransactionOptions,
   parseTypeTag,
   TypeTagAddress,
   TypeTagU64,
-} from "../transactions";
-import { generateTransaction } from "./transactionSubmission";
-import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
+} from "../transactions/index.js";
+import { generateTransaction } from "./transactionSubmission.js";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction.js";
 
 /**
  * Retrieves metadata for fungible assets based on specified criteria.

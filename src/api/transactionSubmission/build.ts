@@ -1,16 +1,16 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountAddressInput } from "../../core";
-import { generateTransaction } from "../../internal/transactionSubmission";
+import { AccountAddressInput } from "../../core/accountAddress.js";
+import { generateTransaction } from "../../internal/transactionSubmission.js";
 import {
   InputGenerateTransactionPayloadData,
   InputGenerateTransactionOptions,
   InputGenerateOrderlessTransactionOptions,
-} from "../../transactions";
-import { MultiAgentTransaction } from "../../transactions/instances/multiAgentTransaction";
-import { SimpleTransaction } from "../../transactions/instances/simpleTransaction";
-import { AptosConfig } from "../aptosConfig";
+} from "../../transactions/index.js";
+import { MultiAgentTransaction } from "../../transactions/instances/multiAgentTransaction.js";
+import { SimpleTransaction } from "../../transactions/instances/simpleTransaction.js";
+import { AptosConfig } from "../aptosConfig.js";
 
 /**
  * A class to handle all `Build` transaction operations.

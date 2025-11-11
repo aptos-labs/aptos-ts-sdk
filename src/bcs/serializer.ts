@@ -9,9 +9,9 @@ import {
   MAX_U64_BIG_INT,
   MAX_U8_NUMBER,
   MAX_U256_BIG_INT,
-} from "./consts";
-import { Hex } from "../core/hex";
-import { AnyNumber, Uint16, Uint32, Uint8 } from "../types";
+} from "./consts.js";
+import { Hex } from "../core/hex.js";
+import { AnyNumber, Uint16, Uint32, Uint8 } from "../types/index.js";
 
 /**
  * This class serves as a base class for all serializable types. It facilitates

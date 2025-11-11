@@ -14,9 +14,9 @@ import {
   AnySignature,
   MultiEd25519Signature,
   MultiKeySignature,
-} from "..";
-import { Deserializer } from "../../bcs/deserializer";
-import { HexInput } from "../../types";
+} from "./index.js";
+import { Deserializer } from "../../bcs/deserializer.js";
+import { HexInput } from "../../types/index.js";
 
 const MULTIPLE_DESERIALIZATIONS_ERROR_MSG = "Multiple possible deserializations found";
 

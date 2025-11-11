@@ -2,16 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ed25519 } from "@noble/curves/ed25519";
-import { Deserializer } from "../../bcs/deserializer";
-import { Serializable, Serializer } from "../../bcs/serializer";
-import { AuthenticationKey } from "../authenticationKey";
-import { Hex } from "../hex";
-import { HexInput, SigningScheme as AuthenticationKeyScheme, PrivateKeyVariants } from "../../types";
-import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey";
-import { PrivateKey } from "./privateKey";
-import { AccountPublicKey, PublicKey, VerifySignatureArgs, VerifySignatureAsyncArgs } from "./publicKey";
-import { Signature } from "./signature";
-import { convertSigningMessage } from "./utils";
+import { Deserializer } from "../../bcs/deserializer.js";
+import { Serializable, Serializer } from "../../bcs/serializer.js";
+import { AuthenticationKey } from "../authenticationKey.js";
+import { Hex } from "../hex.js";
+import { HexInput, SigningScheme as AuthenticationKeyScheme, PrivateKeyVariants } from "../../types/index.js";
+import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey.js";
+import { PrivateKey } from "./privateKey.js";
+import { AccountPublicKey, PublicKey, VerifySignatureArgs, VerifySignatureAsyncArgs } from "./publicKey.js";
+import { Signature } from "./signature.js";
+import { convertSigningMessage } from "./utils.js";
 
 /**
  * L is the value that greater than or equal to will produce a non-canonical signature, and must be rejected

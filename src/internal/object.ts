@@ -1,10 +1,10 @@
-import { AptosConfig } from "../api/aptosConfig";
-import { AccountAddressInput, AccountAddress } from "../core";
-import { PaginationArgs, OrderByArg, GetObjectDataQueryResponse, WhereArg } from "../types";
-import { GetObjectDataQuery } from "../types/generated/operations";
-import { GetObjectData } from "../types/generated/queries";
-import { CurrentObjectsBoolExp } from "../types/generated/types";
-import { queryIndexer } from "./general";
+import { AptosConfig } from "../api/aptosConfig.js";
+import { AccountAddressInput, AccountAddress } from "../core/index.js";
+import { PaginationArgs, OrderByArg, GetObjectDataQueryResponse, WhereArg } from "../types/index.js";
+import { GetObjectDataQuery } from "../types/generated/operations.js";
+import { GetObjectData } from "../types/generated/queries.js";
+import { CurrentObjectsBoolExp } from "../types/generated/types.js";
+import { queryIndexer } from "./general.js";
 
 /**
  * Retrieves the current objects based on specified filtering and pagination options.

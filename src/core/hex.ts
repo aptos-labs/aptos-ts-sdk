@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
-import { ParsingError, ParsingResult } from "./common";
-import { HexInput } from "../types";
+import { ParsingError, ParsingResult } from "./common.js";
+import { HexInput } from "../types/index.js";
 
 /**
  * Provides reasons for parsing failures related to hexadecimal values.

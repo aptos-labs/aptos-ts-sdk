@@ -7,10 +7,10 @@ import {
   InputGenerateTransactionPayloadDataWithRemoteABI,
   InputScriptData,
   SimpleEntryFunctionArgumentTypes,
-} from "../types";
-import { Bool, FixedBytes, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs";
-import { AccountAddress } from "../../core";
-import { MoveFunction } from "../../types";
+} from "../types.js";
+import { Bool, FixedBytes, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs/index.js";
+import { AccountAddress } from "../../core/index.js";
+import { MoveFunction } from "../../types/index.js";
 
 /**
  * Determines if the provided argument is of type boolean.

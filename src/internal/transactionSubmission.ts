@@ -6,19 +6,19 @@
  * @group Implementation
  */
 
-import { AptosConfig } from "../api/aptosConfig";
-import { Deserializer, MoveVector } from "../bcs";
-import { postAptosFullNode } from "../client";
-import { Account, AbstractKeylessAccount, isKeylessSigner } from "../account";
-import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { FederatedKeylessPublicKey, KeylessPublicKey, KeylessSignature } from "../core/crypto";
-import { AccountAuthenticator } from "../transactions/authenticator/account";
+import { AptosConfig } from "../api/aptosConfig.js";
+import { Deserializer, MoveVector } from "../bcs/index.js";
+import { postAptosFullNode } from "../client/index.js";
+import { Account, AbstractKeylessAccount, isKeylessSigner } from "../account/index.js";
+import { AccountAddress, AccountAddressInput } from "../core/accountAddress.js";
+import { FederatedKeylessPublicKey, KeylessPublicKey, KeylessSignature } from "../core/crypto/index.js";
+import { AccountAuthenticator } from "../transactions/authenticator/account.js";
 import {
   buildTransaction,
   generateTransactionPayload,
   generateSignedTransactionForSimulation,
   generateSignedTransaction,
-} from "../transactions/transactionBuilder/transactionBuilder";
+} from "../transactions/transactionBuilder/transactionBuilder.js";
 import {
   InputGenerateTransactionData,
   AnyRawTransaction,
@@ -31,11 +31,11 @@ import {
   AnyTransactionPayloadInstance,
   EntryFunctionABI,
   InputTransactionPluginData,
-} from "../transactions/types";
-import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput } from "../types";
-import { SignedTransaction, TypeTagVector, generateSigningMessageForTransaction } from "../transactions";
-import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
-import { MultiAgentTransaction } from "../transactions/instances/multiAgentTransaction";
+} from "../transactions/types.js";
+import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput } from "../types/index.js";
+import { SignedTransaction, TypeTagVector, generateSigningMessageForTransaction } from "../transactions/index.js";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction.js";
+import { MultiAgentTransaction } from "../transactions/instances/multiAgentTransaction.js";
 
 /**
  * We are defining function signatures, each with its specific input and output.

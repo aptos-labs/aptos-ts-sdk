@@ -1,8 +1,8 @@
 import EventEmitter from "eventemitter3";
-import { TransactionWorkerEvents, TransactionWorker, TransactionWorkerEventsEnum } from "../../transactions/management";
-import { InputGenerateTransactionPayloadData, InputGenerateTransactionOptions } from "../../transactions";
-import { AptosConfig } from "../aptosConfig";
-import { Account } from "../../account";
+import { TransactionWorkerEvents, TransactionWorker, TransactionWorkerEventsEnum } from "../../transactions/management/index.js";
+import { InputGenerateTransactionPayloadData, InputGenerateTransactionOptions } from "../../transactions/index.js";
+import { AptosConfig } from "../aptosConfig.js";
+import { Account } from "../../account/index.js";
 
 export class TransactionManagement extends EventEmitter<TransactionWorkerEvents> {
   account!: Account;

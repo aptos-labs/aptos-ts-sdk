@@ -1,12 +1,12 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Bool, U128, U16, U256, U32, U64, U8 } from "./movePrimitives";
-import { Serializable, Serializer } from "../serializer";
-import { Deserializable, Deserializer } from "../deserializer";
-import { AnyNumber, HexInput, ScriptTransactionArgumentVariants } from "../../types";
-import { Hex } from "../../core/hex";
-import { EntryFunctionArgument, TransactionArgument } from "../../transactions/instances/transactionArgument";
+import { Bool, U128, U16, U256, U32, U64, U8 } from "./movePrimitives.js";
+import { Serializable, Serializer } from "../serializer.js";
+import { Deserializable, Deserializer } from "../deserializer.js";
+import { AnyNumber, HexInput, ScriptTransactionArgumentVariants } from "../../types/index.js";
+import { Hex } from "../../core/hex.js";
+import { EntryFunctionArgument, TransactionArgument } from "../../transactions/instances/transactionArgument.js";
 
 /**
  * This class is the Aptos Typescript SDK representation of a Move `vector<T>`,

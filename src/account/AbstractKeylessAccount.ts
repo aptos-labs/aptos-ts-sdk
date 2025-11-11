@@ -3,8 +3,8 @@
 
 import EventEmitter from "eventemitter3";
 import { jwtDecode } from "jwt-decode";
-import { EphemeralCertificateVariant, HexInput, SigningScheme } from "../types";
-import { AccountAddress } from "../core/accountAddress";
+import { EphemeralCertificateVariant, HexInput, SigningScheme } from "../types/index.js";
+import { AccountAddress } from "../core/accountAddress.js";
 import {
   AnyPublicKey,
   AnySignature,
@@ -17,20 +17,20 @@ import {
   getKeylessConfig,
   fetchJWK,
   KeylessConfiguration,
-} from "../core/crypto";
+} from "../core/crypto/index.js";
 
-import { EphemeralKeyPair } from "./EphemeralKeyPair";
-import { Hex } from "../core/hex";
-import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account";
-import { Deserializer, Serializable, Serializer } from "../bcs";
-import { deriveTransactionType, generateSigningMessage } from "../transactions/transactionBuilder/signingMessage";
-import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types";
-import { base64UrlDecode } from "../utils/helpers";
-import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
-import { Account } from "./Account";
-import { AptosConfig } from "../api/aptosConfig";
-import { KeylessError, KeylessErrorType } from "../errors";
-import type { SingleKeySigner } from "./SingleKeyAccount";
+import { EphemeralKeyPair } from "./EphemeralKeyPair.js";
+import { Hex } from "../core/hex.js";
+import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account.js";
+import { Deserializer, Serializable, Serializer } from "../bcs/index.js";
+import { deriveTransactionType, generateSigningMessage } from "../transactions/transactionBuilder/signingMessage.js";
+import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types.js";
+import { base64UrlDecode } from "../utils/helpers.js";
+import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless.js";
+import { Account } from "./Account.js";
+import { AptosConfig } from "../api/aptosConfig.js";
+import { KeylessError, KeylessErrorType } from "../errors/index.js";
+import type { SingleKeySigner } from "./SingleKeyAccount.js";
 
 /**
  * An interface which defines if an Account utilizes Keyless signing.

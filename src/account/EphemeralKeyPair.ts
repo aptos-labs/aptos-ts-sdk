@@ -11,11 +11,11 @@ import {
   EphemeralPublicKey,
   EphemeralSignature,
   PrivateKey,
-} from "../core/crypto";
-import { Hex } from "../core/hex";
-import { EphemeralPublicKeyVariant, HexInput } from "../types";
-import { Deserializer, Serializable, Serializer } from "../bcs";
-import { floorToWholeHour, nowInSeconds } from "../utils/helpers";
+} from "../core/crypto/index.js";
+import { Hex } from "../core/hex.js";
+import { EphemeralPublicKeyVariant, HexInput } from "../types/index.js";
+import { Deserializer, Serializable, Serializer } from "../bcs/index.js";
+import { floorToWholeHour, nowInSeconds } from "../utils/helpers.js";
 
 const TWO_WEEKS_IN_SECONDS = 1_209_600;
 

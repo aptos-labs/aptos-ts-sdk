@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { decode } from "js-base64";
-import { MoveFunctionId, MoveStructId } from "../types";
-import { AccountAddress } from "../core/accountAddress";
-import { createObjectAddress } from "../core/account/utils/address";
+import { MoveFunctionId, MoveStructId } from "../types/index.js";
+import { AccountAddress } from "../core/accountAddress.js";
+import { createObjectAddress } from "../core/account/utils/address.js";
 
 /**
  * Sleep for the specified amount of time in milliseconds.
