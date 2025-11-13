@@ -253,6 +253,36 @@ export type Uint128 = bigint;
 export type Uint256 = bigint;
 
 /**
+ * A signed 8-bit integer.
+ */
+export type Int8 = number;
+
+/**
+ * A signed 16-bit integer.
+ */
+export type Int16 = number;
+
+/**
+ * A signed 32-bit integer.
+ */
+export type Int32 = number;
+
+/**
+ * A signed 64-bit integer.
+ */
+export type Int64 = bigint;
+
+/**
+ * A signed 128-bit integer.
+ */
+export type Int128 = bigint;
+
+/**
+ * A signed 256-bit integer.
+ */
+export type Int256 = bigint;
+
+/**
  * A number or a bigint value.
  */
 export type AnyNumber = number | bigint;
