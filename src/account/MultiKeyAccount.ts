@@ -202,9 +202,7 @@ export class MultiKeyAccount implements Account, KeylessSigner {
    * @category Account (On-Chain Model)
    */
   async waitForProofFetch(): Promise<void> {
-    const keylessSigners = this.signers.filter(
-      (signer) => signer instanceof AbstractKeylessAccount,
-    ) as AbstractKeylessAccount[];
+    const keylessSigners = this.signers.filter((signer) => signer instanceof AbstractKeylessAccount);
     const promises = keylessSigners.map(async (signer) => signer.waitForProofFetch());
     await Promise.all(promises);
   }
@@ -216,9 +214,7 @@ export class MultiKeyAccount implements Account, KeylessSigner {
    * @category Account (On-Chain Model)
    */
   async checkKeylessAccountValidity(aptosConfig: AptosConfig): Promise<void> {
-    const keylessSigners = this.signers.filter(
-      (signer) => signer instanceof AbstractKeylessAccount,
-    ) as AbstractKeylessAccount[];
+    const keylessSigners = this.signers.filter((signer) => signer instanceof AbstractKeylessAccount);
     const promises = keylessSigners.map((signer) => signer.checkKeylessAccountValidity(aptosConfig));
     await Promise.all(promises);
   }
