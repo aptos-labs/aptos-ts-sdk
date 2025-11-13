@@ -2,6 +2,9 @@
 
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+# 5.1.4 (2025-11-13)
+- Add serialization for signed integers
+
 # 5.1.3 (2025-11-13)
 - Add signed integers
 
