@@ -46,6 +46,12 @@ export enum TypeTagVariants {
   U16 = 8,
   U32 = 9,
   U256 = 10,
+  I8 = 11,
+  I16 = 12,
+  I32 = 13,
+  I64 = 14,
+  I128 = 15,
+  I256 = 16,
   Reference = 254, // This is specifically a placeholder and does not represent a real type
   Generic = 255, // This is specifically a placeholder and does not represent a real type
 }
@@ -245,6 +251,36 @@ export type Uint128 = bigint;
  * A 256-bit unsigned integer used for precise numerical calculations.
  */
 export type Uint256 = bigint;
+
+/**
+ * A signed 8-bit integer.
+ */
+export type Int8 = number;
+
+/**
+ * A signed 16-bit integer.
+ */
+export type Int16 = number;
+
+/**
+ * A signed 32-bit integer.
+ */
+export type Int32 = number;
+
+/**
+ * A signed 64-bit integer.
+ */
+export type Int64 = bigint;
+
+/**
+ * A signed 128-bit integer.
+ */
+export type Int128 = bigint;
+
+/**
+ * A signed 256-bit integer.
+ */
+export type Int256 = bigint;
 
 /**
  * A number or a bigint value.

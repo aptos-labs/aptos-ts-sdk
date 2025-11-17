@@ -2,7 +2,19 @@
 
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## Unreleased
+# 5.1.4 (2025-11-13)
+- Add serialization for signed integers
+
+# 5.1.3 (2025-11-13)
+- Add signed integers
+
+# 5.1.2 (2025-11-11)
+
+- Remove unused dependency `form-data`
+- Add `createUserDerivedObjectAddress` function for creating user-derived object addresses from source and derive_from addresses
+- Add support for passing extra CLI arguments to `LocalNode` via the `extraArgs` constructor parameter
+- Update the default keyless endpoints for shelbynet config
+- Add `netna` network to `apiEndpoints.ts` and ANS configuration
 
 # 5.1.1 (2025-9-23)
 
