@@ -20,6 +20,12 @@ import {
   TypeTagU32,
   TypeTagU64,
   TypeTagU8,
+  TypeTagI8,
+  TypeTagI16,
+  TypeTagI32,
+  TypeTagI64,
+  TypeTagI128,
+  TypeTagI256,
   TypeTagVector,
   TypeTagParserError,
   TypeTagParserErrorType,
@@ -54,6 +60,12 @@ const primitives = [
   { str: "u64", type: new TypeTagU64() },
   { str: "u128", type: new TypeTagU128() },
   { str: "u256", type: new TypeTagU256() },
+  { str: "i8", type: new TypeTagI8() },
+  { str: "i16", type: new TypeTagI16() },
+  { str: "i32", type: new TypeTagI32() },
+  { str: "i64", type: new TypeTagI64() },
+  { str: "i128", type: new TypeTagI128() },
+  { str: "i256", type: new TypeTagI256() },
 ];
 
 /**
@@ -269,5 +281,75 @@ describe("TypeTagParser", () => {
   test("edge case invalid types", () => {
     expect(() => parseTypeTag("0x1::tag::Tag< , u8>")).toThrow();
     expect(() => parseTypeTag("0x1::tag::Tag<,u8>")).toThrow();
+  });
+
+  test("signed integer types", () => {
+    // Test basic parsing
+    expect(parseTypeTag("i8")).toEqual(new TypeTagI8());
+    expect(parseTypeTag("i16")).toEqual(new TypeTagI16());
+    expect(parseTypeTag("i32")).toEqual(new TypeTagI32());
+    expect(parseTypeTag("i64")).toEqual(new TypeTagI64());
+    expect(parseTypeTag("i128")).toEqual(new TypeTagI128());
+    expect(parseTypeTag("i256")).toEqual(new TypeTagI256());
+
+    // Test case insensitivity
+    expect(parseTypeTag("I8")).toEqual(new TypeTagI8());
+    expect(parseTypeTag("I16")).toEqual(new TypeTagI16());
+    expect(parseTypeTag("I32")).toEqual(new TypeTagI32());
+    expect(parseTypeTag("I64")).toEqual(new TypeTagI64());
+    expect(parseTypeTag("I128")).toEqual(new TypeTagI128());
+    expect(parseTypeTag("I256")).toEqual(new TypeTagI256());
+
+    // Test with whitespace
+    expect(parseTypeTag(" i8 ")).toEqual(new TypeTagI8());
+    expect(parseTypeTag(" i64 ")).toEqual(new TypeTagI64());
+  });
+
+  test("signed integers in vectors", () => {
+    expect(parseTypeTag("vector<i8>")).toEqual(new TypeTagVector(new TypeTagI8()));
+    expect(parseTypeTag("vector<i16>")).toEqual(new TypeTagVector(new TypeTagI16()));
+    expect(parseTypeTag("vector<i32>")).toEqual(new TypeTagVector(new TypeTagI32()));
+    expect(parseTypeTag("vector<i64>")).toEqual(new TypeTagVector(new TypeTagI64()));
+    expect(parseTypeTag("vector<i128>")).toEqual(new TypeTagVector(new TypeTagI128()));
+    expect(parseTypeTag("vector<i256>")).toEqual(new TypeTagVector(new TypeTagI256()));
+  });
+
+  test("signed integers in struct type arguments", () => {
+    expect(parseTypeTag(`${TAG_STRUCT_NAME}<i8>`)).toEqual(structTagType([new TypeTagI8()]));
+    expect(parseTypeTag(`${TAG_STRUCT_NAME}<i8, i16>`)).toEqual(structTagType([new TypeTagI8(), new TypeTagI16()]));
+    expect(parseTypeTag(`${TAG_STRUCT_NAME}<i64, u64>`)).toEqual(structTagType([new TypeTagI64(), new TypeTagU64()]));
+    expect(parseTypeTag(`${TAG_STRUCT_NAME}<${TAG_STRUCT_NAME}<i32>, i64>`)).toEqual(
+      structTagType([structTagType([new TypeTagI32()]), new TypeTagI64()]),
+    );
+  });
+
+  test("signed integers with references", () => {
+    expect(parseTypeTag("&i8")).toEqual(new TypeTagReference(new TypeTagI8()));
+    expect(parseTypeTag("&i64")).toEqual(new TypeTagReference(new TypeTagI64()));
+    expect(parseTypeTag("&i128")).toEqual(new TypeTagReference(new TypeTagI128()));
+  });
+
+  test("signed integers in option and object", () => {
+    expect(parseTypeTag("0x1::option::Option<i8>")).toEqual(new TypeTagStruct(optionStructTag(new TypeTagI8())));
+    expect(parseTypeTag("0x1::option::Option<i64>")).toEqual(new TypeTagStruct(optionStructTag(new TypeTagI64())));
+    expect(parseTypeTag("0x1::object::Object<0x1::tag::Tag<i32>>")).toEqual(
+      new TypeTagStruct(objectStructTag(structTagType([new TypeTagI32()]))),
+    );
+  });
+
+  test("mixed unsigned and signed integers", () => {
+    expect(parseTypeTag(`${TAG_STRUCT_NAME}<u8, i8>`)).toEqual(structTagType([new TypeTagU8(), new TypeTagI8()]));
+    expect(parseTypeTag(`${TAG_STRUCT_NAME}<i16, u16, i32, u32>`)).toEqual(
+      structTagType([new TypeTagI16(), new TypeTagU16(), new TypeTagI32(), new TypeTagU32()]),
+    );
+    expect(parseTypeTag(`vector<${TAG_STRUCT_NAME}<u64, i64>>`)).toEqual(
+      new TypeTagVector(structTagType([new TypeTagU64(), new TypeTagI64()])),
+    );
+  });
+
+  test("signed integers cannot have type arguments", () => {
+    expect(() => parseTypeTag("i8<u8>")).toThrow(TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
+    expect(() => parseTypeTag("i64<i32>")).toThrow(TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
+    expect(() => parseTypeTag("i128<u128>")).toThrow(TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
   });
 });

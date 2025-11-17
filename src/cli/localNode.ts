@@ -22,8 +22,11 @@ export class LocalNode {
 
   process: ChildProcessWithoutNullStreams | null = null;
 
-  constructor(args?: { showStdout?: boolean }) {
+  extraArgs: string[] = [];
+
+  constructor(args?: { showStdout?: boolean; extraArgs?: string[] }) {
     this.showStdout = args?.showStdout ?? true;
+    this.extraArgs = args?.extraArgs ?? [];
   }
 
   /**
@@ -86,7 +89,15 @@ export class LocalNode {
    */
   start(): void {
     const cliCommand = "npx";
-    const cliArgs = ["aptos", "node", "run-localnet", "--force-restart", "--assume-yes", "--with-indexer-api"];
+    const cliArgs = [
+      "aptos",
+      "node",
+      "run-localnet",
+      "--force-restart",
+      "--assume-yes",
+      "--with-indexer-api",
+      ...this.extraArgs,
+    ];
 
     const currentPlatform = platform();
     const spawnConfig = {

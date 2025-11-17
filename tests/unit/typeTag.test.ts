@@ -14,6 +14,12 @@ import {
   TypeTagU32,
   TypeTagU64,
   TypeTagU8,
+  TypeTagI8,
+  TypeTagI16,
+  TypeTagI32,
+  TypeTagI64,
+  TypeTagI128,
+  TypeTagI256,
   TypeTagVector,
   Deserializer,
   Serializer,
@@ -96,6 +102,90 @@ describe("Deserialize TypeTags", () => {
     tag.serialize(serializer);
 
     expect(TypeTag.deserialize(new Deserializer(serializer.toUint8Array()))).toBeInstanceOf(TypeTagU256);
+  });
+
+  test("deserializes a TypeTagI8 correctly", () => {
+    const serializer = new Serializer();
+    const tag = new TypeTagI8();
+    expect(tag.isPrimitive()).toBe(true);
+    expect(tag.isI8()).toBe(true);
+    expect(tag.toString()).toBe("i8");
+
+    tag.serialize(serializer);
+
+    const deserialized = TypeTag.deserialize(new Deserializer(serializer.toUint8Array()));
+    expect(deserialized).toBeInstanceOf(TypeTagI8);
+    expect(deserialized.isI8()).toBe(true);
+  });
+
+  test("deserializes a TypeTagI16 correctly", () => {
+    const serializer = new Serializer();
+    const tag = new TypeTagI16();
+    expect(tag.isPrimitive()).toBe(true);
+    expect(tag.isI16()).toBe(true);
+    expect(tag.toString()).toBe("i16");
+
+    tag.serialize(serializer);
+
+    const deserialized = TypeTag.deserialize(new Deserializer(serializer.toUint8Array()));
+    expect(deserialized).toBeInstanceOf(TypeTagI16);
+    expect(deserialized.isI16()).toBe(true);
+  });
+
+  test("deserializes a TypeTagI32 correctly", () => {
+    const serializer = new Serializer();
+    const tag = new TypeTagI32();
+    expect(tag.isPrimitive()).toBe(true);
+    expect(tag.isI32()).toBe(true);
+    expect(tag.toString()).toBe("i32");
+
+    tag.serialize(serializer);
+
+    const deserialized = TypeTag.deserialize(new Deserializer(serializer.toUint8Array()));
+    expect(deserialized).toBeInstanceOf(TypeTagI32);
+    expect(deserialized.isI32()).toBe(true);
+  });
+
+  test("deserializes a TypeTagI64 correctly", () => {
+    const serializer = new Serializer();
+    const tag = new TypeTagI64();
+    expect(tag.isPrimitive()).toBe(true);
+    expect(tag.isI64()).toBe(true);
+    expect(tag.toString()).toBe("i64");
+
+    tag.serialize(serializer);
+
+    const deserialized = TypeTag.deserialize(new Deserializer(serializer.toUint8Array()));
+    expect(deserialized).toBeInstanceOf(TypeTagI64);
+    expect(deserialized.isI64()).toBe(true);
+  });
+
+  test("deserializes a TypeTagI128 correctly", () => {
+    const serializer = new Serializer();
+    const tag = new TypeTagI128();
+    expect(tag.isPrimitive()).toBe(true);
+    expect(tag.isI128()).toBe(true);
+    expect(tag.toString()).toBe("i128");
+
+    tag.serialize(serializer);
+
+    const deserialized = TypeTag.deserialize(new Deserializer(serializer.toUint8Array()));
+    expect(deserialized).toBeInstanceOf(TypeTagI128);
+    expect(deserialized.isI128()).toBe(true);
+  });
+
+  test("deserializes a TypeTagI256 correctly", () => {
+    const serializer = new Serializer();
+    const tag = new TypeTagI256();
+    expect(tag.isPrimitive()).toBe(true);
+    expect(tag.isI256()).toBe(true);
+    expect(tag.toString()).toBe("i256");
+
+    tag.serialize(serializer);
+
+    const deserialized = TypeTag.deserialize(new Deserializer(serializer.toUint8Array()));
+    expect(deserialized).toBeInstanceOf(TypeTagI256);
+    expect(deserialized.isI256()).toBe(true);
   });
 
   test("deserializes a TypeTagAddress correctly", () => {

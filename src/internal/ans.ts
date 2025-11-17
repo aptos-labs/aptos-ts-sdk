@@ -123,6 +123,7 @@ const NetworkToAnsContract: Record<Network, string | null> = {
   [Network.CUSTOM]: null,
   [Network.DEVNET]: null,
   [Network.SHELBYNET]: null,
+  [Network.NETNA]: null,
 };
 
 /**

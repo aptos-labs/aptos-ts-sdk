@@ -9,6 +9,18 @@ import {
   MAX_U64_BIG_INT,
   MAX_U8_NUMBER,
   MAX_U256_BIG_INT,
+  MIN_I8_NUMBER,
+  MAX_I8_NUMBER,
+  MIN_I16_NUMBER,
+  MAX_I16_NUMBER,
+  MIN_I32_NUMBER,
+  MAX_I32_NUMBER,
+  MIN_I64_BIG_INT,
+  MAX_I64_BIG_INT,
+  MIN_I128_BIG_INT,
+  MAX_I128_BIG_INT,
+  MIN_I256_BIG_INT,
+  MAX_I256_BIG_INT,
 } from "./consts";
 import { Hex } from "../core/hex";
 import { AnyNumber, Uint16, Uint32, Uint8 } from "../types";
@@ -332,6 +344,105 @@ export class Serializer {
   serializeU256(value: AnyNumber) {
     const low = BigInt(value) & MAX_U128_BIG_INT;
     const high = BigInt(value) >> BigInt(128);
+
+    // write little endian number
+    this.serializeU128(low);
+    this.serializeU128(high);
+  }
+
+  /**
+   * Serializes an 8-bit signed integer value.
+   * BCS layout for "int8": One byte. Binary format in little-endian representation.
+   *
+   * @param value - The 8-bit signed integer value to serialize.
+   * @group Implementation
+   * @category BCS
+   */
+  @checkNumberRange(MIN_I8_NUMBER, MAX_I8_NUMBER)
+  serializeI8(value: number) {
+    this.serializeWithFunction(DataView.prototype.setInt8, 1, value);
+  }
+
+  /**
+   * Serializes a 16-bit signed integer value into a binary format.
+   * BCS layout for "int16": Two bytes. Binary format in little-endian representation.
+   *
+   * @param value - The 16-bit signed integer value to serialize.
+   * @group Implementation
+   * @category BCS
+   */
+  @checkNumberRange(MIN_I16_NUMBER, MAX_I16_NUMBER)
+  serializeI16(value: number) {
+    this.serializeWithFunction(DataView.prototype.setInt16, 2, value);
+  }
+
+  /**
+   * Serializes a 32-bit signed integer value into a binary format.
+   *
+   * @param value - The 32-bit signed integer value to serialize.
+   * @group Implementation
+   * @category BCS
+   */
+  @checkNumberRange(MIN_I32_NUMBER, MAX_I32_NUMBER)
+  serializeI32(value: number) {
+    this.serializeWithFunction(DataView.prototype.setInt32, 4, value);
+  }
+
+  /**
+   * Serializes a 64-bit signed integer into a format suitable for storage or transmission.
+   * This function uses two's complement representation for negative values.
+   *
+   * @param value - The 64-bit signed integer to serialize.
+   * @group Implementation
+   * @category BCS
+   */
+  @checkNumberRange(MIN_I64_BIG_INT, MAX_I64_BIG_INT)
+  serializeI64(value: AnyNumber) {
+    const val = BigInt(value);
+    // Convert to unsigned representation using two's complement
+    const unsigned = val < 0 ? (BigInt(1) << BigInt(64)) + val : val;
+    const low = unsigned & BigInt(MAX_U32_NUMBER);
+    const high = unsigned >> BigInt(32);
+
+    // write little endian number
+    this.serializeU32(Number(low));
+    this.serializeU32(Number(high));
+  }
+
+  /**
+   * Serializes a 128-bit signed integer value.
+   *
+   * @param value - The 128-bit signed integer value to serialize.
+   * @group Implementation
+   * @category BCS
+   */
+  @checkNumberRange(MIN_I128_BIG_INT, MAX_I128_BIG_INT)
+  serializeI128(value: AnyNumber) {
+    const val = BigInt(value);
+    // Convert to unsigned representation using two's complement
+    const unsigned = val < 0 ? (BigInt(1) << BigInt(128)) + val : val;
+    const low = unsigned & MAX_U64_BIG_INT;
+    const high = unsigned >> BigInt(64);
+
+    // write little endian number
+    this.serializeU64(low);
+    this.serializeU64(high);
+  }
+
+  /**
+   * Serializes a 256-bit signed integer value.
+   *
+   * @param value - The 256-bit signed integer value to serialize.
+   * @group Implementation
+   * @category BCS
+   */
+  @checkNumberRange(MIN_I256_BIG_INT, MAX_I256_BIG_INT)
+  serializeI256(value: AnyNumber) {
+    const val = BigInt(value);
+    // Convert to unsigned representation using two's complement
+    const unsigned = val < 0 ? (BigInt(1) << BigInt(256)) + val : val;
+    const low = unsigned & MAX_U128_BIG_INT;
+    const high = unsigned >> BigInt(128);
 
     // write little endian number
     this.serializeU128(low);

@@ -43,6 +43,28 @@ export const createResourceAddress = (creatorAddress: AccountAddress, seed: Uint
 };
 
 /**
+ * Creates a user derived object address from source address and derive_from address
+ *
+ * @param sourceAddress The source account address
+ * @param deriveFromAddress The address to derive from
+ *
+ * @returns The user derived object address
+ * @group Implementation
+ * @category Account (On-Chain Model)
+ */
+export const createUserDerivedObjectAddress = (
+  sourceAddress: AccountAddress,
+  deriveFromAddress: AccountAddress,
+): AccountAddress => {
+  const sourceBytes = sourceAddress.bcsToBytes();
+  const deriveFromBytes = deriveFromAddress.bcsToBytes();
+
+  const bytes = new Uint8Array([...sourceBytes, ...deriveFromBytes, DeriveScheme.DeriveObjectAddressFromObject]);
+
+  return new AccountAddress(sha3_256(bytes));
+};
+
+/**
  * Creates a token object address from creator address, collection name and token name
  *
  * @param creatorAddress The token creator account address
