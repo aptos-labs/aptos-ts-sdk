@@ -359,6 +359,111 @@ export class Deserializer {
   }
 
   /**
+   * Deserializes an 8-bit signed integer from the binary data.
+   * BCS layout for "int8": One byte. Binary format in little-endian representation.
+   *
+   * @returns {number} The deserialized int8 number.
+   * @group Implementation
+   * @category BCS
+   */
+  deserializeI8(): number {
+    return new DataView(this.read(1)).getInt8(0);
+  }
+
+  /**
+   * Deserializes a 16-bit signed integer from a binary format in little-endian representation.
+   * BCS layout for "int16": Two bytes.
+   *
+   * @returns {number} The deserialized int16 number.
+   * @group Implementation
+   * @category BCS
+   */
+  deserializeI16(): number {
+    return new DataView(this.read(2)).getInt16(0, true);
+  }
+
+  /**
+   * Deserializes a 32-bit signed integer from a binary format in little-endian representation.
+   * BCS layout for "int32": Four bytes.
+   *
+   * @returns {number} The deserialized int32 number.
+   * @group Implementation
+   * @category BCS
+   */
+  deserializeI32(): number {
+    return new DataView(this.read(4)).getInt32(0, true);
+  }
+
+  /**
+   * Deserializes a 64-bit signed integer.
+   * This function combines two 32-bit values to return a 64-bit signed integer in little-endian representation.
+   *
+   * @returns {bigint} The deserialized int64 number.
+   * @group Implementation
+   * @category BCS
+   */
+  deserializeI64(): bigint {
+    const low = this.deserializeU32();
+    const high = this.deserializeU32();
+
+    // combine the two 32-bit values (little endian)
+    const unsigned = BigInt((BigInt(high) << BigInt(32)) | BigInt(low));
+
+    // Convert from unsigned to signed using two's complement
+    const signBit = BigInt(1) << BigInt(63);
+    if (unsigned >= signBit) {
+      return unsigned - (BigInt(1) << BigInt(64));
+    }
+    return unsigned;
+  }
+
+  /**
+   * Deserializes a 128-bit signed integer from its binary representation.
+   * This function combines two 64-bit values to return a single int128 value in little-endian format.
+   *
+   * @returns {bigint} The deserialized int128 number.
+   * @group Implementation
+   * @category BCS
+   */
+  deserializeI128(): bigint {
+    const low = this.deserializeU64();
+    const high = this.deserializeU64();
+
+    // combine the two 64-bit values (little endian)
+    const unsigned = BigInt((high << BigInt(64)) | low);
+
+    // Convert from unsigned to signed using two's complement
+    const signBit = BigInt(1) << BigInt(127);
+    if (unsigned >= signBit) {
+      return unsigned - (BigInt(1) << BigInt(128));
+    }
+    return unsigned;
+  }
+
+  /**
+   * Deserializes a 256-bit signed integer from its binary representation.
+   * BCS layout for "int256": Thirty-two bytes in little-endian format.
+   *
+   * @returns {bigint} The deserialized int256 number.
+   * @group Implementation
+   * @category BCS
+   */
+  deserializeI256(): bigint {
+    const low = this.deserializeU128();
+    const high = this.deserializeU128();
+
+    // combine the two 128-bit values (little endian)
+    const unsigned = BigInt((high << BigInt(128)) | low);
+
+    // Convert from unsigned to signed using two's complement
+    const signBit = BigInt(1) << BigInt(255);
+    if (unsigned >= signBit) {
+      return unsigned - (BigInt(1) << BigInt(256));
+    }
+    return unsigned;
+  }
+
+  /**
    * Deserializes a uleb128 encoded uint32 number.
    *
    * This function is used for interpreting lengths of variable-length sequences and tags of enum values in BCS encoding.

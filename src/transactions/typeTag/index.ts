@@ -63,6 +63,18 @@ export abstract class TypeTag extends Serializable {
         return TypeTagU32.load(deserializer);
       case TypeTagVariants.U256:
         return TypeTagU256.load(deserializer);
+      case TypeTagVariants.I8:
+        return TypeTagI8.load(deserializer);
+      case TypeTagVariants.I16:
+        return TypeTagI16.load(deserializer);
+      case TypeTagVariants.I32:
+        return TypeTagI32.load(deserializer);
+      case TypeTagVariants.I64:
+        return TypeTagI64.load(deserializer);
+      case TypeTagVariants.I128:
+        return TypeTagI128.load(deserializer);
+      case TypeTagVariants.I256:
+        return TypeTagI256.load(deserializer);
       case TypeTagVariants.Generic:
         // This is only used for ABI representation, and cannot actually be used as a type.
         return TypeTagGeneric.load(deserializer);
@@ -206,6 +218,26 @@ export abstract class TypeTag extends Serializable {
     return this instanceof TypeTagU256;
   }
 
+  /** Signed integer helpers */
+  isI8(): this is TypeTagI8 {
+    return this instanceof TypeTagI8;
+  }
+  isI16(): this is TypeTagI16 {
+    return this instanceof TypeTagI16;
+  }
+  isI32(): this is TypeTagI32 {
+    return this instanceof TypeTagI32;
+  }
+  isI64(): this is TypeTagI64 {
+    return this instanceof TypeTagI64;
+  }
+  isI128(): this is TypeTagI128 {
+    return this instanceof TypeTagI128;
+  }
+  isI256(): this is TypeTagI256 {
+    return this instanceof TypeTagI256;
+  }
+
   isPrimitive(): boolean {
     return (
       this instanceof TypeTagSigner ||
@@ -216,7 +248,13 @@ export abstract class TypeTag extends Serializable {
       this instanceof TypeTagU32 ||
       this instanceof TypeTagU64 ||
       this instanceof TypeTagU128 ||
-      this instanceof TypeTagU256
+      this instanceof TypeTagU256 ||
+      this instanceof TypeTagI8 ||
+      this instanceof TypeTagI16 ||
+      this instanceof TypeTagI32 ||
+      this instanceof TypeTagI64 ||
+      this instanceof TypeTagI128 ||
+      this instanceof TypeTagI256
     );
   }
 }
@@ -291,6 +329,29 @@ export class TypeTagU8 extends TypeTag {
 }
 
 /**
+ * Represents a type tag for an 8-bit signed integer (i8).
+ * This class extends the base TypeTag class and provides methods
+ * for serialization and deserialization specific to the i8 type.
+ *
+ * @extends TypeTag
+ * @group Implementation
+ * @category Transactions
+ */
+export class TypeTagI8 extends TypeTag {
+  toString(): string {
+    return "i8";
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(TypeTagVariants.I8);
+  }
+
+  static load(_deserializer: Deserializer): TypeTagI8 {
+    return new TypeTagI8();
+  }
+}
+
+/**
  * Represents a type tag for unsigned 16-bit integers (u16).
  * This class extends the base TypeTag class and provides methods for serialization and deserialization.
  *
@@ -309,6 +370,28 @@ export class TypeTagU16 extends TypeTag {
 
   static load(_deserializer: Deserializer): TypeTagU16 {
     return new TypeTagU16();
+  }
+}
+
+/**
+ * Represents a type tag for signed 16-bit integers (i16).
+ * This class extends the base TypeTag class and provides methods for serialization and deserialization.
+ *
+ * @extends TypeTag
+ * @group Implementation
+ * @category Transactions
+ */
+export class TypeTagI16 extends TypeTag {
+  toString(): string {
+    return "i16";
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(TypeTagVariants.I16);
+  }
+
+  static load(_deserializer: Deserializer): TypeTagI16 {
+    return new TypeTagI16();
   }
 }
 
@@ -336,6 +419,29 @@ export class TypeTagU32 extends TypeTag {
 }
 
 /**
+ * Represents a type tag for a 32-bit signed integer (i32).
+ * This class extends the base TypeTag class and provides methods for serialization
+ * and deserialization specific to the i32 type.
+ *
+ * @extends TypeTag
+ * @group Implementation
+ * @category Transactions
+ */
+export class TypeTagI32 extends TypeTag {
+  toString(): string {
+    return "i32";
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(TypeTagVariants.I32);
+  }
+
+  static load(_deserializer: Deserializer): TypeTagI32 {
+    return new TypeTagI32();
+  }
+}
+
+/**
  * Represents a type tag for 64-bit unsigned integers (u64).
  * This class extends the base TypeTag class and provides methods for serialization and deserialization.
  *
@@ -354,6 +460,28 @@ export class TypeTagU64 extends TypeTag {
 
   static load(_deserializer: Deserializer): TypeTagU64 {
     return new TypeTagU64();
+  }
+}
+
+/**
+ * Represents a type tag for 64-bit signed integers (i64).
+ * This class extends the base TypeTag class and provides methods for serialization and deserialization.
+ *
+ * @extends TypeTag
+ * @group Implementation
+ * @category Transactions
+ */
+export class TypeTagI64 extends TypeTag {
+  toString(): string {
+    return "i64";
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(TypeTagVariants.I64);
+  }
+
+  static load(_deserializer: Deserializer): TypeTagI64 {
+    return new TypeTagI64();
   }
 }
 
@@ -380,6 +508,28 @@ export class TypeTagU128 extends TypeTag {
 }
 
 /**
+ * Represents a type tag for the i128 data type.
+ * This class extends the base TypeTag class and provides methods for serialization and deserialization.
+ *
+ * @extends TypeTag
+ * @group Implementation
+ * @category Transactions
+ */
+export class TypeTagI128 extends TypeTag {
+  toString(): string {
+    return "i128";
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(TypeTagVariants.I128);
+  }
+
+  static load(_deserializer: Deserializer): TypeTagI128 {
+    return new TypeTagI128();
+  }
+}
+
+/**
  * Represents a type tag for the U256 data type.
  * This class extends the base TypeTag class and provides methods for serialization and deserialization.
  *
@@ -398,6 +548,28 @@ export class TypeTagU256 extends TypeTag {
 
   static load(_deserializer: Deserializer): TypeTagU256 {
     return new TypeTagU256();
+  }
+}
+
+/**
+ * Represents a type tag for the I256 data type.
+ * This class extends the base TypeTag class and provides methods for serialization and deserialization.
+ *
+ * @extends TypeTag
+ * @group Implementation
+ * @category Transactions
+ */
+export class TypeTagI256 extends TypeTag {
+  toString(): string {
+    return "i256";
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(TypeTagVariants.I256);
+  }
+
+  static load(_deserializer: Deserializer): TypeTagI256 {
+    return new TypeTagI256();
   }
 }
 
