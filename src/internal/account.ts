@@ -1355,6 +1355,7 @@ async function getMultiKeysForPublicKey(args: {
   const whereCondition: any = {
     public_key: { _eq: baseKey.toString() },
     public_key_type: { _eq: variant },
+    account_public_key: { _is_null: false },
     ...(includeUnverified ? {} : { is_public_key_used: { _eq: true } }),
   };
 
@@ -1371,16 +1372,18 @@ async function getMultiKeysForPublicKey(args: {
     originMethod: "getMultiKeysForPublicKey",
   });
 
-  const authKeys = data.map((entry) => {
-    switch (entry.signature_type) {
-      case "multi_ed25519_signature":
-        return MultiEd25519PublicKey.deserializeWithoutLength(Deserializer.fromHex(entry.account_public_key!));
-      case "multi_key_signature":
-        return MultiKey.deserialize(Deserializer.fromHex(entry.account_public_key!));
-      default:
-        throw new Error(`Unknown multi-signature type: ${entry.signature_type}`);
-    }
-  });
+  const authKeys = data
+    .filter((entry) => entry.account_public_key !== null)
+    .map((entry) => {
+      switch (entry.signature_type) {
+        case "multi_ed25519_signature":
+          return MultiEd25519PublicKey.deserializeWithoutLength(Deserializer.fromHex(entry.account_public_key!));
+        case "multi_key_signature":
+          return MultiKey.deserialize(Deserializer.fromHex(entry.account_public_key!));
+        default:
+          throw new Error(`Unknown multi-signature type: ${entry.signature_type}`);
+      }
+    });
   return authKeys;
 }
 
