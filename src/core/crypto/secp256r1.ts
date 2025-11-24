@@ -25,6 +25,19 @@ import { AuthenticationKey } from "../authenticationKey";
  * @category Serialization
  */
 export class Secp256r1PublicKey extends PublicKey {
+  /**
+   * Variant of the Secp256r1 public key
+   * @group Implementation
+   * @category Serialization
+   */
+  readonly AnyPublicKeyVariant = AnyPublicKeyVariant.Secp256r1;
+  /**
+   * Variant of the Secp256r1 public key
+   * @group Implementation
+   * @category Serialization
+   */
+  static readonly AnyPublicKeyVariant: AnyPublicKeyVariant = AnyPublicKeyVariant.Secp256r1;
+
   // Secp256r1 ecdsa public keys contain a prefix indicating compression and two 32-byte coordinates.
   static readonly LENGTH: number = 65;
 

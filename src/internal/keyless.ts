@@ -14,6 +14,7 @@ import { postAptosPepperService, postAptosProvingService } from "../client";
 import {
   AccountAddressInput,
   EphemeralSignature,
+  FederatedKeylessPublicKey,
   Groth16Zkp,
   Hex,
   KeylessPublicKey,
@@ -26,7 +27,6 @@ import { HexInput, ZkpVariant } from "../types";
 import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
 import { PepperFetchRequest, PepperFetchResponse, ProverRequest, ProverResponse } from "../types/keyless";
 import { lookupOriginalAccountAddress } from "./account";
-import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
 import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
 import { MoveVector } from "../bcs";
 import { generateTransaction } from "./transactionSubmission";

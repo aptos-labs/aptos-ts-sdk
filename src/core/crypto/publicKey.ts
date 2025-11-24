@@ -1,6 +1,6 @@
 import { AptosConfig } from "../../api";
 import { Serializable } from "../../bcs";
-import { HexInput } from "../../types";
+import { AnyPublicKeyVariant, HexInput } from "../../types";
 import { AuthenticationKey } from "../authenticationKey";
 import { Hex } from "../hex";
 import { Signature } from "./signature";
@@ -64,6 +64,13 @@ export abstract class PublicKey extends Serializable {
   async verifySignatureAsync(args: VerifySignatureAsyncArgs): Promise<boolean> {
     return this.verifySignature(args);
   }
+  
+  /**
+   * Variant of the public key
+   * @group Implementation
+   * @category Serialization
+   */
+  readonly AnyPublicKeyVariant?: AnyPublicKeyVariant;
 
   /**
    * Get the raw public key bytes

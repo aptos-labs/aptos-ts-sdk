@@ -2,7 +2,7 @@ import type { AccountAuthenticator } from "../transactions/authenticator/account
 import { HexInput, SigningScheme, SigningSchemeInput } from "../types";
 import type { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { AuthenticationKey } from "../core/authenticationKey";
-import { AccountPublicKey, Ed25519PrivateKey, PrivateKeyInput, Signature, VerifySignatureArgs } from "../core/crypto";
+import { AccountPublicKey, Ed25519PrivateKey, KeylessPublicKey, PrivateKeyInput, Signature, verifyKeylessSignature, VerifySignatureArgs } from "../core/crypto";
 import { Ed25519Account } from "./Ed25519Account";
 import { SingleKeyAccount } from "./SingleKeyAccount";
 import { AnyRawTransaction } from "../transactions/types";
@@ -349,6 +349,12 @@ export abstract class Account {
     message: HexInput;
     signature: Signature;
   }): Promise<boolean> {
-    return this.publicKey.verifySignatureAsync(args);
+    if (this.publicKey instanceof KeylessPublicKey) {
+      return await verifyKeylessSignature({
+        ...args,
+        publicKey: this.publicKey,
+      });
+    }
+    return this.publicKey.verifySignature(args);
   }
 }

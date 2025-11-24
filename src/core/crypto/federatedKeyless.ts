@@ -9,13 +9,12 @@ import { AccountAddress, AccountAddressInput } from "../accountAddress";
 import {
   KeylessConfiguration,
   KeylessPublicKey,
-  KeylessSignature,
   MoveJWK,
   verifyKeylessSignature,
   verifyKeylessSignatureWithJwkAndConfig,
 } from "./keyless";
 import { AptosConfig } from "../../api";
-import { Signature } from "..";
+import { KeylessSignature, Signature } from "..";
 
 /**
  * Represents the FederatedKeylessPublicKey public key

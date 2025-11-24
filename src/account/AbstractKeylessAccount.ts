@@ -17,6 +17,7 @@ import {
   getKeylessConfig,
   fetchJWK,
   KeylessConfiguration,
+  verifyKeylessSignature,
 } from "../core/crypto";
 
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
@@ -31,7 +32,6 @@ import { Account } from "./Account";
 import { AptosConfig } from "../api/aptosConfig";
 import { KeylessError, KeylessErrorType } from "../errors";
 import type { SingleKeySigner } from "./SingleKeyAccount";
-
 /**
  * An interface which defines if an Account utilizes Keyless signing.
  */
@@ -458,7 +458,7 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
     jwk: MoveJWK;
     keylessConfig: KeylessConfiguration;
   }): boolean {
-    return this.publicKey.verifySignature(args);
+    throw new Error("Not implemented");
   }
 
   async verifySignatureAsync(args: {
@@ -467,9 +467,7 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
     signature: KeylessSignature;
     options?: { throwErrorWithReason?: boolean };
   }): Promise<boolean> {
-    return this.publicKey.verifySignatureAsync({
-      ...args,
-    });
+    return this.publicKey.verifySignatureAsync(args);
   }
 
   /**

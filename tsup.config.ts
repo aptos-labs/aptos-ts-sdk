@@ -40,6 +40,7 @@ const COMMON_CONFIG: MandatoryOptions = {
 const ESM_CONFIG: MandatoryOptions = {
   ...DEFAULT_CONFIG,
   entry: ["src/**/*.ts"],
+  bundle: false,
   format: "esm",
   outDir: "dist/esm",
 };

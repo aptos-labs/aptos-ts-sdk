@@ -6,6 +6,7 @@ import { AccountPublicKey, PublicKey, VerifySignatureAsyncArgs } from "./publicK
 import { Signature } from "./signature";
 import { AnyPublicKey, AnySignature } from "./singleKey";
 import { AptosConfig } from "../../api";
+import { deserializeAnyPublicKey } from "./utils";
 
 /**
  * Counts the number of set bits (1s) in a byte.
@@ -163,7 +164,7 @@ export class MultiKey extends AbstractMultiKey {
     );
     if (signaturesRequired > MAX_NUM_KEYLESS_PUBLIC_FOR_MULTI_KEY) {
       const keylessCount = this.publicKeys.filter(
-        (pk) => pk.variant === AnyPublicKeyVariant.Keyless || pk.variant === AnyPublicKeyVariant.FederatedKeyless,
+        (pk) => pk.publicKey.AnyPublicKeyVariant === AnyPublicKeyVariant.Keyless || pk.publicKey.AnyPublicKeyVariant === AnyPublicKeyVariant.FederatedKeyless,
       ).length;
       if (keylessCount > MAX_NUM_KEYLESS_PUBLIC_FOR_MULTI_KEY) {
         throw new Error(
@@ -296,7 +297,12 @@ export class MultiKey extends AbstractMultiKey {
    * @category Serialization
    */
   static deserialize(deserializer: Deserializer): MultiKey {
-    const keys = deserializer.deserializeVector(AnyPublicKey);
+    const keysLength = deserializer.deserializeUleb128AsU32();
+    const keys = new Array<PublicKey>();
+    for (let i = 0; i < keysLength; i++) {
+      keys.push(deserializeAnyPublicKey(deserializer));
+    }
+
     const signaturesRequired = deserializer.deserializeU8();
 
     return new MultiKey({ publicKeys: keys, signaturesRequired });

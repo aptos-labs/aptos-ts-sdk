@@ -1,5 +1,5 @@
 import { Serializer, Deserializer } from "../../bcs";
-import { EphemeralPublicKeyVariant, EphemeralSignatureVariant, HexInput } from "../../types";
+import { AnyPublicKeyVariant, EphemeralPublicKeyVariant, EphemeralSignatureVariant, HexInput } from "../../types";
 import { PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";

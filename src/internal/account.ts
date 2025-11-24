@@ -1350,7 +1350,7 @@ async function getMultiKeysForPublicKey(args: {
   const includeUnverified = options?.includeUnverified ?? false;
   const anyPublicKey = publicKey instanceof AnyPublicKey ? publicKey : new AnyPublicKey(publicKey);
   const baseKey = anyPublicKey.publicKey;
-  const variant = anyPublicKeyVariantToString(anyPublicKey.variant);
+  const variant = anyPublicKeyVariantToString(anyPublicKey.publicKey.AnyPublicKeyVariant ?? 0);
 
   const whereCondition: any = {
     public_key: { _eq: baseKey.toString() },

@@ -6,7 +6,7 @@ import { Deserializer } from "../../bcs/deserializer";
 import { Serializable, Serializer } from "../../bcs/serializer";
 import { AuthenticationKey } from "../authenticationKey";
 import { Hex } from "../hex";
-import { HexInput, SigningScheme as AuthenticationKeyScheme, PrivateKeyVariants } from "../../types";
+import { HexInput, SigningScheme as AuthenticationKeyScheme, PrivateKeyVariants, AnyPublicKeyVariant } from "../../types";
 import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey";
 import { PrivateKey } from "./privateKey";
 import { AccountPublicKey, PublicKey, VerifySignatureArgs, VerifySignatureAsyncArgs } from "./publicKey";
@@ -62,12 +62,17 @@ export function isCanonicalEd25519Signature(signature: Signature): boolean {
  */
 export class Ed25519PublicKey extends AccountPublicKey {
   /**
+   * Variant of the Ed25519 public key
+   * @group Implementation
+   * @category Serialization
+   */
+  readonly AnyPublicKeyVariant: AnyPublicKeyVariant = AnyPublicKeyVariant.Ed25519;
+  /**
    * Length of an Ed25519 public key
    * @group Implementation
    * @category Serialization
    */
   static readonly LENGTH: number = 32;
-
   /**
    * Bytes of the public key
    * @private

@@ -32,6 +32,7 @@ import {
   AccountAuthenticatorMultiKey,
   AccountAuthenticatorNoAccountAuthenticator,
   AccountAuthenticatorSingleKey,
+  deserializeAccountAuthenticator,
 } from "../authenticator/account";
 import {
   TransactionAuthenticator,
@@ -91,6 +92,7 @@ import {
   TransactionExtraConfigV1,
   TransactionInnerPayloadV1,
 } from "../instances/transactionPayload";
+import { Deserializer } from "../../bcs";
 
 /**
  * Builds a transaction payload based on the provided arguments and returns a transaction payload.
@@ -734,8 +736,10 @@ export function getAuthenticatorForSimulation(publicKey?: PublicKey) {
  */
 export function generateSignedTransaction(args: InputSubmitTransactionData): Uint8Array {
   const { transaction, feePayerAuthenticator, additionalSignersAuthenticators } = args;
-  const senderAuthenticator = normalizeBundle(AccountAuthenticator, args.senderAuthenticator);
-
+  const serializedBytes = args.senderAuthenticator.bcsToBytes();
+  const deserializer = new Deserializer(serializedBytes);
+  const senderAuthenticator = deserializeAccountAuthenticator(deserializer);
+  
   let txnAuthenticator: TransactionAuthenticator;
   if (transaction.feePayerAddress) {
     if (!feePayerAuthenticator) {

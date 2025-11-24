@@ -6,7 +6,7 @@ import { secp256k1 } from "@noble/curves/secp256k1";
 import { HDKey } from "@scure/bip32";
 import { Serializable, Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
-import { HexInput, PrivateKeyVariants } from "../../types";
+import { AnyPublicKeyVariant, HexInput, PrivateKeyVariants } from "../../types";
 import { isValidBIP44Path, mnemonicToSeed } from "./hdKey";
 import { PrivateKey } from "./privateKey";
 import { PublicKey } from "./publicKey";
@@ -23,6 +23,19 @@ import { AptosConfig } from "../../api";
  * @category Serialization
  */
 export class Secp256k1PublicKey extends PublicKey {
+  /**
+   * Variant of the Secp256k1 public key
+   * @group Implementation
+   * @category Serialization
+   */
+  readonly AnyPublicKeyVariant: AnyPublicKeyVariant = AnyPublicKeyVariant.Secp256k1;
+  /**
+   * Variant of the Secp256k1 public key
+   * @group Implementation
+   * @category Serialization
+   */
+  static readonly AnyPublicKeyVariant: AnyPublicKeyVariant = AnyPublicKeyVariant.Secp256k1;
+
   // Secp256k1 ecdsa public keys contain a prefix indicating compression and two 32-byte coordinates.
   static readonly LENGTH: number = 65;
 

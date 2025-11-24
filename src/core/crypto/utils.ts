@@ -1,11 +1,14 @@
-import { HexInput, SigningScheme } from "../../types";
+import { Deserializer } from "../../bcs";
+import { AnyPublicKeyVariant, HexInput, SigningScheme } from "../../types";
 import { Hex } from "../hex";
 import { Ed25519PublicKey } from "./ed25519";
 import { FederatedKeylessPublicKey } from "./federatedKeyless";
 import { KeylessPublicKey } from "./keyless";
 import { MultiEd25519PublicKey } from "./multiEd25519";
 import { MultiKey } from "./multiKey";
-import { AccountPublicKey } from "./publicKey";
+import { AccountPublicKey, PublicKey } from "./publicKey";
+import { Secp256k1PublicKey } from "./secp256k1";
+import { Secp256r1PublicKey } from "./secp256r1";
 import { AnyPublicKey } from "./singleKey";
 import { BaseAccountPublicKey } from "./types";
 
@@ -61,3 +64,38 @@ export const accountPublicKeyToSigningScheme = (publicKey: AccountPublicKey): Si
   }
   throw new Error(`Unknown signing scheme: ${baseAccountPublicKey}`);
 };
+
+/**
+ * Deserializes an AnyPublicKey from the provided deserializer.
+ * This function reconstructs the AnyPublicKey object from its serialized data,
+ * enabling further processing or validation.
+ *
+ * @param deserializer - The deserializer instance used to read the serialized data.
+ * @group Implementation
+ * @category Serialization
+ */
+
+export function deserializeAnyPublicKey(deserializer: Deserializer): AnyPublicKey {
+  const variantIndex = deserializer.deserializeUleb128AsU32();
+  let publicKey: PublicKey;
+  switch (variantIndex) {
+    case AnyPublicKeyVariant.Ed25519:
+      publicKey = Ed25519PublicKey.deserialize(deserializer);
+      break;
+    case AnyPublicKeyVariant.Secp256k1:
+      publicKey = Secp256k1PublicKey.deserialize(deserializer);
+      break;
+    case AnyPublicKeyVariant.Secp256r1:
+      publicKey = Secp256r1PublicKey.deserialize(deserializer);
+      break;
+    case AnyPublicKeyVariant.Keyless:
+      publicKey = KeylessPublicKey.deserialize(deserializer);
+      break;
+    case AnyPublicKeyVariant.FederatedKeyless:
+      publicKey = FederatedKeylessPublicKey.deserialize(deserializer);
+      break;
+    default:
+      throw new Error(`Unknown variant index for AnyPublicKey: ${variantIndex}`);
+  }
+  return new AnyPublicKey(publicKey);
+}

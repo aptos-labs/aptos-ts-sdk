@@ -20,48 +20,48 @@ import { HexInput } from "../../types";
 
 const MULTIPLE_DESERIALIZATIONS_ERROR_MSG = "Multiple possible deserializations found";
 
-/**
- * Deserializes a public key from a hex string.
- * Attempts to deserialize using various public key types in sequence until one succeeds.
- *
- * @param publicKey - The hex string representation of the public key to deserialize
- * @returns The deserialized public key
- * @throws Error if deserialization fails for all supported key types or if multiple deserializations are found
- */
-export function deserializePublicKey(publicKey: HexInput): PublicKey {
-  const publicKeyTypes = [
-    Ed25519PublicKey,
-    AnyPublicKey,
-    MultiEd25519PublicKey,
-    MultiKey,
-    KeylessPublicKey,
-    FederatedKeylessPublicKey,
-    Secp256k1PublicKey,
-  ];
+// /**
+//  * Deserializes a public key from a hex string.
+//  * Attempts to deserialize using various public key types in sequence until one succeeds.
+//  *
+//  * @param publicKey - The hex string representation of the public key to deserialize
+//  * @returns The deserialized public key
+//  * @throws Error if deserialization fails for all supported key types or if multiple deserializations are found
+//  */
+// export function deserializePublicKey(publicKey: HexInput): PublicKey {
+//   const publicKeyTypes = [
+//     Ed25519PublicKey,
+//     AnyPublicKey,
+//     MultiEd25519PublicKey,
+//     MultiKey,
+//     KeylessPublicKey,
+//     FederatedKeylessPublicKey,
+//     Secp256k1PublicKey,
+//   ];
 
-  let result: PublicKey | undefined;
-  for (const KeyType of publicKeyTypes) {
-    try {
-      const deserializer = Deserializer.fromHex(publicKey);
-      const key = KeyType.deserialize(deserializer);
-      deserializer.assertFinished();
-      if (result) {
-        throw new Error(`${MULTIPLE_DESERIALIZATIONS_ERROR_MSG}: ${publicKey}`);
-      }
-      result = key;
-    } catch (error) {
-      if (error instanceof Error && error.message.includes(MULTIPLE_DESERIALIZATIONS_ERROR_MSG)) {
-        throw error;
-      }
-    }
-  }
+//   let result: PublicKey | undefined;
+//   for (const KeyType of publicKeyTypes) {
+//     try {
+//       const deserializer = Deserializer.fromHex(publicKey);
+//       const key = KeyType.deserialize(deserializer);
+//       deserializer.assertFinished();
+//       if (result) {
+//         throw new Error(`${MULTIPLE_DESERIALIZATIONS_ERROR_MSG}: ${publicKey}`);
+//       }
+//       result = key;
+//     } catch (error) {
+//       if (error instanceof Error && error.message.includes(MULTIPLE_DESERIALIZATIONS_ERROR_MSG)) {
+//         throw error;
+//       }
+//     }
+//   }
 
-  if (!result) {
-    throw new Error(`Failed to deserialize public key: ${publicKey}`);
-  }
+//   if (!result) {
+//     throw new Error(`Failed to deserialize public key: ${publicKey}`);
+//   }
 
-  return result;
-}
+//   return result;
+// }
 
 /**
  * Deserializes a signature from a hex string.

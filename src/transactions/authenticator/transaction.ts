@@ -3,7 +3,7 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import { AccountAuthenticator } from "./account";
+import { AccountAuthenticator, deserializeAccountAuthenticator } from "./account";
 import { Deserializer, Serializable, Serializer } from "../../bcs";
 import { AccountAddress } from "../../core";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
@@ -196,9 +196,13 @@ export class TransactionAuthenticatorMultiAgent extends TransactionAuthenticator
   }
 
   static load(deserializer: Deserializer): TransactionAuthenticatorMultiAgent {
-    const sender = AccountAuthenticator.deserialize(deserializer);
+    const sender = deserializeAccountAuthenticator(deserializer);
     const secondary_signer_addresses = deserializer.deserializeVector(AccountAddress);
-    const secondary_signers = deserializer.deserializeVector(AccountAuthenticator);
+    const secondary_signers_length = deserializer.deserializeUleb128AsU32();
+    const secondary_signers = new Array<AccountAuthenticator>();
+    for (let i = 0; i < secondary_signers_length; i++) {
+      secondary_signers.push(deserializeAccountAuthenticator(deserializer));
+    }
     return new TransactionAuthenticatorMultiAgent(sender, secondary_signer_addresses, secondary_signers);
   }
 }
@@ -250,11 +254,15 @@ export class TransactionAuthenticatorFeePayer extends TransactionAuthenticator {
   }
 
   static load(deserializer: Deserializer): TransactionAuthenticatorMultiAgent {
-    const sender = AccountAuthenticator.deserialize(deserializer);
+    const sender = deserializeAccountAuthenticator(deserializer);
     const secondary_signer_addresses = deserializer.deserializeVector(AccountAddress);
-    const secondary_signers = deserializer.deserializeVector(AccountAuthenticator);
+    const secondary_signers_length = deserializer.deserializeUleb128AsU32();
+    const secondary_signers = new Array<AccountAuthenticator>();
+    for (let i = 0; i < secondary_signers_length; i++) {
+      secondary_signers.push(deserializeAccountAuthenticator(deserializer));
+    }
     const address = AccountAddress.deserialize(deserializer);
-    const authenticator = AccountAuthenticator.deserialize(deserializer);
+    const authenticator = deserializeAccountAuthenticator(deserializer);
     const fee_payer = { address, authenticator };
     return new TransactionAuthenticatorFeePayer(sender, secondary_signer_addresses, secondary_signers, fee_payer);
   }
@@ -282,7 +290,7 @@ export class TransactionAuthenticatorSingleSender extends TransactionAuthenticat
   }
 
   static load(deserializer: Deserializer): TransactionAuthenticatorSingleSender {
-    const sender = AccountAuthenticator.deserialize(deserializer);
+    const sender = deserializeAccountAuthenticator(deserializer);
     return new TransactionAuthenticatorSingleSender(sender);
   }
 }

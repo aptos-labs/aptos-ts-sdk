@@ -12,6 +12,7 @@ import { AccountAuthenticatorVariant, HexInput, MoveFunctionId } from "../../typ
 import { AASigningDataVariant, AbstractAuthenticationDataVariant } from "../../types/abstraction";
 import { AccountAddress, Hex } from "../../core";
 import { getFunctionParts, isValidFunctionInfo } from "../../utils/helpers";
+import { deserializeAnyPublicKey } from "../../core/crypto/utils";
 
 /**
  * Represents an account authenticator that can handle multiple authentication variants.
@@ -24,34 +25,6 @@ import { getFunctionParts, isValidFunctionInfo } from "../../utils/helpers";
  */
 export abstract class AccountAuthenticator extends Serializable {
   abstract serialize(serializer: Serializer): void;
-
-  /**
-   * Deserializes an AccountAuthenticator from the provided deserializer.
-   * This function helps in reconstructing the AccountAuthenticator object based on the variant index.
-   *
-   * @param deserializer - The deserializer instance used to read the serialized data.
-   * @group Implementation
-   * @category Transactions
-   */
-  static deserialize(deserializer: Deserializer): AccountAuthenticator {
-    const index = deserializer.deserializeUleb128AsU32();
-    switch (index) {
-      case AccountAuthenticatorVariant.Ed25519:
-        return AccountAuthenticatorEd25519.load(deserializer);
-      case AccountAuthenticatorVariant.MultiEd25519:
-        return AccountAuthenticatorMultiEd25519.load(deserializer);
-      case AccountAuthenticatorVariant.SingleKey:
-        return AccountAuthenticatorSingleKey.load(deserializer);
-      case AccountAuthenticatorVariant.MultiKey:
-        return AccountAuthenticatorMultiKey.load(deserializer);
-      case AccountAuthenticatorVariant.NoAccountAuthenticator:
-        return AccountAuthenticatorNoAccountAuthenticator.load(deserializer);
-      case AccountAuthenticatorVariant.Abstraction:
-        return AccountAuthenticatorAbstraction.load(deserializer);
-      default:
-        throw new Error(`Unknown variant index for AccountAuthenticator: ${index}`);
-    }
-  }
 
   /**
    * Determines if the current instance is an Ed25519 account authenticator.
@@ -155,6 +128,35 @@ export class AccountAuthenticatorEd25519 extends AccountAuthenticator {
   }
 }
 
+  /**
+   * Loads an AccountAuthenticator by reading its variant from the deserializer and dispatching
+   * to the appropriate deserialization routine according to the variant index.
+   *
+   * @param deserializer The deserializer to read from.
+   * @returns The deserialized AccountAuthenticator.
+   * @group Implementation
+   * @category Transactions
+   */
+  export function deserializeAccountAuthenticator(deserializer: Deserializer): AccountAuthenticator {
+    const index = deserializer.deserializeUleb128AsU32();
+    switch (index) {
+      case AccountAuthenticatorVariant.Ed25519:
+        return AccountAuthenticatorEd25519.load(deserializer);
+      case AccountAuthenticatorVariant.MultiEd25519:
+        return AccountAuthenticatorMultiEd25519.load(deserializer);
+      case AccountAuthenticatorVariant.SingleKey:
+        return deserializeAccountAuthenticatorSingleKey(deserializer);
+      case AccountAuthenticatorVariant.MultiKey:
+        return AccountAuthenticatorMultiKey.load(deserializer);
+      case AccountAuthenticatorVariant.NoAccountAuthenticator:
+        return AccountAuthenticatorNoAccountAuthenticator.load(deserializer);
+      case AccountAuthenticatorVariant.Abstraction:
+        return AccountAuthenticatorAbstraction.load(deserializer);
+      default:
+        throw new Error(`Unknown variant index for AccountAuthenticator: ${index}`);
+    }
+  }
+
 /**
  * Represents a transaction authenticator for Multi Ed25519, designed for multi-signer transactions.
  *
@@ -212,12 +214,12 @@ export class AccountAuthenticatorSingleKey extends AccountAuthenticator {
     this.public_key.serialize(serializer);
     this.signature.serialize(serializer);
   }
+}
 
-  static load(deserializer: Deserializer): AccountAuthenticatorSingleKey {
-    const public_key = AnyPublicKey.deserialize(deserializer);
-    const signature = AnySignature.deserialize(deserializer);
-    return new AccountAuthenticatorSingleKey(public_key, signature);
-  }
+export function deserializeAccountAuthenticatorSingleKey(deserializer: Deserializer): AccountAuthenticatorSingleKey {
+  const public_key = deserializeAnyPublicKey(deserializer);
+  const signature = AnySignature.deserialize(deserializer);
+  return new AccountAuthenticatorSingleKey(public_key, signature);
 }
 
 /**

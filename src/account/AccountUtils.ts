@@ -65,8 +65,8 @@ export namespace AccountUtils {
           throw new Error("Account is not a SingleKeySigner");
         }
         const anyPublicKey = account.getAnyPublicKey();
-        serializer.serializeU32AsUleb128(anyPublicKey.variant);
-        switch (anyPublicKey.variant) {
+        serializer.serializeU32AsUleb128(anyPublicKey.publicKey.AnyPublicKeyVariant ?? 0);
+        switch (anyPublicKey.publicKey.AnyPublicKeyVariant) {
           case AnyPublicKeyVariant.Keyless: {
             const keylessAccount = account as KeylessAccount;
             serializeKeylessAccountCommon(keylessAccount, serializer);
@@ -86,7 +86,7 @@ export namespace AccountUtils {
             return serializer.toUint8Array();
           }
           default: {
-            throw new Error(`Invalid public key variant: ${anyPublicKey.variant}`);
+            throw new Error(`Invalid public key variant: ${anyPublicKey.publicKey.AnyPublicKeyVariant}`);
           }
         }
       }
