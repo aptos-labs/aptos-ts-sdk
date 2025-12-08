@@ -9,8 +9,8 @@ dependencies:
     specifier: ^1.0.2
     version: 1.0.2
   '@aptos-labs/aptos-client':
-    specifier: ^2.0.0
-    version: 2.0.0(got@11.8.6)
+    specifier: ^2.1.0
+    version: 2.1.0(got@11.8.6)
   '@noble/curves':
     specifier: ^1.9.0
     version: 1.9.0
@@ -151,8 +151,8 @@ packages:
       commander: 12.1.0
     dev: false
 
-  /@aptos-labs/aptos-client@2.0.0(got@11.8.6):
-    resolution: {integrity: sha512-A23T3zTCRXEKURodp00dkadVtIrhWjC9uo08dRDBkh69OhCnBAxkENmUy/rcBarfLoFr60nRWt7cBkc8wxr1mg==}
+  /@aptos-labs/aptos-client@2.1.0(got@11.8.6):
+    resolution: {integrity: sha512-ttdY0qclRvbYAAwzijkFeipuqTfLFJnoXlNIm58tIw3DKhIlfYdR6iLqTeCpI23oOPghnO99FZecej/0MTrtuA==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
       got: ^11.8.6
@@ -4003,7 +4003,7 @@ packages:
     dependencies:
       clone-response: 1.0.3
       get-stream: 5.2.0
-      http-cache-semantics: 4.1.1
+      http-cache-semantics: 4.2.0
       keyv: 4.5.4
       lowercase-keys: 2.0.0
       normalize-url: 6.1.0
@@ -4577,8 +4577,8 @@ packages:
     resolution: {integrity: sha512-L18DaJsXSUk2+42pv8mLs5jJT2hqFkFE4j21wOmgbUqsZ2hL72NsUU785g9RXgo3s0ZNgVl42TiHp3ZtOv/Vyg==}
     dev: true
 
-  /end-of-stream@1.4.4:
-    resolution: {integrity: sha512-+uw1inIHVPQoaVuHzRyXd21icM+cnt4CzD5rW+NC1wjOUSTOs+Te7FOv7AhN7vS9x/oIyhLP5PR1H+phQAHu5Q==}
+  /end-of-stream@1.4.5:
+    resolution: {integrity: sha512-ooEGc6HP26xXq/N+GCGOT0JKCLDGrq2bQUZrQ7gyrJiZANJ/8YDTxTpQBXGMn+WbIQXNVpyWymm7KYVICQnyOg==}
     dependencies:
       once: 1.4.0
     dev: false
@@ -5342,7 +5342,7 @@ packages:
     resolution: {integrity: sha512-nBF+F1rAZVCu/p7rjzgA+Yb4lfYXrpl7a6VmJrU8wF9I1CKvP/QwPNZHnOlwbTkY6dvtFIzFMSyQXbLoTQPRpA==}
     engines: {node: '>=8'}
     dependencies:
-      pump: 3.0.2
+      pump: 3.0.3
     dev: false
 
   /get-stream@6.0.1:
@@ -5641,8 +5641,8 @@ packages:
     resolution: {integrity: sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==}
     dev: true
 
-  /http-cache-semantics@4.1.1:
-    resolution: {integrity: sha512-er295DKPVsV82j5kw1Gjt+ADA/XYHsajl82cGNQG2eyoPkvgUhX+nDIyelzhIWbbsXP39EHcI6l5tYs2FYqYXQ==}
+  /http-cache-semantics@4.2.0:
+    resolution: {integrity: sha512-dTxcvPXqPvXBQpq5dUr6mEMJX4oIEFv6bwom3FDwKRDsuIjjJGANqhBuoAn9c1RQJIdAKav33ED65E2ys+87QQ==}
     dev: false
 
   /http2-wrapper@1.0.3:
@@ -7476,10 +7476,10 @@ packages:
     resolution: {integrity: sha512-SVtmxhRE/CGkn3eZY1T6pC8Nln6Fr/lu1mKSgRud0eC73whjGfoAogbn78LkD8aFL0zz3bAFerKSnOl7NlErBA==}
     dev: true
 
-  /pump@3.0.2:
-    resolution: {integrity: sha512-tUPXtzlGM8FE3P0ZL6DVs/3P58k9nk8/jZeQCurTJylQA8qFYzHFfhBJkuqyE0FifOsQ0uKWekiZ5g8wtr28cw==}
+  /pump@3.0.3:
+    resolution: {integrity: sha512-todwxLMY7/heScKmntwQG8CXVkWUOdYxIvY2s0VWAAMh/nd8SoYiRaKjlr7+iCs984f2P8zvrfWcDDYVb73NfA==}
     dependencies:
-      end-of-stream: 1.4.4
+      end-of-stream: 1.4.5
       once: 1.4.0
     dev: false
 
