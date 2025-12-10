@@ -365,6 +365,7 @@ export interface WhereArg<T extends {}> {
 export type ClientConfig = ClientHeadersType & {
   WITH_CREDENTIALS?: boolean;
   API_KEY?: string;
+  http2?: boolean;
 };
 
 /**
@@ -481,6 +482,7 @@ export interface ClientRequest<Req> {
   params?: any;
   overrides?: ClientConfig & FullNodeConfig & IndexerConfig & FaucetConfig;
   headers?: Record<string, any>;
+  http2?: boolean;
 }
 
 export interface ClientResponse<Res> {
