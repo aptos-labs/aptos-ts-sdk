@@ -9,13 +9,14 @@ import { AuthenticationKey } from "../authenticationKey";
 import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "./ed25519";
 import { AccountPublicKey, PublicKey } from "./publicKey";
 import { Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1";
+import { SlhDsaSha2128sPrivateKey, SlhDsaSha2128sPublicKey, SlhDsaSha2128sSignature } from "./slhDsaSha2128s";
 import { KeylessPublicKey, KeylessSignature } from "./keyless";
 import { Signature } from "./signature";
 import { FederatedKeylessPublicKey } from "./federatedKeyless";
 import { AptosConfig } from "../../api";
 import { Secp256r1PublicKey, WebAuthnSignature } from "./secp256r1";
 
-export type PrivateKeyInput = Ed25519PrivateKey | Secp256k1PrivateKey;
+export type PrivateKeyInput = Ed25519PrivateKey | Secp256k1PrivateKey | SlhDsaSha2128sPrivateKey;
 
 /**
  * Represents any public key supported by Aptos.
@@ -62,6 +63,8 @@ export class AnyPublicKey extends AccountPublicKey {
       this.variant = AnyPublicKeyVariant.Secp256k1;
     } else if (publicKey instanceof Secp256r1PublicKey) {
       this.variant = AnyPublicKeyVariant.Secp256r1;
+    } else if (publicKey instanceof SlhDsaSha2128sPublicKey) {
+      this.variant = AnyPublicKeyVariant.SlhDsaSha2128s;
     } else if (publicKey instanceof KeylessPublicKey) {
       this.variant = AnyPublicKeyVariant.Keyless;
     } else if (publicKey instanceof FederatedKeylessPublicKey) {
@@ -194,6 +197,9 @@ export class AnyPublicKey extends AccountPublicKey {
       case AnyPublicKeyVariant.Secp256r1:
         publicKey = Secp256r1PublicKey.deserialize(deserializer);
         break;
+      case AnyPublicKeyVariant.SlhDsaSha2128s:
+        publicKey = SlhDsaSha2128sPublicKey.deserialize(deserializer);
+        break;
       case AnyPublicKeyVariant.Keyless:
         publicKey = KeylessPublicKey.deserialize(deserializer);
         break;
@@ -284,6 +290,8 @@ export class AnySignature extends Signature {
       this.variant = AnySignatureVariant.Ed25519;
     } else if (signature instanceof Secp256k1Signature) {
       this.variant = AnySignatureVariant.Secp256k1;
+    } else if (signature instanceof SlhDsaSha2128sSignature) {
+      this.variant = AnySignatureVariant.SlhDsaSha2128s;
     } else if (signature instanceof WebAuthnSignature) {
       this.variant = AnySignatureVariant.WebAuthn;
     } else if (signature instanceof KeylessSignature) {
@@ -325,6 +333,9 @@ export class AnySignature extends Signature {
         break;
       case AnySignatureVariant.Secp256k1:
         signature = Secp256k1Signature.deserialize(deserializer);
+        break;
+      case AnySignatureVariant.SlhDsaSha2128s:
+        signature = SlhDsaSha2128sSignature.deserialize(deserializer);
         break;
       case AnySignatureVariant.WebAuthn:
         signature = WebAuthnSignature.deserialize(deserializer);

@@ -161,6 +161,7 @@ export enum PrivateKeyVariants {
   Ed25519 = "ed25519",
   Secp256k1 = "secp256k1",
   Secp256r1 = "secp256r1",
+  SlhDsaSha2128s = "slh-dsa-sha2-128s",
 }
 
 /**
@@ -172,6 +173,7 @@ export enum AnyPublicKeyVariant {
   Secp256r1 = 2,
   Keyless = 3,
   FederatedKeyless = 4,
+  SlhDsaSha2128s = 5,
 }
 
 export function anyPublicKeyVariantToString(variant: AnyPublicKeyVariant): string {
@@ -186,6 +188,8 @@ export function anyPublicKeyVariantToString(variant: AnyPublicKeyVariant): strin
       return "keyless";
     case AnyPublicKeyVariant.FederatedKeyless:
       return "federated_keyless";
+    case AnyPublicKeyVariant.SlhDsaSha2128s:
+      return "slh-dsa-sha2-128s";
     default:
       throw new Error("Unknown public key variant");
   }
@@ -199,6 +203,7 @@ export enum AnySignatureVariant {
   Secp256k1 = 1,
   WebAuthn = 2,
   Keyless = 3,
+  SlhDsaSha2128s = 4,
 }
 
 /**
@@ -1716,6 +1721,10 @@ export enum SigningSchemeInput {
    * For Secp256k1Ecdsa
    */
   Secp256k1Ecdsa = 2,
+  /**
+   * For SlhDsaSha2128s
+   */
+  SlhDsaSha2128s = 3,
 }
 
 /**
@@ -1770,4 +1779,12 @@ export type GenerateAccountWithSingleSignerSecp256k1Key = {
   legacy?: false;
 };
 
-export type GenerateAccount = GenerateAccountWithEd25519 | GenerateAccountWithSingleSignerSecp256k1Key;
+export type GenerateAccountWithSingleSignerSlhDsaSha2128sKey = {
+  scheme: SigningSchemeInput.SlhDsaSha2128s;
+  legacy?: false;
+};
+
+export type GenerateAccount =
+  | GenerateAccountWithEd25519
+  | GenerateAccountWithSingleSignerSecp256k1Key
+  | GenerateAccountWithSingleSignerSlhDsaSha2128sKey;

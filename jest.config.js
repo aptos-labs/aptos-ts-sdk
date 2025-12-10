@@ -12,6 +12,17 @@ module.exports = {
     "^(\\.{1,2}/.*)\\.js$": "$1",
   },
   testEnvironment: "node",
+  transformIgnorePatterns: [
+    "node_modules/(?!.*@noble/(post-quantum|hashes))",
+  ],
+  transform: {
+    "^.+\\.tsx?$": "ts-jest",
+    "^.+\\.jsx?$": ["ts-jest", {
+      tsconfig: {
+        allowJs: true,
+      },
+    }],
+  },
   coveragePathIgnorePatterns: [
     "./src/internal/queries/",
     "./src/types/generated",

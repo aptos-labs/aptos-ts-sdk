@@ -8,6 +8,8 @@ import {
   KeylessSignature,
   PrivateKeyInput,
   Secp256k1PrivateKey,
+  SlhDsaSha2128sKeyPair,
+  SlhDsaSha2128sPrivateKey,
   Signature,
 } from "../core/crypto";
 import type { Account } from "./Account";
@@ -148,6 +150,11 @@ export class SingleKeyAccount implements Account, SingleKeySigner {
       case SigningSchemeInput.Secp256k1Ecdsa:
         privateKey = Secp256k1PrivateKey.generate();
         break;
+      case SigningSchemeInput.SlhDsaSha2128s:
+        // For SLH-DSA, we need to generate a key pair since public key cannot be derived from private key
+        const keyPair = SlhDsaSha2128sKeyPair.generate();
+        privateKey = keyPair.privateKey;
+        break;
       default:
         throw new Error(`Unsupported signature scheme ${scheme}`);
     }
@@ -177,6 +184,8 @@ export class SingleKeyAccount implements Account, SingleKeySigner {
       case SigningSchemeInput.Secp256k1Ecdsa:
         privateKey = Secp256k1PrivateKey.fromDerivationPath(path, mnemonic);
         break;
+      case SigningSchemeInput.SlhDsaSha2128s:
+        throw new Error("SLH-DSA-SHA2-128s does not support derivation from mnemonic path");
       default:
         throw new Error(`Unsupported signature scheme ${scheme}`);
     }

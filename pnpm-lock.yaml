@@ -17,6 +17,9 @@ dependencies:
   '@noble/hashes':
     specifier: ^1.5.0
     version: 1.8.0
+  '@noble/post-quantum':
+    specifier: ^0.5.2
+    version: 0.5.2
   '@scure/bip32':
     specifier: ^1.4.0
     version: 1.7.0
@@ -2830,9 +2833,29 @@ packages:
       '@noble/hashes': 1.8.0
     dev: false
 
+  /@noble/curves@2.0.1:
+    resolution: {integrity: sha512-vs1Az2OOTBiP4q0pwjW5aF0xp9n4MxVrmkFBxc6EKZc6ddYx5gaZiAsZoq0uRRXWbi3AT/sBqn05eRPtn1JCPw==}
+    engines: {node: '>= 20.19.0'}
+    dependencies:
+      '@noble/hashes': 2.0.1
+    dev: false
+
   /@noble/hashes@1.8.0:
     resolution: {integrity: sha512-jCs9ldd7NwzpgXDIf6P3+NrHh9/sD6CQdxHyjQI+h/6rDNo88ypBxxz45UDuZHz9r3tNz7N/VInSVoVdtXEI4A==}
     engines: {node: ^14.21.3 || >=16}
+    dev: false
+
+  /@noble/hashes@2.0.1:
+    resolution: {integrity: sha512-XlOlEbQcE9fmuXxrVTXCTlG2nlRXa9Rj3rr5Ue/+tX+nmkgbX720YHh0VR3hBF9xDvwnb8D2shVGOwNx+ulArw==}
+    engines: {node: '>= 20.19.0'}
+    dev: false
+
+  /@noble/post-quantum@0.5.2:
+    resolution: {integrity: sha512-etMDBkCuB95Xj/gfsWYBD2x+84IjL4uMLd/FhGoUUG/g+eh0K2eP7pJz1EmvpN8Df3vKdoWVAc7RxIBCHQfFHQ==}
+    engines: {node: '>= 20.19.0'}
+    dependencies:
+      '@noble/curves': 2.0.1
+      '@noble/hashes': 2.0.1
     dev: false
 
   /@nodelib/fs.scandir@2.1.5:
