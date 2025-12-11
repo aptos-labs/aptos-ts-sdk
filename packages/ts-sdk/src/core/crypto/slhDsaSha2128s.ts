@@ -286,7 +286,6 @@ export class SlhDsaSha2128sPrivateKey extends Serializable implements PrivateKey
     return new SlhDsaSha2128sSignature(signatureBytes);
   }
 
-
   /**
    * Derives a private key from a mnemonic seed phrase using a specified BIP44 path.
    * To derive multiple keys from the same phrase, change the path
@@ -320,16 +319,23 @@ export class SlhDsaSha2128sPrivateKey extends Serializable implements PrivateKey
    * @group Implementation
    * @category Serialization
    */
-  private static fromDerivationPathInner(path: string, seed: Uint8Array, offset = HARDENED_OFFSET): SlhDsaSha2128sPrivateKey {
+  private static fromDerivationPathInner(
+    path: string,
+    seed: Uint8Array,
+    offset = HARDENED_OFFSET,
+  ): SlhDsaSha2128sPrivateKey {
     const { key, chainCode } = deriveKey(SlhDsaSha2128sPrivateKey.SLIP_0010_SEED, seed);
 
     const segments = splitPath(path).map((el) => parseInt(el, 10));
 
     // Derive the child key based on the path
-    const { key: privateKey, chainCode: finalChainCode } = segments.reduce((parentKeys, segment) => CKDPriv(parentKeys, segment + offset), {
-      key,
-      chainCode,
-    });
+    const { key: privateKey, chainCode: finalChainCode } = segments.reduce(
+      (parentKeys, segment) => CKDPriv(parentKeys, segment + offset),
+      {
+        key,
+        chainCode,
+      },
+    );
 
     const threeSeeds = new Uint8Array(48);
     threeSeeds.set(privateKey, 0); // First 32 bytes from the derived secret key
