@@ -197,9 +197,9 @@ export class SlhDsaSha2128sPrivateKey extends Serializable implements PrivateKey
   /**
    * The SLH-DSA-SHA2-128s key seed to use for BIP-32 compatibility
    * See more {@link https://github.com/satoshilabs/slips/blob/master/slip-0010.md}
-   * 
+   *
    * TODO: This is not standardized... AFAIK.
-   * 
+   *
    * @group Implementation
    * @category Serialization
    */
@@ -286,7 +286,6 @@ export class SlhDsaSha2128sPrivateKey extends Serializable implements PrivateKey
     return new SlhDsaSha2128sSignature(signatureBytes);
   }
 
-
   /**
    * Derives a private key from a mnemonic seed phrase using a specified BIP44 path.
    * To derive multiple keys from the same phrase, change the path
@@ -308,7 +307,7 @@ export class SlhDsaSha2128sPrivateKey extends Serializable implements PrivateKey
 
   /**
    * Derives a child private key from a given BIP44 path and seed.
-   * 
+   *
    * We derive our 48-byte SLH-DSA key (three 16-byte seeds) from:
    *  - the 32-byte, BIP-32-derived, secret key
    *  - the first 16 bytes of the BIP-32-derived chain code
@@ -320,24 +319,31 @@ export class SlhDsaSha2128sPrivateKey extends Serializable implements PrivateKey
    * @group Implementation
    * @category Serialization
    */
-  private static fromDerivationPathInner(path: string, seed: Uint8Array, offset = HARDENED_OFFSET): SlhDsaSha2128sPrivateKey {
+  private static fromDerivationPathInner(
+    path: string,
+    seed: Uint8Array,
+    offset = HARDENED_OFFSET,
+  ): SlhDsaSha2128sPrivateKey {
     const { key, chainCode } = deriveKey(SlhDsaSha2128sPrivateKey.SLIP_0010_SEED, seed);
 
     const segments = splitPath(path).map((el) => parseInt(el, 10));
 
     // Derive the child key based on the path
-    const { key: privateKey, chainCode: finalChainCode } = segments.reduce((parentKeys, segment) => CKDPriv(parentKeys, segment + offset), {
-      key,
-      chainCode,
-    });
-    
+    const { key: privateKey, chainCode: finalChainCode } = segments.reduce(
+      (parentKeys, segment) => CKDPriv(parentKeys, segment + offset),
+      {
+        key,
+        chainCode,
+      },
+    );
+
     const threeSeeds = new Uint8Array(48);
     threeSeeds.set(privateKey, 0); // First 32 bytes from the derived secret key
 
     // TODO: We would need to reason about the security of this.
     // e.g., is it okay to treat the chain code as public?
     threeSeeds.set(finalChainCode.slice(0, 16), 32); // Last 16 bytes from the derived chain code
-    
+
     return new SlhDsaSha2128sPrivateKey(threeSeeds, false);
   }
 

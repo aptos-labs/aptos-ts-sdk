@@ -173,12 +173,12 @@ describe("SlhDsaSha2128sPrivateKey", () => {
     expect(deserializedPrivateKey.toUint8Array()).toEqual(privateKey.toUint8Array());
   });
 
-  it("should derive public key from private key seed", () => {
+  it("should derive same public key from randomly-generated private key or from-bytes private key", () => {
     const keyPair = SlhDsaSha2128sKeyPair.generate();
     const privateKeyBytes = keyPair.privateKey.toUint8Array();
-    // Create a new private key instance from the seed
+    // Create a new private key instance
     const privateKey = new SlhDsaSha2128sPrivateKey(privateKeyBytes, false);
-    // Public key should be derivable from the seed
+    // Public key should be derivable
     const derivedPublicKey = privateKey.publicKey();
     expect(derivedPublicKey).toBeInstanceOf(SlhDsaSha2128sPublicKey);
     expect(derivedPublicKey.toUint8Array()).toEqual(keyPair.publicKey.toUint8Array());
