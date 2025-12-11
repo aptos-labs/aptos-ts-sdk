@@ -1,5 +1,12 @@
 import { secp256k1WalletTestObject, wallet } from "./helper";
-import { Ed25519PrivateKey, Hex, isValidBIP44Path, isValidHardenedPath, Secp256k1PrivateKey, SlhDsaSha2128sPrivateKey } from "../../src";
+import {
+  Ed25519PrivateKey,
+  Hex,
+  isValidBIP44Path,
+  isValidHardenedPath,
+  Secp256k1PrivateKey,
+  SlhDsaSha2128sPrivateKey,
+} from "../../src";
 
 describe("Hierarchical Deterministic Key (hdkey)", () => {
   describe("hardened path", () => {
