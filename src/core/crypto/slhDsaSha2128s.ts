@@ -10,6 +10,7 @@ import { PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { convertSigningMessage } from "./utils";
 import { AptosConfig } from "../../api";
+import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey";
 
 /**
  * Represents a SLH-DSA-SHA2-128s public key.
@@ -194,6 +195,17 @@ export class SlhDsaSha2128sPrivateKey extends Serializable implements PrivateKey
   static readonly LENGTH: number = 48;
 
   /**
+   * The SLH-DSA-SHA2-128s key seed to use for BIP-32 compatibility
+   * See more {@link https://github.com/satoshilabs/slips/blob/master/slip-0010.md}
+   * 
+   * TODO: This is not standardized... AFAIK.
+   * 
+   * @group Implementation
+   * @category Serialization
+   */
+  static readonly SLIP_0010_SEED = "SLH-DSA-SHA2-128s seed";
+
+  /**
    * The 48-byte three seeds (SK seed + PRF seed + PK seed) used for serialization
    * @private
    * @group Implementation
@@ -272,6 +284,61 @@ export class SlhDsaSha2128sPrivateKey extends Serializable implements PrivateKey
     // Use the pre-computed secret key for fast signing
     const signatureBytes = slh_dsa_sha2_128s.sign(messageBytes, this.secretKey);
     return new SlhDsaSha2128sSignature(signatureBytes);
+  }
+
+
+  /**
+   * Derives a private key from a mnemonic seed phrase using a specified BIP44 path.
+   * To derive multiple keys from the same phrase, change the path
+   *
+   * IMPORTANT: SLH-DSA-SHA2-128s supports hardened derivation only, as it lacks a key homomorphism, making non-hardened derivation impossible.
+   *
+   * @param path - The BIP44 path used for key derivation.
+   * @param mnemonics - The mnemonic seed phrase from which the key will be derived.
+   * @throws Error if the provided path is not a valid hardened path.
+   * @group Implementation
+   * @category Serialization
+   */
+  static fromDerivationPath(path: string, mnemonics: string): SlhDsaSha2128sPrivateKey {
+    if (!isValidHardenedPath(path)) {
+      throw new Error(`Invalid derivation path ${path}`);
+    }
+    return SlhDsaSha2128sPrivateKey.fromDerivationPathInner(path, mnemonicToSeed(mnemonics));
+  }
+
+  /**
+   * Derives a child private key from a given BIP44 path and seed.
+   * 
+   * We derive our 48-byte SLH-DSA key (three 16-byte seeds) from:
+   *  - the 32-byte, BIP-32-derived, secret key
+   *  - the first 16 bytes of the BIP-32-derived chain code
+   *
+   * @param path - The BIP44 path used for key derivation.
+   * @param seed - The seed phrase created by the mnemonics, represented as a Uint8Array.
+   * @param offset - The offset used for key derivation, defaults to HARDENED_OFFSET.
+   * @returns An instance of SlhDsaSha2128sPrivateKey derived from the specified path and seed.
+   * @group Implementation
+   * @category Serialization
+   */
+  private static fromDerivationPathInner(path: string, seed: Uint8Array, offset = HARDENED_OFFSET): SlhDsaSha2128sPrivateKey {
+    const { key, chainCode } = deriveKey(SlhDsaSha2128sPrivateKey.SLIP_0010_SEED, seed);
+
+    const segments = splitPath(path).map((el) => parseInt(el, 10));
+
+    // Derive the child key based on the path
+    const { key: privateKey, chainCode: finalChainCode } = segments.reduce((parentKeys, segment) => CKDPriv(parentKeys, segment + offset), {
+      key,
+      chainCode,
+    });
+    
+    const threeSeeds = new Uint8Array(48);
+    threeSeeds.set(privateKey, 0); // First 32 bytes from the derived secret key
+
+    // TODO: We would need to reason about the security of this.
+    // e.g., is it okay to treat the chain code as public?
+    threeSeeds.set(finalChainCode.slice(0, 16), 32); // Last 16 bytes from the derived chain code
+    
+    return new SlhDsaSha2128sPrivateKey(threeSeeds, false);
   }
 
   /**
