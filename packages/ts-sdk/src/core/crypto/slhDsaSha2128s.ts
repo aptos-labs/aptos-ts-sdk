@@ -337,7 +337,7 @@ export class SlhDsaSha2128sPrivateKey extends Serializable implements PrivateKey
       },
     );
 
-    const threeSeeds = new Uint8Array(48);
+    const threeSeeds = new Uint8Array(SlhDsaSha2128sPrivateKey.LENGTH);
     threeSeeds.set(privateKey, 0); // First 32 bytes from the derived secret key
 
     // TODO: We would need to reason about the security of this.
