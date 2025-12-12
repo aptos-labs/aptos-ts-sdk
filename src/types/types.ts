@@ -156,6 +156,8 @@ export enum AccountAuthenticatorVariant {
 /**
  * Variants of private keys that can comply with the AIP-80 standard.
  * {@link https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md}
+ *
+ * Note: This must match the AIP-80 strings defined in the Rust `aptos-crypto` crate.
  */
 export enum PrivateKeyVariants {
   Ed25519 = "ed25519",
@@ -189,7 +191,7 @@ export function anyPublicKeyVariantToString(variant: AnyPublicKeyVariant): strin
     case AnyPublicKeyVariant.FederatedKeyless:
       return "federated_keyless";
     case AnyPublicKeyVariant.SlhDsaSha2128s:
-      return "slh-dsa-sha2-128s";
+      return "slh_dsa_sha2_128s";
     default:
       throw new Error("Unknown public key variant");
   }
