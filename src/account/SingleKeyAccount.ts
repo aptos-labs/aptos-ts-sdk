@@ -8,7 +8,6 @@ import {
   KeylessSignature,
   PrivateKeyInput,
   Secp256k1PrivateKey,
-  SlhDsaSha2128sKeyPair,
   SlhDsaSha2128sPrivateKey,
   Signature,
 } from "../core/crypto";
