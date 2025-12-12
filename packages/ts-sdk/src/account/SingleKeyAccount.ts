@@ -7,7 +7,6 @@ import {
   Ed25519PrivateKey,
   PrivateKeyInput,
   Secp256k1PrivateKey,
-  SlhDsaSha2128sKeyPair,
   SlhDsaSha2128sPrivateKey,
   Signature,
 } from "../core/crypto/index.js";
