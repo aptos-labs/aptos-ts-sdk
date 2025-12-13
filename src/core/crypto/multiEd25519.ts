@@ -8,6 +8,7 @@ import { AuthenticationKey } from "../authenticationKey";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
 import { AbstractMultiKey } from "./multiKey";
 import { Signature } from "./signature";
+import { PublicKey } from "./publicKey";
 
 /**
  * Represents the public key of a K-of-N Ed25519 multi-sig transaction.
@@ -258,6 +259,10 @@ export class MultiEd25519PublicKey extends AbstractMultiKey {
    */
   getIndex(publicKey: Ed25519PublicKey): number {
     return super.getIndex(publicKey);
+  }
+
+  static isInstance(publicKey: PublicKey): publicKey is MultiEd25519PublicKey {
+    return "publicKeys" in publicKey && "threshold" in publicKey;
   }
 }
 
