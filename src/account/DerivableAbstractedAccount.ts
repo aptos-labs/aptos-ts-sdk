@@ -1,8 +1,8 @@
 import { sha3_256 } from "@noble/hashes/sha3";
 import { Serializer } from "../bcs/serializer";
 import { AccountAddress } from "../core/accountAddress";
-import { AccountAbstractionMessage, AccountAuthenticatorAbstraction } from "../transactions/authenticator/account";
-import { HexInput } from "../types";
+import { AccountAuthenticatorAbstraction } from "../transactions/authenticator/account";
+import { HexInput, MoveFunctionId } from "../types";
 import { isValidFunctionInfo } from "../utils/helpers";
 import { AbstractedAccount } from "./AbstractedAccount";
 import { generateSigningMessage } from "../transactions/transactionBuilder/signingMessage";
@@ -25,7 +25,7 @@ type DerivableAbstractedAccountArgs = {
    * const authenticationFunction = `${accountAddress}::permissioned_delegation::authenticate`;
    * ```
    */
-  authenticationFunction: string;
+  authenticationFunction: MoveFunctionId;
 
   /**
    * The abstract public key that is used to identify the account.
@@ -67,7 +67,7 @@ export class DerivableAbstractedAccount extends AbstractedAccount {
    * @param accountIdentifier - The account identity
    * @returns The account address
    */
-  static computeAccountAddress(functionInfo: string, accountIdentifier: Uint8Array): Uint8Array {
+  static computeAccountAddress(functionInfo: MoveFunctionId, accountIdentifier: Uint8Array): Uint8Array {
     if (!isValidFunctionInfo(functionInfo)) {
       throw new Error(`Invalid authentication function ${functionInfo} passed into DerivableAbstractedAccount`);
     }
