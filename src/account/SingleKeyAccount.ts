@@ -8,6 +8,7 @@ import {
   KeylessSignature,
   PrivateKeyInput,
   Secp256k1PrivateKey,
+  SlhDsaSha2128sPrivateKey,
   Signature,
 } from "../core/crypto";
 import type { Account } from "./Account";
@@ -148,6 +149,9 @@ export class SingleKeyAccount implements Account, SingleKeySigner {
       case SigningSchemeInput.Secp256k1Ecdsa:
         privateKey = Secp256k1PrivateKey.generate();
         break;
+      case SigningSchemeInput.SlhDsaSha2128s:
+        privateKey = SlhDsaSha2128sPrivateKey.generate();
+        break;
       default:
         throw new Error(`Unsupported signature scheme ${scheme}`);
     }
@@ -176,6 +180,9 @@ export class SingleKeyAccount implements Account, SingleKeySigner {
         break;
       case SigningSchemeInput.Secp256k1Ecdsa:
         privateKey = Secp256k1PrivateKey.fromDerivationPath(path, mnemonic);
+        break;
+      case SigningSchemeInput.SlhDsaSha2128s:
+        privateKey = SlhDsaSha2128sPrivateKey.fromDerivationPath(path, mnemonic);
         break;
       default:
         throw new Error(`Unsupported signature scheme ${scheme}`);
