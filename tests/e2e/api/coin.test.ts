@@ -12,8 +12,7 @@ import { getAptosClient } from "../helper";
 
 describe("coin", () => {
   test("it generates a transfer coin transaction with AptosCoin coin type", async () => {
-    const config = new AptosConfig({ network: Network.LOCAL });
-    const aptos = new Aptos(config);
+    const { aptos } = getAptosClient();
     const sender = Account.generate();
     const recipient = Account.generate();
     await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: FUND_AMOUNT });
