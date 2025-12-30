@@ -413,7 +413,7 @@ export async function generateRawTransaction(args: {
       try {
         // Check if main signer has been created on chain, if not assign sequence number 0
         return await getSequenceNumber();
-      } catch (e: any) {
+      } catch (e: unknown) {
         return 0;
       }
     } else {

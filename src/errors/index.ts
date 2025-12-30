@@ -12,9 +12,9 @@ export enum KeylessErrorCategory {
 }
 
 export enum KeylessErrorResolutionTip {
-  REAUTHENTICATE = "Re-authentiate to continue using your keyless account",
+  REAUTHENTICATE = "Re-authenticate to continue using your keyless account",
   // eslint-disable-next-line max-len
-  REAUTHENTICATE_UNSURE = "Try re-authentiating. If the error persists join the telegram group at https://t.me/+h5CN-W35yUFiYzkx for further support",
+  REAUTHENTICATE_UNSURE = "Try re-authenticating. If the error persists join the telegram group at https://t.me/+h5CN-W35yUFiYzkx for further support",
   UPDATE_REQUEST_PARAMS = "Update the invalid request parameters and reauthenticate.",
   // eslint-disable-next-line max-len
   RATE_LIMIT_EXCEEDED = "Cache the keyless account and reuse it to avoid making too many requests.  Keyless accounts are valid until either the EphemeralKeyPair expires, when the JWK is rotated, or when the proof verifying key is changed, whichever comes soonest.",
@@ -348,7 +348,7 @@ export class KeylessError extends Error {
 type AptosApiErrorOpts = {
   apiType: AptosApiType;
   aptosRequest: AptosRequest;
-  aptosResponse: AptosResponse<any, any>;
+  aptosResponse: AptosResponse<unknown, unknown>;
 };
 
 /**
@@ -369,7 +369,7 @@ export class AptosApiError extends Error {
 
   readonly statusText: string;
 
-  readonly data: any;
+  readonly data: unknown;
 
   readonly request: AptosRequest;
 
@@ -396,6 +396,32 @@ export class AptosApiError extends Error {
 }
 
 /**
+ * Type guard to check if a value is a record/object with string keys.
+ * @param value - The value to check.
+ * @returns True if the value is a non-null object.
+ */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+/**
+ * Safely retrieves a nested property from an unknown object.
+ * @param obj - The object to retrieve the property from.
+ * @param path - The property path (e.g., ["errors", 0, "message"]).
+ * @returns The value at the path, or undefined if not found.
+ */
+function getNestedProperty(obj: unknown, path: (string | number)[]): unknown {
+  let current: unknown = obj;
+  for (const key of path) {
+    if (!isRecord(current) && !Array.isArray(current)) {
+      return undefined;
+    }
+    current = (current as Record<string | number, unknown>)[key];
+  }
+  return current;
+}
+
+/**
  * Derives an error message from the Aptos API response, providing context for debugging.
  * This function helps in understanding the nature of the error encountered during an API request.
  *
@@ -415,15 +441,18 @@ function deriveErrorMessage({ apiType, aptosRequest, aptosResponse }: AptosApiEr
     aptosResponse.url ?? aptosRequest.url
   } ${traceIdString}failed with`;
 
+  const { data } = aptosResponse;
+
   // handle graphql responses from indexer api and extract the error message of the first error
-  if (apiType === AptosApiType.INDEXER && aptosResponse.data?.errors?.[0]?.message != null) {
-    return `${errorPrelude}: ${aptosResponse.data.errors[0].message}`;
+  const indexerErrorMessage = getNestedProperty(data, ["errors", 0, "message"]);
+  if (apiType === AptosApiType.INDEXER && typeof indexerErrorMessage === "string") {
+    return `${errorPrelude}: ${indexerErrorMessage}`;
   }
 
   // Received well-known structured error response body - simply serialize and return it.
   // We don't need http status codes etc. in this case.
-  if (aptosResponse.data?.message != null && aptosResponse.data?.error_code != null) {
-    return `${errorPrelude}: ${JSON.stringify(aptosResponse.data)}`;
+  if (isRecord(data) && data.message != null && data.error_code != null) {
+    return `${errorPrelude}: ${JSON.stringify(data)}`;
   }
 
   // This is the generic/catch-all case. We received some response from the API, but it doesn't appear to be a well-known structure.
@@ -431,7 +460,7 @@ function deriveErrorMessage({ apiType, aptosRequest, aptosResponse }: AptosApiEr
   // in the hope that this gives enough context what went wrong without printing overly huge messages.
   return `${errorPrelude} status: ${aptosResponse.statusText}(code:${
     aptosResponse.status
-  }) and response body: ${serializeAnyPayloadForErrorMessage(aptosResponse.data)}`;
+  }) and response body: ${serializeAnyPayloadForErrorMessage(data)}`;
 }
 
 const SERIALIZED_PAYLOAD_TRIM_TO_MAX_LENGTH = 400;
@@ -444,7 +473,7 @@ const SERIALIZED_PAYLOAD_TRIM_TO_MAX_LENGTH = 400;
  *
  * @returns A string representation of the serialized payload, potentially truncated.
  */
-function serializeAnyPayloadForErrorMessage(payload: any): string {
+function serializeAnyPayloadForErrorMessage(payload: unknown): string {
   const serializedPayload = JSON.stringify(payload);
   if (serializedPayload.length <= SERIALIZED_PAYLOAD_TRIM_TO_MAX_LENGTH) {
     return serializedPayload;
