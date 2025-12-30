@@ -3,7 +3,7 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { MoveOption, MoveString, MoveVector } from "../bcs/serializable/moveStructs";
-import { Bool, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/movePrimitives";
+import { Bool, I128, I16, I256, I32, I64, I8, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/movePrimitives";
 import { FixedBytes } from "../bcs/serializable/fixedBytes";
 import { AccountAddress, AccountAddressInput } from "../core";
 import { PublicKey } from "../core/crypto";
@@ -60,6 +60,12 @@ export type EntryFunctionArgumentTypes =
   | U64
   | U128
   | U256
+  | I8
+  | I16
+  | I32
+  | I64
+  | I128
+  | I256
   | AccountAddress
   | MoveVector<EntryFunctionArgumentTypes>
   | MoveOption<EntryFunctionArgumentTypes>
@@ -79,6 +85,12 @@ export type ScriptFunctionArgumentTypes =
   | U64
   | U128
   | U256
+  | I8
+  | I16
+  | I32
+  | I64
+  | I128
+  | I256
   | AccountAddress
   | MoveVector<ScriptFunctionArgumentTypes>
   | MoveString
@@ -97,6 +109,12 @@ export type ScriptFunctionArgumentTypes =
  * - u64
  * - u128
  * - u256
+ * - i8
+ * - i16
+ * - i32
+ * - i64
+ * - i128
+ * - i256
  * - bool
  * - address
  * - signer

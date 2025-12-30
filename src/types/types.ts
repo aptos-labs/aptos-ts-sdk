@@ -1362,6 +1362,36 @@ export type MoveUint128Type = string;
 export type MoveUint256Type = string;
 
 /**
+ * A number representing a Move int8 type.
+ */
+export type MoveInt8Type = number;
+
+/**
+ * A 16-bit signed integer used in the Move programming language.
+ */
+export type MoveInt16Type = number;
+
+/**
+ * A 32-bit signed integer type used in Move programming.
+ */
+export type MoveInt32Type = number;
+
+/**
+ * A string representation of a 64-bit signed integer used in Move programming.
+ */
+export type MoveInt64Type = string;
+
+/**
+ * A string representing a 128-bit signed integer in the Move programming language.
+ */
+export type MoveInt128Type = string;
+
+/**
+ * A string representation of a 256-bit signed integer used in Move programming.
+ */
+export type MoveInt256Type = string;
+
+/**
  * A string representing a Move address.
  */
 export type MoveAddressType = string;
@@ -1402,6 +1432,12 @@ export type MoveType =
   | MoveUint64Type
   | MoveUint128Type
   | MoveUint256Type
+  | MoveInt8Type
+  | MoveInt16Type
+  | MoveInt32Type
+  | MoveInt64Type
+  | MoveInt128Type
+  | MoveInt256Type
   | MoveAddressType
   | MoveObjectType
   | MoveStructType
@@ -1417,6 +1453,10 @@ export type MoveType =
  * `u8, u16, u32 -> number`
  *
  * `u64, u128, u256 -> string`
+ *
+ * `i8, i16, i32 -> number`
+ *
+ * `i64, i128, i256 -> string`
  *
  * `String -> string`
  *
@@ -1439,6 +1479,12 @@ export type MoveValue =
   | MoveUint64Type
   | MoveUint128Type
   | MoveUint256Type
+  | MoveInt8Type
+  | MoveInt16Type
+  | MoveInt32Type
+  | MoveInt64Type
+  | MoveInt128Type
+  | MoveInt256Type
   | MoveAddressType
   | MoveObjectType
   | MoveStructId

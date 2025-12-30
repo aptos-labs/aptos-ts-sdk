@@ -8,7 +8,25 @@ import {
   InputScriptData,
   SimpleEntryFunctionArgumentTypes,
 } from "../types";
-import { Bool, FixedBytes, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs";
+import {
+  Bool,
+  FixedBytes,
+  I128,
+  I16,
+  I256,
+  I32,
+  I64,
+  I8,
+  MoveOption,
+  MoveString,
+  MoveVector,
+  U128,
+  U16,
+  U256,
+  U32,
+  U64,
+  U8,
+} from "../../bcs";
 import { AccountAddress } from "../../core";
 import { MoveFunction } from "../../types";
 
@@ -192,6 +210,12 @@ export function isEncodedEntryFunctionArgument(
      * @category Transactions
      */
     isBcsFixedBytes(arg) ||
+    isBcsI8(arg) ||
+    isBcsI16(arg) ||
+    isBcsI32(arg) ||
+    isBcsI64(arg) ||
+    isBcsI128(arg) ||
+    isBcsI256(arg) ||
     arg instanceof MoveVector ||
     arg instanceof MoveOption
   );
@@ -267,6 +291,48 @@ export function isBcsU128(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionA
  */
 export function isBcsU256(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes): arg is U256 {
   return arg instanceof U256;
+}
+/**
+ * @group Implementation
+ * @category Transactions
+ */
+export function isBcsI8(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes): arg is I8 {
+  return arg instanceof I8;
+}
+/**
+ * @group Implementation
+ * @category Transactions
+ */
+export function isBcsI16(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes): arg is I16 {
+  return arg instanceof I16;
+}
+/**
+ * @group Implementation
+ * @category Transactions
+ */
+export function isBcsI32(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes): arg is I32 {
+  return arg instanceof I32;
+}
+/**
+ * @group Implementation
+ * @category Transactions
+ */
+export function isBcsI64(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes): arg is I64 {
+  return arg instanceof I64;
+}
+/**
+ * @group Implementation
+ * @category Transactions
+ */
+export function isBcsI128(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes): arg is I128 {
+  return arg instanceof I128;
+}
+/**
+ * @group Implementation
+ * @category Transactions
+ */
+export function isBcsI256(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes): arg is I256 {
+  return arg instanceof I256;
 }
 
 /**
