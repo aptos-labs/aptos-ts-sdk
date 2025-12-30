@@ -395,7 +395,7 @@ export async function generateRawTransaction(args: {
       } else if (options?.replayProtectionNonce !== undefined) {
         // If replay nonce is provided, use it as the sequence number
         // This is an unused value, so it's specifically to show that the sequence number is not used
-        return 0xdeadbeefn;
+        return BigInt(0xdeadbeef);
       }
 
       return (await getInfo({ aptosConfig, accountAddress: sender })).sequence_number;
