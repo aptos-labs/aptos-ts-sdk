@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Bool, U128, U16, U256, U32, U64, U8 } from "./movePrimitives";
+import { Bool, U128, U16, U256, U32, U64, U8, I8, I16, I32, I64, I128, I256 } from "./movePrimitives";
 import { Serializable, Serializer } from "../serializer";
 import { Deserializable, Deserializer } from "../deserializer";
 import { AnyNumber, HexInput, ScriptTransactionArgumentVariants } from "../../types";
@@ -254,6 +254,108 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
    */
   static Bool(values: Array<boolean>): MoveVector<Bool> {
     return new MoveVector<Bool>(values.map((v) => new Bool(v)));
+  }
+
+  /**
+   * Factory method to generate a MoveVector<I8> from an array of numbers.
+   *
+   * @param values - The values used to fill the MoveVector.
+   * @returns A MoveVector<I8> with the inner values.
+   *
+   * @example
+   * ```typescript
+   * const v = MoveVector.I8([-1, 0, 1, 127]);
+   * ```
+   * @group Implementation
+   * @category BCS
+   */
+  static I8(values: Array<number>): MoveVector<I8> {
+    return new MoveVector<I8>(values.map((v) => new I8(v)));
+  }
+
+  /**
+   * Factory method to generate a MoveVector<I16> from an array of numbers.
+   *
+   * @param values - The values used to fill the MoveVector.
+   * @returns A MoveVector<I16> with the inner values.
+   *
+   * @example
+   * ```typescript
+   * const v = MoveVector.I16([-1, 0, 1, 32767]);
+   * ```
+   * @group Implementation
+   * @category BCS
+   */
+  static I16(values: Array<number>): MoveVector<I16> {
+    return new MoveVector<I16>(values.map((v) => new I16(v)));
+  }
+
+  /**
+   * Factory method to generate a MoveVector<I32> from an array of numbers.
+   *
+   * @param values - The values used to fill the MoveVector.
+   * @returns A MoveVector<I32> with the inner values.
+   *
+   * @example
+   * ```typescript
+   * const v = MoveVector.I32([-1, 0, 1, 2147483647]);
+   * ```
+   * @group Implementation
+   * @category BCS
+   */
+  static I32(values: Array<number>): MoveVector<I32> {
+    return new MoveVector<I32>(values.map((v) => new I32(v)));
+  }
+
+  /**
+   * Factory method to generate a MoveVector<I64> from an array of numbers or bigints.
+   *
+   * @param values - The values used to fill the MoveVector.
+   * @returns A MoveVector<I64> with the inner values.
+   *
+   * @example
+   * ```typescript
+   * const v = MoveVector.I64([-1n, 0n, 1n, 9223372036854775807n]);
+   * ```
+   * @group Implementation
+   * @category BCS
+   */
+  static I64(values: Array<AnyNumber>): MoveVector<I64> {
+    return new MoveVector<I64>(values.map((v) => new I64(v)));
+  }
+
+  /**
+   * Factory method to generate a MoveVector<I128> from an array of numbers or bigints.
+   *
+   * @param values - The values used to fill the MoveVector.
+   * @returns A MoveVector<I128> with the inner values.
+   *
+   * @example
+   * ```typescript
+   * const v = MoveVector.I128([-1n, 0n, 1n]);
+   * ```
+   * @group Implementation
+   * @category BCS
+   */
+  static I128(values: Array<AnyNumber>): MoveVector<I128> {
+    return new MoveVector<I128>(values.map((v) => new I128(v)));
+  }
+
+  /**
+   * Factory method to generate a MoveVector<I256> from an array of numbers or bigints.
+   *
+   * @param values - The values used to fill the MoveVector.
+   * @returns A MoveVector<I256> with the inner values.
+   *
+   * @example
+   * ```typescript
+   * const v = MoveVector.I256([-1n, 0n, 1n]);
+   * ```
+   * @group Implementation
+   * @category BCS
+   */
+  static I256(values: Array<AnyNumber>): MoveVector<I256> {
+    return new MoveVector<I256>(values.map((v) => new I256(v)));
   }
 
   /**
@@ -591,6 +693,108 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    */
   static Bool(value?: boolean | null): MoveOption<Bool> {
     return new MoveOption<Bool>(value !== null && value !== undefined ? new Bool(value) : undefined);
+  }
+
+  /**
+   * Factory method to generate a MoveOption<I8> from a `number` or `undefined`.
+   *
+   * @example
+   * MoveOption.I8(1).isSome() === true;
+   * MoveOption.I8().isSome() === false;
+   * MoveOption.I8(undefined).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * the resulting MoveOption's .isSome() method will return false.
+   * @returns a MoveOption<I8> with an inner value `value`
+   * @group Implementation
+   * @category BCS
+   */
+  static I8(value?: number | null): MoveOption<I8> {
+    return new MoveOption<I8>(value !== null && value !== undefined ? new I8(value) : undefined);
+  }
+
+  /**
+   * Factory method to generate a MoveOption<I16> from a `number` or `undefined`.
+   *
+   * @example
+   * MoveOption.I16(1).isSome() === true;
+   * MoveOption.I16().isSome() === false;
+   * MoveOption.I16(undefined).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * the resulting MoveOption's .isSome() method will return false.
+   * @returns a MoveOption<I16> with an inner value `value`
+   * @group Implementation
+   * @category BCS
+   */
+  static I16(value?: number | null): MoveOption<I16> {
+    return new MoveOption<I16>(value !== null && value !== undefined ? new I16(value) : undefined);
+  }
+
+  /**
+   * Factory method to generate a MoveOption<I32> from a `number` or `undefined`.
+   *
+   * @example
+   * MoveOption.I32(1).isSome() === true;
+   * MoveOption.I32().isSome() === false;
+   * MoveOption.I32(undefined).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * the resulting MoveOption's .isSome() method will return false.
+   * @returns a MoveOption<I32> with an inner value `value`
+   * @group Implementation
+   * @category BCS
+   */
+  static I32(value?: number | null): MoveOption<I32> {
+    return new MoveOption<I32>(value !== null && value !== undefined ? new I32(value) : undefined);
+  }
+
+  /**
+   * Factory method to generate a MoveOption<I64> from a `number` or a `bigint` or `undefined`.
+   *
+   * @example
+   * MoveOption.I64(1).isSome() === true;
+   * MoveOption.I64().isSome() === false;
+   * MoveOption.I64(undefined).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * the resulting MoveOption's .isSome() method will return false.
+   * @returns a MoveOption<I64> with an inner value `value`
+   * @group Implementation
+   * @category BCS
+   */
+  static I64(value?: AnyNumber | null): MoveOption<I64> {
+    return new MoveOption<I64>(value !== null && value !== undefined ? new I64(value) : undefined);
+  }
+
+  /**
+   * Factory method to generate a MoveOption<I128> from a `number` or a `bigint` or `undefined`.
+   *
+   * @example
+   * MoveOption.I128(1).isSome() === true;
+   * MoveOption.I128().isSome() === false;
+   * MoveOption.I128(undefined).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * the resulting MoveOption's .isSome() method will return false.
+   * @returns a MoveOption<I128> with an inner value `value`
+   * @group Implementation
+   * @category BCS
+   */
+  static I128(value?: AnyNumber | null): MoveOption<I128> {
+    return new MoveOption<I128>(value !== null && value !== undefined ? new I128(value) : undefined);
+  }
+
+  /**
+   * Factory method to generate a MoveOption<I256> from a `number` or a `bigint` or `undefined`.
+   *
+   * @example
+   * MoveOption.I256(1).isSome() === true;
+   * MoveOption.I256().isSome() === false;
+   * MoveOption.I256(undefined).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * the resulting MoveOption's .isSome() method will return false.
+   * @returns a MoveOption<I256> with an inner value `value`
+   * @group Implementation
+   * @category BCS
+   */
+  static I256(value?: AnyNumber | null): MoveOption<I256> {
+    return new MoveOption<I256>(value !== null && value !== undefined ? new I256(value) : undefined);
   }
 
   /**

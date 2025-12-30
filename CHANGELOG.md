@@ -4,6 +4,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 - Add `is_enum` field to `MoveStruct`.
+- Complete signed integer support to the SDK
 
 # 5.2.0 (2025-12-10)
 

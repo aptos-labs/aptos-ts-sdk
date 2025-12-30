@@ -6,6 +6,12 @@ import {
   TypeTag,
   TypeTagAddress,
   TypeTagBool,
+  TypeTagI128,
+  TypeTagI16,
+  TypeTagI256,
+  TypeTagI32,
+  TypeTagI64,
+  TypeTagI8,
   TypeTagStruct,
   TypeTagU128,
   TypeTagU16,
@@ -23,7 +29,25 @@ import {
   FunctionABI,
   TypeArgument,
 } from "../types";
-import { Bool, FixedBytes, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs";
+import {
+  Bool,
+  FixedBytes,
+  I128,
+  I16,
+  I256,
+  I32,
+  I64,
+  I8,
+  MoveOption,
+  MoveString,
+  MoveVector,
+  U128,
+  U16,
+  U256,
+  U32,
+  U64,
+  U8,
+} from "../../bcs";
 import { AccountAddress } from "../../core";
 import { getModule } from "../../internal/account";
 import {
@@ -44,6 +68,12 @@ import {
   isString,
   throwTypeMismatch,
   convertNumber,
+  isBcsI8,
+  isBcsI16,
+  isBcsI32,
+  isBcsI64,
+  isBcsI128,
+  isBcsI256,
 } from "./helpers";
 import { MoveFunction, MoveModule } from "../../types";
 
@@ -420,6 +450,45 @@ function parseArg(
     }
     throwTypeMismatch("bigint | number | string", position);
   }
+  if (param.isI8()) {
+    const num = convertNumber(arg);
+    if (num !== undefined) {
+      return new I8(num);
+    }
+    throwTypeMismatch("number | string", position);
+  }
+  if (param.isI16()) {
+    const num = convertNumber(arg);
+    if (num !== undefined) {
+      return new I16(num);
+    }
+    throwTypeMismatch("number | string", position);
+  }
+  if (param.isI32()) {
+    const num = convertNumber(arg);
+    if (num !== undefined) {
+      return new I32(num);
+    }
+    throwTypeMismatch("number | string", position);
+  }
+  if (param.isI64()) {
+    if (isLargeNumber(arg)) {
+      return new I64(BigInt(arg));
+    }
+    throwTypeMismatch("bigint | number | string", position);
+  }
+  if (param.isI128()) {
+    if (isLargeNumber(arg)) {
+      return new I128(BigInt(arg));
+    }
+    throwTypeMismatch("bigint | number | string", position);
+  }
+  if (param.isI256()) {
+    if (isLargeNumber(arg)) {
+      return new I256(BigInt(arg));
+    }
+    throwTypeMismatch("bigint | number | string", position);
+  }
 
   // Generic needs to use the subtype
   if (param.isGeneric()) {
@@ -522,6 +591,24 @@ function parseArg(
         if (innerParam instanceof TypeTagU256) {
           return new MoveOption<U256>(null);
         }
+        if (innerParam instanceof TypeTagI8) {
+          return new MoveOption<I8>(null);
+        }
+        if (innerParam instanceof TypeTagI16) {
+          return new MoveOption<I16>(null);
+        }
+        if (innerParam instanceof TypeTagI32) {
+          return new MoveOption<I32>(null);
+        }
+        if (innerParam instanceof TypeTagI64) {
+          return new MoveOption<I64>(null);
+        }
+        if (innerParam instanceof TypeTagI128) {
+          return new MoveOption<I128>(null);
+        }
+        if (innerParam instanceof TypeTagI256) {
+          return new MoveOption<I256>(null);
+        }
 
         // In all other cases, we will use a placeholder, it doesn't actually matter what the type is, but it will be obvious
         // Note: This is a placeholder U8 type, and does not match the actual type, as that can't be dynamically grabbed
@@ -611,6 +698,42 @@ function checkType(param: TypeTag, arg: EntryFunctionArgumentTypes, position: nu
       return;
     }
     throwTypeMismatch("U256", position);
+  }
+  if (param.isI8()) {
+    if (isBcsI8(arg)) {
+      return;
+    }
+    throwTypeMismatch("I8", position);
+  }
+  if (param.isI16()) {
+    if (isBcsI16(arg)) {
+      return;
+    }
+    throwTypeMismatch("I16", position);
+  }
+  if (param.isI32()) {
+    if (isBcsI32(arg)) {
+      return;
+    }
+    throwTypeMismatch("I32", position);
+  }
+  if (param.isI64()) {
+    if (isBcsI64(arg)) {
+      return;
+    }
+    throwTypeMismatch("I64", position);
+  }
+  if (param.isI128()) {
+    if (isBcsI128(arg)) {
+      return;
+    }
+    throwTypeMismatch("I128", position);
+  }
+  if (param.isI256()) {
+    if (isBcsI256(arg)) {
+      return;
+    }
+    throwTypeMismatch("I256", position);
   }
   if (param.isVector()) {
     if (arg instanceof MoveVector) {
