@@ -71,6 +71,13 @@ export enum ScriptTransactionArgumentVariants {
   U32 = 7,
   U256 = 8,
   Serialized = 9,
+  // NOTE: Added in bytecode version v9, do not reorder!
+  I8 = 10,
+  I16 = 11,
+  I32 = 12,
+  I64 = 13,
+  I128 = 14,
+  I256 = 15,
 }
 
 /**

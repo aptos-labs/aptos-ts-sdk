@@ -366,10 +366,8 @@ export class I8 extends Serializable implements TransactionArgument {
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
-    // Note: Script functions don't have variants for signed integers yet
-    // This will serialize as bytes
-    const bcsBytes = this.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
+    serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.I8);
+    serializer.serialize(this);
   }
 
   static deserialize(deserializer: Deserializer): I8 {
@@ -405,8 +403,8 @@ export class I16 extends Serializable implements TransactionArgument {
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
-    const bcsBytes = this.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
+    serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.I16);
+    serializer.serialize(this);
   }
 
   static deserialize(deserializer: Deserializer): I16 {
@@ -441,8 +439,8 @@ export class I32 extends Serializable implements TransactionArgument {
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
-    const bcsBytes = this.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
+    serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.I32);
+    serializer.serialize(this);
   }
 
   static deserialize(deserializer: Deserializer): I32 {
@@ -480,8 +478,8 @@ export class I64 extends Serializable implements TransactionArgument {
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
-    const bcsBytes = this.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
+    serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.I64);
+    serializer.serialize(this);
   }
 
   static deserialize(deserializer: Deserializer): I64 {
@@ -517,8 +515,8 @@ export class I128 extends Serializable implements TransactionArgument {
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
-    const bcsBytes = this.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
+    serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.I128);
+    serializer.serialize(this);
   }
 
   static deserialize(deserializer: Deserializer): I128 {
@@ -554,8 +552,8 @@ export class I256 extends Serializable implements TransactionArgument {
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
-    const bcsBytes = this.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
+    serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.I256);
+    serializer.serialize(this);
   }
 
   static deserialize(deserializer: Deserializer): I256 {
