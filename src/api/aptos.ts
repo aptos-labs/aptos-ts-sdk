@@ -118,7 +118,6 @@ export interface Aptos
     ANS,
     Coin,
     DigitalAsset,
-    Event,
     Faucet,
     FungibleAsset,
     General,
@@ -160,7 +159,6 @@ applyMixin(Aptos, AccountAbstraction, "abstraction");
 applyMixin(Aptos, ANS, "ans");
 applyMixin(Aptos, Coin, "coin");
 applyMixin(Aptos, DigitalAsset, "digitalAsset");
-applyMixin(Aptos, Event, "event");
 applyMixin(Aptos, Faucet, "faucet");
 applyMixin(Aptos, FungibleAsset, "fungibleAsset");
 applyMixin(Aptos, General, "general");

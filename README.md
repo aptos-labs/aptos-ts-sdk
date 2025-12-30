@@ -25,6 +25,14 @@ Install with your favorite package manager such as npm, yarn, or pnpm:
 pnpm install @aptos-labs/ts-sdk
 ```
 
+### For use with Bun
+
+The SDK is compatible with the [Bun](https://bun.sh/) runtime. Install the SDK using Bun's package manager:
+
+```bash
+bun add @aptos-labs/ts-sdk
+```
+
 ### For use in a browser (<= version 1.9.1 only)
 
 You can add the SDK to your web application using a script tag:
@@ -46,6 +54,16 @@ import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk"
 const config = new AptosConfig({ network: Network.TESTNET });
 // Aptos is the main entrypoint for all functions
 const aptos = new Aptos(config);
+```
+
+#### For Bun users
+
+Bun's HTTP/2 support is not fully mature yet. You need to disable HTTP/2 to ensure the SDK works properly:
+
+```ts
+import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+
+const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET, clientConfig: { http2: false } }));
 ```
 
 ### Reading Data From Onchain ([Guide](https://aptos.dev/en/build/sdks/ts-sdk/fetch-data-via-sdk))

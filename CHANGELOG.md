@@ -2,6 +2,17 @@
 
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+# Unreleased
+- Add `is_enum` field to `MoveStruct`.
+
+# 5.2.0 (2025-12-10)
+
+- Add `http2` as an optional parameter in `ClientConfig`
+
+# 5.1.6 (2025-12-06)
+
+- Remove orphaned `Event` mixin that was left over after the Indexer API event queries were removed in 4.0.0
+
 # 5.1.5 (2025-11-21)
 
 - Fix `getMultiKeysForPublicKey` to only return accounts that have a non-null account public key.
@@ -479,7 +490,6 @@ Release Stable version `1.0.0`
 ## 0.0.7 (2023-11-16)
 
 - Adds additional ANS APIs
-
   - Transactions
     - setPrimaryName
     - setTargetAddress

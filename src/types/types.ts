@@ -365,6 +365,7 @@ export interface WhereArg<T extends {}> {
 export type ClientConfig = ClientHeadersType & {
   WITH_CREDENTIALS?: boolean;
   API_KEY?: string;
+  http2?: boolean;
 };
 
 /**
@@ -481,6 +482,7 @@ export interface ClientRequest<Req> {
   params?: any;
   overrides?: ClientConfig & FullNodeConfig & IndexerConfig & FaucetConfig;
   headers?: Record<string, any>;
+  http2?: boolean;
 }
 
 export interface ClientResponse<Res> {
@@ -1518,6 +1520,11 @@ export type MoveStruct = {
    * the Move source code. This attribute is only relevant for v2 events.
    */
   is_event: boolean;
+  /**
+   * True if the struct is an enum (e.g. enum MyEnum { A, B, C }), false if it is a
+   * regular struct (e.g. struct MyStruct { a: u8, b: u8 }).
+   */
+  is_enum: boolean;
   /**
    * Abilities associated with the struct
    */

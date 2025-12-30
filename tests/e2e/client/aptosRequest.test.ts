@@ -338,4 +338,29 @@ describe("aptos request", () => {
       );
     });
   });
+
+  describe("no http2", () => {
+    const { aptos } = getAptosClient({ clientConfig: { http2: false } });
+    test(
+      "should work when http2 is disabled",
+      async () => {
+        const sender = Account.generate();
+        const receiverAccounts = Account.generate();
+        await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: 100_000_000 });
+        const transaction = await aptos.transaction.build.simple({
+          sender: sender.accountAddress,
+          data: {
+            bytecode: singleSignerScriptBytecode,
+            functionArguments: [new U64(1), receiverAccounts.accountAddress],
+          },
+        });
+        const response = await aptos.signAndSubmitTransaction({
+          signer: sender,
+          transaction,
+        });
+        expect(response.hash).toBeDefined();
+      },
+      longTestTimeout,
+    );
+  });
 });
