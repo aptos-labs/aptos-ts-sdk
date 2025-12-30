@@ -10,9 +10,20 @@
 const cache = new Map<string, { value: any; timestamp: number }>();
 
 /**
+ * Map to track in-flight async requests to prevent duplicate fetches (cache stampede prevention).
+ * @group Implementation
+ * @category Utils
+ */
+const pendingRequests = new Map<string, Promise<any>>();
+
+/**
  * A memoize higher-order function to cache the response of an async function.
  * This function helps to improve performance by avoiding repeated calls to the same async function with the same arguments
  * within a specified time-to-live (TTL).
+ *
+ * This implementation prevents cache stampede by tracking in-flight requests - if multiple calls are made
+ * with the same key while a request is pending, they will all await the same promise rather than
+ * triggering duplicate fetches.
  *
  * @param func The async function to cache the result of.
  * @param key The cache key used to store the result.
@@ -35,13 +46,27 @@ export function memoizeAsync<T>(
       }
     }
 
-    // If not cached or TTL expired, compute the result
-    const result = await func(...args);
+    // Check if there's already a pending request for this key to prevent cache stampede
+    const pendingRequest = pendingRequests.get(key);
+    if (pendingRequest !== undefined) {
+      return pendingRequest;
+    }
 
-    // Cache the result with a timestamp
-    cache.set(key, { value: result, timestamp: Date.now() });
+    // Create the promise and track it
+    const promise = func(...args)
+      .then((result) => {
+        // Cache the result with a timestamp
+        cache.set(key, { value: result, timestamp: Date.now() });
+        return result;
+      })
+      .finally(() => {
+        // Always clean up the pending request, whether it succeeded or failed
+        pendingRequests.delete(key);
+      });
 
-    return result;
+    pendingRequests.set(key, promise);
+
+    return promise;
   };
 }
 
