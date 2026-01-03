@@ -28,15 +28,20 @@ const DEFAULT_CONFIG: Options = {
   },
 };
 
-// Common.js config
+// Common.js config - main bundle with all entry points
 const COMMON_CONFIG: MandatoryOptions = {
   ...DEFAULT_CONFIG,
-  entry: ["src/index.ts", "src/cli/index.ts"],
+  entry: [
+    "src/index.ts",
+    "src/cli/index.ts",
+    "src/keyless/index.ts",
+    "src/lite/index.ts",
+  ],
   format: "cjs",
   outDir: "dist/common",
 };
 
-// ESM config
+// ESM config - full tree-shakeable build
 const ESM_CONFIG: MandatoryOptions = {
   ...DEFAULT_CONFIG,
   entry: ["src/**/*.ts"],

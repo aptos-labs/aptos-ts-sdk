@@ -1,7 +1,8 @@
 import { AccountAuthenticatorEd25519 } from "../transactions/authenticator/account";
 import { HexInput, SigningScheme } from "../types";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature, Signature } from "../core/crypto";
+import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "../core/crypto/ed25519";
+import { Signature } from "../core/crypto/signature";
 import type { Account } from "./Account";
 import { AnyRawTransaction } from "../transactions/types";
 import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
