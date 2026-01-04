@@ -7,15 +7,13 @@ import { isSingleKeySigner, SingleKeyAccount, SingleKeySignerOrLegacyEd25519Acco
 import { KeylessAccount } from "./KeylessAccount";
 import { FederatedKeylessAccount } from "./FederatedKeylessAccount";
 import { AbstractKeylessAccount } from "./AbstractKeylessAccount";
-import {
-  AccountAddress,
-  Ed25519PrivateKey,
-  getIssAudAndUidVal,
-  Hex,
-  MultiKey,
-  Secp256k1PrivateKey,
-  ZeroKnowledgeSig,
-} from "../core";
+import { AccountAddress } from "../core/accountAddress";
+import { Ed25519PrivateKey } from "../core/crypto/ed25519";
+import { getIssAudAndUidVal } from "../core/crypto/keyless";
+import { Hex } from "../core/hex";
+import { MultiKey } from "../core/crypto/multiKey";
+import { Secp256k1PrivateKey } from "../core/crypto/secp256k1";
+import { ZeroKnowledgeSig } from "../core/crypto/keyless";
 import { deserializeSchemeAndAddress } from "./utils";
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
 

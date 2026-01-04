@@ -1,4 +1,5 @@
-import { AccountAddress, AccountAddressInput } from "../../core";
+import { AccountAddress } from "../../core/accountAddress";
+import type { AccountAddressInput } from "../../core/accountAddress";
 import {
   addAuthenticationFunctionTransaction,
   removeAuthenticationFunctionTransaction,

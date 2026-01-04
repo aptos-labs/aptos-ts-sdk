@@ -1,41 +1,88 @@
 /* eslint-disable no-bitwise */
-import {
-  poseidon1,
-  poseidon2,
-  poseidon3,
-  poseidon4,
-  poseidon5,
-  poseidon6,
-  poseidon7,
-  poseidon8,
-  poseidon9,
-  poseidon10,
-  poseidon11,
-  poseidon12,
-  poseidon13,
-  poseidon14,
-  poseidon15,
-  poseidon16,
-} from "poseidon-lite";
+/**
+ * Poseidon hashing utilities with lazy-loaded constants.
+ *
+ * The poseidon-lite library contains ~600KB of precomputed constants.
+ * By lazy-loading them, we avoid including them in bundles that don't use
+ * keyless authentication (when using proper tree-shaking bundlers).
+ */
 
-const numInputsToPoseidonFunc = [
-  poseidon1,
-  poseidon2,
-  poseidon3,
-  poseidon4,
-  poseidon5,
-  poseidon6,
-  poseidon7,
-  poseidon8,
-  poseidon9,
-  poseidon10,
-  poseidon11,
-  poseidon12,
-  poseidon13,
-  poseidon14,
-  poseidon15,
-  poseidon16,
-];
+// Cache for loaded poseidon functions
+let poseidonFuncsCache: ((inputs: (number | bigint | string)[]) => bigint)[] | null = null;
+let loadingPromise: Promise<void> | null = null;
+
+/**
+ * Ensures poseidon functions are loaded. Call this before using poseidonHash
+ * if you need to control when the loading happens.
+ */
+export async function ensurePoseidonLoaded(): Promise<void> {
+  if (poseidonFuncsCache) return;
+
+  if (!loadingPromise) {
+    loadingPromise = (async () => {
+      const [
+        { poseidon1 },
+        { poseidon2 },
+        { poseidon3 },
+        { poseidon4 },
+        { poseidon5 },
+        { poseidon6 },
+        { poseidon7 },
+        { poseidon8 },
+        { poseidon9 },
+        { poseidon10 },
+        { poseidon11 },
+        { poseidon12 },
+        { poseidon13 },
+        { poseidon14 },
+        { poseidon15 },
+        { poseidon16 },
+      ] = await Promise.all([
+        import("poseidon-lite/poseidon1"),
+        import("poseidon-lite/poseidon2"),
+        import("poseidon-lite/poseidon3"),
+        import("poseidon-lite/poseidon4"),
+        import("poseidon-lite/poseidon5"),
+        import("poseidon-lite/poseidon6"),
+        import("poseidon-lite/poseidon7"),
+        import("poseidon-lite/poseidon8"),
+        import("poseidon-lite/poseidon9"),
+        import("poseidon-lite/poseidon10"),
+        import("poseidon-lite/poseidon11"),
+        import("poseidon-lite/poseidon12"),
+        import("poseidon-lite/poseidon13"),
+        import("poseidon-lite/poseidon14"),
+        import("poseidon-lite/poseidon15"),
+        import("poseidon-lite/poseidon16"),
+      ]);
+
+      poseidonFuncsCache = [
+        poseidon1,
+        poseidon2,
+        poseidon3,
+        poseidon4,
+        poseidon5,
+        poseidon6,
+        poseidon7,
+        poseidon8,
+        poseidon9,
+        poseidon10,
+        poseidon11,
+        poseidon12,
+        poseidon13,
+        poseidon14,
+        poseidon15,
+        poseidon16,
+      ];
+    })();
+  }
+
+  await loadingPromise;
+}
+
+// Start loading immediately when this module is imported
+// This ensures poseidon is ready when needed for keyless operations
+const initPromise = ensurePoseidonLoaded();
 
 const BYTES_PACKED_PER_SCALAR = 31;
 const MAX_NUM_INPUT_SCALARS = 16;
@@ -215,17 +262,35 @@ function padUint8ArrayWithZeros(inputArray: Uint8Array, paddedSize: number): Uin
  * Hashes up to 16 scalar elements via the Poseidon hashing algorithm.
  * Each element must be scalar fields of the BN254 elliptic curve group.
  *
+ * Note: This function uses dynamically loaded poseidon constants. The loading
+ * starts automatically when this module is imported, but if called immediately
+ * before loading completes, it will throw an error. Use `ensurePoseidonLoaded()`
+ * if you need to guarantee the functions are ready.
+ *
  * @param inputs - An array of elements to be hashed, which can be of type number, bigint, or string.
  * @returns bigint - The result of the hash.
- * @throws Error - Throws an error if the input length exceeds the maximum allowed.
+ * @throws Error - Throws an error if the input length exceeds the maximum allowed or if poseidon is not loaded.
  * @group Implementation
  * @category Serialization
  */
 export function poseidonHash(inputs: (number | bigint | string)[]): bigint {
-  if (inputs.length > numInputsToPoseidonFunc.length) {
+  if (!poseidonFuncsCache) {
     throw new Error(
-      `Unable to hash input of length ${inputs.length}.  Max input length is ${numInputsToPoseidonFunc.length}`,
+      "Poseidon functions not yet loaded. Ensure you await ensurePoseidonLoaded() before using keyless features.",
     );
   }
-  return numInputsToPoseidonFunc[inputs.length - 1](inputs);
+
+  if (inputs.length > MAX_NUM_INPUT_SCALARS || inputs.length === 0) {
+    throw new Error(`Unable to hash input of length ${inputs.length}. Input length must be between 1 and 16.`);
+  }
+
+  return poseidonFuncsCache[inputs.length - 1](inputs);
+}
+
+/**
+ * Returns a promise that resolves when poseidon is ready.
+ * Useful for ensuring poseidon is loaded before performing operations.
+ */
+export function getPoseidonInitPromise(): Promise<void> {
+  return initPromise;
 }

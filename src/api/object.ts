@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AnyNumber, GetObjectDataQueryResponse, OrderByArg, PaginationArgs } from "../types";
-import { AccountAddressInput } from "../core";
+import type { AccountAddressInput } from "../core/accountAddress";
 import { AptosConfig } from "./aptosConfig";
 import { ProcessorType } from "../utils";
 import { waitForIndexerOnVersion } from "./utils";

@@ -127,4 +127,3 @@ export function getRegisteredSignatureVariant(signature: Signature): AnySignatur
   }
   return undefined;
 }
-

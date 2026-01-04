@@ -11,7 +11,7 @@ import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSee
 import { PrivateKey } from "./privateKey";
 import { AccountPublicKey, PublicKey, VerifySignatureArgs, VerifySignatureAsyncArgs } from "./publicKey";
 import { Signature } from "./signature";
-import { convertSigningMessage } from "./utils";
+import { convertSigningMessage } from "./signingUtils";
 
 /**
  * L is the value that greater than or equal to will produce a non-canonical signature, and must be rejected

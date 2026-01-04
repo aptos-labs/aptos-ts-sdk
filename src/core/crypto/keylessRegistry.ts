@@ -38,4 +38,3 @@ registerSignatureType({
   deserialize: (deserializer) => KeylessSignature.deserialize(deserializer),
   isInstance: (obj): obj is KeylessSignature => obj instanceof KeylessSignature,
 });
-

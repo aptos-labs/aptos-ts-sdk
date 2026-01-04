@@ -11,7 +11,8 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { Bool, MoveString, MoveVector, U64 } from "../bcs";
-import { AccountAddress, AccountAddressInput } from "../core";
+import { AccountAddress } from "../core/accountAddress";
+import type { AccountAddressInput } from "../core/accountAddress";
 import { Account } from "../account";
 import { EntryFunctionABI, InputGenerateTransactionOptions } from "../transactions/types";
 import {

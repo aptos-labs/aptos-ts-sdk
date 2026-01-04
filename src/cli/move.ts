@@ -1,7 +1,7 @@
 import { spawn } from "child_process";
 import { platform } from "os";
 
-import { AccountAddress } from "../core";
+import { AccountAddress } from "../core/accountAddress";
 import { Network } from "../utils";
 
 /**

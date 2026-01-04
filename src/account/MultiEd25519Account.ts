@@ -1,6 +1,8 @@
 import { AptosConfig } from "../api";
-import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { Ed25519PrivateKey, Signature } from "../core/crypto";
+import { AccountAddress } from "../core/accountAddress";
+import type { AccountAddressInput } from "../core/accountAddress";
+import { Ed25519PrivateKey } from "../core/crypto/ed25519";
+import { Signature } from "../core/crypto/signature";
 import { MultiEd25519PublicKey, MultiEd25519Signature } from "../core/crypto/multiEd25519";
 import { AccountAuthenticatorMultiEd25519 } from "../transactions/authenticator/account";
 import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";

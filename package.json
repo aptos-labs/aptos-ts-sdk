@@ -61,6 +61,7 @@
     "./dist/esm/cli/index.mjs": "./dist/esm/cli/index.mjs",
     "./package.json": "./package.json"
   },
+  "sideEffects": false,
   "files": [
     "dist",
     "src"
@@ -69,10 +70,11 @@
     "build:clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
     "build": "pnpm build:clean && tsup",
     "build:analyze": "pnpm build && node -e \"const fs=require('fs');const p=d=>fs.readdirSync(d,{withFileTypes:true}).reduce((a,f)=>a+(f.isDirectory()?p(d+'/'+f.name):f.name.endsWith('.js')||f.name.endsWith('.mjs')?fs.statSync(d+'/'+f.name).size:0),0);console.log('CJS:',Math.round(p('dist/common')/1024)+'KB');console.log('ESM:',Math.round(p('dist/esm')/1024)+'KB')\"",
+    "bundle:size": "node scripts/bundleSize.js",
     "prepublishOnly": "pnpm run build",
-    "_fmt": "prettier 'src/**/*.ts' 'tests/**/*.ts' 'examples/**/*.js' 'examples/**/*.ts' 'confidential-assets/**/*.ts' 'eslint.config.cjs'",
+    "_fmt": "prettier .",
     "fmt": "pnpm _fmt --write",
-    "lint": "eslint '**/*.{cts,mts,ts}'",
+    "lint": "eslint .",
     "test": "pnpm jest",
     "unit-test": "pnpm jest tests/unit",
     "e2e-test": "pnpm jest tests/e2e",

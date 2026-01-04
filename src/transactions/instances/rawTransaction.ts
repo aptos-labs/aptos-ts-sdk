@@ -6,7 +6,7 @@
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializable, Serializer } from "../../bcs/serializer";
 import { ChainId } from "./chainId";
-import { AccountAddress } from "../../core";
+import { AccountAddress } from "../../core/accountAddress";
 import { TransactionPayload } from "./transactionPayload";
 import { TransactionVariants } from "../../types";
 

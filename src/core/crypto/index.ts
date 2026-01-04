@@ -12,6 +12,7 @@ export * from "./publicKey";
 export * from "./secp256k1";
 export * from "./secp256r1";
 export * from "./signature";
+export * from "./signingUtils";
 export * from "./singleKey";
 export * from "./types";
 export * from "./deserializationUtils";

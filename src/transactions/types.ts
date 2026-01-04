@@ -5,8 +5,9 @@ import { AptosConfig } from "../api/aptosConfig";
 import { MoveOption, MoveString, MoveVector } from "../bcs/serializable/moveStructs";
 import { Bool, I128, I16, I256, I32, I64, I8, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/movePrimitives";
 import { FixedBytes } from "../bcs/serializable/fixedBytes";
-import { AccountAddress, AccountAddressInput } from "../core";
-import { PublicKey } from "../core/crypto";
+import { AccountAddress } from "../core/accountAddress";
+import type { AccountAddressInput } from "../core/accountAddress";
+import { PublicKey } from "../core/crypto/publicKey";
 import {
   MultiAgentRawTransaction,
   FeePayerRawTransaction,

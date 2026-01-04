@@ -5,7 +5,7 @@
 
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializable, Serializer } from "../../bcs/serializer";
-import { AccountAddress } from "../../core";
+import { AccountAddress } from "../../core/accountAddress";
 import { RawTransaction } from "./rawTransaction";
 
 /**

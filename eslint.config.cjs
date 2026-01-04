@@ -10,7 +10,16 @@ const compat = new eslintRc.FlatCompat({
 
 module.exports = [
   {
-    ignores: ["src/types/generated/**", "dist/**", "node_modules/**", "**/dist/**", "**/node_modules/**"],
+    ignores: [
+      "src/types/generated/**",
+      "dist/**",
+      "node_modules/**",
+      "**/dist/**",
+      "**/node_modules/**",
+      "**/*.cjs",
+      "**/*.js",
+      "docs/**",
+    ],
   },
   {
     files: ["*.ts", "*.tsx"],

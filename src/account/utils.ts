@@ -1,5 +1,5 @@
 import { SigningScheme } from "../types";
-import { AccountAddress } from "../core";
+import { AccountAddress } from "../core/accountAddress";
 import { Deserializer } from "../bcs/deserializer";
 
 export function deserializeSchemeAndAddress(deserializer: Deserializer): {

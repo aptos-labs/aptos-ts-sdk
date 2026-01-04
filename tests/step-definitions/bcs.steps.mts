@@ -16,7 +16,7 @@ import {
 import { Given, Then, When } from "@cucumber/cucumber";
 import assert from "assert";
 
-Given(/^(bytes|address) (0x[0-9a-fA-F]*)$/, function(type: string, input: string) {
+Given(/^(bytes|address) (0x[0-9a-fA-F]*)$/, function (type: string, input: string) {
   switch (type) {
     case "bytes":
       this.input = fromByteString(input);
@@ -29,15 +29,15 @@ Given(/^(bytes|address) (0x[0-9a-fA-F]*)$/, function(type: string, input: string
   }
 });
 
-Given(/^string "(.*)"$/, function(input: string) {
+Given(/^string "(.*)"$/, function (input: string) {
   this.input = new MoveString(input);
 });
 
-Given(/^bool (true|false)$/, function(input: string) {
+Given(/^bool (true|false)$/, function (input: string) {
   this.input = new Bool(input === "true");
 });
 
-Given(/^([u8|u16|u32|u64|u128|u256]+) ([0-9]+)$/, function(type: string, input: string) {
+Given(/^([u8|u16|u32|u64|u128|u256]+) ([0-9]+)$/, function (type: string, input: string) {
   switch (type) {
     case "u8":
       this.input = new U8(parseInt(input, 10));
@@ -62,11 +62,11 @@ Given(/^([u8|u16|u32|u64|u128|u256]+) ([0-9]+)$/, function(type: string, input: 
   }
 });
 
-Given(/^sequence of ([0-9a-zA-Z]+) \[(.*)]$/, function(type: string, input: string) {
+Given(/^sequence of ([0-9a-zA-Z]+) \[(.*)]$/, function (type: string, input: string) {
   this.input = sequenceOf(type, input);
 });
 
-When(/^I serialize as ([0-9a-zA-Z ]+)$/, function(inputType: string) {
+When(/^I serialize as ([0-9a-zA-Z ]+)$/, function (inputType: string) {
   const serializer = new Serializer();
 
   switch (inputType) {
@@ -96,7 +96,7 @@ When(/^I serialize as ([0-9a-zA-Z ]+)$/, function(inputType: string) {
   this.result = serializer.toUint8Array();
 });
 
-When(/^I deserialize as ([0-9a-zA-Z ]+)$/, function(inputType: string) {
+When(/^I deserialize as ([0-9a-zA-Z ]+)$/, function (inputType: string) {
   const deserializer = new Deserializer((this.input! as Hex).toUint8Array());
   this.resultError = false;
   this.result = null;
@@ -200,7 +200,7 @@ When(/^I deserialize as ([0-9a-zA-Z ]+)$/, function(inputType: string) {
   }
 });
 
-Then(/^the result should be ([0-9a-zA-Z]+) ([0-9a-zA-Z]+)$/, function(type: string, expected: string) {
+Then(/^the result should be ([0-9a-zA-Z]+) ([0-9a-zA-Z]+)$/, function (type: string, expected: string) {
   checkDeserializationError(this);
   switch (type) {
     case "bytes":
@@ -235,18 +235,18 @@ Then(/^the result should be ([0-9a-zA-Z]+) ([0-9a-zA-Z]+)$/, function(type: stri
   }
 });
 
-Then(/^the result should be string "(.*)"$/, function(expected: string) {
+Then(/^the result should be string "(.*)"$/, function (expected: string) {
   checkDeserializationError(this);
   assert.equal(this.result, expected);
 });
 
-Then(/^the result should be sequence of ([0-9a-zA-Z]+) \[(.*)]$/, function(typeName: string, expectedList: string) {
+Then(/^the result should be sequence of ([0-9a-zA-Z]+) \[(.*)]$/, function (typeName: string, expectedList: string) {
   checkDeserializationError(this);
   const expected = sequenceOf(typeName, expectedList);
   assert.deepEqual(this.result, expected);
 });
 
-Then(/^the deserialization should fail$/, function() {
+Then(/^the deserialization should fail$/, function () {
   assert(this.resultError || this.dataRemaining);
 });
 
@@ -268,7 +268,10 @@ function parseArray(input: string) {
 }
 
 function checkDeserializationError(input: any) {
-  assert(input.resultError === false || input.resultError === undefined, `Deserialization failed with error: ${input.error}`);
+  assert(
+    input.resultError === false || input.resultError === undefined,
+    `Deserialization failed with error: ${input.error}`,
+  );
   assert(input.dataRemaining === false || input.dataRemaining === undefined, "Data remaining after deserialization");
 }
 

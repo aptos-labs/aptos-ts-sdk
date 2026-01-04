@@ -3,7 +3,7 @@
 
 import { Serializable, Serializer } from "../../bcs/serializer";
 import { Deserializer } from "../../bcs/deserializer";
-import { AccountAddress } from "../../core";
+import { AccountAddress } from "../../core/accountAddress";
 import { Identifier } from "./identifier";
 import { MoveModuleId } from "../../types";
 

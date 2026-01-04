@@ -7,6 +7,7 @@ import {
   bytesToBigIntLE,
   padAndPackBytesWithLen,
   poseidonHash,
+  ensurePoseidonLoaded,
   Ed25519PrivateKey,
   EphemeralPublicKey,
   EphemeralSignature,
@@ -174,14 +175,23 @@ export class EphemeralKeyPair extends Serializable {
    * Generates a new ephemeral key pair with an optional expiry date.
    * This function allows you to create a temporary key pair for secure operations.
    *
+   * Note: This method is async because it ensures the Poseidon hash functions are loaded
+   * before creating the key pair (required for nonce generation).
+   *
    * @param args - Optional parameters for key pair generation.
    * @param args.scheme - The type of key pair to use for the EphemeralKeyPair. Only Ed25519 is supported for now.
    * @param args.expiryDateSecs - The date of expiry for the key pair in seconds.
-   * @returns An instance of EphemeralKeyPair containing the generated private key and expiry date.
+   * @returns A Promise that resolves to an EphemeralKeyPair containing the generated private key and expiry date.
    * @group Implementation
    * @category Account (On-Chain Model)
    */
-  static generate(args?: { scheme?: EphemeralPublicKeyVariant; expiryDateSecs?: number }): EphemeralKeyPair {
+  static async generate(args?: {
+    scheme?: EphemeralPublicKeyVariant;
+    expiryDateSecs?: number;
+  }): Promise<EphemeralKeyPair> {
+    // Ensure poseidon is loaded before creating the key pair (needed for nonce generation)
+    await ensurePoseidonLoaded();
+
     let privateKey: PrivateKey;
 
     switch (args?.scheme) {

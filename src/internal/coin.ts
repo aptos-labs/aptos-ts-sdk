@@ -1,5 +1,5 @@
 import { AptosConfig } from "../api/aptosConfig";
-import { AccountAddressInput } from "../core";
+import type { AccountAddressInput } from "../core/accountAddress";
 import { EntryFunctionABI, InputGenerateTransactionOptions } from "../transactions/types";
 import { AnyNumber, MoveStructId } from "../types";
 import { APTOS_COIN } from "../utils/const";

@@ -24,6 +24,9 @@ import { AccountAbstraction } from "./account/abstraction";
  * To utilize the SDK, instantiate a new Aptos object to gain
  * access to the complete range of SDK features.
  *
+ * API namespaces are lazily initialized on first access to improve
+ * startup performance and reduce memory usage when not all features are needed.
+ *
  * @example
  * ```typescript
  * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
@@ -44,29 +47,32 @@ import { AccountAbstraction } from "./account/abstraction";
 export class Aptos {
   readonly config: AptosConfig;
 
-  readonly account: Account;
+  // Lazy-initialized API namespace instances
+  private _account?: Account;
 
-  readonly ans: ANS;
+  private _abstraction?: AccountAbstraction;
 
-  readonly coin: Coin;
+  private _ans?: ANS;
 
-  readonly digitalAsset: DigitalAsset;
+  private _coin?: Coin;
 
-  readonly faucet: Faucet;
+  private _digitalAsset?: DigitalAsset;
 
-  readonly fungibleAsset: FungibleAsset;
+  private _faucet?: Faucet;
 
-  readonly general: General;
+  private _fungibleAsset?: FungibleAsset;
 
-  readonly staking: Staking;
+  private _general?: General;
 
-  readonly transaction: Transaction;
+  private _staking?: Staking;
 
-  readonly table: Table;
+  private _transaction?: Transaction;
 
-  readonly keyless: Keyless;
+  private _table?: Table;
 
-  readonly object: AptosObject;
+  private _keyless?: Keyless;
+
+  private _object?: AptosObject;
 
   /**
    * Initializes a new instance of the Aptos client with the provided configuration settings.
@@ -91,19 +97,99 @@ export class Aptos {
    */
   constructor(config?: AptosConfig) {
     this.config = config ?? new AptosConfig();
-    this.account = new Account(this.config);
-    this.abstraction = new AccountAbstraction(this.config);
-    this.ans = new ANS(this.config);
-    this.coin = new Coin(this.config);
-    this.digitalAsset = new DigitalAsset(this.config);
-    this.faucet = new Faucet(this.config);
-    this.fungibleAsset = new FungibleAsset(this.config);
-    this.general = new General(this.config);
-    this.staking = new Staking(this.config);
-    this.transaction = new Transaction(this.config);
-    this.table = new Table(this.config);
-    this.keyless = new Keyless(this.config);
-    this.object = new AptosObject(this.config);
+  }
+
+  // Lazy getters for API namespaces
+
+  get account(): Account {
+    if (!this._account) {
+      this._account = new Account(this.config);
+    }
+    return this._account;
+  }
+
+  get abstraction(): AccountAbstraction {
+    if (!this._abstraction) {
+      this._abstraction = new AccountAbstraction(this.config);
+    }
+    return this._abstraction;
+  }
+
+  get ans(): ANS {
+    if (!this._ans) {
+      this._ans = new ANS(this.config);
+    }
+    return this._ans;
+  }
+
+  get coin(): Coin {
+    if (!this._coin) {
+      this._coin = new Coin(this.config);
+    }
+    return this._coin;
+  }
+
+  get digitalAsset(): DigitalAsset {
+    if (!this._digitalAsset) {
+      this._digitalAsset = new DigitalAsset(this.config);
+    }
+    return this._digitalAsset;
+  }
+
+  get faucet(): Faucet {
+    if (!this._faucet) {
+      this._faucet = new Faucet(this.config);
+    }
+    return this._faucet;
+  }
+
+  get fungibleAsset(): FungibleAsset {
+    if (!this._fungibleAsset) {
+      this._fungibleAsset = new FungibleAsset(this.config);
+    }
+    return this._fungibleAsset;
+  }
+
+  get general(): General {
+    if (!this._general) {
+      this._general = new General(this.config);
+    }
+    return this._general;
+  }
+
+  get staking(): Staking {
+    if (!this._staking) {
+      this._staking = new Staking(this.config);
+    }
+    return this._staking;
+  }
+
+  get transaction(): Transaction {
+    if (!this._transaction) {
+      this._transaction = new Transaction(this.config);
+    }
+    return this._transaction;
+  }
+
+  get table(): Table {
+    if (!this._table) {
+      this._table = new Table(this.config);
+    }
+    return this._table;
+  }
+
+  get keyless(): Keyless {
+    if (!this._keyless) {
+      this._keyless = new Keyless(this.config);
+    }
+    return this._keyless;
+  }
+
+  get object(): AptosObject {
+    if (!this._object) {
+      this._object = new AptosObject(this.config);
+    }
+    return this._object;
   }
 
   setIgnoreTransactionSubmitter(ignore: boolean) {
@@ -128,7 +214,7 @@ export interface Aptos
     Omit<Transaction, "build" | "simulate" | "submit" | "batch"> {}
 
 /**
-In TypeScript, we can’t inherit or extend from more than one class,
+In TypeScript, we can't inherit or extend from more than one class,
 Mixins helps us to get around that by creating a partial classes
 that we can combine to form a single class that contains all the methods and properties from the partial classes.
 {@link https://www.typescriptlang.org/docs/handbook/mixins.html#alternative-pattern}

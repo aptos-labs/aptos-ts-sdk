@@ -10,7 +10,8 @@
  */
 
 import { AptosConfig } from "../api/aptosConfig";
-import { AccountAddress, AccountAddressInput } from "../core";
+import { AccountAddress } from "../core/accountAddress";
+import type { AccountAddressInput } from "../core/accountAddress";
 import { GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, OrderByArg } from "../types";
 import { GetDelegatedStakingActivitiesQuery, GetNumberOfDelegatorsQuery } from "../types/generated/operations";
 import { GetDelegatedStakingActivities, GetNumberOfDelegators } from "../types/generated/queries";

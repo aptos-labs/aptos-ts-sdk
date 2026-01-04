@@ -24,7 +24,7 @@ import {
   TypeTagI256,
   TypeTagVector,
 } from ".";
-import { AccountAddress } from "../../core";
+import { AccountAddress } from "../../core/accountAddress";
 import { Identifier } from "../instances/identifier";
 
 /**

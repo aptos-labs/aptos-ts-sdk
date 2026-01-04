@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { Account } from "./Account";
-import { MultiKey, MultiKeySignature, PublicKey } from "../core/crypto";
+import { MultiKey, MultiKeySignature } from "../core/crypto/multiKey";
+import { PublicKey } from "../core/crypto/publicKey";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { HexInput, SigningScheme } from "../types";
 import { AccountAuthenticatorMultiKey } from "../transactions/authenticator/account";

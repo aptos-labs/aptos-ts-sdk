@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { PublicKey } from "../../core";
+import { PublicKey } from "../../core/crypto/publicKey";
 import { simulateTransaction } from "../../internal/transactionSubmission";
 import { AnyRawTransaction, InputSimulateTransactionOptions } from "../../transactions";
 import { UserTransactionResponse } from "../../types";

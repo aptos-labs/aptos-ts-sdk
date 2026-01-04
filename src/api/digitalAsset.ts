@@ -13,7 +13,8 @@ import {
   PaginationArgs,
   TokenStandardArg,
 } from "../types";
-import { AccountAddress, AccountAddressInput } from "../core";
+import { AccountAddress } from "../core/accountAddress";
+import type { AccountAddressInput } from "../core/accountAddress";
 import { Account } from "../account";
 import { InputGenerateTransactionOptions } from "../transactions/types";
 import {

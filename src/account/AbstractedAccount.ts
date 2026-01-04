@@ -1,5 +1,5 @@
 import { sha3_256 } from "@noble/hashes/sha3";
-import { AccountAddress } from "../core";
+import { AccountAddress } from "../core/accountAddress";
 import { AbstractPublicKey, AbstractSignature } from "../core/crypto/abstraction";
 import { SigningScheme, HexInput } from "../types";
 import { Account } from "./Account";

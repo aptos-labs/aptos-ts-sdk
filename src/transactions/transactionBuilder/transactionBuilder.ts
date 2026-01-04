@@ -8,17 +8,15 @@
  */
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { AptosConfig } from "../../api/aptosConfig";
-import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
-import {
-  AnyPublicKey,
-  AnySignature,
-  KeylessPublicKey,
-  KeylessSignature,
-  Secp256k1PublicKey,
-  FederatedKeylessPublicKey,
-  MultiKey,
-  MultiKeySignature,
-} from "../../core/crypto";
+import { AccountAddress } from "../../core/accountAddress";
+import type { AccountAddressInput } from "../../core/accountAddress";
+import { Hex } from "../../core/hex";
+import { PublicKey } from "../../core/crypto/publicKey";
+import { AnyPublicKey, AnySignature } from "../../core/crypto/singleKey";
+import { KeylessPublicKey, KeylessSignature } from "../../core/crypto/keyless";
+import { Secp256k1PublicKey } from "../../core/crypto/secp256k1";
+import { FederatedKeylessPublicKey } from "../../core/crypto/federatedKeyless";
+import { MultiKey, MultiKeySignature } from "../../core/crypto/multiKey";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { getInfo } from "../../internal/utils";
 import { getLedgerInfo } from "../../internal/general";

@@ -11,7 +11,8 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { postAptosFaucet } from "../client";
-import { AccountAddress, AccountAddressInput } from "../core";
+import { AccountAddress } from "../core/accountAddress";
+import type { AccountAddressInput } from "../core/accountAddress";
 import { TransactionResponseType, UserTransactionResponse, WaitForTransactionOptions } from "../types";
 import { DEFAULT_TXN_TIMEOUT_SEC } from "../utils/const";
 import { waitForTransaction } from "./transaction";

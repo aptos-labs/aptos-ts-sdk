@@ -3,8 +3,17 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
+
 - Add `is_enum` field to `MoveStruct`.
 - Complete signed integer support to the SDK
+- [`Breaking`] `EphemeralKeyPair.generate()` is now async and returns `Promise<EphemeralKeyPair>` to support lazy loading of poseidon constants
+- Add `sideEffects: false` to `package.json` to enable better tree-shaking for consumers
+- Fix import chain leak that caused the lite SDK to include poseidon-lite (~530KB). Lite bundle reduced from 891KB to 102KB (89% reduction)
+- Add lazy loading for poseidon-lite constants via dynamic imports. Keyless bundle reduced from 891KB to 788KB
+- Add lazy initialization for Aptos class API namespaces (account, transaction, keyless, etc.) to improve startup performance
+- Add `pnpm bundle:size` command for analyzing bundle sizes of SDK entry points
+- Add `ensurePoseidonLoaded()` and `getPoseidonInitPromise()` exports for controlling when poseidon constants are loaded
+- Create new `@aptos-labs/ts-sdk/lite` entry point documentation - 89% smaller than full SDK for apps not using keyless auth
 
 # 5.2.0 (2025-12-10)
 
