@@ -1,70 +1,45 @@
+/* eslint-disable no-console */
+
 /**
  * Keyless SDK Example
  *
- * This example demonstrates using the @aptos-labs/ts-sdk/keyless entry point.
- * The keyless SDK provides ONLY keyless authentication functionality,
- * useful when you're already using the lite SDK but need to add keyless support.
+ * This example demonstrates keyless authentication functionality.
+ * In a bundled application (webpack, vite, etc.), import from "@aptos-labs/ts-sdk/keyless"
+ * for modular loading of keyless-specific features.
  *
- * Bundle size: ~788KB minified (includes poseidon-lite for ZK proofs)
+ * Bundle size with /keyless: ~788KB minified (includes poseidon-lite for ZK proofs)
  *
  * Best for:
  * - Adding keyless auth to an app already using the lite SDK
  * - Modular applications that load keyless features on demand
  * - Code-splitting scenarios where keyless is loaded lazily
  *
- * Note: For most applications, just use the full SDK. This entry point
+ * Note: For most applications, just use the full SDK. The /keyless entry point
  * is for advanced use cases where you need fine-grained control over
  * what's included in your bundle.
+ *
+ * This example imports from the main SDK for CommonJS compatibility.
+ * In your bundled application, use: import { ... } from "@aptos-labs/ts-sdk/keyless"
  */
 
 import {
-  // Keyless public keys
-  KeylessPublicKey,
-  FederatedKeylessPublicKey,
-
   // Ephemeral key management
   EphemeralKeyPair,
-  EphemeralPublicKey,
-  EphemeralSignature,
-
-  // Keyless accounts
-  KeylessAccount,
-  FederatedKeylessAccount,
-  AbstractKeylessAccount,
-
-  // Keyless API
-  Keyless,
-
-  // ZK proof types
-  Groth16Zkp,
-  ZeroKnowledgeSig,
-  ZkProof,
-  Proof,
 
   // Poseidon hashing (for advanced use)
   poseidonHash,
-  hashStrToField,
   ensurePoseidonLoaded,
 
   // Configuration
-  KeylessConfiguration,
-  getKeylessConfig,
   EPK_HORIZON_SECS,
-
-  // Signature verification
-  verifyKeylessSignature,
-  verifyKeylessSignatureWithJwkAndConfig,
-
-  // Types
-  type ProofFetchCallback,
-  type ProofFetchStatus,
-} from "@aptos-labs/ts-sdk/keyless";
+} from "@aptos-labs/ts-sdk";
 
 // For a complete keyless flow, you'd also need the core SDK types
 // In practice, use the full SDK unless you have specific bundle size requirements
 
 async function main() {
   console.log("=== Keyless SDK Example ===\n");
+  console.log('In bundled apps, import from "@aptos-labs/ts-sdk/keyless"\n');
 
   // 1. Generate an ephemeral key pair
   console.log("1. Generating ephemeral key pair...");
@@ -127,4 +102,3 @@ async function main() {
 }
 
 main().catch(console.error);
-

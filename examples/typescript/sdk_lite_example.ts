@@ -1,47 +1,43 @@
+/* eslint-disable no-console */
+
 /**
  * Lite SDK Example
  *
- * This example demonstrates using the @aptos-labs/ts-sdk/lite entry point.
- * The lite SDK provides core functionality WITHOUT keyless authentication,
- * resulting in a significantly smaller bundle size.
+ * This example demonstrates the types of operations available in the lite SDK.
+ * In a bundled application (webpack, vite, etc.), import from "@aptos-labs/ts-sdk/lite"
+ * to get a significantly smaller bundle size (~102KB vs ~910KB).
  *
- * Bundle size: ~102KB minified (89% smaller than full SDK!)
+ * Bundle size with /lite: ~102KB minified (89% smaller than full SDK!)
  *
  * Best for:
  * - Frontend applications where bundle size matters
  * - dApps that don't need keyless authentication
  * - Wallet integrations
  * - Simple transaction signing and submission
+ *
+ * Note: This example imports from the main SDK for CommonJS compatibility.
+ * In your bundled application, use: import { ... } from "@aptos-labs/ts-sdk/lite"
  */
 
 import {
   // Core types
   AccountAddress,
-  Hex,
   AuthenticationKey,
 
   // Cryptographic primitives
   Ed25519PrivateKey,
-  Ed25519PublicKey,
-  Ed25519Signature,
   Secp256k1PrivateKey,
-  Secp256k1PublicKey,
   AnyPublicKey,
-  AnySignature,
 
   // BCS serialization
   Serializer,
   Deserializer,
-  MoveVector,
-  U64,
-  U8,
-  Bool,
 
   // Network configuration
   Network,
   NetworkToNodeAPI,
   APTOS_COIN,
-} from "@aptos-labs/ts-sdk/lite";
+} from "@aptos-labs/ts-sdk";
 
 // Note: For API calls, you'll need to use fetch directly or a lightweight HTTP client
 // The lite SDK focuses on cryptographic operations and serialization
@@ -49,6 +45,7 @@ import {
 async function main() {
   console.log("=== Lite SDK Example ===\n");
   console.log("The lite SDK is 89% smaller than the full SDK!\n");
+  console.log('In bundled apps, import from "@aptos-labs/ts-sdk/lite"\n');
 
   // 1. Generate keys
   console.log("1. Generating Ed25519 key pair...");
@@ -125,4 +122,3 @@ async function main() {
 }
 
 main().catch(console.error);
-

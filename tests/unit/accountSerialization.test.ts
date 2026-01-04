@@ -44,35 +44,53 @@ describe("Account Serialization", () => {
   const legacyEdAccount = Account.generate();
   const singleSignerEdAccount = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
   const secp256k1Account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
-  const keylessAccount = KeylessAccount.create({
-    proof,
-    ephemeralKeyPair: EphemeralKeyPair.generate(),
-    pepper: new Uint8Array(31),
-    jwt,
-  });
-  const keylessAccountWithVerificationKey = KeylessAccount.create({
-    proof,
-    ephemeralKeyPair: EphemeralKeyPair.generate(),
-    pepper: new Uint8Array(31),
-    jwt,
-    verificationKey,
-  });
-  const federatedKeylessAccount = FederatedKeylessAccount.create({
-    ephemeralKeyPair: EphemeralKeyPair.generate(),
-    pepper: new Uint8Array(31),
-    jwt,
-    jwkAddress: Account.generate().accountAddress,
-    proof,
-  });
+
+  // These accounts require async initialization due to EphemeralKeyPair.generate() being async
+  let keylessAccount: KeylessAccount;
+  let keylessAccountWithVerificationKey: KeylessAccount;
+  let federatedKeylessAccount: FederatedKeylessAccount;
+  let keylessAccountWithBackupSigner: MultiKeyAccount;
+
   const multiKeyAccount = MultiKeyAccount.fromPublicKeysAndSigners({
     publicKeys: [singleSignerEdAccount.publicKey, secp256k1Account.publicKey, Account.generate().publicKey],
     signaturesRequired: 2,
     signers: [singleSignerEdAccount, secp256k1Account],
   });
-  const keylessAccountWithBackupSigner = MultiKeyAccount.fromPublicKeysAndSigners({
-    publicKeys: [keylessAccount.publicKey, Account.generate().publicKey],
-    signaturesRequired: 1,
-    signers: [keylessAccount],
+
+  beforeAll(async () => {
+    // EphemeralKeyPair.generate() is async to support lazy loading of poseidon constants
+    const ephemeralKeyPair1 = await EphemeralKeyPair.generate();
+    const ephemeralKeyPair2 = await EphemeralKeyPair.generate();
+    const ephemeralKeyPair3 = await EphemeralKeyPair.generate();
+
+    keylessAccount = await KeylessAccount.create({
+      proof,
+      ephemeralKeyPair: ephemeralKeyPair1,
+      pepper: new Uint8Array(31),
+      jwt,
+    });
+
+    keylessAccountWithVerificationKey = await KeylessAccount.create({
+      proof,
+      ephemeralKeyPair: ephemeralKeyPair2,
+      pepper: new Uint8Array(31),
+      jwt,
+      verificationKey,
+    });
+
+    federatedKeylessAccount = await FederatedKeylessAccount.create({
+      ephemeralKeyPair: ephemeralKeyPair3,
+      pepper: new Uint8Array(31),
+      jwt,
+      jwkAddress: Account.generate().accountAddress,
+      proof,
+    });
+
+    keylessAccountWithBackupSigner = MultiKeyAccount.fromPublicKeysAndSigners({
+      publicKeys: [keylessAccount.publicKey, Account.generate().publicKey],
+      signaturesRequired: 1,
+      signers: [keylessAccount],
+    });
   });
 
   describe("serialize", () => {

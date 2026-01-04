@@ -53,6 +53,8 @@ export {
   padAndPackBytesWithLen,
   bytesToBigIntLE,
   bigIntToBytesLE,
+  ensurePoseidonLoaded,
+  getPoseidonInitPromise,
 } from "../core/crypto/poseidon";
 
 // Keyless account implementations

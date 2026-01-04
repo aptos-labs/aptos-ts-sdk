@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * Full SDK Example
  *
@@ -16,17 +18,21 @@ import {
   Aptos,
   AptosConfig,
   Network,
+  NetworkToNetworkName,
   Account,
-  Ed25519PrivateKey,
-  AccountAddress,
   // Keyless-specific imports (only available in full SDK)
   EphemeralKeyPair,
-  KeylessAccount,
 } from "@aptos-labs/ts-sdk";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+// Default to devnet, but allow for overriding
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 
 async function main() {
   // Initialize the Aptos client
-  const config = new AptosConfig({ network: Network.TESTNET });
+  const config = new AptosConfig({ network: APTOS_NETWORK });
   const aptos = new Aptos(config);
 
   console.log("=== Full SDK Example ===\n");
@@ -90,4 +96,3 @@ async function main() {
 }
 
 main().catch(console.error);
-

@@ -35,7 +35,8 @@ const example = async () => {
   const aptos = new Aptos(config);
 
   // Generate the ephemeral (temporary) key pair that will be used to sign transactions.
-  const aliceEphem = EphemeralKeyPair.generate();
+  // Note: generate() is now async to support lazy loading of poseidon constants
+  const aliceEphem = await EphemeralKeyPair.generate();
 
   console.log("\n=== Keyless Account Example ===\n");
 

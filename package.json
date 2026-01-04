@@ -61,7 +61,10 @@
     "./dist/esm/cli/index.mjs": "./dist/esm/cli/index.mjs",
     "./package.json": "./package.json"
   },
-  "sideEffects": false,
+  "sideEffects": [
+    "./src/index.ts",
+    "./src/core/crypto/keylessRegistry.ts"
+  ],
   "files": [
     "dist",
     "src"
