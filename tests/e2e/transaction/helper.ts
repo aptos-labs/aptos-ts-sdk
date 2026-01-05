@@ -22,10 +22,12 @@ import {
 import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 
+// Pre-computed nonce to avoid needing poseidon to be loaded at module initialization time
 export const EPHEMERAL_KEY_PAIR = new EphemeralKeyPair({
   privateKey: new Ed25519PrivateKey("ed25519-priv-0x1111111111111111111111111111111111111111111111111111111111111111"),
   expiryDateSecs: 9876543210, // Expires Friday, December 22, 2282 8:13:30 PM GMT
   blinder: new Uint8Array(31),
+  nonce: "19643698861265567804909913130507247814526913570228316417377965105681796173098",
 });
 
 export async function publishPackage(

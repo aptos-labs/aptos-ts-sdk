@@ -18,16 +18,21 @@ import {
 export const FUND_AMOUNT = 100_000_000;
 export const TRANSFER_AMOUNT = 500_000;
 
+// Pre-computed nonce for the EPHEMERAL_KEY_PAIR (matches the nonce in the JWT below)
+// This avoids needing poseidon to be loaded at module initialization time
 export const EPHEMERAL_KEY_PAIR = new EphemeralKeyPair({
   privateKey: new Ed25519PrivateKey("ed25519-priv-0x1111111111111111111111111111111111111111111111111111111111111111"),
   expiryDateSecs: 9876543210, // Expires Friday, December 22, 2282 8:13:30 PM GMT
   blinder: new Uint8Array(31),
+  nonce: "19643698861265567804909913130507247814526913570228316417377965105681796173098",
 });
 
+// Pre-computed nonce for EXPIRED_EPHEMERAL_KEY_PAIR
 export const EXPIRED_EPHEMERAL_KEY_PAIR = new EphemeralKeyPair({
   privateKey: new Ed25519PrivateKey("ed25519-priv-0x1111111111111111111111111111111111111111111111111111111111111111"),
   expiryDateSecs: 10,
   blinder: new Uint8Array(31),
+  nonce: "7190684319866231051845937741837725696526358707898091272903723936508999535078",
 });
 
 export const wallet = {

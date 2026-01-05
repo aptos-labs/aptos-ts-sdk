@@ -80,24 +80,31 @@ export class EphemeralKeyPair extends Serializable {
    * @param args.privateKey - The private key used for creating the instance.
    * @param args.expiryDateSecs - Optional expiry date in seconds from the current time. Defaults to two weeks from now.
    * @param args.blinder - Optional blinder value. If not provided, a new blinder will be generated.
+   * @param args.nonce - Optional pre-computed nonce. If provided, skips poseidon hash calculation.
+   *                     This is useful for test fixtures where poseidon may not be loaded yet.
    * @group Implementation
    * @category Account (On-Chain Model)
    */
-  constructor(args: { privateKey: PrivateKey; expiryDateSecs?: number; blinder?: HexInput }) {
+  constructor(args: { privateKey: PrivateKey; expiryDateSecs?: number; blinder?: HexInput; nonce?: string }) {
     super();
-    const { privateKey, expiryDateSecs, blinder } = args;
+    const { privateKey, expiryDateSecs, blinder, nonce } = args;
     this.privateKey = privateKey;
     this.publicKey = new EphemeralPublicKey(privateKey.publicKey());
     // By default, we set the expiry date to be two weeks in the future floored to the nearest hour
     this.expiryDateSecs = expiryDateSecs || floorToWholeHour(nowInSeconds() + TWO_WEEKS_IN_SECONDS);
     // Generate the blinder if not provided
     this.blinder = blinder !== undefined ? Hex.fromHexInput(blinder).toUint8Array() : generateBlinder();
-    // Calculate the nonce
-    const fields = padAndPackBytesWithLen(this.publicKey.bcsToBytes(), 93);
-    fields.push(BigInt(this.expiryDateSecs));
-    fields.push(bytesToBigIntLE(this.blinder));
-    const nonceHash = poseidonHash(fields);
-    this.nonce = nonceHash.toString();
+    // Use pre-computed nonce if provided, otherwise calculate it
+    if (nonce !== undefined) {
+      this.nonce = nonce;
+    } else {
+      // Calculate the nonce using poseidon hash
+      const fields = padAndPackBytesWithLen(this.publicKey.bcsToBytes(), 93);
+      fields.push(BigInt(this.expiryDateSecs));
+      fields.push(bytesToBigIntLE(this.blinder));
+      const nonceHash = poseidonHash(fields);
+      this.nonce = nonceHash.toString();
+    }
   }
 
   /**
