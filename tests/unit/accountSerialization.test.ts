@@ -24,20 +24,6 @@ export function testAccountSerializationDeserialization(account: Account) {
 }
 
 describe("Account Serialization", () => {
-  const proof = new ZeroKnowledgeSig({
-    proof: new ZkProof(
-      new Groth16Zkp({ a: new Uint8Array(32), b: new Uint8Array(64), c: new Uint8Array(32) }),
-      ZkpVariant.Groth16,
-    ),
-    expHorizonSecs: 0,
-  });
-  const verificationKey = new Groth16VerificationKey({
-    alphaG1: new Uint8Array(32),
-    betaG2: new Uint8Array(64),
-    deltaG2: new Uint8Array(64),
-    gammaAbcG1: [new Uint8Array(32), new Uint8Array(32)],
-    gammaG2: new Uint8Array(64),
-  });
   const jwt =
     "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ0ZXN0IiwiYXVkIjoidGVzdC1hdWQiLCJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNzMxMjE0NTIxLCJleHAiOjE3MzEyMTgxMjF9.jZeCpYDDWx0pW_WcBpg8b0NzDWCABvH3lSmmmub8BBg";
 
@@ -58,6 +44,22 @@ describe("Account Serialization", () => {
   });
 
   beforeAll(async () => {
+    // Create proof and verification key here to avoid circular dependency issues at module load time
+    const proof = new ZeroKnowledgeSig({
+      proof: new ZkProof(
+        new Groth16Zkp({ a: new Uint8Array(32), b: new Uint8Array(64), c: new Uint8Array(32) }),
+        ZkpVariant.Groth16,
+      ),
+      expHorizonSecs: 0,
+    });
+    const verificationKey = new Groth16VerificationKey({
+      alphaG1: new Uint8Array(32),
+      betaG2: new Uint8Array(64),
+      deltaG2: new Uint8Array(64),
+      gammaAbcG1: [new Uint8Array(32), new Uint8Array(32)],
+      gammaG2: new Uint8Array(64),
+    });
+
     // EphemeralKeyPair.generate() is async to support lazy loading of poseidon constants
     const ephemeralKeyPair1 = await EphemeralKeyPair.generate();
     const ephemeralKeyPair2 = await EphemeralKeyPair.generate();
