@@ -27,6 +27,7 @@ To use specific accounts for testing:
 
 1. Create a file named `.env.development` in the confidential-assets directory
 2. Add the following variables to the file:
+
 ```
 TESTNET_PK=your_private_key_here
 TESTNET_DK=your_twisted_ed25519_private_key_here
@@ -43,6 +44,7 @@ pnpm jest path/to/test/file.test.ts
 ```
 
 ### !important
+
 `./tests/units/api` - is not for CI or e2e testing. Use these test only when you want to test specific behaviour of each operation.
 
 ## Test Coverage

@@ -2,13 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account as AccountModule } from "../account";
-import {
-  AccountAddress,
-  AccountAddressInput,
-  createObjectAddress,
-  BaseAccountPublicKey,
-  PrivateKeyInput,
-} from "../core";
+import { AccountAddress } from "../core/accountAddress";
+import type { AccountAddressInput } from "../core/accountAddress";
+import { createObjectAddress } from "../core/account/utils/address";
+import type { BaseAccountPublicKey } from "../core/crypto/types";
+import type { PrivateKeyInput } from "../core/crypto/singleKey";
 import {
   AccountData,
   AnyNumber,

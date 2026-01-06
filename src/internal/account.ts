@@ -46,16 +46,14 @@ import {
   MultiKeyAccount,
   SingleKeyAccount,
 } from "../account";
-import {
-  AbstractMultiKey,
-  AccountPublicKey,
-  AnyPublicKey,
-  BaseAccountPublicKey,
-  Ed25519PublicKey,
-  MultiEd25519PublicKey,
-  MultiKey,
-  PrivateKeyInput,
-} from "../core/crypto";
+import { AccountPublicKey } from "../core/crypto/publicKey";
+import { AbstractMultiKey } from "../core/crypto/multiKey";
+import type { BaseAccountPublicKey } from "../core/crypto/types";
+import { AnyPublicKey } from "../core/crypto/singleKey";
+import { Ed25519PublicKey } from "../core/crypto/ed25519";
+import { MultiEd25519PublicKey } from "../core/crypto/multiEd25519";
+import { MultiKey } from "../core/crypto/multiKey";
+import type { PrivateKeyInput } from "../core/crypto/singleKey";
 import { queryIndexer } from "./general";
 import { getModule as getModuleUtil, getInfo as getInfoUtil } from "./utils";
 import {
@@ -82,7 +80,11 @@ import {
   GetAuthKeysForPublicKey,
   GetAccountAddressesForAuthKey,
 } from "../types/generated/queries";
-import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey, createObjectAddress, Hex } from "../core";
+import { Secp256k1PrivateKey } from "../core/crypto/secp256k1";
+import { AuthenticationKey } from "../core/authenticationKey";
+import { Ed25519PrivateKey } from "../core/crypto/ed25519";
+import { createObjectAddress } from "../core/account/utils/address";
+import { Hex } from "../core/hex";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 import { getTableItem } from "./table";
 import { APTOS_COIN } from "../utils";

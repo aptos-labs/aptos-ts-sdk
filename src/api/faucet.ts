@@ -3,7 +3,7 @@
 
 import { fundAccount } from "../internal/faucet";
 import { UserTransactionResponse, WaitForTransactionOptions } from "../types";
-import { AccountAddressInput } from "../core";
+import type { AccountAddressInput } from "../core/accountAddress";
 import { AptosConfig } from "./aptosConfig";
 import { waitForIndexer } from "../internal/transaction";
 import { ProcessorType } from "../utils";

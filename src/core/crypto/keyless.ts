@@ -38,7 +38,7 @@ import { bn254 } from "@noble/curves/bn254";
 import { bytesToNumberBE } from "@noble/curves/abstract/utils";
 import { FederatedKeylessPublicKey } from "./federatedKeyless";
 import { encode } from "js-base64";
-import { generateSigningMessage } from "../..";
+import { generateSigningMessage } from "../../transactions/transactionBuilder/signingMessage";
 import { ProjPointType } from "@noble/curves/abstract/weierstrass";
 import { Fp2 } from "@noble/curves/abstract/tower";
 

@@ -11,7 +11,7 @@ import { isValidBIP44Path, mnemonicToSeed } from "./hdKey";
 import { PrivateKey } from "./privateKey";
 import { PublicKey } from "./publicKey";
 import { Signature } from "./signature";
-import { convertSigningMessage } from "./utils";
+import { convertSigningMessage } from "./signingUtils";
 import { AptosConfig } from "../../api";
 
 /**

@@ -5,19 +5,17 @@ import EventEmitter from "eventemitter3";
 import { jwtDecode } from "jwt-decode";
 import { EphemeralCertificateVariant, HexInput, SigningScheme } from "../types";
 import { AccountAddress } from "../core/accountAddress";
+import { AnyPublicKey, AnySignature } from "../core/crypto/singleKey";
 import {
-  AnyPublicKey,
-  AnySignature,
   KeylessPublicKey,
   KeylessSignature,
   EphemeralCertificate,
-  ZeroKnowledgeSig,
-  ZkProof,
-  MoveJWK,
   getKeylessConfig,
   fetchJWK,
   KeylessConfiguration,
-} from "../core/crypto";
+} from "../core/crypto/keyless";
+import { ZeroKnowledgeSig, ZkProof } from "../core/crypto/keyless";
+import { MoveJWK } from "../core/crypto/keyless";
 
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
 import { Hex } from "../core/hex";

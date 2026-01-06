@@ -27,7 +27,7 @@ import {
   U64,
   U8,
 } from "../../bcs";
-import { AccountAddress } from "../../core";
+import { AccountAddress } from "../../core/accountAddress";
 import { MoveFunction } from "../../types";
 
 /**

@@ -1,15 +1,11 @@
 import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account";
 import { type HexInput, SigningScheme, SigningSchemeInput } from "../types";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import {
-  AnyPublicKey,
-  AnySignature,
-  Ed25519PrivateKey,
-  KeylessSignature,
-  PrivateKeyInput,
-  Secp256k1PrivateKey,
-  Signature,
-} from "../core/crypto";
+import { AnyPublicKey, AnySignature } from "../core/crypto/singleKey";
+import type { PrivateKeyInput } from "../core/crypto/singleKey";
+import { Ed25519PrivateKey } from "../core/crypto/ed25519";
+import { Secp256k1PrivateKey } from "../core/crypto/secp256k1";
+import { Signature } from "../core/crypto/signature";
 import type { Account } from "./Account";
 import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction } from "../transactions/types";

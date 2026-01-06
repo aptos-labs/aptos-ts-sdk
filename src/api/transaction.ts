@@ -36,7 +36,10 @@ import {
   InputGenerateTransactionPayloadData,
   InputTransactionPluginData,
 } from "../transactions";
-import { AccountAddressInput, AccountPublicKey, AuthenticationKey, Ed25519PrivateKey } from "../core";
+import type { AccountAddressInput } from "../core/accountAddress";
+import { AccountPublicKey } from "../core/crypto/publicKey";
+import { AuthenticationKey } from "../core/authenticationKey";
+import { Ed25519PrivateKey } from "../core/crypto/ed25519";
 import { Account, Ed25519Account, MultiEd25519Account } from "../account";
 import { Build } from "./transactionSubmission/build";
 import { Simulate } from "./transactionSubmission/simulate";

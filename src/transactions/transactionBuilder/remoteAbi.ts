@@ -48,7 +48,7 @@ import {
   U64,
   U8,
 } from "../../bcs";
-import { AccountAddress } from "../../core";
+import { AccountAddress } from "../../core/accountAddress";
 import { getModule } from "../../internal/account";
 import {
   findFirstNonSignerArg,

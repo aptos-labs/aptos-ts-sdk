@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { keylessTestConfig, keylessTestObject } from "./helper";
+import { getKeylessTestConfig, keylessTestObject } from "./helper";
 import { Deserializer, Hex, KeylessAccount, KeylessPublicKey, KeylessSignature } from "../../src";
 describe("Keyless", () => {
   describe("keylessPublicKey", () => {
@@ -35,7 +35,7 @@ describe("Keyless", () => {
           message: hexMsg.toUint8Array(),
           signature,
           jwk: keylessTestObject.jwk,
-          keylessConfig: keylessTestConfig,
+          keylessConfig: getKeylessTestConfig(),
         }),
       ).toBe(true);
     });
@@ -57,7 +57,7 @@ describe("Keyless", () => {
           message,
           signature,
           jwk: keylessTestObject.jwk,
-          keylessConfig: keylessTestConfig,
+          keylessConfig: getKeylessTestConfig(),
         }),
       ).toBe(true);
       expect(
@@ -65,7 +65,7 @@ describe("Keyless", () => {
           message,
           signature,
           jwk: keylessTestObject.jwk,
-          keylessConfig: keylessTestConfig,
+          keylessConfig: getKeylessTestConfig(),
         }),
       ).toBe(true);
     });

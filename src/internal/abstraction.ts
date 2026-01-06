@@ -5,7 +5,7 @@ import {
   TypeTagStruct,
   stringStructTag,
 } from "../transactions";
-import { AccountAddressInput } from "../core";
+import type { AccountAddressInput } from "../core/accountAddress";
 import { generateTransaction } from "./transactionSubmission";
 import { MoveFunctionId } from "../types";
 import { AptosConfig } from "../api/aptosConfig";

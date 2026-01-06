@@ -3,7 +3,8 @@
 
 import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
 import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
-import { AccountAddressInput, ZeroKnowledgeSig } from "../core";
+import type { AccountAddressInput } from "../core/accountAddress";
+import { ZeroKnowledgeSig } from "../core/crypto/keyless";
 import {
   deriveKeylessAccount,
   getPepper,

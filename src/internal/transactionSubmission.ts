@@ -11,7 +11,8 @@ import { Deserializer, MoveVector } from "../bcs";
 import { postAptosFullNode } from "../client";
 import { Account, AbstractKeylessAccount, isKeylessSigner } from "../account";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { FederatedKeylessPublicKey, KeylessPublicKey, KeylessSignature } from "../core/crypto";
+import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
+import { KeylessPublicKey, KeylessSignature } from "../core/crypto/keyless";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
 import {
   buildTransaction,

@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account } from "../account";
-import { AccountAddress, AccountAddressInput } from "../core";
+import { AccountAddress } from "../core/accountAddress";
+import type { AccountAddressInput } from "../core/accountAddress";
 import {
   RegisterNameParameters,
   getExpiration,

@@ -22,7 +22,8 @@ import {
   I256,
 } from "../../bcs/serializable/movePrimitives";
 import { MoveVector, Serialized } from "../../bcs/serializable/moveStructs";
-import { AccountAddress, Hex } from "../../core";
+import { AccountAddress } from "../../core/accountAddress";
+import { Hex } from "../../core/hex";
 import { Identifier } from "./identifier";
 import { ModuleId } from "./moduleId";
 import type { EntryFunctionArgument, ScriptFunctionArgument, TransactionArgument } from "./transactionArgument";

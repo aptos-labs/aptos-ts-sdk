@@ -23,3 +23,8 @@ examples/typescript/facoin/facoin.json
 .env
 .env.*
 *.tgz
+
+# Bundle analysis artifacts
+temp-*.js
+meta-*.json
+*-bundle-analysis.html

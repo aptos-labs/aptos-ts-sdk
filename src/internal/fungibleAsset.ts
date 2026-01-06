@@ -34,7 +34,7 @@ import {
   FungibleAssetActivitiesBoolExp,
   FungibleAssetMetadataBoolExp,
 } from "../types/generated/types";
-import { AccountAddressInput } from "../core";
+import type { AccountAddressInput } from "../core/accountAddress";
 import { Account } from "../account";
 import {
   EntryFunctionABI,

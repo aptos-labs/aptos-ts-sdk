@@ -1,5 +1,6 @@
 import { AptosConfig } from "../api/aptosConfig";
-import { AccountAddressInput, AccountAddress } from "../core";
+import { AccountAddress } from "../core/accountAddress";
+import type { AccountAddressInput } from "../core/accountAddress";
 import { PaginationArgs, OrderByArg, GetObjectDataQueryResponse, WhereArg } from "../types";
 import { GetObjectDataQuery } from "../types/generated/operations";
 import { GetObjectData } from "../types/generated/queries";

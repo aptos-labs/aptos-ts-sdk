@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountAddressInput } from "../core";
+import type { AccountAddressInput } from "../core/accountAddress";
 import { transferCoinTransaction } from "../internal/coin";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 import { InputGenerateTransactionOptions } from "../transactions/types";

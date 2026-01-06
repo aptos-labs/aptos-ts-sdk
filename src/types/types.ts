@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { AptosConfig } from "../api";
-import { InputSubmitTransactionData } from "../transactions";
+import type { InputSubmitTransactionData } from "../transactions";
 import { Network } from "../utils/apiEndpoints";
 import { OrderBy, TokenStandard } from "./indexer";
 

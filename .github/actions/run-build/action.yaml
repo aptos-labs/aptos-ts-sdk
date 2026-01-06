@@ -1,6 +1,6 @@
 name: "Run optimized SDK build"
 description: |
-    Run build for Browser, Node, and Types
+  Run build for Browser, Node, and Types
 
 runs:
   using: composite
