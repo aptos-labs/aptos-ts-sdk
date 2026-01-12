@@ -185,6 +185,54 @@ export function isEncodedEntryFunctionArgument(
      */
     isBcsU256(arg) ||
     /**
+     * Determines if the provided argument is an instance of I8.
+     *
+     * @param arg - The argument to check, which can be of type EntryFunctionArgumentTypes or SimpleEntryFunctionArgumentTypes.
+     * @group Implementation
+     * @category Transactions
+     */
+    isBcsI8(arg) ||
+    /**
+     * Determines if the provided argument is an instance of I16.
+     *
+     * @param arg - The argument to check, which can be of type EntryFunctionArgumentTypes or SimpleEntryFunctionArgumentTypes.
+     * @group Implementation
+     * @category Transactions
+     */
+    isBcsI16(arg) ||
+    /**
+     * Determines if the provided argument is an instance of I32.
+     *
+     * @param arg - The argument to check, which can be of type EntryFunctionArgumentTypes or SimpleEntryFunctionArgumentTypes.
+     * @group Implementation
+     * @category Transactions
+     */
+    isBcsI32(arg) ||
+    /**
+     * Determines if the provided argument is an instance of I64.
+     *
+     * @param arg - The argument to check, which can be of type EntryFunctionArgumentTypes or SimpleEntryFunctionArgumentTypes.
+     * @group Implementation
+     * @category Transactions
+     */
+    isBcsI64(arg) ||
+    /**
+     * Determines if the provided argument is an instance of I128.
+     *
+     * @param arg - The argument to check, which can be of type EntryFunctionArgumentTypes or SimpleEntryFunctionArgumentTypes.
+     * @group Implementation
+     * @category Transactions
+     */
+    isBcsI128(arg) ||
+    /**
+     * Determines if the provided argument is an instance of I256.
+     *
+     * @param arg - The argument to check, which can be of type EntryFunctionArgumentTypes or SimpleEntryFunctionArgumentTypes.
+     * @group Implementation
+     * @category Transactions
+     */
+    isBcsI256(arg) ||
+    /**
      * Determines if the provided argument is an instance of AccountAddress.
      * This function helps validate whether a given input corresponds to a valid BCS address type.
      *
