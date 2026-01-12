@@ -17,7 +17,6 @@ import {
 } from "../client";
 import {
   AccountData,
-  AnyNumber,
   anyPublicKeyVariantToString,
   CommittedTransactionResponse,
   CursorPaginationArgs,
@@ -32,7 +31,6 @@ import {
   MoveStructId,
   OrderByArg,
   PaginationArgs,
-  PendingTransactionResponse,
   TokenStandardArg,
   WhereArg,
 } from "../types";
@@ -88,7 +86,7 @@ import { getTableItem } from "./table";
 import { APTOS_COIN } from "../utils";
 import { AptosApiError } from "../errors";
 import { Deserializer } from "../bcs";
-import { signAndSubmitTransaction, generateTransaction } from "./transactionSubmission";
+import { generateTransaction } from "./transactionSubmission";
 import {
   EntryFunctionABI,
   InputGenerateTransactionOptions,
@@ -98,9 +96,6 @@ import {
   TypeTagVector,
 } from "../transactions";
 import { U8, MoveVector } from "../bcs";
-import { waitForTransaction, waitForIndexer } from "./transaction";
-import { view } from "./view";
-import { getLedgerInfo } from "./general";
 import { accountPublicKeyToBaseAccountPublicKey, accountPublicKeyToSigningScheme } from "../core/crypto/utils";
 
 /**

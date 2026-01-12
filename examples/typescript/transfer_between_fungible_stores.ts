@@ -1,13 +1,9 @@
-/* eslint-disable no-console */
-/* eslint-disable max-len */
-
 import {
   Account,
   AccountAddress,
   AnyNumber,
   Aptos,
   AptosConfig,
-  ClientConfig,
   InputViewFunctionData,
   Network,
   NetworkToNetworkName,

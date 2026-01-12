@@ -41,6 +41,7 @@ import { AccountAbstraction } from "./account/abstraction";
  * ```
  * @group Client
  */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class Aptos {
   readonly config: AptosConfig;
 
@@ -111,8 +112,10 @@ export class Aptos {
   }
 }
 
-// extends Aptos interface so all the methods and properties
+// Extends Aptos interface so all the methods and properties
 // from the other classes will be recognized by typescript.
+// This is intentional declaration merging for the mixin pattern.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export interface Aptos
   extends Account,
     ANS,

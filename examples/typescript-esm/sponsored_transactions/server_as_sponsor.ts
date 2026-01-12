@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 /**
  * This example demonstrates how one can use an external server
  * as a sponsor to sign a transaction to eventually pay the gas fees.

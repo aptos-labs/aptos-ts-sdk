@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-/* eslint-disable max-len */
 import dotenv from "dotenv";
 dotenv.config();
 import {

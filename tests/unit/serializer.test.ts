@@ -10,7 +10,7 @@ import {
   MAX_U256_BIG_INT,
 } from "../../src/bcs/consts";
 import { AccountAddress, Serializable, Serializer, outOfRangeErrorMessage } from "../../src";
-/* eslint-disable @typescript-eslint/no-shadow */
+
 describe("BCS Serializer", () => {
   let serializer: Serializer;
 
@@ -68,7 +68,7 @@ describe("BCS Serializer", () => {
 
   it("throws when serializing a boolean value with wrong data type", () => {
     expect(() => {
-      // @ts-ignore
+      // @ts-expect-error Testing invalid input type
       serializer.serializeBool(12);
     }).toThrow(`${12} is not a boolean value`);
   });
@@ -255,11 +255,9 @@ describe("BCS Serializer", () => {
 
   it("throws when specifying 0 or less than 0 allocated bytes for memory", () => {
     expect(() => {
-      // eslint-disable-next-line no-new
       new Serializer(0);
     }).toThrow();
     expect(() => {
-      // eslint-disable-next-line no-new
       new Serializer(-1);
     }).toThrow();
   });

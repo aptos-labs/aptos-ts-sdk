@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import kill from "tree-kill";
 import { platform } from "os";
@@ -130,9 +128,8 @@ export class LocalNode {
     let last = start;
 
     while (!operational && start + this.MAXIMUM_WAIT_TIME_SEC > last) {
-      // eslint-disable-next-line no-await-in-loop
       await sleep(1000);
-      // eslint-disable-next-line no-await-in-loop
+
       operational = await this.checkIfProcessIsUp();
       last = Date.now() / 1000;
     }
@@ -161,7 +158,7 @@ export class LocalNode {
         return true;
       }
       return false;
-    } catch (err: any) {
+    } catch (_err) {
       return false;
     }
   }

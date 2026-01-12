@@ -1,5 +1,3 @@
-/* eslint-disable no-await-in-loop */
-
 import EventEmitter from "eventemitter3";
 import { AptosConfig } from "../../api/aptosConfig";
 import { Account } from "../../account";
@@ -181,7 +179,6 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    */
   async submitNextTransaction() {
     try {
-      /* eslint-disable no-constant-condition */
       while (true) {
         const sequenceNumber = await this.accountSequnceNumber.nextSequenceNumber();
         if (sequenceNumber === null) return;
@@ -217,7 +214,6 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    */
   async processTransactions() {
     try {
-      /* eslint-disable no-constant-condition */
       while (true) {
         const awaitingTransactions = [];
         const sequenceNumbers = [];

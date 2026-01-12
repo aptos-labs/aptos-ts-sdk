@@ -1,6 +1,3 @@
-/* eslint-disable no-console */
-/* eslint-disable max-len */
-
 /**
  * Example to submit a simple sponsored transaction where Alice transfers APT coin to Bob
  * with a sponsor account to pay for the gas fee

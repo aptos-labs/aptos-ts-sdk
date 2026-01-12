@@ -628,9 +628,7 @@ function parseArg(
     }
 
     if (arg instanceof Uint8Array && options?.allowUnknownStructs) {
-      // eslint-disable-next-line no-console
       console.warn(
-        // eslint-disable-next-line max-len
         `Unsupported struct input type for argument ${position}. Continuing since 'allowUnknownStructs' is enabled.`,
       );
       return new FixedBytes(arg);

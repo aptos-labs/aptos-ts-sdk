@@ -1,33 +1,31 @@
 const globals = require("globals");
-const parser = require("@typescript-eslint/parser");
-const eslintPlugin = require("@typescript-eslint/eslint-plugin");
-
-const eslintRc = require("@eslint/eslintrc");
-
-const compat = new eslintRc.FlatCompat({
-  baseDirectory: __dirname,
-});
+const tseslint = require("@typescript-eslint/eslint-plugin");
+const tsparser = require("@typescript-eslint/parser");
+const prettier = require("eslint-config-prettier");
 
 module.exports = [
   {
-    ignores: ["src/types/generated/**", "dist/**", "node_modules/**", "**/dist/**", "**/node_modules/**"],
+    ignores: [
+      "src/types/generated/**",
+      "dist/**",
+      "node_modules/**",
+      "**/dist/**",
+      "**/node_modules/**",
+      // Separate packages with their own configs
+      "confidential-assets/**",
+      "projects/**",
+    ],
   },
   {
-    files: ["*.ts", "*.tsx"],
-  },
-  ...compat.extends("airbnb-base"),
-  ...compat.extends("prettier"),
-  {
+    files: ["**/*.ts", "**/*.tsx", "**/*.cts", "**/*.mts"],
     languageOptions: {
-      parser: parser,
+      parser: tsparser,
       parserOptions: {
         tsconfigRootDir: __dirname,
         project: ["tsconfig.json", "examples/*/tsconfig.json"],
         ecmaVersion: "latest",
         sourceType: "module",
       },
-      ecmaVersion: "latest",
-      sourceType: "module",
       globals: {
         ...globals.browser,
         ...globals.es2021,
@@ -35,34 +33,42 @@ module.exports = [
       },
     },
     plugins: {
-      "@typescript-eslint": eslintPlugin,
+      "@typescript-eslint": tseslint,
     },
     rules: {
+      // TypeScript recommended rules
+      ...tseslint.configs.recommended.rules,
+
+      // Style rules
       quotes: ["error", "double"],
       "max-len": ["error", 140],
-      "import/extensions": ["error", "never"],
-      "import/no-commonjs": ["error", { allowRequire: false, allowPrimitiveModules: false }],
-      "import/no-extraneous-dependencies": [
-        "error",
-        { devDependencies: true, optionalDependencies: true, peerDependencies: true },
-      ],
-      "import/no-useless-path-segments": ["error", { noUselessIndex: true }],
-      "max-classes-per-file": ["error", 10],
-      "import/prefer-default-export": "off",
-      "object-curly-newline": "off",
-      // Replacing airbnb rule with following, to re-enable "ForOfStatement"
+      "max-classes-per-file": ["error", 20],
+
+      // Allow for-of loops (airbnb disables these)
       "no-restricted-syntax": ["error", "ForInStatement", "LabeledStatement", "WithStatement"],
+
+      // TypeScript handles these better
       "no-use-before-define": "off",
       "no-unused-vars": "off",
       "@typescript-eslint/no-use-before-define": ["error", { functions: false, classes: false }],
-      "@typescript-eslint/no-unused-vars": ["error"],
-    },
-    settings: {
-      "import/resolver": {
-        node: {
-          extensions: [".js", ".ts"],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
         },
-      },
+      ],
+
+      // Allow explicit any in some cases (can tighten later)
+      "@typescript-eslint/no-explicit-any": "warn",
+
+      // TODO: Enable this rule and fix {} types to use `object` or `unknown`
+      "@typescript-eslint/no-empty-object-type": "off",
+
+      // Allow require() in CJS files
+      "@typescript-eslint/no-require-imports": "off",
     },
   },
+  prettier,
 ];

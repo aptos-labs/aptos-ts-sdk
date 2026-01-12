@@ -76,7 +76,7 @@ export class Sign {
    * ```
    * @group Implementation
    */
-  // eslint-disable-next-line class-methods-use-this
+
   transaction(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
     return signTransaction({
       ...args,
@@ -121,7 +121,7 @@ export class Sign {
    * ```
    * @group Implementation
    */
-  // eslint-disable-next-line class-methods-use-this
+
   transactionAsFeePayer(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
     const { signer, transaction } = args;
 

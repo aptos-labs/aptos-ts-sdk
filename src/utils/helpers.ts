@@ -154,7 +154,6 @@ export const parseEncodedStruct = (structObj: {
   module_name: string;
   struct_name: string;
 }): MoveStructId => {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   const { account_address, module_name, struct_name } = structObj;
   const moduleName = hexToAscii(module_name);
   const structName = hexToAscii(struct_name);
@@ -241,7 +240,6 @@ export function truncateAddress(address: string, start: number = 6, end: number 
  * Constants for metadata address calculation
  */
 const APTOS_COIN_TYPE_STR = "0x1::aptos_coin::AptosCoin";
-const APT_METADATA_ADDRESS_HEX = AccountAddress.A.toStringLong();
 
 /**
  * Helper function to standardize Move type string by converting all addresses to short form,

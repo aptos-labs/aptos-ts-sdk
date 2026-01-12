@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 /**
  * This example shows an example of how one might send transactions elsewhere to be signed outside the SDK.
  */

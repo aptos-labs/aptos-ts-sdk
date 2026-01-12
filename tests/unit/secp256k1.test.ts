@@ -14,7 +14,6 @@ import {
   Serializer,
 } from "../../src";
 
-/* eslint-disable max-len */
 describe("Secp256k1PublicKey", () => {
   it("should create the instance correctly without error", () => {
     // Create from string

@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 /**
  * This example shows how to use the Aptos client to create accounts, fund them, and transfer between them.
  */

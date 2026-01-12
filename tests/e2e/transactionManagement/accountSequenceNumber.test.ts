@@ -54,7 +54,6 @@ describe("account sequence number", () => {
         authentication_key: account.accountAddress.toString(),
       });
       for (let seqNum = 0; seqNum < 5; seqNum += 1) {
-        /* eslint-disable no-await-in-loop */
         lastSeqNumber = await accountSequenceNumber.nextSequenceNumber();
         expect(lastSeqNumber).toEqual(BigInt(seqNum));
       }
@@ -71,7 +70,6 @@ describe("account sequence number", () => {
         authentication_key: account.accountAddress.toString(),
       });
       for (let seqNum = 0; seqNum < accountSequenceNumber.maximumInFlight; seqNum += 1) {
-        /* eslint-disable no-await-in-loop */
         lastSeqNumber = await accountSequenceNumber.nextSequenceNumber();
         expect(lastSeqNumber).toEqual(BigInt(seqNum + parseInt(previousSeqNum, 10)));
       }

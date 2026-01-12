@@ -368,7 +368,6 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
         });
       }
     } else {
-      // eslint-disable-next-line no-console
       console.warn(
         "[Aptos SDK] The verification key hash was not set. Proof may be invalid if the verification key has rotated.",
       );

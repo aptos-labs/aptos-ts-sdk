@@ -329,7 +329,7 @@ export async function getExpiration(args: { aptosConfig: AptosConfig; name: stri
 
     // Normalize expiration time from epoch seconds to epoch milliseconds
     return Number(res[0]) * 1000;
-  } catch (e) {
+  } catch (_e) {
     return undefined;
   }
 }

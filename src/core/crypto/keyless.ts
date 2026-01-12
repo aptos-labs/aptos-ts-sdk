@@ -1694,7 +1694,7 @@ export function parseJwtHeader(jwtHeader: string): JwtHeader {
       throw new Error("JWT header missing kid");
     }
     return header;
-  } catch (error) {
+  } catch (_error) {
     throw new Error("Failed to parse JWT header.");
   }
 }

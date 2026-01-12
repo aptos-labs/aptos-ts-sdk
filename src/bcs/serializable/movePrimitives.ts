@@ -107,7 +107,7 @@ export class Bool extends Serializable implements TransactionArgument {
    * @group Implementation
    * @category BCS
    */
-  // eslint-disable-next-line class-methods-use-this
+
   deserialize(deserializer: Deserializer) {
     return new U256(deserializer.deserializeU256());
   }

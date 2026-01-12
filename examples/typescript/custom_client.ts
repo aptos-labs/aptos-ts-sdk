@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 /**
  * Example to demonstrate how one can config the SDK to use a custom client.
  *
@@ -13,7 +11,6 @@
 import { Aptos, AptosConfig, ClientResponse, ClientRequest, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
 import dotenv from "dotenv";
 dotenv.config();
-// eslint-disable-next-line import/no-commonjs
 const superagent = require("superagent");
 
 // Default to devnet, but allow for overriding

@@ -1,6 +1,3 @@
-/* eslint-disable max-len */
-/* eslint-disable no-console */
-
 /**
  * This example shows how to use the Keyless accounts on Aptos
  */

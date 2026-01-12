@@ -1,6 +1,3 @@
-/* eslint-disable max-len */
-/* eslint-disable no-console */
-
 /**
  * This example shows how to use install JSON Web Key Set (JWKS) on an account to support Federated Keyless Accounts
  */

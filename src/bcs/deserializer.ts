@@ -1,7 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable no-bitwise */
 import { MAX_U32_NUMBER } from "./consts";
 import { Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, HexInput } from "../types";
 import { Hex } from "../core/hex";

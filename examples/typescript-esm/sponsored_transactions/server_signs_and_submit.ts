@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 /**
  * This example demonstrates how one can generate and sign a transaction
  * on one server (for example, frontend) and have it serialized and send

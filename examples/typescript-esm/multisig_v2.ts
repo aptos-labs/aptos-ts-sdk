@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 /**
  * This example demonstrates the new multisig account module (MultiSig V2) and transaction execution flow
  * where in that module, there is no off-chain signature aggregation step.

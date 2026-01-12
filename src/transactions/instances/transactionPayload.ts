@@ -1,8 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable @typescript-eslint/naming-convention */
-
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializable, Serializer } from "../../bcs/serializer";
 import { EntryFunctionBytes } from "../../bcs/serializable/entryFunctionBytes";
@@ -22,7 +20,7 @@ import {
   I256,
 } from "../../bcs/serializable/movePrimitives";
 import { MoveVector, Serialized } from "../../bcs/serializable/moveStructs";
-import { AccountAddress, Hex } from "../../core";
+import { AccountAddress } from "../../core";
 import { Identifier } from "./identifier";
 import { ModuleId } from "./moduleId";
 import type { EntryFunctionArgument, ScriptFunctionArgument, TransactionArgument } from "./transactionArgument";
