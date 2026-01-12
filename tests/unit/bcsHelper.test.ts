@@ -587,9 +587,12 @@ describe("Tests for the Serializable class", () => {
     });
 
     it("throws an error when trying to create a MoveVector.U8 from an invalid input type", () => {
-      expect(() => MoveVector.U8({} as any)).toThrow();
-      expect(() => MoveVector.U8(["01", "02", "03"] as any)).toThrow();
-      expect(() => MoveVector.U8([BigInt(1)] as any)).toThrow();
+      // @ts-expect-error Testing invalid input
+      expect(() => MoveVector.U8({})).toThrow();
+      // @ts-expect-error Testing invalid input
+      expect(() => MoveVector.U8(["01", "02", "03"])).toThrow();
+      // @ts-expect-error Testing invalid input
+      expect(() => MoveVector.U8([BigInt(1)])).toThrow();
     });
   });
 });

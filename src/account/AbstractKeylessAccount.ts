@@ -39,8 +39,12 @@ export interface KeylessSigner extends Account {
   checkKeylessAccountValidity(aptosConfig: AptosConfig): Promise<void>;
 }
 
-export function isKeylessSigner(obj: any): obj is KeylessSigner {
-  return obj !== null && obj !== undefined && typeof obj.checkKeylessAccountValidity === "function";
+export function isKeylessSigner(obj: unknown): obj is KeylessSigner {
+  return (
+    obj !== null &&
+    obj !== undefined &&
+    typeof (obj as { checkKeylessAccountValidity?: unknown }).checkKeylessAccountValidity === "function"
+  );
 }
 
 /**

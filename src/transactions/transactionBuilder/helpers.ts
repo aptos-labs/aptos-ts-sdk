@@ -51,7 +51,7 @@ export function isBool(arg: SimpleEntryFunctionArgumentTypes): arg is boolean {
  * @group Implementation
  * @category Transactions
  */
-export function isString(arg: any): arg is string {
+export function isString(arg: unknown): arg is string {
   return typeof arg === "string";
 }
 

@@ -130,7 +130,11 @@ export class DigitalAsset {
     const { creatorAddress, collectionName, options } = args;
     const address = AccountAddress.from(creatorAddress);
 
-    const whereCondition: any = {
+    const whereCondition: {
+      collection_name: { _eq: string };
+      creator_address: { _eq: string };
+      token_standard?: { _eq: string };
+    } = {
       collection_name: { _eq: collectionName },
       creator_address: { _eq: address.toStringLong() },
     };

@@ -986,8 +986,8 @@ describe("transaction submission", () => {
           transactionHash: response.hash,
         });
         fail("Expected an error to be thrown");
-      } catch (error: any) {
-        const errorStr = error.toString();
+      } catch (error) {
+        const errorStr = String(error);
         expect(errorStr).toContain("Invalid transaction");
         expect(errorStr).toContain("INVALID_SIGNATURE");
         expect(errorStr).toContain("vm_error");

@@ -106,7 +106,7 @@ export async function publishAnsContract(
     console.log("---module published---");
 
     return ret;
-  } catch (error: any) {
+  } catch (error) {
     throw new Error(`Failed to publish ANS contract ${JSON.stringify(error)}`);
   }
 }

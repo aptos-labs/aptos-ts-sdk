@@ -86,7 +86,7 @@ const swapAssets = async (
   return response.hash;
 };
 
-const getAssetType = async (aptos: Aptos, owner: Account): Promise<any> => {
+const getAssetType = async (aptos: Aptos, owner: Account): Promise<string> => {
   const data = await aptos.getFungibleAssetMetadata({
     options: {
       where: {

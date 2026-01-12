@@ -31,7 +31,7 @@ export async function getTableItem<T>(args: {
   options?: LedgerVersionArg;
 }): Promise<T> {
   const { aptosConfig, handle, data, options } = args;
-  const response = await postAptosFullNode<TableItemRequest, any>({
+  const response = await postAptosFullNode<TableItemRequest, T>({
     aptosConfig,
     originMethod: "getTableItem",
     path: `tables/${handle}/item`,

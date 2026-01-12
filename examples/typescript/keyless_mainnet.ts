@@ -16,7 +16,7 @@ const GAS_UNIT_PRICE = 100; // octas / gas unit
  * @returns {Promise<*>}
  *
  */
-const balance = async (aptos: Aptos, address: AccountAddress): Promise<any> =>
+const balance = async (aptos: Aptos, address: AccountAddress): Promise<number> =>
   aptos.getAccountAPTAmount({
     accountAddress: address,
   });

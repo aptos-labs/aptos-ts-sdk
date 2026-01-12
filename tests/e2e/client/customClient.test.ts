@@ -24,7 +24,7 @@ describe("custom client", () => {
 
   test("it uses custom client for fetch queries", async () => {
     const { config } = getAptosClient({ client: { provider: customClient } });
-    const response = await getAptosFullNode<{ headers?: { customClient?: any } }, {}>({
+    const response = await getAptosFullNode<{ headers?: { customClient?: boolean } }, object>({
       aptosConfig: config,
       originMethod: "getInfo",
       path: "accounts/0x1",
@@ -35,7 +35,7 @@ describe("custom client", () => {
   test("it uses custom client for post queries", async () => {
     const { config } = getAptosClient({ client: { provider: customClient } });
     const account = Account.generate();
-    const response = await postAptosFaucet<{ headers?: { customClient?: any } }, {}>({
+    const response = await postAptosFaucet<{ headers?: { customClient?: boolean } }, object>({
       aptosConfig: config,
       path: "fund",
       body: {
@@ -59,7 +59,7 @@ describe("custom client", () => {
     });
     const authenticator = aptos.transaction.sign({ signer: account, transaction });
     const signedTransaction = generateSignedTransaction({ transaction, senderAuthenticator: authenticator });
-    const response = await postAptosFullNode<{ headers?: { customClient?: any } }, {}>({
+    const response = await postAptosFullNode<{ headers?: { customClient?: boolean } }, object>({
       aptosConfig: config,
       body: signedTransaction,
       path: "transactions",

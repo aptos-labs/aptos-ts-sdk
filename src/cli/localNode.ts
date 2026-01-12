@@ -105,7 +105,7 @@ export class LocalNode {
 
     this.process = spawn(cliCommand, cliArgs, spawnConfig);
 
-    this.process.stdout?.on("data", (data: any) => {
+    this.process.stdout?.on("data", (data: Buffer) => {
       const str = data.toString();
       // Print local node output log
       if (this.showStdout) {

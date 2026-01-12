@@ -7,7 +7,7 @@
  * @group Implementation
  * @category Utils
  */
-const cache = new Map<string, { value: any; timestamp: number }>();
+const cache = new Map<string, { value: unknown; timestamp: number }>();
 
 /**
  * A memoize higher-order function to cache the response of an async function.
@@ -22,16 +22,16 @@ const cache = new Map<string, { value: any; timestamp: number }>();
  * @category Utils
  */
 export function memoizeAsync<T>(
-  func: (...args: any[]) => Promise<T>,
+  func: (...args: unknown[]) => Promise<T>,
   key: string,
   ttlMs?: number,
-): (...args: any[]) => Promise<T> {
-  return async (...args: any[]) => {
+): (...args: unknown[]) => Promise<T> {
+  return async (...args: unknown[]): Promise<T> => {
     // Check if the cached result exists and is within TTL
     if (cache.has(key)) {
       const { value, timestamp } = cache.get(key)!;
       if (ttlMs === undefined || Date.now() - timestamp <= ttlMs) {
-        return value;
+        return value as T;
       }
     }
 
@@ -55,13 +55,13 @@ export function memoizeAsync<T>(
  * @group Implementation
  * @category Utils
  */
-export function memoize<T>(func: (...args: any[]) => T, key: string, ttlMs?: number): (...args: any[]) => T {
-  return (...args: any[]) => {
+export function memoize<T>(func: (...args: unknown[]) => T, key: string, ttlMs?: number): (...args: unknown[]) => T {
+  return (...args: unknown[]): T => {
     // Check if the cached result exists and is within TTL
     if (cache.has(key)) {
       const { value, timestamp } = cache.get(key)!;
       if (ttlMs === undefined || Date.now() - timestamp <= ttlMs) {
-        return value;
+        return value as T;
       }
     }
 

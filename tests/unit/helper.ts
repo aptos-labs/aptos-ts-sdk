@@ -199,7 +199,7 @@ export const longTestTimeout = 120 * 1000;
 export async function customClient<Req, Res>(requestOptions: ClientRequest<Req>): Promise<ClientResponse<Res>> {
   const { params, method, url, headers, body } = requestOptions;
 
-  const customHeaders: any = {
+  const customHeaders: Record<string, string | number | boolean | undefined> = {
     ...headers,
     customClient: true,
   };
@@ -208,7 +208,9 @@ export async function customClient<Req, Res>(requestOptions: ClientRequest<Req>)
     headers: customHeaders,
     body:
       // weird fetch issue
-      headers!["content-type"] === "application/x.aptos.signed_transaction+bcs" ? (body as any) : JSON.stringify(body),
+      headers!["content-type"] === "application/x.aptos.signed_transaction+bcs"
+        ? (body as BodyInit)
+        : JSON.stringify(body),
     method,
   };
 

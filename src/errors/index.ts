@@ -348,7 +348,7 @@ export class KeylessError extends Error {
 type AptosApiErrorOpts = {
   apiType: AptosApiType;
   aptosRequest: AptosRequest;
-  aptosResponse: AptosResponse<any, any>;
+  aptosResponse: AptosResponse<unknown, unknown>;
 };
 
 /**
@@ -369,7 +369,7 @@ export class AptosApiError extends Error {
 
   readonly statusText: string;
 
-  readonly data: any;
+  readonly data: unknown;
 
   readonly request: AptosRequest;
 
@@ -415,13 +415,16 @@ function deriveErrorMessage({ apiType, aptosRequest, aptosResponse }: AptosApiEr
   } ${traceIdString}failed with`;
 
   // handle graphql responses from indexer api and extract the error message of the first error
-  if (apiType === AptosApiType.INDEXER && aptosResponse.data?.errors?.[0]?.message != null) {
-    return `${errorPrelude}: ${aptosResponse.data.errors[0].message}`;
+  const responseData = aptosResponse.data as
+    | { errors?: { message?: string }[]; message?: string; error_code?: string }
+    | undefined;
+  if (apiType === AptosApiType.INDEXER && responseData?.errors?.[0]?.message != null) {
+    return `${errorPrelude}: ${responseData.errors[0].message}`;
   }
 
   // Received well-known structured error response body - simply serialize and return it.
   // We don't need http status codes etc. in this case.
-  if (aptosResponse.data?.message != null && aptosResponse.data?.error_code != null) {
+  if (responseData?.message != null && responseData?.error_code != null) {
     return `${errorPrelude}: ${JSON.stringify(aptosResponse.data)}`;
   }
 
@@ -443,7 +446,7 @@ const SERIALIZED_PAYLOAD_TRIM_TO_MAX_LENGTH = 400;
  *
  * @returns A string representation of the serialized payload, potentially truncated.
  */
-function serializeAnyPayloadForErrorMessage(payload: any): string {
+function serializeAnyPayloadForErrorMessage(payload: unknown): string {
   const serializedPayload = JSON.stringify(payload);
   if (serializedPayload.length <= SERIALIZED_PAYLOAD_TRIM_TO_MAX_LENGTH) {
     return serializedPayload;

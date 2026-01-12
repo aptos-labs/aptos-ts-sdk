@@ -24,16 +24,17 @@ describe("get request", () => {
           originMethod: "testGetFullnodeQuery",
           path: "",
         });
-      } catch (e: any) {
-        expect(e.request.overrides.API_KEY).toEqual("api-key");
-        expect(e.request.overrides.HEADERS).toHaveProperty("clientConfig");
-        expect(e.request.overrides.HEADERS.clientConfig).toEqual("clientConfig-header");
-        expect(e.request.overrides.HEADERS).toHaveProperty("fullnodeHeader");
-        expect(e.request.overrides.HEADERS.fullnodeHeader).toEqual("fullnode-header");
+      } catch (e) {
+        const error = e as { request: { overrides: { API_KEY: string; HEADERS: Record<string, string> } } };
+        expect(error.request.overrides.API_KEY).toEqual("api-key");
+        expect(error.request.overrides.HEADERS).toHaveProperty("clientConfig");
+        expect(error.request.overrides.HEADERS.clientConfig).toEqual("clientConfig-header");
+        expect(error.request.overrides.HEADERS).toHaveProperty("fullnodeHeader");
+        expect(error.request.overrides.HEADERS.fullnodeHeader).toEqual("fullnode-header");
         // Properties should not be included
-        expect(e.request.overrides.HEADERS).not.toHaveProperty("faucetConfig");
-        expect(e.request.overrides.HEADERS).not.toHaveProperty("AUTH_TOKEN");
-        expect(e.request.overrides.HEADERS).not.toHaveProperty("indexerHeader");
+        expect(error.request.overrides.HEADERS).not.toHaveProperty("faucetConfig");
+        expect(error.request.overrides.HEADERS).not.toHaveProperty("AUTH_TOKEN");
+        expect(error.request.overrides.HEADERS).not.toHaveProperty("indexerHeader");
       }
     });
   });

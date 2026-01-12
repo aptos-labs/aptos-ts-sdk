@@ -76,7 +76,7 @@ describe("post request", () => {
   describe("faucet", () => {
     test("it sets correct headers", async () => {
       const account = Account.generate();
-      const response = await postAptosFaucet<any, { txn_hashes: Array<string> }>({
+      const response = await postAptosFaucet<unknown, { txn_hashes: Array<string> }>({
         aptosConfig: getAptosConfig(),
         path: "fund",
         body: {

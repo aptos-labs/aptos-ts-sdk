@@ -357,7 +357,7 @@ export async function lookupOriginalAccountAddress(args: {
 
     return AccountAddress.from(originalAddress);
   } catch (err) {
-    if (err instanceof AptosApiError && err.data.error_code === "table_item_not_found") {
+    if (err instanceof AptosApiError && (err.data as { error_code?: string })?.error_code === "table_item_not_found") {
       return authKeyAddress;
     }
 
@@ -643,7 +643,7 @@ export async function getAccountCoinAmount(args: {
   const address = AccountAddress.from(accountAddress).toStringLong();
 
   // Search by fungible asset address, unless it has a coin it migrated from
-  let where: any = { asset_type: { _eq: faAddress } };
+  let where: { asset_type: { _eq?: string; _in?: string[] } } = { asset_type: { _eq: faAddress } };
   if (coinAssetType !== undefined) {
     where = { asset_type: { _in: [coinAssetType, faAddress] } };
   }
@@ -940,7 +940,7 @@ async function doesAccountExistAtAddress(args: {
 
     // Else the account exists and the auth key matches.
     return true;
-  } catch (error: any) {
+  } catch (error) {
     throw new Error(`Error while checking if account exists at ${accountAddress.toString()}: ${error}`);
   }
 }
@@ -1347,7 +1347,7 @@ async function getMultiKeysForPublicKey(args: {
   const baseKey = anyPublicKey.publicKey;
   const variant = anyPublicKeyVariantToString(anyPublicKey.variant);
 
-  const whereCondition: any = {
+  const whereCondition: Record<string, unknown> = {
     public_key: { _eq: baseKey.toString() },
     public_key_type: { _eq: variant },
     account_public_key: { _is_null: false },
@@ -1408,7 +1408,7 @@ async function getAccountAddressesForAuthKeys(args: {
   if (authKeys.length === 0) {
     throw new Error("No authentication keys provided");
   }
-  const whereCondition: any = {
+  const whereCondition: Record<string, unknown> = {
     auth_key: { _in: authKeys.map((authKey) => authKey.toString()) },
     ...(includeUnverified ? {} : { is_auth_key_used: { _eq: true } }),
   };

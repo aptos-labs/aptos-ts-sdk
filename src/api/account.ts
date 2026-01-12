@@ -380,7 +380,7 @@ export class Account {
    * ```
    * @group Account
    */
-  async getAccountResource<T extends {} = any>(args: {
+  async getAccountResource<T extends object = object>(args: {
     accountAddress: AccountAddressInput;
     resourceType: MoveStructId;
     options?: LedgerVersionArg;

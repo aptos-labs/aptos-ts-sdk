@@ -29,7 +29,7 @@ export function isSingleKeySigner(obj: unknown): obj is SingleKeySigner {
     typeof obj === "object" &&
     obj !== null &&
     "getAnyPublicKey" in obj &&
-    typeof (obj as any).getAnyPublicKey === "function"
+    typeof (obj as { getAnyPublicKey: unknown }).getAnyPublicKey === "function"
   );
 }
 

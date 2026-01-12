@@ -508,7 +508,7 @@ export interface InputTransactionPluginData {
    * Additional parameters that will be passed to the transaction submitter plugin if
    * configured.
    */
-  pluginParams?: Record<string, any>;
+  pluginParams?: Record<string, unknown>;
 
   /**
    * You can set this to override the configured transaction submitter (if any).

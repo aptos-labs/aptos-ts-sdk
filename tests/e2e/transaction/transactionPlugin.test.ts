@@ -17,11 +17,11 @@ import { longTestTimeout } from "../../unit/helper";
 interface PluginCallData {
   callCount: number;
   lastCall?: {
-    transaction: any;
-    senderAuthenticator: any;
-    feePayerAuthenticator?: any;
-    additionalSignersAuthenticators?: any;
-    pluginParams?: Record<string, any>;
+    transaction: unknown;
+    senderAuthenticator: unknown;
+    feePayerAuthenticator?: unknown;
+    additionalSignersAuthenticators?: unknown;
+    pluginParams?: Record<string, unknown>;
   };
 }
 
@@ -76,7 +76,7 @@ class MockTransactionSubmitter implements TransactionSubmitter {
       max_gas_amount: transaction.rawTransaction.max_gas_amount.toString(),
       gas_unit_price: transaction.rawTransaction.gas_unit_price.toString(),
       expiration_timestamp_secs: transaction.rawTransaction.expiration_timestamp_secs.toString(),
-      payload: {} as any,
+      payload: {} as object,
     };
   }
 }
@@ -110,7 +110,7 @@ class OverrideTransactionSubmitter implements TransactionSubmitter {
       max_gas_amount: transaction.rawTransaction.max_gas_amount.toString(),
       gas_unit_price: transaction.rawTransaction.gas_unit_price.toString(),
       expiration_timestamp_secs: transaction.rawTransaction.expiration_timestamp_secs.toString(),
-      payload: {} as any,
+      payload: {} as object,
     };
   }
 }

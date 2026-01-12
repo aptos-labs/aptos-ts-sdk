@@ -695,7 +695,7 @@ export class Transaction {
     try {
       const { sender, data, options } = args;
       this.batch.forSingleAccount({ sender, data, options });
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`failed to submit transactions with error: ${error}`);
     }
   }

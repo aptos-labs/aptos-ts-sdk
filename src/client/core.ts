@@ -69,7 +69,7 @@ export async function request<Req, Res>(options: ClientRequest<Req>, client: Cli
  * @group Implementation
  * @category Client
  */
-export async function aptosRequest<Req extends {}, Res extends {}>(
+export async function aptosRequest<Req, Res>(
   aptosRequestOpts: AptosRequest,
   aptosConfig: AptosConfig,
   apiType: AptosApiType,
@@ -96,7 +96,7 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
   // to support both fullnode and indexer responses,
   // check if it is an indexer query, and adjust response.data
   if (apiType === AptosApiType.INDEXER) {
-    const indexerResponse = aptosResponse.data as any;
+    const indexerResponse = aptosResponse.data as { data?: Res; errors?: unknown };
     // Handle Indexer general errors
     if (indexerResponse.errors) {
       throw new AptosApiError({

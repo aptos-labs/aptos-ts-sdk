@@ -415,10 +415,11 @@ export class AccountAddress extends Serializable implements TransactionArgument 
       // the hex string to bytes. Every two characters in a hex string constitutes a
       // single byte. So a 64 length hex string becomes a 32 byte array.
       addressBytes = hexToBytes(parsedInput.padStart(64, "0"));
-    } catch (error: any) {
+    } catch (error) {
       // At this point the only way this can fail is if the hex string contains
       // invalid characters.
-      throw new ParsingError(`Hex characters are invalid: ${error?.message}`, AddressInvalidReason.INVALID_HEX_CHARS);
+      const message = error instanceof Error ? error.message : String(error);
+      throw new ParsingError(`Hex characters are invalid: ${message}`, AddressInvalidReason.INVALID_HEX_CHARS);
     }
 
     const address = new AccountAddress(addressBytes);
@@ -499,11 +500,12 @@ Received ${input}`,
         AccountAddress.from(args.input);
       }
       return { valid: true };
-    } catch (error: any) {
+    } catch (error) {
+      const addressError = error as { invalidReason?: AddressInvalidReason; message?: string };
       return {
         valid: false,
-        invalidReason: error?.invalidReason,
-        invalidReasonMessage: error?.message,
+        invalidReason: addressError.invalidReason,
+        invalidReasonMessage: addressError.message,
       };
     }
   }

@@ -22,7 +22,7 @@ function truncate(address: AccountAddress): string {
 }
 
 function formatAccountInfo(account: Ed25519Account): string {
-  const vals: any[] = [account.accountAddress, account.publicKey.authKey(), account.privateKey, account.publicKey];
+  const vals = [account.accountAddress, account.publicKey.authKey(), account.privateKey, account.publicKey];
   return vals.map((v) => truncate(v).padEnd(WIDTH)).join(" ");
 }
 

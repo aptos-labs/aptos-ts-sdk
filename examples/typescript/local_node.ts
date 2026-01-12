@@ -5,7 +5,7 @@
 
 const cli = require("@aptos-labs/ts-sdk/dist/common/cli/index.js");
 
-let localNode: any;
+let localNode: InstanceType<typeof cli.LocalNode> | undefined;
 const move = new cli.Move();
 
 // Run local node
@@ -158,7 +158,7 @@ async function stopLocalNode() {
     console.log("stopping local node");
     await localNode.stop();
     console.log("local node stopped");
-  } catch (err: any) {
+  } catch (err) {
     console.error("error stopping local node", err);
   }
 }

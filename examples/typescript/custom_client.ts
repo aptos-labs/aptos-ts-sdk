@@ -21,7 +21,7 @@ export async function superagentCustomClient<Req, Res>(
 ): Promise<ClientResponse<Res>> {
   const { params, method, url, headers, body } = requestOptions;
 
-  const customHeaders: any = {
+  const customHeaders: Record<string, string | number | boolean | undefined> = {
     ...headers,
     customClient: true,
   };

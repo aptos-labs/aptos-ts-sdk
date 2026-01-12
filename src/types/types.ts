@@ -484,11 +484,11 @@ export interface ClientRequest<Req> {
   url: string;
   method: "GET" | "POST";
   originMethod?: string;
-  body?: Req;
+  body?: Req | unknown;
   contentType?: string;
-  params?: any;
+  params?: Record<string, string | AnyNumber | boolean | undefined>;
   overrides?: ClientConfig & FullNodeConfig & IndexerConfig & FaucetConfig;
-  headers?: Record<string, any>;
+  headers?: Record<string, string | AnyNumber | boolean | undefined>;
   http2?: boolean;
 }
 
@@ -496,10 +496,10 @@ export interface ClientResponse<Res> {
   status: number;
   statusText: string;
   data: Res;
-  config?: any;
-  request?: any;
-  response?: any;
-  headers?: any;
+  config?: Record<string, unknown>;
+  request?: unknown;
+  response?: unknown;
+  headers?: Record<string, string>;
 }
 
 export interface Client {
@@ -537,7 +537,7 @@ export type AptosRequest = {
   url: string;
   method: "GET" | "POST";
   path?: string;
-  body?: any;
+  body?: unknown;
   contentType?: string;
   acceptType?: string;
   params?: Record<string, string | AnyNumber | boolean | undefined>;
@@ -561,9 +561,9 @@ export interface AptosResponse<Req, Res> {
   statusText: string;
   data: Res;
   url: string;
-  headers: any;
-  config?: any;
-  request?: Req;
+  headers?: Record<string, string>;
+  config?: Record<string, unknown>;
+  request?: Req | unknown;
 }
 
 /**
@@ -1039,7 +1039,7 @@ export type DecodedTableData = {
   /**
    * Key of table in JSON
    */
-  key: any;
+  key: unknown;
   /**
    * Type of key
    */
@@ -1047,7 +1047,7 @@ export type DecodedTableData = {
   /**
    * Value of table in JSON
    */
-  value: any;
+  value: unknown;
   /**
    * Type of value
    */
@@ -1061,7 +1061,7 @@ export type DeletedTableData = {
   /**
    * Deleted key
    */
-  key: any;
+  key: unknown;
   /**
    * Deleted key type
    */
@@ -1086,7 +1086,7 @@ export type EntryFunctionPayloadResponse = {
   /**
    * Arguments of the function
    */
-  arguments: Array<any>;
+  arguments: Array<unknown>;
 };
 
 /**
@@ -1102,7 +1102,7 @@ export type ScriptPayloadResponse = {
   /**
    * Arguments of the function
    */
-  arguments: Array<any>;
+  arguments: Array<unknown>;
 };
 
 /**
@@ -1335,7 +1335,7 @@ export type Event = {
   /**
    * The JSON representation of the event
    */
-  data: any;
+  data: unknown;
 };
 
 /**
@@ -1676,7 +1676,7 @@ export type TableItemRequest = {
   /**
    * The value of the table item's key
    */
-  key: any;
+  key: unknown;
 };
 
 /**

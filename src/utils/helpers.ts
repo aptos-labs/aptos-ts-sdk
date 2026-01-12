@@ -172,7 +172,7 @@ export const parseEncodedStruct = (structObj: {
  * @category Utils
  */
 export const isEncodedStruct = (
-  structObj: any,
+  structObj: unknown,
 ): structObj is {
   account_address: string;
   module_name: string;

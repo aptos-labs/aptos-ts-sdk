@@ -42,7 +42,7 @@ export async function fundAccount(args: {
 }): Promise<UserTransactionResponse> {
   const { aptosConfig, accountAddress, amount, options } = args;
   const timeout = options?.timeoutSecs || DEFAULT_TXN_TIMEOUT_SEC;
-  const { data } = await postAptosFaucet<any, { txn_hashes: Array<string> }>({
+  const { data } = await postAptosFaucet<object, { txn_hashes: Array<string> }>({
     aptosConfig,
     path: "fund",
     body: {

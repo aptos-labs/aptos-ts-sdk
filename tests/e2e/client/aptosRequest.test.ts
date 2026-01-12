@@ -62,7 +62,7 @@ describe("aptos request", () => {
             "x-aptos-typescript-sdk-origin-method",
             "test request includes all headers",
           );
-        } catch (error: any) {
+        } catch (error) {
           // should not get here
 
           console.log("Error in 'headers'", error);
@@ -90,7 +90,7 @@ describe("aptos request", () => {
             AptosApiType.FULLNODE,
           );
           expect(response.config.headers).toHaveProperty("authorization", `Bearer ${dummyKey}`);
-        } catch (error: any) {
+        } catch (error) {
           // should not get here
 
           console.log("Error in 'api_token for full node requests'", error);
@@ -121,7 +121,7 @@ describe("aptos request", () => {
               sequence_number: "0",
               authentication_key: "0x0000000000000000000000000000000000000000000000000000000000000001",
             });
-          } catch (error: any) {
+          } catch (error) {
             // should not get here
 
             console.log("Error in 'fullnode server returns 200 status code'", error);
@@ -147,7 +147,7 @@ describe("aptos request", () => {
               config,
               AptosApiType.FULLNODE,
             );
-          } catch (error: any) {
+          } catch (error) {
             expect(error).toBeInstanceOf(AptosApiError);
             expect(error.url).toBe(`${fullnodeUrl}/transactions/by_hash/0x123`);
             expect(error.status).toBe(400);
@@ -182,7 +182,7 @@ describe("aptos request", () => {
               config,
               AptosApiType.FULLNODE,
             );
-          } catch (error: any) {
+          } catch (error) {
             expect(error).toBeInstanceOf(AptosApiError);
             expect(error.url).toBe(
               `${fullnodeUrl}/transactions/by_hash/0x23851af73879128b541bafad4b49d0b6f1ac0d49ed2400632d247135fbca7bea`,
@@ -222,7 +222,7 @@ describe("aptos request", () => {
               config,
               AptosApiType.FULLNODE,
             );
-          } catch (error: any) {
+          } catch (error) {
             expect(error).toBeInstanceOf(AptosApiError);
             expect(error.url).toBe(`${fullnodeUrl}/transactions`);
             expect(error.status).toBe(400);
@@ -307,7 +307,7 @@ describe("aptos request", () => {
               config,
               AptosApiType.INDEXER,
             );
-          } catch (error: any) {
+          } catch (error) {
             expect(error).toBeInstanceOf(AptosApiError);
             expect(error.url).toBe(`${indexerUrl}`);
             expect(error.status).toBe(200);
