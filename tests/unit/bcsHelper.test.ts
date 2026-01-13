@@ -184,7 +184,7 @@ describe("Tests for the Serializable class", () => {
       MoveOption.Bool(undefined),
       MoveOption.MoveString(undefined),
     ];
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     const noneBytes = noneOptionValues.map((_) => new Uint8Array([0]));
 
     // checks each serialized value individually
