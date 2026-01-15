@@ -318,18 +318,18 @@ export class Deserializer {
    * @category BCS
    */
   deserializeU64(): Uint64 {
-    const low = this.deserializeU32();
-    const high = this.deserializeU32();
+    const low = BigInt(this.deserializeU32());
+    const high = BigInt(this.deserializeU32());
 
     // combine the two 32-bit values and return (little endian)
-    return BigInt((BigInt(high) << BigInt(32)) | BigInt(low));
+    return (high << BigInt(32)) | low;
   }
 
   /**
    * Deserializes a uint128 number from its binary representation.
    * This function combines two 64-bit values to return a single uint128 value in little-endian format.
    *
-   * @returns {BigInt} The deserialized uint128 number.
+   * @returns {bigint} The deserialized uint128 number.
    * @group Implementation
    * @category BCS
    */
@@ -338,7 +338,7 @@ export class Deserializer {
     const high = this.deserializeU64();
 
     // combine the two 64-bit values and return (little endian)
-    return BigInt((high << BigInt(64)) | low);
+    return (high << BigInt(64)) | low;
   }
 
   /**
@@ -346,7 +346,7 @@ export class Deserializer {
    *
    * The BCS layout for "uint256" consists of thirty-two bytes in little-endian format.
    *
-   * @returns {BigInt} The deserialized uint256 number.
+   * @returns {bigint} The deserialized uint256 number.
    * @group Implementation
    * @category BCS
    */
@@ -355,7 +355,7 @@ export class Deserializer {
     const high = this.deserializeU128();
 
     // combine the two 128-bit values and return (little endian)
-    return BigInt((high << BigInt(128)) | low);
+    return (high << BigInt(128)) | low;
   }
 
   /**
@@ -403,15 +403,14 @@ export class Deserializer {
    * @category BCS
    */
   deserializeI64(): bigint {
-    const low = this.deserializeU32();
-    const high = this.deserializeU32();
+    const low = BigInt(this.deserializeU32());
+    const high = BigInt(this.deserializeU32());
 
     // combine the two 32-bit values (little endian)
-    const unsigned = BigInt((BigInt(high) << BigInt(32)) | BigInt(low));
+    const unsigned = (high << BigInt(32)) | low;
 
     // Convert from unsigned to signed using two's complement
-    const signBit = BigInt(1) << BigInt(63);
-    if (unsigned >= signBit) {
+    if (unsigned >= BigInt(1) << BigInt(63)) {
       return unsigned - (BigInt(1) << BigInt(64));
     }
     return unsigned;
@@ -430,11 +429,10 @@ export class Deserializer {
     const high = this.deserializeU64();
 
     // combine the two 64-bit values (little endian)
-    const unsigned = BigInt((high << BigInt(64)) | low);
+    const unsigned = (high << BigInt(64)) | low;
 
     // Convert from unsigned to signed using two's complement
-    const signBit = BigInt(1) << BigInt(127);
-    if (unsigned >= signBit) {
+    if (unsigned >= BigInt(1) << BigInt(127)) {
       return unsigned - (BigInt(1) << BigInt(128));
     }
     return unsigned;
@@ -453,11 +451,10 @@ export class Deserializer {
     const high = this.deserializeU128();
 
     // combine the two 128-bit values (little endian)
-    const unsigned = BigInt((high << BigInt(128)) | low);
+    const unsigned = (high << BigInt(128)) | low;
 
     // Convert from unsigned to signed using two's complement
-    const signBit = BigInt(1) << BigInt(255);
-    if (unsigned >= signBit) {
+    if (unsigned >= BigInt(1) << BigInt(255)) {
       return unsigned - (BigInt(1) << BigInt(256));
     }
     return unsigned;

@@ -395,7 +395,7 @@ export async function generateRawTransaction(args: {
       } else if (options?.replayProtectionNonce !== undefined) {
         // If replay nonce is provided, use it as the sequence number
         // This is an unused value, so it's specifically to show that the sequence number is not used
-        return 0xdeadbeefn;
+        return BigInt(0xdeadbeef);
       }
 
       return (await getInfo({ aptosConfig, accountAddress: sender })).sequence_number;
@@ -413,7 +413,7 @@ export async function generateRawTransaction(args: {
       try {
         // Check if main signer has been created on chain, if not assign sequence number 0
         return await getSequenceNumber();
-      } catch (e: any) {
+      } catch (e: unknown) {
         return 0;
       }
     } else {

@@ -37,11 +37,19 @@ export async function request<Req, Res>(options: ClientRequest<Req>, client: Cli
     "x-aptos-typescript-sdk-origin-method": originMethod,
   };
 
-  if (overrides?.AUTH_TOKEN) {
-    headers.Authorization = `Bearer ${overrides?.AUTH_TOKEN}`;
+  // Set Authorization header from AUTH_TOKEN or API_KEY.
+  // If both are provided, API_KEY takes precedence (AUTH_TOKEN is ignored).
+  if (overrides?.AUTH_TOKEN && overrides?.API_KEY) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      "Both AUTH_TOKEN and API_KEY are provided. API_KEY will be used for authorization. " +
+        "Consider using only one authentication method.",
+    );
   }
   if (overrides?.API_KEY) {
-    headers.Authorization = `Bearer ${overrides?.API_KEY}`;
+    headers.Authorization = `Bearer ${overrides.API_KEY}`;
+  } else if (overrides?.AUTH_TOKEN) {
+    headers.Authorization = `Bearer ${overrides.AUTH_TOKEN}`;
   }
 
   /*
