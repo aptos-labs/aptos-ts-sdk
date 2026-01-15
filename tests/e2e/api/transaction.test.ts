@@ -135,7 +135,7 @@ describe("transaction api", () => {
       expect(blockData.block_height).toBe(blockHeight.toString());
       const length = BigInt(blockData.transactions?.length ?? 0);
 
-      const txnVersions = blockData.transactions!.map((txn) => BigInt((txn as any).version));
+      const txnVersions = blockData.transactions!.map((txn) => BigInt((txn as { version: string }).version));
       // Check that every exists
       for (let i = 0; i < txnVersions.length - 1; i += 1) {
         expect(txnVersions[i]).toBe(txnVersions[i + 1] - 1n);
@@ -163,7 +163,7 @@ describe("transaction api", () => {
       expect(blockData.block_height).toBe(info.block_height.toString());
       const length = BigInt(blockData.transactions?.length ?? 0);
 
-      const txnVersions = blockData.transactions!.map((txn) => BigInt((txn as any).version));
+      const txnVersions = blockData.transactions!.map((txn) => BigInt((txn as { version: string }).version));
       // Check that every exists
       for (let i = 0; i < txnVersions.length - 1; i += 1) {
         expect(txnVersions[i]).toBe(txnVersions[i + 1] - 1n);

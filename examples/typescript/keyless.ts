@@ -1,6 +1,3 @@
-/* eslint-disable max-len */
-/* eslint-disable no-console */
-
 /**
  * This example shows how to use the Keyless accounts on Aptos
  */
@@ -20,7 +17,7 @@ const TRANSFER_AMOUNT = 10_000;
  * @returns {Promise<*>}
  *
  */
-const balance = async (aptos: Aptos, name: string, address: AccountAddress): Promise<any> => {
+const balance = async (aptos: Aptos, name: string, address: AccountAddress): Promise<number> => {
   const amount = await aptos.getAccountAPTAmount({
     accountAddress: address,
   });

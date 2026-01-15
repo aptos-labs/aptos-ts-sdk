@@ -14,7 +14,6 @@ import {
   Serializer,
 } from "../../src";
 
-/* eslint-disable max-len */
 describe("Secp256r1PublicKey", () => {
   it("should create the instance correctly without error", () => {
     // Create from string
@@ -30,7 +29,7 @@ describe("Secp256r1PublicKey", () => {
   });
 
   it("should work with compressed public keys", () => {
-    const expectedPublicKey = new Secp256r1PublicKey(singleSignerSecp256r1.publicKey);
+    const _expectedPublicKey = new Secp256r1PublicKey(singleSignerSecp256r1.publicKey);
     const uncompressedPublicKey = Hex.fromHexInput(singleSignerSecp256r1.publicKey);
     expect(uncompressedPublicKey.toUint8Array().length).toEqual(65);
 
@@ -202,9 +201,7 @@ describe("Secp256r1Signature", () => {
     expect(signatureStr).toBeInstanceOf(Secp256r1Signature);
     expect(signatureStr.toString()).toEqual(singleSignerSecp256r1.signatureHex);
 
-    // Create from Uint8Array
-    const signatureValue = new Uint8Array(Secp256r1Signature.LENGTH);
-    // Fill with valid signature data (this will be normalized)
+    // Create from Uint8Array - Fill with valid signature data (this will be normalized)
     const validSigBytes = Hex.fromHexInput(singleSignerSecp256r1.signatureHex).toUint8Array();
     const signature = new Secp256r1Signature(validSigBytes);
     expect(signature).toBeInstanceOf(Secp256r1Signature);

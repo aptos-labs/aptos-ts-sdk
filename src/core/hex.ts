@@ -128,9 +128,10 @@ export class Hex {
 
     try {
       return new Hex(hexToBytes(input));
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       throw new ParsingError(
-        `Hex string contains invalid hex characters: ${error?.message}`,
+        `Hex string contains invalid hex characters: ${message}`,
         HexInvalidReason.INVALID_HEX_CHARS,
       );
     }
@@ -215,11 +216,12 @@ export class Hex {
     try {
       Hex.fromHexString(str);
       return { valid: true };
-    } catch (error: any) {
+    } catch (error) {
+      const hexError = error as { invalidReason?: HexInvalidReason; message?: string };
       return {
         valid: false,
-        invalidReason: error?.invalidReason,
-        invalidReasonMessage: error?.message,
+        invalidReason: hexError.invalidReason,
+        invalidReasonMessage: hexError.message,
       };
     }
   }

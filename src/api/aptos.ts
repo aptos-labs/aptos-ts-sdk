@@ -41,6 +41,7 @@ import { AccountAbstraction } from "./account/abstraction";
  * ```
  * @group Client
  */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class Aptos {
   readonly config: AptosConfig;
 
@@ -111,8 +112,10 @@ export class Aptos {
   }
 }
 
-// extends Aptos interface so all the methods and properties
+// Extends Aptos interface so all the methods and properties
 // from the other classes will be recognized by typescript.
+// This is intentional declaration merging for the mixin pattern.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export interface Aptos
   extends Account,
     ANS,
@@ -136,7 +139,10 @@ that we can combine to form a single class that contains all the methods and pro
 Here, we combine any subclass and the Aptos class.
  * @group Client
 */
-function applyMixin(targetClass: any, baseClass: any, baseClassProp: string) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Constructor = new (...args: any[]) => object;
+
+function applyMixin(targetClass: Constructor, baseClass: Constructor, baseClassProp: string) {
   // Mixin instance methods
   Object.getOwnPropertyNames(baseClass.prototype).forEach((propertyName) => {
     const propertyDescriptor = Object.getOwnPropertyDescriptor(baseClass.prototype, propertyName);
@@ -144,8 +150,9 @@ function applyMixin(targetClass: any, baseClass: any, baseClassProp: string) {
 
     // Define new method that calls through baseClassProp
     Object.defineProperty(targetClass.prototype, propertyName, {
-      value: function (...args: any[]) {
-        return (this as any)[baseClassProp][propertyName](...args);
+      value: function (this: Record<string, unknown>, ...args: unknown[]) {
+        const delegate = this[baseClassProp] as Record<string, (...a: unknown[]) => unknown>;
+        return delegate[propertyName](...args);
       },
       writable: propertyDescriptor.writable,
       configurable: propertyDescriptor.configurable,

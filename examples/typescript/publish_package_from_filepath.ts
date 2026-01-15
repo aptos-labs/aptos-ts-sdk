@@ -7,8 +7,7 @@
  * 2. cd `~/aptos-ts-sdk/examples/typescript`
  * 3. Run `pnpm run publish_package_from_filepath` and follow the prompt
  */
-/* eslint-disable no-console */
-/* eslint-disable max-len */
+
 import dotenv from "dotenv";
 dotenv.config();
 

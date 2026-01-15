@@ -20,7 +20,6 @@ import {
   U8,
   EntryFunctionArgument,
 } from "../../src";
-/* eslint-disable @typescript-eslint/no-shadow */
 
 describe("Tests for the Serializable class", () => {
   let serializer: Serializer;
@@ -185,7 +184,7 @@ describe("Tests for the Serializable class", () => {
       MoveOption.Bool(undefined),
       MoveOption.MoveString(undefined),
     ];
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     const noneBytes = noneOptionValues.map((_) => new Uint8Array([0]));
 
     // checks each serialized value individually
@@ -588,9 +587,12 @@ describe("Tests for the Serializable class", () => {
     });
 
     it("throws an error when trying to create a MoveVector.U8 from an invalid input type", () => {
-      expect(() => MoveVector.U8({} as any)).toThrow();
-      expect(() => MoveVector.U8(["01", "02", "03"] as any)).toThrow();
-      expect(() => MoveVector.U8([BigInt(1)] as any)).toThrow();
+      // @ts-expect-error Testing invalid input
+      expect(() => MoveVector.U8({})).toThrow();
+      // @ts-expect-error Testing invalid input
+      expect(() => MoveVector.U8(["01", "02", "03"])).toThrow();
+      // @ts-expect-error Testing invalid input
+      expect(() => MoveVector.U8([BigInt(1)])).toThrow();
     });
   });
 });

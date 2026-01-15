@@ -46,7 +46,6 @@ describe("Ed25519PublicKey", () => {
 
     // Verify with incorrect signed message
     const incorrectSignedMessage =
-      // eslint-disable-next-line max-len
       "0xc5de9e40ac00b371cd83b1c197fa5b665b7449b33cd3cdd305bb78222e06a671a49625ab9aea8a039d4bb70e275768084d62b094bc1b31964f2357b7c1af7e0a";
     const invalidSignature = new Ed25519Signature(incorrectSignedMessage);
     expect(
@@ -60,14 +59,12 @@ describe("Ed25519PublicKey", () => {
   it("should fail malleable signatures", () => {
     // Here we make a signature exactly with the L
     const signature = new Ed25519Signature(
-      // eslint-disable-next-line max-len
       "0x0000000000000000000000000000000000000000000000000000000000000000edd3f55c1a631258d69cf7a2def9de1400000000000000000000000000000010",
     );
     expect(isCanonicalEd25519Signature(signature)).toBe(false);
 
     // We now check with L + 1
     const signature2 = new Ed25519Signature(
-      // eslint-disable-next-line max-len
       "0x0000000000000000000000000000000000000000000000000000000000000000edd3f55c1a631258d69cf7a2def9de1400000000000000000000000000000011",
     );
     expect(isCanonicalEd25519Signature(signature2)).toBe(false);

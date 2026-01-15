@@ -187,7 +187,7 @@ When(/^I deserialize as ([0-9a-zA-Z ]+)$/, function(inputType: string) {
       default:
         throw new Error(`Unsupported type: ${inputType}`);
     }
-  } catch (error: any) {
+  } catch (error) {
     // We have to make this to handle error handling
     this.resultError = true;
     this.error = error;
@@ -267,7 +267,7 @@ function parseArray(input: string) {
   return input.split(",");
 }
 
-function checkDeserializationError(input: any) {
+function checkDeserializationError(input: { resultError?: boolean; error?: unknown; dataRemaining?: boolean }) {
   assert(input.resultError === false || input.resultError === undefined, `Deserialization failed with error: ${input.error}`);
   assert(input.dataRemaining === false || input.dataRemaining === undefined, "Data remaining after deserialization");
 }

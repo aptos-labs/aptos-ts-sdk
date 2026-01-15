@@ -393,7 +393,7 @@ export async function getCollectionData(args: {
 }): Promise<GetCollectionDataResponse> {
   const { aptosConfig, options } = args;
 
-  const whereCondition: any = options?.where;
+  const whereCondition: Record<string, unknown> = options?.where ?? {};
 
   if (options?.tokenStandard) {
     whereCondition.token_standard = { _eq: options?.tokenStandard ?? "v2" };
@@ -437,7 +437,7 @@ export async function getCollectionDataByCreatorAddressAndCollectionName(args: {
   const { aptosConfig, creatorAddress, collectionName, options } = args;
   const address = AccountAddress.from(creatorAddress);
 
-  const whereCondition: any = {
+  const whereCondition: Record<string, { _eq?: string }> = {
     collection_name: { _eq: collectionName },
     creator_address: { _eq: address.toStringLong() },
   };
@@ -468,7 +468,7 @@ export async function getCollectionDataByCreatorAddress(args: {
   const { aptosConfig, creatorAddress, options } = args;
   const address = AccountAddress.from(creatorAddress);
 
-  const whereCondition: any = {
+  const whereCondition: Record<string, { _eq?: string }> = {
     creator_address: { _eq: address.toStringLong() },
   };
   if (options?.tokenStandard) {
@@ -499,7 +499,7 @@ export async function getCollectionDataByCollectionId(args: {
   const { aptosConfig, collectionId, options } = args;
   const address = AccountAddress.from(collectionId);
 
-  const whereCondition: any = {
+  const whereCondition: Record<string, { _eq?: string }> = {
     collection_id: { _eq: address.toStringLong() },
   };
 
@@ -532,7 +532,7 @@ export async function getCollectionId(args: {
   const { creatorAddress, collectionName, options, aptosConfig } = args;
   const address = AccountAddress.from(creatorAddress);
 
-  const whereCondition: any = {
+  const whereCondition: Record<string, { _eq?: string }> = {
     collection_name: { _eq: collectionName },
     creator_address: { _eq: address.toStringLong() },
   };

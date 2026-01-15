@@ -119,7 +119,6 @@ export class MultiEd25519PublicKey extends AbstractMultiKey {
     const indices: number[] = [];
     for (let i = 0; i < 4; i += 1) {
       for (let j = 0; j < 8; j += 1) {
-        // eslint-disable-next-line no-bitwise
         const bitIsSet = (signature.bitmap[i] & (1 << (7 - j))) !== 0;
         if (bitIsSet) {
           const index = i * 8 + j;
@@ -423,7 +422,6 @@ export class MultiEd25519Signature extends Signature {
 
       let byte = bitmap[byteOffset];
 
-      // eslint-disable-next-line no-bitwise
       byte |= firstBitInByte >> bit % 8;
 
       bitmap[byteOffset] = byte;

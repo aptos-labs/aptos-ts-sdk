@@ -141,9 +141,9 @@ function getRouterAddress(aptosConfig: AptosConfig): string {
   return address;
 }
 
-const unwrapOption = <T>(option: any): T | undefined => {
-  if (!!option && typeof option === "object" && "vec" in option && Array.isArray(option.vec)) {
-    return option.vec[0];
+const unwrapOption = <T>(option: unknown): T | undefined => {
+  if (!!option && typeof option === "object" && "vec" in option && Array.isArray((option as { vec: unknown }).vec)) {
+    return (option as { vec: T[] }).vec[0];
   }
 
   return undefined;
@@ -329,7 +329,7 @@ export async function getExpiration(args: { aptosConfig: AptosConfig; name: stri
 
     // Normalize expiration time from epoch seconds to epoch milliseconds
     return Number(res[0]) * 1000;
-  } catch (e) {
+  } catch (_e) {
     return undefined;
   }
 }

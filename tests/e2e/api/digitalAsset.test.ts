@@ -49,12 +49,15 @@ async function setupToken(): Promise<string> {
   });
   const pendingTxn = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
   const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
-  return (
-    await aptos.getOwnedDigitalAssets({
-      ownerAddress: creator.accountAddress.toString(),
-      minimumLedgerVersion: BigInt(response.version),
-    })
-  )[0].current_token_data?.token_data_id!;
+  const assets = await aptos.getOwnedDigitalAssets({
+    ownerAddress: creator.accountAddress.toString(),
+    minimumLedgerVersion: BigInt(response.version),
+  });
+  const tokenDataId = assets[0].current_token_data?.token_data_id;
+  if (!tokenDataId) {
+    throw new Error("Token data ID not found");
+  }
+  return tokenDataId;
 }
 
 jest.setTimeout(20000);

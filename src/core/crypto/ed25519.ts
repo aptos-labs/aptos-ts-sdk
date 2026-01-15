@@ -219,7 +219,10 @@ export class Ed25519PublicKey extends AccountPublicKey {
    * @category Serialization
    */
   static isInstance(publicKey: PublicKey): publicKey is Ed25519PublicKey {
-    return "key" in publicKey && (publicKey.key as any)?.data?.length === Ed25519PublicKey.LENGTH;
+    return (
+      "key" in publicKey &&
+      (publicKey as { key?: { data?: { length?: number } } }).key?.data?.length === Ed25519PublicKey.LENGTH
+    );
   }
 }
 

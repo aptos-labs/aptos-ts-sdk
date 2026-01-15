@@ -222,7 +222,6 @@ export function generateTransactionPayloadWithABI(
   // Check that all arguments are accounted for
   if (functionArguments.length !== functionAbi.parameters.length) {
     throw new Error(
-      // eslint-disable-next-line max-len
       `Too few arguments for '${moduleAddress}::${moduleName}::${functionName}', expected ${functionAbi.parameters.length} but got ${functionArguments.length}`,
     );
   }
@@ -314,7 +313,6 @@ export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWi
   // Check that all arguments are accounted for
   if (functionArguments.length !== functionAbi.parameters.length) {
     throw new Error(
-      // eslint-disable-next-line max-len
       `Too few arguments for '${moduleAddress}::${moduleName}::${functionName}', expected ${functionAbi.parameters.length} but got ${functionArguments.length}`,
     );
   }
@@ -413,7 +411,7 @@ export async function generateRawTransaction(args: {
       try {
         // Check if main signer has been created on chain, if not assign sequence number 0
         return await getSequenceNumber();
-      } catch (e: any) {
+      } catch (_e) {
         return 0;
       }
     } else {

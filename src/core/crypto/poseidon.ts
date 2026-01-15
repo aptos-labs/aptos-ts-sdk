@@ -1,4 +1,3 @@
-/* eslint-disable no-bitwise */
 import {
   poseidon1,
   poseidon2,

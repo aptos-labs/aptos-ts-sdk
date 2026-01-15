@@ -39,8 +39,12 @@ export interface KeylessSigner extends Account {
   checkKeylessAccountValidity(aptosConfig: AptosConfig): Promise<void>;
 }
 
-export function isKeylessSigner(obj: any): obj is KeylessSigner {
-  return obj !== null && obj !== undefined && typeof obj.checkKeylessAccountValidity === "function";
+export function isKeylessSigner(obj: unknown): obj is KeylessSigner {
+  return (
+    obj !== null &&
+    obj !== undefined &&
+    typeof (obj as { checkKeylessAccountValidity?: unknown }).checkKeylessAccountValidity === "function"
+  );
 }
 
 /**
@@ -368,7 +372,6 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
         });
       }
     } else {
-      // eslint-disable-next-line no-console
       console.warn(
         "[Aptos SDK] The verification key hash was not set. Proof may be invalid if the verification key has rotated.",
       );

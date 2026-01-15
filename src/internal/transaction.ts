@@ -139,8 +139,8 @@ export async function isTransactionPending(args: {
   try {
     const transaction = await getTransactionByHash({ aptosConfig, transactionHash });
     return transaction.type === TransactionResponseType.Pending;
-  } catch (e: any) {
-    if (e?.status === 404) {
+  } catch (e) {
+    if (e instanceof AptosApiError && e.status === 404) {
       return true;
     }
     throw e;
@@ -207,7 +207,7 @@ export async function waitForTransaction(args: {
    * @throws {Error} Throws the last error if it exists; otherwise, throws a WaitForTransactionError indicating a timeout.
    * @group Implementation
    */
-  function handleAPIError(e: any) {
+  function handleAPIError(e: unknown) {
     // In short, this means we will retry if it was an AptosApiError and the code was 404 or 5xx.
     const isAptosApiError = e instanceof AptosApiError;
     if (!isAptosApiError) {
@@ -246,7 +246,6 @@ export async function waitForTransaction(args: {
       break;
     }
     try {
-      // eslint-disable-next-line no-await-in-loop
       lastTxn = await getTransactionByHash({ aptosConfig, transactionHash });
 
       isPending = lastTxn.type === TransactionResponseType.Pending;
@@ -257,7 +256,7 @@ export async function waitForTransaction(args: {
     } catch (e) {
       handleAPIError(e);
     }
-    // eslint-disable-next-line no-await-in-loop
+
     await sleep(backoffIntervalMs);
     timeElapsed += backoffIntervalMs / 1000; // Convert to seconds
     backoffIntervalMs *= backoffMultiplier;
@@ -322,11 +321,11 @@ export async function waitForIndexer(args: {
 
     if (processorType === undefined) {
       // Get the last success version from all processor
-      // eslint-disable-next-line no-await-in-loop
+
       indexerVersion = await getIndexerLastSuccessVersion({ aptosConfig });
     } else {
       // Get the last success version from the specific processor
-      // eslint-disable-next-line no-await-in-loop
+
       const processor = await getProcessorStatus({ aptosConfig, processorType });
       indexerVersion = processor.last_success_version;
     }
@@ -336,7 +335,6 @@ export async function waitForIndexer(args: {
       break;
     }
 
-    // eslint-disable-next-line no-await-in-loop
     await sleep(200);
   }
 }
@@ -461,7 +459,7 @@ async function fillBlockTransactions(args: {
     const lastVersion = BigInt(block.last_version);
 
     // Convert the transaction to the type
-    const curVersion: string | undefined = (lastTxn as any)?.version;
+    const curVersion: string | undefined = (lastTxn as { version?: string } | undefined)?.version;
     let latestVersion;
 
     // This time, if we don't have any transactions, we will try once with the start of the block

@@ -82,9 +82,7 @@ export type GetAptosRequestOptions = Omit<GetRequestOptions, "type">;
  * @group Implementation
  * @category Client
  */
-export async function get<Req extends {}, Res extends {}>(
-  options: GetRequestOptions,
-): Promise<AptosResponse<Req, Res>> {
+export async function get<Req, Res>(options: GetRequestOptions): Promise<AptosResponse<Req, Res>> {
   const { aptosConfig, overrides, params, contentType, acceptType, path, originMethod, type } = options;
   const url = aptosConfig.getRequestUrl(type);
 
@@ -121,9 +119,7 @@ export async function get<Req extends {}, Res extends {}>(
  * @group Implementation
  * @category Client
  */
-export async function getAptosFullNode<Req extends {}, Res extends {}>(
-  options: GetAptosRequestOptions,
-): Promise<AptosResponse<Req, Res>> {
+export async function getAptosFullNode<Req, Res>(options: GetAptosRequestOptions): Promise<AptosResponse<Req, Res>> {
   const { aptosConfig } = options;
 
   return get<Req, Res>({
@@ -148,7 +144,7 @@ export async function getAptosFullNode<Req extends {}, Res extends {}>(
  * @group Implementation
  * @category Client
  */
-export async function getAptosPepperService<Req extends {}, Res extends {}>(
+export async function getAptosPepperService<Req, Res>(
   options: GetAptosRequestOptions,
 ): Promise<AptosResponse<Req, Res>> {
   return get<Req, Res>({ ...options, type: AptosApiType.PEPPER });
@@ -159,14 +155,13 @@ export async function getAptosPepperService<Req extends {}, Res extends {}>(
  * @group Implementation
  * @category Client
  */
-export async function paginateWithCursor<Req extends Record<string, any>, Res extends Array<{}>>(
+export async function paginateWithCursor<Req extends Record<string, unknown>, Res extends Array<object>>(
   options: GetAptosRequestOptions,
 ): Promise<Res> {
   const out: Res = new Array(0) as Res;
   let cursor: string | undefined;
   const requestParams = options.params as { start?: string; limit?: number };
   do {
-    // eslint-disable-next-line no-await-in-loop
     const response = await get<Req, Res>({
       type: AptosApiType.FULLNODE,
       aptosConfig: options.aptosConfig,
@@ -182,7 +177,7 @@ export async function paginateWithCursor<Req extends Record<string, any>, Res ex
      * @group Implementation
      * @category Client
      */
-    cursor = response.headers["x-aptos-cursor"];
+    cursor = response.headers?.["x-aptos-cursor"];
     // Now that we have the cursor (if any), we remove the headers before
     // adding these to the output of this function.
     delete response.headers;
@@ -193,7 +188,7 @@ export async function paginateWithCursor<Req extends Record<string, any>, Res ex
 }
 
 /// This function is a helper for paginating using a function wrapping an API using offset instead of start
-export async function paginateWithObfuscatedCursor<Req extends Record<string, any>, Res extends Array<{}>>(
+export async function paginateWithObfuscatedCursor<Req extends Record<string, unknown>, Res extends Array<object>>(
   options: GetAptosRequestOptions,
 ): Promise<Res> {
   const out: Res = new Array(0) as Res;
@@ -201,7 +196,6 @@ export async function paginateWithObfuscatedCursor<Req extends Record<string, an
   const requestParams = options.params as { start?: string; limit?: number };
   const totalLimit = requestParams.limit;
   do {
-    // eslint-disable-next-line no-await-in-loop
     const { response, cursor: newCursor } = await getPageWithObfuscatedCursor<Req, Res>({ ...options });
 
     /**
@@ -227,7 +221,7 @@ export async function paginateWithObfuscatedCursor<Req extends Record<string, an
   return out;
 }
 
-export async function getPageWithObfuscatedCursor<Req extends Record<string, any>, Res extends Array<{}>>(
+export async function getPageWithObfuscatedCursor<Req extends Record<string, unknown>, Res extends Array<object>>(
   options: GetAptosRequestOptions,
 ): Promise<{ response: AptosResponse<Req, Res>; cursor: string | undefined }> {
   let cursor: string | undefined;
@@ -242,7 +236,6 @@ export async function getPageWithObfuscatedCursor<Req extends Record<string, any
     requestParams.limit = options.params.limit;
   }
 
-  // eslint-disable-next-line no-await-in-loop
   const response = await get<Req, Res>({
     type: AptosApiType.FULLNODE,
     aptosConfig: options.aptosConfig,
@@ -257,6 +250,6 @@ export async function getPageWithObfuscatedCursor<Req extends Record<string, any
    * should not need to "care" what it represents but just use it
    * to query the next chunk of data.
    */
-  cursor = response.headers["x-aptos-cursor"];
+  cursor = response.headers?.["x-aptos-cursor"];
   return { response, cursor };
 }

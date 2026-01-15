@@ -1,5 +1,3 @@
-/* eslint-disable no-await-in-loop */
-
 import EventEmitter from "eventemitter3";
 import { AptosConfig } from "../../api/aptosConfig";
 import { Account } from "../../account";
@@ -128,14 +126,14 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    * @group Implementation
    * @category Transactions
    */
-  sentTransactions: Array<[string, bigint, any]> = [];
+  sentTransactions: Array<[string, bigint, unknown]> = [];
 
   /**
    * transactions that have been committed to chain
    * @group Implementation
    * @category Transactions
    */
-  executedTransactions: Array<[string, bigint, any]> = [];
+  executedTransactions: Array<[string, bigint, unknown]> = [];
 
   /**
    * Initializes a new instance of the class, providing a framework for receiving payloads to be processed.
@@ -181,7 +179,6 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    */
   async submitNextTransaction() {
     try {
-      /* eslint-disable no-constant-condition */
       while (true) {
         const sequenceNumber = await this.accountSequnceNumber.nextSequenceNumber();
         if (sequenceNumber === null) return;
@@ -194,7 +191,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
         });
         await this.outstandingTransactions.enqueue([pendingTransaction, sequenceNumber]);
       }
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof AsyncQueueCancelledError) {
         return;
       }
@@ -217,7 +214,6 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    */
   async processTransactions() {
     try {
-      /* eslint-disable no-constant-condition */
       while (true) {
         const awaitingTransactions = [];
         const sequenceNumbers = [];
@@ -260,7 +256,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
           message: `execute ${sentTransactions.length} transactions finished`,
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof AsyncQueueCancelledError) {
         return;
       }
@@ -299,7 +295,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
           });
         }
       }
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Check transaction failed for ${this.account.accountAddress.toString()} with error ${error}`);
     }
   }
@@ -357,7 +353,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
         const task = await this.taskQueue.dequeue();
         await task();
       }
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Unable to start transaction batching: ${error}`);
     }
   }

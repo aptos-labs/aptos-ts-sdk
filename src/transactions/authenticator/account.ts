@@ -1,8 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable @typescript-eslint/naming-convention */
-
 import { Serializer, Deserializer, Serializable } from "../../bcs";
 import { AnyPublicKey, AnySignature } from "../../core/crypto";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
@@ -258,7 +256,6 @@ export class AccountAuthenticatorMultiKey extends AccountAuthenticator {
  * It allows skipping the public/auth key check during the simulation.
  */
 export class AccountAuthenticatorNoAccountAuthenticator extends AccountAuthenticator {
-  // eslint-disable-next-line class-methods-use-this
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(AccountAuthenticatorVariant.NoAccountAuthenticator);
   }

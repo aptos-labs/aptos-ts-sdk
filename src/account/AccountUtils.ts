@@ -51,6 +51,7 @@ function deserializeKeylessAccountCommon(deserializer: Deserializer): {
 /**
  * Utility functions for working with accounts.
  */
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace AccountUtils {
   export function toBytes(account: Account): Uint8Array {
     const serializer = new Serializer();

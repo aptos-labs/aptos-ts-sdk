@@ -103,8 +103,8 @@ export function validateFeePayerDataOnSubmission(
  */
 export function ValidateFeePayerDataOnSimulation(target: unknown, propertyKey: string, descriptor: PropertyDescriptor) {
   const originalMethod = descriptor.value;
-  /* eslint-disable-next-line func-names, no-param-reassign */
-  descriptor.value = async function (...args: any[]) {
+
+  descriptor.value = async function (...args: unknown[]) {
     return originalMethod.apply(this, args);
   };
 

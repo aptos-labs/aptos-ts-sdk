@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 /**
  * This example demonstrates how a client can utilize the TransactionWorker class.
  *

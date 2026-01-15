@@ -1,6 +1,3 @@
-/* eslint-disable max-len */
-/* eslint-disable no-console */
-
 /**
  * This example shows how to use the Keyless accounts on Aptos
  */
@@ -19,7 +16,7 @@ const GAS_UNIT_PRICE = 100; // octas / gas unit
  * @returns {Promise<*>}
  *
  */
-const balance = async (aptos: Aptos, address: AccountAddress): Promise<any> =>
+const balance = async (aptos: Aptos, address: AccountAddress): Promise<number> =>
   aptos.getAccountAPTAmount({
     accountAddress: address,
   });
@@ -77,7 +74,7 @@ const example = async () => {
 
     try {
       console.log("Refetching balance...\n");
-      // eslint-disable-next-line no-await-in-loop
+
       aliceBalance = await balance(aptos, alice.accountAddress);
     } catch (error) {
       console.log(`Error fetching balance: ${error}\n`);

@@ -299,7 +299,6 @@ export function parseTypeTag(typeStr: string, options?: { allowGenerics?: boolea
         throw new TypeTagParserError(typeStr, TypeTagParserErrorType.UnexpectedWhitespaceCharacter);
       }
 
-      // eslint-disable-next-line no-continue
       continue;
     } else {
       // Any other characters just append to the current string
@@ -404,18 +403,18 @@ function parseTypeTagInner(str: string, types: Array<TypeTag>, allowGenerics: bo
       }
 
       // Parse for a struct tag
-      // eslint-disable-next-line no-case-declarations
+
       const structParts = trimmedStr.split("::");
       if (structParts.length !== 3) {
         throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedStructFormat);
       }
 
       // Validate struct address
-      // eslint-disable-next-line no-case-declarations
+
       let address: AccountAddress;
       try {
         address = AccountAddress.fromString(structParts[0]);
-      } catch (error: any) {
+      } catch (_error) {
         throw new TypeTagParserError(str, TypeTagParserErrorType.InvalidAddress);
       }
 

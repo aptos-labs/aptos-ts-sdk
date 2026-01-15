@@ -1,7 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable max-len */
 
 import { ValidatorTransactionResponse, TransactionResponseType, BlockMetadataTransactionResponse } from "../../../src";
 

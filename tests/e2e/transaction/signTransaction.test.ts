@@ -7,7 +7,6 @@ import {
   AccountAuthenticatorEd25519,
   AccountAuthenticatorSingleKey,
   Secp256r1PrivateKey,
-  Secp256r1PublicKey,
   WebAuthnSignature,
   AnySignature,
   AnyPublicKey,

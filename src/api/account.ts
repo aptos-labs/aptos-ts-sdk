@@ -22,7 +22,6 @@ import {
   MoveModuleBytecode,
   MoveResource,
   MoveStructId,
-  MoveValue,
   OrderByArg,
   PaginationArgs,
   TokenStandardArg,
@@ -381,7 +380,7 @@ export class Account {
    * ```
    * @group Account
    */
-  async getAccountResource<T extends {} = any>(args: {
+  async getAccountResource<T extends object = object>(args: {
     accountAddress: AccountAddressInput;
     resourceType: MoveStructId;
     options?: LedgerVersionArg;
@@ -833,7 +832,7 @@ export class Account {
             if (pairedCoinTypeStruct.vec.length > 0 && isEncodedStruct(pairedCoinTypeStruct.vec[0])) {
               return parseEncodedStruct(pairedCoinTypeStruct.vec[0]);
             }
-          } catch (error) {
+          } catch (_error) {
             /* No paired coin type found */
           }
           return undefined;

@@ -290,7 +290,8 @@ describe.skip("ANS", () => {
           sender: alice,
           name,
           // Force the year to be absent
-          expiration: { policy: "domain", years: 0 } as any,
+          // @ts-expect-error Testing invalid expiration with 0 years
+          expiration: { policy: "domain", years: 0 },
         }),
       ).rejects.toThrow();
 

@@ -35,17 +35,17 @@ export class AbstractPublicKey extends AccountPublicKey {
     return new AuthenticationKey({ data: this.accountAddress.toUint8Array() });
   }
 
-  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   verifySignature(args: VerifySignatureArgs): boolean {
     throw new Error("This function is not implemented for AbstractPublicKey.");
   }
 
-  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async verifySignatureAsync(args: VerifySignatureAsyncArgs): Promise<boolean> {
     throw new Error("This function is not implemented for AbstractPublicKey.");
   }
 
-  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   serialize(serializer: Serializer): void {
     throw new Error("This function is not implemented for AbstractPublicKey.");
   }

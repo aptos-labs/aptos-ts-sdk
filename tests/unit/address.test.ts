@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import { AccountAddress } from "../../src";
 import {
   createTokenAddress,

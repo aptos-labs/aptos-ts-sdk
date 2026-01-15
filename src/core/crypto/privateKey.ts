@@ -1,5 +1,3 @@
-/* eslint-disable max-len */
-
 import { HexInput, PrivateKeyVariants } from "../../types";
 import { Hex } from "../hex";
 import { PublicKey } from "./publicKey";
@@ -10,6 +8,7 @@ import { Signature } from "./signature";
  * @group Implementation
  * @category Serialization
  */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export interface PrivateKey {
   /**
    * Sign the given message with the private key to create a signature.
@@ -35,6 +34,7 @@ export interface PrivateKey {
   toUint8Array(): Uint8Array;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class PrivateKey {
   /**
    * The AIP-80 compliant prefixes for each private key type. Append this to a private key's hex representation
@@ -62,7 +62,6 @@ export class PrivateKey {
     // Remove the prefix if it exists
     let formattedPrivateKey = privateKey;
     if (typeof formattedPrivateKey === "string" && formattedPrivateKey.startsWith(aip80Prefix)) {
-      // eslint-disable-next-line prefer-destructuring
       formattedPrivateKey = formattedPrivateKey.split("-")[2];
     }
 
@@ -88,7 +87,6 @@ export class PrivateKey {
         data = Hex.fromHexInput(value);
         // If the strictness is false, the user has opted into non-AIP-80 compliant private keys.
         if (strict !== false) {
-          // eslint-disable-next-line no-console
           console.warn(
             "[Aptos SDK] It is recommended that private keys are AIP-80 compliant (https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md). You can fix the private key by formatting it with `PrivateKey.formatPrivateKey(privateKey: string, type: 'ed25519' | 'secp256k1'): string`.",
           );

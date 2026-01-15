@@ -299,7 +299,7 @@ export class AnySignature extends Signature {
 
   toUint8Array(): Uint8Array {
     // TODO: keep this warning around for a bit, and eventually change this to return `this.signature.toUint8Array()`.
-    // eslint-disable-next-line no-console
+
     console.warn(
       "[Aptos SDK] Calls to AnySignature.toUint8Array() will soon return the underlying signature bytes. " +
         "Use AnySignature.bcsToBytes() instead.",

@@ -17,15 +17,21 @@ import { longTestTimeout } from "../../unit/helper";
 interface PluginCallData {
   callCount: number;
   lastCall?: {
-    transaction: any;
-    senderAuthenticator: any;
-    feePayerAuthenticator?: any;
-    additionalSignersAuthenticators?: any;
-    pluginParams?: Record<string, any>;
+    transaction: unknown;
+    senderAuthenticator: unknown;
+    feePayerAuthenticator?: unknown;
+    additionalSignersAuthenticators?: unknown;
+    pluginParams?: Record<string, unknown>;
   };
 }
 
 const pluginCallTracker: PluginCallData = {
+  callCount: 0,
+  lastCall: undefined,
+};
+
+// Additional tracker for override submitter (defined here so resetPluginTracker can reference it)
+const overridePluginCallTracker: PluginCallData = {
   callCount: 0,
   lastCall: undefined,
 };
@@ -70,16 +76,10 @@ class MockTransactionSubmitter implements TransactionSubmitter {
       max_gas_amount: transaction.rawTransaction.max_gas_amount.toString(),
       gas_unit_price: transaction.rawTransaction.gas_unit_price.toString(),
       expiration_timestamp_secs: transaction.rawTransaction.expiration_timestamp_secs.toString(),
-      payload: {} as any,
+      payload: {} as object,
     };
   }
 }
-
-// Additional tracker for override submitter
-const overridePluginCallTracker: PluginCallData = {
-  callCount: 0,
-  lastCall: undefined,
-};
 
 // Override TransactionSubmitter implementation for testing
 class OverrideTransactionSubmitter implements TransactionSubmitter {
@@ -110,7 +110,7 @@ class OverrideTransactionSubmitter implements TransactionSubmitter {
       max_gas_amount: transaction.rawTransaction.max_gas_amount.toString(),
       gas_unit_price: transaction.rawTransaction.gas_unit_price.toString(),
       expiration_timestamp_secs: transaction.rawTransaction.expiration_timestamp_secs.toString(),
-      payload: {} as any,
+      payload: {} as object,
     };
   }
 }

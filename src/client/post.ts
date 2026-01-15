@@ -59,7 +59,7 @@ export type PostRequestOptions = {
    * @group Implementation
    * @category Client
    */
-  body?: any;
+  body?: unknown;
   /**
    * Specific client overrides for this request to override aptosConfig
    * @group Implementation
@@ -92,9 +92,7 @@ export type PostAptosRequestOptions = Omit<PostRequestOptions, "type">;
  * @group Implementation
  * @category Client
  */
-export async function post<Req extends {}, Res extends {}>(
-  options: PostRequestOptions,
-): Promise<AptosResponse<Req, Res>> {
+export async function post<Req, Res>(options: PostRequestOptions): Promise<AptosResponse<Req, Res>> {
   const { type, originMethod, path, body, acceptType, contentType, params, aptosConfig, overrides } = options;
   const url = aptosConfig.getRequestUrl(type);
 
@@ -127,9 +125,7 @@ export async function post<Req extends {}, Res extends {}>(
  * @group Implementation
  * @category Client
  */
-export async function postAptosFullNode<Req extends {}, Res extends {}>(
-  options: PostAptosRequestOptions,
-): Promise<AptosResponse<Req, Res>> {
+export async function postAptosFullNode<Req, Res>(options: PostAptosRequestOptions): Promise<AptosResponse<Req, Res>> {
   const { aptosConfig } = options;
 
   return post<Req, Res>({
@@ -157,9 +153,7 @@ export async function postAptosFullNode<Req extends {}, Res extends {}>(
  * @group Implementation
  * @category Client
  */
-export async function postAptosIndexer<Req extends {}, Res extends {}>(
-  options: PostAptosRequestOptions,
-): Promise<AptosResponse<Req, Res>> {
+export async function postAptosIndexer<Req, Res>(options: PostAptosRequestOptions): Promise<AptosResponse<Req, Res>> {
   const { aptosConfig } = options;
 
   return post<Req, Res>({
@@ -190,9 +184,7 @@ export async function postAptosIndexer<Req extends {}, Res extends {}>(
  * @group Implementation
  * @category Client
  */
-export async function postAptosFaucet<Req extends {}, Res extends {}>(
-  options: PostAptosRequestOptions,
-): Promise<AptosResponse<Req, Res>> {
+export async function postAptosFaucet<Req, Res>(options: PostAptosRequestOptions): Promise<AptosResponse<Req, Res>> {
   const { aptosConfig } = options;
   // Faucet does not support API_KEY
   // Create a new object with the desired modification
@@ -226,7 +218,7 @@ export async function postAptosFaucet<Req extends {}, Res extends {}>(
  * @group Implementation
  * @category Client
  */
-export async function postAptosPepperService<Req extends {}, Res extends {}>(
+export async function postAptosPepperService<Req, Res>(
   options: PostAptosRequestOptions,
 ): Promise<AptosResponse<Req, Res>> {
   return post<Req, Res>({ ...options, type: AptosApiType.PEPPER });
@@ -241,7 +233,7 @@ export async function postAptosPepperService<Req extends {}, Res extends {}>(
  * @group Implementation
  * @category Client
  */
-export async function postAptosProvingService<Req extends {}, Res extends {}>(
+export async function postAptosProvingService<Req, Res>(
   options: PostAptosRequestOptions,
 ): Promise<AptosResponse<Req, Res>> {
   return post<Req, Res>({ ...options, type: AptosApiType.PROVER });

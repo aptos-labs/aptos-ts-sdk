@@ -13,14 +13,14 @@ export enum KeylessErrorCategory {
 
 export enum KeylessErrorResolutionTip {
   REAUTHENTICATE = "Re-authentiate to continue using your keyless account",
-  // eslint-disable-next-line max-len
+
   REAUTHENTICATE_UNSURE = "Try re-authentiating. If the error persists join the telegram group at https://t.me/+h5CN-W35yUFiYzkx for further support",
   UPDATE_REQUEST_PARAMS = "Update the invalid request parameters and reauthenticate.",
-  // eslint-disable-next-line max-len
+
   RATE_LIMIT_EXCEEDED = "Cache the keyless account and reuse it to avoid making too many requests.  Keyless accounts are valid until either the EphemeralKeyPair expires, when the JWK is rotated, or when the proof verifying key is changed, whichever comes soonest.",
-  // eslint-disable-next-line max-len
+
   SERVER_ERROR = "Try again later.  See aptosApiError error for more context. For additional support join the telegram group at https://t.me/+h5CN-W35yUFiYzkx",
-  // eslint-disable-next-line max-len
+
   CALL_PRECHECK = "Call `await account.checkKeylessAccountValidity()` to wait for asyncronous changes and check for account validity before signing or serializing.",
   REINSTANTIATE = "Try instantiating the account again.  Avoid manipulating the account object directly",
   JOIN_SUPPORT_GROUP = "For support join the telegram group at https://t.me/+h5CN-W35yUFiYzkx",
@@ -348,7 +348,7 @@ export class KeylessError extends Error {
 type AptosApiErrorOpts = {
   apiType: AptosApiType;
   aptosRequest: AptosRequest;
-  aptosResponse: AptosResponse<any, any>;
+  aptosResponse: AptosResponse<unknown, unknown>;
 };
 
 /**
@@ -369,7 +369,7 @@ export class AptosApiError extends Error {
 
   readonly statusText: string;
 
-  readonly data: any;
+  readonly data: unknown;
 
   readonly request: AptosRequest;
 
@@ -405,7 +405,6 @@ export class AptosApiError extends Error {
  * @param {AptosResponse} opts.aptosResponse - The response received from the Aptos API.
  */
 function deriveErrorMessage({ apiType, aptosRequest, aptosResponse }: AptosApiErrorOpts): string {
-  // eslint-disable-next-line max-len
   // extract the W3C trace_id from the response headers if it exists. Some services set this in the response, and it's useful for debugging.
   // See https://www.w3.org/TR/trace-context/#relationship-between-the-headers .
   const traceId = aptosResponse.headers?.traceparent?.split("-")[1];
@@ -416,13 +415,16 @@ function deriveErrorMessage({ apiType, aptosRequest, aptosResponse }: AptosApiEr
   } ${traceIdString}failed with`;
 
   // handle graphql responses from indexer api and extract the error message of the first error
-  if (apiType === AptosApiType.INDEXER && aptosResponse.data?.errors?.[0]?.message != null) {
-    return `${errorPrelude}: ${aptosResponse.data.errors[0].message}`;
+  const responseData = aptosResponse.data as
+    | { errors?: { message?: string }[]; message?: string; error_code?: string }
+    | undefined;
+  if (apiType === AptosApiType.INDEXER && responseData?.errors?.[0]?.message != null) {
+    return `${errorPrelude}: ${responseData.errors[0].message}`;
   }
 
   // Received well-known structured error response body - simply serialize and return it.
   // We don't need http status codes etc. in this case.
-  if (aptosResponse.data?.message != null && aptosResponse.data?.error_code != null) {
+  if (responseData?.message != null && responseData?.error_code != null) {
     return `${errorPrelude}: ${JSON.stringify(aptosResponse.data)}`;
   }
 
@@ -444,7 +446,7 @@ const SERIALIZED_PAYLOAD_TRIM_TO_MAX_LENGTH = 400;
  *
  * @returns A string representation of the serialized payload, potentially truncated.
  */
-function serializeAnyPayloadForErrorMessage(payload: any): string {
+function serializeAnyPayloadForErrorMessage(payload: unknown): string {
   const serializedPayload = JSON.stringify(payload);
   if (serializedPayload.length <= SERIALIZED_PAYLOAD_TRIM_TO_MAX_LENGTH) {
     return serializedPayload;

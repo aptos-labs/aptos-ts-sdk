@@ -1,6 +1,3 @@
-/* eslint-disable no-console */
-/* eslint-disable max-len */
-
 /**
  * This example shows how to use the Aptos client to mint and transfer a Digital Asset.
  */

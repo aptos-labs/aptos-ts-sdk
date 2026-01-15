@@ -204,7 +204,7 @@ export class TransactionManagement extends EventEmitter<TransactionWorkerEvents>
       this.start({ sender });
 
       this.push({ data, options });
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`failed to submit transactions with error: ${error}`);
     }
   }

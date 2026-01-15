@@ -1,6 +1,3 @@
-/* eslint-disable no-console */
-/* eslint-disable max-len */
-
 /**
  * Example to demonstrate creating and adding to liquidity pools, swapping between two fungible asset.
  *
@@ -89,7 +86,7 @@ const swapAssets = async (
   return response.hash;
 };
 
-const getAssetType = async (aptos: Aptos, owner: Account): Promise<any> => {
+const getAssetType = async (aptos: Aptos, owner: Account): Promise<string> => {
   const data = await aptos.getFungibleAssetMetadata({
     options: {
       where: {

@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 /**
  * This example shows an example of how one might send transactions elsewhere to be signed outside the SDK.
  */
@@ -30,7 +28,7 @@ const TRANSFER_AMOUNT = 100;
 // Default to devnet, but allow for overriding
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 
-const balance = async (aptos: Aptos, account: Account, name: string): Promise<any> => {
+const balance = async (aptos: Aptos, account: Account, name: string): Promise<number> => {
   const payload: InputViewFunctionJsonData = {
     function: "0x1::coin::balance",
     typeArguments: ["0x1::aptos_coin::AptosCoin"],
