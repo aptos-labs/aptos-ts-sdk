@@ -82,7 +82,14 @@ import {
   GetAuthKeysForPublicKey,
   GetAccountAddressesForAuthKey,
 } from "../types/generated/queries";
-import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey, createObjectAddress, Hex } from "../core";
+import {
+  Secp256k1PrivateKey,
+  AuthenticationKey,
+  Ed25519PrivateKey,
+  SlhDsaSha2128sPrivateKey,
+  createObjectAddress,
+  Hex,
+} from "../core";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 import { getTableItem } from "./table";
 import { APTOS_COIN } from "../utils";
@@ -1286,7 +1293,7 @@ async function deriveOwnedAccountsFromKeylessSigner(args: {
 
 async function deriveOwnedAccountsFromPrivateKey(args: {
   aptosConfig: AptosConfig;
-  privateKey: Ed25519PrivateKey | Secp256k1PrivateKey;
+  privateKey: Ed25519PrivateKey | Secp256k1PrivateKey | SlhDsaSha2128sPrivateKey;
   options?: { includeUnverified?: boolean; noMultiKey?: boolean };
 }): Promise<Account[]> {
   const { aptosConfig, privateKey, options } = args;

@@ -12,6 +12,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # 5.2.0 (2025-12-10)
 
 - Add `http2` as an optional parameter in `ClientConfig`
+- Add SLH-DSA-SHA2-128s as one of the support signature schemes
 
 # 5.1.6 (2025-12-06)
 
