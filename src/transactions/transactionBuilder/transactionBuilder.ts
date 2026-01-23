@@ -220,10 +220,10 @@ export function generateTransactionPayloadWithABI(
   );
 
   // Check that all arguments are accounted for
-  if (functionArguments?.length !== functionAbi.parameters.length) {
+  if ((functionArguments?.length ?? 0) !== functionAbi.parameters.length) {
     throw new Error(
       // eslint-disable-next-line max-len
-      `Too few arguments for '${moduleAddress}::${moduleName}::${functionName}', expected ${functionAbi.parameters.length} but got ${functionArguments?.length}`,
+      `Too few arguments for '${moduleAddress}::${moduleName}::${functionName}', expected ${functionAbi.parameters.length} but got ${functionArguments?.length ?? 0}`,
     );
   }
 
@@ -232,7 +232,7 @@ export function generateTransactionPayloadWithABI(
     `${moduleAddress}::${moduleName}`,
     functionName,
     typeArguments,
-    functionArguments,
+    functionArguments ?? [],
   );
 
   // Send it as multi sig if it's a multisig payload
