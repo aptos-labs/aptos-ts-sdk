@@ -4,6 +4,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 - Add `is_enum` field to `MoveStruct`.
+- Make `functionArguments` optional in entry function transactions
 
 # 5.2.1 (2026-01-12)
 

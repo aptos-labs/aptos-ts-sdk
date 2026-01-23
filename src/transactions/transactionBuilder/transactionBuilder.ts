@@ -201,7 +201,7 @@ export function generateTransactionPayloadWithABI(
   }
 
   // Check all BCS types, and convert any non-BCS types
-  const functionArguments: Array<EntryFunctionArgumentTypes> = args.functionArguments.map((arg, i) =>
+  const functionArguments: Array<EntryFunctionArgumentTypes> | undefined = args.functionArguments?.map((arg, i) =>
     /**
      * Converts the argument for a specified function using its ABI and type arguments.
      * This function helps ensure that the correct number of arguments is provided for the function call.
@@ -220,10 +220,10 @@ export function generateTransactionPayloadWithABI(
   );
 
   // Check that all arguments are accounted for
-  if (functionArguments.length !== functionAbi.parameters.length) {
+  if ((functionArguments?.length ?? 0) !== functionAbi.parameters.length) {
     throw new Error(
       // eslint-disable-next-line max-len
-      `Too few arguments for '${moduleAddress}::${moduleName}::${functionName}', expected ${functionAbi.parameters.length} but got ${functionArguments.length}`,
+      `Too few arguments for '${moduleAddress}::${moduleName}::${functionName}', expected ${functionAbi.parameters.length} but got ${functionArguments?.length ?? 0}`,
     );
   }
 
@@ -232,7 +232,7 @@ export function generateTransactionPayloadWithABI(
     `${moduleAddress}::${moduleName}`,
     functionName,
     typeArguments,
-    functionArguments,
+    functionArguments ?? [],
   );
 
   // Send it as multi sig if it's a multisig payload
