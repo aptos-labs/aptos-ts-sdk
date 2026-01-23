@@ -221,6 +221,8 @@ export class TwistedElGamal {
    * @param ciphertext сiphertext points encrypted by Twisted ElGamal
    * @param privateKey Twisted ElGamal Ed25519 private key.
    * @param decryptionRange The range of amounts to be used in decryption
+   * 
+   * TODO: rename WithPK to WithDK?
    */
   static async decryptWithPK(
     ciphertext: TwistedElGamalCiphertext,
