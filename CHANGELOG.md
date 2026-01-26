@@ -3,8 +3,32 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
+
 - Add `is_enum` field to `MoveStruct`.
 - Make `functionArguments` optional in entry function transactions
+
+# 6.0.0 (Unreleased)
+
+> **Upgrade Guide**: See [UPGRADE_GUIDE_6.0.0.md](./UPGRADE_GUIDE_6.0.0.md) for detailed migration instructions.
+
+## Breaking Changes
+
+- [ANS] Refactor ANS API return types: `GetANSNameResponse` array type replaced with structured return objects `{ names: AnsName[]; total: number }` for methods `getAccountNames()`, `getAccountDomains()`, `getAccountSubdomains()`, and `getDomainSubdomains()`
+- [ANS] Replace `isActiveANSName()` boolean function with `getANSExpirationStatus()` which returns `ExpirationStatus` enum (Active, InGracePeriod, Expired) for more granular expiration status handling
+- [ANS] `getName()` now returns `AnsName | undefined` instead of `GetANSNameResponse[0] | undefined`
+- [ANS] Transaction-generating functions (`setTargetAddress`, `clearTargetAddress`, `setPrimaryName`, `registerName`, `renewDomain`) now return `{ transaction: SimpleTransaction; data: InputEntryFunctionData }` instead of just `SimpleTransaction` to support wallet adapter compatibility
+- [ANS] Transaction-generating functions now accept `sender: AccountAddressInput` instead of `sender: Account`, allowing more flexible input types (Account, AccountAddress, or string)
+
+## Added
+
+- [ANS] Add `clearTargetAddress()` method to public ANS API for clearing target address associations
+- [ANS] Add `ExpirationStatus` enum with values: `Active`, `InGracePeriod`, and `Expired` for better expiration status tracking
+- [ANS] Add grace period support for ANS name expiration, allowing names to remain claimable by current owner during grace period
+- [ANS] Add `AnsName` interface extending `RawANSName` with enhanced fields:
+  - `expiration_status`: The current expiration status of the name
+  - `isInRenewablePeriod`: Whether the name is in the renewable period (includes leading time and grace period)
+- [ANS] Add `SubdomainExpirationPolicy` enum exported from types (moved from internal implementation)
+- [ANS] Add `AnsTokenStandard` type for tracking token standard version (v1/v2)
 
 # 5.2.1 (2026-01-12)
 
