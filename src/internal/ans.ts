@@ -10,10 +10,19 @@
  */
 
 import { AptosConfig } from "../api/aptosConfig";
-import { Account } from "../account";
 import { AccountAddress, AccountAddressInput } from "../core";
-import { InputGenerateTransactionOptions } from "../transactions/types";
-import { GetANSNameResponse, MoveAddressType, OrderByArg, PaginationArgs, WhereArg } from "../types";
+import { InputGenerateTransactionOptions, InputEntryFunctionData } from "../transactions/types";
+import {
+  AnsName,
+  AnsTokenStandard,
+  ExpirationStatus,
+  MoveAddressType,
+  OrderByArg,
+  PaginationArgs,
+  RawANSName,
+  SubdomainExpirationPolicy,
+  WhereArg,
+} from "../types";
 import { GetNamesQuery } from "../types/generated/operations";
 import { GetNames } from "../types/generated/queries";
 import { CurrentAptosNamesBoolExp } from "../types/generated/types";
@@ -22,6 +31,10 @@ import { queryIndexer } from "./general";
 import { view } from "./view";
 import { generateTransaction } from "./transactionSubmission";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
+
+let GRACE_PERIOD_IN_SECONDS: number | undefined;
+
+const RENEWAL_MONTHS_WINDOW = 6;
 
 export const VALIDATION_RULES_DESCRIPTION = [
   "A name must be between 3 and 63 characters long,",
@@ -74,40 +87,52 @@ export function isValidANSName(name: string): { domainName: string; subdomainNam
 }
 
 /**
- * Policy for determining how subdomains expire in relation to their parent domain.
- * @group Implementation
- */
-export enum SubdomainExpirationPolicy {
-  Independent = 0,
-  FollowsDomain = 1,
-}
-
-/**
- * Determine if a given ANS name is considered active based on its expiration dates.
- * Domains are active if their expiration date is in the future, while subdomains may
- * follow their parent's expiration policy (1) or expire independently (0).
- * If the subdomain is expiring independently, it can expire before their parent, but not after.
+ * Determines the status of an ANS name's expiration.
  *
  * @param name - An ANS name returned from one of the functions of the SDK.
- * @returns A boolean indicating whether the contract considers the name active or not.
+ * @returns An ExpirationStatus indicating whether the name is Active, InGracePeriod, or Expired.
  * @group Implementation
  */
-export function isActiveANSName(name: GetANSNameResponse[0]): boolean {
-  if (!name) return false;
+export function getANSExpirationStatus({
+  aptosConfig,
+  name,
+  gracePeriod,
+}: {
+  name: RawANSName;
+  aptosConfig: AptosConfig;
+  gracePeriod: number;
+}): ExpirationStatus {
+  if (!name) return ExpirationStatus.Expired;
 
-  const isTLDExpired = new Date(name.domain_expiration_timestamp).getTime() < Date.now();
-  const isExpired = new Date(name.expiration_timestamp).getTime() < Date.now();
+  const gracePeriodMs = gracePeriod * 1000; // Convert to milliseconds
+
+  const now = Date.now();
+
+  const tldExpirationTime = new Date(name.domain_expiration_timestamp).getTime();
+  const nameExpirationTime = new Date(name.expiration_timestamp).getTime();
+
+  const isTLDExpired = tldExpirationTime < now;
+  const isNameExpired = nameExpirationTime < now;
+  const isInGracePeriod = isNameExpired && now - nameExpirationTime < gracePeriodMs;
+  const isTLDInGracePeriod = isTLDExpired && now - tldExpirationTime < gracePeriodMs;
 
   // If we are a subdomain, if our parent is expired we are always expired
-  if (name.subdomain && isTLDExpired) return false;
+  if (name.subdomain && isTLDExpired && !isTLDInGracePeriod) {
+    return ExpirationStatus.Expired;
+  }
 
   // If we are a subdomain and our expiration policy is to follow the domain, we
-  // are active (since we know our parent is not expired by this point)
-  if (name.subdomain && name.subdomain_expiration_policy === SubdomainExpirationPolicy.FollowsDomain) return true;
+  // follow the parent's status (since we know our parent is not fully expired by this point)
+  if (name.subdomain && name.subdomain_expiration_policy === SubdomainExpirationPolicy.FollowsDomain) {
+    if (isTLDInGracePeriod) return ExpirationStatus.InGracePeriod;
+    return ExpirationStatus.Active;
+  }
 
   // At this point, we are either a TLD or a subdomain with an independent
-  // expiration policy, we are active as long as we the expiration timestamp
-  return !isExpired;
+  // expiration policy, check the name's expiration status
+  if (isInGracePeriod) return ExpirationStatus.InGracePeriod;
+  if (isNameExpired) return ExpirationStatus.Expired;
+  return ExpirationStatus.Active;
 }
 
 export const LOCAL_ANS_ACCOUNT_PK =
@@ -193,7 +218,7 @@ export async function getOwnerAddress(args: {
  */
 export interface RegisterNameParameters {
   aptosConfig: AptosConfig;
-  sender: Account;
+  sender: AccountAddressInput;
   name: string;
   expiration:
     | { policy: "domain"; years?: 1 }
@@ -226,7 +251,9 @@ export interface RegisterNameParameters {
  * @returns A transaction object representing the registration process.
  * @group Implementation
  */
-export async function registerName(args: RegisterNameParameters): Promise<SimpleTransaction> {
+export async function registerName(
+  args: RegisterNameParameters,
+): Promise<{ transaction: SimpleTransaction; data: InputEntryFunctionData }> {
   const { aptosConfig, expiration, name, sender, targetAddress, toAddress, options, transferable } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
@@ -253,17 +280,22 @@ export async function registerName(args: RegisterNameParameters): Promise<Simple
     const secondsInYear = 31536000;
     const registrationDuration = years * secondsInYear;
 
+    const data: InputEntryFunctionData = {
+      function: `${routerAddress}::router::register_domain`,
+      functionArguments: [domainName, registrationDuration, targetAddress, toAddress],
+    };
+
     const transaction = await generateTransaction({
       aptosConfig,
-      sender: sender.accountAddress.toString(),
-      data: {
-        function: `${routerAddress}::router::register_domain`,
-        functionArguments: [domainName, registrationDuration, targetAddress, toAddress],
-      },
+      sender: AccountAddress.from(sender).toString(),
+      data,
       options,
     });
 
-    return transaction;
+    return {
+      transaction,
+      data,
+    };
   }
 
   // We are a subdomain
@@ -283,25 +315,30 @@ export async function registerName(args: RegisterNameParameters): Promise<Simple
     throw new Error("The subdomain expiration time cannot be greater than the domain expiration time");
   }
 
+  const data: InputEntryFunctionData = {
+    function: `${routerAddress}::router::register_subdomain`,
+    functionArguments: [
+      domainName,
+      subdomainName,
+      Math.round(expirationDateInMillisecondsSinceEpoch / 1000),
+      expiration.policy === "subdomain:follow-domain" ? 1 : 0,
+      !!transferable,
+      targetAddress,
+      toAddress,
+    ],
+  };
+
   const transaction = await generateTransaction({
     aptosConfig,
-    sender: sender.accountAddress.toString(),
-    data: {
-      function: `${routerAddress}::router::register_subdomain`,
-      functionArguments: [
-        domainName,
-        subdomainName,
-        Math.round(expirationDateInMillisecondsSinceEpoch / 1000),
-        expiration.policy === "subdomain:follow-domain" ? 1 : 0,
-        !!transferable,
-        targetAddress,
-        toAddress,
-      ],
-    },
+    sender: AccountAddress.from(sender).toString(),
+    data,
     options,
   });
 
-  return transaction;
+  return {
+    transaction,
+    data,
+  };
 }
 
 /**
@@ -381,40 +418,50 @@ export async function getPrimaryName(args: {
  */
 export async function setPrimaryName(args: {
   aptosConfig: AptosConfig;
-  sender: Account;
+  sender: AccountAddressInput;
   name?: string;
   options?: InputGenerateTransactionOptions;
-}): Promise<SimpleTransaction> {
+}): Promise<{ transaction: SimpleTransaction; data: InputEntryFunctionData }> {
   const { aptosConfig, sender, name, options } = args;
   const routerAddress = getRouterAddress(aptosConfig);
 
   if (!name) {
+    const data: InputEntryFunctionData = {
+      function: `${routerAddress}::router::clear_primary_name`,
+      functionArguments: [],
+    };
+
     const transaction = await generateTransaction({
       aptosConfig,
-      sender: sender.accountAddress.toString(),
-      data: {
-        function: `${routerAddress}::router::clear_primary_name`,
-        functionArguments: [],
-      },
+      sender: AccountAddress.from(sender).toString(),
+      data,
       options,
     });
 
-    return transaction;
+    return {
+      transaction,
+      data,
+    };
   }
 
   const { domainName, subdomainName } = isValidANSName(name);
 
+  const data: InputEntryFunctionData = {
+    function: `${routerAddress}::router::set_primary_name`,
+    functionArguments: [domainName, subdomainName],
+  };
+
   const transaction = await generateTransaction({
     aptosConfig,
-    sender: sender.accountAddress.toString(),
-    data: {
-      function: `${routerAddress}::router::set_primary_name`,
-      functionArguments: [domainName, subdomainName],
-    },
+    sender: AccountAddress.from(sender).toString(),
+    data,
     options,
   });
 
-  return transaction;
+  return {
+    transaction,
+    data,
+  };
 }
 
 /**
@@ -464,26 +511,72 @@ export async function getTargetAddress(args: {
  */
 export async function setTargetAddress(args: {
   aptosConfig: AptosConfig;
-  sender: Account;
+  sender: AccountAddressInput;
   name: string;
   address: AccountAddressInput;
   options?: InputGenerateTransactionOptions;
-}): Promise<SimpleTransaction> {
+}): Promise<{ transaction: SimpleTransaction; data: InputEntryFunctionData }> {
   const { aptosConfig, sender, name, address, options } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
 
+  const data: InputEntryFunctionData = {
+    function: `${routerAddress}::router::set_target_addr`,
+    functionArguments: [domainName, subdomainName, address],
+  };
+
   const transaction = await generateTransaction({
     aptosConfig,
-    sender: sender.accountAddress.toString(),
-    data: {
-      function: `${routerAddress}::router::set_target_addr`,
-      functionArguments: [domainName, subdomainName, address],
-    },
+    sender: AccountAddress.from(sender).toString(),
+    data,
     options,
   });
 
-  return transaction;
+  return {
+    transaction,
+    data,
+  };
+}
+
+/**
+ * Clears the target address for a specified domain and subdomain in the Aptos network.
+ * This function removes the target address association, effectively clearing where the name resolves to.
+ *
+ * @param args - The arguments for clearing the target address.
+ * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.sender - The account that is sending the transaction.
+ * @param args.name - The name of the domain or subdomain to clear the target address for.
+ * @param args.options - Optional parameters for generating the transaction.
+ *
+ * @returns A transaction object representing the clear target address operation.
+ * @group Implementation
+ */
+export async function clearTargetAddress(args: {
+  aptosConfig: AptosConfig;
+  sender: AccountAddressInput;
+  name: string;
+  options?: InputGenerateTransactionOptions;
+}): Promise<{ transaction: SimpleTransaction; data: InputEntryFunctionData }> {
+  const { aptosConfig, sender, name, options } = args;
+  const routerAddress = getRouterAddress(aptosConfig);
+  const { domainName, subdomainName } = isValidANSName(name);
+
+  const data: InputEntryFunctionData = {
+    function: `${routerAddress}::router::clear_target_addr`,
+    functionArguments: [domainName, subdomainName ?? null],
+  };
+
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: AccountAddress.from(sender).toString(),
+    data,
+    options,
+  });
+
+  return {
+    transaction,
+    data,
+  };
 }
 
 /**
@@ -495,11 +588,11 @@ export async function setTargetAddress(args: {
  * @returns The active Aptos name if it exists; otherwise, returns undefined.
  * @group Implementation
  */
-export async function getName(args: {
-  aptosConfig: AptosConfig;
-  name: string;
-}): Promise<GetANSNameResponse[0] | undefined> {
+export async function getName(args: { aptosConfig: AptosConfig; name: string }): Promise<AnsName | undefined> {
   const { aptosConfig, name } = args;
+
+  const gracePeriod = await getANSGracePeriod({ aptosConfig });
+
   const { domainName, subdomainName = "" } = isValidANSName(name);
 
   const where: CurrentAptosNamesBoolExp = {
@@ -521,11 +614,7 @@ export async function getName(args: {
 
   // Convert the expiration_timestamp from an ISO string to milliseconds since epoch
   let res = data.current_aptos_names[0];
-  if (res) {
-    res = sanitizeANSName(res);
-  }
-
-  return isActiveANSName(res) ? res : undefined;
+  return res ? sanitizeANSName({ aptosConfig, name: res, gracePeriod }) : undefined;
 }
 
 /**
@@ -535,7 +624,7 @@ export async function getName(args: {
  * @group Implementation
  */
 interface QueryNamesOptions {
-  options?: PaginationArgs & OrderByArg<GetANSNameResponse[0]> & WhereArg<CurrentAptosNamesBoolExp>;
+  options?: PaginationArgs & OrderByArg<AnsName> & WhereArg<CurrentAptosNamesBoolExp>;
 }
 
 /**
@@ -566,8 +655,10 @@ export interface GetAccountNamesArgs extends QueryNamesOptions {
  */
 export async function getAccountNames(
   args: { aptosConfig: AptosConfig } & GetAccountNamesArgs,
-): Promise<GetANSNameResponse> {
+): Promise<{ names: AnsName[]; total: number }> {
   const { aptosConfig, options, accountAddress } = args;
+
+  const gracePeriod = await getANSGracePeriod({ aptosConfig });
 
   const expirationDate = await getANSExpirationDate({ aptosConfig });
 
@@ -581,15 +672,16 @@ export async function getAccountNames(
         offset: options?.offset,
         order_by: options?.orderBy,
         where_condition: {
-          ...(args.options?.where ?? {}),
           owner_address: { _eq: accountAddress.toString() },
           expiration_timestamp: { _gte: expirationDate },
+          ...(args.options?.where ?? {}),
         },
       },
     },
   });
-
-  return data.current_aptos_names.map(sanitizeANSName);
+  const names = data.current_aptos_names.map((name) => sanitizeANSName({ aptosConfig, name, gracePeriod }));
+  const total = data.current_aptos_names_aggregate.aggregate?.count ?? 0;
+  return { names, total };
 }
 
 /**
@@ -622,8 +714,10 @@ export interface GetAccountDomainsArgs extends QueryNamesOptions {
  */
 export async function getAccountDomains(
   args: { aptosConfig: AptosConfig } & GetAccountDomainsArgs,
-): Promise<GetANSNameResponse> {
+): Promise<{ names: AnsName[]; total: number }> {
   const { aptosConfig, options, accountAddress } = args;
+
+  const gracePeriod = await getANSGracePeriod({ aptosConfig });
 
   const expirationDate = await getANSExpirationDate({ aptosConfig });
 
@@ -637,16 +731,19 @@ export async function getAccountDomains(
         offset: options?.offset,
         order_by: options?.orderBy,
         where_condition: {
-          ...(args.options?.where ?? {}),
           owner_address: { _eq: accountAddress.toString() },
           expiration_timestamp: { _gte: expirationDate },
           subdomain: { _eq: "" },
+          ...(args.options?.where ?? {}),
         },
       },
     },
   });
 
-  return data.current_aptos_names.map(sanitizeANSName);
+  const names = data.current_aptos_names.map((name) => sanitizeANSName({ aptosConfig, name, gracePeriod }));
+  const total = data.current_aptos_names_aggregate.aggregate?.count ?? 0;
+
+  return { names, total };
 }
 
 /**
@@ -678,10 +775,10 @@ export interface GetAccountSubdomainsArgs extends QueryNamesOptions {
  */
 export async function getAccountSubdomains(
   args: { aptosConfig: AptosConfig } & GetAccountSubdomainsArgs,
-): Promise<GetANSNameResponse> {
+): Promise<{ names: AnsName[]; total: number }> {
   const { aptosConfig, options, accountAddress } = args;
 
-  const expirationDate = await getANSExpirationDate({ aptosConfig });
+  const gracePeriod = await getANSGracePeriod({ aptosConfig });
 
   const data = await queryIndexer<GetNamesQuery>({
     aptosConfig,
@@ -693,16 +790,17 @@ export async function getAccountSubdomains(
         offset: options?.offset,
         order_by: options?.orderBy,
         where_condition: {
-          ...(args.options?.where ?? {}),
           owner_address: { _eq: accountAddress.toString() },
-          expiration_timestamp: { _gte: expirationDate },
           subdomain: { _neq: "" },
+          ...(args.options?.where ?? {}),
         },
       },
     },
   });
 
-  return data.current_aptos_names.map(sanitizeANSName);
+  const names = data.current_aptos_names.map((name) => sanitizeANSName({ aptosConfig, name, gracePeriod }));
+  const total = data.current_aptos_names_aggregate.aggregate?.count ?? 0;
+  return { names, total };
 }
 
 /**
@@ -736,8 +834,10 @@ export interface GetDomainSubdomainsArgs extends QueryNamesOptions {
  */
 export async function getDomainSubdomains(
   args: { aptosConfig: AptosConfig } & GetDomainSubdomainsArgs,
-): Promise<GetANSNameResponse> {
+): Promise<{ names: AnsName[]; total: number }> {
   const { aptosConfig, options, domain } = args;
+
+  const gracePeriod = await getANSGracePeriod({ aptosConfig });
 
   const data = await queryIndexer<GetNamesQuery>({
     aptosConfig,
@@ -749,15 +849,17 @@ export async function getDomainSubdomains(
         offset: options?.offset,
         order_by: options?.orderBy,
         where_condition: {
-          ...(args.options?.where ?? {}),
           domain: { _eq: domain },
           subdomain: { _neq: "" },
+          ...(args.options?.where ?? {}),
         },
       },
     },
   });
 
-  return data.current_aptos_names.map(sanitizeANSName).filter(isActiveANSName);
+  const names = data.current_aptos_names.map((name) => sanitizeANSName({ aptosConfig, name, gracePeriod }));
+  const total = data.current_aptos_names_aggregate.aggregate?.count ?? 0;
+  return { names, total };
 }
 
 /**
@@ -775,6 +877,28 @@ export async function getDomainSubdomains(
  */
 async function getANSExpirationDate(args: { aptosConfig: AptosConfig }): Promise<string> {
   const { aptosConfig } = args;
+  const gracePeriodInSeconds = await getANSGracePeriod({ aptosConfig });
+  const gracePeriodInDays = gracePeriodInSeconds / 60 / 60 / 24;
+  const now = () => new Date();
+  return new Date(now().setDate(now().getDate() - gracePeriodInDays)).toISOString();
+}
+
+/**
+ * This function returns the grace period in seconds as defined by the contract.
+ * A name that is past expiration but within the grace period is considered in
+ * grace period and can't be claimed by others.
+ *
+ * @param args - The arguments for the function.
+ * @param args.aptosConfig - An AptosConfig object containing the configuration settings.
+ * @returns The grace period in seconds.
+ * @group Implementation
+ */
+export async function getANSGracePeriod(args: { aptosConfig: AptosConfig }): Promise<number> {
+  if (GRACE_PERIOD_IN_SECONDS) {
+    return GRACE_PERIOD_IN_SECONDS;
+  }
+
+  const { aptosConfig } = args;
   const routerAddress = getRouterAddress(aptosConfig);
 
   const [gracePeriodInSeconds] = await view<[number]>({
@@ -785,9 +909,8 @@ async function getANSExpirationDate(args: { aptosConfig: AptosConfig }): Promise
     },
   });
 
-  const gracePeriodInDays = gracePeriodInSeconds / 60 / 60 / 24;
-  const now = () => new Date();
-  return new Date(now().setDate(now().getDate() - gracePeriodInDays)).toISOString();
+  GRACE_PERIOD_IN_SECONDS = gracePeriodInSeconds;
+  return gracePeriodInSeconds;
 }
 
 /**
@@ -804,11 +927,11 @@ async function getANSExpirationDate(args: { aptosConfig: AptosConfig }): Promise
  */
 export async function renewDomain(args: {
   aptosConfig: AptosConfig;
-  sender: Account;
+  sender: AccountAddressInput;
   name: string;
   years?: 1;
   options?: InputGenerateTransactionOptions;
-}): Promise<SimpleTransaction> {
+}): Promise<{ transaction: SimpleTransaction; data: InputEntryFunctionData }> {
   const { aptosConfig, sender, name, years = 1, options } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const renewalDuration = years * 31536000;
@@ -822,17 +945,22 @@ export async function renewDomain(args: {
     throw new Error("Currently, only 1 year renewals are supported");
   }
 
+  const data: InputEntryFunctionData = {
+    function: `${routerAddress}::router::renew_domain`,
+    functionArguments: [domainName, renewalDuration],
+  };
+
   const transaction = await generateTransaction({
     aptosConfig,
-    sender: sender.accountAddress.toString(),
-    data: {
-      function: `${routerAddress}::router::renew_domain`,
-      functionArguments: [domainName, renewalDuration],
-    },
+    sender: AccountAddress.from(sender).toString(),
+    data,
     options,
   });
 
-  return transaction;
+  return {
+    transaction,
+    data,
+  };
 }
 
 /**
@@ -845,9 +973,51 @@ export async function renewDomain(args: {
  * @param name.expiration_timestamp - The expiration timestamp in ISO string format.
  * @group Implementation
  */
-function sanitizeANSName(name: GetANSNameResponse[0]): GetANSNameResponse[0] {
+function sanitizeANSName({
+  name,
+  aptosConfig,
+  gracePeriod,
+}: {
+  aptosConfig: AptosConfig;
+  name: RawANSName;
+  gracePeriod: number;
+}): AnsName {
+  const expiration_timestamp = name.expiration_timestamp + "Z";
+  const domain_expiration_timestamp = name.domain_expiration_timestamp + "Z";
+
+  const isSubdomain = !!name.subdomain;
+  const expirationPolicy = name.subdomain_expiration_policy as SubdomainExpirationPolicy;
+  const expiration =
+    isSubdomain && expirationPolicy === SubdomainExpirationPolicy.FollowsDomain
+      ? domain_expiration_timestamp
+      : expiration_timestamp;
+
+  const expiration_status = getANSExpirationStatus({ aptosConfig, name, gracePeriod });
+
+  let isInRenewablePeriod = false;
+  if (expiration_status === ExpirationStatus.InGracePeriod) {
+    isInRenewablePeriod = true;
+  } else if (expiration_status === ExpirationStatus.Active) {
+    // Check if the name is within the renewal window (6 months before expiration)
+    const renewalWindowDate = new Date();
+    renewalWindowDate.setMonth(renewalWindowDate.getMonth() + RENEWAL_MONTHS_WINDOW);
+
+    const expirationDate = new Date(expiration);
+    isInRenewablePeriod = expirationDate < renewalWindowDate;
+  }
+
   return {
-    ...name,
-    expiration_timestamp: new Date(name.expiration_timestamp).getTime(),
+    domain: name.domain!,
+    subdomain: name.subdomain || undefined,
+    expiration_timestamp: expiration_timestamp,
+    expiration_status,
+    domain_expiration_timestamp: domain_expiration_timestamp!,
+    expiration: new Date(expiration),
+    token_standard: name.token_standard! as AnsTokenStandard,
+    is_primary: name.is_primary!,
+    subdomain_expiration_policy: name.subdomain_expiration_policy ?? SubdomainExpirationPolicy.FollowsDomain,
+    owner_address: name.owner_address ?? "",
+    registered_address: name.registered_address!,
+    isInRenewablePeriod,
   };
 }

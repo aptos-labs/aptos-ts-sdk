@@ -1,20 +1,12 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-  Aptos,
-  Network,
-  Account,
-  AnyRawTransaction,
-  U8,
-  AptosConfig,
-  GetANSNameResponse,
-  AccountAddress,
-} from "../../../src";
-import { isValidANSName, isActiveANSName, SubdomainExpirationPolicy } from "../../../src/internal/ans";
+import { Aptos, Network, Account, AnyRawTransaction, U8, AptosConfig, AccountAddress } from "../../../src";
+import { AnsName, ExpirationStatus, SubdomainExpirationPolicy } from "../../../src/types";
 import { generateTransaction } from "../../../src/internal/transactionSubmission";
 import { getAptosClient } from "../helper";
 import { publishAnsContract } from "./publishANSContracts";
+import { getANSExpirationStatus, isValidANSName } from "../../../src/internal/ans";
 
 // This isn't great, we should look into deploying outside the test
 jest.setTimeout(20000);
@@ -117,99 +109,236 @@ describe.skip("ANS", () => {
     2 * 60 * 1000,
   );
 
-  describe("isActiveANSName", () => {
+  describe("getANSExpirationStatus", () => {
     const oneDay = 24 * 60 * 60 * 1000;
     const tomorrow = Date.now() + oneDay;
     const yesterday = Date.now() - oneDay;
+    const gracePeriod = 30 * 24 * 60 * 60; // 30 days in seconds
+    const mockConfig = config; // Use the test config
 
     test("domains", () => {
-      expect(isActiveANSName({ domain: "primary", expiration_timestamp: tomorrow })).toBeTruthy();
-      expect(isActiveANSName({ domain: "primary", expiration_timestamp: yesterday })).toBeFalsy();
+      const activeStatus = getANSExpirationStatus({
+        aptosConfig: mockConfig,
+        name: { domain: "primary", expiration_timestamp: new Date(tomorrow).toISOString() } as any,
+        gracePeriod,
+      });
+      expect(activeStatus).toBe(ExpirationStatus.Active);
+
+      const expiredStatus = getANSExpirationStatus({
+        aptosConfig: mockConfig,
+        name: { domain: "primary", expiration_timestamp: new Date(yesterday).toISOString() } as any,
+        gracePeriod,
+      });
+      expect(expiredStatus).toBe(ExpirationStatus.Expired);
+    });
+
+    test("domains in grace period", () => {
+      // Expired 1 day ago (within 30-day grace period)
+      const withinGracePeriod = Date.now() - oneDay;
+      const status = getANSExpirationStatus({
+        aptosConfig: mockConfig,
+        name: { domain: "primary", expiration_timestamp: new Date(withinGracePeriod).toISOString() } as any,
+        gracePeriod,
+      });
+      expect(status).toBe(ExpirationStatus.InGracePeriod);
+
+      // Expired 31 days ago (outside 30-day grace period)
+      const outsideGracePeriod = Date.now() - 31 * oneDay;
+      const expiredStatus = getANSExpirationStatus({
+        aptosConfig: mockConfig,
+        name: { domain: "primary", expiration_timestamp: new Date(outsideGracePeriod).toISOString() } as any,
+        gracePeriod,
+      });
+      expect(expiredStatus).toBe(ExpirationStatus.Expired);
     });
 
     describe("subdomains", () => {
       test("Policy: Follows Parent", () => {
+        // Both subdomain and parent not expired
         expect(
-          isActiveANSName({
-            domain: "primary",
-            subdomain: "secondary",
-            subdomain_expiration_policy: SubdomainExpirationPolicy.FollowsDomain,
-            expiration_timestamp: tomorrow,
-            domain_expiration_timestamp: tomorrow,
+          getANSExpirationStatus({
+            aptosConfig: mockConfig,
+            name: {
+              domain: "primary",
+              subdomain: "secondary",
+              subdomain_expiration_policy: SubdomainExpirationPolicy.FollowsDomain,
+              expiration_timestamp: new Date(tomorrow).toISOString(),
+              domain_expiration_timestamp: new Date(tomorrow).toISOString(),
+            } as any,
+            gracePeriod,
           }),
-        ).toBeTruthy();
+        ).toBe(ExpirationStatus.Active);
 
+        // Subdomain expired but follows parent which is not expired
         expect(
-          isActiveANSName({
-            domain: "primary",
-            subdomain: "secondary",
-            subdomain_expiration_policy: SubdomainExpirationPolicy.FollowsDomain,
-            expiration_timestamp: yesterday,
-            domain_expiration_timestamp: tomorrow,
+          getANSExpirationStatus({
+            aptosConfig: mockConfig,
+            name: {
+              domain: "primary",
+              subdomain: "secondary",
+              subdomain_expiration_policy: SubdomainExpirationPolicy.FollowsDomain,
+              expiration_timestamp: new Date(yesterday).toISOString(),
+              domain_expiration_timestamp: new Date(tomorrow).toISOString(),
+            } as any,
+            gracePeriod,
           }),
-        ).toBeTruthy();
+        ).toBe(ExpirationStatus.Active);
 
+        // Subdomain not expired but parent is expired
         expect(
-          isActiveANSName({
-            domain: "primary",
-            subdomain: "secondary",
-            subdomain_expiration_policy: SubdomainExpirationPolicy.FollowsDomain,
-            expiration_timestamp: tomorrow,
-            domain_expiration_timestamp: yesterday,
+          getANSExpirationStatus({
+            aptosConfig: mockConfig,
+            name: {
+              domain: "primary",
+              subdomain: "secondary",
+              subdomain_expiration_policy: SubdomainExpirationPolicy.FollowsDomain,
+              expiration_timestamp: new Date(tomorrow).toISOString(),
+              domain_expiration_timestamp: new Date(yesterday).toISOString(),
+            } as any,
+            gracePeriod,
           }),
-        ).toBeFalsy();
+        ).toBe(ExpirationStatus.Expired);
 
+        // Both subdomain and parent expired
         expect(
-          isActiveANSName({
-            domain: "primary",
-            subdomain: "secondary",
-            subdomain_expiration_policy: SubdomainExpirationPolicy.FollowsDomain,
-            expiration_timestamp: yesterday,
-            domain_expiration_timestamp: yesterday,
+          getANSExpirationStatus({
+            aptosConfig: mockConfig,
+            name: {
+              domain: "primary",
+              subdomain: "secondary",
+              subdomain_expiration_policy: SubdomainExpirationPolicy.FollowsDomain,
+              expiration_timestamp: new Date(yesterday).toISOString(),
+              domain_expiration_timestamp: new Date(yesterday).toISOString(),
+            } as any,
+            gracePeriod,
           }),
-        ).toBeFalsy();
+        ).toBe(ExpirationStatus.Expired);
       });
 
       test("Policy: Independent", () => {
+        // Both subdomain and parent not expired
         expect(
-          isActiveANSName({
-            domain: "primary",
-            subdomain: "secondary",
-            subdomain_expiration_policy: SubdomainExpirationPolicy.Independent,
-            expiration_timestamp: tomorrow,
-            domain_expiration_timestamp: tomorrow,
+          getANSExpirationStatus({
+            aptosConfig: mockConfig,
+            name: {
+              domain: "primary",
+              subdomain: "secondary",
+              subdomain_expiration_policy: SubdomainExpirationPolicy.Independent,
+              expiration_timestamp: new Date(tomorrow).toISOString(),
+              domain_expiration_timestamp: new Date(tomorrow).toISOString(),
+            } as any,
+            gracePeriod,
           }),
-        ).toBeTruthy();
+        ).toBe(ExpirationStatus.Active);
 
+        // Subdomain expired but parent not expired (independent policy)
         expect(
-          isActiveANSName({
-            domain: "primary",
-            subdomain: "secondary",
-            subdomain_expiration_policy: SubdomainExpirationPolicy.Independent,
-            expiration_timestamp: yesterday,
-            domain_expiration_timestamp: tomorrow,
+          getANSExpirationStatus({
+            aptosConfig: mockConfig,
+            name: {
+              domain: "primary",
+              subdomain: "secondary",
+              subdomain_expiration_policy: SubdomainExpirationPolicy.Independent,
+              expiration_timestamp: new Date(yesterday).toISOString(),
+              domain_expiration_timestamp: new Date(tomorrow).toISOString(),
+            } as any,
+            gracePeriod,
           }),
-        ).toBeFalsy();
+        ).toBe(ExpirationStatus.Expired);
 
+        // Subdomain not expired but parent expired (independent policy)
         expect(
-          isActiveANSName({
-            domain: "primary",
-            subdomain: "secondary",
-            subdomain_expiration_policy: SubdomainExpirationPolicy.Independent,
-            expiration_timestamp: tomorrow,
-            domain_expiration_timestamp: yesterday,
+          getANSExpirationStatus({
+            aptosConfig: mockConfig,
+            name: {
+              domain: "primary",
+              subdomain: "secondary",
+              subdomain_expiration_policy: SubdomainExpirationPolicy.Independent,
+              expiration_timestamp: new Date(tomorrow).toISOString(),
+              domain_expiration_timestamp: new Date(yesterday).toISOString(),
+            } as any,
+            gracePeriod,
           }),
-        ).toBeFalsy();
+        ).toBe(ExpirationStatus.Expired);
 
+        // Both subdomain and parent expired
         expect(
-          isActiveANSName({
+          getANSExpirationStatus({
+            aptosConfig: mockConfig,
+            name: {
+              domain: "primary",
+              subdomain: "secondary",
+              subdomain_expiration_policy: SubdomainExpirationPolicy.Independent,
+              expiration_timestamp: new Date(yesterday).toISOString(),
+              domain_expiration_timestamp: new Date(yesterday).toISOString(),
+            } as any,
+            gracePeriod,
+          }),
+        ).toBe(ExpirationStatus.Expired);
+      });
+
+      test("Grace period for subdomains following parent", () => {
+        // Parent expired 1 day ago (in grace period), subdomain follows parent
+        const withinGracePeriod = Date.now() - oneDay;
+        const status = getANSExpirationStatus({
+          aptosConfig: mockConfig,
+          name: {
+            domain: "primary",
+            subdomain: "secondary",
+            subdomain_expiration_policy: SubdomainExpirationPolicy.FollowsDomain,
+            expiration_timestamp: new Date(tomorrow).toISOString(),
+            domain_expiration_timestamp: new Date(withinGracePeriod).toISOString(),
+          } as any,
+          gracePeriod,
+        });
+        expect(status).toBe(ExpirationStatus.InGracePeriod);
+
+        // Parent expired 31 days ago (outside grace period)
+        const outsideGracePeriod = Date.now() - 31 * oneDay;
+        const expiredStatus = getANSExpirationStatus({
+          aptosConfig: mockConfig,
+          name: {
+            domain: "primary",
+            subdomain: "secondary",
+            subdomain_expiration_policy: SubdomainExpirationPolicy.FollowsDomain,
+            expiration_timestamp: new Date(tomorrow).toISOString(),
+            domain_expiration_timestamp: new Date(outsideGracePeriod).toISOString(),
+          } as any,
+          gracePeriod,
+        });
+        expect(expiredStatus).toBe(ExpirationStatus.Expired);
+      });
+
+      test("Grace period for independent subdomains", () => {
+        // Subdomain expired 1 day ago (in grace period), independent policy
+        const withinGracePeriod = Date.now() - oneDay;
+        const status = getANSExpirationStatus({
+          aptosConfig: mockConfig,
+          name: {
             domain: "primary",
             subdomain: "secondary",
             subdomain_expiration_policy: SubdomainExpirationPolicy.Independent,
-            expiration_timestamp: yesterday,
-            domain_expiration_timestamp: yesterday,
-          }),
-        ).toBeFalsy();
+            expiration_timestamp: new Date(withinGracePeriod).toISOString(),
+            domain_expiration_timestamp: new Date(tomorrow).toISOString(),
+          } as any,
+          gracePeriod,
+        });
+        expect(status).toBe(ExpirationStatus.InGracePeriod);
+
+        // Subdomain expired 31 days ago (outside grace period)
+        const outsideGracePeriod = Date.now() - 31 * oneDay;
+        const expiredStatus = getANSExpirationStatus({
+          aptosConfig: mockConfig,
+          name: {
+            domain: "primary",
+            subdomain: "secondary",
+            subdomain_expiration_policy: SubdomainExpirationPolicy.Independent,
+            expiration_timestamp: new Date(outsideGracePeriod).toISOString(),
+            domain_expiration_timestamp: new Date(tomorrow).toISOString(),
+          } as any,
+          gracePeriod,
+        });
+        expect(expiredStatus).toBe(ExpirationStatus.Expired);
       });
     });
   });
@@ -272,7 +401,7 @@ describe.skip("ANS", () => {
       expect(
         await aptos.registerName({
           name,
-          sender: alice,
+          sender: alice.accountAddress,
           expiration: { policy: "domain" },
         }),
       ).toBeTruthy();
@@ -280,14 +409,14 @@ describe.skip("ANS", () => {
       expect(
         await aptos.registerName({
           name,
-          sender: alice,
+          sender: alice.accountAddress,
           expiration: { policy: "domain", years: 1 },
         }),
       ).toBeTruthy();
 
       await expect(
         aptos.registerName({
-          sender: alice,
+          sender: alice.accountAddress,
           name,
           // Force the year to be absent
           expiration: { policy: "domain", years: 0 } as any,
@@ -297,7 +426,7 @@ describe.skip("ANS", () => {
       // Testing to make sure that the subdomain policy is enforced
       await expect(
         aptos.registerName({
-          sender: alice,
+          sender: alice.accountAddress,
           name,
           // Force the year to be absent
           expiration: { policy: "subdomain:follow-domain" },
@@ -308,14 +437,12 @@ describe.skip("ANS", () => {
     test("it mints a domain name and gives it to the sender", async () => {
       const name = domainName;
 
-      await signAndSubmit(
-        alice,
-        await aptos.registerName({
-          name,
-          expiration: { policy: "domain" },
-          sender: alice,
-        }),
-      );
+      const { transaction } = await aptos.registerName({
+        name,
+        expiration: { policy: "domain" },
+        sender: alice.accountAddress,
+      });
+      await signAndSubmit(alice, transaction);
 
       const owner = await aptos.getOwnerAddress({ name });
       expect(owner?.toString()).toEqual(alice.accountAddress.toString());
@@ -324,70 +451,60 @@ describe.skip("ANS", () => {
     test("it mints a domain name and gives it to the specified address", async () => {
       const name = domainName;
 
-      await signAndSubmit(
-        alice,
-        await aptos.registerName({
-          name,
-          expiration: { policy: "domain" },
-          sender: alice,
-          targetAddress: bob.accountAddress.toString(),
-          toAddress: bob.accountAddress.toString(),
-        }),
-      );
+      const { transaction } = await aptos.registerName({
+        name,
+        expiration: { policy: "domain" },
+        sender: alice.accountAddress,
+        targetAddress: bob.accountAddress.toString(),
+        toAddress: bob.accountAddress.toString(),
+      });
+      await signAndSubmit(alice, transaction);
 
       const owner = await aptos.getOwnerAddress({ name });
       expect(owner?.toString()).toEqual(bob.accountAddress.toString());
     });
 
     test("it mints a subdomain name and gives it to the sender", async () => {
-      await signAndSubmit(
-        alice,
-        await aptos.registerName({
-          name: domainName,
-          expiration: { policy: "domain" },
-          sender: alice,
-        }),
-      );
+      const { transaction: txn1 } = await aptos.registerName({
+        name: domainName,
+        expiration: { policy: "domain" },
+        sender: alice.accountAddress,
+      });
+      await signAndSubmit(alice, txn1);
 
-      await signAndSubmit(
-        alice,
-        await aptos.registerName({
-          name: `${subdomainName}.${domainName}`,
-          expiration: { policy: "subdomain:follow-domain" },
-          transferable: true,
-          sender: alice,
-        }),
-      );
+      const { transaction: txn2 } = await aptos.registerName({
+        name: `${subdomainName}.${domainName}`,
+        expiration: { policy: "subdomain:follow-domain" },
+        transferable: true,
+        sender: alice.accountAddress,
+      });
+      await signAndSubmit(alice, txn2);
 
       const owner = await aptos.getOwnerAddress({ name: `${subdomainName}.${domainName}` });
       expect(owner?.toString()).toEqual(alice.accountAddress.toString());
     });
 
     test("it mints a subdomain name and gives it to the specified address", async () => {
-      await signAndSubmit(
-        alice,
-        await aptos.registerName({
-          name: domainName,
-          expiration: { policy: "domain" },
-          sender: alice,
-        }),
-      );
+      const { transaction: txn1 } = await aptos.registerName({
+        name: domainName,
+        expiration: { policy: "domain" },
+        sender: alice.accountAddress,
+      });
+      await signAndSubmit(alice, txn1);
 
-      await signAndSubmit(
-        alice,
-        await aptos.registerName({
-          name: `${subdomainName}.${domainName}`,
-          expiration: {
-            policy: "subdomain:independent",
-            // Expire the subdomain two seconds before the TLD expires
-            expirationDate: Date.now() + 365 * 24 * 60 * 60 * 1000 - 2000,
-          },
-          transferable: true,
-          sender: alice,
-          targetAddress: bob.accountAddress.toString(),
-          toAddress: bob.accountAddress.toString(),
-        }),
-      );
+      const { transaction: txn2 } = await aptos.registerName({
+        name: `${subdomainName}.${domainName}`,
+        expiration: {
+          policy: "subdomain:independent",
+          // Expire the subdomain two seconds before the TLD expires
+          expirationDate: Date.now() + 365 * 24 * 60 * 60 * 1000 - 2000,
+        },
+        transferable: true,
+        sender: alice.accountAddress,
+        targetAddress: bob.accountAddress.toString(),
+        toAddress: bob.accountAddress.toString(),
+      });
+      await signAndSubmit(alice, txn2);
 
       const owner = await aptos.getOwnerAddress({ name: `${subdomainName}.${domainName}` });
       expect(owner?.toString()).toEqual(bob.accountAddress.toString());
@@ -421,28 +538,24 @@ describe.skip("ANS", () => {
     test("it sets and gets the target address for a tld", async () => {
       const name = domainName;
 
-      await signAndSubmit(
-        alice,
-        await aptos.registerName({
-          name,
-          expiration: { policy: "domain" },
-          sender: alice,
-          targetAddress: alice.accountAddress.toString(),
-          toAddress: alice.accountAddress.toString(),
-        }),
-      );
+      const { transaction: registerTxn } = await aptos.registerName({
+        name,
+        expiration: { policy: "domain" },
+        sender: alice.accountAddress,
+        targetAddress: alice.accountAddress.toString(),
+        toAddress: alice.accountAddress.toString(),
+      });
+      await signAndSubmit(alice, registerTxn);
 
       addr = await aptos.getTargetAddress({ name });
       expect(addr?.toString()).toEqual(alice.accountAddress.toString());
 
-      await signAndSubmit(
-        alice,
-        await aptos.setTargetAddress({
-          name,
-          address: bob.accountAddress,
-          sender: alice,
-        }),
-      );
+      const { transaction: setTargetTxn } = await aptos.setTargetAddress({
+        name,
+        address: bob.accountAddress,
+        sender: alice.accountAddress,
+      });
+      await signAndSubmit(alice, setTargetTxn);
       addr = await aptos.getTargetAddress({ name });
       expect(addr?.toString()).toEqual(bob.accountAddress.toString());
     });
@@ -450,35 +563,29 @@ describe.skip("ANS", () => {
     test("it sets and gets the target address for a subdomain", async () => {
       const name = `${subdomainName}.${domainName}`;
 
-      await signAndSubmit(
-        alice,
-        await aptos.registerName({
-          name: domainName,
-          expiration: { policy: "domain" },
-          sender: alice,
-        }),
-      );
+      const { transaction: registerTxn1 } = await aptos.registerName({
+        name: domainName,
+        expiration: { policy: "domain" },
+        sender: alice.accountAddress,
+      });
+      await signAndSubmit(alice, registerTxn1);
 
-      await signAndSubmit(
-        alice,
-        await aptos.registerName({
-          name,
-          expiration: { policy: "subdomain:follow-domain" },
-          sender: alice,
-        }),
-      );
+      const { transaction: registerTxn2 } = await aptos.registerName({
+        name,
+        expiration: { policy: "subdomain:follow-domain" },
+        sender: alice.accountAddress,
+      });
+      await signAndSubmit(alice, registerTxn2);
 
       addr = await aptos.getTargetAddress({ name });
       expect(addr?.toString()).toEqual(alice.accountAddress.toString());
 
-      await signAndSubmit(
-        alice,
-        await aptos.setTargetAddress({
-          name,
-          address: bob.accountAddress,
-          sender: alice,
-        }),
-      );
+      const { transaction: setTargetTxn } = await aptos.setTargetAddress({
+        name,
+        address: bob.accountAddress,
+        sender: alice.accountAddress,
+      });
+      await signAndSubmit(alice, setTargetTxn);
       addr = await aptos.getTargetAddress({ name });
       expect(addr?.toString()).toEqual(bob.accountAddress.toString());
     });
@@ -515,9 +622,18 @@ describe.skip("ANS", () => {
     test("it sets and gets domain primary names", async () => {
       const name = domainName;
 
-      await signAndSubmit(alice, await aptos.registerName({ name, expiration: { policy: "domain" }, sender: alice }));
+      const { transaction: registerTxn } = await aptos.registerName({
+        name,
+        expiration: { policy: "domain" },
+        sender: alice.accountAddress,
+      });
+      await signAndSubmit(alice, registerTxn);
 
-      await signAndSubmit(alice, await aptos.setPrimaryName({ name, sender: alice }));
+      const { transaction: setPrimaryTxn } = await aptos.setPrimaryName({
+        name,
+        sender: alice.accountAddress,
+      });
+      await signAndSubmit(alice, setPrimaryTxn);
 
       const res = await aptos.getPrimaryName({ address: alice.accountAddress });
 
@@ -528,17 +644,25 @@ describe.skip("ANS", () => {
       const tld = domainName;
       const name = `${subdomainName}.${domainName}`;
 
-      await signAndSubmit(
-        alice,
-        await aptos.registerName({ name: tld, expiration: { policy: "domain" }, sender: alice }),
-      );
+      const { transaction: registerTxn1 } = await aptos.registerName({
+        name: tld,
+        expiration: { policy: "domain" },
+        sender: alice.accountAddress,
+      });
+      await signAndSubmit(alice, registerTxn1);
 
-      await signAndSubmit(
-        alice,
-        await aptos.registerName({ name, expiration: { policy: "subdomain:follow-domain" }, sender: alice }),
-      );
+      const { transaction: registerTxn2 } = await aptos.registerName({
+        name,
+        expiration: { policy: "subdomain:follow-domain" },
+        sender: alice.accountAddress,
+      });
+      await signAndSubmit(alice, registerTxn2);
 
-      await signAndSubmit(alice, await aptos.setPrimaryName({ name, sender: alice }));
+      const { transaction: setPrimaryTxn } = await aptos.setPrimaryName({
+        name,
+        sender: alice.accountAddress,
+      });
+      await signAndSubmit(alice, setPrimaryTxn);
 
       const res = await aptos.getPrimaryName({ address: alice.accountAddress });
 
@@ -574,20 +698,22 @@ describe.skip("ANS", () => {
 
       await changeRouterMode(1);
 
-      await signAndSubmit(
-        alice,
-        await aptos.registerName({
-          name,
-          expiration: { policy: "domain" },
-          sender: alice,
-        }),
-      );
+      const { transaction: registerTxn } = await aptos.registerName({
+        name,
+        expiration: { policy: "domain" },
+        sender: alice.accountAddress,
+      });
+      await signAndSubmit(alice, registerTxn);
 
       // Change the expiration date of the name to be tomorrow
       const newExpirationDate = Math.floor(new Date(Date.now() + 24 * 60 * 60 * 1000).getTime() / 1000);
       await changeExpirationDate(1, newExpirationDate, name);
 
-      await signAndSubmit(alice, await aptos.renewDomain({ name, sender: alice }));
+      const { transaction: renewTxn } = await aptos.renewDomain({
+        name,
+        sender: alice.accountAddress,
+      });
+      await signAndSubmit(alice, renewTxn);
 
       // We expect the renewed expiration time to be one year from tomorrow
       const expectedExpirationDate = (newExpirationDate + 365 * 24 * 60 * 60) * 1000;
@@ -601,25 +727,21 @@ describe.skip("ANS", () => {
 
       await changeRouterMode(1);
 
-      await signAndSubmit(
-        alice,
-        await aptos.registerName({
-          name: tld,
-          expiration: { policy: "domain" },
-          sender: alice,
-        }),
-      );
+      const { transaction: registerTxn1 } = await aptos.registerName({
+        name: tld,
+        expiration: { policy: "domain" },
+        sender: alice.accountAddress,
+      });
+      await signAndSubmit(alice, registerTxn1);
 
-      await signAndSubmit(
-        alice,
-        await aptos.registerName({
-          name,
-          expiration: { policy: "subdomain:follow-domain" },
-          sender: alice,
-        }),
-      );
+      const { transaction: registerTxn2 } = await aptos.registerName({
+        name,
+        expiration: { policy: "subdomain:follow-domain" },
+        sender: alice.accountAddress,
+      });
+      await signAndSubmit(alice, registerTxn2);
 
-      expect(aptos.renewDomain({ name, sender: alice })).rejects.toThrow();
+      expect(aptos.renewDomain({ name, sender: alice.accountAddress })).rejects.toThrow();
     });
   });
 
@@ -636,38 +758,38 @@ describe.skip("ANS", () => {
 
     test("returns all the names for an account", async () => {
       const res = await testnet.ans.getAccountNames({ accountAddress: ACCOUNT_ADDRESS_1 });
-      expect(res.length).toBe(4);
+      expect(res.names.length).toBe(4);
     });
 
     test("returns only the domains for an account", async () => {
       const res = await testnet.ans.getAccountDomains({ accountAddress: ACCOUNT_ADDRESS_1 });
-      expect(res.length).toBe(2);
+      expect(res.names.length).toBe(2);
       // None of our results should have a subdomain
-      expect(res.find((name) => Boolean(name.subdomain))).toBeFalsy();
+      expect(res.names.find((name) => Boolean(name.subdomain))).toBeFalsy();
     });
 
     test("returns only the subdomains for an account", async () => {
       const res = await testnet.ans.getAccountSubdomains({ accountAddress: ACCOUNT_ADDRESS_1 });
-      expect(res.length).toBe(2);
+      expect(res.names.length).toBe(2);
       // All our results should have a subdomain
-      expect(res.find((name) => !name.subdomain)).toBeFalsy();
+      expect(res.names.find((name) => !name.subdomain)).toBeFalsy();
     });
 
     test("returns only the subdomains names for a domain", async () => {
       const res = await testnet.ans.getDomainSubdomains({ domain: DOMAIN });
-      expect(res.length).toBe(1);
+      expect(res.names.length).toBe(1);
       // All our results should have a subdomain
-      expect(res.find((name) => !name.subdomain)).toBeFalsy();
+      expect(res.names.find((name) => !name.subdomain)).toBeFalsy();
     });
 
     test("accommodates where, pagination, and ordering", async () => {
-      let res: GetANSNameResponse;
+      let res: { names: AnsName[]; total: number };
 
       res = await testnet.ans.getAccountNames({
         accountAddress: ACCOUNT_ADDRESS_1,
         options: { limit: 1 },
       });
-      expect(res.length).toBe(1);
+      expect(res.names.length).toBe(1);
 
       res = await testnet.ans.getAccountNames({
         accountAddress: ACCOUNT_ADDRESS_1,
@@ -677,7 +799,7 @@ describe.skip("ANS", () => {
           },
         },
       });
-      expect(res[0].domain).toBe(DOMAIN);
+      expect(res.names[0].domain).toBe(DOMAIN);
     });
 
     // TODO: When we have local testnet, test order here
