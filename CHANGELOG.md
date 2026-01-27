@@ -4,12 +4,9 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
-- Add `is_enum` field to `MoveStruct`.
-- Make `functionArguments` optional in entry function transactions
+# 6.0.0 (2026-01-29)
 
-# 6.0.0 (Unreleased)
-
-> **Upgrade Guide**: See [UPGRADE_GUIDE_6.0.0.md](./UPGRADE_GUIDE_6.0.0.md) for detailed migration instructions.
+> **Upgrade Guide**: See [UPGRADE_GUIDE_6.0.0.md](./upgrade-guides/UPGRADE_GUIDE_6.0.0.md) for detailed migration instructions.
 
 ## Breaking Changes
 
@@ -21,6 +18,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Added
 
+- Add `is_enum` field to `MoveStruct`.
+- Make `functionArguments` optional in entry function transactions
 - [ANS] Add `clearTargetAddress()` method to public ANS API for clearing target address associations
 - [ANS] Add `ExpirationStatus` enum with values: `Active`, `InGracePeriod`, and `Expired` for better expiration status tracking
 - [ANS] Add grace period support for ANS name expiration, allowing names to remain claimable by current owner during grace period
