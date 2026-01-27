@@ -397,25 +397,27 @@ describe("Remote ABI", () => {
     it("should not support unsupported vector conversions", () => {
       // These are not supported currently, but could in the future
       expect(() =>
-        checkOrConvertArgument(new Uint16Array([1, 2, 3]), parseTypeTag("vector<u16>"), 0, []),
+        checkOrConvertArgument(new Uint16Array([1, 2, 3]) as any, parseTypeTag("vector<u16>"), 0, []),
       ).toThrowError();
       expect(() =>
-        checkOrConvertArgument(new Uint32Array([1, 2, 3]), parseTypeTag("vector<u32>"), 0, []),
+        checkOrConvertArgument(new Uint32Array([1, 2, 3]) as any, parseTypeTag("vector<u32>"), 0, []),
       ).toThrowError();
       expect(() =>
-        checkOrConvertArgument(new BigUint64Array([1n, 2n, 3n]), parseTypeTag("vector<u64>"), 0, []),
+        checkOrConvertArgument(new BigUint64Array([1n, 2n, 3n]) as any, parseTypeTag("vector<u64>"), 0, []),
       ).toThrowError();
 
       // Signed arrays shouldn't work though
-      expect(() => checkOrConvertArgument(new Int8Array([1, 2, 3]), parseTypeTag("vector<u8>"), 0, [])).toThrowError();
       expect(() =>
-        checkOrConvertArgument(new Int16Array([1, 2, 3]), parseTypeTag("vector<u16>"), 0, []),
+        checkOrConvertArgument(new Int8Array([1, 2, 3]) as any, parseTypeTag("vector<u8>"), 0, []),
       ).toThrowError();
       expect(() =>
-        checkOrConvertArgument(new Int32Array([1, 2, 3]), parseTypeTag("vector<u32>"), 0, []),
+        checkOrConvertArgument(new Int16Array([1, 2, 3]) as any, parseTypeTag("vector<u16>"), 0, []),
       ).toThrowError();
       expect(() =>
-        checkOrConvertArgument(new BigInt64Array([1n, 2n, 3n]), parseTypeTag("vector<u64>"), 0, []),
+        checkOrConvertArgument(new Int32Array([1, 2, 3]) as any, parseTypeTag("vector<u32>"), 0, []),
+      ).toThrowError();
+      expect(() =>
+        checkOrConvertArgument(new BigInt64Array([1n, 2n, 3n]) as any, parseTypeTag("vector<u64>"), 0, []),
       ).toThrowError();
 
       // Below u64 can't support bigints
