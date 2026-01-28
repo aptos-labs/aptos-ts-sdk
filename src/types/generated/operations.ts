@@ -545,6 +545,7 @@ export type GetNamesQuery = {
     subdomain_expiration_policy?: any | null;
     domain_expiration_timestamp?: any | null;
   }>;
+  current_aptos_names_aggregate: { aggregate?: { count: number } | null };
 };
 
 export type GetNumberOfDelegatorsQueryVariables = Types.Exact<{

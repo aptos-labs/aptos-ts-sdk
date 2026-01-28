@@ -12,6 +12,7 @@ import {
   setPrimaryName,
   getTargetAddress,
   setTargetAddress,
+  clearTargetAddress,
   renewDomain,
   getName,
   getAccountDomains,
@@ -23,8 +24,8 @@ import {
   getDomainSubdomains,
   GetDomainSubdomainsArgs,
 } from "../internal/ans";
-import { GetANSNameResponse } from "../types";
-import { InputGenerateTransactionOptions } from "../transactions/types";
+import { type AnsName } from "../types";
+import { InputGenerateTransactionOptions, InputEntryFunctionData } from "../transactions/types";
 import { AptosConfig } from "./aptosConfig";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
@@ -160,7 +161,7 @@ export class ANS {
    * @param args.address - The AccountAddressInput of the address to set the domain or subdomain to.
    * @param args.options - Optional settings for generating the transaction.
    *
-   * @returns SimpleTransaction
+   * @returns An object containing the transaction and the InputEntryFunctionData
    *
    * @example
    * ```typescript
@@ -174,10 +175,10 @@ export class ANS {
    *   const sender = Account.generate(); // replace with a real account
    *   const address = "0x1"; // replace with a real account address
    *
-   *   await aptos.setTargetAddress({
-   *     sender: sender,
+   *   const { transaction, data } = await aptos.setTargetAddress({
+   *     sender,
    *     name: "test.aptos",
-   *     address: address,
+   *     address,
    *   });
    *
    *   const targetAddress = await aptos.getTargetAddress({ name: "test.aptos" });
@@ -188,12 +189,54 @@ export class ANS {
    * @group ANS
    */
   async setTargetAddress(args: {
-    sender: Account;
+    sender: AccountAddressInput;
     name: string;
     address: AccountAddressInput;
     options?: InputGenerateTransactionOptions;
-  }): Promise<SimpleTransaction> {
+  }): Promise<{ transaction: SimpleTransaction; data: InputEntryFunctionData }> {
     return setTargetAddress({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Clears the target address of a domain or subdomain name, removing the address association.
+   * After clearing, the name will no longer resolve to a specific address.
+   *
+   * @param args - The arguments for clearing the target address.
+   * @param args.sender - The account initiating the transaction.
+   * @param args.name - A string representing the domain or subdomain name (e.g., "test.aptos").
+   * @param args.options - Optional settings for generating the transaction.
+   *
+   * @returns An object containing the transaction and the InputEntryFunctionData
+   *
+   * @example
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   *
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   *
+   * async function runExample() {
+   *   // Clearing the target address for a domain name
+   *   const sender = Account.generate(); // replace with a real account
+   *
+   *   const { transaction, data } = await aptos.clearTargetAddress({
+   *     sender,
+   *     name: "test.aptos",
+   *   });
+   *
+   *   const targetAddress = await aptos.getTargetAddress({ name: "test.aptos" });
+   *   console.log(targetAddress); // Should log undefined after clearing
+   * }
+   * runExample().catch(console.error);
+   * ```
+   * @group ANS
+   */
+  async clearTargetAddress(args: {
+    sender: AccountAddressInput;
+    name: string;
+    options?: InputGenerateTransactionOptions;
+  }): Promise<{ transaction: SimpleTransaction; data: InputEntryFunctionData }> {
+    return clearTargetAddress({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -233,7 +276,7 @@ export class ANS {
    * @param args.name - A string representing the name to set as primary (e.g., "test.aptos").
    * @param args.options - Optional transaction options.
    *
-   * @returns SimpleTransaction
+   * @returns An object containing the transaction and the InputEntryFunctionData
    *
    * @example
    * ```typescript
@@ -245,7 +288,7 @@ export class ANS {
    * async function runExample() {
    *   // Set the primary name for the sender account
    *   const sender = Account.generate(); // replace with a real account
-   *   await aptos.setPrimaryName({ sender, name: "test.aptos" });
+   *   const { transaction, data } = await aptos.setPrimaryName({ sender, name: "test.aptos" });
    *
    *   const primaryName = await aptos.getPrimaryName({ address: sender.accountAddress });
    *   console.log("Primary Name:", primaryName); // Should log: "Primary Name: test.aptos"
@@ -255,10 +298,10 @@ export class ANS {
    * @group ANS
    */
   async setPrimaryName(args: {
-    sender: Account;
+    sender: AccountAddressInput;
     name?: string;
     options?: InputGenerateTransactionOptions;
-  }): Promise<SimpleTransaction> {
+  }): Promise<{ transaction: SimpleTransaction; data: InputEntryFunctionData }> {
     return setPrimaryName({ aptosConfig: this.config, ...args });
   }
 
@@ -283,7 +326,7 @@ export class ANS {
    * @param args.toAddress optional - The address to send the domain name to. If not provided, the transaction will be sent to the
    * router.
    *
-   * @returns SimpleTransaction
+   * @returns An object containing the transaction and the InputEntryFunctionData
    *
    * @example
    * ```typescript
@@ -294,7 +337,7 @@ export class ANS {
    *
    * async function runExample() {
    *   // Registering a subdomain name assuming def.apt is already registered and belongs to the sender alice.
-   *   const txn = await aptos.registerName({
+   *   const { transaction, data } = await aptos.registerName({
    *     sender: "0x1", // replace with a real sender account
    *     name: "test.aptos.apt",
    *     expiration: {
@@ -303,13 +346,15 @@ export class ANS {
    *     },
    *   });
    *
-   *   console.log("Transaction:", txn);
+   *   console.log("Transaction:", transaction);
    * }
    * runExample().catch(console.error);
    * ```
    * @group ANS
    */
-  async registerName(args: Omit<RegisterNameParameters, "aptosConfig">): Promise<SimpleTransaction> {
+  async registerName(
+    args: Omit<RegisterNameParameters, "aptosConfig">,
+  ): Promise<{ transaction: SimpleTransaction; data: InputEntryFunctionData }> {
     return registerName({ aptosConfig: this.config, ...args });
   }
 
@@ -323,7 +368,7 @@ export class ANS {
    * @param args.years - The number of years to renew the name. Currently, only one year is permitted.
    * @param args.options - Optional transaction options.
    *
-   * @returns SimpleTransaction
+   * @returns An object containing the transaction and the InputEntryFunctionData
    *
    * @example
    * ```typescript
@@ -334,7 +379,7 @@ export class ANS {
    *
    * async function runExample() {
    *   // Renew the domain "test" for one year
-   *   const transaction = await aptos.renewDomain({
+   *   const { transaction, data } = await aptos.renewDomain({
    *     sender: Account.generate(), // replace with a real account
    *     name: "test"
    *   });
@@ -346,11 +391,11 @@ export class ANS {
    * @group ANS
    */
   async renewDomain(args: {
-    sender: Account;
+    sender: AccountAddressInput;
     name: string;
     years?: 1;
     options?: InputGenerateTransactionOptions;
-  }): Promise<SimpleTransaction> {
+  }): Promise<{ transaction: SimpleTransaction; data: InputEntryFunctionData }> {
     return renewDomain({ aptosConfig: this.config, ...args });
   }
 
@@ -379,7 +424,7 @@ export class ANS {
    * ```
    * @group ANS
    */
-  async getName(args: { name: string }): Promise<GetANSNameResponse[0] | undefined> {
+  async getName(args: { name: string }): Promise<AnsName | undefined> {
     return getName({ aptosConfig: this.config, ...args });
   }
 
@@ -419,7 +464,7 @@ export class ANS {
    * ```
    * @group ANS
    */
-  async getAccountNames(args: GetAccountNamesArgs): Promise<GetANSNameResponse> {
+  async getAccountNames(args: GetAccountNamesArgs): Promise<{ names: AnsName[]; total: number }> {
     return getAccountNames({ aptosConfig: this.config, ...args });
   }
 
@@ -462,7 +507,7 @@ export class ANS {
    * ```
    * @group ANS
    */
-  async getAccountDomains(args: GetAccountDomainsArgs): Promise<GetANSNameResponse> {
+  async getAccountDomains(args: GetAccountDomainsArgs): Promise<{ names: AnsName[]; total: number }> {
     return getAccountDomains({ aptosConfig: this.config, ...args });
   }
 
@@ -503,7 +548,7 @@ export class ANS {
    * ```
    * @group ANS
    */
-  async getAccountSubdomains(args: GetAccountSubdomainsArgs): Promise<GetANSNameResponse> {
+  async getAccountSubdomains(args: GetAccountSubdomainsArgs): Promise<{ names: AnsName[]; total: number }> {
     return getAccountSubdomains({ aptosConfig: this.config, ...args });
   }
 
@@ -544,7 +589,7 @@ export class ANS {
    * ```
    * @group ANS
    */
-  async getDomainSubdomains(args: GetDomainSubdomainsArgs): Promise<GetANSNameResponse> {
+  async getDomainSubdomains(args: GetDomainSubdomainsArgs): Promise<{ names: AnsName[]; total: number }> {
     return getDomainSubdomains({ aptosConfig: this.config, ...args });
   }
 }

@@ -398,6 +398,7 @@ describe("account api", () => {
       const address = await aptos.getCollectionId({
         collectionName: "Test Collection",
         creatorAddress: creator.accountAddress,
+        minimumLedgerVersion: BigInt(response.version),
       });
       const tokens = await aptos.getAccountOwnedTokensFromCollectionAddress({
         accountAddress: creator.accountAddress,

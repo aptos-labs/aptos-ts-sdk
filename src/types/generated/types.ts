@@ -1658,6 +1658,73 @@ export type CoinInfosStreamCursorValueInput = {
   transaction_version_created?: InputMaybe<Scalars["bigint"]["input"]>;
 };
 
+/** columns and relationships of "coin_supply" */
+export type CoinSupply = {
+  coin_type: Scalars["String"]["output"];
+  coin_type_hash: Scalars["String"]["output"];
+  supply: Scalars["numeric"]["output"];
+  transaction_epoch: Scalars["bigint"]["output"];
+  transaction_timestamp: Scalars["timestamp"]["output"];
+  transaction_version: Scalars["bigint"]["output"];
+};
+
+/** Boolean expression to filter rows from the table "coin_supply". All fields are combined with a logical 'AND'. */
+export type CoinSupplyBoolExp = {
+  _and?: InputMaybe<Array<CoinSupplyBoolExp>>;
+  _not?: InputMaybe<CoinSupplyBoolExp>;
+  _or?: InputMaybe<Array<CoinSupplyBoolExp>>;
+  coin_type?: InputMaybe<StringComparisonExp>;
+  coin_type_hash?: InputMaybe<StringComparisonExp>;
+  supply?: InputMaybe<NumericComparisonExp>;
+  transaction_epoch?: InputMaybe<BigintComparisonExp>;
+  transaction_timestamp?: InputMaybe<TimestampComparisonExp>;
+  transaction_version?: InputMaybe<BigintComparisonExp>;
+};
+
+/** Ordering options when selecting data from "coin_supply". */
+export type CoinSupplyOrderBy = {
+  coin_type?: InputMaybe<OrderBy>;
+  coin_type_hash?: InputMaybe<OrderBy>;
+  supply?: InputMaybe<OrderBy>;
+  transaction_epoch?: InputMaybe<OrderBy>;
+  transaction_timestamp?: InputMaybe<OrderBy>;
+  transaction_version?: InputMaybe<OrderBy>;
+};
+
+/** select columns of table "coin_supply" */
+export enum CoinSupplySelectColumn {
+  /** column name */
+  CoinType = "coin_type",
+  /** column name */
+  CoinTypeHash = "coin_type_hash",
+  /** column name */
+  Supply = "supply",
+  /** column name */
+  TransactionEpoch = "transaction_epoch",
+  /** column name */
+  TransactionTimestamp = "transaction_timestamp",
+  /** column name */
+  TransactionVersion = "transaction_version",
+}
+
+/** Streaming cursor of the table "coin_supply" */
+export type CoinSupplyStreamCursorInput = {
+  /** Stream column input with initial value */
+  initial_value: CoinSupplyStreamCursorValueInput;
+  /** cursor ordering */
+  ordering?: InputMaybe<CursorOrdering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type CoinSupplyStreamCursorValueInput = {
+  coin_type?: InputMaybe<Scalars["String"]["input"]>;
+  coin_type_hash?: InputMaybe<Scalars["String"]["input"]>;
+  supply?: InputMaybe<Scalars["numeric"]["input"]>;
+  transaction_epoch?: InputMaybe<Scalars["bigint"]["input"]>;
+  transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
 /** columns and relationships of "legacy_migration_v1.collection_datas" */
 export type CollectionDatas = {
   collection_data_id_hash?: Maybe<Scalars["String"]["output"]>;
@@ -6403,6 +6470,38 @@ export type PublicKeyAuthKeys = {
   signature_type: Scalars["String"]["output"];
 };
 
+/** aggregated selection of "public_key_auth_keys" */
+export type PublicKeyAuthKeysAggregate = {
+  aggregate?: Maybe<PublicKeyAuthKeysAggregateFields>;
+  nodes: Array<PublicKeyAuthKeys>;
+};
+
+/** aggregate fields of "public_key_auth_keys" */
+export type PublicKeyAuthKeysAggregateFields = {
+  avg?: Maybe<PublicKeyAuthKeysAvgFields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<PublicKeyAuthKeysMaxFields>;
+  min?: Maybe<PublicKeyAuthKeysMinFields>;
+  stddev?: Maybe<PublicKeyAuthKeysStddevFields>;
+  stddev_pop?: Maybe<PublicKeyAuthKeysStddevPopFields>;
+  stddev_samp?: Maybe<PublicKeyAuthKeysStddevSampFields>;
+  sum?: Maybe<PublicKeyAuthKeysSumFields>;
+  var_pop?: Maybe<PublicKeyAuthKeysVarPopFields>;
+  var_samp?: Maybe<PublicKeyAuthKeysVarSampFields>;
+  variance?: Maybe<PublicKeyAuthKeysVarianceFields>;
+};
+
+/** aggregate fields of "public_key_auth_keys" */
+export type PublicKeyAuthKeysAggregateFieldsCountArgs = {
+  columns?: InputMaybe<Array<PublicKeyAuthKeysSelectColumn>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** aggregate avg on columns */
+export type PublicKeyAuthKeysAvgFields = {
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+};
+
 /** Boolean expression to filter rows from the table "public_key_auth_keys". All fields are combined with a logical 'AND'. */
 export type PublicKeyAuthKeysBoolExp = {
   _and?: InputMaybe<Array<PublicKeyAuthKeysBoolExp>>;
@@ -6415,6 +6514,26 @@ export type PublicKeyAuthKeysBoolExp = {
   public_key?: InputMaybe<StringComparisonExp>;
   public_key_type?: InputMaybe<StringComparisonExp>;
   signature_type?: InputMaybe<StringComparisonExp>;
+};
+
+/** aggregate max on columns */
+export type PublicKeyAuthKeysMaxFields = {
+  account_public_key?: Maybe<Scalars["String"]["output"]>;
+  auth_key?: Maybe<Scalars["String"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  public_key?: Maybe<Scalars["String"]["output"]>;
+  public_key_type?: Maybe<Scalars["String"]["output"]>;
+  signature_type?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type PublicKeyAuthKeysMinFields = {
+  account_public_key?: Maybe<Scalars["String"]["output"]>;
+  auth_key?: Maybe<Scalars["String"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  public_key?: Maybe<Scalars["String"]["output"]>;
+  public_key_type?: Maybe<Scalars["String"]["output"]>;
+  signature_type?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** Ordering options when selecting data from "public_key_auth_keys". */
@@ -6446,6 +6565,21 @@ export enum PublicKeyAuthKeysSelectColumn {
   SignatureType = "signature_type",
 }
 
+/** aggregate stddev on columns */
+export type PublicKeyAuthKeysStddevFields = {
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type PublicKeyAuthKeysStddevPopFields = {
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type PublicKeyAuthKeysStddevSampFields = {
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+};
+
 /** Streaming cursor of the table "public_key_auth_keys" */
 export type PublicKeyAuthKeysStreamCursorInput = {
   /** Stream column input with initial value */
@@ -6463,6 +6597,26 @@ export type PublicKeyAuthKeysStreamCursorValueInput = {
   public_key?: InputMaybe<Scalars["String"]["input"]>;
   public_key_type?: InputMaybe<Scalars["String"]["input"]>;
   signature_type?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type PublicKeyAuthKeysSumFields = {
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** aggregate var_pop on columns */
+export type PublicKeyAuthKeysVarPopFields = {
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate var_samp on columns */
+export type PublicKeyAuthKeysVarSampFields = {
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate variance on columns */
+export type PublicKeyAuthKeysVarianceFields = {
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 export type QueryRoot = {
@@ -6500,6 +6654,10 @@ export type QueryRoot = {
   coin_balances: Array<CoinBalances>;
   /** fetch data from the table: "legacy_migration_v1.coin_infos" */
   coin_infos: Array<CoinInfos>;
+  /** fetch data from the table: "coin_supply" */
+  coin_supply: Array<CoinSupply>;
+  /** fetch data from the table: "coin_supply" using primary key columns */
+  coin_supply_by_pk?: Maybe<CoinSupply>;
   /** fetch data from the table: "legacy_migration_v1.collection_datas" */
   collection_datas: Array<CollectionDatas>;
   /** fetch data from the table: "legacy_migration_v1.current_ans_lookup" */
@@ -6638,6 +6796,8 @@ export type QueryRoot = {
   proposal_votes_by_pk?: Maybe<ProposalVotes>;
   /** fetch data from the table: "public_key_auth_keys" */
   public_key_auth_keys: Array<PublicKeyAuthKeys>;
+  /** fetch aggregated fields from the table: "public_key_auth_keys" */
+  public_key_auth_keys_aggregate: PublicKeyAuthKeysAggregate;
   /** fetch data from the table: "public_key_auth_keys" using primary key columns */
   public_key_auth_keys_by_pk?: Maybe<PublicKeyAuthKeys>;
   /** fetch data from the table: "signatures" */
@@ -6797,6 +6957,19 @@ export type QueryRootCoinInfosArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CoinInfosOrderBy>>;
   where?: InputMaybe<CoinInfosBoolExp>;
+};
+
+export type QueryRootCoinSupplyArgs = {
+  distinct_on?: InputMaybe<Array<CoinSupplySelectColumn>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<CoinSupplyOrderBy>>;
+  where?: InputMaybe<CoinSupplyBoolExp>;
+};
+
+export type QueryRootCoinSupplyByPkArgs = {
+  coin_type_hash: Scalars["String"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type QueryRootCollectionDatasArgs = {
@@ -7274,6 +7447,14 @@ export type QueryRootPublicKeyAuthKeysArgs = {
   where?: InputMaybe<PublicKeyAuthKeysBoolExp>;
 };
 
+export type QueryRootPublicKeyAuthKeysAggregateArgs = {
+  distinct_on?: InputMaybe<Array<PublicKeyAuthKeysSelectColumn>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<PublicKeyAuthKeysOrderBy>>;
+  where?: InputMaybe<PublicKeyAuthKeysBoolExp>;
+};
+
 export type QueryRootPublicKeyAuthKeysByPkArgs = {
   auth_key: Scalars["String"]["input"];
   public_key: Scalars["String"]["input"];
@@ -7548,6 +7729,12 @@ export type SubscriptionRoot = {
   coin_infos: Array<CoinInfos>;
   /** fetch data from the table in a streaming manner: "legacy_migration_v1.coin_infos" */
   coin_infos_stream: Array<CoinInfos>;
+  /** fetch data from the table: "coin_supply" */
+  coin_supply: Array<CoinSupply>;
+  /** fetch data from the table: "coin_supply" using primary key columns */
+  coin_supply_by_pk?: Maybe<CoinSupply>;
+  /** fetch data from the table in a streaming manner: "coin_supply" */
+  coin_supply_stream: Array<CoinSupply>;
   /** fetch data from the table: "legacy_migration_v1.collection_datas" */
   collection_datas: Array<CollectionDatas>;
   /** fetch data from the table in a streaming manner: "legacy_migration_v1.collection_datas" */
@@ -7756,6 +7943,8 @@ export type SubscriptionRoot = {
   proposal_votes_stream: Array<ProposalVotes>;
   /** fetch data from the table: "public_key_auth_keys" */
   public_key_auth_keys: Array<PublicKeyAuthKeys>;
+  /** fetch aggregated fields from the table: "public_key_auth_keys" */
+  public_key_auth_keys_aggregate: PublicKeyAuthKeysAggregate;
   /** fetch data from the table: "public_key_auth_keys" using primary key columns */
   public_key_auth_keys_by_pk?: Maybe<PublicKeyAuthKeys>;
   /** fetch data from the table in a streaming manner: "public_key_auth_keys" */
@@ -7989,6 +8178,25 @@ export type SubscriptionRootCoinInfosStreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CoinInfosStreamCursorInput>>;
   where?: InputMaybe<CoinInfosBoolExp>;
+};
+
+export type SubscriptionRootCoinSupplyArgs = {
+  distinct_on?: InputMaybe<Array<CoinSupplySelectColumn>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<CoinSupplyOrderBy>>;
+  where?: InputMaybe<CoinSupplyBoolExp>;
+};
+
+export type SubscriptionRootCoinSupplyByPkArgs = {
+  coin_type_hash: Scalars["String"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
+};
+
+export type SubscriptionRootCoinSupplyStreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<CoinSupplyStreamCursorInput>>;
+  where?: InputMaybe<CoinSupplyBoolExp>;
 };
 
 export type SubscriptionRootCollectionDatasArgs = {
@@ -8669,6 +8877,14 @@ export type SubscriptionRootProposalVotesStreamArgs = {
 };
 
 export type SubscriptionRootPublicKeyAuthKeysArgs = {
+  distinct_on?: InputMaybe<Array<PublicKeyAuthKeysSelectColumn>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<PublicKeyAuthKeysOrderBy>>;
+  where?: InputMaybe<PublicKeyAuthKeysBoolExp>;
+};
+
+export type SubscriptionRootPublicKeyAuthKeysAggregateArgs = {
   distinct_on?: InputMaybe<Array<PublicKeyAuthKeysSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
@@ -10311,7 +10527,6 @@ export type UserTransactions = {
   gas_unit_price: Scalars["numeric"]["output"];
   max_gas_amount: Scalars["numeric"]["output"];
   parent_signature_type: Scalars["String"]["output"];
-  replay_protection_nonce?: Maybe<Scalars["numeric"]["output"]>;
   sender: Scalars["String"]["output"];
   sequence_number?: Maybe<Scalars["bigint"]["output"]>;
   timestamp: Scalars["timestamp"]["output"];
@@ -10333,7 +10548,6 @@ export type UserTransactionsBoolExp = {
   gas_unit_price?: InputMaybe<NumericComparisonExp>;
   max_gas_amount?: InputMaybe<NumericComparisonExp>;
   parent_signature_type?: InputMaybe<StringComparisonExp>;
-  replay_protection_nonce?: InputMaybe<NumericComparisonExp>;
   sender?: InputMaybe<StringComparisonExp>;
   sequence_number?: InputMaybe<BigintComparisonExp>;
   timestamp?: InputMaybe<TimestampComparisonExp>;
@@ -10352,7 +10566,6 @@ export type UserTransactionsOrderBy = {
   gas_unit_price?: InputMaybe<OrderBy>;
   max_gas_amount?: InputMaybe<OrderBy>;
   parent_signature_type?: InputMaybe<OrderBy>;
-  replay_protection_nonce?: InputMaybe<OrderBy>;
   sender?: InputMaybe<OrderBy>;
   sequence_number?: InputMaybe<OrderBy>;
   timestamp?: InputMaybe<OrderBy>;
@@ -10381,8 +10594,6 @@ export enum UserTransactionsSelectColumn {
   MaxGasAmount = "max_gas_amount",
   /** column name */
   ParentSignatureType = "parent_signature_type",
-  /** column name */
-  ReplayProtectionNonce = "replay_protection_nonce",
   /** column name */
   Sender = "sender",
   /** column name */
@@ -10413,7 +10624,6 @@ export type UserTransactionsStreamCursorValueInput = {
   gas_unit_price?: InputMaybe<Scalars["numeric"]["input"]>;
   max_gas_amount?: InputMaybe<Scalars["numeric"]["input"]>;
   parent_signature_type?: InputMaybe<Scalars["String"]["input"]>;
-  replay_protection_nonce?: InputMaybe<Scalars["numeric"]["input"]>;
   sender?: InputMaybe<Scalars["String"]["input"]>;
   sequence_number?: InputMaybe<Scalars["bigint"]["input"]>;
   timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
