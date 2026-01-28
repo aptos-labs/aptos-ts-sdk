@@ -17,3 +17,11 @@ Or, run all tests:
 ```
 pnpm test
 ```
+
+## Useful tests to know about
+
+### Decryption times
+
+```
+pnpm jest tests/units/kangaroo-decryption.test.ts
+```
