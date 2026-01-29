@@ -10,7 +10,7 @@ import {
   MAX_U256_BIG_INT,
 } from "../../src/bcs/consts";
 import { AccountAddress, Serializable, Serializer, outOfRangeErrorMessage } from "../../src";
-/* eslint-disable @typescript-eslint/no-shadow */
+
 describe("BCS Serializer", () => {
   let serializer: Serializer;
 

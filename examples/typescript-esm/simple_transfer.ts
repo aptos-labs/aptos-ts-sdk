@@ -4,7 +4,6 @@
  * This example shows how to use the Aptos client to create accounts, fund them, and transfer between them.
  */
 import dotenv from "dotenv";
-dotenv.config();
 import {
   Account,
   AccountAddress,
@@ -15,6 +14,8 @@ import {
   NetworkToNetworkName,
   parseTypeTag,
 } from "@aptos-labs/ts-sdk";
+
+dotenv.config();
 
 // TODO: There currently isn't a way to use the APTOS_COIN in the COIN_STORE due to a regex
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
@@ -39,7 +40,7 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress): Pro
     typeArguments: ["0x1::aptos_coin::AptosCoin"],
     functionArguments: [address.toString()],
   };
-  const [balance] = await aptos.viewJson<[number]>({ payload: payload });
+  const [balance] = await aptos.viewJson<[number]>({ payload });
 
   console.log(`${name}'s balance is: ${balance}`);
   return Number(balance);

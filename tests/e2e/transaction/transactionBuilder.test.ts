@@ -39,7 +39,6 @@ import {
 
 const { aptos, config } = getAptosClient();
 
-/* eslint-disable max-len */
 describe("transaction builder", () => {
   // TODO: The example function deployed here has all the arguments backwards from normal transfers, we should fix that
   const contractPublisherAccount = Account.generate();

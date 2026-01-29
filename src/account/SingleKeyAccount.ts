@@ -5,7 +5,6 @@ import {
   AnyPublicKey,
   AnySignature,
   Ed25519PrivateKey,
-  KeylessSignature,
   PrivateKeyInput,
   Secp256k1PrivateKey,
   Signature,

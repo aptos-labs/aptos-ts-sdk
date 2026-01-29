@@ -8,13 +8,14 @@
  * 3. Run `pnpm run publish_package_from_filepath` and follow the prompt
  */
 /* eslint-disable no-console */
-/* eslint-disable max-len */
+
 import dotenv from "dotenv";
-dotenv.config();
 
 import assert from "assert";
 import { Account, Aptos, AptosConfig, Hex, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils";
+
+dotenv.config();
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 

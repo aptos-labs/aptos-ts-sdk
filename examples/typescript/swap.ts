@@ -1,5 +1,4 @@
 /* eslint-disable no-console */
-/* eslint-disable max-len */
 
 /**
  * Example to demonstrate creating and adding to liquidity pools, swapping between two fungible asset.

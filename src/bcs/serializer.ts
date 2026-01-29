@@ -1,7 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable no-bitwise */
 import {
   MAX_U128_BIG_INT,
   MAX_U16_NUMBER,
@@ -630,7 +629,7 @@ export function validateNumberInRange<T extends AnyNumber>(value: T, minValue: T
 function checkNumberRange<T extends AnyNumber>(minValue: T, maxValue: T) {
   return (target: unknown, propertyKey: string, descriptor: PropertyDescriptor) => {
     const childFunction = descriptor.value;
-    // eslint-disable-next-line no-param-reassign
+
     descriptor.value = function deco(value: AnyNumber) {
       validateNumberInRange(value, minValue, maxValue);
       return childFunction.apply(this, [value]);

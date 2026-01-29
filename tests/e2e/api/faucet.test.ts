@@ -19,7 +19,7 @@ describe("Faucet", () => {
       typeArguments: ["0x1::aptos_coin::AptosCoin"],
       functionArguments: [testAccount.accountAddress.toString()],
     };
-    const [balance] = await aptos.viewJson<[number]>({ payload: payload });
+    const [balance] = await aptos.viewJson<[number]>({ payload });
     expect(Number(balance)).toBe(FUND_AMOUNT);
   });
 });

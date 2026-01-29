@@ -154,7 +154,6 @@ export const parseEncodedStruct = (structObj: {
   module_name: string;
   struct_name: string;
 }): MoveStructId => {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   const { account_address, module_name, struct_name } = structObj;
   const moduleName = hexToAscii(module_name);
   const structName = hexToAscii(struct_name);
@@ -241,7 +240,6 @@ export function truncateAddress(address: string, start: number = 6, end: number 
  * Constants for metadata address calculation
  */
 const APTOS_COIN_TYPE_STR = "0x1::aptos_coin::AptosCoin";
-const APT_METADATA_ADDRESS_HEX = AccountAddress.A.toStringLong();
 
 /**
  * Helper function to standardize Move type string by converting all addresses to short form,
@@ -252,10 +250,10 @@ function standardizeMoveTypeString(input: string): string {
   // This regex matches "0x" followed by hex digits, handling both standalone addresses and those within <>
   const addressRegex = /0x[0-9a-fA-F]+/g;
 
-  return input.replace(addressRegex, (match) => {
+  return input.replace(addressRegex, (match) =>
     // Use AccountAddress to handle the address
-    return AccountAddress.from(match, { maxMissingChars: 63 }).toStringShort();
-  });
+    AccountAddress.from(match, { maxMissingChars: 63 }).toStringShort(),
+  );
 }
 
 /**

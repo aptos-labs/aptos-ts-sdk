@@ -1,8 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable @typescript-eslint/naming-convention */
-
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializable, Serializer } from "../../bcs/serializer";
 import { ChainId } from "./chainId";

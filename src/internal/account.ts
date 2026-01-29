@@ -17,7 +17,6 @@ import {
 } from "../client";
 import {
   AccountData,
-  AnyNumber,
   anyPublicKeyVariantToString,
   CommittedTransactionResponse,
   CursorPaginationArgs,
@@ -32,7 +31,6 @@ import {
   MoveStructId,
   OrderByArg,
   PaginationArgs,
-  PendingTransactionResponse,
   TokenStandardArg,
   WhereArg,
 } from "../types";
@@ -87,8 +85,8 @@ import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 import { getTableItem } from "./table";
 import { APTOS_COIN } from "../utils";
 import { AptosApiError } from "../errors";
-import { Deserializer } from "../bcs";
-import { signAndSubmitTransaction, generateTransaction } from "./transactionSubmission";
+import { Deserializer, U8, MoveVector } from "../bcs";
+import { generateTransaction } from "./transactionSubmission";
 import {
   EntryFunctionABI,
   InputGenerateTransactionOptions,
@@ -97,10 +95,6 @@ import {
   TypeTagU8,
   TypeTagVector,
 } from "../transactions";
-import { U8, MoveVector } from "../bcs";
-import { waitForTransaction, waitForIndexer } from "./transaction";
-import { view } from "./view";
-import { getLedgerInfo } from "./general";
 import { accountPublicKeyToBaseAccountPublicKey, accountPublicKeyToSigningScheme } from "../core/crypto/utils";
 
 /**
@@ -996,7 +990,8 @@ export async function rotateAuthKey(
       toNewPrivateKey: args.toNewPrivateKey,
       options,
     });
-  } else if ("toAccount" in args) {
+  }
+  if ("toAccount" in args) {
     if (args.toAccount instanceof Ed25519Account) {
       return rotateAuthKeyWithChallenge({
         aptosConfig,
@@ -1004,12 +999,10 @@ export async function rotateAuthKey(
         toNewPrivateKey: args.toAccount.privateKey,
         options,
       });
-    } else {
-      return rotateAuthKeyWithChallenge({ aptosConfig, fromAccount, toAccount: args.toAccount, options });
     }
-  } else {
-    throw new Error("Invalid arguments");
+    return rotateAuthKeyWithChallenge({ aptosConfig, fromAccount, toAccount: args.toAccount, options });
   }
+  throw new Error("Invalid arguments");
 }
 
 async function rotateAuthKeyWithChallenge(
@@ -1262,23 +1255,21 @@ async function deriveOwnedAccountsFromKeylessSigner(args: {
       } else if (publicKey instanceof MultiKey) {
         accounts.push(new MultiKeyAccount({ multiKey: publicKey, signers: [keylessAccount], address: accountAddress }));
       }
+    } else if (keylessAccount instanceof FederatedKeylessAccount) {
+      accounts.push(
+        FederatedKeylessAccount.create({
+          ...keylessAccountParams,
+          address: accountAddress,
+          jwkAddress: keylessAccount.publicKey.jwkAddress,
+        }),
+      );
     } else {
-      if (keylessAccount instanceof FederatedKeylessAccount) {
-        accounts.push(
-          FederatedKeylessAccount.create({
-            ...keylessAccountParams,
-            address: accountAddress,
-            jwkAddress: keylessAccount.publicKey.jwkAddress,
-          }),
-        );
-      } else {
-        accounts.push(
-          KeylessAccount.create({
-            ...keylessAccountParams,
-            address: accountAddress,
-          }),
-        );
-      }
+      accounts.push(
+        KeylessAccount.create({
+          ...keylessAccountParams,
+          address: accountAddress,
+        }),
+      );
     }
   }
   return accounts;

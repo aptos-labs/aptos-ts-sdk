@@ -1,13 +1,13 @@
 /* eslint-disable no-console */
-/* eslint-disable max-len */
 
 /**
  * This example shows how to use the Aptos client to mint and transfer a Digital Asset.
  */
 
 import dotenv from "dotenv";
-dotenv.config();
 import { Account, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
+
+dotenv.config();
 
 const INITIAL_BALANCE = 100_000_000;
 

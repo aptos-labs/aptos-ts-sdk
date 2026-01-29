@@ -1,8 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable @typescript-eslint/naming-convention */
-
 import { TransactionAuthenticator } from "../authenticator/transaction";
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializable, Serializer } from "../../bcs/serializer";

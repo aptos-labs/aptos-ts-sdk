@@ -365,7 +365,7 @@ export async function verifyKeylessSignature(args: {
       message,
       publicKey,
       signature,
-      jwk: jwk ? jwk : await fetchJWK({ aptosConfig, publicKey, kid: signature.getJwkKid() }),
+      jwk: jwk || (await fetchJWK({ aptosConfig, publicKey, kid: signature.getJwkKid() })),
       keylessConfig,
     });
     return true;
@@ -494,7 +494,7 @@ function getPublicInputsHash(args: {
     fields.push(1n);
     fields.push(hashStrToField(proof.extraField, keylessConfig.maxExtraFieldBytes));
   }
-  fields.push(hashStrToField(encode(signature.jwtHeader, true) + ".", keylessConfig.maxJwtHeaderB64Bytes));
+  fields.push(hashStrToField(`${encode(signature.jwtHeader, true)}.`, keylessConfig.maxJwtHeaderB64Bytes));
   fields.push(jwk.toScalar());
   if (!proof.overrideAudVal) {
     fields.push(hashStrToField("", MAX_AUD_VAL_BYTES));
@@ -787,7 +787,7 @@ class G1Bytes extends Serializable {
     const negY = Fp.neg(y);
     const yToUse = y > negY === (yFlag === 1) ? y : negY;
     return bn254.G1.ProjectivePoint.fromAffine({
-      x: x,
+      x,
       y: yToUse,
     });
   }
@@ -799,7 +799,7 @@ function bytesToBn254FpBE(bytes: Uint8Array): bigint {
   }
   // Clear the first two bits of the first byte which removes any flags.
   const result = new Uint8Array(bytes);
-  result[0] = result[0] & 0x3f; // 0x3F = 00111111 in binary
+  result[0] &= 0x3f; // 0x3F = 00111111 in binary
   return bytesToNumberBE(result);
 }
 
@@ -872,7 +872,7 @@ class G2Bytes extends Serializable {
     const isYGreaterThanNegY = y.c1 > negY.c1 || (y.c1 === negY.c1 && y.c0 > negY.c0);
     const yToUse = isYGreaterThanNegY === (yFlag === 1) ? y : negY;
     return bn254.G2.ProjectivePoint.fromAffine({
-      x: x,
+      x,
       y: yToUse,
     });
   }
@@ -1372,7 +1372,7 @@ export class Groth16VerificationKey {
       // are the verification key points
 
       // \ic_0 + public_inputs_hash \ic_1
-      let accum = vkIC[0].add(vkIC[1].multiply(publicInputsHash));
+      const accum = vkIC[0].add(vkIC[1].multiply(publicInputsHash));
       // e(\ic_0 + public_inputs_hash \ic_1, \gamma_2)
       const pairingAccumGamma = bn254.pairing(accum, vkGamma2);
       // e(A_1, B_2)
@@ -1694,7 +1694,7 @@ export function parseJwtHeader(jwtHeader: string): JwtHeader {
       throw new Error("JWT header missing kid");
     }
     return header;
-  } catch (error) {
+  } catch {
     throw new Error("Failed to parse JWT header.");
   }
 }

@@ -159,6 +159,7 @@ export class AptosConfig {
     // If there are any endpoint overrides, they are custom networks, keep that in mind
     if (settings?.fullnode || settings?.indexer || settings?.faucet || settings?.pepper || settings?.prover) {
       if (settings?.network === Network.CUSTOM) {
+        // eslint-disable-next-line no-console
         console.info("Note: using CUSTOM network will require queries to lookup ChainId");
       } else if (!settings?.network) {
         throw new Error("Custom endpoints require a network to be specified");

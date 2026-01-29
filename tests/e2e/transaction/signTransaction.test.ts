@@ -7,14 +7,13 @@ import {
   AccountAuthenticatorEd25519,
   AccountAuthenticatorSingleKey,
   Secp256r1PrivateKey,
-  Secp256r1PublicKey,
   WebAuthnSignature,
   AnySignature,
   AnyPublicKey,
   generateSigningMessageForTransaction,
   Hex,
 } from "../../../src";
-import { p256 } from "@noble/curves/nist.js";
+import { p256 } from "@noble/curves/nist";
 import { sha256 } from "@noble/hashes/sha2";
 import { sha3_256 } from "@noble/hashes/sha3";
 import { longTestTimeout } from "../../unit/helper";
