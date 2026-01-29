@@ -1,5 +1,6 @@
 export * from "./twistedEd25519";
 export * from "./twistedElGamal";
+export * from "./bsgs";
 export * from "./rangeProof";
 export * from "./chunkedAmount";
 export * from "./encryptedAmount";

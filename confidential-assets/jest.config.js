@@ -10,6 +10,7 @@ module.exports = {
       statements: 50, // 95,
     },
   },
+  collectCoverage: false,
   globalSetup: "../tests/preTest.cjs",
   globalTeardown: "../tests/postTest.cjs",
 };
