@@ -20,7 +20,6 @@ import {
   U8,
   EntryFunctionArgument,
 } from "../../src";
-/* eslint-disable @typescript-eslint/no-shadow */
 
 describe("Tests for the Serializable class", () => {
   let serializer: Serializer;

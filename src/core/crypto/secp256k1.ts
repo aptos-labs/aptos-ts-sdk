@@ -139,7 +139,7 @@ export class Secp256k1PublicKey extends PublicKey {
    * @group Implementation
    * @category Serialization
    */
-  // eslint-disable-next-line class-methods-use-this
+
   deserialize(deserializer: Deserializer) {
     const hex = deserializer.deserializeBytes();
     return new Secp256k1Signature(hex);

@@ -30,6 +30,12 @@ const pluginCallTracker: PluginCallData = {
   lastCall: undefined,
 };
 
+// Additional tracker for override submitter
+const overridePluginCallTracker: PluginCallData = {
+  callCount: 0,
+  lastCall: undefined,
+};
+
 // Reset both trackers between tests
 function resetPluginTracker() {
   pluginCallTracker.callCount = 0;
@@ -74,12 +80,6 @@ class MockTransactionSubmitter implements TransactionSubmitter {
     };
   }
 }
-
-// Additional tracker for override submitter
-const overridePluginCallTracker: PluginCallData = {
-  callCount: 0,
-  lastCall: undefined,
-};
 
 // Override TransactionSubmitter implementation for testing
 class OverrideTransactionSubmitter implements TransactionSubmitter {

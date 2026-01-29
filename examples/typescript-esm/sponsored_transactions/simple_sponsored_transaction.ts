@@ -1,13 +1,13 @@
 /* eslint-disable no-console */
-/* eslint-disable max-len */
 
 /**
  * Example to submit a simple sponsored transaction where Alice transfers APT coin to Bob
  * with a sponsor account to pay for the gas fee
  */
 import dotenv from "dotenv";
-dotenv.config();
 import { Account, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
+
+dotenv.config();
 
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const SPONSOR_INITIAL_BALANCE = 100_000_000;

@@ -246,7 +246,6 @@ export async function waitForTransaction(args: {
       break;
     }
     try {
-      // eslint-disable-next-line no-await-in-loop
       lastTxn = await getTransactionByHash({ aptosConfig, transactionHash });
 
       isPending = lastTxn.type === TransactionResponseType.Pending;
@@ -257,7 +256,7 @@ export async function waitForTransaction(args: {
     } catch (e) {
       handleAPIError(e);
     }
-    // eslint-disable-next-line no-await-in-loop
+
     await sleep(backoffIntervalMs);
     timeElapsed += backoffIntervalMs / 1000; // Convert to seconds
     backoffIntervalMs *= backoffMultiplier;
@@ -322,11 +321,11 @@ export async function waitForIndexer(args: {
 
     if (processorType === undefined) {
       // Get the last success version from all processor
-      // eslint-disable-next-line no-await-in-loop
+
       indexerVersion = await getIndexerLastSuccessVersion({ aptosConfig });
     } else {
       // Get the last success version from the specific processor
-      // eslint-disable-next-line no-await-in-loop
+
       const processor = await getProcessorStatus({ aptosConfig, processorType });
       indexerVersion = processor.last_success_version;
     }
@@ -336,7 +335,6 @@ export async function waitForIndexer(args: {
       break;
     }
 
-    // eslint-disable-next-line no-await-in-loop
     await sleep(200);
   }
 }

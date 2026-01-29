@@ -1,5 +1,3 @@
-/* eslint-disable max-len */
-
 import { HexInput, PrivateKeyVariants } from "../../types";
 import { Hex } from "../hex";
 import { PublicKey } from "./publicKey";

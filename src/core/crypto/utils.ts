@@ -52,11 +52,14 @@ export const accountPublicKeyToSigningScheme = (publicKey: AccountPublicKey): Si
   const baseAccountPublicKey = accountPublicKeyToBaseAccountPublicKey(publicKey);
   if (baseAccountPublicKey instanceof Ed25519PublicKey) {
     return SigningScheme.Ed25519;
-  } else if (baseAccountPublicKey instanceof AnyPublicKey) {
+  }
+  if (baseAccountPublicKey instanceof AnyPublicKey) {
     return SigningScheme.SingleKey;
-  } else if (baseAccountPublicKey instanceof MultiEd25519PublicKey) {
+  }
+  if (baseAccountPublicKey instanceof MultiEd25519PublicKey) {
     return SigningScheme.MultiEd25519;
-  } else if (baseAccountPublicKey instanceof MultiKey) {
+  }
+  if (baseAccountPublicKey instanceof MultiKey) {
     return SigningScheme.MultiKey;
   }
   throw new Error(`Unknown signing scheme: ${baseAccountPublicKey}`);

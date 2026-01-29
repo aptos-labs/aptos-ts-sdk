@@ -5,8 +5,9 @@ import {
   TransactionExtraConfigV1,
   TransactionInnerPayloadV1,
   TransactionPayload,
+  Serializer,
+  Deserializer,
 } from "../../src";
-import { Serializer, Deserializer } from "../../src";
 
 const TURBO_TXN =
   "0x04000100000000000000000000000000000000000000000000000000000000000000010d6170746f735f6163636f756e74087472616e73666572000220bd3c821fc733b9e0a022c7fa2fe24e5a5a0c5b66c9624d5a63ea735628818f1008e8030000000000000000010001000000000000";

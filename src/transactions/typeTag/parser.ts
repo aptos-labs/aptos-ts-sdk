@@ -299,7 +299,6 @@ export function parseTypeTag(typeStr: string, options?: { allowGenerics?: boolea
         throw new TypeTagParserError(typeStr, TypeTagParserErrorType.UnexpectedWhitespaceCharacter);
       }
 
-      // eslint-disable-next-line no-continue
       continue;
     } else {
       // Any other characters just append to the current string
@@ -415,7 +414,7 @@ function parseTypeTagInner(str: string, types: Array<TypeTag>, allowGenerics: bo
       let address: AccountAddress;
       try {
         address = AccountAddress.fromString(structParts[0]);
-      } catch (error: any) {
+      } catch {
         throw new TypeTagParserError(str, TypeTagParserErrorType.InvalidAddress);
       }
 

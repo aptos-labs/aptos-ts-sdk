@@ -1,5 +1,4 @@
 /* eslint-disable no-console */
-/* eslint-disable max-len */
 
 import {
   Account,
@@ -7,7 +6,6 @@ import {
   AnyNumber,
   Aptos,
   AptosConfig,
-  ClientConfig,
   InputViewFunctionData,
   Network,
   NetworkToNetworkName,
@@ -34,7 +32,10 @@ const aptos = new Aptos(config);
  * Utility function to wait for a specified number of milliseconds
  * @param ms - Number of milliseconds to wait
  */
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const delay = (ms: number) =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 
 /** Admin mint the newly created coin to the specified receiver address */
 async function mintCoin(admin: Account, receiver: Account, amount: AnyNumber): Promise<string> {

@@ -105,8 +105,7 @@ describe("Hierarchical Deterministic Key (hdkey)", () => {
     ed25519.forEach(({ seed, vectors }) => {
       vectors.forEach(({ chain, private: privateKey }) => {
         it(`should generate correct key pair for ${chain}`, () => {
-          // eslint-disable-next-line @typescript-eslint/dot-notation
-          const key = Ed25519PrivateKey["fromDerivationPathInner"](chain, seed.toUint8Array());
+          const key = Ed25519PrivateKey.fromDerivationPathInner(chain, seed.toUint8Array());
           expect(key.toHexString()).toBe(`0x${privateKey}`);
         });
       });
@@ -156,8 +155,7 @@ describe("Hierarchical Deterministic Key (hdkey)", () => {
     secp256k1.forEach(({ seed, vectors }) => {
       vectors.forEach(({ chain, private: privateKey }) => {
         it(`should generate correct key pair for ${chain}`, () => {
-          // eslint-disable-next-line @typescript-eslint/dot-notation
-          const key = Secp256k1PrivateKey["fromDerivationPathInner"](chain, seed.toUint8Array());
+          const key = Secp256k1PrivateKey.fromDerivationPathInner(chain, seed.toUint8Array());
           expect(key.toHexString()).toBe(`0x${privateKey}`);
         });
       });

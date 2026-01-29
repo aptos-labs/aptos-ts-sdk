@@ -166,7 +166,6 @@ export async function paginateWithCursor<Req extends Record<string, any>, Res ex
   let cursor: string | undefined;
   const requestParams = options.params as { start?: string; limit?: number };
   do {
-    // eslint-disable-next-line no-await-in-loop
     const response = await get<Req, Res>({
       type: AptosApiType.FULLNODE,
       aptosConfig: options.aptosConfig,
@@ -201,7 +200,6 @@ export async function paginateWithObfuscatedCursor<Req extends Record<string, an
   const requestParams = options.params as { start?: string; limit?: number };
   const totalLimit = requestParams.limit;
   do {
-    // eslint-disable-next-line no-await-in-loop
     const { response, cursor: newCursor } = await getPageWithObfuscatedCursor<Req, Res>({ ...options });
 
     /**
@@ -230,8 +228,7 @@ export async function paginateWithObfuscatedCursor<Req extends Record<string, an
 export async function getPageWithObfuscatedCursor<Req extends Record<string, any>, Res extends Array<{}>>(
   options: GetAptosRequestOptions,
 ): Promise<{ response: AptosResponse<Req, Res>; cursor: string | undefined }> {
-  let cursor: string | undefined;
-  let requestParams: { start?: string; limit?: number } = {};
+  const requestParams: { start?: string; limit?: number } = {};
 
   // Drop any other values
   // TODO: Throw error if cursor is not a string
@@ -242,7 +239,6 @@ export async function getPageWithObfuscatedCursor<Req extends Record<string, any
     requestParams.limit = options.params.limit;
   }
 
-  // eslint-disable-next-line no-await-in-loop
   const response = await get<Req, Res>({
     type: AptosApiType.FULLNODE,
     aptosConfig: options.aptosConfig,
@@ -257,6 +253,6 @@ export async function getPageWithObfuscatedCursor<Req extends Record<string, any
    * should not need to "care" what it represents but just use it
    * to query the next chunk of data.
    */
-  cursor = response.headers["x-aptos-cursor"];
+  const cursor = response.headers["x-aptos-cursor"] ?? undefined;
   return { response, cursor };
 }

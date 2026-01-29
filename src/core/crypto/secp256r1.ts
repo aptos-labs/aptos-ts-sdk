@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { sha3_256 } from "@noble/hashes/sha3";
-import { p256 } from "@noble/curves/nist.js";
+import { p256 } from "@noble/curves/nist";
 import { Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
 import {

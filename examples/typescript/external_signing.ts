@@ -4,7 +4,6 @@
  * This example shows an example of how one might send transactions elsewhere to be signed outside the SDK.
  */
 import dotenv from "dotenv";
-dotenv.config();
 import { ed25519 } from "@noble/curves/ed25519";
 import {
   Account,
@@ -22,6 +21,8 @@ import {
   InputViewFunctionJsonData,
 } from "@aptos-labs/ts-sdk";
 
+dotenv.config();
+
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
 const COLD_INITIAL_BALANCE = 100_000_000;
 const HOT_INITIAL_BALANCE = 100;
@@ -36,7 +37,7 @@ const balance = async (aptos: Aptos, account: Account, name: string): Promise<an
     typeArguments: ["0x1::aptos_coin::AptosCoin"],
     functionArguments: [account.accountAddress.toString()],
   };
-  const [balance] = await aptos.viewJson<[number]>({ payload: payload });
+  const [balance] = await aptos.viewJson<[number]>({ payload });
 
   console.log(`${name}'s balance is: ${balance}`);
   return Number(balance);

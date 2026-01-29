@@ -64,7 +64,6 @@
   "devDependencies": {
     "@babel/traverse": "^7.28.4",
     "@cucumber/cucumber": "^12.2.0",
-    "@eslint/eslintrc": "^3.3.1",
     "@graphql-codegen/cli": "^6.0.0",
     "@graphql-codegen/import-types-preset": "^3.0.1",
     "@graphql-codegen/typescript": "^5.0.0",
@@ -78,7 +77,6 @@
     "@typescript-eslint/parser": "^8.43.0",
     "dotenv": "^16.4.7",
     "eslint": "^9.35.0",
-    "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "graphql": "^16.11.0",

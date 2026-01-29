@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 /* eslint-disable no-console */
 
 /**
@@ -77,7 +76,7 @@ const example = async () => {
 
     try {
       console.log("Refetching balance...\n");
-      // eslint-disable-next-line no-await-in-loop
+
       aliceBalance = await balance(aptos, alice.accountAddress);
     } catch (error) {
       console.log(`Error fetching balance: ${error}\n`);

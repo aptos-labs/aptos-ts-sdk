@@ -222,7 +222,6 @@ export function generateTransactionPayloadWithABI(
   // Check that all arguments are accounted for
   if ((functionArguments?.length ?? 0) !== functionAbi.parameters.length) {
     throw new Error(
-      // eslint-disable-next-line max-len
       `Too few arguments for '${moduleAddress}::${moduleName}::${functionName}', expected ${functionAbi.parameters.length} but got ${functionArguments?.length ?? 0}`,
     );
   }
@@ -314,7 +313,6 @@ export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWi
   // Check that all arguments are accounted for
   if (functionArguments.length !== functionAbi.parameters.length) {
     throw new Error(
-      // eslint-disable-next-line max-len
       `Too few arguments for '${moduleAddress}::${moduleName}::${functionName}', expected ${functionAbi.parameters.length} but got ${functionArguments.length}`,
     );
   }
@@ -392,7 +390,8 @@ export async function generateRawTransaction(args: {
     const getSequenceNumber = async () => {
       if (options?.accountSequenceNumber !== undefined) {
         return options.accountSequenceNumber;
-      } else if (options?.replayProtectionNonce !== undefined) {
+      }
+      if (options?.replayProtectionNonce !== undefined) {
         // If replay nonce is provided, use it as the sequence number
         // This is an unused value, so it's specifically to show that the sequence number is not used
         return 0xdeadbeefn;
@@ -413,7 +412,7 @@ export async function generateRawTransaction(args: {
       try {
         // Check if main signer has been created on chain, if not assign sequence number 0
         return await getSequenceNumber();
-      } catch (e: any) {
+      } catch {
         return 0;
       }
     } else {
@@ -460,12 +459,14 @@ export function convertPayloadToInnerPayload(
       new TransactionExecutableScript(payload.script),
       new TransactionExtraConfigV1(undefined, replayProtectionNonce),
     );
-  } else if (payload instanceof TransactionPayloadEntryFunction) {
+  }
+  if (payload instanceof TransactionPayloadEntryFunction) {
     return new TransactionInnerPayloadV1(
       new TransactionExecutableEntryFunction(payload.entryFunction),
       new TransactionExtraConfigV1(undefined, replayProtectionNonce),
     );
-  } else if (payload instanceof TransactionPayloadMultiSig) {
+  }
+  if (payload instanceof TransactionPayloadMultiSig) {
     const innerPayload = payload.multiSig.transaction_payload;
     let executable: TransactionExecutable;
     if (innerPayload === undefined || innerPayload?.transaction_payload === undefined) {
@@ -481,9 +482,8 @@ export function convertPayloadToInnerPayload(
       executable,
       new TransactionExtraConfigV1(payload.multiSig.multisig_address, replayProtectionNonce),
     );
-  } else {
-    throw new Error(`Unsupported payload type: ${payload}`);
   }
+  throw new Error(`Unsupported payload type: ${payload}`);
 }
 
 /**

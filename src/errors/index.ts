@@ -13,14 +13,14 @@ export enum KeylessErrorCategory {
 
 export enum KeylessErrorResolutionTip {
   REAUTHENTICATE = "Re-authentiate to continue using your keyless account",
-  // eslint-disable-next-line max-len
+
   REAUTHENTICATE_UNSURE = "Try re-authentiating. If the error persists join the telegram group at https://t.me/+h5CN-W35yUFiYzkx for further support",
   UPDATE_REQUEST_PARAMS = "Update the invalid request parameters and reauthenticate.",
-  // eslint-disable-next-line max-len
+
   RATE_LIMIT_EXCEEDED = "Cache the keyless account and reuse it to avoid making too many requests.  Keyless accounts are valid until either the EphemeralKeyPair expires, when the JWK is rotated, or when the proof verifying key is changed, whichever comes soonest.",
-  // eslint-disable-next-line max-len
+
   SERVER_ERROR = "Try again later.  See aptosApiError error for more context. For additional support join the telegram group at https://t.me/+h5CN-W35yUFiYzkx",
-  // eslint-disable-next-line max-len
+
   CALL_PRECHECK = "Call `await account.checkKeylessAccountValidity()` to wait for asyncronous changes and check for account validity before signing or serializing.",
   REINSTANTIATE = "Try instantiating the account again.  Avoid manipulating the account object directly",
   JOIN_SUPPORT_GROUP = "For support join the telegram group at https://t.me/+h5CN-W35yUFiYzkx",
@@ -405,7 +405,6 @@ export class AptosApiError extends Error {
  * @param {AptosResponse} opts.aptosResponse - The response received from the Aptos API.
  */
 function deriveErrorMessage({ apiType, aptosRequest, aptosResponse }: AptosApiErrorOpts): string {
-  // eslint-disable-next-line max-len
   // extract the W3C trace_id from the response headers if it exists. Some services set this in the response, and it's useful for debugging.
   // See https://www.w3.org/TR/trace-context/#relationship-between-the-headers .
   const traceId = aptosResponse.headers?.traceparent?.split("-")[1];

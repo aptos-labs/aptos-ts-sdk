@@ -22,7 +22,6 @@ import {
   MoveModuleBytecode,
   MoveResource,
   MoveStructId,
-  MoveValue,
   OrderByArg,
   PaginationArgs,
   TokenStandardArg,
@@ -833,7 +832,7 @@ export class Account {
             if (pairedCoinTypeStruct.vec.length > 0 && isEncodedStruct(pairedCoinTypeStruct.vec[0])) {
               return parseEncodedStruct(pairedCoinTypeStruct.vec[0]);
             }
-          } catch (error) {
+          } catch {
             /* No paired coin type found */
           }
           return undefined;

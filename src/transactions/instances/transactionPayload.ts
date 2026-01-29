@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable max-classes-per-file */
 
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializable, Serializer } from "../../bcs/serializer";
@@ -22,7 +22,7 @@ import {
   I256,
 } from "../../bcs/serializable/movePrimitives";
 import { MoveVector, Serialized } from "../../bcs/serializable/moveStructs";
-import { AccountAddress, Hex } from "../../core";
+import { AccountAddress } from "../../core";
 import { Identifier } from "./identifier";
 import { ModuleId } from "./moduleId";
 import type { EntryFunctionArgument, ScriptFunctionArgument, TransactionArgument } from "./transactionArgument";
@@ -588,8 +588,8 @@ export class TransactionInnerPayloadV1 extends TransactionInnerPayload {
   }
 
   static load(deserializer: Deserializer): TransactionInnerPayloadV1 {
-    let executable = TransactionExecutable.deserialize(deserializer);
-    let extra_config = TransactionExtraConfig.deserialize(deserializer);
+    const executable = TransactionExecutable.deserialize(deserializer);
+    const extra_config = TransactionExtraConfig.deserialize(deserializer);
     return new TransactionInnerPayloadV1(executable, extra_config);
   }
 }
@@ -627,7 +627,7 @@ export class TransactionExecutableScript extends TransactionExecutable {
   }
 
   static load(deserializer: Deserializer): TransactionExecutableScript {
-    let script = Script.deserialize(deserializer);
+    const script = Script.deserialize(deserializer);
     return new TransactionExecutableScript(script);
   }
 }
@@ -646,7 +646,7 @@ export class TransactionExecutableEntryFunction extends TransactionExecutable {
   }
 
   static load(deserializer: Deserializer): TransactionExecutableEntryFunction {
-    let entryFunction = EntryFunction.deserialize(deserializer);
+    const entryFunction = EntryFunction.deserialize(deserializer);
     return new TransactionExecutableEntryFunction(entryFunction);
   }
 }
@@ -656,6 +656,7 @@ export class TransactionExecutableEmpty extends TransactionExecutable {
     serializer.serializeU32AsUleb128(TransactionExecutableVariants.Empty);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   static load(_: Deserializer): TransactionExecutableEmpty {
     return new TransactionExecutableEmpty();
   }

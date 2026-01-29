@@ -2,7 +2,7 @@ import { AnyPublicKeyVariant, SigningScheme as AuthenticationKeyScheme, HexInput
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializer } from "../../bcs/serializer";
 import { AuthenticationKey } from "../authenticationKey";
-import { AccountPublicKey, PublicKey, VerifySignatureAsyncArgs } from "./publicKey";
+import { AccountPublicKey, PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { AnyPublicKey, AnySignature } from "./singleKey";
 import { AptosConfig } from "../../api";
@@ -15,14 +15,13 @@ import { AptosConfig } from "../../api";
  * @group Implementation
  * @category Serialization
  */
-/* eslint-disable no-bitwise */
+
 function bitCount(byte: number) {
   let n = byte;
   n -= (n >> 1) & 0x55555555;
   n = (n & 0x33333333) + ((n >> 2) & 0x33333333);
   return (((n + (n >> 4)) & 0xf0f0f0f) * 0x1010101) >> 24;
 }
-/* eslint-enable no-bitwise */
 
 const MAX_NUM_KEYLESS_PUBLIC_FOR_MULTI_KEY = 3;
 export abstract class AbstractMultiKey extends AccountPublicKey {
@@ -67,7 +66,6 @@ export abstract class AbstractMultiKey extends AccountPublicKey {
 
       let byte = bitmap[byteOffset];
 
-      // eslint-disable-next-line no-bitwise
       byte |= firstBitInByte >> bit % 8;
 
       bitmap[byteOffset] = byte;
@@ -446,7 +444,6 @@ export class MultiKeySignature extends Signature {
 
       let byte = bitmap[byteOffset];
 
-      // eslint-disable-next-line no-bitwise
       byte |= firstBitInByte >> bit % 8;
 
       bitmap[byteOffset] = byte;

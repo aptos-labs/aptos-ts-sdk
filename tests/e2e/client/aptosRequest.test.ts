@@ -154,7 +154,6 @@ describe("aptos request", () => {
             expect(error.statusText).toBe("Bad Request");
             expect(error.data).toEqual({
               message:
-                // eslint-disable-next-line quotes
                 'failed to parse path `txn_hash`: failed to parse "string(HashValue)": unable to parse HashValue',
               error_code: "web_framework_error",
               vm_error_code: null,
@@ -278,7 +277,7 @@ describe("aptos request", () => {
                 },
               ],
             });
-          } catch (error: any) {
+          } catch {
             // should not get here
             expect(true).toBe(false);
           }
