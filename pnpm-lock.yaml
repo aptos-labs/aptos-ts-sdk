@@ -43,9 +43,6 @@ devDependencies:
   '@cucumber/cucumber':
     specifier: ^12.2.0
     version: 12.2.0
-  '@eslint/eslintrc':
-    specifier: ^3.3.1
-    version: 3.3.1
   '@graphql-codegen/cli':
     specifier: ^6.0.0
     version: 6.0.1(@types/node@24.10.0)(graphql@16.12.0)(typescript@5.9.3)
@@ -85,9 +82,6 @@ devDependencies:
   eslint:
     specifier: ^9.35.0
     version: 9.39.1
-  eslint-config-airbnb-base:
-    specifier: ^15.0.0
-    version: 15.0.0(eslint-plugin-import@2.32.0)(eslint@9.39.1)
   eslint-config-prettier:
     specifier: ^10.1.8
     version: 10.1.8(eslint@9.39.1)
@@ -4159,10 +4153,6 @@ packages:
     resolution: {integrity: sha512-RMtmw0iFkeR4YV+fUOSucriAQNb9g8zFR52MWCtl+cCZOFRNL6zeB395vPzFhEjjn4fMxXudmELnl/KF/WrK6w==}
     dev: true
 
-  /confusing-browser-globals@1.0.11:
-    resolution: {integrity: sha512-JsPKdmh8ZkmnHxDk55FZ1TqVLvEQTvoByJZRN9jzI0UjxK/QgAmsphz7PGtqgPieQZ/CQcHWXCR7ATDNhGe+YA==}
-    dev: true
-
   /consola@3.4.2:
     resolution: {integrity: sha512-5IKcdX0nnYavi6G7TtOhwkYzyjfJlatbjMjuLSfE2kYT5pMDOilZ4OvMhi637CcDICTmz3wARPoyhqyX1Y+XvA==}
     engines: {node: ^14.18.0 || >=16.10.0}
@@ -4674,21 +4664,6 @@ packages:
   /escape-string-regexp@4.0.0:
     resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
     engines: {node: '>=10'}
-    dev: true
-
-  /eslint-config-airbnb-base@15.0.0(eslint-plugin-import@2.32.0)(eslint@9.39.1):
-    resolution: {integrity: sha512-xaX3z4ZZIcFLvh2oUNvcX5oEofXda7giYmuplVxoOg5A7EXJMrUyqRgR+mhDhPK8LZ4PttFOBvCYDbX3sUoUig==}
-    engines: {node: ^10.12.0 || >=12.0.0}
-    peerDependencies:
-      eslint: ^7.32.0 || ^8.2.0
-      eslint-plugin-import: ^2.25.2
-    dependencies:
-      confusing-browser-globals: 1.0.11
-      eslint: 9.39.1
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.3)(eslint@9.39.1)
-      object.assign: 4.1.7
-      object.entries: 1.1.9
-      semver: 6.3.1
     dev: true
 
   /eslint-config-prettier@10.1.8(eslint@9.39.1):
@@ -6960,16 +6935,6 @@ packages:
       es-object-atoms: 1.1.1
       has-symbols: 1.1.0
       object-keys: 1.1.1
-    dev: true
-
-  /object.entries@1.1.9:
-    resolution: {integrity: sha512-8u/hfXFRBD1O0hPUjioLhoWFHRmt6tKA4/vZPyckBr18l1KE9uHrFaFaUi8MDRTpi4uak2goyPTSNJLXX2k2Hw==}
-    engines: {node: '>= 0.4'}
-    dependencies:
-      call-bind: 1.0.8
-      call-bound: 1.0.4
-      define-properties: 1.2.1
-      es-object-atoms: 1.1.1
     dev: true
 
   /object.fromentries@2.0.8:

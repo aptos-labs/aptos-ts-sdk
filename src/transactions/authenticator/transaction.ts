@@ -1,8 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable @typescript-eslint/naming-convention */
-
 import { AccountAuthenticator } from "./account";
 import { Deserializer, Serializable, Serializer } from "../../bcs";
 import { AccountAddress } from "../../core";

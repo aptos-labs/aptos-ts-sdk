@@ -24,7 +24,6 @@ import {
   keylessTestObject,
   EPHEMERAL_KEY_PAIR,
   singleSignerED25519,
-  EXPIRED_EPHEMERAL_KEY_PAIR,
 } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 

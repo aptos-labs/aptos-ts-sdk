@@ -15,7 +15,6 @@ import { LOCAL_ANS_ACCOUNT_PK, LOCAL_ANS_ACCOUNT_ADDRESS } from "../../../src/in
  */
 
 /* eslint-disable no-console */
-/* eslint-disable max-len */
 
 // ANS account we use to publish the contract
 
@@ -96,7 +95,7 @@ export async function publishAnsContract(
     // 3. Publish the ANS modules under the ANS account.
     console.log("---publishing ans modules---");
     const contracts = ["core", "core_v2", "router"];
-    // eslint-disable-next-line no-restricted-syntax
+
     for (const contract of contracts) {
       // TODO: This is a temporary fix to unblock CI (`--max-gas`), the CLI should handle simulation correctly, and this hack shouldn't be necessary.
       // TODO: Convert back to AIP-80 when CLI is updated.

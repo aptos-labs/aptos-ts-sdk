@@ -57,12 +57,13 @@ describe("account api", () => {
     test("it fetches account modules with pagination", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      let { modules, cursor } = await aptos.getAccountModulesPage({
+      const { modules, cursor: initialCursor } = await aptos.getAccountModulesPage({
         accountAddress: "0x1",
         options: {
           limit: 1,
         },
       });
+      let cursor = initialCursor;
       expect(modules.length).toEqual(1);
       expect(cursor).toBeDefined();
       while (true) {
@@ -779,7 +780,7 @@ describe("account api", () => {
         txn = await createAccount(account);
       }
 
-      let accounts = await aptos.deriveOwnedAccountsFromSigner({
+      const accounts = await aptos.deriveOwnedAccountsFromSigner({
         signer: key,
         minimumLedgerVersion: Number(txn!.version),
       });
@@ -849,7 +850,7 @@ describe("account api", () => {
       // Send noop txns for the multikey accounts
       // The multiEdAccount has account1 as a signer.
       await sendNoopTxn(multiKeyAccount);
-      let { version } = await sendNoopTxn(multiEdAccount);
+      const { version } = await sendNoopTxn(multiEdAccount);
 
       let accounts = await aptos.getAccountsForPublicKey({
         publicKey: account1.publicKey,

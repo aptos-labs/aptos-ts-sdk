@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
-/* eslint-disable max-len */
+
 import dotenv from "dotenv";
-dotenv.config();
 import {
   Account,
   AccountAddress,
@@ -13,6 +12,8 @@ import {
   NetworkToNetworkName,
 } from "@aptos-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils";
+
+dotenv.config();
 
 /**
  * This example demonstrate how one can compile, deploy, and mint its own fungible asset (FA)

@@ -16,7 +16,6 @@
  *
  */
 import dotenv from "dotenv";
-dotenv.config();
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import {
   Account,
@@ -34,6 +33,8 @@ import {
   generateTransactionPayload,
   InputViewFunctionJsonData,
 } from "@aptos-labs/ts-sdk";
+
+dotenv.config();
 
 // Default to devnet, but allow for overriding
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
@@ -209,7 +210,7 @@ const checkBalance = async () => {
     typeArguments: ["0x1::aptos_coin::AptosCoin"],
     functionArguments: [recipient.accountAddress.toString()],
   };
-  const [balance] = await aptos.viewJson<[number]>({ payload: payload });
+  const [balance] = await aptos.viewJson<[number]>({ payload });
 
   console.log("Recipient's balance after transfer", balance);
 };

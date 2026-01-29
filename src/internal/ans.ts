@@ -94,7 +94,6 @@ export function isValidANSName(name: string): { domainName: string; subdomainNam
  * @group Implementation
  */
 export function getANSExpirationStatus({
-  aptosConfig,
   name,
   gracePeriod,
 }: {
@@ -366,7 +365,7 @@ export async function getExpiration(args: { aptosConfig: AptosConfig; name: stri
 
     // Normalize expiration time from epoch seconds to epoch milliseconds
     return Number(res[0]) * 1000;
-  } catch (e) {
+  } catch {
     return undefined;
   }
 }
@@ -613,7 +612,7 @@ export async function getName(args: { aptosConfig: AptosConfig; name: string }):
   });
 
   // Convert the expiration_timestamp from an ISO string to milliseconds since epoch
-  let res = data.current_aptos_names[0];
+  const res = data.current_aptos_names[0];
   return res ? sanitizeANSName({ aptosConfig, name: res, gracePeriod }) : undefined;
 }
 
@@ -982,8 +981,8 @@ function sanitizeANSName({
   name: RawANSName;
   gracePeriod: number;
 }): AnsName {
-  const expiration_timestamp = name.expiration_timestamp + "Z";
-  const domain_expiration_timestamp = name.domain_expiration_timestamp + "Z";
+  const expiration_timestamp = `${name.expiration_timestamp}Z`;
+  const domain_expiration_timestamp = `${name.domain_expiration_timestamp}Z`;
 
   const isSubdomain = !!name.subdomain;
   const expirationPolicy = name.subdomain_expiration_policy as SubdomainExpirationPolicy;
@@ -1009,7 +1008,7 @@ function sanitizeANSName({
   return {
     domain: name.domain!,
     subdomain: name.subdomain || undefined,
-    expiration_timestamp: expiration_timestamp,
+    expiration_timestamp,
     expiration_status,
     domain_expiration_timestamp: domain_expiration_timestamp!,
     expiration: new Date(expiration),

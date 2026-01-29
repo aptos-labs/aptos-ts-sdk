@@ -84,7 +84,7 @@ export class FederatedKeylessPublicKey extends AccountPublicKey {
     try {
       verifyKeylessSignatureWithJwkAndConfig({ ...args, publicKey: this });
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }

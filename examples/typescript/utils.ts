@@ -4,7 +4,6 @@ import fs from "fs";
 import { AccountAddress } from "@aptos-labs/ts-sdk";
 
 /* eslint-disable no-console */
-/* eslint-disable max-len */
 
 /**
  * A convenience function to compile a package locally with the CLI
@@ -21,7 +20,7 @@ export function compilePackage(
 ) {
   try {
     execSync("aptos --version");
-  } catch (e) {
+  } catch {
     console.log("In order to run compilation, you must have the `aptos` CLI installed.");
     console.log("aptos is not installed. Please install it from the instructions on aptos.dev");
   }

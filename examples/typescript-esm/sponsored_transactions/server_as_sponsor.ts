@@ -9,7 +9,6 @@
  * then sends it back to the other server (the frontend server) to submit the transaction.
  */
 import dotenv from "dotenv";
-dotenv.config();
 import {
   Account,
   AccountAuthenticator,
@@ -20,6 +19,8 @@ import {
   NetworkToNetworkName,
   SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
+
+dotenv.config();
 
 const INITIAL_BALANCE = 100_000_000;
 const TRANSFER_AMOUNT = 100;

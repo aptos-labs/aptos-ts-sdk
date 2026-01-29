@@ -119,7 +119,6 @@ describe("abstraction api", () => {
       });
     });
 
-    // eslint-disable-next-line max-len
     describe("enable custom account abstraction, send a transaction with custom signer, and send a transaction with an invalid signer", () => {
       const alice = Ed25519Account.generate();
       const recipient = Ed25519Account.generate();

@@ -1,5 +1,4 @@
 /* eslint-disable no-console */
-/* eslint-disable max-len */
 
 /**
  * Example to submit a simple sponsored transaction where Alice transfers APT coin to Bob
@@ -7,6 +6,7 @@
  */
 import { Account, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
 import dotenv from "dotenv";
+
 dotenv.config();
 
 const ALICE_INITIAL_BALANCE = 100_000_000;

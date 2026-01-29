@@ -99,12 +99,10 @@ export class MultiKeyAccount implements Account, KeylessSigner {
 
     if (multiKey.signaturesRequired > signers.length) {
       throw new Error(
-        // eslint-disable-next-line max-len
         `Not enough signers provided to satisfy the required signatures. Need ${multiKey.signaturesRequired} signers, but only ${signers.length} provided`,
       );
     } else if (multiKey.signaturesRequired < signers.length) {
       throw new Error(
-        // eslint-disable-next-line max-len
         `More signers provided than required. Need ${multiKey.signaturesRequired} signers, but ${signers.length} provided`,
       );
     }

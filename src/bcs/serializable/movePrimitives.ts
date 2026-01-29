@@ -1,6 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
-
+/* eslint-disable max-classes-per-file */
 import {
   MAX_U128_BIG_INT,
   MAX_U16_NUMBER,
@@ -107,7 +107,7 @@ export class Bool extends Serializable implements TransactionArgument {
    * @group Implementation
    * @category BCS
    */
-  // eslint-disable-next-line class-methods-use-this
+
   deserialize(deserializer: Deserializer) {
     return new U256(deserializer.deserializeU256());
   }

@@ -1,6 +1,5 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
-/* eslint-disable max-len */
 
 import {
   ClientRequest,

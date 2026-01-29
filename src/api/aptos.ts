@@ -144,7 +144,7 @@ function applyMixin(targetClass: any, baseClass: any, baseClassProp: string) {
 
     // Define new method that calls through baseClassProp
     Object.defineProperty(targetClass.prototype, propertyName, {
-      value: function (...args: any[]) {
+      value(...args: any[]) {
         return (this as any)[baseClassProp][propertyName](...args);
       },
       writable: propertyDescriptor.writable,

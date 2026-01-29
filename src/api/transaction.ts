@@ -36,7 +36,7 @@ import {
   InputGenerateTransactionPayloadData,
   InputTransactionPluginData,
 } from "../transactions";
-import { AccountAddressInput, AccountPublicKey, AuthenticationKey, Ed25519PrivateKey } from "../core";
+import { AccountAddressInput, AccountPublicKey, Ed25519PrivateKey } from "../core";
 import { Account, Ed25519Account, MultiEd25519Account } from "../account";
 import { Build } from "./transactionSubmission/build";
 import { Simulate } from "./transactionSubmission/simulate";
@@ -418,7 +418,7 @@ export class Transaction {
    * ```
    * @group Transaction
    */
-  // eslint-disable-next-line class-methods-use-this
+
   getSigningMessage(args: { transaction: AnyRawTransaction }): Uint8Array {
     return getSigningMessage(args);
   }
@@ -594,7 +594,7 @@ export class Transaction {
    * ```
    * @group Transaction
    */
-  // eslint-disable-next-line class-methods-use-this
+
   sign(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
     return signTransaction({
       ...args,
@@ -638,7 +638,7 @@ export class Transaction {
    * ```
    * @group Transaction
    */
-  // eslint-disable-next-line class-methods-use-this
+
   signAsFeePayer(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
     return signAsFeePayer({
       ...args,

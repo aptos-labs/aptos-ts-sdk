@@ -60,12 +60,10 @@ export class MultiEd25519Account implements Account {
 
     if (publicKey.threshold > signers.length) {
       throw new Error(
-        // eslint-disable-next-line max-len
         `Not enough signers provided to satisfy the required signatures. Need ${publicKey.threshold} signers, but only ${signers.length} provided`,
       );
     } else if (publicKey.threshold < signers.length) {
       throw new Error(
-        // eslint-disable-next-line max-len
         `More signers provided than required. Need ${publicKey.threshold} signers, but ${signers.length} provided`,
       );
     }
