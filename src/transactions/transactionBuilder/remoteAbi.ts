@@ -76,6 +76,7 @@ import {
   isBcsI256,
 } from "./helpers";
 import { MoveFunction, MoveModule } from "../../types";
+import { warnIfDevelopment } from "../../utils/helpers";
 
 const TEXT_ENCODER = new TextEncoder();
 
@@ -628,9 +629,8 @@ function parseArg(
     }
 
     if (arg instanceof Uint8Array && options?.allowUnknownStructs) {
-      // eslint-disable-next-line no-console
-      console.warn(
-        `Unsupported struct input type for argument ${position}. Continuing since 'allowUnknownStructs' is enabled.`,
+      warnIfDevelopment(
+        `[Aptos SDK] Unsupported struct input type for argument ${position}. Continuing since 'allowUnknownStructs' is enabled.`,
       );
       return new FixedBytes(arg);
     }

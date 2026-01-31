@@ -71,6 +71,12 @@ export class EphemeralKeyPair extends Serializable {
   private publicKey: EphemeralPublicKey;
 
   /**
+   * Whether the ephemeral key pair has been cleared from memory.
+   * @private
+   */
+  private cleared: boolean = false;
+
+  /**
    * Creates an instance of the class with a specified private key, optional expiry date, and optional blinder.
    * This constructor initializes the public key, sets the expiry date to a default value if not provided,
    * generates a blinder if not supplied, and calculates the nonce based on the public key, expiry date, and blinder.
@@ -118,6 +124,45 @@ export class EphemeralKeyPair extends Serializable {
   isExpired(): boolean {
     const currentTimeSecs: number = Math.floor(Date.now() / 1000);
     return currentTimeSecs > this.expiryDateSecs;
+  }
+
+  /**
+   * Clears the ephemeral private key from memory by overwriting it with random bytes.
+   * After calling this method, the ephemeral key pair can no longer be used for signing.
+   *
+   * Note: Due to JavaScript's memory management, this cannot guarantee complete removal of
+   * sensitive data from memory, but it significantly reduces the window of exposure.
+   *
+   * @group Implementation
+   * @category Account (On-Chain Model)
+   */
+  clear(): void {
+    if (!this.cleared) {
+      // Clear the underlying private key if it has a clear method
+      if ("clear" in this.privateKey && typeof this.privateKey.clear === "function") {
+        this.privateKey.clear();
+      } else {
+        // Fallback: overwrite the private key bytes directly
+        const keyBytes = this.privateKey.toUint8Array();
+        crypto.getRandomValues(keyBytes);
+        keyBytes.fill(0);
+      }
+      // Also clear the blinder as it's used in nonce calculation
+      crypto.getRandomValues(this.blinder);
+      this.blinder.fill(0);
+      this.cleared = true;
+    }
+  }
+
+  /**
+   * Returns whether the ephemeral key pair has been cleared from memory.
+   *
+   * @returns true if the key pair has been cleared, false otherwise
+   * @group Implementation
+   * @category Account (On-Chain Model)
+   */
+  isCleared(): boolean {
+    return this.cleared;
   }
 
   /**
@@ -199,11 +244,14 @@ export class EphemeralKeyPair extends Serializable {
    *
    * @param data - The data to be signed, provided in HexInput format.
    * @returns EphemeralSignature - The resulting ephemeral signature.
-   * @throws Error - Throws an error if the EphemeralKeyPair has expired.
+   * @throws Error - Throws an error if the EphemeralKeyPair has expired or been cleared from memory.
    * @group Implementation
    * @category Account (On-Chain Model)
    */
   sign(data: HexInput): EphemeralSignature {
+    if (this.cleared) {
+      throw new Error("EphemeralKeyPair has been cleared from memory and can no longer be used");
+    }
     if (this.isExpired()) {
       throw new Error("EphemeralKeyPair has expired");
     }

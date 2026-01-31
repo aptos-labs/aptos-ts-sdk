@@ -25,7 +25,7 @@ import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/acc
 import { Deserializer, Serializable, Serializer } from "../bcs";
 import { deriveTransactionType, generateSigningMessage } from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types";
-import { base64UrlDecode } from "../utils/helpers";
+import { base64UrlDecode, warnIfDevelopment } from "../utils/helpers";
 import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
 import { Account } from "./Account";
 import { AptosConfig } from "../api/aptosConfig";
@@ -368,8 +368,7 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
         });
       }
     } else {
-      // eslint-disable-next-line no-console
-      console.warn(
+      warnIfDevelopment(
         "[Aptos SDK] The verification key hash was not set. Proof may be invalid if the verification key has rotated.",
       );
     }

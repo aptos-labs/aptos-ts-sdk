@@ -32,7 +32,7 @@ import { AptosConfig } from "../../api/aptosConfig";
 import { getAptosFullNode } from "../../client";
 import { memoizeAsync } from "../../utils/memoize";
 import { AccountAddress, AccountAddressInput } from "../accountAddress";
-import { base64UrlToBytes, getErrorMessage, nowInSeconds } from "../../utils";
+import { base64UrlToBytes, nowInSeconds } from "../../utils";
 import { KeylessError, KeylessErrorType } from "../../errors";
 import { bn254 } from "@noble/curves/bn254";
 import { bytesToNumberBE } from "@noble/curves/abstract/utils";
@@ -1472,22 +1472,25 @@ export function getIssAudAndUidVal(args: { jwt: string; uidKey?: string }): {
   let jwtPayload: JwtPayload & { [key: string]: string };
   try {
     jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
-  } catch (error) {
+  } catch {
     throw KeylessError.fromErrorType({
       type: KeylessErrorType.JWT_PARSING_ERROR,
-      details: `Failed to parse JWT - ${getErrorMessage(error)}`,
+      // Sanitized error message - don't expose parsing details
+      details: "Invalid JWT format",
     });
   }
   if (typeof jwtPayload.iss !== "string") {
     throw KeylessError.fromErrorType({
       type: KeylessErrorType.JWT_PARSING_ERROR,
-      details: "JWT is missing 'iss' in the payload. This should never happen.",
+      // Sanitized error message - don't expose internal structure
+      details: "Invalid JWT: missing required claim",
     });
   }
   if (typeof jwtPayload.aud !== "string") {
     throw KeylessError.fromErrorType({
       type: KeylessErrorType.JWT_PARSING_ERROR,
-      details: "JWT is missing 'aud' in the payload or 'aud' is an array of values.",
+      // Sanitized error message - don't expose internal structure
+      details: "Invalid JWT: missing or malformed required claim",
     });
   }
   const uidVal = jwtPayload[uidKey];
@@ -1560,7 +1563,44 @@ async function getGroth16VerificationKeyResource(args: {
   }
 }
 
+/**
+ * Fetches JWKs from the blockchain with optional caching.
+ *
+ * @param args.aptosConfig - The Aptos configuration object.
+ * @param args.jwkAddr - Optional. The address to fetch JWKs from (for federated keyless).
+ * @param args.options - Optional. Ledger version options.
+ * @param args.useCache - Optional. Whether to use cached JWKs. Defaults to true.
+ * @returns A map of issuer to JWK arrays.
+ */
 export async function getKeylessJWKs(args: {
+  aptosConfig: AptosConfig;
+  jwkAddr?: AccountAddressInput;
+  options?: LedgerVersionArg;
+  useCache?: boolean;
+}): Promise<Map<string, MoveJWK[]>> {
+  const { aptosConfig, jwkAddr, options, useCache = true } = args;
+
+  // Generate a cache key based on network and address
+  const addrString = jwkAddr ? AccountAddress.from(jwkAddr).toString() : "0x1";
+  const cacheKey = `keyless-jwks-${aptosConfig.network}-${addrString}`;
+
+  // If caching is enabled and we have a ledger version, don't use cache
+  // (specific ledger versions should always fetch fresh data)
+  if (useCache && !options?.ledgerVersion) {
+    return memoizeAsync(
+      async () => fetchKeylessJWKsInternal({ aptosConfig, jwkAddr, options }),
+      cacheKey,
+      1000 * 60 * 5, // 5 minutes cache TTL
+    )();
+  }
+
+  return fetchKeylessJWKsInternal({ aptosConfig, jwkAddr, options });
+}
+
+/**
+ * Internal function to fetch JWKs from the blockchain.
+ */
+async function fetchKeylessJWKsInternal(args: {
   aptosConfig: AptosConfig;
   jwkAddr?: AccountAddressInput;
   options?: LedgerVersionArg;
@@ -1686,15 +1726,27 @@ interface JwtHeader {
  * Safely parses the JWT header.
  * @param jwtHeader The JWT header string
  * @returns Parsed JWT header as an object.
+ * @throws KeylessError if the header is invalid or missing required fields
  */
 export function parseJwtHeader(jwtHeader: string): JwtHeader {
   try {
     const header = JSON.parse(jwtHeader);
     if (header.kid === undefined) {
-      throw new Error("JWT header missing kid");
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.JWT_PARSING_ERROR,
+        // Sanitized error message - don't expose internal structure
+        details: "Invalid JWT header: missing required field",
+      });
     }
     return header;
-  } catch {
-    throw new Error("Failed to parse JWT header.");
+  } catch (error) {
+    if (error instanceof KeylessError) {
+      throw error;
+    }
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWT_PARSING_ERROR,
+      // Sanitized error message - don't expose parsing details
+      details: "Invalid JWT header format",
+    });
   }
 }

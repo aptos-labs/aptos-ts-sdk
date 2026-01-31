@@ -468,6 +468,7 @@ export class Deserializer {
    * This function is used for interpreting lengths of variable-length sequences and tags of enum values in BCS encoding.
    *
    * @throws {Error} Throws an error if the parsed value exceeds the maximum uint32 number.
+   * @throws {Error} Throws an error if the uleb128 encoding is malformed (too many bytes).
    * @returns {number} The deserialized uint32 value.
    * @group Implementation
    * @category BCS
@@ -475,18 +476,30 @@ export class Deserializer {
   deserializeUleb128AsU32(): Uint32 {
     let value: bigint = BigInt(0);
     let shift = 0;
+    // Maximum 5 bytes for uleb128-encoded u32 (7 bits per byte, 5*7=35 bits > 32 bits needed)
+    const MAX_ULEB128_BYTES = 5;
+    let bytesRead = 0;
 
-    while (value < MAX_U32_NUMBER) {
+    while (bytesRead < MAX_ULEB128_BYTES) {
       const byte = this.deserializeU8();
+      bytesRead += 1;
+
       value |= BigInt(byte & 0x7f) << BigInt(shift);
+
+      // Early overflow check before continuing
+      if (value > MAX_U32_NUMBER) {
+        throw new Error("Overflow while parsing uleb128-encoded uint32 value");
+      }
 
       if ((byte & 0x80) === 0) {
         break;
       }
+
       shift += 7;
     }
 
-    if (value > MAX_U32_NUMBER) {
+    // If we read MAX_ULEB128_BYTES and the last byte had continuation bit set, it's malformed
+    if (bytesRead === MAX_ULEB128_BYTES && value > MAX_U32_NUMBER) {
       throw new Error("Overflow while parsing uleb128-encoded uint32 value");
     }
 

@@ -7,6 +7,31 @@ import { AccountAddress } from "../core/accountAddress";
 import { createObjectAddress } from "../core/account/utils/address";
 
 /**
+ * Logs a warning message to the console only in development environments.
+ * This function helps reduce information leakage in production while maintaining
+ * helpful warnings during development.
+ *
+ * @param message - The warning message to log.
+ * @group Implementation
+ * @category Utils
+ */
+export function warnIfDevelopment(message: string): void {
+  // Check common environment variables to determine if we're in development
+  // This works in Node.js, bundlers like webpack/vite, and most build systems
+  const isDevelopment =
+    typeof process !== "undefined" &&
+    process.env &&
+    (process.env.NODE_ENV === "development" ||
+      process.env.NODE_ENV === "test" ||
+      process.env.APTOS_SDK_WARNINGS === "true");
+
+  if (isDevelopment) {
+    // eslint-disable-next-line no-console
+    console.warn(message);
+  }
+}
+
+/**
  * Sleep for the specified amount of time in milliseconds.
  * This function can be used to introduce delays in asynchronous operations.
  *
