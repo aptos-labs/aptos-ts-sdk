@@ -380,6 +380,20 @@ export interface WhereArg<T extends {}> {
 
 /**
  * A configuration object for requests to the server, including API key, extra headers, and cookie handling options.
+ *
+ * Security Note: Consider implementing client-side rate limiting in your application to prevent
+ * accidental API abuse. You can use libraries like 'bottleneck' or 'p-queue' to limit request rates.
+ *
+ * @example
+ * ```typescript
+ * import Bottleneck from 'bottleneck';
+ *
+ * // Create a limiter that allows 10 requests per second
+ * const limiter = new Bottleneck({ minTime: 100, maxConcurrent: 5 });
+ *
+ * // Wrap your Aptos calls with the limiter
+ * const result = await limiter.schedule(() => aptos.getAccountInfo({ accountAddress }));
+ * ```
  */
 export type ClientConfig = ClientHeadersType & {
   WITH_CREDENTIALS?: boolean;

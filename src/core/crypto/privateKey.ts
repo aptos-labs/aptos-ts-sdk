@@ -2,6 +2,7 @@ import { HexInput, PrivateKeyVariants } from "../../types";
 import { Hex } from "../hex";
 import { PublicKey } from "./publicKey";
 import { Signature } from "./signature";
+import { warnIfDevelopment } from "../../utils/helpers";
 
 /**
  * Represents a private key used for signing messages and deriving the associated public key.
@@ -86,8 +87,7 @@ export class PrivateKey {
         data = Hex.fromHexInput(value);
         // If the strictness is false, the user has opted into non-AIP-80 compliant private keys.
         if (strict !== false) {
-          // eslint-disable-next-line no-console
-          console.warn(
+          warnIfDevelopment(
             "[Aptos SDK] It is recommended that private keys are AIP-80 compliant (https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md). You can fix the private key by formatting it with `PrivateKey.formatPrivateKey(privateKey: string, type: 'ed25519' | 'secp256k1'): string`.",
           );
         }
