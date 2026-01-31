@@ -422,7 +422,7 @@ export class MultiEd25519Signature extends Signature {
 
       let byte = bitmap[byteOffset];
 
-      byte |= firstBitInByte >> bit % 8;
+      byte |= firstBitInByte >> (bit % 8);
 
       bitmap[byteOffset] = byte;
     });

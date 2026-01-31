@@ -172,6 +172,11 @@ export enum AnyPublicKeyVariant {
   Secp256r1 = 2,
   Keyless = 3,
   FederatedKeyless = 4,
+  /**
+   * Post-quantum signature scheme (SLH-DSA-SHA2-128s).
+   * Note: Full implementation not yet available in this SDK.
+   */
+  SlhDsaSha2_128s = 5,
 }
 
 export function anyPublicKeyVariantToString(variant: AnyPublicKeyVariant): string {
@@ -186,6 +191,8 @@ export function anyPublicKeyVariantToString(variant: AnyPublicKeyVariant): strin
       return "keyless";
     case AnyPublicKeyVariant.FederatedKeyless:
       return "federated_keyless";
+    case AnyPublicKeyVariant.SlhDsaSha2_128s:
+      return "slh_dsa_sha2_128s";
     default:
       throw new Error("Unknown public key variant");
   }
@@ -199,6 +206,11 @@ export enum AnySignatureVariant {
   Secp256k1 = 1,
   WebAuthn = 2,
   Keyless = 3,
+  /**
+   * Post-quantum signature scheme (SLH-DSA-SHA2-128s).
+   * Note: Full implementation not yet available in this SDK.
+   */
+  SlhDsaSha2_128s = 4,
 }
 
 /**

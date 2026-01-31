@@ -200,6 +200,8 @@ export class AnyPublicKey extends AccountPublicKey {
       case AnyPublicKeyVariant.FederatedKeyless:
         publicKey = FederatedKeylessPublicKey.deserialize(deserializer);
         break;
+      case AnyPublicKeyVariant.SlhDsaSha2_128s:
+        throw new Error("SlhDsaSha2_128s public key deserialization is not yet implemented");
       default:
         throw new Error(`Unknown variant index for AnyPublicKey: ${variantIndex}`);
     }
@@ -332,6 +334,8 @@ export class AnySignature extends Signature {
       case AnySignatureVariant.Keyless:
         signature = KeylessSignature.deserialize(deserializer);
         break;
+      case AnySignatureVariant.SlhDsaSha2_128s:
+        throw new Error("SlhDsaSha2_128s signature deserialization is not yet implemented");
       default:
         throw new Error(`Unknown variant index for AnySignature: ${variantIndex}`);
     }
