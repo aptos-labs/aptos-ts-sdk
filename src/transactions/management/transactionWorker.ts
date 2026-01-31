@@ -148,10 +148,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    * Removes the oldest entries when the limit is exceeded.
    * @private
    */
-  private addToTransactionHistory(
-    history: Array<[string, bigint, any]>,
-    entry: [string, bigint, any],
-  ): void {
+  private addToTransactionHistory(history: Array<[string, bigint, any]>, entry: [string, bigint, any]): void {
     history.push(entry);
     // Remove oldest entries if we exceed the limit (remove ~10% when triggered)
     if (history.length > MAX_TRANSACTION_HISTORY_SIZE) {
@@ -270,7 +267,11 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
             await this.checkTransaction(sentTransaction, sequenceNumber);
           } else {
             // send transaction failed
-            this.addToTransactionHistory(this.sentTransactions, [sentTransaction.status, sequenceNumber, sentTransaction.reason]);
+            this.addToTransactionHistory(this.sentTransactions, [
+              sentTransaction.status,
+              sequenceNumber,
+              sentTransaction.reason,
+            ]);
             this.emit(TransactionWorkerEventsEnum.TransactionSendFailed, {
               message: `failed to commit transaction ${this.sentTransactions.length} with error ${sentTransaction.reason}`,
               error: sentTransaction.reason,
@@ -306,14 +307,22 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
         const executedTransaction = sentTransactions[i];
         if (executedTransaction.status === promiseFulfilledStatus) {
           // transaction executed to chain
-          this.addToTransactionHistory(this.executedTransactions, [executedTransaction.value.hash, sequenceNumber, null]);
+          this.addToTransactionHistory(this.executedTransactions, [
+            executedTransaction.value.hash,
+            sequenceNumber,
+            null,
+          ]);
           this.emit(TransactionWorkerEventsEnum.TransactionExecuted, {
             message: `transaction hash ${executedTransaction.value.hash} has been executed on chain`,
             transactionHash: sentTransaction.value.hash,
           });
         } else {
           // transaction execution failed
-          this.addToTransactionHistory(this.executedTransactions, [executedTransaction.status, sequenceNumber, executedTransaction.reason]);
+          this.addToTransactionHistory(this.executedTransactions, [
+            executedTransaction.status,
+            sequenceNumber,
+            executedTransaction.reason,
+          ]);
           this.emit(TransactionWorkerEventsEnum.TransactionExecutionFailed, {
             message: `failed to execute transaction ${this.executedTransactions.length} with error ${executedTransaction.reason}`,
             error: executedTransaction.reason,

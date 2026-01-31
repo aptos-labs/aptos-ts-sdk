@@ -74,18 +74,20 @@ export class Deserializer {
 
   /**
    * Reads a specified number of bytes from the buffer and advances the offset.
+   * Returns a view into the buffer rather than copying for better performance.
    *
    * @param length - The number of bytes to read from the buffer.
    * @throws Throws an error if the read operation exceeds the buffer's length.
    * @group Implementation
    * @category BCS
    */
-  private read(length: number): ArrayBuffer {
+  private read(length: number): Uint8Array {
     if (this.offset + length > this.buffer.byteLength) {
       throw new Error("Reached to the end of buffer");
     }
 
-    const bytes = this.buffer.slice(this.offset, this.offset + length);
+    // Use subarray to return a view instead of slice which copies
+    const bytes = new Uint8Array(this.buffer, this.offset, length);
     this.offset += length;
     return bytes;
   }
@@ -224,24 +226,27 @@ export class Deserializer {
    * The BCS layout for "bytes" consists of a bytes_length followed by the bytes themselves, where bytes_length is a u32 integer
    * encoded as a uleb128 integer, indicating the length of the bytes array.
    *
-   * @returns {Uint8Array} The deserialized array of bytes.
+   * @returns {Uint8Array} The deserialized array of bytes (a copy, safe to modify).
    * @group Implementation
    * @category BCS
    */
   deserializeBytes(): Uint8Array {
     const len = this.deserializeUleb128AsU32();
-    return new Uint8Array(this.read(len));
+    // Return a copy so caller can safely modify without affecting buffer
+    return this.read(len).slice();
   }
 
   /**
    * Deserializes an array of bytes of a specified length.
    *
    * @param len - The number of bytes to read from the source.
+   * @returns {Uint8Array} The deserialized array of bytes (a copy, safe to modify).
    * @group Implementation
    * @category BCS
    */
   deserializeFixedBytes(len: number): Uint8Array {
-    return new Uint8Array(this.read(len));
+    // Return a copy so caller can safely modify without affecting buffer
+    return this.read(len).slice();
   }
 
   /**
@@ -256,7 +261,7 @@ export class Deserializer {
    * @category BCS
    */
   deserializeBool(): boolean {
-    const bool = new Uint8Array(this.read(1))[0];
+    const bool = this.read(1)[0];
     if (bool !== 1 && bool !== 0) {
       throw new Error("Invalid boolean value");
     }
@@ -273,7 +278,7 @@ export class Deserializer {
    * @category BCS
    */
   deserializeU8(): Uint8 {
-    return new DataView(this.read(1)).getUint8(0);
+    return this.read(1)[0];
   }
 
   /**
@@ -289,7 +294,8 @@ export class Deserializer {
    * @category BCS
    */
   deserializeU16(): Uint16 {
-    return new DataView(this.read(2)).getUint16(0, true);
+    const bytes = this.read(2);
+    return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint16(0, true);
   }
 
   /**
@@ -305,7 +311,8 @@ export class Deserializer {
    * @category BCS
    */
   deserializeU32(): Uint32 {
-    return new DataView(this.read(4)).getUint32(0, true);
+    const bytes = this.read(4);
+    return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(0, true);
   }
 
   /**
@@ -370,7 +377,8 @@ export class Deserializer {
    * @category BCS
    */
   deserializeI8(): number {
-    return new DataView(this.read(1)).getInt8(0);
+    const bytes = this.read(1);
+    return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getInt8(0);
   }
 
   /**
@@ -382,7 +390,8 @@ export class Deserializer {
    * @category BCS
    */
   deserializeI16(): number {
-    return new DataView(this.read(2)).getInt16(0, true);
+    const bytes = this.read(2);
+    return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getInt16(0, true);
   }
 
   /**
@@ -394,7 +403,8 @@ export class Deserializer {
    * @category BCS
    */
   deserializeI32(): number {
-    return new DataView(this.read(4)).getInt32(0, true);
+    const bytes = this.read(4);
+    return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getInt32(0, true);
   }
 
   /**
