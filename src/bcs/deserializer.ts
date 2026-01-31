@@ -6,6 +6,11 @@ import { Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, HexInput } from "../ty
 import { Hex } from "../core/hex";
 
 /**
+ * Shared TextDecoder instance for string deserialization to avoid repeated instantiation.
+ */
+const TEXT_DECODER = new TextDecoder();
+
+/**
  * This interface exists to define Deserializable<T> inputs for functions that
  * deserialize a byte buffer into a type T.
  * It is not intended to be implemented or extended, because Typescript has no support
@@ -128,8 +133,7 @@ export class Deserializer {
    */
   deserializeStr(): string {
     const value = this.deserializeBytes();
-    const textDecoder = new TextDecoder();
-    return textDecoder.decode(value);
+    return TEXT_DECODER.decode(value);
   }
 
   /**

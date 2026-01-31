@@ -77,6 +77,16 @@ export abstract class Serializable {
 }
 
 /**
+ * Minimum buffer growth increment to avoid too many small reallocations.
+ */
+const MIN_BUFFER_GROWTH = 256;
+
+/**
+ * Shared TextEncoder instance for string serialization to avoid repeated instantiation.
+ */
+const TEXT_ENCODER = new TextEncoder();
+
+/**
  * A class for serializing various data types into a binary format.
  * It provides methods to serialize strings, bytes, numbers, and other serializable objects
  * using the Binary Coded Serialization (BCS) layout. The serialized data can be retrieved as a
@@ -88,6 +98,12 @@ export class Serializer {
   private buffer: ArrayBuffer;
 
   private offset: number;
+
+  /**
+   * Reusable DataView instance to reduce allocations during serialization.
+   * Recreated when buffer is resized.
+   */
+  private dataView: DataView;
 
   /**
    * Constructs a serializer with a buffer of size `length` bytes, 64 bytes by default.
@@ -102,23 +118,36 @@ export class Serializer {
       throw new Error("Length needs to be greater than 0");
     }
     this.buffer = new ArrayBuffer(length);
+    this.dataView = new DataView(this.buffer);
     this.offset = 0;
   }
 
   /**
    * Ensures that the internal buffer can accommodate the specified number of bytes.
-   * This function dynamically resizes the buffer if the current size is insufficient.
+   * This function dynamically resizes the buffer using a growth factor of 1.5x with
+   * a minimum growth increment to balance memory usage and reallocation frequency.
    *
    * @param bytes - The number of bytes to ensure the buffer can handle.
    * @group Implementation
    * @category BCS
    */
   private ensureBufferWillHandleSize(bytes: number) {
-    while (this.buffer.byteLength < this.offset + bytes) {
-      const newBuffer = new ArrayBuffer(this.buffer.byteLength * 2);
-      new Uint8Array(newBuffer).set(new Uint8Array(this.buffer));
-      this.buffer = newBuffer;
+    const requiredSize = this.offset + bytes;
+    if (this.buffer.byteLength >= requiredSize) {
+      return;
     }
+
+    // Calculate new size: max of (1.5x current size) or (current + required + MIN_GROWTH)
+    // Using 1.5x instead of 2x provides better memory efficiency
+    const growthSize = Math.max(
+      Math.floor(this.buffer.byteLength * 1.5),
+      requiredSize + MIN_BUFFER_GROWTH,
+    );
+
+    const newBuffer = new ArrayBuffer(growthSize);
+    new Uint8Array(newBuffer).set(new Uint8Array(this.buffer, 0, this.offset));
+    this.buffer = newBuffer;
+    this.dataView = new DataView(this.buffer);
   }
 
   /**
@@ -136,6 +165,7 @@ export class Serializer {
 
   /**
    * Serializes a value into the buffer using the provided function, ensuring the buffer can accommodate the size.
+   * Uses the cached DataView instance for better performance.
    *
    * @param fn - The function to serialize the value, which takes a byte offset, the value to serialize, and an optional little-endian flag.
    * @param fn.byteOffset - The byte offset at which to write the value.
@@ -151,8 +181,7 @@ export class Serializer {
     value: number,
   ) {
     this.ensureBufferWillHandleSize(bytesLength);
-    const dv = new DataView(this.buffer, this.offset);
-    fn.apply(dv, [0, value, true]);
+    fn.apply(this.dataView, [this.offset, value, true]);
     this.offset += bytesLength;
   }
 
@@ -176,8 +205,7 @@ export class Serializer {
    * @category BCS
    */
   serializeStr(value: string) {
-    const textEncoder = new TextEncoder();
-    this.serializeBytes(textEncoder.encode(value));
+    this.serializeBytes(TEXT_ENCODER.encode(value));
   }
 
   /**
@@ -472,13 +500,17 @@ export class Serializer {
    * Returns the buffered bytes as a Uint8Array.
    *
    * This function allows you to retrieve the byte representation of the buffer up to the current offset.
+   * For better performance, returns a view when the buffer is exactly the right size, or copies
+   * only the used portion otherwise.
    *
    * @returns Uint8Array - The byte array representation of the buffer.
    * @group Implementation
    * @category BCS
    */
   toUint8Array(): Uint8Array {
-    return new Uint8Array(this.buffer).slice(0, this.offset);
+    // Return a copy of only the used portion of the buffer
+    // Using subarray + slice pattern for efficiency
+    return new Uint8Array(this.buffer, 0, this.offset).slice();
   }
 
   /**

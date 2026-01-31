@@ -77,6 +77,7 @@ import {
 } from "./helpers";
 import { MoveFunction, MoveModule } from "../../types";
 import { warnIfDevelopment } from "../../utils/helpers";
+import { memoizeAsync } from "../../utils/memoize";
 
 const TEXT_ENCODER = new TextEncoder();
 
@@ -101,7 +102,14 @@ export function standardizeTypeTags(typeArguments?: Array<TypeArgument>): Array<
 }
 
 /**
+ * Cache TTL for module ABIs in milliseconds (5 minutes).
+ * ABIs rarely change, so a longer cache is acceptable.
+ */
+const MODULE_ABI_CACHE_TTL_MS = 5 * 60 * 1000;
+
+/**
  * Fetches the ABI of a specified module from the on-chain module ABI.
+ * Results are cached for 5 minutes to reduce redundant network calls.
  *
  * @param moduleAddress - The address of the module from which to fetch the ABI.
  * @param moduleName - The name of the module containing the ABI.
@@ -114,8 +122,16 @@ export async function fetchModuleAbi(
   moduleName: string,
   aptosConfig: AptosConfig,
 ): Promise<MoveModule | undefined> {
-  const moduleBytecode = await getModule({ aptosConfig, accountAddress: moduleAddress, moduleName });
-  return moduleBytecode.abi;
+  const cacheKey = `module-abi-${aptosConfig.network}-${moduleAddress}-${moduleName}`;
+
+  return memoizeAsync(
+    async () => {
+      const moduleBytecode = await getModule({ aptosConfig, accountAddress: moduleAddress, moduleName });
+      return moduleBytecode.abi;
+    },
+    cacheKey,
+    MODULE_ABI_CACHE_TTL_MS,
+  )();
 }
 
 /**
