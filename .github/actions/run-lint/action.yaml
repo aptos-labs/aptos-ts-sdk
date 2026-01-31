@@ -12,6 +12,6 @@ runs:
         registry-url: "https://registry.npmjs.org"
     - uses: pnpm/action-setup@v4
 
-    # Run eslint
-    - run: pnpm install --frozen-lockfile && pnpm lint
+    # Run build and eslint
+    - run: pnpm install --frozen-lockfile && pnpm build && pnpm lint
       shell: bash
