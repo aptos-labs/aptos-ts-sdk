@@ -1,6 +1,3 @@
-env:
-  GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-
 name: "Run tests (unit + e2e) with local testnet from latest CLI"
 on:
   pull_request:
@@ -17,6 +14,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-        with:
-          ref: ${{ env.GIT_SHA }}
       - uses: ./.github/actions/run-tests
