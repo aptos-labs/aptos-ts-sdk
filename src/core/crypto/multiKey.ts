@@ -66,7 +66,7 @@ export abstract class AbstractMultiKey extends AccountPublicKey {
 
       let byte = bitmap[byteOffset];
 
-      byte |= firstBitInByte >> bit % 8;
+      byte |= firstBitInByte >> (bit % 8);
 
       bitmap[byteOffset] = byte;
     });
@@ -444,7 +444,7 @@ export class MultiKeySignature extends Signature {
 
       let byte = bitmap[byteOffset];
 
-      byte |= firstBitInByte >> bit % 8;
+      byte |= firstBitInByte >> (bit % 8);
 
       bitmap[byteOffset] = byte;
     });

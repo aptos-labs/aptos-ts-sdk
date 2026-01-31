@@ -114,7 +114,8 @@ export class Aptos {
 // extends Aptos interface so all the methods and properties
 // from the other classes will be recognized by typescript.
 export interface Aptos
-  extends Account,
+  extends
+    Account,
     ANS,
     Coin,
     DigitalAsset,
