@@ -77,14 +77,14 @@ export class Bool extends Serializable implements TransactionArgument {
   /**
    * Serializes the current instance for use in an entry function by converting it to a byte sequence.
    * This allows the instance to be properly formatted for serialization in transactions.
+   * Uses the optimized serializeAsBytes method to reduce allocations.
    *
    * @param serializer - The serializer instance used to serialize the byte sequence.
    * @group Implementation
    * @category BCS
    */
   serializeForEntryFunction(serializer: Serializer): void {
-    const bcsBytes = this.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
+    serializer.serializeAsBytes(this);
   }
 
   /**
@@ -139,8 +139,7 @@ export class U8 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    const bcsBytes = this.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
+    serializer.serializeAsBytes(this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -176,8 +175,7 @@ export class U16 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    const bcsBytes = this.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
+    serializer.serializeAsBytes(this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -212,8 +210,7 @@ export class U32 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    const bcsBytes = this.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
+    serializer.serializeAsBytes(this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -251,8 +248,7 @@ export class U64 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    const bcsBytes = this.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
+    serializer.serializeAsBytes(this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -288,8 +284,7 @@ export class U128 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    const bcsBytes = this.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
+    serializer.serializeAsBytes(this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -325,8 +320,7 @@ export class U256 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    const bcsBytes = this.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
+    serializer.serializeAsBytes(this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -361,8 +355,7 @@ export class I8 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    const bcsBytes = this.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
+    serializer.serializeAsBytes(this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -398,8 +391,7 @@ export class I16 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    const bcsBytes = this.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
+    serializer.serializeAsBytes(this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -434,8 +426,7 @@ export class I32 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    const bcsBytes = this.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
+    serializer.serializeAsBytes(this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -473,8 +464,7 @@ export class I64 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    const bcsBytes = this.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
+    serializer.serializeAsBytes(this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -510,8 +500,7 @@ export class I128 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    const bcsBytes = this.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
+    serializer.serializeAsBytes(this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -547,8 +536,7 @@ export class I256 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    const bcsBytes = this.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
+    serializer.serializeAsBytes(this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {

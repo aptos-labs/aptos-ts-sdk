@@ -87,6 +87,36 @@ const MIN_BUFFER_GROWTH = 256;
 const TEXT_ENCODER = new TextEncoder();
 
 /**
+ * Pool of reusable Serializer instances for temporary serialization operations.
+ * This reduces allocations when using serializeAsBytes() repeatedly.
+ */
+const serializerPool: Serializer[] = [];
+const MAX_POOL_SIZE = 8;
+
+/**
+ * Acquires a Serializer from the pool or creates a new one.
+ * @internal
+ */
+function acquireSerializer(): Serializer {
+  const serializer = serializerPool.pop();
+  if (serializer) {
+    serializer.reset();
+    return serializer;
+  }
+  return new Serializer();
+}
+
+/**
+ * Returns a Serializer to the pool for reuse.
+ * @internal
+ */
+function releaseSerializer(serializer: Serializer): void {
+  if (serializerPool.length < MAX_POOL_SIZE) {
+    serializerPool.push(serializer);
+  }
+}
+
+/**
  * A class for serializing various data types into a binary format.
  * It provides methods to serialize strings, bytes, numbers, and other serializable objects
  * using the Binary Coded Serialization (BCS) layout. The serialized data can be retrieved as a
@@ -139,10 +169,7 @@ export class Serializer {
 
     // Calculate new size: max of (1.5x current size) or (current + required + MIN_GROWTH)
     // Using 1.5x instead of 2x provides better memory efficiency
-    const growthSize = Math.max(
-      Math.floor(this.buffer.byteLength * 1.5),
-      requiredSize + MIN_BUFFER_GROWTH,
-    );
+    const growthSize = Math.max(Math.floor(this.buffer.byteLength * 1.5), requiredSize + MIN_BUFFER_GROWTH);
 
     const newBuffer = new ArrayBuffer(growthSize);
     new Uint8Array(newBuffer).set(new Uint8Array(this.buffer, 0, this.offset));
@@ -514,6 +541,41 @@ export class Serializer {
   }
 
   /**
+   * Resets the serializer to its initial state, allowing the buffer to be reused.
+   * This is more efficient than creating a new Serializer instance.
+   *
+   * @group Implementation
+   * @category BCS
+   */
+  reset(): void {
+    this.offset = 0;
+  }
+
+  /**
+   * Returns the current number of bytes written to the serializer.
+   *
+   * @returns The number of bytes written.
+   * @group Implementation
+   * @category BCS
+   */
+  getOffset(): number {
+    return this.offset;
+  }
+
+  /**
+   * Returns a view of the serialized bytes without copying.
+   * WARNING: The returned view is only valid until the next write operation.
+   * Use toUint8Array() if you need a persistent copy.
+   *
+   * @returns A Uint8Array view of the buffer (not a copy).
+   * @group Implementation
+   * @category BCS
+   */
+  toUint8ArrayView(): Uint8Array {
+    return new Uint8Array(this.buffer, 0, this.offset);
+  }
+
+  /**
    * Serializes a `Serializable` value, facilitating composable serialization.
    *
    * @param value The Serializable value to serialize.
@@ -526,6 +588,47 @@ export class Serializer {
     // NOTE: The `serialize` method called by `value` is defined in `value`'s
     // Serializable interface, not the one defined in this class.
     value.serialize(this);
+  }
+
+  /**
+   * Serializes a Serializable value as a byte array with a length prefix.
+   * This is the optimized pattern for entry function argument serialization.
+   *
+   * Instead of:
+   * ```typescript
+   * const bcsBytes = value.bcsToBytes();  // Creates new Serializer, copies bytes
+   * serializer.serializeBytes(bcsBytes);
+   * ```
+   *
+   * Use:
+   * ```typescript
+   * serializer.serializeAsBytes(value);  // Uses pooled Serializer, avoids extra copy
+   * ```
+   *
+   * This method uses a pooled Serializer instance to reduce allocations and
+   * directly appends the serialized bytes with a length prefix.
+   *
+   * @param value - The Serializable value to serialize as bytes.
+   * @group Implementation
+   * @category BCS
+   */
+  serializeAsBytes<T extends Serializable>(value: T): void {
+    // Acquire a pooled serializer for temporary use
+    const tempSerializer = acquireSerializer();
+
+    try {
+      // Serialize the value to the temporary serializer
+      value.serialize(tempSerializer);
+
+      // Get the serialized bytes (as a view to avoid copying)
+      const bytes = tempSerializer.toUint8ArrayView();
+
+      // Serialize with length prefix to this serializer
+      this.serializeBytes(bytes);
+    } finally {
+      // Return the serializer to the pool for reuse
+      releaseSerializer(tempSerializer);
+    }
   }
 
   /**

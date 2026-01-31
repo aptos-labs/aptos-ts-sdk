@@ -162,7 +162,7 @@ export async function getAptosPepperService<Req extends {}, Res extends {}>(
 export async function paginateWithCursor<Req extends Record<string, any>, Res extends Array<{}>>(
   options: GetAptosRequestOptions,
 ): Promise<Res> {
-  const out: Res = new Array(0) as Res;
+  let out: Res = [] as unknown as Res;
   let cursor: string | undefined;
   const requestParams = options.params as { start?: string; limit?: number };
   do {
@@ -185,7 +185,8 @@ export async function paginateWithCursor<Req extends Record<string, any>, Res ex
     // Now that we have the cursor (if any), we remove the headers before
     // adding these to the output of this function.
     delete response.headers;
-    out.push(...response.data);
+    // Use concat instead of push(...) for better performance with large arrays
+    out = out.concat(response.data) as Res;
     requestParams.start = cursor;
   } while (cursor !== null && cursor !== undefined);
   return out;
@@ -195,7 +196,7 @@ export async function paginateWithCursor<Req extends Record<string, any>, Res ex
 export async function paginateWithObfuscatedCursor<Req extends Record<string, any>, Res extends Array<{}>>(
   options: GetAptosRequestOptions,
 ): Promise<Res> {
-  const out: Res = new Array(0) as Res;
+  let out: Res = [] as unknown as Res;
   let cursor: string | undefined;
   const requestParams = options.params as { start?: string; limit?: number };
   const totalLimit = requestParams.limit;
@@ -208,7 +209,8 @@ export async function paginateWithObfuscatedCursor<Req extends Record<string, an
      * to query the next chunk of data.
      */
     cursor = newCursor;
-    out.push(...response.data);
+    // Use concat instead of push(...) for better performance with large arrays
+    out = out.concat(response.data) as Res;
     if (options?.params) {
       options.params.start = cursor;
     }
