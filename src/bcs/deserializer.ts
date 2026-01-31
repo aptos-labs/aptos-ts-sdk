@@ -11,6 +11,13 @@ import { Hex } from "../core/hex";
 const TEXT_DECODER = new TextDecoder();
 
 /**
+ * Maximum allowed length for deserialized byte arrays and strings.
+ * This prevents memory exhaustion attacks from malformed BCS data.
+ * Set to 10MB which should be sufficient for any legitimate use case.
+ */
+const MAX_DESERIALIZE_BYTES_LENGTH = 10 * 1024 * 1024; // 10MB
+
+/**
  * This interface exists to define Deserializable<T> inputs for functions that
  * deserialize a byte buffer into a type T.
  * It is not intended to be implemented or extended, because Typescript has no support
@@ -76,6 +83,11 @@ export class Deserializer {
    * Reads a specified number of bytes from the buffer and advances the offset.
    * Returns a view into the buffer rather than copying for better performance.
    *
+   * SECURITY NOTE: This returns a view, not a copy. Callers that expose the result
+   * externally MUST call .slice() to create a copy. Internal numeric deserializers
+   * (deserializeU8, deserializeU16, etc.) only read values and don't expose the view.
+   * deserializeBytes() and deserializeFixedBytes() call .slice() before returning.
+   *
    * @param length - The number of bytes to read from the buffer.
    * @throws Throws an error if the read operation exceeds the buffer's length.
    * @group Implementation
@@ -87,6 +99,8 @@ export class Deserializer {
     }
 
     // Use subarray to return a view instead of slice which copies
+    // SECURITY: View is safe because numeric deserializers only read values,
+    // and byte deserializers call .slice() before returning to caller
     const bytes = new Uint8Array(this.buffer, this.offset, length);
     this.offset += length;
     return bytes;
@@ -227,11 +241,18 @@ export class Deserializer {
    * encoded as a uleb128 integer, indicating the length of the bytes array.
    *
    * @returns {Uint8Array} The deserialized array of bytes (a copy, safe to modify).
+   * @throws {Error} If the length exceeds the maximum allowed (10MB) to prevent memory exhaustion.
    * @group Implementation
    * @category BCS
    */
   deserializeBytes(): Uint8Array {
     const len = this.deserializeUleb128AsU32();
+    // Security: Prevent memory exhaustion from malformed data
+    if (len > MAX_DESERIALIZE_BYTES_LENGTH) {
+      throw new Error(
+        `Deserialization error: byte array length ${len} exceeds maximum allowed ${MAX_DESERIALIZE_BYTES_LENGTH}`,
+      );
+    }
     // Return a copy so caller can safely modify without affecting buffer
     return this.read(len).slice();
   }

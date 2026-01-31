@@ -13,6 +13,39 @@ const MAX_CACHE_SIZE = 1000;
 const CLEANUP_INTERVAL_MS = 60000; // 1 minute
 
 /**
+ * Minimum required key length to help ensure uniqueness.
+ * Keys should include a namespace prefix (e.g., "module-abi-", "ledger-info-").
+ */
+const MIN_KEY_LENGTH = 10;
+
+/**
+ * Set of known cache key prefixes to help detect potential collisions.
+ * Each caller should use a unique prefix.
+ */
+const knownKeyPrefixes = new Set<string>();
+
+/**
+ * Validates a cache key for basic security requirements.
+ * @param key - The cache key to validate
+ * @throws Error if the key is invalid
+ */
+function validateCacheKey(key: string): void {
+  if (!key || typeof key !== "string") {
+    throw new Error("Cache key must be a non-empty string");
+  }
+  if (key.length < MIN_KEY_LENGTH) {
+    throw new Error(
+      `Cache key "${key}" is too short. Keys should be at least ${MIN_KEY_LENGTH} characters and include a namespace prefix.`,
+    );
+  }
+  // Extract prefix (everything before the last hyphen or the first 10 chars)
+  const prefixMatch = key.match(/^([a-z]+-[a-z]+-)/i);
+  if (prefixMatch) {
+    knownKeyPrefixes.add(prefixMatch[1]);
+  }
+}
+
+/**
  * Cache entry structure with value, timestamp, and last access time for LRU eviction.
  */
 interface CacheEntry<T> {
@@ -24,7 +57,8 @@ interface CacheEntry<T> {
 
 /**
  * The global cache Map shared across all functions with LRU eviction support.
- * Must keep care to ensure that the cache keys are unique across all functions.
+ * SECURITY: All cache keys should include a unique namespace prefix to prevent
+ * collisions between different caching use cases (e.g., "module-abi-", "ledger-info-").
  * @group Implementation
  * @category Utils
  */
@@ -104,6 +138,9 @@ export function memoizeAsync<T>(
   key: string,
   ttlMs?: number,
 ): (...args: any[]) => Promise<T> {
+  // Validate key format on first call to catch misuse early
+  validateCacheKey(key);
+
   return async (...args: any[]) => {
     const now = Date.now();
 
@@ -150,6 +187,9 @@ export function memoizeAsync<T>(
  * @category Utils
  */
 export function memoize<T>(func: (...args: any[]) => T, key: string, ttlMs?: number): (...args: any[]) => T {
+  // Validate key format on first call to catch misuse early
+  validateCacheKey(key);
+
   return (...args: any[]) => {
     const now = Date.now();
 

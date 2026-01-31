@@ -142,12 +142,16 @@ export class EphemeralKeyPair extends Serializable {
       if ("clear" in this.privateKey && typeof this.privateKey.clear === "function") {
         this.privateKey.clear();
       } else {
-        // Fallback: overwrite the private key bytes directly
+        // Fallback: multiple overwrite passes for better security
         const keyBytes = this.privateKey.toUint8Array();
+        crypto.getRandomValues(keyBytes);
+        keyBytes.fill(0xff);
         crypto.getRandomValues(keyBytes);
         keyBytes.fill(0);
       }
-      // Also clear the blinder as it's used in nonce calculation
+      // Also clear the blinder with multiple passes as it's used in nonce calculation
+      crypto.getRandomValues(this.blinder);
+      this.blinder.fill(0xff);
       crypto.getRandomValues(this.blinder);
       this.blinder.fill(0);
       this.cleared = true;

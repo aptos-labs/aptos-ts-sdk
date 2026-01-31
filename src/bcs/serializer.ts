@@ -542,12 +542,17 @@ export class Serializer {
 
   /**
    * Resets the serializer to its initial state, allowing the buffer to be reused.
-   * This is more efficient than creating a new Serializer instance.
+   * This clears the buffer contents to prevent data leakage between uses.
    *
    * @group Implementation
    * @category BCS
    */
   reset(): void {
+    // Clear buffer contents to prevent data leakage when reusing pooled serializers
+    // Only clear the portion that was used (up to offset) for efficiency
+    if (this.offset > 0) {
+      new Uint8Array(this.buffer, 0, this.offset).fill(0);
+    }
     this.offset = 0;
   }
 

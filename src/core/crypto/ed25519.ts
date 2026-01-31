@@ -365,9 +365,14 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   clear(): void {
     if (!this.cleared) {
       const keyBytes = this.signingKey.toUint8Array();
-      // Overwrite with random data
+      // Multiple overwrite passes for better security
+      // Pass 1: Random data
       crypto.getRandomValues(keyBytes);
-      // Overwrite again with zeros
+      // Pass 2: Ones pattern (0xFF)
+      keyBytes.fill(0xff);
+      // Pass 3: Random data again
+      crypto.getRandomValues(keyBytes);
+      // Pass 4: Zeros pattern (final state)
       keyBytes.fill(0);
       this.cleared = true;
     }
