@@ -11,6 +11,7 @@ import {
   ZkProof,
   ZkpVariant,
 } from "../../../src";
+import { clearMemoizeCache } from "../../../src/utils/memoize";
 
 import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper";
 import { getAptosClient } from "../helper";
@@ -70,6 +71,8 @@ describe("keyless api", () => {
   const jwkAccount = Account.generate();
 
   beforeEach(async () => {
+    // Clear the memoize cache to ensure fresh JWK lookups after installing new JWKs
+    clearMemoizeCache();
     await aptos.fundAccount({
       accountAddress: jwkAccount.accountAddress,
       amount: FUND_AMOUNT,
