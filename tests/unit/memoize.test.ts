@@ -28,7 +28,7 @@ describe("memoize", () => {
 
     test("it does not execute function again before TTL has passed", async () => {
       // Create a memoized version of the async function with a TTL of 200 milliseconds
-      const memoizedAsyncFunction = memoizeAsync(asyncFunction, "asyncFunction1", 200);
+      const memoizedAsyncFunction = memoizeAsync(asyncFunction, "test-async-fn1", 200);
 
       // Call the memoized function with an argument
       const result1 = await memoizedAsyncFunction("arg1");
@@ -49,7 +49,7 @@ describe("memoize", () => {
 
     test("it executes function again after TTL has passed", async () => {
       // Create a memoized version of the async function with a TTL of 200 milliseconds
-      const memoizedAsyncFunction = memoizeAsync(asyncFunction, "asyncFunction2", 200);
+      const memoizedAsyncFunction = memoizeAsync(asyncFunction, "test-async-fn2", 200);
 
       // Call the memoized function with an argument
       const result1 = await memoizedAsyncFunction("arg1");
@@ -69,7 +69,7 @@ describe("memoize", () => {
     });
 
     test("it does not execute function again when TTL is not provided", async () => {
-      const memoizedAsyncFunction = memoizeAsync(asyncFunction, "asyncFunction3");
+      const memoizedAsyncFunction = memoizeAsync(asyncFunction, "test-async-fn3");
 
       // Call the memoized function with an argument
       const result1 = await memoizedAsyncFunction("arg1");
@@ -89,8 +89,8 @@ describe("memoize", () => {
     });
 
     test("it returns the expected response based on the provided cache key", async () => {
-      const memoizedAsyncFunction4 = memoizeAsync(asyncFunction, "asyncFunction4");
-      const memoizedAsyncFunction5 = memoizeAsync(asyncFunction, "asyncFunction5");
+      const memoizedAsyncFunction4 = memoizeAsync(asyncFunction, "test-async-fn4");
+      const memoizedAsyncFunction5 = memoizeAsync(asyncFunction, "test-async-fn5");
 
       // Call memoized function with an argument
       const result1 = await memoizedAsyncFunction4("arg1");
@@ -125,7 +125,7 @@ describe("memoize", () => {
 
     test("it does not execute function again before TTL has passed", () => {
       // Create a memoized version of the async function with a TTL of 200 milliseconds
-      const memoizedFunction = memoize(func, "function1", 200);
+      const memoizedFunction = memoize(func, "test-sync-fn1", 200);
 
       // Call the memoized function with an argument
       const result1 = memoizedFunction("arg1");
@@ -146,7 +146,7 @@ describe("memoize", () => {
 
     test("it executes function again after TTL has passed", () => {
       // Create a memoized version of the async function with a TTL of 200 milliseconds
-      const memoizedFunction = memoize(func, "function2", 200);
+      const memoizedFunction = memoize(func, "test-sync-fn2", 200);
 
       // Call the memoized function with an argument
       const result1 = memoizedFunction("arg1");
@@ -166,7 +166,7 @@ describe("memoize", () => {
     });
 
     test("it does not execute function again when TTL is not provided", () => {
-      const memoizedFunction = memoize(func, "function3");
+      const memoizedFunction = memoize(func, "test-sync-fn3");
 
       // Call the memoized function with an argument
       const result1 = memoizedFunction("arg1");
@@ -186,8 +186,8 @@ describe("memoize", () => {
     });
 
     test("it returns the expected response based on the provided cache key", () => {
-      const memoizedFunction4 = memoize(func, "function4");
-      const memoizedFunction5 = memoize(func, "function5");
+      const memoizedFunction4 = memoize(func, "test-sync-fn4");
+      const memoizedFunction5 = memoize(func, "test-sync-fn5");
 
       // Call memoized function with an argument
       const result1 = memoizedFunction4("arg1");
