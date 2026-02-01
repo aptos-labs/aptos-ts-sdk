@@ -12,7 +12,6 @@ runs:
         registry-url: "https://registry.npmjs.org"
     - uses: pnpm/action-setup@v4
 
-    # Build first to enable import resolution for linked packages (examples use link:../..)
-    # Then run eslint
-    - run: pnpm install --frozen-lockfile && pnpm build && pnpm lint
+    # Run eslint
+    - run: pnpm install --frozen-lockfile && pnpm lint
       shell: bash

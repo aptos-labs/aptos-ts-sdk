@@ -15,6 +15,8 @@ module.exports = [
       // Separate packages with their own configs
       "confidential-assets/**",
       "projects/**",
+      // Examples use linked SDK which requires build to resolve imports
+      "examples/**",
     ],
   },
   {
@@ -23,7 +25,7 @@ module.exports = [
       parser: parser,
       parserOptions: {
         tsconfigRootDir: __dirname,
-        project: ["tsconfig.json", "examples/*/tsconfig.json"],
+        project: ["tsconfig.json"],
         ecmaVersion: "latest",
         sourceType: "module",
       },
