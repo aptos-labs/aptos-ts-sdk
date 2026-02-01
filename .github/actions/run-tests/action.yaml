@@ -9,7 +9,7 @@ runs:
   using: composite
   steps:
     # Install node and pnpm.
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v6
       with:
         node-version-file: .node-version
         registry-url: "https://registry.npmjs.org"
@@ -21,7 +21,7 @@ runs:
       shell: bash
 
     # Run the TS SDK tests.
-    - uses: nick-fields/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c # pin@v2
+    - uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # pin@v3
       name: sdk-pnpm-test
       env:
         # This is important, it ensures that the tempdir we create for cloning the ANS
