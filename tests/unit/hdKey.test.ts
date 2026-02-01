@@ -1,5 +1,12 @@
 import { secp256k1WalletTestObject, wallet } from "./helper";
-import { Ed25519PrivateKey, Hex, isValidBIP44Path, isValidHardenedPath, Secp256k1PrivateKey } from "../../src";
+import {
+  Ed25519PrivateKey,
+  Hex,
+  isValidBIP44Path,
+  isValidHardenedPath,
+  Secp256k1PrivateKey,
+  SlhDsaSha2128sPrivateKey,
+} from "../../src";
 
 describe("Hierarchical Deterministic Key (hdkey)", () => {
   describe("hardened path", () => {
@@ -158,6 +165,51 @@ describe("Hierarchical Deterministic Key (hdkey)", () => {
         it(`should generate correct key pair for ${chain}`, () => {
           // eslint-disable-next-line @typescript-eslint/dot-notation
           const key = Secp256k1PrivateKey["fromDerivationPathInner"](chain, seed.toUint8Array());
+          expect(key.toHexString()).toBe(`0x${privateKey}`);
+        });
+      });
+    });
+  });
+
+  // testing HD derivation for slh-dsa-sha2-128s
+  describe("slh-dsa-sha2-128s", () => {
+    const slhDsaSha2128s = [
+      {
+        seed: Hex.fromHexInput("000102030405060708090a0b0c0d0e0f"),
+        vectors: [
+          {
+            chain: "m",
+            private: "53c14b2681fcca8600d3ac7ce3459d6ceece7abc0a3b4c0376fc845c1b6503d66c5107d9484171c02f9eb0409849fceb",
+          },
+          {
+            chain: "m/0'",
+            private: "473049c70d5414379363b94f52de6b194c9f1651cb6a11b80cfee19f6ca67975201cdbec137ff57e2e9cd434fca0680d",
+          },
+          {
+            chain: "m/0'/1'",
+            private: "b609bf21df9baae65045e2bb8c200e97fbf86201f58e4187197a60bfc827158e6ba452ffe50f57849c022b24d01ac123",
+          },
+          {
+            chain: "m/0'/1'/2'",
+            private: "60b55f07c62916f7f27a96be371a9e87adedb9acabd84d25c41e8aa5c8c326e2e64024132f8833181bc2ab008541ef2b",
+          },
+          {
+            chain: "m/0'/1'/2'/2'",
+            private: "fb7242320fc3bc620587cfdfa54c2abed7d034f6c616ade3a9ad1780a099b268ed7a5bea0297711e997ff199b24bb82b",
+          },
+          {
+            chain: "m/0'/1'/2'/2'/1000000000'",
+            private: "c72d4e3fb352a785aa375be20e0767ae20edbce1e18de90e0ea6e9d1677d17e84a410bb833bf091655dfabde17cc2011",
+          },
+        ],
+      },
+    ];
+
+    slhDsaSha2128s.forEach(({ seed, vectors }) => {
+      vectors.forEach(({ chain, private: privateKey }) => {
+        it(`should generate correct key pair for ${chain}`, () => {
+          // eslint-disable-next-line @typescript-eslint/dot-notation
+          const key = SlhDsaSha2128sPrivateKey["fromDerivationPathInner"](chain, seed.toUint8Array());
           expect(key.toHexString()).toBe(`0x${privateKey}`);
         });
       });
