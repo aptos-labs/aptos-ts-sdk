@@ -1,159 +1,92 @@
-## AI Agent Guide (AGENTS.md)
+# AGENTS.md
 
-This repository is the **Aptos TypeScript SDK** (`@aptos-labs/ts-sdk`) plus related packages (examples, confidential assets, and project demos).
+This file provides guidance to AI agents when working with code in this repository.
 
-Use this document as the **single place** for an agent to understand repo layout, common commands, and CI expectations.
+## Project Overview
 
-## Requirements
+This is the **Aptos TypeScript SDK** (`@aptos-labs/ts-sdk`), a comprehensive SDK for interacting with the Aptos blockchain. It provides account management, transaction building/submission, data querying, digital assets, keyless authentication, and more.
 
-- **Node**: use the version in `.node-version` (currently `v22.12.0`). `package.json` requires `node >= 20`.
-- **pnpm**: repo uses `pnpm` (see `.tool-versions`, `package.json#packageManager`).
-
-## Repo layout (high level)
-
-- **SDK source**: `src/`
-- **SDK tests**: `tests/`
-  - Jest uses `tests/preTest.cjs` + `tests/postTest.cjs` to start/stop a local Aptos node.
-- **Examples**: `examples/`
-  - `examples/typescript`, `examples/typescript-esm`, `examples/javascript` use a **linked** SDK (`link:../..`).
-- **Confidential assets SDK**: `confidential-assets/` (separate package + tests)
-- **Docs output**: `docs/` (large; includes versioned typedoc output)
-- **Utility scripts**: `scripts/` (`checkVersion.sh`, `updateVersion.sh`, `generateDocs.sh`)
-
-## Install
-
-At repo root:
+## Common Commands
 
 ```bash
-pnpm install
+pnpm install              # Install dependencies (CI uses --frozen-lockfile)
+pnpm build                # Build CJS + ESM output to dist/
+pnpm fmt                  # Format code with Prettier
+pnpm _fmt --check         # Check formatting (what CI runs)
+pnpm lint                 # Run ESLint
+pnpm test                 # Run all tests (unit + e2e)
+pnpm jest <file>          # Run a specific test file (e.g., pnpm jest keyless.test.ts)
+pnpm doc                  # Generate TypeDoc documentation
+pnpm check-version        # Verify version consistency across files
+pnpm update-version       # Bump version everywhere + regenerate docs
+pnpm indexer-codegen      # Generate GraphQL types from indexer schema
 ```
 
-CI uses:
+## Commit Guidelines
 
-```bash
-pnpm install --frozen-lockfile
+Before every commit:
+
+1. **Format code**: Run `pnpm fmt` to format with Prettier
+2. **Lint code**: Run `pnpm lint` to check for ESLint errors
+3. **Update CHANGELOG.md**: Add a descriptive entry for the change under the appropriate section (Added, Changed, Fixed, etc.)
+4. **Write descriptive commit messages**: Commits should clearly explain what changed and why
+
+## Testing Notes
+
+- **Docker required**: Tests start a local Aptos node via `aptos node run-localnet` which requires Docker
+- **Port 8070**: Local testnet uses this port; check for conflicts if tests fail
+- Jest globalSetup (`tests/preTest.cjs`) starts the node, globalTeardown (`tests/postTest.cjs`) stops it
+- If Docker mount errors occur, try setting `TMPDIR` to a normal filesystem path
+
+## Architecture
+
+### Main Entry Point
+
+The `Aptos` class (`src/api/aptos.ts`) is the primary user-facing interface. It aggregates domain-specific functionality through composition:
+
+```typescript
+const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
+// Access namespaced methods: aptos.account.*, aptos.transaction.*, aptos.coin.*, etc.
 ```
 
-If you change dependencies, ensure the corresponding `pnpm-lock.yaml` updates are included.
+### Source Structure
 
-## Build / format / lint (CI-aligned)
+| Directory | Purpose |
+|-----------|---------|
+| `src/api/` | High-level API surface - account, transaction, coin, digital assets, fungible assets, keyless, staking, ANS |
+| `src/account/` | Account implementations - Ed25519, Secp256k1, MultiKey, Keyless, Abstracted accounts |
+| `src/core/` | Cryptographic primitives - key types, signatures, authentication keys |
+| `src/transactions/` | Transaction building, authenticators, type tags |
+| `src/bcs/` | Binary Canonical Serialization (serializer/deserializer) |
+| `src/types/` | TypeScript types and generated GraphQL indexer types |
+| `src/client/` | HTTP client implementations |
+| `src/internal/` | Internal query implementations (queries directory is generated) |
 
-From repo root:
+### Key Patterns
 
-```bash
-pnpm build
-pnpm fmt
-pnpm lint
+- **Account factory methods**: `Account.generate()`, `Account.fromPrivateKey()`, `Account.fromDerivationPath()`
+- **Transaction flow**: Build → Sign → Submit → Wait (`aptos.transaction.build.simple()`, etc.)
+- **Configuration**: `AptosConfig` accepts network, custom endpoints, client options
+
+## Generated Code (Do Not Hand-Edit)
+
+- `src/types/generated/` - GraphQL types from `pnpm indexer-codegen`
+- `src/internal/queries/` - Generated query implementations
+- `docs/` - Versioned TypeDoc output from `pnpm doc`
+
+## Related Packages
+
+- `examples/` - TypeScript/JS examples using linked SDK (`link:../..`)
+- `confidential-assets/` - Separate confidential assets SDK package
+- `projects/` - Demo projects (gas station)
+
+## Version Management
+
+Versions must match across `package.json`, `src/version.ts`, and `docs/`. Use `pnpm update-version` rather than manual edits. CI runs `pnpm check-version` to enforce consistency.
+
+## Bun Compatibility
+
+When using with Bun, disable HTTP/2:
+```typescript
+const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET, clientConfig: { http2: false } }));
 ```
-
-Formatting check (what CI runs):
-
-```bash
-pnpm _fmt --check
-```
-
-## Tests
-
-Run all SDK tests (unit + e2e):
-
-```bash
-pnpm test
-```
-
-Run a specific Jest test file (example from `README.md`):
-
-```bash
-pnpm jest keyless.test.ts
-```
-
-### Local testnet behavior (important)
-
-Jest `globalSetup` starts a **local Aptos node** via the SDK’s `LocalNode` helper (see `src/cli/localNode.ts`), which runs:
-
-- `npx aptos node run-localnet --force-restart --assume-yes --with-indexer-api`
-- Readiness endpoint: `http://127.0.0.1:8070/`
-
-Implications for agents:
-
-- **Docker is required** (the Aptos CLI localnet pulls and runs containers, including Postgres).
-- In environments without Docker (common in restricted CI/sandboxes), **`pnpm test` will fail during Jest `globalSetup`** before any tests run.
-- Failures often come from **port conflicts** or the node not becoming ready in time.
-- If tests hang or fail early, check whether something else is using port `8070`.
-
-CI sets `TMPDIR` to a mount-friendly path during retries; if you see weird Docker mount errors locally, try setting `TMPDIR` to a normal filesystem path.
-
-## Running examples
-
-Examples require a built local SDK first:
-
-```bash
-pnpm build
-```
-
-Then, for example:
-
-```bash
-cd examples/typescript
-pnpm install
-pnpm build
-pnpm test
-```
-
-CI runs examples by starting a local testnet in the background and then running each examples package’s `test` script.
-
-## Confidential assets package
-
-CI runs confidential-assets tests like this:
-
-```bash
-pnpm install --frozen-lockfile
-cd confidential-assets && pnpm install --frozen-lockfile
-cd confidential-assets && pnpm test
-```
-
-When changing shared infra (jest config, root tooling), ensure confidential-assets still works.
-
-## Versioning and docs (do not guess; follow the scripts)
-
-- **Generate docs**:
-
-```bash
-pnpm doc
-```
-
-- **Check versions match** (CI check):
-
-```bash
-pnpm check-version
-```
-
-What `check-version` enforces:
-
-- `package.json` version matches `src/version.ts`
-- `docs/index.md` contains the current version entry
-- `docs/@aptos-labs/ts-sdk-<version>/` exists
-
-If you bump versions, prefer:
-
-```bash
-pnpm update-version
-```
-
-That script updates `src/version.ts` and regenerates/updates docs. Avoid manually editing versioned docs output unless you’re explicitly updating generated docs.
-
-## Codegen
-
-Indexer GraphQL codegen is wired as:
-
-```bash
-pnpm indexer-codegen
-```
-
-This writes into `src/types/generated/**` (eslint ignores this path). Treat generated output as derived from schema/config—avoid hand-editing it.
-
-## Guardrails for agents
-
-- **Prefer the repo scripts** (`pnpm build`, `pnpm test`, `pnpm lint`, `pnpm fmt`) over ad-hoc commands.
-- **Avoid massive diffs in `docs/`** unless the change is intentionally about docs generation/version bumps.
-- Keep changes tight and CI-aligned; if you touch build/lint/test infra, run the corresponding commands locally.
-
