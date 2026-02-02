@@ -4,6 +4,23 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Added
+
+- Add JWK caching for keyless authentication with 5-minute TTL to improve performance
+- Add `clearMemoizeCache()` utility function for clearing the memoization cache
+
+## Changed
+
+- Update CLAUDE.md with commit guidelines (format, lint, changelog, descriptive messages)
+- Exclude `examples/` from ESLint in CI to avoid build dependency issues
+
+## Fixed
+
+- Fix keyless e2e tests by clearing memoize cache before JWK installation to ensure fresh lookups
+- Fix memoize test cache keys to meet minimum length requirement
+- Fix HD key test to use bracket notation for accessing private methods
+- Correct eslint-disable rule name from `@typescript-eslint/dot-notation` to `dot-notation`
+
 # 6.0.0 (2026-01-29)
 
 > **Upgrade Guide**: See [UPGRADE_GUIDE_6.0.0.md](./upgrade-guides/UPGRADE_GUIDE_6.0.0.md) for detailed migration instructions.

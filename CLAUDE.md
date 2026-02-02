@@ -22,6 +22,15 @@ pnpm update-version       # Bump version everywhere + regenerate docs
 pnpm indexer-codegen      # Generate GraphQL types from indexer schema
 ```
 
+## Commit Guidelines
+
+Before every commit:
+
+1. **Format code**: Run `pnpm fmt` to format with Prettier
+2. **Lint code**: Run `pnpm lint` to check for ESLint errors
+3. **Update CHANGELOG.md**: Add a descriptive entry for the change under the appropriate section (Added, Changed, Fixed, etc.)
+4. **Write descriptive commit messages**: Commits should clearly explain what changed and why
+
 ## Testing Notes
 
 - **Docker required**: Tests start a local Aptos node via `aptos node run-localnet` which requires Docker
