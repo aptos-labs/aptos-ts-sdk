@@ -144,6 +144,14 @@ What `check-version` enforces:
 - `docs/index.md` contains the current version entry
 - `docs/@aptos-labs/ts-sdk-<version>/` exists
 
+### Breaking Changes
+
+When releasing a new version with breaking changes:
+
+1. Create an upgrade guide at `upgrade-guides/UPGRADE_GUIDE_X.Y.Z.md`
+2. Document all breaking changes with before/after code examples
+3. Reference the upgrade guide in CHANGELOG.md under the version heading
+
 ## Bun Compatibility
 
 When using with Bun, disable HTTP/2:

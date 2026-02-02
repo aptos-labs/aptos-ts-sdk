@@ -84,6 +84,14 @@ const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
 
 Versions must match across `package.json`, `src/version.ts`, and `docs/`. Use `pnpm update-version` rather than manual edits. CI runs `pnpm check-version` to enforce consistency.
 
+### Breaking Changes
+
+When releasing a new version with breaking changes:
+
+1. Create an upgrade guide at `upgrade-guides/UPGRADE_GUIDE_X.Y.Z.md`
+2. Document all breaking changes with before/after code examples
+3. Reference the upgrade guide in CHANGELOG.md under the version heading
+
 ## Bun Compatibility
 
 When using with Bun, disable HTTP/2:
