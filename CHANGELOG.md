@@ -11,7 +11,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Changed
 
-- Consolidate CLAUDE.md into AGENTS.md for unified AI agent guidance
+- Merge CLAUDE.md and AGENTS.md content, keeping both files with comprehensive AI agent guidance
 - Exclude `examples/` from ESLint in CI to avoid build dependency issues
 
 ## Fixed
