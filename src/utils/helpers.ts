@@ -7,6 +7,19 @@ import { AccountAddress } from "../core/accountAddress";
 import { createObjectAddress } from "../core/account/utils/address";
 
 /**
+ * Checks if the current runtime environment is Bun.
+ * This is useful for detecting Bun-specific compatibility issues.
+ *
+ * @returns true if running in Bun, false otherwise.
+ * @group Implementation
+ * @category Utils
+ */
+export function isBun(): boolean {
+  // Bun exposes a global `Bun` object.
+  return typeof globalThis !== "undefined" && "Bun" in globalThis;
+}
+
+/**
  * Logs a warning message to the console only in development environments.
  * This function helps reduce information leakage in production while maintaining
  * helpful warnings during development.
