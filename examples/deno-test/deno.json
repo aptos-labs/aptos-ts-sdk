@@ -1,0 +1,12 @@
+{
+  "name": "deno-sdk-test",
+  "version": "1.0.0",
+  "exports": "./simple_transfer.ts",
+  "imports": {
+    "@aptos-labs/ts-sdk": "npm:@aptos-labs/ts-sdk@*"
+  },
+  "tasks": {
+    "test": "deno run --allow-net --allow-env --allow-read simple_transfer.ts",
+    "test:all": "deno run --allow-net --allow-env --allow-read simple_transfer.ts && deno run --allow-net --allow-env --allow-read simple_sponsored_transaction.ts"
+  }
+}
