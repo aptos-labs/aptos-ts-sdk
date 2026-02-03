@@ -15,8 +15,12 @@ import { createObjectAddress } from "../core/account/utils/address";
  * @category Utils
  */
 export function isBun(): boolean {
-  // Bun exposes a global `Bun` object.
-  return typeof globalThis !== "undefined" && "Bun" in globalThis;
+  try {
+    // Bun exposes a global `Bun` object.
+    return typeof globalThis !== "undefined" && "Bun" in globalThis;
+  } catch {
+    return false;
+  }
 }
 
 /**
