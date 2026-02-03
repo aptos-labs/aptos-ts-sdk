@@ -1,0 +1,10 @@
+{
+  "name": "deno-sdk-test",
+  "version": "1.0.0",
+  "description": "Test Aptos TypeScript SDK with Deno runtime",
+  "type": "module",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@aptos-labs/ts-sdk": "file:../.."
+  }
+}
