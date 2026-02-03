@@ -7,7 +7,6 @@
 
 import { Account, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
 
-const ALICE_INITIAL_BALANCE = 0;
 const BOB_INITIAL_BALANCE = 100_000_000;
 const TRANSFER_AMOUNT = 10;
 
@@ -30,13 +29,8 @@ const example = async () => {
   console.log(`Alice: ${alice.accountAddress}`);
   console.log(`Bob (sponsor): ${bob.accountAddress}`);
 
-  // Only fund bob (sponsor) - alice has no funds
+  // Only fund bob (sponsor) - alice starts with no funds (no need to fund with 0)
   console.log("\n=== Funding sponsor account ===");
-  await aptos.fundAccount({
-    accountAddress: alice.accountAddress,
-    amount: ALICE_INITIAL_BALANCE,
-  });
-
   await aptos.fundAccount({
     accountAddress: bob.accountAddress,
     amount: BOB_INITIAL_BALANCE,

@@ -59,7 +59,9 @@ describe("Aptos SDK Web Environment Tests", () => {
 
     it("should sign and verify messages", () => {
       const account = Account.generate();
-      const message = new TextEncoder().encode("Hello, Aptos!");
+      // Use a hex string message which is more portable across environments
+      const messageString = "Hello, Aptos!";
+      const message = new Uint8Array(Buffer.from(messageString));
 
       const signature = account.sign(message);
       expect(signature).toBeDefined();
@@ -84,7 +86,9 @@ describe("Aptos SDK Web Environment Tests", () => {
       const address = AccountAddress.fromString(addressString);
 
       expect(address).toBeDefined();
-      expect(address.toString()).toBe("0x0000000000000000000000000000000000000000000000000000000000000001");
+      // toString() returns the short form "0x1", toStringLong() returns the full padded form
+      expect(address.toString()).toBe("0x1");
+      expect(address.toStringLong()).toBe("0x0000000000000000000000000000000000000000000000000000000000000001");
     });
 
     it("should validate account addresses", () => {
@@ -237,11 +241,7 @@ describe("Aptos SDK Web Environment Tests", () => {
       console.log(`Alice (sender): ${alice.accountAddress}`);
       console.log(`Bob (sponsor): ${bob.accountAddress}`);
 
-      // Only fund bob (sponsor), alice starts with 0
-      await aptos.fundAccount({
-        accountAddress: alice.accountAddress,
-        amount: 0,
-      });
+      // Only fund bob (sponsor) - alice starts with no funds (no need to fund with 0)
       await aptos.fundAccount({
         accountAddress: bob.accountAddress,
         amount: bobInitialBalance,
