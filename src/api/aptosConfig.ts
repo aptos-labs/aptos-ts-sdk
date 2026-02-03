@@ -22,6 +22,7 @@ import {
   NetworkToProverAPI,
 } from "../utils/apiEndpoints";
 import { AptosApiType, DEFAULT_MAX_GAS_AMOUNT, DEFAULT_TXN_EXP_SEC_FROM_NOW } from "../utils/const";
+import { isBun } from "../utils/helpers";
 
 /**
  * Represents the configuration settings for an Aptos SDK client instance.
@@ -164,6 +165,17 @@ export class AptosConfig {
       } else if (!settings?.network) {
         throw new Error("Custom endpoints require a network to be specified");
       }
+    }
+
+    // Check for Bun runtime with HTTP/2 enabled (the default).
+    // Bun's HTTP/2 support is not fully mature yet, so we require users to explicitly disable it.
+    if (isBun() && settings?.clientConfig?.http2 !== false) {
+      throw new Error(
+        "Bun does not fully support HTTP/2, which is enabled by default in this SDK. " +
+          "To use this SDK with Bun, you must explicitly disable HTTP/2 by setting " +
+          "`clientConfig: { http2: false }` in your AptosConfig. For example:\n" +
+          "const config = new AptosConfig({ network: Network.TESTNET, clientConfig: { http2: false } });",
+      );
     }
 
     this.network = settings?.network ?? Network.DEVNET;
