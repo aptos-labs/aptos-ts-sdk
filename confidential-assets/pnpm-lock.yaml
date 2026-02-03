@@ -1,13 +1,9 @@
 lockfileVersion: '6.0'
 
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
-
 dependencies:
   '@aptos-labs/confidential-asset-wasm-bindings':
-    specifier: ^0.0.2
-    version: 0.0.2
+    specifier: ^0.0.3
+    version: 0.0.3
   '@aptos-labs/ts-sdk':
     specifier: ^5.0.0
     version: 5.0.0(got@11.8.6)
@@ -85,8 +81,8 @@ packages:
       got: 11.8.6
     dev: false
 
-  /@aptos-labs/confidential-asset-wasm-bindings@0.0.2:
-    resolution: {integrity: sha512-xfgRVc4WX4N7hjSHP91a3o686gC4307PGa9eDT7eWhp2VN9YgYhDIKRFRITpKT5JC7IXbuh6pGq1MqrqTjBokA==}
+  /@aptos-labs/confidential-asset-wasm-bindings@0.0.3:
+    resolution: {integrity: sha512-vU1C+IHl3gZbVZhJodyyr1sJt5+hUdUn5H2qGVFxmUWgW8z3+VUN12wBWmgQ9swIQwioThxssB05l3AywEtiCQ==}
     dev: false
 
   /@aptos-labs/ts-sdk@5.0.0(got@11.8.6):
@@ -5349,3 +5345,7 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
     dev: true
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
