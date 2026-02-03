@@ -1,7 +1,7 @@
 {
   "name": "web-sdk-test",
   "version": "1.0.0",
-  "description": "Test Aptos TypeScript SDK in web/browser environment using Vitest + happy-dom",
+  "description": "Test Aptos TypeScript SDK functionality using Vitest",
   "type": "module",
   "license": "Apache-2.0",
   "scripts": {
@@ -12,7 +12,6 @@
     "@aptos-labs/ts-sdk": "link:../.."
   },
   "devDependencies": {
-    "happy-dom": "^18.0.1",
     "vitest": "^3.2.4"
   }
 }
