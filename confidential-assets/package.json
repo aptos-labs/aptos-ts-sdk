@@ -46,7 +46,7 @@
     "@aptos-labs/ts-sdk": "^5.2.1 || ^6.1.0"
   },
   "dependencies": {
-    "@aptos-labs/confidential-asset-wasm-bindings": "^0.0.2",
+    "@aptos-labs/confidential-asset-wasm-bindings": "^0.0.3",
     "@noble/curves": "^1.6.0",
     "@noble/hashes": "^1.5.0"
   },

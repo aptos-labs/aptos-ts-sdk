@@ -33,7 +33,7 @@ export class ConfidentialAssetTransactionBuilder {
   constructor(config: AptosConfig, confidentialAssetModuleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS) {
     this.client = new Aptos(config);
     this.confidentialAssetModuleAddress = confidentialAssetModuleAddress;
-    TwistedElGamal.initializeKangaroos();
+    TwistedElGamal.initializeSolver();
   }
 
   /**

@@ -1,21 +1,21 @@
 /**
  * Discrete Logarithm (DLP) tests and benchmarks.
  *
- * Covers two algorithms:
- * - Pollard Kangaroo (WASM-based, faster)
+ * Covers two implementations:
+ * - WASM-based solver (algorithm determined at compile time)
  * - Baby-Step Giant-Step (pure TypeScript)
  */
 
 import { RistrettoPoint } from "@noble/curves/ed25519";
 import { TwistedElGamal, TwistedEd25519PrivateKey } from "../../src";
-import { createBsgsTable, BsgsSolver, createBsgsDecryptionFn } from "../../src/crypto/bsgs";
+import { createBsgsTable, BsgsSolver } from "../../src/crypto/bsgs";
 import crypto from "crypto";
 
 // ============================================================================
 // Helpers
 // ============================================================================
 
-const BENCHMARK_ITERATIONS = 5;
+const BENCHMARK_ITERATIONS = 10;
 
 function generateRandomInteger(bits: number): bigint {
   if (bits <= 0) return 0n;
@@ -119,12 +119,14 @@ function formatResult(r: BenchmarkResult): string {
 }
 
 // ============================================================================
-// Pollard Kangaroo Tests (WASM)
+// WASM Discrete Log Solver Tests
 // ============================================================================
 
-describe("Pollard Kangaroo (WASM)", () => {
+describe("Discrete Log Solver (WASM)", () => {
   beforeAll(async () => {
-    await TwistedElGamal.initializeKangaroos();
+    // WASM auto-loads from node_modules in Node.js environment
+    await TwistedElGamal.initializeSolver();
+    console.log(`WASM algorithm: ${TwistedElGamal.getAlgorithmName()}`);
   }, 30000);
 
   describe("correctness", () => {
@@ -150,15 +152,18 @@ describe("Pollard Kangaroo (WASM)", () => {
   });
 
   describe("benchmark", () => {
-    const benchmarkKangaroo = async (bitWidth: number): Promise<BenchmarkResult> => {
+    const benchmarkWasm = async (bitWidth: number): Promise<BenchmarkResult> => {
+      expect(TwistedElGamal.isInitialized()).toBe(true);
+
       const times: number[] = [];
+      const alice = TwistedEd25519PrivateKey.generate();
 
       for (let i = 0; i < BENCHMARK_ITERATIONS; i++) {
         const x = generateRandomInteger(bitWidth);
-        const P = x === 0n ? RistrettoPoint.ZERO : RistrettoPoint.BASE.multiply(x);
+        const encrypted = TwistedElGamal.encryptWithPK(x, alice.publicKey());
 
         const start = performance.now();
-        const result = await TwistedElGamal.decryptionFn!(P.toRawBytes());
+        const result = await TwistedElGamal.decryptWithPK(encrypted, alice);
         const elapsed = performance.now() - start;
 
         times.push(elapsed);
@@ -167,7 +172,7 @@ describe("Pollard Kangaroo (WASM)", () => {
 
       const avg = times.reduce((a, b) => a + b, 0) / times.length;
       return {
-        algorithm: "Kangaroo",
+        algorithm: `WASM`,
         bitWidth,
         iterations: BENCHMARK_ITERATIONS,
         avgMs: avg,
@@ -177,17 +182,12 @@ describe("Pollard Kangaroo (WASM)", () => {
     };
 
     it("benchmarks 16-bit DLP", async () => {
-      const result = await benchmarkKangaroo(16);
+      const result = await benchmarkWasm(16);
       console.log(formatResult(result));
     });
 
     it("benchmarks 32-bit DLP", async () => {
-      const result = await benchmarkKangaroo(32);
-      console.log(formatResult(result));
-    });
-
-    it.skip("benchmarks 48-bit DLP (slow)", async () => {
-      const result = await benchmarkKangaroo(48);
+      const result = await benchmarkWasm(32);
       console.log(formatResult(result));
     });
   });
@@ -261,19 +261,6 @@ describe("Baby-Step Giant-Step (TypeScript)", () => {
     });
   });
 
-  describe.skip("createBsgsDecryptionFn", () => {
-    it("creates a decryption function compatible with TwistedElGamal", async () => {
-      const decryptFn = await createBsgsDecryptionFn([16]);
-
-      const zeroPoint = RistrettoPoint.ZERO.toRawBytes();
-      expect(await decryptFn(zeroPoint)).toBe(0n);
-
-      const x = 42n;
-      const P = RistrettoPoint.BASE.multiply(x);
-      expect(await decryptFn(P.toRawBytes())).toBe(x);
-    });
-  });
-
   describe("benchmarks", () => {
     it("benchmarks 16-bit DLP", () => {
       const times: number[] = [];
@@ -292,7 +279,7 @@ describe("Baby-Step Giant-Step (TypeScript)", () => {
 
       const avg = times.reduce((a, b) => a + b, 0) / times.length;
       console.log(
-        `BSGS 16-bit: avg=${avg.toFixed(2)}ms, min=${Math.min(...times).toFixed(2)}ms, max=${Math.max(...times).toFixed(2)}ms`,
+        `TS BSGS 16-bit: avg=${avg.toFixed(2)}ms, min=${Math.min(...times).toFixed(2)}ms, max=${Math.max(...times).toFixed(2)}ms`,
       );
     });
 
@@ -313,7 +300,7 @@ describe("Baby-Step Giant-Step (TypeScript)", () => {
 
       const avg = times.reduce((a, b) => a + b, 0) / times.length;
       console.log(
-        `BSGS 32-bit: avg=${avg.toFixed(2)}ms, min=${Math.min(...times).toFixed(2)}ms, max=${Math.max(...times).toFixed(2)}ms`,
+        `TS BSGS 32-bit: avg=${avg.toFixed(2)}ms, min=${Math.min(...times).toFixed(2)}ms, max=${Math.max(...times).toFixed(2)}ms`,
       );
     });
   });
