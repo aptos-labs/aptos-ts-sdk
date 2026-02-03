@@ -9,6 +9,6 @@
     "test:all": "bun run simple_transfer.ts && bun run simple_sponsored_transaction.ts"
   },
   "dependencies": {
-    "@aptos-labs/ts-sdk": "link:../.."
+    "@aptos-labs/ts-sdk": "file:../.."
   }
 }
