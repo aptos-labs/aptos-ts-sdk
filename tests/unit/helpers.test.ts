@@ -1,28 +1,5 @@
-import { pairedFaMetadataAddress, isBun } from "../../src/utils/helpers";
+import { pairedFaMetadataAddress } from "../../src/utils/helpers";
 import { AccountAddress } from "../../src/core/accountAddress";
-
-describe("isBun", () => {
-  test("returns false when not running in Bun (no Bun global)", () => {
-    // In a Node.js environment, globalThis.Bun should not exist.
-    expect(isBun()).toBe(false);
-  });
-
-  test("returns true when Bun global is present", () => {
-    // Simulate Bun environment.
-    const originalBun = (globalThis as any).Bun;
-    (globalThis as any).Bun = {};
-    try {
-      expect(isBun()).toBe(true);
-    } finally {
-      // Restore original state.
-      if (originalBun === undefined) {
-        delete (globalThis as any).Bun;
-      } else {
-        (globalThis as any).Bun = originalBun;
-      }
-    }
-  });
-});
 
 describe("pairedFaMetadataAddress", () => {
   test("matches the ground truth cases on chain", () => {

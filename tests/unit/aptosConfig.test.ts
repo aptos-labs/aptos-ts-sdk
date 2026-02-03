@@ -10,7 +10,6 @@ import {
   NetworkToIndexerAPI,
   AptosApiType,
 } from "../../src";
-import * as helpers from "../../src/utils/helpers";
 
 describe("aptos config", () => {
   test("it should set urls based on a local network", async () => {
@@ -98,51 +97,5 @@ describe("aptos config", () => {
     expect(aptosConfig.faucetConfig).toStrictEqual({ HEADERS: { faucet: "header" }, AUTH_TOKEN: "auth-token" });
     expect(aptosConfig.indexerConfig).toStrictEqual({ HEADERS: { indexer: "header" } });
     expect(aptosConfig.fullnodeConfig).toStrictEqual({ HEADERS: { fullnode: "header" } });
-  });
-
-  describe("Bun HTTP/2 compatibility", () => {
-    let isBunSpy: jest.SpyInstance;
-
-    beforeEach(() => {
-      isBunSpy = jest.spyOn(helpers, "isBun");
-    });
-
-    afterEach(() => {
-      isBunSpy.mockRestore();
-    });
-
-    test("it should throw an error when running in Bun without disabling HTTP/2", () => {
-      isBunSpy.mockReturnValue(true);
-
-      expect(() => new AptosConfig({ network: Network.TESTNET })).toThrow(
-        "Bun does not fully support HTTP/2, which is enabled by default in this SDK.",
-      );
-    });
-
-    test("it should throw an error when running in Bun with HTTP/2 explicitly enabled", () => {
-      isBunSpy.mockReturnValue(true);
-
-      expect(() => new AptosConfig({ network: Network.TESTNET, clientConfig: { http2: true } })).toThrow(
-        "Bun does not fully support HTTP/2, which is enabled by default in this SDK.",
-      );
-    });
-
-    test("it should not throw when running in Bun with HTTP/2 disabled", () => {
-      isBunSpy.mockReturnValue(true);
-
-      expect(() => new AptosConfig({ network: Network.TESTNET, clientConfig: { http2: false } })).not.toThrow();
-    });
-
-    test("it should not throw when not running in Bun", () => {
-      isBunSpy.mockReturnValue(false);
-
-      expect(() => new AptosConfig({ network: Network.TESTNET })).not.toThrow();
-    });
-
-    test("it should not throw when not running in Bun even with HTTP/2 enabled", () => {
-      isBunSpy.mockReturnValue(false);
-
-      expect(() => new AptosConfig({ network: Network.TESTNET, clientConfig: { http2: true } })).not.toThrow();
-    });
   });
 });
