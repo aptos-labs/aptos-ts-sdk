@@ -195,25 +195,3 @@ export class BsgsSolver {
     this.initPromise = undefined;
   }
 }
-
-/**
- * Creates a decryption function using BSGS that can be passed to
- * TwistedElGamal.setDecryptionFn().
- *
- * @param bitWidths - Bit widths to support (e.g., [16, 32])
- * @returns A decryption function compatible with TwistedElGamal
- */
-export async function createBsgsDecryptionFn(
-  bitWidths: number[],
-): Promise<(point: Uint8Array) => Promise<bigint>> {
-  const solver = new BsgsSolver();
-  await solver.initialize(bitWidths);
-
-  return async (point: Uint8Array): Promise<bigint> => {
-    // Check for zero point
-    const isZero = point.every((b) => b === 0);
-    if (isZero) return 0n;
-
-    return solver.solve(point);
-  };
-}
