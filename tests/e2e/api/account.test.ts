@@ -4,10 +4,7 @@
 import {
   APTOS_COIN,
   Account,
-  Aptos,
-  AptosConfig,
   Ed25519PrivateKey,
-  Network,
   SigningSchemeInput,
   U64,
   AccountAddress,
@@ -55,12 +52,13 @@ describe("account api", () => {
 
     test("it fetches account modules with pagination", async () => {
       const { aptos } = getAptosClient();
-      let { modules, cursor } = await aptos.getAccountModulesPage({
+      const { modules, cursor: initialCursor } = await aptos.getAccountModulesPage({
         accountAddress: "0x1",
         options: {
           limit: 1,
         },
       });
+      let cursor = initialCursor;
       expect(modules.length).toEqual(1);
       expect(cursor).toBeDefined();
       while (true) {

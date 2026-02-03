@@ -1,12 +1,4 @@
-import {
-  AptosConfig,
-  Network,
-  Aptos,
-  Account,
-  Deserializer,
-  RawTransaction,
-  TransactionPayloadEntryFunction,
-} from "../../../src";
+import { Account, Deserializer, RawTransaction, TransactionPayloadEntryFunction } from "../../../src";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 
