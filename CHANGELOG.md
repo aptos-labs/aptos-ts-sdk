@@ -9,7 +9,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add JWK caching for keyless authentication with 5-minute TTL to improve performance
 - Add `clearMemoizeCache()` utility function for clearing the memoization cache
 - Add Bun runtime detection with `isBun()` utility function
-- Add error at `AptosConfig` construction time when running in Bun without explicitly disabling HTTP/2 (Bun does not fully support HTTP/2, which is enabled by default)
+- Add warning at `AptosConfig` construction time when running in Bun without explicitly disabling HTTP/2 (Bun does not fully support HTTP/2, which is enabled by default)
 
 ## Changed
 
