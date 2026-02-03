@@ -167,14 +167,14 @@ export class AptosConfig {
       }
     }
 
-    // Check for Bun runtime with HTTP/2 enabled (the default).
-    // Bun's HTTP/2 support is not fully mature yet, so we require users to explicitly disable it.
+    // Warn Bun users about HTTP/2 compatibility issues.
+    // Bun's HTTP/2 support is not fully mature yet, so we recommend disabling it.
     if (isBun() && settings?.clientConfig?.http2 !== false) {
-      throw new Error(
-        "Bun does not fully support HTTP/2, which is enabled by default in this SDK. " +
-          "To use this SDK with Bun, you must explicitly disable HTTP/2 by setting " +
-          "`clientConfig: { http2: false }` in your AptosConfig. For example:\n" +
-          "const config = new AptosConfig({ network: Network.TESTNET, clientConfig: { http2: false } });",
+      // eslint-disable-next-line no-console
+      console.warn(
+        "[Aptos SDK] Bun does not fully support HTTP/2, which is enabled by default in this SDK. " +
+          "It is recommended to disable HTTP/2 by setting `clientConfig: { http2: false }` in your AptosConfig. " +
+          "For example: new AptosConfig({ network: Network.TESTNET, clientConfig: { http2: false } })",
       );
     }
 
