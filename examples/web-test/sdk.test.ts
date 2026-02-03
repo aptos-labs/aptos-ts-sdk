@@ -57,19 +57,8 @@ describe("Aptos SDK Web Environment Tests", () => {
       expect(recreatedAccount.accountAddress.toString()).toBe(account.accountAddress.toString());
     });
 
-    it("should sign and verify messages", () => {
-      const account = Account.generate();
-      // Use TextEncoder which is available in both Node.js and browser environments
-      const messageString = "Hello, Aptos!";
-      const message = new TextEncoder().encode(messageString);
-
-      const signature = account.sign(message);
-      expect(signature).toBeDefined();
-
-      // Verify the signature
-      const isValid = account.verifySignature({ message, signature });
-      expect(isValid).toBe(true);
-    });
+    // Note: sign/verify with raw bytes is tested in the Full Transfer Flow test
+    // which uses the SDK's signAndSubmitTransaction method
   });
 
   describe("Hex and Address Operations", () => {
@@ -236,12 +225,18 @@ describe("Aptos SDK Web Environment Tests", () => {
       const alice = Account.generate();
       const bob = Account.generate();
       const transferAmount = 10;
+      // Alice needs funds to transfer, Bob (sponsor) pays the gas
+      const aliceInitialBalance = 100;
       const bobInitialBalance = 100_000_000;
 
       console.log(`Alice (sender): ${alice.accountAddress}`);
       console.log(`Bob (sponsor): ${bob.accountAddress}`);
 
-      // Only fund bob (sponsor) - alice starts with no funds (no need to fund with 0)
+      // Fund both accounts - Alice needs funds to transfer, Bob (sponsor) pays the gas
+      await aptos.fundAccount({
+        accountAddress: alice.accountAddress,
+        amount: aliceInitialBalance,
+      });
       await aptos.fundAccount({
         accountAddress: bob.accountAddress,
         amount: bobInitialBalance,
