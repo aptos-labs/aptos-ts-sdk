@@ -17,6 +17,11 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Fixed
 
+- Fix security vulnerabilities in transitive dependencies via pnpm overrides:
+  - HIGH: `glob` command injection (override `sucrase` to 3.35.1)
+  - MODERATE: `lodash` prototype pollution (override to 4.17.23)
+  - MODERATE: `js-yaml` prototype pollution (override to 4.1.1)
+  - LOW: `diff` DoS vulnerability (override to 4.0.4)
 - Fix keyless e2e tests by clearing memoize cache before JWK installation to ensure fresh lookups
 - Fix memoize test cache keys to meet minimum length requirement
 - Fix HD key test to use bracket notation for accessing private methods
