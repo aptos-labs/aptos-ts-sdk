@@ -59,9 +59,9 @@ describe("Aptos SDK Web Environment Tests", () => {
 
     it("should sign and verify messages", () => {
       const account = Account.generate();
-      // Use a hex string message which is more portable across environments
+      // Use TextEncoder which is available in both Node.js and browser environments
       const messageString = "Hello, Aptos!";
-      const message = new Uint8Array(Buffer.from(messageString));
+      const message = new TextEncoder().encode(messageString);
 
       const signature = account.sign(message);
       expect(signature).toBeDefined();
