@@ -1,0 +1,59 @@
+name: "Run SDK Bun Runtime Tests"
+description: |
+  Run the SDK examples with Bun runtime against local testnet
+
+runs:
+  using: composite
+  steps:
+    # Install node and pnpm.
+    - uses: actions/setup-node@v6
+      with:
+        node-version-file: .node-version
+        registry-url: "https://registry.npmjs.org"
+    - uses: pnpm/action-setup@v4
+
+    # Install Bun
+    - uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: latest
+
+    # Run package install. If install fails, it probably means the updated lockfile was
+    # not included in the commit.
+    - run: pnpm install --frozen-lockfile
+      shell: bash
+    # Build the SDK for use in the examples
+    - run: pnpm build
+      shell: bash
+
+    # Install the CLI.
+    - run: pnpm install -g @aptos-labs/aptos-cli
+      shell: bash
+
+    # Run a local testnet in the background.
+    - run: aptos node run-local-testnet --force-restart --assume-yes --with-indexer-api --log-to-stdout >& ${{ runner.temp }}/local-testnet-logs.txt &
+      shell: bash
+
+    # Wait for the local testnet to be ready by hitting the readiness endpoint.
+    - run: pnpm install -g wait-on
+      shell: bash
+    - run: wait-on --verbose --interval 1500 --timeout 120000 --httpTimeout 120000 http-get://127.0.0.1:8070
+      shell: bash
+
+    # Run the Bun tests
+    - uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # pin@v3
+      name: bun-sdk-tests
+      env:
+        TMPDIR: ${{ runner.temp }}
+        APTOS_NETWORK: local
+      with:
+        max_attempts: 3
+        timeout_minutes: 15
+        command: |
+          cd examples/bun-test
+          bun install
+          bun run test:all
+
+    - name: Print local testnet logs on failure
+      shell: bash
+      if: failure()
+      run: cat ${{ runner.temp }}/local-testnet-logs.txt
