@@ -5,6 +5,6 @@
   "type": "module",
   "license": "Apache-2.0",
   "dependencies": {
-    "@aptos-labs/ts-sdk": "file:../.."
+    "@aptos-labs/ts-sdk": "link:../.."
   }
 }
