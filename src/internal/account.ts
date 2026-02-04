@@ -1100,7 +1100,7 @@ export async function rotateAuthKeyUnverified(args: {
 export type AccountInfo = {
   accountAddress: AccountAddress;
   publicKey: BaseAccountPublicKey;
-  lastTransactionVersion: number;
+  lastTransactionVersion: bigint;
 };
 
 export async function getAccountsForPublicKey(args: {
@@ -1144,7 +1144,7 @@ export async function getAccountsForPublicKey(args: {
   const result: {
     accountAddress: AccountAddress;
     publicKey: BaseAccountPublicKey;
-    lastTransactionVersion: number;
+    lastTransactionVersion: bigint;
   }[] = [];
 
   // Add any default accounts that exist to the result.
@@ -1187,7 +1187,11 @@ export async function getAccountsForPublicKey(args: {
     });
   }
   // Sort the result by the last transaction version in descending order (most recent first).
-  return result.sort((a, b) => b.lastTransactionVersion - a.lastTransactionVersion);
+  return result.sort((a, b) => {
+    if (b.lastTransactionVersion > a.lastTransactionVersion) return 1;
+    if (b.lastTransactionVersion < a.lastTransactionVersion) return -1;
+    return 0;
+  });
 }
 
 export async function deriveOwnedAccountsFromSigner(args: {
@@ -1398,7 +1402,7 @@ async function getAccountAddressesForAuthKeys(args: {
   aptosConfig: AptosConfig;
   authKeys: AuthenticationKey[];
   options?: { includeUnverified?: boolean };
-}): Promise<{ authKey: AuthenticationKey; accountAddress: AccountAddress; lastTransactionVersion: number }[]> {
+}): Promise<{ authKey: AuthenticationKey; accountAddress: AccountAddress; lastTransactionVersion: bigint }[]> {
   const { aptosConfig, authKeys, options } = args;
   const includeUnverified = options?.includeUnverified ?? false;
   if (authKeys.length === 0) {
@@ -1424,14 +1428,14 @@ async function getAccountAddressesForAuthKeys(args: {
   return data.map((entry) => ({
     authKey: new AuthenticationKey({ data: entry.auth_key }),
     accountAddress: new AccountAddress(Hex.hexInputToUint8Array(entry.account_address)),
-    lastTransactionVersion: Number(entry.last_transaction_version),
+    lastTransactionVersion: BigInt(entry.last_transaction_version),
   }));
 }
 
 /**
  * Returns the last transaction version that was signed by an account.
  *
- * If an account was created but has not signed any transactions, the last transaction version will be 0.
+ * If an account was created but has not signed any transactions, the last transaction version will be 0n.
  *
  * @param args.aptosConfig - The configuration settings for the Aptos network.
  * @param args.accountAddress - The account address to get the latest transaction version for.
@@ -1440,13 +1444,13 @@ async function getAccountAddressesForAuthKeys(args: {
 async function getLatestTransactionVersionForAddress(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
-}): Promise<number> {
+}): Promise<bigint> {
   const { aptosConfig, accountAddress } = args;
   const transactions = await getTransactions({ aptosConfig, accountAddress, options: { limit: 1 } });
   if (transactions.length === 0) {
-    return 0;
+    return 0n;
   }
-  return Number(transactions[0].version);
+  return BigInt(transactions[0].version);
 }
 
 /**
@@ -1462,7 +1466,7 @@ async function getLatestTransactionVersionForAddress(args: {
 async function getDefaultAccountInfoForPublicKey(args: {
   aptosConfig: AptosConfig;
   publicKey: AccountPublicKey;
-}): Promise<{ accountAddress: AccountAddress; lastTransactionVersion: number } | undefined> {
+}): Promise<{ accountAddress: AccountAddress; lastTransactionVersion: bigint } | undefined> {
   const { aptosConfig, publicKey } = args;
   const derivedAddress = publicKey.authKey().derivedAddress();
 
