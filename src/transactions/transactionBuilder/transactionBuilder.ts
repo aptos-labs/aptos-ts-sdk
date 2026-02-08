@@ -161,7 +161,10 @@ export async function generateTransactionPayload(
 
 /**
  * Generates a transaction payload using the provided ABI and function details.
- * This function helps create a properly structured transaction payload for executing a specific function on a module.
+ * This function is synchronous and works offline with pre-fetched ABIs (no network calls).
+ * Does NOT support plain object struct/enum arguments. For struct/enum arguments, encode them first
+ * using StructEnumArgumentParser.encodeStructArgument() or encodeEnumArgument(), then pass the
+ * encoded MoveStructArgument or MoveEnumArgument instances to functionArguments.
  *
  * @param args - The input data required to generate the transaction payload.
  * @param args.abi - The ABI of the function to be executed.
@@ -278,8 +281,8 @@ export async function generateViewFunctionPayload(args: InputViewFunctionDataWit
 
 /**
  * Generates a payload for a view function call using the provided ABI and arguments.
- * This function ensures that the type arguments and function arguments are correctly formatted
- * and match the expected counts as defined in the ABI.
+ * This function is synchronous and works offline with pre-fetched ABIs (no network calls).
+ * Does NOT support struct/enum arguments.
  *
  * @param args - The input data for generating the view function payload.
  * @param args.abi - The ABI of the function to be called.

@@ -6,10 +6,21 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Added
 
+- [Transactions] Add async variants of argument conversion functions (`convertArgumentWithABI`, `checkOrConvertArgumentWithABI`, `parseArgAsync`) to support fetching module ABIs for struct/enum argument encoding. Original synchronous functions remain unchanged for backwards compatibility.
+
 - Add JWK caching for keyless authentication with 5-minute TTL to improve performance
 - Add `clearMemoizeCache()` utility function for clearing the memoization cache
 - Add Bun runtime detection with `isBun()` utility function
 - Add warning at `AptosConfig` construction time when running in Bun without explicitly disabling HTTP/2 (Bun does not fully support HTTP/2, which is enabled by default)
+- [Transactions] Add support for public copy structs and enums as transaction arguments via `MoveStructArgument`, `MoveEnumArgument`, and `StructEnumArgumentParser` classes
+  - Automatic type inference from function ABI
+  - Nested structs/enums support (up to 7 levels deep)
+  - Generic type parameter substitution (T0, T1, etc.)
+  - Support for all Move primitive types (bool, u8-u256, i8-i256, address)
+  - Special framework types (String, Object<T>, Option<T>)
+  - Option<T> dual format support (vector and enum formats)
+  - Module ABI caching for performance
+  - Comprehensive validation and error messages
 
 ## Changed
 
