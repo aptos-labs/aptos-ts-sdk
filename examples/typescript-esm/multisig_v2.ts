@@ -37,7 +37,9 @@ import {
 dotenv.config();
 
 // Default to devnet, but allow for overriding
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
+const aptosNetworkEnv = process.env.APTOS_NETWORK;
+const APTOS_NETWORK: Network =
+  (aptosNetworkEnv && NetworkToNetworkName[aptosNetworkEnv as keyof typeof NetworkToNetworkName]) || Network.DEVNET;
 
 // Set up the client
 const config = new AptosConfig({ network: APTOS_NETWORK });
@@ -61,6 +63,13 @@ let transactionPayload: TransactionPayloadMultiSig;
 const owner4 = Account.generate();
 
 // HELPER FUNCTIONS //
+const getMultisigTransactionPayloadBytes = (payload: TransactionPayloadMultiSig): Uint8Array => {
+  const multisigTransactionPayload = payload.multiSig.transaction_payload;
+  if (!multisigTransactionPayload) {
+    throw new Error("Expected multisig transaction payload to be defined.");
+  }
+  return multisigTransactionPayload.bcsToBytes();
+};
 
 const getNumberOfOwners = async (): Promise<void> => {
   const multisigAccountResource = await aptos.getAccountResource<{ owners: Array<string> }>({
@@ -169,7 +178,7 @@ const createMultiSigTransferTransaction = async () => {
     sender: owner2.accountAddress,
     data: {
       function: "0x1::multisig_account::create_transaction",
-      functionArguments: [multisigAddress, transactionPayload.multiSig.transaction_payload.bcsToBytes()],
+      functionArguments: [multisigAddress, getMultisigTransactionPayloadBytes(transactionPayload)],
     },
   });
 
@@ -220,7 +229,7 @@ const createMultiSigTransferTransactionWithPayloadHash = async () => {
   // Step 3: Create another multisig transaction to send 1_000_000 coins but use payload hash instead.
   // ===========================================================================================
   const transferTxPayloadHash = sha3Hash.create();
-  transferTxPayloadHash.update(transactionPayload.multiSig.transaction_payload.bcsToBytes());
+  transferTxPayloadHash.update(getMultisigTransactionPayloadBytes(transactionPayload));
 
   // Build create_transaction_with_hash transaction
   const createMultisigTxWithHash = await aptos.transaction.build.simple({
@@ -284,7 +293,7 @@ const createAddingAnOwnerToMultiSigAccountTransaction = async () => {
     sender: owner2.accountAddress,
     data: {
       function: "0x1::multisig_account::create_transaction",
-      functionArguments: [multisigAddress, addOwnerTransactionPayload.multiSig.transaction_payload.bcsToBytes()],
+      functionArguments: [multisigAddress, getMultisigTransactionPayloadBytes(addOwnerTransactionPayload)],
     },
   });
   // Owner 2 signs the transaction
@@ -340,7 +349,7 @@ const createRemovingAnOwnerToMultiSigAccount = async () => {
     sender: owner2.accountAddress,
     data: {
       function: "0x1::multisig_account::create_transaction",
-      functionArguments: [multisigAddress, removeOwnerPayload.multiSig.transaction_payload.bcsToBytes()],
+      functionArguments: [multisigAddress, getMultisigTransactionPayloadBytes(removeOwnerPayload)],
     },
   });
 
@@ -397,7 +406,7 @@ const createChangeSignatureThresholdTransaction = async () => {
     sender: owner2.accountAddress,
     data: {
       function: "0x1::multisig_account::create_transaction",
-      functionArguments: [multisigAddress, changeSigThresholdPayload.multiSig.transaction_payload.bcsToBytes()],
+      functionArguments: [multisigAddress, getMultisigTransactionPayloadBytes(changeSigThresholdPayload)],
     },
   });
 
