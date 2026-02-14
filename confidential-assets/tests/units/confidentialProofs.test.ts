@@ -3,7 +3,6 @@ import {
   CHUNK_BITS_BIG_INT,
   ChunkedAmount,
   ConfidentialKeyRotation,
-  ConfidentialKeyRotationSigmaProof,
   ConfidentialNormalization,
   ConfidentialNormalizationSigmaProof,
   ConfidentialTransfer,
@@ -244,70 +243,59 @@ describe("Generate 'confidential coin' proofs", () => {
   );
 
   const newAliceConfidentialPrivateKey = TwistedEd25519PrivateKey.generate();
-  let confidentialKeyRotation: ConfidentialKeyRotation;
-  let confidentialKeyRotationSigmaProof: ConfidentialKeyRotationSigmaProof;
+  // Use dummy addresses for the unit test (32 bytes each)
+  const dummySenderAddress = new Uint8Array(32);
+  const dummyTokenAddress = new Uint8Array(32).fill(0x0a); // 0xa = APT metadata address
+
+  let keyRotationProofResult: ReturnType<ConfidentialKeyRotation["authorizeKeyRotation"]>;
+
   test(
     "Generate key rotation sigma proof",
-    async () => {
-      confidentialKeyRotation = await ConfidentialKeyRotation.create({
+    () => {
+      const confidentialKeyRotation = ConfidentialKeyRotation.create({
         senderDecryptionKey: aliceConfidentialDecryptionKey,
         currentEncryptedAvailableBalance: aliceEncryptedBalance,
         newSenderDecryptionKey: newAliceConfidentialPrivateKey,
+        senderAddress: dummySenderAddress,
+        tokenAddress: dummyTokenAddress,
       });
 
-      confidentialKeyRotationSigmaProof = await confidentialKeyRotation.genSigmaProof();
+      keyRotationProofResult = confidentialKeyRotation.authorizeKeyRotation();
 
-      expect(confidentialKeyRotationSigmaProof).toBeDefined();
+      const { newEkBytes, newDBytes, proof } = keyRotationProofResult;
+
+      // Verify the proof structure
+      expect(newEkBytes).toBeDefined();
+      expect(newEkBytes.length).toBe(32);
+      expect(newDBytes).toBeDefined();
+      expect(newDBytes.length).toBe(AVAILABLE_BALANCE_CHUNK_COUNT);
+      newDBytes.forEach((d: Uint8Array) => expect(d.length).toBe(32));
+      // Commitment has 3 + numChunks points (psi output size)
+      expect(proof.commitment.length).toBe(3 + AVAILABLE_BALANCE_CHUNK_COUNT);
+      proof.commitment.forEach((c: Uint8Array) => expect(c.length).toBe(32));
+      // Response has 3 scalars (dk, delta, delta_inv)
+      expect(proof.response.length).toBe(3);
+      proof.response.forEach((r: Uint8Array) => expect(r.length).toBe(32));
     },
     longTestTimeout,
   );
+
   test(
     "Verify key rotation sigma proof",
     () => {
-      const isValid = ConfidentialKeyRotation.verifySigmaProof({
-        sigmaProof: confidentialKeyRotationSigmaProof,
-        currPublicKey: aliceConfidentialDecryptionKey.publicKey(),
-        newPublicKey: newAliceConfidentialPrivateKey.publicKey(),
-        currEncryptedBalance: aliceEncryptedBalanceCipherText,
-        newEncryptedBalance: confidentialKeyRotation.newEncryptedAvailableBalance.getCipherText(),
+      const { newEkBytes, newDBytes, proof } = keyRotationProofResult;
+
+      const isValid = ConfidentialKeyRotation.verify({
+        oldEk: aliceConfidentialDecryptionKey.publicKey().toUint8Array(),
+        newEk: newEkBytes,
+        oldD: aliceEncryptedBalanceCipherText.map((ct) => ct.D.toRawBytes()),
+        newD: newDBytes,
+        senderAddress: dummySenderAddress,
+        tokenAddress: dummyTokenAddress,
+        proof,
       });
 
       expect(isValid).toBeTruthy();
-    },
-    longTestTimeout,
-  );
-
-  let confidentialKeyRotationRangeProof: Uint8Array;
-  test(
-    "Generate key rotation range proof",
-    async () => {
-      confidentialKeyRotationRangeProof = await confidentialKeyRotation.genRangeProof();
-
-      expect(confidentialKeyRotationRangeProof).toBeDefined();
-    },
-    longTestTimeout,
-  );
-  test(
-    "Verify key rotation range proof",
-    async () => {
-      const isValid = ConfidentialKeyRotation.verifyRangeProof({
-        rangeProof: confidentialKeyRotationRangeProof,
-        newEncryptedBalance: confidentialKeyRotation.newEncryptedAvailableBalance.getCipherText(),
-      });
-
-      expect(isValid).toBeTruthy();
-    },
-    longTestTimeout,
-  );
-
-  test(
-    "Authorize Key Rotation",
-    async () => {
-      const [{ sigmaProof, rangeProof }, newVB] = await confidentialKeyRotation.authorizeKeyRotation();
-
-      expect(sigmaProof).toBeDefined();
-      expect(rangeProof).toBeDefined();
-      expect(newVB).toBeDefined();
     },
     longTestTimeout,
   );

@@ -18,12 +18,13 @@ import {
   ConfidentialBalance,
   getBalance,
   getEncryptionKey,
+  hasUserRegistered,
   isBalanceNormalized,
-  isPendingBalanceFrozen,
+  isIncomingTransfersPaused,
 } from "../internal";
 
 // Constants
-import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS, MODULE_NAME } from "../consts";
+import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS } from "../consts";
 
 // Base param types
 type ConfidentialAssetSubmissionParams = {
@@ -54,7 +55,7 @@ type TransferParams = WithdrawParams & {
 
 type RolloverParams = ConfidentialAssetSubmissionParams & {
   senderDecryptionKey?: TwistedEd25519PrivateKey;
-  withFreezeBalance?: boolean;
+  withPauseIncoming?: boolean;
 };
 
 type RotateKeyParams = ConfidentialAssetSubmissionParams & {
@@ -206,7 +207,7 @@ export class ConfidentialAsset {
    *
    * @param args.signer - The address of the sender of the transaction
    * @param args.tokenAddress - The token address of the asset to roll over
-   * @param args.withFreezeBalance - Whether to freeze the balance after rolling over. Default is false.
+   * @param args.withPauseIncoming - Whether to pause incoming transfers after rolling over. Default is false.
    * @param args.checkNormalized - Whether to check if the balance is normalized before rolling over. Default is true.
    * @param args.withFeePayer - Whether to use the fee payer for the transaction
    * @returns A SimpleTransaction to roll over the balance
@@ -256,17 +257,7 @@ export class ConfidentialAsset {
     tokenAddress: AccountAddressInput;
     options?: LedgerVersionArg;
   }): Promise<TwistedEd25519PublicKey | undefined> {
-    const [{ vec: globalAuditorPubKey }] = await this.client().view<[{ vec: Uint8Array }]>({
-      options: args.options,
-      payload: {
-        function: `${this.moduleAddress()}::${MODULE_NAME}::get_auditor`,
-        functionArguments: [args.tokenAddress],
-      },
-    });
-    if (globalAuditorPubKey.length === 0) {
-      return undefined;
-    }
-    return new TwistedEd25519PublicKey(globalAuditorPubKey);
+    return this.transaction.getAssetAuditorEncryptionKey(args);
   }
 
   /**
@@ -334,24 +325,24 @@ export class ConfidentialAsset {
   }
 
   /**
-   * Check if a user's balance is frozen.
+   * Check if a user's incoming transfers are paused.
    *
-   * A user's balance would likely be frozen if they plan to rotate their encryption key after a rollover. Rotating the encryption key requires
-   * the pending balance to be empty so a user may want to freeze their balance to prevent others from transferring into their pending balance
+   * A user's incoming transfers would likely be paused if they plan to rotate their encryption key after a rollover. Rotating the encryption key requires
+   * the pending balance to be empty so a user may want to pause incoming transfers to prevent others from transferring into their pending balance
    * which would interfere with the rotation, as it would require a user to rollover their pending balance.
    *
    * @param args.accountAddress - The account address to check
    * @param args.tokenAddress - The token address of the asset to check
    * @param args.options.ledgerVersion - The ledger version to use for the view call
-   * @returns A boolean indicating if the user's balance is frozen
+   * @returns A boolean indicating if the user's incoming transfers are paused
    * @throws {AptosApiError} If the there is no registered confidential balance for token address on the account
    */
-  async isPendingBalanceFrozen(args: {
+  async isIncomingTransfersPaused(args: {
     accountAddress: AccountAddressInput;
     tokenAddress: AccountAddressInput;
     options?: LedgerVersionArg;
   }): Promise<boolean> {
-    return isPendingBalanceFrozen({
+    return isIncomingTransfersPaused({
       client: this.client(),
       moduleAddress: this.moduleAddress(),
       ...args,
@@ -361,8 +352,8 @@ export class ConfidentialAsset {
   /**
    * Rotate the encryption key for a confidential asset balance.
    *
-   * This will check if the pending balance is empty and roll it over if needed. It also checks if the balance
-   * is frozen and will unfreeze it if necessary.
+   * This will check if the pending balance is empty and roll it over if needed. It also checks if incoming
+   * transfers are paused and will unpause them if necessary.
    *
    * @param args.signer - The account that will sign the transaction
    * @param args.senderDecryptionKey - The current decryption key
@@ -389,10 +380,17 @@ export class ConfidentialAsset {
       tokenAddress,
       decryptionKey: senderDecryptionKey,
     });
-    if (balance.pendingBalance() > 0n) {
+
+    // The on-chain rotate_encryption_key requires incoming transfers to be paused.
+    // If pending > 0, rollover + pause handles both. If pending == 0, we still need to pause.
+    const isPaused = await this.isIncomingTransfersPaused({
+      accountAddress: signer.accountAddress,
+      tokenAddress,
+    });
+    if (balance.pendingBalance() > 0n || !isPaused) {
       const rolloverTxs = await this.rolloverPendingBalance({
         ...args,
-        withFreezeBalance: true,
+        withPauseIncoming: true,
       });
       results.push(...rolloverTxs);
     }
@@ -428,16 +426,11 @@ export class ConfidentialAsset {
     tokenAddress: AccountAddressInput;
     options?: LedgerVersionArg;
   }): Promise<boolean> {
-    const [isRegistered] = await this.client().view<[boolean]>({
-      payload: {
-        function: `${this.moduleAddress()}::${MODULE_NAME}::has_confidential_asset_store`,
-        typeArguments: [],
-        functionArguments: [args.accountAddress, args.tokenAddress],
-      },
-      options: args.options,
+    return hasUserRegistered({
+      client: this.client(),
+      moduleAddress: this.moduleAddress(),
+      ...args,
     });
-
-    return isRegistered;
   }
 
   /**

@@ -89,6 +89,12 @@ cargo run -p aptos -- node run-localnet --with-indexer-api --assume-yes --force-
 Second, run the SDK test of your choosing; e.g.:
 ```
 pnpm test tests/e2e/confidentialAsset.test.ts
+
+pnpm test tests/e2e/
+
+pnpm test decryption
+
+pnpm jest tests/e2e/confidentialAsset.test.ts -t "rotate Alice" --runInBand
 ```
 
 Or, run all tests:

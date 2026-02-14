@@ -5,6 +5,7 @@ export * from "./rangeProof";
 export { initializeWasm, isWasmInitialized, ensureWasmInitialized } from "./wasmLoader";
 export * from "./chunkedAmount";
 export * from "./encryptedAmount";
+export * from "./sigmaProtocol";
 export * from "./confidentialKeyRotation";
 export * from "./confidentialNormalization";
 export * from "./confidentialTransfer";

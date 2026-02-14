@@ -26,10 +26,8 @@ type ViewFunctionParams = {
 };
 
 export type ConfidentialBalanceResponse = {
-  chunks: {
-    left: { data: string };
-    right: { data: string };
-  }[];
+  C: { data: string }[];
+  D: { data: string }[];
 }[];
 
 /**
@@ -172,7 +170,7 @@ async function getBalanceCipherText(args: ViewFunctionParams): Promise<{
   const [[chunkedPendingBalance], [chunkedActualBalances]] = await Promise.all([
     client.view<ConfidentialBalanceResponse>({
       payload: {
-        function: `${moduleAddress}::${MODULE_NAME}::pending_balance`,
+        function: `${moduleAddress}::${MODULE_NAME}::get_pending_balance`,
         typeArguments: [],
         functionArguments: [accountAddress, tokenAddress],
       },
@@ -180,7 +178,7 @@ async function getBalanceCipherText(args: ViewFunctionParams): Promise<{
     }),
     client.view<ConfidentialBalanceResponse>({
       payload: {
-        function: `${moduleAddress}::${MODULE_NAME}::actual_balance`,
+        function: `${moduleAddress}::${MODULE_NAME}::get_available_balance`,
         typeArguments: [],
         functionArguments: [accountAddress, tokenAddress],
       },
@@ -189,11 +187,11 @@ async function getBalanceCipherText(args: ViewFunctionParams): Promise<{
   ]);
 
   return {
-    pending: chunkedPendingBalance.chunks.map(
-      (el) => new TwistedElGamalCiphertext(el.left.data.slice(2), el.right.data.slice(2)),
+    pending: chunkedPendingBalance.C.map(
+      (c, i) => new TwistedElGamalCiphertext(c.data.slice(2), chunkedPendingBalance.D[i].data.slice(2)),
     ),
-    available: chunkedActualBalances.chunks.map(
-      (el) => new TwistedElGamalCiphertext(el.left.data.slice(2), el.right.data.slice(2)),
+    available: chunkedActualBalances.C.map(
+      (c, i) => new TwistedElGamalCiphertext(c.data.slice(2), chunkedActualBalances.D[i].data.slice(2)),
     ),
   };
 }
@@ -211,17 +209,17 @@ export async function isBalanceNormalized(args: ViewFunctionParams): Promise<boo
   return isNormalized;
 }
 
-export async function isPendingBalanceFrozen(args: ViewFunctionParams): Promise<boolean> {
-  const [isFrozen] = await args.client.view<[boolean]>({
+export async function isIncomingTransfersPaused(args: ViewFunctionParams): Promise<boolean> {
+  const [isPaused] = await args.client.view<[boolean]>({
     options: args.options,
     payload: {
-      function: `${args.moduleAddress}::${MODULE_NAME}::is_frozen`,
+      function: `${args.moduleAddress}::${MODULE_NAME}::incoming_transfers_paused`,
       typeArguments: [],
       functionArguments: [args.accountAddress, args.tokenAddress],
     },
   });
 
-  return isFrozen;
+  return isPaused;
 }
 
 /**
@@ -237,7 +235,7 @@ export async function isPendingBalanceFrozen(args: ViewFunctionParams): Promise<
 export async function hasUserRegistered(args: ViewFunctionParams): Promise<boolean> {
   const [isRegistered] = await args.client.view<[boolean]>({
     payload: {
-      function: `${args.moduleAddress}::${MODULE_NAME}::has_confidential_asset_store`,
+      function: `${args.moduleAddress}::${MODULE_NAME}::has_confidential_store`,
       typeArguments: [],
       functionArguments: [args.accountAddress, args.tokenAddress],
     },
@@ -268,14 +266,14 @@ export async function getEncryptionKey(
   try {
     return await memoizeAsync(
       async () => {
-        const [{ point }] = await args.client.view<[{ point: { data: string } }]>({
+        const [{ data }] = await args.client.view<[{ data: string }]>({
           options,
           payload: {
-            function: `${args.moduleAddress}::${MODULE_NAME}::encryption_key`,
+            function: `${args.moduleAddress}::${MODULE_NAME}::get_encryption_key`,
             functionArguments: [accountAddress, tokenAddress],
           },
         });
-        return new TwistedEd25519PublicKey(point.data);
+        return new TwistedEd25519PublicKey(data);
       },
       `${accountAddress}-encryption-key-for-${tokenAddress}-${args.client.config.network}`,
       1000 * 60 * 60, // 1 hour cache duration
