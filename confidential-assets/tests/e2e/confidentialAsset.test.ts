@@ -61,12 +61,12 @@ describe("Confidential Asset Sender API", () => {
     expect(isNormalized).toBe(expectedStatus);
   }
 
-  async function checkAliceBalanceFrozenStatus(expectedStatus: boolean) {
-    const isFrozen = await confidentialAsset.isPendingBalanceFrozen({
+  async function checkAliceIncomingTransfersPausedStatus(expectedStatus: boolean) {
+    const isPaused = await confidentialAsset.isIncomingTransfersPaused({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
-    expect(isFrozen).toBe(expectedStatus);
+    expect(isPaused).toBe(expectedStatus);
   }
   beforeAll(async () => {
     await aptos.fundAccount({
@@ -405,27 +405,27 @@ describe("Confidential Asset Sender API", () => {
   );
 
   test(
-    "it should check is Alice's balance not frozen",
+    "it should check that Alice's incoming transfers are not paused",
     async () => {
-      const isFrozen = await confidentialAsset.isPendingBalanceFrozen({
+      const isPaused = await confidentialAsset.isIncomingTransfersPaused({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
       });
 
-      expect(isFrozen).toBeFalsy();
+      expect(isPaused).toBeFalsy();
     },
     longTestTimeout,
   );
 
   test(
-    "it should throw if checking is Bob's balance not frozen",
+    "it should throw if checking whether Bob's incoming transfers are paused and he has no registered balance",
     async () => {
       await expect(
-        confidentialAsset.isPendingBalanceFrozen({
+        confidentialAsset.isIncomingTransfersPaused({
           accountAddress: bob.accountAddress,
           tokenAddress: TOKEN_ADDRESS,
         }),
-      ).rejects.toThrow("ECA_STORE_NOT_PUBLISHED");
+      ).rejects.toThrow("E_CONFIDENTIAL_STORE_NOT_REGISTERED");
     },
     longTestTimeout,
   );
@@ -501,7 +501,7 @@ describe("Confidential Asset Sender API", () => {
           tokenAddress: TOKEN_ADDRESS,
           accountAddress: bob.accountAddress,
         }),
-      ).rejects.toThrow("ECA_STORE_NOT_PUBLISHED");
+      ).rejects.toThrow("E_CONFIDENTIAL_STORE_NOT_REGISTERED");
     },
     longTestTimeout,
   );
@@ -593,20 +593,19 @@ describe("Confidential Asset Sender API", () => {
         decryptionKey: aliceConfidential,
       });
 
-      // This should unfreeze the balance even though withUnfreezeBalance is unset as it will check the
-      // chain for frozen state.
-      const keyRotationAndUnfreezeTx = await confidentialAsset.rotateEncryptionKey({
+      // This will unpause incoming transfers after rotation (unpause defaults to true).
+      const keyRotationAndUnpauseTx = await confidentialAsset.rotateEncryptionKey({
         signer: alice,
         senderDecryptionKey: aliceConfidential,
         newSenderDecryptionKey: ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY,
         tokenAddress: TOKEN_ADDRESS,
       });
-      for (const tx of keyRotationAndUnfreezeTx) {
+      for (const tx of keyRotationAndUnpauseTx) {
         expect(tx.success).toBeTruthy();
       }
 
-      // Check that the balance is unfrozen
-      await checkAliceBalanceFrozenStatus(false);
+      // Check that incoming transfers are unpaused
+      await checkAliceIncomingTransfersPausedStatus(false);
 
       // If this decrypts correctly, then the key rotation worked.
       await checkAliceDecryptedBalance(

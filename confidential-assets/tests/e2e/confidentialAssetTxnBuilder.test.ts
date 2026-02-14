@@ -51,12 +51,12 @@ describe.skip("Confidential balance api", () => {
     expect(isNormalized).toBe(expectedStatus);
   }
 
-  async function checkAliceBalanceFrozenStatus(expectedStatus: boolean) {
-    const isFrozen = await confidentialAsset.isPendingBalanceFrozen({
+  async function checkAliceIncomingTransfersPausedStatus(expectedStatus: boolean) {
+    const isPaused = await confidentialAsset.isIncomingTransfersPaused({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
-    expect(isFrozen).toBe(expectedStatus);
+    expect(isPaused).toBe(expectedStatus);
   }
   beforeAll(async () => {
     await aptos.fundAccount({
@@ -353,23 +353,23 @@ describe.skip("Confidential balance api", () => {
   );
 
   test(
-    "it should check is Alice's balance not frozen",
+    "it should check that Alice's incoming transfers are not paused",
     async () => {
-      const isFrozen = await confidentialAsset.isPendingBalanceFrozen({
+      const isPaused = await confidentialAsset.isIncomingTransfersPaused({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
       });
 
-      expect(isFrozen).toBeFalsy();
+      expect(isPaused).toBeFalsy();
     },
     longTestTimeout,
   );
 
   test(
-    "it should throw if checking is Bob's balance not frozen",
+    "it should throw if checking whether Bob's incoming transfers are paused and he has no registered balance",
     async () => {
       await expect(
-        confidentialAsset.isPendingBalanceFrozen({
+        confidentialAsset.isIncomingTransfersPaused({
           accountAddress: bob.accountAddress,
           tokenAddress: TOKEN_ADDRESS,
         }),
@@ -506,10 +506,9 @@ describe.skip("Confidential balance api", () => {
       await expect(
         transactionBuilder.rotateEncryptionKey({
           sender: alice.accountAddress,
-
           senderDecryptionKey: aliceConfidential,
           newSenderDecryptionKey: ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY,
-          withUnfreezePendingBalance: true,
+          unpause: true,
           tokenAddress: TOKEN_ADDRESS,
         }),
       ).rejects.toThrow("Pending balance must be 0 before rotating encryption key");
@@ -517,12 +516,12 @@ describe.skip("Confidential balance api", () => {
       const rolloverTx = await transactionBuilder.rolloverPendingBalance({
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
-        withFreezeBalance: true,
+        withPauseIncoming: true,
       });
       txResp = await sendAndWaitTx(rolloverTx, alice);
       expect(txResp.success).toBeTruthy();
 
-      await checkAliceBalanceFrozenStatus(true);
+      await checkAliceIncomingTransfersPausedStatus(true);
 
       // Get the current balance before rotation
       const confidentialBalance = await confidentialAsset.getBalance({
@@ -531,19 +530,18 @@ describe.skip("Confidential balance api", () => {
         decryptionKey: aliceConfidential,
       });
 
-      // This should unfreeze the balance even though withUnfreezeBalance is unset as it will check the
-      // chain for frozen state.
-      const keyRotationAndUnfreezeTx = await transactionBuilder.rotateEncryptionKey({
+      // This will unpause incoming transfers after rotation (unpause defaults to true).
+      const keyRotationAndUnpauseTx = await transactionBuilder.rotateEncryptionKey({
         sender: alice.accountAddress,
         senderDecryptionKey: aliceConfidential,
         newSenderDecryptionKey: ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY,
         tokenAddress: TOKEN_ADDRESS,
       });
-      txResp = await sendAndWaitTx(keyRotationAndUnfreezeTx, alice);
+      txResp = await sendAndWaitTx(keyRotationAndUnpauseTx, alice);
       expect(txResp.success).toBeTruthy();
 
-      // Check that the balance is unfrozen
-      await checkAliceBalanceFrozenStatus(false);
+      // Check that incoming transfers are unpaused
+      await checkAliceIncomingTransfersPausedStatus(false);
 
       // If this decrypts correctly, then the key rotation worked.
       await checkAliceDecryptedBalance(

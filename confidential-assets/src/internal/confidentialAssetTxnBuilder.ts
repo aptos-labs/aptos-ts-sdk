@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
+  AccountAddress,
   AccountAddressInput,
   AnyNumber,
   Aptos,
@@ -21,7 +22,7 @@ import {
   TwistedEd25519PrivateKey,
 } from "../crypto";
 import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS, MODULE_NAME } from "../consts";
-import { getBalance, getEncryptionKey, isBalanceNormalized, isPendingBalanceFrozen } from "./viewFunctions";
+import { getBalance, getEncryptionKey, isBalanceNormalized, isIncomingTransfersPaused } from "./viewFunctions";
 
 /**
  * A class to handle creating transactions for confidential asset operations
@@ -165,7 +166,7 @@ export class ConfidentialAssetTransactionBuilder {
    *
    * @param args.sender - The address of the sender of the transaction
    * @param args.tokenAddress - The token address of the asset to roll over
-   * @param args.withFreezeBalance - Whether to freeze the balance after rolling over. Default is false.
+   * @param args.withPauseIncoming - Whether to pause incoming transfers after rolling over. Default is false.
    * @param args.checkNormalized - Whether to check if the balance is normalized before rolling over. Default is true.
    * @param args.withFeePayer - Whether to use the fee payer for the transaction
    * @returns A SimpleTransaction to roll over the balance
@@ -174,12 +175,12 @@ export class ConfidentialAssetTransactionBuilder {
   async rolloverPendingBalance(args: {
     sender: AccountAddressInput;
     tokenAddress: AccountAddressInput;
-    withFreezeBalance?: boolean;
+    withPauseIncoming?: boolean;
     withFeePayer?: boolean;
     checkNormalized?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    const { checkNormalized = true, withFreezeBalance = false } = args;
+    const { checkNormalized = true, withPauseIncoming = false } = args;
     if (checkNormalized) {
       const isNormalized = await isBalanceNormalized({
         client: this.client,
@@ -192,7 +193,7 @@ export class ConfidentialAssetTransactionBuilder {
       }
     }
 
-    const functionName = withFreezeBalance ? "rollover_pending_balance_and_freeze" : "rollover_pending_balance";
+    const functionName = withPauseIncoming ? "rollover_pending_balance_and_pause" : "rollover_pending_balance";
 
     return this.client.transaction.build.simple({
       ...args,
@@ -217,17 +218,17 @@ export class ConfidentialAssetTransactionBuilder {
     tokenAddress: AccountAddressInput;
     options?: LedgerVersionArg;
   }): Promise<TwistedEd25519PublicKey | undefined> {
-    const [{ vec: globalAuditorPubKey }] = await this.client.view<[{ vec: Uint8Array }]>({
+    const [{ vec: globalAuditorPubKey }] = await this.client.view<[{ vec: { data: string }[] }]>({
       options: args.options,
       payload: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::get_auditor`,
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::get_auditor_for_asset_type`,
         functionArguments: [args.tokenAddress],
       },
     });
     if (globalAuditorPubKey.length === 0) {
       return undefined;
     }
-    return new TwistedEd25519PublicKey(globalAuditorPubKey);
+    return new TwistedEd25519PublicKey(globalAuditorPubKey[0].data);
   }
 
   /**
@@ -277,14 +278,14 @@ export class ConfidentialAssetTransactionBuilder {
     } catch (e) {
       throw new Error(`Failed to get encryption key for recipient - ${e}`);
     }
-    const isFrozen = await isPendingBalanceFrozen({
+    const isPaused = await isIncomingTransfersPaused({
       client: this.client,
       moduleAddress: this.confidentialAssetModuleAddress,
       accountAddress: recipient,
       tokenAddress,
     });
-    if (isFrozen) {
-      throw new Error("Recipient balance is frozen");
+    if (isPaused) {
+      throw new Error("Recipient's incoming transfers are paused");
     }
     // Get the sender's available balance from the chain
     const { available: senderEncryptedAvailableBalance } = await getBalance({
@@ -344,18 +345,15 @@ export class ConfidentialAssetTransactionBuilder {
   /**
    * Rotate the encryption key for a confidential asset balance.
    *
-   * This will by default check if the pending balance is empty and throw an error if it is not. It also checks if the balance is frozen and
-   * will unfreeze it if it is.
-   *
-   * TODO: Parallelize the view calls
+   * This will by default check if the pending balance is empty and throw an error if it is not.
+   * The new entry function uses the Sigma protocol for key rotation proofs and supports an `unpause` flag.
    *
    * @param args.sender - The address of the sender of the transaction who's encryption key is being rotated
    * @param args.senderDecryptionKey - The decryption key of the sender
-   * @param args.newDecryptionKey - The new decryption key
+   * @param args.newSenderDecryptionKey - The new decryption key
    * @param args.tokenAddress - The token address of the asset to rotate the encryption key for
-   * @param args.checkPendingBalanceEmpty - Whether to check if the pending balance is empty before rotating the encryption key. Default is true.
-   * @param args.withUnfreezeBalance - Whether to unfreeze the balance after rotating the encryption key. By default it will check the chain to
-   * see if the balance is frozen and if so, will unfreeze it.
+   * @param args.checkPendingBalanceEmpty - Whether to check if the pending balance is empty before rotating. Default is true.
+   * @param args.unpause - Whether to unpause incoming transfers after rotation. Default is true.
    * @param args.withFeePayer - Whether to use the fee payer for the transaction
    * @returns A SimpleTransaction to rotate the encryption key
    * @throws {Error} If the pending balance is not 0 before rotating the encryption key, unless checkPendingBalanceEmpty is false.
@@ -366,7 +364,7 @@ export class ConfidentialAssetTransactionBuilder {
     newSenderDecryptionKey: TwistedEd25519PrivateKey;
     tokenAddress: AccountAddressInput;
     checkPendingBalanceEmpty?: boolean;
-    withUnfreezePendingBalance?: boolean;
+    unpause?: boolean;
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
@@ -376,12 +374,7 @@ export class ConfidentialAssetTransactionBuilder {
       newSenderDecryptionKey,
       checkPendingBalanceEmpty = true,
       tokenAddress,
-      withUnfreezePendingBalance = await isPendingBalanceFrozen({
-        client: this.client,
-        moduleAddress: this.confidentialAssetModuleAddress,
-        accountAddress: sender,
-        tokenAddress,
-      }),
+      unpause = true,
     } = args;
 
     // Get the sender's balance from the chain
@@ -399,33 +392,34 @@ export class ConfidentialAssetTransactionBuilder {
       }
     }
 
-    // Create the confidential key rotation object
-    const confidentialKeyRotation = await ConfidentialKeyRotation.create({
+    // Resolve the sender and token addresses to 32-byte arrays
+    const senderAddr = AccountAddress.from(sender);
+    const tokenAddr = AccountAddress.from(tokenAddress);
+
+    // Create the confidential key rotation object and generate the proof
+    const confidentialKeyRotation = ConfidentialKeyRotation.create({
       senderDecryptionKey,
       newSenderDecryptionKey,
       currentEncryptedAvailableBalance,
+      senderAddress: senderAddr.toUint8Array(),
+      tokenAddress: tokenAddr.toUint8Array(),
     });
 
-    // Create the sigma proof and range proof
-    const [{ sigmaProof, rangeProof }, newEncryptedAvailableBalance] =
-      await confidentialKeyRotation.authorizeKeyRotation();
-
-    const newPublicKeyBytes = args.newSenderDecryptionKey.publicKey().toUint8Array();
-
-    const method = withUnfreezePendingBalance ? "rotate_encryption_key_and_unfreeze" : "rotate_encryption_key";
+    const { newEkBytes, newDBytes, proof } = confidentialKeyRotation.authorizeKeyRotation();
 
     return this.client.transaction.build.simple({
       ...args,
       withFeePayer: args.withFeePayer,
       sender: args.sender,
       data: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::${method}`,
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::rotate_encryption_key`,
         functionArguments: [
           args.tokenAddress,
-          newPublicKeyBytes,
-          newEncryptedAvailableBalance.getCipherTextBytes(),
-          rangeProof,
-          ConfidentialKeyRotation.serializeSigmaProof(sigmaProof),
+          newEkBytes,
+          unpause,
+          newDBytes,
+          proof.commitment,
+          proof.response,
         ],
       },
       options: args.options,
