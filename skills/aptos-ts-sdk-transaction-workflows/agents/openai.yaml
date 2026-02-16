@@ -1,0 +1,4 @@
+interface:
+  display_name: "Aptos TS Transaction Workflows"
+  short_description: "Build Aptos TS SDK transaction snippets and flows"
+  default_prompt: "Use $aptos-ts-sdk-transaction-workflows to compose modular Aptos transaction code snippets and combine them into runnable flows when needed."
