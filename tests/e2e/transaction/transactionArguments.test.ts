@@ -325,8 +325,8 @@ describe("various transaction arguments", () => {
       });
 
       it("simple inputs support backwards compatibility", async () => {
-        const converted: Array<EntryFunctionArgumentTypes> = backwardsCompatibleArgs.map((arg, i) =>
-          convertArgument("testing", backwardsCompatibleAbi, arg, i, []),
+        const converted: Array<EntryFunctionArgumentTypes> = await Promise.all(
+          backwardsCompatibleArgs.map((arg, i) => convertArgument("testing", backwardsCompatibleAbi, arg, i, [])),
         );
 
         expect(converted).toEqual([

@@ -1280,7 +1280,6 @@ function getPropertyValueRaw(propertyValues: Array<PropertyValue>, propertyTypes
   propertyTypes.forEach((typ, index) => {
     results.push(getSinglePropertyValueRaw(propertyValues[index], typ));
   });
-
   return results;
 }
 
