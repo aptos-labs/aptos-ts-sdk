@@ -1609,21 +1609,31 @@ async function fetchKeylessJWKsInternal(args: {
   let resource: MoveResource<PatchedJWKsResponse>;
   if (!jwkAddr) {
     const resourceType = "0x1::jwks::PatchedJWKs";
-    const { data } = await getAptosFullNode<{}, MoveResource<PatchedJWKsResponse>>({
-      aptosConfig,
-      originMethod: "getKeylessJWKs",
-      path: `accounts/0x1/resource/${resourceType}`,
-      params: { ledger_version: options?.ledgerVersion },
-    });
+    const { data } = await memoizeAsync(
+      async () =>
+        await getAptosFullNode<{}, MoveResource<PatchedJWKsResponse>>({
+          aptosConfig,
+          originMethod: "getKeylessJWKs",
+          path: `accounts/0x1/resource/${resourceType}`,
+          params: { ledger_version: options?.ledgerVersion },
+        }),
+      `${resourceType}-${aptosConfig.network}`,
+      1000 * 60 * 5, // 5 minutes
+    )();
     resource = data;
   } else {
     const resourceType = "0x1::jwks::FederatedJWKs";
-    const { data } = await getAptosFullNode<{}, MoveResource<PatchedJWKsResponse>>({
-      aptosConfig,
-      originMethod: "getKeylessJWKs",
-      path: `accounts/${AccountAddress.from(jwkAddr).toString()}/resource/${resourceType}`,
-      params: { ledger_version: options?.ledgerVersion },
-    });
+    const { data } = await memoizeAsync(
+      async () =>
+        await getAptosFullNode<{}, MoveResource<PatchedJWKsResponse>>({
+          aptosConfig,
+          originMethod: "getKeylessJWKs",
+          path: `accounts/${AccountAddress.from(jwkAddr).toString()}/resource/${resourceType}`,
+          params: { ledger_version: options?.ledgerVersion },
+        }),
+      `${resourceType}-${jwkAddr}-${aptosConfig.network}`,
+      1000 * 60 * 5, // 5 minutes
+    )();
     resource = data;
   }
 

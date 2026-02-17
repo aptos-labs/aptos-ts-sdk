@@ -135,6 +135,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - [`Breaking`] Change possible inputs to the `InputGenerateTransactionOptions` to include orderless
 - Adds support for setting a transaction submission plugin to override the default transaction submission behavior, e.g. to use a gas station instead.
 
+- Adds caching for PatchedJWKs query
+
 # 2.0.1 (2025-05-21)
 
 - Adds `deserializePublicKey` and `deserializeSignature` which takes in `HexInput` and will try all possible ways to deserialize so callers no longer need to derive a proper type before deserializing.
