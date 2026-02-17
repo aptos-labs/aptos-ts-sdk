@@ -354,6 +354,7 @@ export async function verifyKeylessSignature(args: {
     keylessConfig = await getKeylessConfig({ aptosConfig }),
     options,
   } = args;
+  console.log('CKPT 1.0');
   try {
     if (!(signature instanceof KeylessSignature)) {
       throw KeylessError.fromErrorType({
@@ -395,6 +396,7 @@ export function verifyKeylessSignatureWithJwkAndConfig(args: {
   keylessConfig: KeylessConfiguration;
   jwk: MoveJWK;
 }): void {
+  console.log('CKPT 2');
   const { publicKey, message, signature, keylessConfig, jwk } = args;
   const { verificationKey, maxExpHorizonSecs, trainingWheelsPubkey } = keylessConfig;
   if (!(signature instanceof KeylessSignature)) {
@@ -403,12 +405,14 @@ export function verifyKeylessSignatureWithJwkAndConfig(args: {
       details: "Not a keyless signature",
     });
   }
+  console.log('CKPT 3');
   if (!(signature.ephemeralCertificate.signature instanceof ZeroKnowledgeSig)) {
     throw KeylessError.fromErrorType({
       type: KeylessErrorType.SIGNATURE_TYPE_INVALID,
       details: "Unsupported ephemeral certificate variant",
     });
   }
+  console.log('CKPT 4');
   const zkSig = signature.ephemeralCertificate.signature;
   if (!(zkSig.proof.proof instanceof Groth16Zkp)) {
     throw KeylessError.fromErrorType({
@@ -416,6 +420,7 @@ export function verifyKeylessSignatureWithJwkAndConfig(args: {
       details: "Unsupported proof variant for ZeroKnowledgeSig",
     });
   }
+  console.log('CKPT 5');
   const groth16Proof = zkSig.proof.proof;
   if (signature.expiryDateSecs < nowInSeconds()) {
     throw KeylessError.fromErrorType({
@@ -423,28 +428,34 @@ export function verifyKeylessSignatureWithJwkAndConfig(args: {
       details: "The expiryDateSecs is in the past",
     });
   }
+  console.log('CKPT 6');
   if (zkSig.expHorizonSecs > maxExpHorizonSecs) {
     throw KeylessError.fromErrorType({
       type: KeylessErrorType.MAX_EXPIRY_HORIZON_EXCEEDED,
     });
   }
+  console.log('CKPT 7');
   if (!signature.ephemeralPublicKey.verifySignature({ message, signature: signature.ephemeralSignature })) {
     throw KeylessError.fromErrorType({
       type: KeylessErrorType.EPHEMERAL_SIGNATURE_VERIFICATION_FAILED,
     });
   }
+  console.log('CKPT 8');
   const publicInputsHash = getPublicInputsHash({ publicKey, signature, jwk, keylessConfig });
+  console.log('CKPT 9');
   if (!verificationKey.verifyProof({ publicInputsHash, groth16Proof })) {
     throw KeylessError.fromErrorType({
       type: KeylessErrorType.PROOF_VERIFICATION_FAILED,
     });
   }
+  console.log('CKPT 10');
   if (trainingWheelsPubkey) {
     if (!zkSig.trainingWheelsSignature) {
       throw KeylessError.fromErrorType({
         type: KeylessErrorType.TRAINING_WHEELS_SIGNATURE_MISSING,
       });
     }
+    console.log('CKPT 11');
     const proofAndStatement = new Groth16ProofAndStatement(groth16Proof, publicInputsHash);
     if (
       !trainingWheelsPubkey.verifySignature({
@@ -456,6 +467,7 @@ export function verifyKeylessSignatureWithJwkAndConfig(args: {
         type: KeylessErrorType.TRAINING_WHEELS_SIGNATURE_VERIFICATION_FAILED,
       });
     }
+    console.log('CKPT 12');
   }
 }
 

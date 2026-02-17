@@ -59,6 +59,17 @@ describe("verifySignatureAsync", () => {
     expect(signature.signature.toString()).toEqual(signatureHex);
     expect(await edAccount.verifySignatureAsync({ aptosConfig, message: messageEncoded, signature })).toBeTruthy();
   });
+
+  it("signs a message with keyless account scheme and verifies successfully", async () => {
+    const keylessAccount = await aptos.deriveKeylessAccount({
+      jwt: keylessTestObject.JWT,
+      ephemeralKeyPair: EPHEMERAL_KEY_PAIR,
+    });
+    const message = "hello world";
+    const signature = keylessAccount.sign(message);
+    expect(await keylessAccount.verifySignatureAsync({ aptosConfig, message, signature })).toBeTruthy();
+  });
+
   describe("multikey", () => {
     const singleSignerED25519SenderAccount = Account.generate({
       scheme: SigningSchemeInput.Ed25519,
