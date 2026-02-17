@@ -19,7 +19,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Fixed
 
-- Remove `cdn_asset_uris` field from `getCollectionData` GraphQL query to fix compatibility with local testnet indexer which does not have this table
+- Remove `cdn_asset_uris` field from `getCollectionData` GraphQL query to fix compatibility with local testnet indexer which does not have this field
 - Fix security vulnerabilities in transitive dependencies via pnpm overrides:
   - HIGH: `glob` command injection (override `sucrase` to 3.35.1)
   - MODERATE: `lodash` prototype pollution (override to 4.17.23)
