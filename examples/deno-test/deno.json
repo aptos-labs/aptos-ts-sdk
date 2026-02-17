@@ -1,0 +1,10 @@
+{
+  "name": "deno-sdk-test",
+  "version": "1.0.0",
+  "exports": "./simple_transfer.ts",
+  "nodeModulesDir": "manual",
+  "tasks": {
+    "test": "deno run --allow-net --allow-env --allow-read --node-modules-dir=manual simple_transfer.ts",
+    "test:all": "deno run --allow-net --allow-env --allow-read --node-modules-dir=manual simple_transfer.ts && deno run --allow-net --allow-env --allow-read --node-modules-dir=manual simple_sponsored_transaction.ts"
+  }
+}

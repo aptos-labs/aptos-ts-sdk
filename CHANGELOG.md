@@ -10,6 +10,9 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add `clearMemoizeCache()` utility function for clearing the memoization cache
 - Add Bun runtime detection with `isBun()` utility function
 - Add warning at `AptosConfig` construction time when running in Bun without explicitly disabling HTTP/2 (Bun does not fully support HTTP/2, which is enabled by default)
+- Add Bun runtime CI tests to verify SDK compatibility with Bun
+- Add Deno runtime CI tests to verify SDK compatibility with Deno
+- Add web environment CI tests using Vitest + jsdom to verify browser compatibility
 
 ## Changed
 
