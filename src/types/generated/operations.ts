@@ -403,17 +403,6 @@ export type GetCollectionDataQuery = {
     description: string;
     last_transaction_timestamp: any;
     last_transaction_version: any;
-    cdn_asset_uris?: {
-      cdn_image_uri?: string | null;
-      asset_uri: string;
-      animation_optimizer_retry_count: number;
-      cdn_animation_uri?: string | null;
-      cdn_json_uri?: string | null;
-      image_optimizer_retry_count: number;
-      json_parser_retry_count: number;
-      raw_animation_uri?: string | null;
-      raw_image_uri?: string | null;
-    } | null;
   }>;
 };
 

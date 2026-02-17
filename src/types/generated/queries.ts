@@ -267,17 +267,6 @@ export const GetCollectionData = `
     description
     last_transaction_timestamp
     last_transaction_version
-    cdn_asset_uris {
-      cdn_image_uri
-      asset_uri
-      animation_optimizer_retry_count
-      cdn_animation_uri
-      cdn_json_uri
-      image_optimizer_retry_count
-      json_parser_retry_count
-      raw_animation_uri
-      raw_image_uri
-    }
   }
 }
     `;
