@@ -239,8 +239,8 @@ abstract class Account {
 | `MultiEd25519Account` | `SigningScheme.MultiEd25519` | Legacy M-of-N Ed25519 multi-sig |
 | `KeylessAccount` | `SigningScheme.SingleKey` | OIDC-based keyless account |
 | `FederatedKeylessAccount` | `SigningScheme.SingleKey` | Federated keyless account with custom JWK address |
-| `AbstractedAccount` | `SigningScheme.Abstraction` | Account with custom on-chain authentication |
-| `DerivableAbstractedAccount` | `SigningScheme.Abstraction` | Abstracted account with derivable addresses |
+| `AbstractedAccount` | `SigningScheme.SingleKey` | Account with custom on-chain authentication (uses `AccountAuthenticatorAbstraction` variant 5) |
+| `DerivableAbstractedAccount` | `SigningScheme.SingleKey` | Abstracted account with derivable addresses (uses `AccountAuthenticatorAbstraction` variant 5) |
 
 ### 4.3 Account Factory Methods
 
@@ -1657,7 +1657,7 @@ class EphemeralKeyPair {
 }
 ```
 
-- Default expiry: 24 hours from creation.
+- Default expiry: 2 weeks (1,209,600 seconds) from creation.
 - Nonce derivation: `Poseidon hash of [public key fields, max expiry horizon, blinder, padded field]`.
 - The nonce SHALL be included in the OIDC authentication request as the `nonce` parameter.
 
@@ -1676,12 +1676,16 @@ class EphemeralKeyPair {
 ```json
 {
   "jwt_b64": "eyJ...",
-  "epk": { "type": "ed25519", "value": "0x..." },
+  "epk": "ab1234...",
   "exp_date_secs": 1234567890,
+  "epk_blinder": "cd5678...",
   "uid_key": "sub",
   "derivation_path": "m/44'/637'/0'/0'/0'"
 }
 ```
+
+- `epk` SHALL be the BCS-serialized ephemeral public key as a hex string (without `0x` prefix).
+- `epk_blinder` SHALL be the 31-byte blinder as a hex string (without `0x` prefix).
 
 Response:
 ```json
@@ -1696,15 +1700,19 @@ Response:
 ```json
 {
   "jwt_b64": "eyJ...",
-  "epk": { "type": "ed25519", "value": "0x..." },
-  "epk_blinder": "0x...",
+  "epk": "ab1234...",
+  "epk_blinder": "cd5678...",
   "exp_date_secs": 1234567890,
   "exp_horizon_secs": 10000000,
-  "pepper": "0x...",
-  "uid_key": "sub",
-  "extra_field": "aud"
+  "pepper": "ef9012...",
+  "uid_key": "sub"
 }
 ```
+
+- `epk` SHALL be the BCS-serialized ephemeral public key as a hex string (without `0x` prefix).
+- `epk_blinder` SHALL be the 31-byte blinder as a hex string (without `0x` prefix).
+- `pepper` SHALL be the 31-byte pepper as a hex string (without `0x` prefix).
+- `exp_horizon_secs` SHALL be the maximum expiration horizon from the on-chain keyless configuration.
 
 Response:
 ```json
@@ -1760,11 +1768,25 @@ Account abstraction allows accounts to use custom on-chain authentication logic 
 class AbstractedAccount extends Account {
   readonly accountAddress: AccountAddress;
   readonly publicKey: AbstractPublicKey;
-  readonly signingScheme: SigningScheme.Abstraction;
-  readonly authenticationFunction: MoveFunctionId;
-  readonly abstractSigner: (args: { digest: Uint8Array }) => Promise<Uint8Array>;
+  readonly signingScheme: SigningScheme.SingleKey;
+  readonly authenticationFunction: string;  // e.g., "0x1::permissioned_delegation::authenticate"
+  private signer: (digest: HexInput) => Uint8Array;  // Synchronous; returns authenticator bytes
 }
 ```
+
+**Constructor:**
+
+```typescript
+constructor(args: {
+  signer: (digest: HexInput) => Uint8Array;
+  accountAddress?: AccountAddress;
+  authenticationFunction: string;
+})
+```
+
+- Note: The `SigningScheme` enum does NOT have an `Abstraction` variant. AbstractedAccount uses `SigningScheme.SingleKey` but produces `AccountAuthenticatorAbstraction` (variant 5) when signing.
+- The `signer` callback is **synchronous** (returns `Uint8Array`, not `Promise<Uint8Array>`).
+- The `signer` parameter accepts `HexInput` (which includes `Uint8Array`, hex strings, etc.).
 
 #### Account Abstraction Signing Flow
 
@@ -1826,7 +1848,7 @@ class AbstractedAccount extends Account {
 
 ```
 Standard AA (V1):
-  [6 as u32]                          // AccountAuthenticatorVariant.Abstraction
+  [5 as u32]                          // AccountAuthenticatorVariant.Abstraction
   [moduleAddress: 32 bytes]           // Authentication function module address
   [moduleName: ULEB128 len + UTF8]    // Authentication function module name
   [functionName: ULEB128 len + UTF8]  // Authentication function name
@@ -1835,7 +1857,7 @@ Standard AA (V1):
   [abstractionSignature: fixed bytes] // Custom signature bytes
 
 Derivable AA (DerivableV1):
-  [6 as u32]                          // AccountAuthenticatorVariant.Abstraction
+  [5 as u32]                          // AccountAuthenticatorVariant.Abstraction
   [moduleAddress: 32 bytes]
   [moduleName: ULEB128 len + UTF8]
   [functionName: ULEB128 len + UTF8]
@@ -1851,19 +1873,21 @@ Derivable AA (DerivableV1):
 
 ```typescript
 class DerivableAbstractedAccount extends AbstractedAccount {
-  // Address derivation:
-  // SHA3(moduleAddress || moduleName || functionName || abstractPublicKey || domainSeparator)
+  static readonly ADDRESS_DOMAIN_SEPARATOR: number = 5;
 
-  static computeAccountAddress(args: {
-    authenticationFunction: MoveFunctionId;
-    abstractPublicKey: HexInput;
-    domainSeparator?: string;
-  }): AccountAddress;
+  // Address derivation (positional parameters, not object-style):
+  static computeAccountAddress(
+    functionInfo: string,          // "0x1::module::function"
+    accountIdentifier: Uint8Array  // Abstract public key bytes
+  ): Uint8Array;  // Returns raw 32-byte address (not AccountAddress)
 }
 ```
 
+- Address derivation formula: `SHA3(moduleAddress || moduleName || functionName || accountIdentifier || ADDRESS_DOMAIN_SEPARATOR)`.
+- The domain separator is hard-coded as `5` and is NOT configurable.
+- Returns raw `Uint8Array` (32 bytes), not an `AccountAddress` instance.
 - The `accountIdentity` field SHALL be included in the `AccountAuthenticatorAbstraction` when signing.
-- `abstractSigner` callback SHALL return both the signature and account identity.
+- The signer callback SHALL return both the signature and account identity.
 
 ### 11.5 Factory Methods
 
@@ -2023,9 +2047,11 @@ class WaitForTransactionError extends Error {
 
 ```typescript
 class FailedTransactionError extends Error {
-  readonly transaction: CommittedTransactionResponse;
+  readonly transaction: TransactionResponse;
 }
 ```
+
+Note: The property is typed as `TransactionResponse` (the union type), even though in practice it is only thrown for committed transactions.
 
 - SHALL be thrown when `waitForTransaction` finds the transaction committed but with `success === false`.
 - SHALL NOT be thrown if `checkSuccess: false` is passed in options.
@@ -2126,6 +2152,8 @@ enum ProcessorType {
 | Mainnet | `https://api.mainnet.aptoslabs.com/v1/graphql` |
 | Testnet | `https://api.testnet.aptoslabs.com/v1/graphql` |
 | Devnet | `https://api.devnet.aptoslabs.com/v1/graphql` |
+| Shelbynet | `https://api.shelbynet.shelby.xyz/v1/graphql` |
+| Netna | `https://api.netna.staging.aptoslabs.com/v1/graphql` |
 | Local | `http://127.0.0.1:8090/v1/graphql` |
 
 ### 17.3 Faucet API
@@ -2134,6 +2162,7 @@ enum ProcessorType {
 |---------|-----|
 | Devnet | `https://faucet.devnet.aptoslabs.com` |
 | Shelbynet | `https://faucet.shelbynet.shelby.xyz` |
+| Netna | `https://faucet-dev-netna-us-central1-410192433417.us-central1.run.app` |
 | Local | `http://127.0.0.1:8081` |
 
 ### 17.4 Pepper Service API
@@ -2143,6 +2172,8 @@ enum ProcessorType {
 | Mainnet | `https://api.mainnet.aptoslabs.com/keyless/pepper/v0` |
 | Testnet | `https://api.testnet.aptoslabs.com/keyless/pepper/v0` |
 | Devnet | `https://api.devnet.aptoslabs.com/keyless/pepper/v0` |
+| Shelbynet | `https://api.shelbynet.aptoslabs.com/keyless/pepper/v0` |
+| Netna | `https://api.devnet.aptoslabs.com/keyless/pepper/v0` (uses devnet) |
 | Local | `https://api.devnet.aptoslabs.com/keyless/pepper/v0` (uses devnet) |
 
 ### 17.5 Prover Service API
@@ -2152,6 +2183,8 @@ enum ProcessorType {
 | Mainnet | `https://api.mainnet.aptoslabs.com/keyless/prover/v0` |
 | Testnet | `https://api.testnet.aptoslabs.com/keyless/prover/v0` |
 | Devnet | `https://api.devnet.aptoslabs.com/keyless/prover/v0` |
+| Shelbynet | `https://api.shelbynet.aptoslabs.com/keyless/prover/v0` |
+| Netna | `https://api.devnet.aptoslabs.com/keyless/prover/v0` (uses devnet) |
 | Local | `https://api.devnet.aptoslabs.com/keyless/prover/v0` (uses devnet) |
 
 ### 17.6 Chain IDs
