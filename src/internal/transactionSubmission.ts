@@ -300,6 +300,29 @@ export async function simulateTransaction(
     originMethod: "simulateTransaction",
     contentType: MimeType.BCS_SIGNED_TRANSACTION,
   });
+
+  // If the server's gas estimation produced a value below the network minimum,
+  // retry without estimation so the transaction's original max_gas_amount is used.
+  if (
+    args.options?.estimateMaxGasAmount &&
+    data.length > 0 &&
+    data[0].vm_status === "MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS"
+  ) {
+    const { data: retryData } = await postAptosFullNode<Uint8Array, Array<UserTransactionResponse>>({
+      aptosConfig,
+      body: signedTransaction,
+      path: "transactions/simulate",
+      params: {
+        estimate_gas_unit_price: args.options?.estimateGasUnitPrice ?? false,
+        estimate_max_gas_amount: false,
+        estimate_prioritized_gas_unit_price: args.options?.estimatePrioritizedGasUnitPrice ?? false,
+      },
+      originMethod: "simulateTransaction",
+      contentType: MimeType.BCS_SIGNED_TRANSACTION,
+    });
+    return retryData;
+  }
+
   return data;
 }
 

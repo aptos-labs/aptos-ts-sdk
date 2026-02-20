@@ -19,6 +19,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Fixed
 
+- Fix gas estimation regression where simulations with `estimateMaxGasAmount: true` could fail with `MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS` when the server's gas estimate fell below the network minimum. The SDK now retries without estimation in this case, using the transaction's original max gas amount ([#827](https://github.com/aptos-labs/aptos-ts-sdk/issues/827))
+- Enforce a minimum max gas amount (`MIN_MAX_GAS_AMOUNT = 2000`) when building transactions to prevent user-provided values from falling below the network's minimum transaction gas units
 - Remove `cdn_asset_uris` field from `getCollectionData` GraphQL query to fix compatibility with local testnet indexer which does not have this field
 - Fix security vulnerabilities in transitive dependencies via pnpm overrides:
   - HIGH: `glob` command injection (override `sucrase` to 3.35.1)
