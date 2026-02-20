@@ -637,10 +637,10 @@ function parseArg(
       );
     }
 
-    // We are assuming that fieldless structs are enums, and therefore we cannot typecheck any further due
-    // to limited information from the ABI. This does not work for structs on other modules.
+    // Enums cannot be further type-checked from the ABI alone, so we pass through the raw bytes.
+    // TODO: The enum information is now present in the ABI, we could use that.
     const structDefinition = moduleAbi?.structs.find((s) => s.name === param.value.name.identifier);
-    if (structDefinition?.fields.length === 0 && arg instanceof Uint8Array) {
+    if (structDefinition?.is_enum && arg instanceof Uint8Array) {
       return new FixedBytes(arg);
     }
 
