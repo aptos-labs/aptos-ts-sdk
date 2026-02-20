@@ -1464,6 +1464,7 @@ Cache behavior:
 | `getAccountCoinsData` | `{ accountAddress, options? }` | `GetAccountCoinsDataResponse` | Get coins data |
 | `getAccountCoinsCount` | `{ accountAddress }` | `number` | Count of coin types |
 | `getAccountAPTAmount` | `{ accountAddress }` | `number` | APT balance |
+| `getAccountCoinAmount` | `{ accountAddress, coinType?, faMetadataAddress? }` | `number` | Balance of specific coin/FA |
 | `getBalance` | `{ accountAddress, asset }` | `number` | Balance of specific asset |
 | `getAccountOwnedObjects` | `{ accountAddress, options? }` | `GetObjectDataQueryResponse` | Get owned objects |
 | `deriveOwnedAccountsFromSigner` | `{ signer, options? }` | `Account[]` | Derive all accounts owned by a signer |
@@ -1527,9 +1528,11 @@ REST API shapes for general endpoints are documented in [Section 8.7](#87-full-n
 | `getGasPriceEstimation` | none | `GasEstimation` | Estimate gas |
 | `getSigningMessage` | `{ transaction }` | `Uint8Array` | Get signing message |
 | `publishPackageTransaction` | `{ account, metadataBytes, moduleBytecode, options? }` | `SimpleTransaction` | Publish Move package |
-| `rotateAuthKey` | `{ fromAccount, toAccount/toNewPrivateKey, options? }` | `SimpleTransaction` | Rotate auth key |
+| `rotateAuthKey` | `{ fromAccount, toAccount/toNewPrivateKey, options? }` | `SimpleTransaction` | Rotate auth key (with ownership proof) |
+| `rotateAuthKeyUnverified` | `{ fromAccount, toNewPublicKey, options? }` | `SimpleTransaction` | Rotate auth key (no ownership proof) |
 | `signAndSubmitTransaction` | `{ signer, transaction, feePayer?, ... }` | `PendingTransactionResponse` | Sign and submit |
 | `signAndSubmitAsFeePayer` | `{ feePayer, senderAuthenticator, transaction }` | `PendingTransactionResponse` | Submit as fee payer |
+| `batchTransactionsForSingleAccount` | `{ sender, data[], options? }` | `void` | Batch submit transactions for single account |
 
 REST API shapes for transaction endpoints are documented in [Section 8.7](#87-full-node-rest-api-endpoint-catalog).
 
