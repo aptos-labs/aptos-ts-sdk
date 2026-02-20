@@ -27,6 +27,17 @@ export enum AptosApiType {
 export const DEFAULT_MAX_GAS_AMOUNT = 200000;
 
 /**
+ * The minimum max gas amount that the SDK will allow for a transaction.
+ *
+ * This value acts as a floor to prevent transactions from being built with a max gas amount
+ * below the network's minimum transaction gas units, which would cause
+ * MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS errors.
+ * @group Implementation
+ * @category Utils
+ */
+export const MIN_MAX_GAS_AMOUNT = 2000;
+
+/**
  * The default transaction expiration seconds from now.
  *
  * This time is how long until the blockchain nodes will reject the transaction.
