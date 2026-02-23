@@ -27,12 +27,18 @@
     "@aptos-labs/ts-sdk": "link:../..",
     "@noble/hashes": "^1.7.1",
     "dotenv": "17.2.2",
-    "npm-run-all": "4.1.5"
+    "npm-run-all2": "8.0.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "diff": ">=4.0.4",
+      "sucrase": ">=3.35.1"
+    }
   },
   "devDependencies": {
     "@types/node": "24.4.0",
     "ts-node": "^10.9.2",
-    "tsup": "8.5.0",
+    "tsup": "8.5.1",
     "typescript": "5.8.2"
   }
 }

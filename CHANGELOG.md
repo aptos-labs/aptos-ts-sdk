@@ -19,6 +19,11 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Fixed
 
+- Fix security vulnerabilities in examples/ dependencies:
+  - Replace unmaintained `npm-run-all` with `npm-run-all2` in all examples (fixes HIGH minimatch ReDoS)
+  - Update `superagent` to 10.3.0 in typescript example (fixes HIGH qs DoS vulnerabilities)
+  - Update `tsup` to 8.5.1 and override `sucrase` to >=3.35.1 in typescript-esm example (fixes HIGH glob command injection)
+  - Override `diff` to >=4.0.4 in typescript-esm example (fixes LOW jsdiff DoS vulnerability)
 - Fix gas estimation regression where simulations with `estimateMaxGasAmount: true` could fail with `MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS` when the server's gas estimate fell below the network minimum. The SDK now retries without estimation in this case, using the transaction's original max gas amount ([#827](https://github.com/aptos-labs/aptos-ts-sdk/issues/827))
 - Enforce a minimum max gas amount (`MIN_MAX_GAS_AMOUNT = 2000`) when building transactions to prevent user-provided values from falling below the network's minimum transaction gas units
 - Remove `cdn_asset_uris` field from `getCollectionData` GraphQL query to fix compatibility with local testnet indexer which does not have this field
