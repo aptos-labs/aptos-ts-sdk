@@ -22,6 +22,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Fixed
 
+- Fix potential precision loss for large transaction version numbers by using `bigint` instead of `number` for `lastTransactionVersion` in account-related functions. This prevents issues when mainnet transaction versions approach or exceed JavaScript's safe integer limit (2^53-1).
+
 - Fix security vulnerabilities in examples/ dependencies:
   - Replace unmaintained `npm-run-all` with `npm-run-all2` in all examples (fixes HIGH minimatch ReDoS)
   - Update `superagent` to 10.3.0 in typescript example (fixes HIGH qs DoS vulnerabilities)
