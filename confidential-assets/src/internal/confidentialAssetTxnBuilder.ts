@@ -154,7 +154,7 @@ export class ConfidentialAssetTransactionBuilder {
           String(amount),
           encryptedAmountAfterWithdraw.getCipherTextBytes(),
           rangeProof,
-          ConfidentialWithdraw.serializeSigmaProof(sigmaProof),
+          sigmaProof,
         ],
       },
       options,
@@ -336,7 +336,7 @@ export class ConfidentialAssetTransactionBuilder {
           concatBytes(...auditorBalances),
           rangeProofNewBalance,
           rangeProofAmount,
-          ConfidentialTransfer.serializeSigmaProof(sigmaProof),
+          sigmaProof,
         ],
       },
     });
