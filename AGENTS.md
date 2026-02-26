@@ -165,3 +165,39 @@ const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET, clientConfig
 - **Prefer the repo scripts** (`pnpm build`, `pnpm test`, `pnpm lint`, `pnpm fmt`) over ad-hoc commands.
 - **Avoid massive diffs in `docs/`** unless the change is intentionally about docs generation/version bumps.
 - Keep changes tight and CI-aligned; if you touch build/lint/test infra, run the corresponding commands locally.
+
+## Cursor Cloud specific instructions
+
+### Docker setup (required for tests)
+
+Docker must be running before `pnpm test`. In the Cloud VM (nested container), Docker is installed with `fuse-overlayfs` storage driver and `iptables-legacy`. Start the daemon with:
+
+```bash
+sudo dockerd &>/tmp/dockerd.log &
+sleep 3
+sudo chmod 666 /var/run/docker.sock
+```
+
+### Running tests
+
+- Set `TMPDIR=/tmp` before running tests to avoid Docker volume mount errors in the nested container.
+- `pnpm test` starts a local Aptos node automatically via Jest `globalSetup` (no need to start it manually).
+- The full test suite (`pnpm test`) takes ~2.5 minutes and includes both unit and e2e tests.
+- `pnpm unit-test` runs only unit tests (~20s) and still starts the local node as part of setup.
+- The keyless e2e test is the slowest (~2 minutes) due to ZK proof generation.
+
+### Services overview
+
+| Service | How to run | Notes |
+|---------|-----------|-------|
+| **SDK build** | `pnpm build` | Produces CJS + ESM in `dist/` |
+| **Lint** | `pnpm lint` | ESLint |
+| **Format** | `pnpm fmt` (fix) / `pnpm _fmt --check` (check) | Prettier |
+| **All tests** | `TMPDIR=/tmp pnpm test` | Requires Docker; starts local Aptos node automatically |
+| **Unit tests only** | `pnpm unit-test` | Still starts local node via globalSetup |
+
+### Gotchas
+
+- The Aptos CLI binary is downloaded on first test run and cached at `/workspace/bin/aptos`. Subsequent runs reuse it.
+- `globalTeardown` (`tests/postTest.cjs`) stops the local node and Docker containers after tests complete. If you need the node running for ad-hoc scripts, start it manually: `TMPDIR=/tmp npx aptos node run-localnet --force-restart --assume-yes --with-indexer-api`
+- Port 8070 is the readiness endpoint; 8080 is the REST API; 8081 is the faucet; 8090 is the indexer API.
