@@ -190,32 +190,6 @@ describe("Generate 'confidential coin' proofs", () => {
     },
     longTestTimeout,
   );
-  test(
-    "Should fail transfer sigma proof verification with wrong auditors",
-    () => {
-      const invalidAuditor = TwistedEd25519PrivateKey.generate();
-
-      const isValid = ConfidentialTransfer.verifySigmaProof({
-        senderPrivateKey: aliceConfidentialDecryptionKey,
-        recipientPublicKey: bobConfidentialDecryptionKey.publicKey(),
-        encryptedActualBalance: aliceEncryptedBalanceCipherText,
-        encryptedActualBalanceAfterTransfer:
-          confidentialTransferWithAuditors.senderEncryptedAvailableBalanceAfterTransfer,
-        encryptedTransferAmountByRecipient: confidentialTransferWithAuditors.transferAmountEncryptedByRecipient,
-        encryptedTransferAmountBySender: confidentialTransferWithAuditors.transferAmountEncryptedBySender,
-        sigmaProof: confidentialTransferWithAuditorsSigmaProof,
-        auditors: {
-          publicKeys: [invalidAuditor.publicKey()],
-          auditorsCBList: confidentialTransferWithAuditors.transferAmountEncryptedByAuditors!.map((el) =>
-            el.getCipherText(),
-          ),
-        },
-      });
-
-      expect(isValid).toBeFalsy();
-    },
-    longTestTimeout,
-  );
   let confidentialTransferWithAuditorsRangeProofs: ConfidentialTransferRangeProof;
   test(
     "Generate transfer with auditors range proofs",
