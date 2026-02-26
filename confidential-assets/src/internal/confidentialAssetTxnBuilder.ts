@@ -412,7 +412,7 @@ export class ConfidentialAssetTransactionBuilder {
       withFeePayer: args.withFeePayer,
       sender: args.sender,
       data: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::rotate_encryption_key`,
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::rotate_encryption_key_raw`,
         functionArguments: [
           args.tokenAddress,
           newEkBytes,

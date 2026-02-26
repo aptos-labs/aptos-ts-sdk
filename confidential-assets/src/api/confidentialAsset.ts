@@ -381,7 +381,7 @@ export class ConfidentialAsset {
       decryptionKey: senderDecryptionKey,
     });
 
-    // The on-chain rotate_encryption_key requires incoming transfers to be paused.
+    // The on-chain rotate_encryption_key_raw requires incoming transfers to be paused.
     // If pending > 0, rollover + pause handles both. If pending == 0, we still need to pause.
     const isPaused = await this.isIncomingTransfersPaused({
       accountAddress: signer.accountAddress,

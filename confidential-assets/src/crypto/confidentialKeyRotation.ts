@@ -167,7 +167,7 @@ export class ConfidentialKeyRotation {
   /**
    * Generate the key rotation proof and re-encrypted balance components.
    *
-   * Returns everything needed to call the `rotate_encryption_key` entry function.
+   * Returns everything needed to call the `rotate_encryption_key_raw` entry function.
    */
   authorizeKeyRotation(): KeyRotationProof {
     const numChunks = AVAILABLE_BALANCE_CHUNK_COUNT;
