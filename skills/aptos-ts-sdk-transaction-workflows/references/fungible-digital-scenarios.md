@@ -13,7 +13,7 @@ Core APIs:
 1. `aptos.transferFungibleAsset`
 2. `aptos.signAndSubmitTransaction`
 3. `aptos.waitForTransaction`
-4. `aptos.getAccountCoinAmount`
+4. `aptos.getBalance`
 
 Inputs:
 - signer account
