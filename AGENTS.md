@@ -165,3 +165,25 @@ const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET, clientConfig
 - **Prefer the repo scripts** (`pnpm build`, `pnpm test`, `pnpm lint`, `pnpm fmt`) over ad-hoc commands.
 - **Avoid massive diffs in `docs/`** unless the change is intentionally about docs generation/version bumps.
 - Keep changes tight and CI-aligned; if you touch build/lint/test infra, run the corresponding commands locally.
+
+## Cursor Cloud specific instructions
+
+### Docker
+
+Docker is pre-installed and the daemon is running. The Docker socket at `/var/run/docker.sock` has open permissions (`chmod 666`), so no `sudo` is needed for `docker` commands.
+
+### Running Tests
+
+- Set `TMPDIR=/tmp` before running tests to avoid Docker mount errors in the nested container environment.
+- `pnpm test` / `pnpm unit-test` / `pnpm e2e-test` all trigger Jest `globalSetup`, which starts a local Aptos testnet via Docker. The first run downloads the Aptos CLI binary (~30s) and pulls Docker images (~30s). Subsequent runs reuse them.
+- The localnet takes ~10-15s to become fully ready (all processors + indexer API). Jest `globalSetup` handles the wait automatically.
+- After tests complete, `globalTeardown` stops the localnet. If you need it running for manual testing afterwards, start it separately: `TMPDIR=/tmp ENABLE_KEYLESS_DEFAULT=1 npx aptos node run-localnet --force-restart --assume-yes --with-indexer-api &`
+- The readiness endpoint is `http://127.0.0.1:8070/` — poll it to confirm all services are up (returns JSON with `ready` and `not_ready` arrays).
+
+### Build Before Testing Examples
+
+Examples under `examples/` link to the root SDK via `link:../..`. Always run `pnpm build` in the repo root before working with examples.
+
+### Known Flaky Test
+
+`tests/e2e/api/account.test.ts` — the "it doesn't return default account if it is rotated" test can fail intermittently due to timing on the local testnet. This is a pre-existing issue, not an environment problem.
