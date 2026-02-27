@@ -20,11 +20,7 @@ export default defineConfig({
       },
     },
     pool: "forks",
-    poolOptions: {
-      forks: {
-        maxForks: 4,
-      },
-    },
+    maxWorkers: 4,
     testTimeout: 30000,
     hookTimeout: 120000,
   },

@@ -25,17 +25,11 @@ export default defineConfig({
       },
     },
     pool: "forks",
-    poolOptions: {
-      forks: {
-        maxForks: 4,
-      },
-    },
+    maxWorkers: 4,
     testTimeout: 30000,
     hookTimeout: 120000,
   },
   resolve: {
-    alias: {
-      "^(\\.{1,2}/.*)\\.js$": "$1",
-    },
+    extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
   },
 });
