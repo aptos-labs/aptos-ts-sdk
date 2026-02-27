@@ -11,7 +11,6 @@ import {
   LedgerVersionArg,
   SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
-import { concatBytes } from "@noble/hashes/utils";
 import {
   TwistedElGamal,
   ConfidentialNormalization,
@@ -58,21 +57,20 @@ export class ConfidentialAssetTransactionBuilder {
     return this.client.transaction.build.simple({
       ...args,
       data: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::register`,
-        functionArguments: [tokenAddress, decryptionKey.publicKey().toUint8Array()],
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::register_raw`,
+        functionArguments: [tokenAddress, decryptionKey.publicKey().toUint8Array(), [] as Uint8Array[], [] as Uint8Array[]],
       },
     });
   }
 
   /**
-   * Deposit an amount from a non-confidential asset balance into a confidential asset balance.
+   * Deposit an amount from a non-confidential asset balance into the sender's own confidential asset balance.
    *
    * This can be used by an account to convert their own non-confidential asset balance into a confidential asset balance if they have
    * already registered a balance for the token.
    *
    * @param args.tokenAddress - The token address of the asset to deposit to
    * @param args.amount - The amount to deposit
-   * @param args.recipient - The account address to deposit to. This is the senders address if not set.
    * @param args.withFeePayer - Whether to use the fee payer for the transaction
    * @param args.options - Optional transaction options
    * @returns A SimpleTransaction to deposit the amount
@@ -81,12 +79,10 @@ export class ConfidentialAssetTransactionBuilder {
     sender: AccountAddressInput;
     tokenAddress: AccountAddressInput;
     amount: AnyNumber;
-    /** If not set we will use the sender's address. */
-    recipient?: AccountAddressInput;
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    const { tokenAddress, amount, recipient = args.sender } = args;
+    const { tokenAddress, amount } = args;
     validateAmount({ amount });
 
     const amountString = String(amount);
@@ -94,8 +90,8 @@ export class ConfidentialAssetTransactionBuilder {
     return this.client.transaction.build.simple({
       ...args,
       data: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::deposit_to`,
-        functionArguments: [tokenAddress, recipient, amountString],
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::deposit`,
+        functionArguments: [tokenAddress, amountString],
       },
     });
   }
@@ -142,19 +138,20 @@ export class ConfidentialAssetTransactionBuilder {
       amount: BigInt(amount),
     });
 
-    const [{ sigmaProof, rangeProof }, encryptedAmountAfterWithdraw] = await confidentialWithdraw.authorizeWithdrawal();
+    const [{ rangeProof }, encryptedAmountAfterWithdraw] = await confidentialWithdraw.authorizeWithdrawal();
 
     return this.client.transaction.build.simple({
       ...args,
       data: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::withdraw_to`,
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::withdraw_to_raw`,
         functionArguments: [
           tokenAddress,
           recipient,
           String(amount),
           encryptedAmountAfterWithdraw.getCipherTextBytes(),
           rangeProof,
-          sigmaProof,
+          [] as Uint8Array[], // sigma_proto_comm (stub)
+          [] as Uint8Array[], // sigma_proto_resp (stub)
         ],
       },
       options,
@@ -296,21 +293,24 @@ export class ConfidentialAssetTransactionBuilder {
       decryptionKey: senderDecryptionKey,
     });
 
+    // Build the full auditor list for proof generation: [...extra, global (if set)]
+    // The contract will append the global auditor itself, so we only send extra auditor EKs on-chain.
+    const allAuditorEncryptionKeys = [
+      ...additionalAuditorEncryptionKeys,
+      ...(globalAuditorPubKey ? [globalAuditorPubKey] : []),
+    ];
+
     // Create the confidential transfer object
     const confidentialTransfer = await ConfidentialTransfer.create({
       senderDecryptionKey,
       senderAvailableBalanceCipherText: senderEncryptedAvailableBalance.getCipherText(),
       amount,
       recipientEncryptionKey,
-      auditorEncryptionKeys: [
-        ...(globalAuditorPubKey ? [globalAuditorPubKey] : []),
-        ...additionalAuditorEncryptionKeys,
-      ],
+      auditorEncryptionKeys: allAuditorEncryptionKeys,
     });
 
     const [
       {
-        sigmaProof,
         rangeProof: { rangeProofAmount, rangeProofNewBalance },
       },
       encryptedAmountAfterTransfer,
@@ -318,25 +318,30 @@ export class ConfidentialAssetTransactionBuilder {
       auditorsCBList,
     ] = await confidentialTransfer.authorizeTransfer();
 
-    const auditorEncryptionKeys = confidentialTransfer.auditorEncryptionKeys.map((pk) => pk.toUint8Array());
-    const auditorBalances = auditorsCBList.map((el) => el.getCipherTextBytes());
+    // Only send extra auditor EKs on-chain (not the global auditor, which the contract fetches itself)
+    const extraAuditorEncryptionKeys = additionalAuditorEncryptionKeys.map((pk) => pk.toUint8Array());
+
+    // Only send D components for recipient and auditors (C components are shared with sender_amount)
+    const recipientDPoints = encryptedAmountByRecipient.getCipherText().map((ct) => ct.D.toRawBytes());
+    const auditorDPoints = auditorsCBList.map((cb) => cb.getCipherText().map((ct) => ct.D.toRawBytes()));
 
     return this.client.transaction.build.simple({
       ...args,
       withFeePayer: args.withFeePayer,
       data: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::confidential_transfer`,
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::confidential_transfer_raw`,
         functionArguments: [
           tokenAddress,
           recipient,
           encryptedAmountAfterTransfer.getCipherTextBytes(),
           confidentialTransfer.transferAmountEncryptedBySender.getCipherTextBytes(),
-          encryptedAmountByRecipient.getCipherTextBytes(),
-          concatBytes(...auditorEncryptionKeys),
-          concatBytes(...auditorBalances),
+          recipientDPoints,
+          extraAuditorEncryptionKeys,
+          auditorDPoints,
           rangeProofNewBalance,
           rangeProofAmount,
-          sigmaProof,
+          [] as Uint8Array[], // sigma_proto_comm (stub)
+          [] as Uint8Array[], // sigma_proto_resp (stub)
         ],
       },
     });

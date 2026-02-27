@@ -119,17 +119,18 @@ export class ConfidentialNormalization {
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    const [{ sigmaProof, rangeProof }, normalizedCB] = await this.authorizeNormalization();
+    const [{ rangeProof }, normalizedCB] = await this.authorizeNormalization();
 
     return args.client.transaction.build.simple({
       ...args,
       data: {
-        function: `${args.confidentialAssetModuleAddress}::${MODULE_NAME}::normalize`,
+        function: `${args.confidentialAssetModuleAddress}::${MODULE_NAME}::normalize_raw`,
         functionArguments: [
           args.tokenAddress,
           normalizedCB.getCipherTextBytes(),
           rangeProof,
-          sigmaProof,
+          [] as Uint8Array[], // sigma_proto_comm (stub)
+          [] as Uint8Array[], // sigma_proto_resp (stub)
         ],
       },
       options: args.options,
