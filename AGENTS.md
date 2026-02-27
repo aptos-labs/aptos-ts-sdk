@@ -15,7 +15,7 @@ This is the **Aptos TypeScript SDK** (`@aptos-labs/ts-sdk`), a comprehensive SDK
 
 - **SDK source**: `src/`
 - **SDK tests**: `tests/`
-  - Jest uses `tests/preTest.cjs` + `tests/postTest.cjs` to start/stop a local Aptos node.
+  - Vitest uses `tests/preTest.ts` (globalSetup with setup/teardown) to start/stop a local Aptos node.
 - **Examples**: `examples/`
   - `examples/typescript`, `examples/typescript-esm`, `examples/javascript` use a **linked** SDK (`link:../..`).
 - **Confidential assets SDK**: `confidential-assets/` (separate package + tests)
@@ -31,7 +31,7 @@ pnpm fmt                  # Format code with Prettier
 pnpm _fmt --check         # Check formatting (what CI runs)
 pnpm lint                 # Run ESLint
 pnpm test                 # Run all tests (unit + e2e)
-pnpm jest <file>          # Run a specific test file (e.g., pnpm jest keyless.test.ts)
+vitest run <file>         # Run a specific test file (e.g., vitest run keyless.test.ts)
 pnpm doc                  # Generate TypeDoc documentation
 pnpm check-version        # Verify version consistency across files
 pnpm update-version       # Bump version everywhere + regenerate docs
@@ -55,15 +55,15 @@ Run all SDK tests (unit + e2e):
 pnpm test
 ```
 
-Run a specific Jest test file:
+Run a specific Vitest test file:
 
 ```bash
-pnpm jest keyless.test.ts
+vitest run keyless.test.ts
 ```
 
 ### Local Testnet Behavior
 
-Jest `globalSetup` starts a **local Aptos node** via the SDK's `LocalNode` helper (see `src/cli/localNode.ts`), which runs:
+Vitest `globalSetup` starts a **local Aptos node** via the SDK's `LocalNode` helper (see `src/cli/localNode.ts`), which runs:
 
 - `npx aptos node run-localnet --force-restart --assume-yes --with-indexer-api`
 - Readiness endpoint: `http://127.0.0.1:8070/`
@@ -71,7 +71,7 @@ Jest `globalSetup` starts a **local Aptos node** via the SDK's `LocalNode` helpe
 **Important notes:**
 
 - **Docker is required** (the Aptos CLI localnet pulls and runs containers, including Postgres).
-- In environments without Docker, `pnpm test` will fail during Jest `globalSetup` before any tests run.
+- In environments without Docker, `pnpm test` will fail during Vitest `globalSetup` before any tests run.
 - Failures often come from **port conflicts** or the node not becoming ready in time.
 - If tests hang or fail early, check whether something else is using port `8070`.
 - If Docker mount errors occur, try setting `TMPDIR` to a normal filesystem path.
@@ -96,7 +96,7 @@ cd confidential-assets && pnpm install --frozen-lockfile
 cd confidential-assets && pnpm test
 ```
 
-When changing shared infra (jest config, root tooling), ensure confidential-assets still works.
+When changing shared infra (vitest config, root tooling), ensure confidential-assets still works.
 
 ## Architecture
 
@@ -175,8 +175,8 @@ Docker is pre-installed and the daemon is running. The Docker socket at `/var/ru
 ### Running Tests
 
 - Set `TMPDIR=/tmp` before running tests to avoid Docker mount errors in the nested container environment.
-- `pnpm test` / `pnpm unit-test` / `pnpm e2e-test` all trigger Jest `globalSetup`, which starts a local Aptos testnet via Docker. The first run downloads the Aptos CLI binary (~30s) and pulls Docker images (~30s). Subsequent runs reuse them.
-- The localnet takes ~10-15s to become fully ready (all processors + indexer API). Jest `globalSetup` handles the wait automatically.
+- `pnpm test` / `pnpm unit-test` / `pnpm e2e-test` all trigger Vitest `globalSetup`, which starts a local Aptos testnet via Docker. The first run downloads the Aptos CLI binary (~30s) and pulls Docker images (~30s). Subsequent runs reuse them.
+- The localnet takes ~10-15s to become fully ready (all processors + indexer API). Vitest `globalSetup` handles the wait automatically.
 - After tests complete, `globalTeardown` stops the localnet. If you need it running for manual testing afterwards, start it separately: `TMPDIR=/tmp ENABLE_KEYLESS_DEFAULT=1 npx aptos node run-localnet --force-restart --assume-yes --with-indexer-api &`
 - The readiness endpoint is `http://127.0.0.1:8070/` — poll it to confirm all services are up (returns JSON with `ready` and `not_ready` arrays).
 

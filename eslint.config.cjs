@@ -17,6 +17,8 @@ module.exports = [
       "projects/**",
       // Examples use linked SDK which requires build to resolve imports
       "examples/**",
+      // Vitest config is not part of the src/tests TS project
+      "vitest.config.ts",
     ],
   },
   {
@@ -35,7 +37,7 @@ module.exports = [
         ...globals.browser,
         ...globals.es2021,
         ...globals.node,
-        ...globals.jest,
+        ...globals.vitest,
       },
     },
     plugins: {

@@ -1,6 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { vi } from "vitest";
 import {
   Account,
   AccountAddress,
@@ -48,7 +49,7 @@ import {
   PUBLISHER_ACCOUNT_ADDRESS,
 } from "./helper";
 
-jest.setTimeout(10000);
+vi.setConfig({ testTimeout: 10000 });
 
 // This test uses lots of helper functions, explained here:
 //  the `transactionArguments` array contains every possible argument type

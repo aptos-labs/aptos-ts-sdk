@@ -15,7 +15,7 @@ pnpm fmt                  # Format code with Prettier
 pnpm _fmt --check         # Check formatting (what CI runs)
 pnpm lint                 # Run ESLint
 pnpm test                 # Run all tests (unit + e2e)
-pnpm jest <file>          # Run a specific test file (e.g., pnpm jest keyless.test.ts)
+vitest run <file>         # Run a specific test file (e.g., vitest run keyless.test.ts)
 pnpm doc                  # Generate TypeDoc documentation
 pnpm check-version        # Verify version consistency across files
 pnpm update-version       # Bump version everywhere + regenerate docs
@@ -35,7 +35,7 @@ Before every commit:
 
 - **Docker required**: Tests start a local Aptos node via `aptos node run-localnet` which requires Docker
 - **Port 8070**: Local testnet uses this port; check for conflicts if tests fail
-- Jest globalSetup (`tests/preTest.cjs`) starts the node, globalTeardown (`tests/postTest.cjs`) stops it
+- Vitest globalSetup (`tests/preTest.ts`) starts the node, its teardown stops it
 - If Docker mount errors occur, try setting `TMPDIR` to a normal filesystem path
 
 ## Architecture
