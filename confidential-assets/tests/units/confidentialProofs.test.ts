@@ -4,15 +4,16 @@ import {
   ChunkedAmount,
   ConfidentialKeyRotation,
   ConfidentialNormalization,
-  ConfidentialNormalizationSigmaProof,
   ConfidentialTransfer,
   ConfidentialTransferRangeProof,
-  ConfidentialTransferSigmaProof,
   ConfidentialWithdraw,
-  ConfidentialWithdrawSigmaProof,
   EncryptedAmount,
   TwistedEd25519PrivateKey,
 } from "../../src";
+import type { SigmaProtocolProof } from "../../src/crypto/sigmaProtocol";
+import { verifyWithdrawal } from "../../src/crypto/sigmaProtocolWithdraw";
+import { verifyNormalization } from "../../src/crypto/sigmaProtocolWithdraw";
+import { verifyTransfer } from "../../src/crypto/sigmaProtocolTransfer";
 import { longTestTimeout } from "../helpers";
 
 describe("Generate 'confidential coin' proofs", () => {
@@ -28,9 +29,14 @@ describe("Generate 'confidential coin' proofs", () => {
   });
   const aliceEncryptedBalanceCipherText = aliceEncryptedBalance.getCipherText();
 
+  // Use dummy addresses for the unit tests (32 bytes each)
+  const dummySenderAddress = new Uint8Array(32);
+  const dummyRecipientAddress = new Uint8Array(32).fill(0x0b);
+  const dummyTokenAddress = new Uint8Array(32).fill(0x0a); // 0xa = APT metadata address
+
   const WITHDRAW_AMOUNT = 2n ** 16n;
   let confidentialWithdraw: ConfidentialWithdraw;
-  let confidentialWithdrawSigmaProof: ConfidentialWithdrawSigmaProof;
+  let confidentialWithdrawSigmaProof: SigmaProtocolProof;
   test(
     "Generate withdraw sigma proof",
     async () => {
@@ -38,24 +44,32 @@ describe("Generate 'confidential coin' proofs", () => {
         decryptionKey: aliceConfidentialDecryptionKey,
         senderAvailableBalanceCipherText: aliceEncryptedBalanceCipherText,
         amount: WITHDRAW_AMOUNT,
+        senderAddress: dummySenderAddress,
+        tokenAddress: dummyTokenAddress,
       });
 
-      confidentialWithdrawSigmaProof = await confidentialWithdraw.genSigmaProof();
+      confidentialWithdrawSigmaProof = confidentialWithdraw.genSigmaProof();
 
       expect(confidentialWithdrawSigmaProof).toBeDefined();
+      expect(confidentialWithdrawSigmaProof.commitment.length).toBeGreaterThan(0);
+      expect(confidentialWithdrawSigmaProof.response.length).toBeGreaterThan(0);
     },
     longTestTimeout,
   );
 
   test(
     "Verify withdraw sigma proof",
-    async () => {
-      const isValid = ConfidentialWithdraw.verifySigmaProof({
-        senderEncryptedAvailableBalance: confidentialWithdraw.senderEncryptedAvailableBalance,
-        senderEncryptedAvailableBalanceAfterWithdrawal:
-          confidentialWithdraw.senderEncryptedAvailableBalanceAfterWithdrawal,
-        amountToWithdraw: WITHDRAW_AMOUNT,
-        sigmaProof: confidentialWithdrawSigmaProof,
+    () => {
+      const isValid = verifyWithdrawal({
+        senderAddress: dummySenderAddress,
+        tokenAddress: dummyTokenAddress,
+        amount: WITHDRAW_AMOUNT,
+        ekBytes: aliceConfidentialDecryptionKey.publicKey().toUint8Array(),
+        oldBalanceC: confidentialWithdraw.senderEncryptedAvailableBalance.getCipherText().map((ct) => ct.C),
+        oldBalanceD: confidentialWithdraw.senderEncryptedAvailableBalance.getCipherText().map((ct) => ct.D),
+        newBalanceC: confidentialWithdraw.senderEncryptedAvailableBalanceAfterWithdrawal.getCipherText().map((ct) => ct.C),
+        newBalanceD: confidentialWithdraw.senderEncryptedAvailableBalanceAfterWithdrawal.getCipherText().map((ct) => ct.D),
+        proof: confidentialWithdrawSigmaProof,
       });
 
       expect(isValid).toBeTruthy();
@@ -87,7 +101,7 @@ describe("Generate 'confidential coin' proofs", () => {
 
   const TRANSFER_AMOUNT = 10n;
   let confidentialTransfer: ConfidentialTransfer;
-  let confidentialTransferSigmaProof: ConfidentialTransferSigmaProof;
+  let confidentialTransferSigmaProof: SigmaProtocolProof;
   test(
     "Generate transfer sigma proof",
     async () => {
@@ -96,11 +110,16 @@ describe("Generate 'confidential coin' proofs", () => {
         senderAvailableBalanceCipherText: aliceEncryptedBalanceCipherText,
         amount: TRANSFER_AMOUNT,
         recipientEncryptionKey: bobConfidentialDecryptionKey.publicKey(),
+        senderAddress: dummySenderAddress,
+        recipientAddress: dummyRecipientAddress,
+        tokenAddress: dummyTokenAddress,
       });
 
-      confidentialTransferSigmaProof = await confidentialTransfer.genSigmaProof();
+      confidentialTransferSigmaProof = confidentialTransfer.genSigmaProof();
 
       expect(confidentialTransferSigmaProof).toBeDefined();
+      expect(confidentialTransferSigmaProof.commitment.length).toBeGreaterThan(0);
+      expect(confidentialTransferSigmaProof.response.length).toBeGreaterThan(0);
     },
     longTestTimeout,
   );
@@ -108,14 +127,20 @@ describe("Generate 'confidential coin' proofs", () => {
   test(
     "Verify transfer sigma proof",
     () => {
-      const isValid = ConfidentialTransfer.verifySigmaProof({
-        senderPrivateKey: aliceConfidentialDecryptionKey,
-        recipientPublicKey: bobConfidentialDecryptionKey.publicKey(),
-        encryptedActualBalance: aliceEncryptedBalanceCipherText,
-        encryptedTransferAmountBySender: confidentialTransfer.transferAmountEncryptedBySender,
-        encryptedActualBalanceAfterTransfer: confidentialTransfer.senderEncryptedAvailableBalanceAfterTransfer,
-        encryptedTransferAmountByRecipient: confidentialTransfer.transferAmountEncryptedByRecipient,
-        sigmaProof: confidentialTransferSigmaProof,
+      const isValid = verifyTransfer({
+        senderAddress: dummySenderAddress,
+        recipientAddress: dummyRecipientAddress,
+        tokenAddress: dummyTokenAddress,
+        ekSidBytes: aliceConfidentialDecryptionKey.publicKey().toUint8Array(),
+        ekRidBytes: bobConfidentialDecryptionKey.publicKey().toUint8Array(),
+        oldBalanceC: confidentialTransfer.senderEncryptedAvailableBalance.getCipherText().map((ct) => ct.C),
+        oldBalanceD: confidentialTransfer.senderEncryptedAvailableBalance.getCipherText().map((ct) => ct.D),
+        newBalanceC: confidentialTransfer.senderEncryptedAvailableBalanceAfterTransfer.getCipherText().map((ct) => ct.C),
+        newBalanceD: confidentialTransfer.senderEncryptedAvailableBalanceAfterTransfer.getCipherText().map((ct) => ct.D),
+        transferAmountC: confidentialTransfer.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.C),
+        transferAmountDSender: confidentialTransfer.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.D),
+        transferAmountDRecipient: confidentialTransfer.transferAmountEncryptedByRecipient.getCipherText().map((ct) => ct.D),
+        proof: confidentialTransferSigmaProof,
       });
 
       expect(isValid).toBeTruthy();
@@ -148,7 +173,7 @@ describe("Generate 'confidential coin' proofs", () => {
 
   const auditor = TwistedEd25519PrivateKey.generate();
   let confidentialTransferWithAuditors: ConfidentialTransfer;
-  let confidentialTransferWithAuditorsSigmaProof: ConfidentialTransferSigmaProof;
+  let confidentialTransferWithAuditorsSigmaProof: SigmaProtocolProof;
   test(
     "Generate transfer with auditors sigma proof",
     async () => {
@@ -158,32 +183,43 @@ describe("Generate 'confidential coin' proofs", () => {
         amount: TRANSFER_AMOUNT,
         recipientEncryptionKey: bobConfidentialDecryptionKey.publicKey(),
         auditorEncryptionKeys: [auditor.publicKey()],
+        senderAddress: dummySenderAddress,
+        recipientAddress: dummyRecipientAddress,
+        tokenAddress: dummyTokenAddress,
       });
 
-      confidentialTransferWithAuditorsSigmaProof = await confidentialTransferWithAuditors.genSigmaProof();
+      confidentialTransferWithAuditorsSigmaProof = confidentialTransferWithAuditors.genSigmaProof();
 
       expect(confidentialTransferWithAuditorsSigmaProof).toBeDefined();
+      expect(confidentialTransferWithAuditorsSigmaProof.commitment.length).toBeGreaterThan(0);
+      expect(confidentialTransferWithAuditorsSigmaProof.response.length).toBeGreaterThan(0);
     },
     longTestTimeout,
   );
   test(
     "Verify transfer with auditors sigma proof",
     () => {
-      const isValid = ConfidentialTransfer.verifySigmaProof({
-        senderPrivateKey: aliceConfidentialDecryptionKey,
-        recipientPublicKey: bobConfidentialDecryptionKey.publicKey(),
-        encryptedActualBalance: aliceEncryptedBalanceCipherText,
-        encryptedActualBalanceAfterTransfer:
-          confidentialTransferWithAuditors.senderEncryptedAvailableBalanceAfterTransfer,
-        encryptedTransferAmountByRecipient: confidentialTransferWithAuditors.transferAmountEncryptedByRecipient,
-        encryptedTransferAmountBySender: confidentialTransferWithAuditors.transferAmountEncryptedBySender,
-        sigmaProof: confidentialTransferWithAuditorsSigmaProof,
-        auditors: {
-          publicKeys: [auditor.publicKey()],
-          auditorsCBList: confidentialTransferWithAuditors.transferAmountEncryptedByAuditors!.map((el) =>
-            el.getCipherText(),
-          ),
-        },
+      const isValid = verifyTransfer({
+        senderAddress: dummySenderAddress,
+        recipientAddress: dummyRecipientAddress,
+        tokenAddress: dummyTokenAddress,
+        ekSidBytes: aliceConfidentialDecryptionKey.publicKey().toUint8Array(),
+        ekRidBytes: bobConfidentialDecryptionKey.publicKey().toUint8Array(),
+        oldBalanceC: confidentialTransferWithAuditors.senderEncryptedAvailableBalance.getCipherText().map((ct) => ct.C),
+        oldBalanceD: confidentialTransferWithAuditors.senderEncryptedAvailableBalance.getCipherText().map((ct) => ct.D),
+        newBalanceC: confidentialTransferWithAuditors.senderEncryptedAvailableBalanceAfterTransfer.getCipherText().map((ct) => ct.C),
+        newBalanceD: confidentialTransferWithAuditors.senderEncryptedAvailableBalanceAfterTransfer.getCipherText().map((ct) => ct.D),
+        transferAmountC: confidentialTransferWithAuditors.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.C),
+        transferAmountDSender: confidentialTransferWithAuditors.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.D),
+        transferAmountDRecipient: confidentialTransferWithAuditors.transferAmountEncryptedByRecipient.getCipherText().map((ct) => ct.D),
+        auditorEkBytes: [auditor.publicKey().toUint8Array()],
+        newBalanceDAud: confidentialTransferWithAuditors.auditorEncryptedBalancesAfterTransfer.map(
+          (ea) => ea.getCipherText().map((ct) => ct.D),
+        ),
+        transferAmountDAud: confidentialTransferWithAuditors.transferAmountEncryptedByAuditors.map(
+          (ea) => ea.getCipherText().map((ct) => ct.D),
+        ),
+        proof: confidentialTransferWithAuditorsSigmaProof,
       });
 
       expect(isValid).toBeTruthy();
@@ -217,9 +253,6 @@ describe("Generate 'confidential coin' proofs", () => {
   );
 
   const newAliceConfidentialPrivateKey = TwistedEd25519PrivateKey.generate();
-  // Use dummy addresses for the unit test (32 bytes each)
-  const dummySenderAddress = new Uint8Array(32);
-  const dummyTokenAddress = new Uint8Array(32).fill(0x0a); // 0xa = APT metadata address
 
   let keyRotationProofResult: ReturnType<ConfidentialKeyRotation["authorizeKeyRotation"]>;
 
@@ -284,29 +317,38 @@ describe("Generate 'confidential coin' proofs", () => {
   });
 
   let confidentialNormalization: ConfidentialNormalization;
-  let confidentialNormalizationSigmaProof: ConfidentialNormalizationSigmaProof;
+  let confidentialNormalizationSigmaProof: SigmaProtocolProof;
   test(
     "Generate normalization sigma proof",
     async () => {
       confidentialNormalization = await ConfidentialNormalization.create({
         decryptionKey: aliceConfidentialDecryptionKey,
         unnormalizedAvailableBalance: unnormalizedEncryptedBalance,
+        senderAddress: dummySenderAddress,
+        tokenAddress: dummyTokenAddress,
       });
 
-      confidentialNormalizationSigmaProof = await confidentialNormalization.genSigmaProof();
+      confidentialNormalizationSigmaProof = confidentialNormalization.genSigmaProof();
 
       expect(confidentialNormalizationSigmaProof).toBeDefined();
+      expect(confidentialNormalizationSigmaProof.commitment.length).toBeGreaterThan(0);
+      expect(confidentialNormalizationSigmaProof.response.length).toBeGreaterThan(0);
     },
     longTestTimeout,
   );
   test(
     "Verify normalization sigma proof",
     () => {
-      const isValid = ConfidentialNormalization.verifySigmaProof({
-        publicKey: aliceConfidentialDecryptionKey.publicKey(),
-        sigmaProof: confidentialNormalizationSigmaProof,
-        unnormalizedEncryptedBalance: confidentialNormalization.unnormalizedEncryptedAvailableBalance,
-        normalizedEncryptedBalance: confidentialNormalization.normalizedEncryptedAvailableBalance,
+      const isValid = verifyNormalization({
+        senderAddress: dummySenderAddress,
+        tokenAddress: dummyTokenAddress,
+        amount: 0n,
+        ekBytes: aliceConfidentialDecryptionKey.publicKey().toUint8Array(),
+        oldBalanceC: confidentialNormalization.unnormalizedEncryptedAvailableBalance.getCipherText().map((ct) => ct.C),
+        oldBalanceD: confidentialNormalization.unnormalizedEncryptedAvailableBalance.getCipherText().map((ct) => ct.D),
+        newBalanceC: confidentialNormalization.normalizedEncryptedAvailableBalance.getCipherText().map((ct) => ct.C),
+        newBalanceD: confidentialNormalization.normalizedEncryptedAvailableBalance.getCipherText().map((ct) => ct.D),
+        proof: confidentialNormalizationSigmaProof,
       });
 
       expect(isValid).toBeTruthy();

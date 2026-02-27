@@ -6,6 +6,9 @@ export { initializeWasm, isWasmInitialized, ensureWasmInitialized } from "./wasm
 export * from "./chunkedAmount";
 export * from "./encryptedAmount";
 export * from "./sigmaProtocol";
+export * from "./sigmaProtocolRegistration";
+export * from "./sigmaProtocolWithdraw";
+export * from "./sigmaProtocolTransfer";
 export * from "./confidentialKeyRotation";
 export * from "./confidentialNormalization";
 export * from "./confidentialTransfer";

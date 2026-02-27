@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright (c) Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import {
@@ -20,6 +20,7 @@ import {
   TwistedEd25519PublicKey,
   TwistedEd25519PrivateKey,
 } from "../crypto";
+import { proveRegistration } from "../crypto/sigmaProtocolRegistration";
 import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS, MODULE_NAME } from "../consts";
 import { getBalance, getEncryptionKey, isBalanceNormalized, isIncomingTransfersPaused } from "./viewFunctions";
 
@@ -53,12 +54,29 @@ export class ConfidentialAssetTransactionBuilder {
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    const { tokenAddress, decryptionKey } = args;
+    const { sender, tokenAddress, decryptionKey } = args;
+
+    // Resolve addresses to 32-byte arrays
+    const senderAddr = AccountAddress.from(sender);
+    const tokenAddr = AccountAddress.from(tokenAddress);
+
+    // Generate the registration sigma proof
+    const sigmaProof = proveRegistration({
+      dk: decryptionKey,
+      senderAddress: senderAddr.toUint8Array(),
+      tokenAddress: tokenAddr.toUint8Array(),
+    });
+
     return this.client.transaction.build.simple({
       ...args,
       data: {
         function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::register_raw`,
-        functionArguments: [tokenAddress, decryptionKey.publicKey().toUint8Array(), [] as Uint8Array[], [] as Uint8Array[]],
+        functionArguments: [
+          tokenAddress,
+          decryptionKey.publicKey().toUint8Array(),
+          sigmaProof.commitment,
+          sigmaProof.response,
+        ],
       },
     });
   }
@@ -123,6 +141,13 @@ export class ConfidentialAssetTransactionBuilder {
     const { sender, tokenAddress, amount, senderDecryptionKey, recipient = args.sender, options } = args;
     validateAmount({ amount });
 
+    // Resolve addresses to 32-byte arrays
+    const senderAddr = AccountAddress.from(sender);
+    const tokenAddr = AccountAddress.from(tokenAddress);
+
+    // Get the auditor public key for the token
+    const globalAuditorPubKey = await this.getAssetAuditorEncryptionKey({ tokenAddress });
+
     // Get the sender's available balance from the chain
     const { available: senderEncryptedAvailableBalance } = await getBalance({
       client: this.client,
@@ -136,9 +161,18 @@ export class ConfidentialAssetTransactionBuilder {
       decryptionKey: senderDecryptionKey,
       senderAvailableBalanceCipherText: senderEncryptedAvailableBalance.getCipherText(),
       amount: BigInt(amount),
+      senderAddress: senderAddr.toUint8Array(),
+      tokenAddress: tokenAddr.toUint8Array(),
+      auditorEncryptionKey: globalAuditorPubKey,
     });
 
-    const [{ rangeProof }, encryptedAmountAfterWithdraw] = await confidentialWithdraw.authorizeWithdrawal();
+    const [{ sigmaProof, rangeProof }, encryptedAmountAfterWithdraw, auditorEncryptedBalance] =
+      await confidentialWithdraw.authorizeWithdrawal();
+
+    // Build auditor A components (D points encrypted under auditor key)
+    const newBalanceA = auditorEncryptedBalance
+      ? auditorEncryptedBalance.getCipherText().map((ct) => ct.D.toRawBytes())
+      : ([] as Uint8Array[]);
 
     return this.client.transaction.build.simple({
       ...args,
@@ -148,10 +182,12 @@ export class ConfidentialAssetTransactionBuilder {
           tokenAddress,
           recipient,
           String(amount),
-          encryptedAmountAfterWithdraw.getCipherTextBytes(),
+          encryptedAmountAfterWithdraw.getCipherText().map((ct) => ct.C.toRawBytes()), // new_balance_C
+          encryptedAmountAfterWithdraw.getCipherText().map((ct) => ct.D.toRawBytes()), // new_balance_D
+          newBalanceA, // new_balance_A
           rangeProof,
-          [] as Uint8Array[], // sigma_proto_comm (stub)
-          [] as Uint8Array[], // sigma_proto_resp (stub)
+          sigmaProof.commitment,
+          sigmaProof.response,
         ],
       },
       options,
@@ -218,7 +254,7 @@ export class ConfidentialAssetTransactionBuilder {
     const [{ vec: globalAuditorPubKey }] = await this.client.view<[{ vec: { data: string }[] }]>({
       options: args.options,
       payload: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::get_auditor_for_asset_type`,
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::get_effective_auditor`,
         functionArguments: [args.tokenAddress],
       },
     });
@@ -256,8 +292,13 @@ export class ConfidentialAssetTransactionBuilder {
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    const { senderDecryptionKey, recipient, tokenAddress, amount, additionalAuditorEncryptionKeys = [] } = args;
+    const { sender, senderDecryptionKey, recipient, tokenAddress, amount, additionalAuditorEncryptionKeys = [] } = args;
     validateAmount({ amount });
+
+    // Resolve addresses to 32-byte arrays
+    const senderAddr = AccountAddress.from(sender);
+    const recipientAddr = AccountAddress.from(recipient);
+    const tokenAddr = AccountAddress.from(tokenAddress);
 
     // Get the auditor public key for the token
     const globalAuditorPubKey = await this.getAssetAuditorEncryptionKey({
@@ -307,15 +348,20 @@ export class ConfidentialAssetTransactionBuilder {
       amount,
       recipientEncryptionKey,
       auditorEncryptionKeys: allAuditorEncryptionKeys,
+      senderAddress: senderAddr.toUint8Array(),
+      recipientAddress: recipientAddr.toUint8Array(),
+      tokenAddress: tokenAddr.toUint8Array(),
     });
 
     const [
       {
+        sigmaProof,
         rangeProof: { rangeProofAmount, rangeProofNewBalance },
       },
       encryptedAmountAfterTransfer,
       encryptedAmountByRecipient,
       auditorsCBList,
+      auditorNewBalanceList,
     ] = await confidentialTransfer.authorizeTransfer();
 
     // Only send extra auditor EKs on-chain (not the global auditor, which the contract fetches itself)
@@ -325,6 +371,11 @@ export class ConfidentialAssetTransactionBuilder {
     const recipientDPoints = encryptedAmountByRecipient.getCipherText().map((ct) => ct.D.toRawBytes());
     const auditorDPoints = auditorsCBList.map((cb) => cb.getCipherText().map((ct) => ct.D.toRawBytes()));
 
+    // Build A components for new balance (D points encrypted under the effective auditor key, i.e., the last one)
+    const newBalanceA = auditorNewBalanceList.length > 0
+      ? auditorNewBalanceList[auditorNewBalanceList.length - 1].getCipherText().map((ct) => ct.D.toRawBytes())
+      : [];
+
     return this.client.transaction.build.simple({
       ...args,
       withFeePayer: args.withFeePayer,
@@ -333,15 +384,18 @@ export class ConfidentialAssetTransactionBuilder {
         functionArguments: [
           tokenAddress,
           recipient,
-          encryptedAmountAfterTransfer.getCipherTextBytes(),
-          confidentialTransfer.transferAmountEncryptedBySender.getCipherTextBytes(),
+          encryptedAmountAfterTransfer.getCipherText().map((ct) => ct.C.toRawBytes()), // new_balance_C
+          encryptedAmountAfterTransfer.getCipherText().map((ct) => ct.D.toRawBytes()), // new_balance_D
+          newBalanceA, // new_balance_A
+          confidentialTransfer.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.C.toRawBytes()), // sender_amount_C
+          confidentialTransfer.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.D.toRawBytes()), // sender_amount_D
           recipientDPoints,
           extraAuditorEncryptionKeys,
           auditorDPoints,
           rangeProofNewBalance,
           rangeProofAmount,
-          [] as Uint8Array[], // sigma_proto_comm (stub)
-          [] as Uint8Array[], // sigma_proto_resp (stub)
+          sigmaProof.commitment,
+          sigmaProof.response,
         ],
       },
     });
@@ -450,6 +504,14 @@ export class ConfidentialAssetTransactionBuilder {
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     const { sender, senderDecryptionKey, tokenAddress, withFeePayer, options } = args;
+
+    // Resolve addresses to 32-byte arrays
+    const senderAddr = AccountAddress.from(sender);
+    const tokenAddr = AccountAddress.from(tokenAddress);
+
+    // Get the auditor public key for the token
+    const globalAuditorPubKey = await this.getAssetAuditorEncryptionKey({ tokenAddress });
+
     const { available } = await getBalance({
       client: this.client,
       moduleAddress: this.confidentialAssetModuleAddress,
@@ -461,6 +523,9 @@ export class ConfidentialAssetTransactionBuilder {
     const confidentialNormalization = await ConfidentialNormalization.create({
       decryptionKey: senderDecryptionKey,
       unnormalizedAvailableBalance: available,
+      senderAddress: senderAddr.toUint8Array(),
+      tokenAddress: tokenAddr.toUint8Array(),
+      auditorEncryptionKey: globalAuditorPubKey,
     });
 
     return confidentialNormalization.createTransaction({
