@@ -12,10 +12,8 @@ import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey, H_RISTRETTO } from "
 import { TwistedElGamalCiphertext } from "./twistedElGamal";
 import { ed25519GenListOfRandom } from "../utils";
 import { EncryptedAmount } from "./encryptedAmount";
-
-/** Stub type — sigma proof is not yet implemented. */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export type ConfidentialTransferSigmaProof = {};
+import type { SigmaProtocolProof } from "./sigmaProtocol";
+import { proveTransfer } from "./sigmaProtocolTransfer";
 
 export type ConfidentialTransferRangeProof = {
   rangeProofAmount: Uint8Array;
@@ -29,6 +27,12 @@ export type CreateConfidentialTransferOpArgs = {
   recipientEncryptionKey: TwistedEd25519PublicKey;
   auditorEncryptionKeys?: TwistedEd25519PublicKey[];
   transferAmountRandomness?: bigint[];
+  /** 32-byte sender address */
+  senderAddress: Uint8Array;
+  /** 32-byte recipient address */
+  recipientAddress: Uint8Array;
+  /** 32-byte token address */
+  tokenAddress: Uint8Array;
 };
 
 export class ConfidentialTransfer {
@@ -74,6 +78,15 @@ export class ConfidentialTransfer {
    */
   newBalanceRandomness: bigint[];
 
+  /** Optional: new balance encrypted under each auditor key */
+  auditorEncryptedBalancesAfterTransfer: EncryptedAmount[];
+
+  senderAddress: Uint8Array;
+
+  recipientAddress: Uint8Array;
+
+  tokenAddress: Uint8Array;
+
   private constructor(args: {
     senderDecryptionKey: TwistedEd25519PrivateKey;
     recipientEncryptionKey: TwistedEd25519PublicKey;
@@ -84,6 +97,10 @@ export class ConfidentialTransfer {
     transferAmountEncryptedByRecipient: EncryptedAmount;
     transferAmountEncryptedByAuditors: EncryptedAmount[];
     senderEncryptedAvailableBalanceAfterTransfer: EncryptedAmount;
+    auditorEncryptedBalancesAfterTransfer: EncryptedAmount[];
+    senderAddress: Uint8Array;
+    recipientAddress: Uint8Array;
+    tokenAddress: Uint8Array;
   }) {
     const {
       senderDecryptionKey,
@@ -95,6 +112,10 @@ export class ConfidentialTransfer {
       transferAmountEncryptedByRecipient,
       transferAmountEncryptedByAuditors,
       senderEncryptedAvailableBalanceAfterTransfer,
+      auditorEncryptedBalancesAfterTransfer,
+      senderAddress,
+      recipientAddress,
+      tokenAddress,
     } = args;
     this.senderDecryptionKey = senderDecryptionKey;
     this.recipientEncryptionKey = recipientEncryptionKey;
@@ -113,6 +134,7 @@ export class ConfidentialTransfer {
     this.transferAmountEncryptedByRecipient = transferAmountEncryptedByRecipient;
     this.transferAmountEncryptedByAuditors = transferAmountEncryptedByAuditors;
     this.senderEncryptedAvailableBalanceAfterTransfer = senderEncryptedAvailableBalanceAfterTransfer;
+    this.auditorEncryptedBalancesAfterTransfer = auditorEncryptedBalancesAfterTransfer;
 
     const transferAmountRandomness = transferAmountEncryptedBySender.getRandomness();
     if (!transferAmountRandomness) {
@@ -125,6 +147,10 @@ export class ConfidentialTransfer {
       throw new Error("New balance randomness is not set");
     }
     this.newBalanceRandomness = newBalanceRandomness;
+
+    this.senderAddress = senderAddress;
+    this.recipientAddress = recipientAddress;
+    this.tokenAddress = tokenAddress;
   }
 
   static async create(args: CreateConfidentialTransferOpArgs) {
@@ -134,6 +160,9 @@ export class ConfidentialTransfer {
       recipientEncryptionKey,
       auditorEncryptionKeys = [],
       transferAmountRandomness = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT),
+      senderAddress,
+      recipientAddress,
+      tokenAddress,
     } = args;
     const amount = BigInt(args.amount);
     const newBalanceRandomness = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT);
@@ -171,6 +200,16 @@ export class ConfidentialTransfer {
         }),
     );
 
+    // Encrypt the new balance under each auditor key with the same randomness
+    const auditorEncryptedBalancesAfterTransfer = auditorEncryptionKeys.map(
+      (encryptionKey) =>
+        EncryptedAmount.fromAmountAndPublicKey({
+          amount: remainingBalance,
+          publicKey: encryptionKey,
+          randomness: newBalanceRandomness,
+        }),
+    );
+
     return new ConfidentialTransfer({
       senderDecryptionKey,
       recipientEncryptionKey,
@@ -181,34 +220,61 @@ export class ConfidentialTransfer {
       transferAmountEncryptedByRecipient,
       transferAmountEncryptedByAuditors,
       senderEncryptedAvailableBalanceAfterTransfer,
+      auditorEncryptedBalancesAfterTransfer,
+      senderAddress,
+      recipientAddress,
+      tokenAddress,
     });
   }
 
-  /** Returns an empty sigma proof (stub — sigma proof is not yet implemented). */
-  static serializeSigmaProof(): Uint8Array {
-    return new Uint8Array(0);
-  }
+  /**
+   * Generate the sigma protocol proof for transfer.
+   */
+  genSigmaProof(): SigmaProtocolProof {
+    const oldCipherTexts = this.senderEncryptedAvailableBalance.getCipherText();
+    const newCipherTexts = this.senderEncryptedAvailableBalanceAfterTransfer.getCipherText();
+    const senderTransferCipherTexts = this.transferAmountEncryptedBySender.getCipherText();
+    const recipientTransferCipherTexts = this.transferAmountEncryptedByRecipient.getCipherText();
 
-  /** Stub — always returns an empty sigma proof. */
-  async genSigmaProof(): Promise<ConfidentialTransferSigmaProof> {
-    return {} as ConfidentialTransferSigmaProof;
-  }
+    const oldBalanceC = oldCipherTexts.map((ct) => ct.C);
+    const oldBalanceD = oldCipherTexts.map((ct) => ct.D);
+    const newBalanceC = newCipherTexts.map((ct) => ct.C);
+    const newBalanceD = newCipherTexts.map((ct) => ct.D);
+    const transferAmountC = senderTransferCipherTexts.map((ct) => ct.C);
+    const transferAmountDSender = senderTransferCipherTexts.map((ct) => ct.D);
+    const transferAmountDRecipient = recipientTransferCipherTexts.map((ct) => ct.D);
 
-  /** Stub — always returns true. */
-  static verifySigmaProof(_opts: {
-    senderPrivateKey: TwistedEd25519PrivateKey;
-    recipientPublicKey: TwistedEd25519PublicKey;
-    encryptedActualBalance: TwistedElGamalCiphertext[];
-    encryptedActualBalanceAfterTransfer: EncryptedAmount;
-    encryptedTransferAmountByRecipient: EncryptedAmount;
-    encryptedTransferAmountBySender: EncryptedAmount;
-    sigmaProof: ConfidentialTransferSigmaProof;
-    auditors?: {
-      publicKeys: TwistedEd25519PublicKey[];
-      auditorsCBList: TwistedElGamalCiphertext[][];
-    };
-  }): boolean {
-    return true;
+    // Auditor data
+    const auditorEncryptionKeys = this.auditorEncryptionKeys.length > 0 ? this.auditorEncryptionKeys : undefined;
+    const newBalanceDAud = this.auditorEncryptedBalancesAfterTransfer.length > 0
+      ? this.auditorEncryptedBalancesAfterTransfer.map((ea) => ea.getCipherText().map((ct) => ct.D))
+      : undefined;
+    const transferAmountDAud = this.transferAmountEncryptedByAuditors.length > 0
+      ? this.transferAmountEncryptedByAuditors.map((ea) => ea.getCipherText().map((ct) => ct.D))
+      : undefined;
+
+    return proveTransfer({
+      dk: this.senderDecryptionKey,
+      senderAddress: this.senderAddress,
+      recipientAddress: this.recipientAddress,
+      tokenAddress: this.tokenAddress,
+      senderEncryptionKey: this.senderDecryptionKey.publicKey(),
+      recipientEncryptionKey: this.recipientEncryptionKey,
+      oldBalanceC,
+      oldBalanceD,
+      newBalanceC,
+      newBalanceD,
+      newAmountChunks: this.senderEncryptedAvailableBalanceAfterTransfer.getAmountChunks(),
+      newRandomness: this.newBalanceRandomness,
+      transferAmountC,
+      transferAmountDSender,
+      transferAmountDRecipient,
+      transferAmountChunks: this.transferAmountEncryptedBySender.getAmountChunks(),
+      transferRandomness: this.transferAmountRandomness.slice(0, TRANSFER_AMOUNT_CHUNK_COUNT),
+      auditorEncryptionKeys,
+      newBalanceDAud,
+      transferAmountDAud,
+    });
   }
 
   async genRangeProof(): Promise<ConfidentialTransferRangeProof> {
@@ -236,13 +302,14 @@ export class ConfidentialTransfer {
 
   async authorizeTransfer(): Promise<
     [
-      { sigmaProof: Uint8Array; rangeProof: ConfidentialTransferRangeProof },
+      { sigmaProof: SigmaProtocolProof; rangeProof: ConfidentialTransferRangeProof },
       EncryptedAmount,
       EncryptedAmount,
       EncryptedAmount[],
+      EncryptedAmount[],
     ]
   > {
-    const sigmaProof = ConfidentialTransfer.serializeSigmaProof();
+    const sigmaProof = this.genSigmaProof();
     const rangeProof = await this.genRangeProof();
 
     return [
@@ -253,6 +320,7 @@ export class ConfidentialTransfer {
       this.senderEncryptedAvailableBalanceAfterTransfer,
       this.transferAmountEncryptedByRecipient,
       this.transferAmountEncryptedByAuditors,
+      this.auditorEncryptedBalancesAfterTransfer,
     ];
   }
 

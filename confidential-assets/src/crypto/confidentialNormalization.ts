@@ -7,14 +7,18 @@ import { ed25519GenListOfRandom } from "../utils";
 import { EncryptedAmount } from "./encryptedAmount";
 import { AVAILABLE_BALANCE_CHUNK_COUNT, CHUNK_BITS } from "./chunkedAmount";
 import { Aptos, SimpleTransaction, AccountAddressInput, InputGenerateTransactionOptions } from "@aptos-labs/ts-sdk";
-
-/** Stub type — sigma proof is not yet implemented. */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export type ConfidentialNormalizationSigmaProof = {};
+import type { SigmaProtocolProof } from "./sigmaProtocol";
+import { proveNormalization } from "./sigmaProtocolWithdraw";
 
 export type CreateConfidentialNormalizationOpArgs = {
   decryptionKey: TwistedEd25519PrivateKey;
   unnormalizedAvailableBalance: EncryptedAmount;
+  /** 32-byte sender address */
+  senderAddress: Uint8Array;
+  /** 32-byte token address */
+  tokenAddress: Uint8Array;
+  /** Optional auditor encryption key */
+  auditorEncryptionKey?: TwistedEd25519PublicKey;
   randomness?: bigint[];
 };
 
@@ -25,16 +29,33 @@ export class ConfidentialNormalization {
 
   normalizedEncryptedAvailableBalance: EncryptedAmount;
 
+  /** Optional: normalized balance encrypted under auditor key */
+  auditorEncryptedNormalizedBalance?: EncryptedAmount;
+
   randomness: bigint[];
+
+  senderAddress: Uint8Array;
+
+  tokenAddress: Uint8Array;
+
+  auditorEncryptionKey?: TwistedEd25519PublicKey;
 
   constructor(args: {
     decryptionKey: TwistedEd25519PrivateKey;
     unnormalizedEncryptedAvailableBalance: EncryptedAmount;
     normalizedEncryptedAvailableBalance: EncryptedAmount;
+    auditorEncryptedNormalizedBalance?: EncryptedAmount;
+    senderAddress: Uint8Array;
+    tokenAddress: Uint8Array;
+    auditorEncryptionKey?: TwistedEd25519PublicKey;
   }) {
     this.decryptionKey = args.decryptionKey;
     this.unnormalizedEncryptedAvailableBalance = args.unnormalizedEncryptedAvailableBalance;
     this.normalizedEncryptedAvailableBalance = args.normalizedEncryptedAvailableBalance;
+    this.auditorEncryptedNormalizedBalance = args.auditorEncryptedNormalizedBalance;
+    this.senderAddress = args.senderAddress;
+    this.tokenAddress = args.tokenAddress;
+    this.auditorEncryptionKey = args.auditorEncryptionKey;
     const randomness = this.normalizedEncryptedAvailableBalance.getRandomness();
     if (!randomness) {
       throw new Error("Randomness is not set");
@@ -43,7 +64,13 @@ export class ConfidentialNormalization {
   }
 
   static async create(args: CreateConfidentialNormalizationOpArgs) {
-    const { decryptionKey, randomness = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT) } = args;
+    const {
+      decryptionKey,
+      randomness = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT),
+      senderAddress,
+      tokenAddress,
+      auditorEncryptionKey,
+    } = args;
 
     const unnormalizedEncryptedAvailableBalance = args.unnormalizedAvailableBalance;
 
@@ -52,31 +79,62 @@ export class ConfidentialNormalization {
       publicKey: decryptionKey.publicKey(),
       randomness,
     });
+
+    // If auditor is set, encrypt the normalized balance under the auditor key with the same randomness
+    let auditorEncryptedNormalizedBalance: EncryptedAmount | undefined;
+    if (auditorEncryptionKey) {
+      auditorEncryptedNormalizedBalance = EncryptedAmount.fromAmountAndPublicKey({
+        amount: unnormalizedEncryptedAvailableBalance.getAmount(),
+        publicKey: auditorEncryptionKey,
+        randomness,
+      });
+    }
+
     return new ConfidentialNormalization({
       decryptionKey,
       unnormalizedEncryptedAvailableBalance,
       normalizedEncryptedAvailableBalance,
+      auditorEncryptedNormalizedBalance,
+      senderAddress,
+      tokenAddress,
+      auditorEncryptionKey,
     });
   }
 
-  /** Returns an empty sigma proof (stub — sigma proof is not yet implemented). */
-  static serializeSigmaProof(): Uint8Array {
-    return new Uint8Array(0);
-  }
+  /**
+   * Generate the sigma protocol proof for normalization.
+   * Normalization is the same as withdrawal with v = 0.
+   */
+  genSigmaProof(): SigmaProtocolProof {
+    const oldCipherTexts = this.unnormalizedEncryptedAvailableBalance.getCipherText();
+    const newCipherTexts = this.normalizedEncryptedAvailableBalance.getCipherText();
 
-  /** Stub — always returns an empty sigma proof. */
-  async genSigmaProof(): Promise<ConfidentialNormalizationSigmaProof> {
-    return {} as ConfidentialNormalizationSigmaProof;
-  }
+    const oldBalanceC = oldCipherTexts.map((ct) => ct.C);
+    const oldBalanceD = oldCipherTexts.map((ct) => ct.D);
+    const newBalanceC = newCipherTexts.map((ct) => ct.C);
+    const newBalanceD = newCipherTexts.map((ct) => ct.D);
 
-  /** Stub — always returns true. */
-  static verifySigmaProof(_opts: {
-    publicKey: TwistedEd25519PublicKey;
-    sigmaProof: ConfidentialNormalizationSigmaProof;
-    unnormalizedEncryptedBalance: EncryptedAmount;
-    normalizedEncryptedBalance: EncryptedAmount;
-  }): boolean {
-    return true;
+    let auditorEncryptionKey: TwistedEd25519PublicKey | undefined;
+    let newBalanceDAud: import(".").RistPoint[] | undefined;
+    if (this.auditorEncryptionKey && this.auditorEncryptedNormalizedBalance) {
+      auditorEncryptionKey = this.auditorEncryptionKey;
+      newBalanceDAud = this.auditorEncryptedNormalizedBalance.getCipherText().map((ct) => ct.D);
+    }
+
+    return proveNormalization({
+      dk: this.decryptionKey,
+      senderAddress: this.senderAddress,
+      tokenAddress: this.tokenAddress,
+      amount: 0n,
+      oldBalanceC,
+      oldBalanceD,
+      newBalanceC,
+      newBalanceD,
+      newAmountChunks: this.normalizedEncryptedAvailableBalance.getAmountChunks(),
+      newRandomness: this.randomness,
+      auditorEncryptionKey,
+      newBalanceDAud,
+    });
   }
 
   async genRangeProof(): Promise<Uint8Array> {
@@ -104,11 +162,21 @@ export class ConfidentialNormalization {
     });
   }
 
-  async authorizeNormalization(): Promise<[{ sigmaProof: Uint8Array; rangeProof: Uint8Array }, EncryptedAmount]> {
-    const sigmaProof = ConfidentialNormalization.serializeSigmaProof();
+  async authorizeNormalization(): Promise<
+    [
+      { sigmaProof: SigmaProtocolProof; rangeProof: Uint8Array },
+      EncryptedAmount,
+      EncryptedAmount | undefined,
+    ]
+  > {
+    const sigmaProof = this.genSigmaProof();
     const rangeProof = await this.genRangeProof();
 
-    return [{ sigmaProof, rangeProof }, this.normalizedEncryptedAvailableBalance];
+    return [
+      { sigmaProof, rangeProof },
+      this.normalizedEncryptedAvailableBalance,
+      this.auditorEncryptedNormalizedBalance,
+    ];
   }
 
   async createTransaction(args: {
@@ -119,7 +187,12 @@ export class ConfidentialNormalization {
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    const [{ rangeProof }, normalizedCB] = await this.authorizeNormalization();
+    const [{ sigmaProof, rangeProof }, normalizedCB, auditorCB] = await this.authorizeNormalization();
+
+    // Build auditor A components (D points encrypted under auditor key)
+    const newBalanceA = auditorCB
+      ? auditorCB.getCipherText().map((ct) => ct.D.toRawBytes())
+      : ([] as Uint8Array[]);
 
     return args.client.transaction.build.simple({
       ...args,
@@ -127,10 +200,12 @@ export class ConfidentialNormalization {
         function: `${args.confidentialAssetModuleAddress}::${MODULE_NAME}::normalize_raw`,
         functionArguments: [
           args.tokenAddress,
-          normalizedCB.getCipherTextBytes(),
+          normalizedCB.getCipherText().map((ct) => ct.C.toRawBytes()), // new_balance_C
+          normalizedCB.getCipherText().map((ct) => ct.D.toRawBytes()), // new_balance_D
+          newBalanceA, // new_balance_A
           rangeProof,
-          [] as Uint8Array[], // sigma_proto_comm (stub)
-          [] as Uint8Array[], // sigma_proto_resp (stub)
+          sigmaProof.commitment,
+          sigmaProof.response,
         ],
       },
       options: args.options,

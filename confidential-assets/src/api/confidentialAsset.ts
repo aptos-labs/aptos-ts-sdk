@@ -3,6 +3,7 @@
 
 import {
   Account,
+  AccountAddress,
   AccountAddressInput,
   AnyNumber,
   AptosConfig,
@@ -499,9 +500,19 @@ export class ConfidentialAsset {
       useCachedValue: true,
     });
 
+    // Resolve addresses to 32-byte arrays
+    const senderAddr = AccountAddress.from(signer.accountAddress);
+    const tokenAddr = AccountAddress.from(tokenAddress);
+
+    // Get the auditor public key for the token
+    const globalAuditorPubKey = await this.getAssetAuditorEncryptionKey({ tokenAddress });
+
     const confidentialNormalization = await ConfidentialNormalization.create({
       decryptionKey: senderDecryptionKey,
       unnormalizedAvailableBalance: available,
+      senderAddress: senderAddr.toUint8Array(),
+      tokenAddress: tokenAddr.toUint8Array(),
+      auditorEncryptionKey: globalAuditorPubKey,
     });
 
     const transaction = await confidentialNormalization.createTransaction({

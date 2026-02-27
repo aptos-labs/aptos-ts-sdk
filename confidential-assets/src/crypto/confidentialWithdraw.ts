@@ -6,19 +6,24 @@ import {
   CHUNK_BITS,
   RangeProofExecutor,
   TwistedEd25519PrivateKey,
+  TwistedEd25519PublicKey,
   H_RISTRETTO,
   TwistedElGamalCiphertext,
   EncryptedAmount,
 } from ".";
-
-/** Stub type — sigma proof is not yet implemented. */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export type ConfidentialWithdrawSigmaProof = {};
+import type { SigmaProtocolProof } from "./sigmaProtocol";
+import { proveWithdrawal } from "./sigmaProtocolWithdraw";
 
 export type CreateConfidentialWithdrawOpArgs = {
   decryptionKey: TwistedEd25519PrivateKey;
   senderAvailableBalanceCipherText: TwistedElGamalCiphertext[];
   amount: bigint;
+  /** 32-byte sender address */
+  senderAddress: Uint8Array;
+  /** 32-byte token address */
+  tokenAddress: Uint8Array;
+  /** Optional auditor encryption key */
+  auditorEncryptionKey?: TwistedEd25519PublicKey;
   randomness?: bigint[];
 };
 
@@ -31,14 +36,27 @@ export class ConfidentialWithdraw {
 
   senderEncryptedAvailableBalanceAfterWithdrawal: EncryptedAmount;
 
+  /** Optional: new balance encrypted under auditor key */
+  auditorEncryptedBalanceAfterWithdrawal?: EncryptedAmount;
+
   randomness: bigint[];
+
+  senderAddress: Uint8Array;
+
+  tokenAddress: Uint8Array;
+
+  auditorEncryptionKey?: TwistedEd25519PublicKey;
 
   constructor(args: {
     decryptionKey: TwistedEd25519PrivateKey;
     senderEncryptedAvailableBalance: EncryptedAmount;
     amount: bigint;
     senderEncryptedAvailableBalanceAfterWithdrawal: EncryptedAmount;
+    auditorEncryptedBalanceAfterWithdrawal?: EncryptedAmount;
     randomness: bigint[];
+    senderAddress: Uint8Array;
+    tokenAddress: Uint8Array;
+    auditorEncryptionKey?: TwistedEd25519PublicKey;
   }) {
     const {
       decryptionKey,
@@ -46,6 +64,10 @@ export class ConfidentialWithdraw {
       amount,
       randomness,
       senderEncryptedAvailableBalanceAfterWithdrawal,
+      auditorEncryptedBalanceAfterWithdrawal,
+      senderAddress,
+      tokenAddress,
+      auditorEncryptionKey,
     } = args;
     if (amount < 0n) {
       throw new Error("Amount to withdraw must not be negative");
@@ -69,10 +91,20 @@ export class ConfidentialWithdraw {
     this.senderEncryptedAvailableBalance = senderEncryptedAvailableBalance;
     this.randomness = randomness;
     this.senderEncryptedAvailableBalanceAfterWithdrawal = senderEncryptedAvailableBalanceAfterWithdrawal;
+    this.auditorEncryptedBalanceAfterWithdrawal = auditorEncryptedBalanceAfterWithdrawal;
+    this.senderAddress = senderAddress;
+    this.tokenAddress = tokenAddress;
+    this.auditorEncryptionKey = auditorEncryptionKey;
   }
 
   static async create(args: CreateConfidentialWithdrawOpArgs) {
-    const { amount, randomness = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT) } = args;
+    const {
+      amount,
+      randomness = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT),
+      senderAddress,
+      tokenAddress,
+      auditorEncryptionKey,
+    } = args;
 
     const senderEncryptedAvailableBalance = await EncryptedAmount.fromCipherTextAndPrivateKey(
       args.senderAvailableBalanceCipherText,
@@ -84,33 +116,62 @@ export class ConfidentialWithdraw {
       randomness,
     });
 
+    // If auditor is set, encrypt the new balance under the auditor key with the same randomness
+    let auditorEncryptedBalanceAfterWithdrawal: EncryptedAmount | undefined;
+    if (auditorEncryptionKey) {
+      auditorEncryptedBalanceAfterWithdrawal = EncryptedAmount.fromAmountAndPublicKey({
+        amount: senderEncryptedAvailableBalance.getAmount() - amount,
+        publicKey: auditorEncryptionKey,
+        randomness,
+      });
+    }
+
     return new ConfidentialWithdraw({
       decryptionKey: args.decryptionKey,
       amount,
       senderEncryptedAvailableBalance,
       senderEncryptedAvailableBalanceAfterWithdrawal,
+      auditorEncryptedBalanceAfterWithdrawal,
       randomness,
+      senderAddress,
+      tokenAddress,
+      auditorEncryptionKey,
     });
   }
 
-  /** Returns an empty sigma proof (stub — sigma proof is not yet implemented). */
-  static serializeSigmaProof(): Uint8Array {
-    return new Uint8Array(0);
-  }
+  /**
+   * Generate the sigma protocol proof for withdrawal.
+   */
+  genSigmaProof(): SigmaProtocolProof {
+    const oldCipherTexts = this.senderEncryptedAvailableBalance.getCipherText();
+    const newCipherTexts = this.senderEncryptedAvailableBalanceAfterWithdrawal.getCipherText();
 
-  /** Stub — always returns an empty sigma proof. */
-  async genSigmaProof(): Promise<ConfidentialWithdrawSigmaProof> {
-    return {} as ConfidentialWithdrawSigmaProof;
-  }
+    const oldBalanceC = oldCipherTexts.map((ct) => ct.C);
+    const oldBalanceD = oldCipherTexts.map((ct) => ct.D);
+    const newBalanceC = newCipherTexts.map((ct) => ct.C);
+    const newBalanceD = newCipherTexts.map((ct) => ct.D);
 
-  /** Stub — always returns true. */
-  static verifySigmaProof(_opts: {
-    sigmaProof: ConfidentialWithdrawSigmaProof;
-    senderEncryptedAvailableBalance: EncryptedAmount;
-    senderEncryptedAvailableBalanceAfterWithdrawal: EncryptedAmount;
-    amountToWithdraw: bigint;
-  }): boolean {
-    return true;
+    let auditorEncryptionKey: TwistedEd25519PublicKey | undefined;
+    let newBalanceDAud: import(".").RistPoint[] | undefined;
+    if (this.auditorEncryptionKey && this.auditorEncryptedBalanceAfterWithdrawal) {
+      auditorEncryptionKey = this.auditorEncryptionKey;
+      newBalanceDAud = this.auditorEncryptedBalanceAfterWithdrawal.getCipherText().map((ct) => ct.D);
+    }
+
+    return proveWithdrawal({
+      dk: this.decryptionKey,
+      senderAddress: this.senderAddress,
+      tokenAddress: this.tokenAddress,
+      amount: this.amount,
+      oldBalanceC,
+      oldBalanceD,
+      newBalanceC,
+      newBalanceD,
+      newAmountChunks: this.senderEncryptedAvailableBalanceAfterWithdrawal.getAmountChunks(),
+      newRandomness: this.randomness,
+      auditorEncryptionKey,
+      newBalanceDAud,
+    });
   }
 
   async genRangeProof() {
@@ -128,16 +189,21 @@ export class ConfidentialWithdraw {
   async authorizeWithdrawal(): Promise<
     [
       {
-        sigmaProof: Uint8Array;
+        sigmaProof: SigmaProtocolProof;
         rangeProof: Uint8Array;
       },
       EncryptedAmount,
+      EncryptedAmount | undefined,
     ]
   > {
-    const sigmaProof = ConfidentialWithdraw.serializeSigmaProof();
+    const sigmaProof = this.genSigmaProof();
     const rangeProof = await this.genRangeProof();
 
-    return [{ sigmaProof, rangeProof }, this.senderEncryptedAvailableBalanceAfterWithdrawal];
+    return [
+      { sigmaProof, rangeProof },
+      this.senderEncryptedAvailableBalanceAfterWithdrawal,
+      this.auditorEncryptedBalanceAfterWithdrawal,
+    ];
   }
 
   static async verifyRangeProof(opts: {
