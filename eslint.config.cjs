@@ -17,7 +17,7 @@ module.exports = [
       "projects/**",
       // Examples use linked SDK which requires build to resolve imports
       "examples/**",
-      // Vitest config is not part of the src/tests TS project
+      // Vitest config is a tooling file and is excluded from linting
       "vitest.config.ts",
     ],
   },
