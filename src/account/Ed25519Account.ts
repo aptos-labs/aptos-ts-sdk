@@ -1,10 +1,11 @@
 import { AccountAuthenticatorEd25519 } from "../transactions/authenticator/account";
 import { HexInput, SigningScheme } from "../types";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "../core/crypto";
+import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature, Signature } from "../core/crypto";
 import type { Account } from "./Account";
 import { AnyRawTransaction } from "../transactions/types";
 import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
+import { AptosConfig } from "../api";
 
 /**
  * Arguments required to create an instance of an Ed25519 signer.
@@ -129,6 +130,30 @@ export class Ed25519Account implements Account {
    */
   verifySignature(args: VerifyEd25519SignatureArgs): boolean {
     return this.publicKey.verifySignature(args);
+  }
+
+  /**
+   * Verify the given message and signature with the public key.
+   *
+   * Ed25519 signatures do not depend on chain state, so this function is equivalent to the synchronous verifySignature method.
+   *
+   * @param args - The arguments for verifying the signature.
+   * @param args.aptosConfig - The configuration object for connecting to the Aptos network
+   * @param args.message - Raw message data in HexInput format.
+   * @param args.signature - Signed message signature.
+   * @returns A boolean indicating whether the signature is valid.
+   * @group Implementation
+   * @category Account (On-Chain Model)
+   */
+  async verifySignatureAsync(args: {
+    aptosConfig: AptosConfig;
+    message: HexInput;
+    signature: Signature;
+  }): Promise<boolean> {
+    return this.publicKey.verifySignatureAsync({
+      ...args,
+      signature: args.signature,
+    });
   }
 
   /**

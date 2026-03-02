@@ -279,11 +279,11 @@ export class General {
    * async function runExample() {
    *   // Querying the Aptos Indexer for ledger information
    *   const topUserTransactions = await aptos.queryIndexer({
-   *     query: `query MyQuery {
+   *     query: { query: `query MyQuery {
    *       ledger_infos {
    *         chain_id
    *       }
-   *     }`
+   *     }`}
    *   });
    *
    *   console.log(topUserTransactions);

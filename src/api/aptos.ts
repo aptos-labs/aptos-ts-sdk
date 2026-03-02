@@ -5,7 +5,6 @@ import { Account } from "./account";
 import { AptosConfig } from "./aptosConfig";
 import { Coin } from "./coin";
 import { DigitalAsset } from "./digitalAsset";
-import { Event } from "./event";
 import { Faucet } from "./faucet";
 import { FungibleAsset } from "./fungibleAsset";
 import { General } from "./general";
@@ -15,6 +14,7 @@ import { Transaction } from "./transaction";
 import { Table } from "./table";
 import { Keyless } from "./keyless";
 import { AptosObject } from "./object";
+import { AccountAbstraction } from "./account/abstraction";
 
 /**
  * The main entry point for interacting with the Aptos APIs,
@@ -51,8 +51,6 @@ export class Aptos {
   readonly coin: Coin;
 
   readonly digitalAsset: DigitalAsset;
-
-  readonly event: Event;
 
   readonly faucet: Faucet;
 
@@ -91,13 +89,13 @@ export class Aptos {
    * ```
    * @group Client
    */
-  constructor(settings?: AptosConfig) {
-    this.config = new AptosConfig(settings);
+  constructor(config?: AptosConfig) {
+    this.config = config ?? new AptosConfig();
     this.account = new Account(this.config);
+    this.abstraction = new AccountAbstraction(this.config);
     this.ans = new ANS(this.config);
     this.coin = new Coin(this.config);
     this.digitalAsset = new DigitalAsset(this.config);
-    this.event = new Event(this.config);
     this.faucet = new Faucet(this.config);
     this.fungibleAsset = new FungibleAsset(this.config);
     this.general = new General(this.config);
@@ -107,16 +105,20 @@ export class Aptos {
     this.keyless = new Keyless(this.config);
     this.object = new AptosObject(this.config);
   }
+
+  setIgnoreTransactionSubmitter(ignore: boolean) {
+    this.config.setIgnoreTransactionSubmitter(ignore);
+  }
 }
 
 // extends Aptos interface so all the methods and properties
 // from the other classes will be recognized by typescript.
 export interface Aptos
-  extends Account,
+  extends
+    Account,
     ANS,
     Coin,
     DigitalAsset,
-    Event,
     Faucet,
     FungibleAsset,
     General,
@@ -140,19 +142,24 @@ function applyMixin(targetClass: any, baseClass: any, baseClassProp: string) {
   Object.getOwnPropertyNames(baseClass.prototype).forEach((propertyName) => {
     const propertyDescriptor = Object.getOwnPropertyDescriptor(baseClass.prototype, propertyName);
     if (!propertyDescriptor) return;
-    // eslint-disable-next-line func-names
-    propertyDescriptor.value = function (...args: any) {
-      return (this as any)[baseClassProp][propertyName](...args);
-    };
-    Object.defineProperty(targetClass.prototype, propertyName, propertyDescriptor);
+
+    // Define new method that calls through baseClassProp
+    Object.defineProperty(targetClass.prototype, propertyName, {
+      value(...args: any[]) {
+        return (this as any)[baseClassProp][propertyName](...args);
+      },
+      writable: propertyDescriptor.writable,
+      configurable: propertyDescriptor.configurable,
+      enumerable: propertyDescriptor.enumerable,
+    });
   });
 }
 
 applyMixin(Aptos, Account, "account");
+applyMixin(Aptos, AccountAbstraction, "abstraction");
 applyMixin(Aptos, ANS, "ans");
 applyMixin(Aptos, Coin, "coin");
 applyMixin(Aptos, DigitalAsset, "digitalAsset");
-applyMixin(Aptos, Event, "event");
 applyMixin(Aptos, Faucet, "faucet");
 applyMixin(Aptos, FungibleAsset, "fungibleAsset");
 applyMixin(Aptos, General, "general");

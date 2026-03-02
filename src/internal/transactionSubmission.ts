@@ -7,13 +7,12 @@
  */
 
 import { AptosConfig } from "../api/aptosConfig";
-import { Deserializer, MoveVector, U8 } from "../bcs";
+import { Deserializer, MoveVector } from "../bcs";
 import { postAptosFullNode } from "../client";
 import { Account, AbstractKeylessAccount, isKeylessSigner } from "../account";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { FederatedKeylessPublicKey, KeylessPublicKey, KeylessSignature, PrivateKeyInput } from "../core/crypto";
+import { FederatedKeylessPublicKey, KeylessPublicKey, KeylessSignature } from "../core/crypto";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
-import { RotationProofChallenge } from "../transactions/instances/rotationProofChallenge";
 import {
   buildTransaction,
   generateTransactionPayload,
@@ -31,10 +30,10 @@ import {
   InputGenerateSingleSignerRawTransactionData,
   AnyTransactionPayloadInstance,
   EntryFunctionABI,
+  InputTransactionPluginData,
 } from "../transactions/types";
-import { getInfo } from "./account";
-import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput, TransactionResponse } from "../types";
-import { SignedTransaction, TypeTagU8, TypeTagVector, generateSigningMessageForTransaction } from "../transactions";
+import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput } from "../types";
+import { SignedTransaction, TypeTagVector, generateSigningMessageForTransaction } from "../transactions";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 import { MultiAgentTransaction } from "../transactions/instances/multiAgentTransaction";
 
@@ -301,6 +300,29 @@ export async function simulateTransaction(
     originMethod: "simulateTransaction",
     contentType: MimeType.BCS_SIGNED_TRANSACTION,
   });
+
+  // If the server's gas estimation produced a value below the network minimum,
+  // retry without estimation so the transaction's original max_gas_amount is used.
+  if (
+    args.options?.estimateMaxGasAmount &&
+    data.length > 0 &&
+    data[0].vm_status === "MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS"
+  ) {
+    const { data: retryData } = await postAptosFullNode<Uint8Array, Array<UserTransactionResponse>>({
+      aptosConfig,
+      body: signedTransaction,
+      path: "transactions/simulate",
+      params: {
+        estimate_gas_unit_price: args.options?.estimateGasUnitPrice ?? false,
+        estimate_max_gas_amount: false,
+        estimate_prioritized_gas_unit_price: args.options?.estimatePrioritizedGasUnitPrice ?? false,
+      },
+      originMethod: "simulateTransaction",
+      contentType: MimeType.BCS_SIGNED_TRANSACTION,
+    });
+    return retryData;
+  }
+
   return data;
 }
 
@@ -321,7 +343,12 @@ export async function submitTransaction(
     aptosConfig: AptosConfig;
   } & InputSubmitTransactionData,
 ): Promise<PendingTransactionResponse> {
-  const { aptosConfig } = args;
+  const { aptosConfig, transactionSubmitter } = args;
+  const maybeTransactionSubmitter =
+    transactionSubmitter === undefined ? aptosConfig.getTransactionSubmitter() : transactionSubmitter;
+  if (maybeTransactionSubmitter) {
+    return maybeTransactionSubmitter.submitTransaction(args);
+  }
   const signedTransaction = generateSignedTransaction({ ...args });
   try {
     const { data } = await postAptosFullNode<Uint8Array, PendingTransactionResponse>({
@@ -360,9 +387,9 @@ export async function signAndSubmitTransaction(
     aptosConfig: AptosConfig;
     signer: Account;
     transaction: AnyRawTransaction;
-  },
+  } & InputTransactionPluginData,
 ): Promise<PendingTransactionResponse> {
-  const { aptosConfig, signer, feePayer, transaction } = args;
+  const { aptosConfig, signer, feePayer, transaction, ...rest } = args;
   // If the signer contains a KeylessAccount, await proof fetching in case the proof
   // was fetched asynchronously.
   if (isKeylessSigner(signer)) {
@@ -380,16 +407,19 @@ export async function signAndSubmitTransaction(
     transaction,
     senderAuthenticator,
     feePayerAuthenticator,
+    ...rest,
   });
 }
 
-export async function signAndSubmitAsFeePayer(args: {
-  aptosConfig: AptosConfig;
-  feePayer: Account;
-  senderAuthenticator: AccountAuthenticator;
-  transaction: AnyRawTransaction;
-}): Promise<PendingTransactionResponse> {
-  const { aptosConfig, senderAuthenticator, feePayer, transaction } = args;
+export async function signAndSubmitAsFeePayer(
+  args: {
+    aptosConfig: AptosConfig;
+    feePayer: Account;
+    senderAuthenticator: AccountAuthenticator;
+    transaction: AnyRawTransaction;
+  } & InputTransactionPluginData,
+): Promise<PendingTransactionResponse> {
+  const { aptosConfig, senderAuthenticator, feePayer, transaction, ...rest } = args;
 
   if (isKeylessSigner(feePayer)) {
     await feePayer.checkKeylessAccountValidity(aptosConfig);
@@ -402,6 +432,7 @@ export async function signAndSubmitAsFeePayer(args: {
     transaction,
     senderAuthenticator,
     feePayerAuthenticator,
+    ...rest,
   });
 }
 
@@ -442,80 +473,5 @@ export async function publicPackageTransaction(args: {
       abi: packagePublishAbi,
     },
     options,
-  });
-}
-
-const rotateAuthKeyAbi: EntryFunctionABI = {
-  typeParameters: [],
-  parameters: [
-    new TypeTagU8(),
-    TypeTagVector.u8(),
-    new TypeTagU8(),
-    TypeTagVector.u8(),
-    TypeTagVector.u8(),
-    TypeTagVector.u8(),
-  ],
-};
-
-/**
- * Rotates the authentication key for a given account, allowing for enhanced security and management of account access.
- *
- * @param args - The arguments for rotating the authentication key.
- * @param args.aptosConfig - The configuration settings for the Aptos network.
- * @param args.fromAccount - The account from which the authentication key will be rotated.
- * @param args.toNewPrivateKey - The new private key that will be associated with the account.
- *
- * @remarks
- * This function requires the current authentication key and the new private key to sign a challenge that validates the rotation.
- *
- * TODO: Need to refactor and move this function out of transactionSubmission.
- * @group Implementation
- */
-export async function rotateAuthKey(args: {
-  aptosConfig: AptosConfig;
-  fromAccount: Account;
-  toNewPrivateKey: PrivateKeyInput;
-}): Promise<TransactionResponse> {
-  const { aptosConfig, fromAccount, toNewPrivateKey } = args;
-  const accountInfo = await getInfo({
-    aptosConfig,
-    accountAddress: fromAccount.accountAddress,
-  });
-
-  const newAccount = Account.fromPrivateKey({ privateKey: toNewPrivateKey, legacy: true });
-
-  const challenge = new RotationProofChallenge({
-    sequenceNumber: BigInt(accountInfo.sequence_number),
-    originator: fromAccount.accountAddress,
-    currentAuthKey: AccountAddress.from(accountInfo.authentication_key),
-    newPublicKey: newAccount.publicKey,
-  });
-
-  // Sign the challenge
-  const challengeHex = challenge.bcsToBytes();
-  const proofSignedByCurrentPrivateKey = fromAccount.sign(challengeHex);
-  const proofSignedByNewPrivateKey = newAccount.sign(challengeHex);
-
-  // Generate transaction
-  const rawTxn = await generateTransaction({
-    aptosConfig,
-    sender: fromAccount.accountAddress,
-    data: {
-      function: "0x1::account::rotate_authentication_key",
-      functionArguments: [
-        new U8(fromAccount.signingScheme), // from scheme
-        MoveVector.U8(fromAccount.publicKey.toUint8Array()),
-        new U8(newAccount.signingScheme), // to scheme
-        MoveVector.U8(newAccount.publicKey.toUint8Array()),
-        MoveVector.U8(proofSignedByCurrentPrivateKey.toUint8Array()),
-        MoveVector.U8(proofSignedByNewPrivateKey.toUint8Array()),
-      ],
-      abi: rotateAuthKeyAbi,
-    },
-  });
-  return signAndSubmitTransaction({
-    aptosConfig,
-    signer: fromAccount,
-    transaction: rawTxn,
   });
 }

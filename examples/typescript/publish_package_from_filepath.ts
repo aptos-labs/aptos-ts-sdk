@@ -1,5 +1,5 @@
 /**
- * This example demonstrate how we can use `aptos.publishPackageTransaction()` method to publish a move package
+ * This example demonstrates how we can use `aptos.publishPackageTransaction()` method to publish a move package
  * read from a local path.
  *
  * Before running this example, we should compile the package locally:
@@ -8,11 +8,14 @@
  * 3. Run `pnpm run publish_package_from_filepath` and follow the prompt
  */
 /* eslint-disable no-console */
-/* eslint-disable max-len */
+
+import dotenv from "dotenv";
 
 import assert from "assert";
 import { Account, Aptos, AptosConfig, Hex, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils";
+
+dotenv.config();
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 
@@ -30,9 +33,11 @@ async function main() {
 
   // Please ensure you have the aptos CLI installed
   console.log("\n=== Compiling the package locally ===");
-  compilePackage("move/facoin", "move/facoin/facoin.json", [{ name: "FACoin", address: alice.accountAddress }]);
+  compilePackage("move/facoin", "move/facoin/publish_payload.json", [
+    { name: "FACoin", address: alice.accountAddress },
+  ]);
 
-  const { metadataBytes, byteCode } = getPackageBytesToPublish("move/facoin/facoin.json");
+  const { metadataBytes, byteCode } = getPackageBytesToPublish("move/facoin/publish_payload.json");
 
   console.log("\n===Publishing FAcoin package===");
   const transaction = await aptos.publishPackageTransaction({
@@ -53,8 +58,8 @@ async function main() {
   const accountModules = await aptos.getAccountModules({
     accountAddress: alice.accountAddress,
   });
-  // published 2 modules
-  assert(accountModules.length === 3);
+  // published 4 modules
+  assert(accountModules.length === 4);
   // first account's module bytecode equals the published bytecode
   assert(accountModules[0].bytecode === `${Hex.fromHexInput(byteCode[0]).toString()}`);
   // second account's module bytecode equals the published bytecode

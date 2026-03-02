@@ -1,4 +1,4 @@
-import { Aptos, AptosConfig, Network, NetworkToNetworkName } from "../../src";
+import { Aptos, AptosConfig, AptosSettings, Network, NetworkToNetworkName } from "../../src";
 
 /**
  * Use this function whenever you want an Aptos client.
@@ -14,7 +14,7 @@ import { Aptos, AptosConfig, Network, NetworkToNetworkName } from "../../src";
  * APTOS_NETWORK=devnet and APTOS_NODE_API_URL=http://localhost:8080, it will use the
  * given URL for the node API and the default URLs for devnet for the other APIs.
  */
-export function getAptosClient(additionalConfig?: Partial<AptosConfig>): { aptos: Aptos; config: AptosConfig } {
+export function getAptosClient(additionalConfig?: AptosSettings): { aptos: Aptos; config: AptosConfig } {
   const networkRaw = process.env.APTOS_NETWORK;
   const network = networkRaw ? NetworkToNetworkName[networkRaw] : Network.LOCAL;
   if (!network) {

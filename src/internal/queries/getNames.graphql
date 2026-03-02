@@ -8,4 +8,9 @@ query getNames(
   current_aptos_names(limit: $limit, where: $where_condition, order_by: $order_by, offset: $offset) {
     ...AnsTokenFragment
   }
+  current_aptos_names_aggregate(where: $where_condition) {
+    aggregate {
+      count
+    }
+  }
 }

@@ -20,15 +20,16 @@ import {
   MultiKeySignature,
 } from "../../core/crypto";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
-import { getInfo } from "../../internal/account";
+import { getInfo } from "../../internal/utils";
 import { getLedgerInfo } from "../../internal/general";
 import { getGasPriceEstimation } from "../../internal/transaction";
 import { NetworkToChainId } from "../../utils/apiEndpoints";
-import { DEFAULT_MAX_GAS_AMOUNT, DEFAULT_TXN_EXP_SEC_FROM_NOW } from "../../utils/const";
+import { MIN_MAX_GAS_AMOUNT } from "../../utils/const";
 import { normalizeBundle } from "../../utils/normalizeBundle";
 import {
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
+  AccountAuthenticatorMultiEd25519,
   AccountAuthenticatorMultiKey,
   AccountAuthenticatorNoAccountAuthenticator,
   AccountAuthenticatorSingleKey,
@@ -38,6 +39,7 @@ import {
   TransactionAuthenticatorEd25519,
   TransactionAuthenticatorFeePayer,
   TransactionAuthenticatorMultiAgent,
+  TransactionAuthenticatorMultiEd25519,
   TransactionAuthenticatorSingleSender,
 } from "../authenticator/transaction";
 import {
@@ -49,6 +51,7 @@ import {
   MultiSigTransactionPayload,
   RawTransaction,
   Script,
+  TransactionInnerPayload,
   TransactionPayloadEntryFunction,
   TransactionPayloadMultiSig,
   TransactionPayloadScript,
@@ -77,9 +80,18 @@ import {
 } from "../types";
 import { convertArgument, fetchEntryFunctionAbi, fetchViewFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
-import { getFunctionParts, isScriptDataInput } from "./helpers";
+import { isScriptDataInput } from "./helpers";
 import { SimpleTransaction } from "../instances/simpleTransaction";
 import { MultiAgentTransaction } from "../instances/multiAgentTransaction";
+import { getFunctionParts } from "../../utils/helpers";
+import {
+  TransactionExecutable,
+  TransactionExecutableEmpty,
+  TransactionExecutableEntryFunction,
+  TransactionExecutableScript,
+  TransactionExtraConfigV1,
+  TransactionInnerPayloadV1,
+} from "../instances/transactionPayload";
 
 /**
  * Builds a transaction payload based on the provided arguments and returns a transaction payload.
@@ -190,7 +202,7 @@ export function generateTransactionPayloadWithABI(
   }
 
   // Check all BCS types, and convert any non-BCS types
-  const functionArguments: Array<EntryFunctionArgumentTypes> = args.functionArguments.map((arg, i) =>
+  const functionArguments: Array<EntryFunctionArgumentTypes> | undefined = args.functionArguments?.map((arg, i) =>
     /**
      * Converts the argument for a specified function using its ABI and type arguments.
      * This function helps ensure that the correct number of arguments is provided for the function call.
@@ -209,10 +221,9 @@ export function generateTransactionPayloadWithABI(
   );
 
   // Check that all arguments are accounted for
-  if (functionArguments.length !== functionAbi.parameters.length) {
+  if ((functionArguments?.length ?? 0) !== functionAbi.parameters.length) {
     throw new Error(
-      // eslint-disable-next-line max-len
-      `Too few arguments for '${moduleAddress}::${moduleName}::${functionName}', expected ${functionAbi.parameters.length} but got ${functionArguments.length}`,
+      `Too few arguments for '${moduleAddress}::${moduleName}::${functionName}', expected ${functionAbi.parameters.length} but got ${functionArguments?.length ?? 0}`,
     );
   }
 
@@ -221,7 +232,7 @@ export function generateTransactionPayloadWithABI(
     `${moduleAddress}::${moduleName}`,
     functionName,
     typeArguments,
-    functionArguments,
+    functionArguments ?? [],
   );
 
   // Send it as multi sig if it's a multisig payload
@@ -303,7 +314,6 @@ export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWi
   // Check that all arguments are accounted for
   if (functionArguments.length !== functionAbi.parameters.length) {
     throw new Error(
-      // eslint-disable-next-line max-len
       `Too few arguments for '${moduleAddress}::${moduleName}::${functionName}', expected ${functionAbi.parameters.length} but got ${functionArguments.length}`,
     );
   }
@@ -357,6 +367,10 @@ export async function generateRawTransaction(args: {
 }): Promise<RawTransaction> {
   const { aptosConfig, sender, payload, options, feePayerAddress } = args;
 
+  if (options?.replayProtectionNonce !== undefined && options?.accountSequenceNumber !== undefined) {
+    throw new Error("Cannot specify both replayProtectionNonce and accountSequenceNumber in options.");
+  }
+
   const getChainId = async () => {
     if (NetworkToChainId[aptosConfig.network]) {
       return { chainId: NetworkToChainId[aptosConfig.network] };
@@ -378,6 +392,11 @@ export async function generateRawTransaction(args: {
       if (options?.accountSequenceNumber !== undefined) {
         return options.accountSequenceNumber;
       }
+      if (options?.replayProtectionNonce !== undefined) {
+        // If replay nonce is provided, use it as the sequence number
+        // This is an unused value, so it's specifically to show that the sequence number is not used
+        return 0xdeadbeefn;
+      }
 
       return (await getInfo({ aptosConfig, accountAddress: sender })).sequence_number;
     };
@@ -394,7 +413,7 @@ export async function generateRawTransaction(args: {
       try {
         // Check if main signer has been created on chain, if not assign sequence number 0
         return await getSequenceNumber();
-      } catch (e: any) {
+      } catch {
         return 0;
       }
     } else {
@@ -407,21 +426,68 @@ export async function generateRawTransaction(args: {
     getSequenceNumberForAny(),
   ]);
 
-  const { maxGasAmount, gasUnitPrice, expireTimestamp } = {
-    maxGasAmount: options?.maxGasAmount ? BigInt(options.maxGasAmount) : BigInt(DEFAULT_MAX_GAS_AMOUNT),
+  const userMaxGas = options?.maxGasAmount
+    ? BigInt(options.maxGasAmount)
+    : BigInt(aptosConfig.getDefaultMaxGasAmount());
+  const { maxGasAmount, gasUnitPrice, expireTimestamp, replayProtectionNonce } = {
+    maxGasAmount: userMaxGas < BigInt(MIN_MAX_GAS_AMOUNT) ? BigInt(MIN_MAX_GAS_AMOUNT) : userMaxGas,
     gasUnitPrice: options?.gasUnitPrice ?? BigInt(gasEstimate),
-    expireTimestamp: options?.expireTimestamp ?? BigInt(Math.floor(Date.now() / 1000) + DEFAULT_TXN_EXP_SEC_FROM_NOW),
+    expireTimestamp:
+      options?.expireTimestamp ?? BigInt(Math.floor(Date.now() / 1000) + aptosConfig.getDefaultTxnExpirySecFromNow()),
+    replayProtectionNonce: options?.replayProtectionNonce ? BigInt(options.replayProtectionNonce) : undefined,
   };
+
+  // If we're using replay nonce, we must convert the original payload
+  let txnPayload = payload;
+  if (replayProtectionNonce !== undefined) {
+    txnPayload = convertPayloadToInnerPayload(payload, replayProtectionNonce);
+  }
 
   return new RawTransaction(
     AccountAddress.from(sender),
     BigInt(sequenceNumber),
-    payload,
+    txnPayload,
     BigInt(maxGasAmount),
     BigInt(gasUnitPrice),
     BigInt(expireTimestamp),
     new ChainId(chainId),
   );
+}
+
+export function convertPayloadToInnerPayload(
+  payload: AnyTransactionPayloadInstance,
+  replayProtectionNonce?: bigint,
+): TransactionInnerPayload {
+  if (payload instanceof TransactionPayloadScript) {
+    return new TransactionInnerPayloadV1(
+      new TransactionExecutableScript(payload.script),
+      new TransactionExtraConfigV1(undefined, replayProtectionNonce),
+    );
+  }
+  if (payload instanceof TransactionPayloadEntryFunction) {
+    return new TransactionInnerPayloadV1(
+      new TransactionExecutableEntryFunction(payload.entryFunction),
+      new TransactionExtraConfigV1(undefined, replayProtectionNonce),
+    );
+  }
+  if (payload instanceof TransactionPayloadMultiSig) {
+    const innerPayload = payload.multiSig.transaction_payload;
+    let executable: TransactionExecutable;
+    if (innerPayload === undefined || innerPayload?.transaction_payload === undefined) {
+      executable = new TransactionExecutableEmpty();
+    } else if (innerPayload.transaction_payload instanceof EntryFunction) {
+      executable = new TransactionExecutableEntryFunction(innerPayload.transaction_payload);
+    } else {
+      // TODO For now, scripts are not supported in multi-sig transactions, so it's always entry function
+      throw new Error("Scripts are not supported in multi-sig transactions.");
+    }
+
+    return new TransactionInnerPayloadV1(
+      executable,
+      new TransactionExtraConfigV1(payload.multiSig.multisig_address, replayProtectionNonce),
+    );
+  }
+  throw new Error(`Unsupported payload type: ${payload}`);
 }
 
 /**
@@ -635,7 +701,12 @@ export function getAuthenticatorForSimulation(publicKey?: PublicKey) {
     return new AccountAuthenticatorMultiKey(
       accountPublicKey,
       new MultiKeySignature({
-        signatures: accountPublicKey.publicKeys.map(() => new AnySignature(invalidSignature)),
+        signatures: accountPublicKey.publicKeys.map((pubKey) => {
+          if (KeylessPublicKey.isInstance(pubKey.publicKey) || FederatedKeylessPublicKey.isInstance(pubKey.publicKey)) {
+            return new AnySignature(KeylessSignature.getSimulationSignature());
+          }
+          return new AnySignature(invalidSignature);
+        }),
         bitmap: accountPublicKey.createBitmap({
           bits: Array(accountPublicKey.publicKeys.length)
             .fill(0)
@@ -696,6 +767,11 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
     );
   } else if (senderAuthenticator instanceof AccountAuthenticatorEd25519) {
     txnAuthenticator = new TransactionAuthenticatorEd25519(
+      senderAuthenticator.public_key,
+      senderAuthenticator.signature,
+    );
+  } else if (senderAuthenticator instanceof AccountAuthenticatorMultiEd25519) {
+    txnAuthenticator = new TransactionAuthenticatorMultiEd25519(
       senderAuthenticator.public_key,
       senderAuthenticator.signature,
     );

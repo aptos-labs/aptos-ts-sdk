@@ -1,5 +1,3 @@
-/* eslint-disable no-await-in-loop */
-
 import EventEmitter from "eventemitter3";
 import { AptosConfig } from "../../api/aptosConfig";
 import { Account } from "../../account";
@@ -10,6 +8,12 @@ import { InputGenerateTransactionOptions, InputGenerateTransactionPayloadData } 
 import { AccountSequenceNumber } from "./accountSequenceNumber";
 import { AsyncQueue, AsyncQueueCancelledError } from "./asyncQueue";
 import { SimpleTransaction } from "../instances/simpleTransaction";
+
+/**
+ * Maximum number of transactions to keep in the history arrays to prevent unbounded memory growth.
+ * When this limit is exceeded, the oldest entries are removed.
+ */
+const MAX_TRANSACTION_HISTORY_SIZE = 10000;
 
 /**
  * @group Implementation
@@ -124,18 +128,34 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
   outstandingTransactions = new AsyncQueue<[Promise<PendingTransactionResponse>, bigint]>();
 
   /**
-   * transactions that have been submitted to chain
+   * transactions that have been submitted to chain.
+   * Limited to MAX_TRANSACTION_HISTORY_SIZE entries to prevent unbounded memory growth.
    * @group Implementation
    * @category Transactions
    */
   sentTransactions: Array<[string, bigint, any]> = [];
 
   /**
-   * transactions that have been committed to chain
+   * transactions that have been committed to chain.
+   * Limited to MAX_TRANSACTION_HISTORY_SIZE entries to prevent unbounded memory growth.
    * @group Implementation
    * @category Transactions
    */
   executedTransactions: Array<[string, bigint, any]> = [];
+
+  /**
+   * Adds a transaction to the history array while enforcing the maximum size limit.
+   * Removes the oldest entries when the limit is exceeded.
+   * @private
+   */
+  private addToTransactionHistory(history: Array<[string, bigint, any]>, entry: [string, bigint, any]): void {
+    history.push(entry);
+    // Remove oldest entries if we exceed the limit (remove ~10% when triggered)
+    if (history.length > MAX_TRANSACTION_HISTORY_SIZE) {
+      const removeCount = Math.ceil(MAX_TRANSACTION_HISTORY_SIZE * 0.1);
+      history.splice(0, removeCount);
+    }
+  }
 
   /**
    * Initializes a new instance of the class, providing a framework for receiving payloads to be processed.
@@ -181,7 +201,6 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    */
   async submitNextTransaction() {
     try {
-      /* eslint-disable no-constant-condition */
       while (true) {
         const sequenceNumber = await this.accountSequnceNumber.nextSequenceNumber();
         if (sequenceNumber === null) return;
@@ -217,7 +236,6 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    */
   async processTransactions() {
     try {
-      /* eslint-disable no-constant-condition */
       while (true) {
         const awaitingTransactions = [];
         const sequenceNumbers = [];
@@ -240,7 +258,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
           sequenceNumber = sequenceNumbers[i];
           if (sentTransaction.status === promiseFulfilledStatus) {
             // transaction sent to chain
-            this.sentTransactions.push([sentTransaction.value.hash, sequenceNumber, null]);
+            this.addToTransactionHistory(this.sentTransactions, [sentTransaction.value.hash, sequenceNumber, null]);
             // check sent transaction execution
             this.emit(TransactionWorkerEventsEnum.TransactionSent, {
               message: `transaction hash ${sentTransaction.value.hash} has been committed to chain`,
@@ -249,7 +267,11 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
             await this.checkTransaction(sentTransaction, sequenceNumber);
           } else {
             // send transaction failed
-            this.sentTransactions.push([sentTransaction.status, sequenceNumber, sentTransaction.reason]);
+            this.addToTransactionHistory(this.sentTransactions, [
+              sentTransaction.status,
+              sequenceNumber,
+              sentTransaction.reason,
+            ]);
             this.emit(TransactionWorkerEventsEnum.TransactionSendFailed, {
               message: `failed to commit transaction ${this.sentTransactions.length} with error ${sentTransaction.reason}`,
               error: sentTransaction.reason,
@@ -285,14 +307,22 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
         const executedTransaction = sentTransactions[i];
         if (executedTransaction.status === promiseFulfilledStatus) {
           // transaction executed to chain
-          this.executedTransactions.push([executedTransaction.value.hash, sequenceNumber, null]);
+          this.addToTransactionHistory(this.executedTransactions, [
+            executedTransaction.value.hash,
+            sequenceNumber,
+            null,
+          ]);
           this.emit(TransactionWorkerEventsEnum.TransactionExecuted, {
             message: `transaction hash ${executedTransaction.value.hash} has been executed on chain`,
             transactionHash: sentTransaction.value.hash,
           });
         } else {
           // transaction execution failed
-          this.executedTransactions.push([executedTransaction.status, sequenceNumber, executedTransaction.reason]);
+          this.addToTransactionHistory(this.executedTransactions, [
+            executedTransaction.status,
+            sequenceNumber,
+            executedTransaction.reason,
+          ]);
           this.emit(TransactionWorkerEventsEnum.TransactionExecutionFailed, {
             message: `failed to execute transaction ${this.executedTransactions.length} with error ${executedTransaction.reason}`,
             error: executedTransaction.reason,
@@ -340,7 +370,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
       aptosConfig: this.aptosConfig,
       sender: account.accountAddress,
       data: transactionData,
-      options: { ...options, accountSequenceNumber: sequenceNumber },
+      options: { ...options, accountSequenceNumber: sequenceNumber, replayProtectionNonce: undefined },
     });
   }
 

@@ -3,13 +3,235 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
-
+- Remove usage of Buffer.from and replace with TextEncoder or js-base64 for greater compatibility
 - Log the Move command if `showStdout` is set to true
+
+## Changed
+
+- Migrate test framework from Jest to Vitest for the main SDK and confidential-assets packages
+  - Replace `jest`/`ts-jest`/`@types/jest` with `vitest`/`@vitest/coverage-v8`
+  - Migrate all Jest-specific APIs (`jest.fn`, `jest.mock`, `jest.spyOn`, etc.) to Vitest equivalents (`vi.fn`, `vi.mock`, `vi.spyOn`, etc.)
+  - Convert globalSetup/globalTeardown from CJS to TypeScript
+  - Update test commands: `pnpm test` now uses `vitest run`
+
+# 6.1.0 (2026-02-25)
+
+## Added
+
+- Add JWK caching for keyless authentication with 5-minute TTL to improve performance
+- Add `clearMemoizeCache()` utility function for clearing the memoization cache
+- Add Bun runtime detection with `isBun()` utility function
+- Add warning at `AptosConfig` construction time when running in Bun without explicitly disabling HTTP/2 (Bun does not fully support HTTP/2, which is enabled by default)
+- Add Bun runtime CI tests to verify SDK compatibility with Bun
+- Add Deno runtime CI tests to verify SDK compatibility with Deno
+- Add web environment CI tests using Vitest + jsdom to verify browser compatibility
+
+## Changed
+
+- Merge CLAUDE.md and AGENTS.md content, keeping both files with comprehensive AI agent guidance
+- Add upgrade guide requirement for breaking changes to AI agent documentation
+- Exclude `examples/` from ESLint in CI to avoid build dependency issues
+
+## Fixed
+
+- Fix security vulnerabilities in examples/ dependencies:
+  - Replace unmaintained `npm-run-all` with `npm-run-all2` in all examples (fixes HIGH minimatch ReDoS)
+  - Update `superagent` to 10.3.0 in typescript example (fixes HIGH qs DoS vulnerabilities)
+  - Update `tsup` to 8.5.1 and override `sucrase` to >=3.35.1 in typescript-esm example (fixes HIGH glob command injection)
+  - Override `diff` to >=4.0.4 in typescript-esm example (fixes LOW jsdiff DoS vulnerability)
+- Fix gas estimation regression where simulations with `estimateMaxGasAmount: true` could fail with `MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS` when the server's gas estimate fell below the network minimum. The SDK now retries without estimation in this case, using the transaction's original max gas amount ([#827](https://github.com/aptos-labs/aptos-ts-sdk/issues/827))
+- Enforce a minimum max gas amount (`MIN_MAX_GAS_AMOUNT = 2000`) when building transactions to prevent user-provided values from falling below the network's minimum transaction gas units
+- Remove `cdn_asset_uris` field from `getCollectionData` GraphQL query to fix compatibility with local testnet indexer which does not have this field
+- Fix security vulnerabilities in transitive dependencies via pnpm overrides:
+  - HIGH: `glob` command injection (override `sucrase` to 3.35.1)
+  - MODERATE: `lodash` prototype pollution (override to 4.17.23)
+  - MODERATE: `js-yaml` prototype pollution (override to 4.1.1)
+  - LOW: `diff` DoS vulnerability (override to 4.0.4)
+- Fix keyless e2e tests by clearing memoize cache before JWK installation to ensure fresh lookups
+- Fix memoize test cache keys to meet minimum length requirement
+- Fix HD key test to use bracket notation for accessing private methods
+- Correct eslint-disable rule name from `@typescript-eslint/dot-notation` to `dot-notation`
+
+# 6.0.0 (2026-01-29)
+
+> **Upgrade Guide**: See [UPGRADE_GUIDE_6.0.0.md](./upgrade-guides/UPGRADE_GUIDE_6.0.0.md) for detailed migration instructions.
+
+## Breaking Changes
+
+- [ANS] Refactor ANS API return types: `GetANSNameResponse` array type replaced with structured return objects `{ names: AnsName[]; total: number }` for methods `getAccountNames()`, `getAccountDomains()`, `getAccountSubdomains()`, and `getDomainSubdomains()`
+- [ANS] Replace `isActiveANSName()` boolean function with `getANSExpirationStatus()` which returns `ExpirationStatus` enum (Active, InGracePeriod, Expired) for more granular expiration status handling
+- [ANS] `getName()` now returns `AnsName | undefined` instead of `GetANSNameResponse[0] | undefined`
+- [ANS] Transaction-generating functions (`setTargetAddress`, `clearTargetAddress`, `setPrimaryName`, `registerName`, `renewDomain`) now return `{ transaction: SimpleTransaction; data: InputEntryFunctionData }` instead of just `SimpleTransaction` to support wallet adapter compatibility
+- [ANS] Transaction-generating functions now accept `sender: AccountAddressInput` instead of `sender: Account`, allowing more flexible input types (Account, AccountAddress, or string)
+
+## Added
+
+- Add `is_enum` field to `MoveStruct`.
+- Make `functionArguments` optional in entry function transactions
+- [ANS] Add `clearTargetAddress()` method to public ANS API for clearing target address associations
+- [ANS] Add `ExpirationStatus` enum with values: `Active`, `InGracePeriod`, and `Expired` for better expiration status tracking
+- [ANS] Add grace period support for ANS name expiration, allowing names to remain claimable by current owner during grace period
+- [ANS] Add `AnsName` interface extending `RawANSName` with enhanced fields:
+  - `expiration_status`: The current expiration status of the name
+  - `isInRenewablePeriod`: Whether the name is in the renewable period (includes leading time and grace period)
+- [ANS] Add `SubdomainExpirationPolicy` enum exported from types (moved from internal implementation)
+- [ANS] Add `AnsTokenStandard` type for tracking token standard version (v1/v2)
+
+# 5.2.1 (2026-01-12)
+
+- Fix signed integer type parsing support (i8, i16, i32, i64, i128, i256) in transaction arguments
+
+# 5.2.0 (2025-12-10)
+
+- Add `http2` as an optional parameter in `ClientConfig`
+
+# 5.1.6 (2025-12-06)
+
+- Remove orphaned `Event` mixin that was left over after the Indexer API event queries were removed in 4.0.0
+
+# 5.1.5 (2025-11-21)
+
+- Fix `getMultiKeysForPublicKey` to only return accounts that have a non-null account public key.
+
+# 5.1.4 (2025-11-13)
+
+- Add serialization for signed integers
+
+# 5.1.3 (2025-11-13)
+
+- Add signed integers
+
+# 5.1.2 (2025-11-11)
+
+- Remove unused dependency `form-data`
+- Add `createUserDerivedObjectAddress` function for creating user-derived object addresses from source and derive_from addresses
+- Add support for passing extra CLI arguments to `LocalNode` via the `extraArgs` constructor parameter
+- Update the default keyless endpoints for shelbynet config
+- Add `netna` network to `apiEndpoints.ts` and ANS configuration
+
+# 5.1.1 (2025-9-23)
+
+- Add `shelbynet` to `apiEndpoints.ts`
+
+# 5.1.0 (2025-9-23)
+
+- Add `Secp256r1 (P-256)` cryptographic support for `WebAuthn authentication`, including `Secp256r1PublicKey`, `Secp256r1PrivateKey`, and `WebAuthnSignature` classes with full BCS serialization support
+- Add `getBalance` method for retrieving account balance by coin type or FA metadata address
+- [`Deprecation`] Deprecate `getAccountCoinAmount` method in favor of the new `getBalance` API
+
+# 5.0.0 (2025-09-15)
+
+- Update dev dependencies for the SDK
+- [`Fix`] Changes `.at(0)` to `[0]` syntax for output of a view function
+- [`Breaking`] Updates the `rotateAuthKey` to return a `SimpleTransaction`. Additionally, it no longer will accept the `toAuthKey` parameter and `toAccount` will only accept `Ed25519Account` and `MultiEd25519Account`. Thus any key rotations using `rotateAuthKey` will be verified and indexed, thus accessible via the `getAccountsForPublicKey` and `deriveOwnedAccountsFromSigner`functions.
+- Adds a `rotateAuthKeyUnverified` function to support key rotations for auth schemes using the single signer/multi-key account signing scheme. It will generate a `SimpleTransaction` calling the `rotate_authentication_key_from_public_key` entry function. Accounts using `rotateAuthKeyUnverified` are accessible via the `getAccountsForPublicKey` and `deriveOwnedAccountsFromSigner` with `includeUnverified` set to `true`
+- [`Breaking`] Update AA and DAA signing message and renaming for
+- [`Breaking`] Remove `minimumLedgerVersion` property from `getAccountCoinAmount` as it is not used anymore
+
+# 4.0.0 (2025-07-31)
+
+- Remove Indexer API event queries. To migrate your events queries, follow the details in https://aptoslabs.notion.site/Indexer-Feature-Updates-Events-v1-table-deprecation-and-end-of-support-July-1st-1ec8b846eb7280ffa042c0d3d7f45633?source=copy_link.
+
+# 3.1.3 (2025-07-08)
+
+- Add a warning to Indexer API events queries that the endpoint will be deprecated by the end of July. To migrate your events queries, follow the details in https://aptoslabs.notion.site/Indexer-Feature-Updates-Events-v1-table-deprecation-and-end-of-support-July-1st-1ec8b846eb7280ffa042c0d3d7f45633?source=copy_link.
+
+# 3.1.2 (2025-07-01)
+
+- Support `Uint8Array` for parsing `AccountAddress` with remote ABI
+
+# 3.1.1 (2025-07-01)
+
+- Skip `validateFeePayerDataOnSubmission` if a custom txn submitter is provided.
+
+# 3.1.0 (2025-06-30)
+
+- Add account derivation APIs, `getAccountsForPublicKey` and `deriveOwnedAccountsFromSigner` which handle multi-key accounts and key rotations
+- Update the deprecated function deriveAccountFromPrivateKey to use the new account derivation API
+
+# 3.0.0 (2025-06-26)
+
+- Make the default max gas amount and exipry time from now values for transaction generation configurable.
+- Adds restriction on construction of a `MultiKey`s with more than 3 Keyless public keys when signature threshold is more than 3 as well. The limit on the number of keyless signatures is 3 so to prevent sending funds to accounts that are not accessible we add this safeguard.
+- Adds support for `OrderlessTransactions` which allow for submitting transactions with a nonce rather than a sequence number.
+- [`Breaking`] Change possible inputs to the `InputGenerateTransactionOptions` to include orderless
+- Adds support for setting a transaction submission plugin to override the default transaction submission behavior, e.g. to use a gas station instead.
+
+# 2.0.1 (2025-05-21)
+
+- Adds `deserializePublicKey` and `deserializeSignature` which takes in `HexInput` and will try all possible ways to deserialize so callers no longer need to derive a proper type before deserializing.
+
+# 2.0.0 (2025-05-06)
+
+- Remove `scriptComposer` api due to increase in the sdk bundle size, If you wish to continue using it, please use version 1.39.0: [https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.39.0](https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.39.0)
+- [`Breaking`] Ed25519 and Secp256k1 private keys will now default to the AIP-80 format when calling `toString()`.
+- [`Breaking`] Custom networks now need to set the `network` field in the client config to the correct network type. This is needed to reduce network calls.
+- Add info message if using `CUSTOM` network
+- Update `@aptos-labs/aptos-client` to version `2.0.0`
+
+# 1.39.0 (2025-05-05)
+
+- Add a `transferFungibleAssetBetweenStores` function to transfer Fungible Assets between any (primary or secondary) fungible stores.
+- Include an example file `transfer_between_fungible_stores.ts` which uses a new example Move module `secondary_store.move`.
+- Define the return type for `toUint8Array()` in the `SingleKey.ts` file to not break `tsc` build
+- Fix `deriveAccountFromPrivateKey` to use the "legacy" derivation path for Ed25519 keys first.
+- Deprecate `deriveAccountFromPrivateKey` as more inspection is needed from the user to determine the correct address.
+- Fix internal and example tests in regards to the change to zero state accounts
+
+# 1.38.0 (2025-04-02)
+
+- Adds and default implementation of `verifySignatureAsync` to `PublicKey`.
+- Implement derivable abstracted account
+- Fix: Reverts experimental binary view functions, which caused `Buffer is undefined` errors in browsers.
+
+# 1.37.1 (2025-03-24)
+
+- Upgrade min versions of @noble/curves and @noble/hashes to 1.6.0 and 1.5.0 respectively as they are required to use keyless signature verification.
+
+# 1.37.0 (2025-03-24)
+
+- Upgrade tsup to v8.4.0
+- Export the `crypto/abstraction.ts` file that includes the `AbstractSignature` and `AbstractPublicKey` classes.
+- Adds `verifySignatureAsync` to support signature verification that requires fetching chain state.
+- Adds support for keyless signature verification.
+- Implements signature verification for MultiKey.
+- Override @babel/runtime and @babel/helpers to use an updated version
+- Fix pagination of AccountResources and AccountModules
+- Add API for `getResourcesPage` and `getModulesPage` to support manual pagination
+- Added `pairedFaMetadataAddress` function to calculate the paired fungible asset metadata address for a given coin type, with enhanced support for various address formats (short form, long form, with leading zeros)
+
+# 1.36.0 (2025-03-14)
+
+- Upgrade rotateAuthKey API to allow for unverified auth key rotations.
+- Upgrade rotateAuthKey API to support Account types other than Ed25519.
+- Update simulation for MultiKeyAccount to use signatures of the same type as the corresponding public key.
+- Add `truncateAddress` helper function to truncate an address at the middle with an ellipsis.
+- Fix scriptComposer addBatchedCalls more typeArguments error
+- Add support for skipping struct type tag validation.
+- Add support for known enum structs: DelegationKey and RateLimiter.
+- Deprecated `fetchMoveFunctionAbi` and `convertCallArgument`
+- Bump `aptos-client` to 1.1.0
+
+# 1.35.0 (2025-02-11)
+
+- Add `MultiEd25519Account` to support the legacy MultiEd25519 authentication scheme.
+
+# 1.34.0 (2025-02-06)
+
+- Add new `scriptComposer` api in `transactionSubmission` api to allow SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.
+- Add support for vectors as string as a valid argument
+- Add `AbstractedAccount` class to support account abstraction with custom signers.
+- Add `aptos.abstraction` namespace to support account abstraction APIs. Notable functions are: `isAccountAbstractionEnabled`, `enableAccountAbstractionTransaction`, and `disableAccountAbstractionTransaction`.
+
+# 1.33.2 (2025-01-22)
+
+- [`Fix`] Fixes pagination for GetAccountModules and GetAccountResources. Also, adds more appropriate documentation on offset.
 - node now no longer supports older than v20
 - overriding cross spawn for patch
 - Add `AccountUtils` class to help with account serialization and deserialization
 - Add `SingleKeySigner` interface which adds the ability to get the `AnyPublicKey` from a `SingleKeyAccount`
 - We now throw an error earlier when you try to use the faucet with testnet or mainnet, rather than letting the call happen and then fail later.
+- Fix the keyless end-to-end test to properly wait for the account to be funded
 
 # 1.33.1 (2024-11-28)
 
@@ -26,7 +248,6 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # 1.32.1 (2024-11-11)
 
 - Add support for Firebase issuers in the `updateFederatedKeylessJwkSetTransaction` function
-- [`Breaking`] Revert new `scriptComposer` api in transactionSubmission api to allow SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.
 
 # 1.32.0 (2024-11-08)
 
@@ -345,7 +566,6 @@ Release Stable version `1.0.0`
 ## 0.0.7 (2023-11-16)
 
 - Adds additional ANS APIs
-
   - Transactions
     - setPrimaryName
     - setTargetAddress

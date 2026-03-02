@@ -111,7 +111,6 @@ export class AccountSequenceNumber {
    * @category Transactions
    */
   async nextSequenceNumber(): Promise<bigint | null> {
-    /* eslint-disable no-await-in-loop */
     while (this.lock) {
       await sleep(this.sleepTime);
     }
@@ -195,7 +194,6 @@ export class AccountSequenceNumber {
   async synchronize(): Promise<void> {
     if (this.lastUncommintedNumber === this.currentNumber) return;
 
-    /* eslint-disable no-await-in-loop */
     while (this.lock) {
       await sleep(this.sleepTime);
     }

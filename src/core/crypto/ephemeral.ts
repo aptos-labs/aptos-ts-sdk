@@ -4,6 +4,7 @@ import { PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
 import { Hex } from "../hex";
+import { AptosConfig } from "../../api";
 
 /**
  * Represents ephemeral public keys for Aptos Keyless accounts.
@@ -62,6 +63,14 @@ export class EphemeralPublicKey extends PublicKey {
   verifySignature(args: { message: HexInput; signature: EphemeralSignature }): boolean {
     const { message, signature } = args;
     return this.publicKey.verifySignature({ message, signature: signature.signature });
+  }
+
+  async verifySignatureAsync(args: {
+    aptosConfig: AptosConfig;
+    message: HexInput;
+    signature: EphemeralSignature;
+  }): Promise<boolean> {
+    return this.verifySignature(args);
   }
 
   /**

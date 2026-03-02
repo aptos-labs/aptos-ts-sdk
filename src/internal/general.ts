@@ -15,9 +15,19 @@ import { GetChainTopUserTransactionsResponse, GetProcessorStatusResponse, Graphq
 import { GetChainTopUserTransactionsQuery, GetProcessorStatusQuery } from "../types/generated/operations";
 import { GetChainTopUserTransactions, GetProcessorStatus } from "../types/generated/queries";
 import { ProcessorType } from "../utils/const";
+import { memoizeAsync } from "../utils/memoize";
+
+/**
+ * Cache TTL for ledger info in milliseconds (10 seconds).
+ * Ledger info changes frequently but we can cache briefly to reduce redundant calls
+ * when building multiple transactions in quick succession.
+ */
+const LEDGER_INFO_CACHE_TTL_MS = 10 * 1000;
 
 /**
  * Retrieves information about the current ledger.
+ * Results are cached for 10 seconds to reduce redundant network calls during
+ * rapid transaction building.
  *
  * @param args - The arguments for retrieving ledger information.
  * @param args.aptosConfig - The configuration object for connecting to the Aptos network.
@@ -25,12 +35,20 @@ import { ProcessorType } from "../utils/const";
  */
 export async function getLedgerInfo(args: { aptosConfig: AptosConfig }): Promise<LedgerInfo> {
   const { aptosConfig } = args;
-  const { data } = await getAptosFullNode<{}, LedgerInfo>({
-    aptosConfig,
-    originMethod: "getLedgerInfo",
-    path: "",
-  });
-  return data;
+  const cacheKey = `ledger-info-${aptosConfig.network}`;
+
+  return memoizeAsync(
+    async () => {
+      const { data } = await getAptosFullNode<{}, LedgerInfo>({
+        aptosConfig,
+        originMethod: "getLedgerInfo",
+        path: "",
+      });
+      return data;
+    },
+    cacheKey,
+    LEDGER_INFO_CACHE_TTL_MS,
+  )();
 }
 
 /**

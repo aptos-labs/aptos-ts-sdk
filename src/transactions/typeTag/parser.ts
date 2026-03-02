@@ -16,6 +16,12 @@ import {
   TypeTagU32,
   TypeTagU64,
   TypeTagU8,
+  TypeTagI8,
+  TypeTagI16,
+  TypeTagI32,
+  TypeTagI64,
+  TypeTagI128,
+  TypeTagI256,
   TypeTagVector,
 } from ".";
 import { AccountAddress } from "../../core";
@@ -79,6 +85,12 @@ function isPrimitive(str: string) {
     case "u64":
     case "u128":
     case "u256":
+    case "i8":
+    case "i16":
+    case "i32":
+    case "i64":
+    case "i128":
+    case "i256":
       return true;
     default:
       return false;
@@ -287,7 +299,6 @@ export function parseTypeTag(typeStr: string, options?: { allowGenerics?: boolea
         throw new TypeTagParserError(typeStr, TypeTagParserErrorType.UnexpectedWhitespaceCharacter);
       }
 
-      // eslint-disable-next-line no-continue
       continue;
     } else {
       // Any other characters just append to the current string
@@ -354,6 +365,18 @@ function parseTypeTagInner(str: string, types: Array<TypeTag>, allowGenerics: bo
       return new TypeTagU128();
     case "u256":
       return new TypeTagU256();
+    case "i8":
+      return new TypeTagI8();
+    case "i16":
+      return new TypeTagI16();
+    case "i32":
+      return new TypeTagI32();
+    case "i64":
+      return new TypeTagI64();
+    case "i128":
+      return new TypeTagI128();
+    case "i256":
+      return new TypeTagI256();
     case "vector":
       if (types.length !== 1) {
         throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedVectorTypeArgumentCount);
@@ -391,7 +414,7 @@ function parseTypeTagInner(str: string, types: Array<TypeTag>, allowGenerics: bo
       let address: AccountAddress;
       try {
         address = AccountAddress.fromString(structParts[0]);
-      } catch (error: any) {
+      } catch {
         throw new TypeTagParserError(str, TypeTagParserErrorType.InvalidAddress);
       }
 

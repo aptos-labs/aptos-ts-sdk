@@ -1,8 +1,52 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { decode } from "js-base64";
-import { MoveStructId } from "../types";
+import { Base64, decode } from "js-base64";
+import { MoveFunctionId, MoveStructId } from "../types";
+import { AccountAddress } from "../core/accountAddress";
+import { createObjectAddress } from "../core/account/utils/address";
+
+/**
+ * Checks if the current runtime environment is Bun.
+ * This is useful for detecting Bun-specific compatibility issues.
+ *
+ * @returns true if running in Bun, false otherwise.
+ * @group Implementation
+ * @category Utils
+ */
+export function isBun(): boolean {
+  try {
+    // Bun exposes a global `Bun` object.
+    return typeof globalThis !== "undefined" && "Bun" in globalThis;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Logs a warning message to the console only in development environments.
+ * This function helps reduce information leakage in production while maintaining
+ * helpful warnings during development.
+ *
+ * @param message - The warning message to log.
+ * @group Implementation
+ * @category Utils
+ */
+export function warnIfDevelopment(message: string): void {
+  // Check common environment variables to determine if we're in development
+  // This works in Node.js, bundlers like webpack/vite, and most build systems
+  const isDevelopment =
+    typeof process !== "undefined" &&
+    process.env &&
+    (process.env.NODE_ENV === "development" ||
+      process.env.NODE_ENV === "test" ||
+      process.env.APTOS_SDK_WARNINGS === "true");
+
+  if (isDevelopment) {
+    // eslint-disable-next-line no-console
+    console.warn(message);
+  }
+}
 
 /**
  * Sleep for the specified amount of time in milliseconds.
@@ -69,6 +113,17 @@ export function base64UrlDecode(base64Url: string): string {
   const paddedBase64 = base64 + "==".substring(0, (3 - (base64.length % 3)) % 3);
   const decodedString = decode(paddedBase64);
   return decodedString;
+}
+
+export function base64UrlToBytes(base64Url: string): Uint8Array {
+  // Convert Base64Url to Base64
+  let base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  // Add padding if needed
+  while (base64.length % 4 !== 0) {
+    base64 += "=";
+  }
+  // Use js-base64 to convert base64 to Uint8Array
+  return Base64.toUint8Array(base64);
 }
 
 /**
@@ -141,7 +196,6 @@ export const parseEncodedStruct = (structObj: {
   module_name: string;
   struct_name: string;
 }): MoveStructId => {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   const { account_address, module_name, struct_name } = structObj;
   const moduleName = hexToAscii(module_name);
   const structName = hexToAscii(struct_name);
@@ -175,3 +229,99 @@ export const isEncodedStruct = (
   typeof structObj.account_address === "string" &&
   typeof structObj.module_name === "string" &&
   typeof structObj.struct_name === "string";
+
+/**
+ * Splits a function identifier into its constituent parts: module address, module name, and function name.
+ * This function helps in validating and extracting details from a function identifier string.
+ *
+ * @param functionArg - The function identifier string in the format "moduleAddress::moduleName::functionName".
+ * @returns An object containing the module address, module name, and function name.
+ * @throws Error if the function identifier does not contain exactly three parts.
+ * @group Implementation
+ * @category Transactions
+ */
+export function getFunctionParts(functionArg: MoveFunctionId) {
+  const funcNameParts = functionArg.split("::");
+  if (funcNameParts.length !== 3) {
+    throw new Error(`Invalid function ${functionArg}`);
+  }
+  const moduleAddress = funcNameParts[0];
+  const moduleName = funcNameParts[1];
+  const functionName = funcNameParts[2];
+  return { moduleAddress, moduleName, functionName };
+}
+
+/**
+ * Validates the provided function information.
+ *
+ * @param functionInfo - The function information to validate.
+ * @returns Whether the function information is valid.
+ * @group Implementation
+ * @category Utils
+ */
+export function isValidFunctionInfo(functionInfo: string): boolean {
+  const parts = functionInfo.split("::");
+  return parts.length === 3 && AccountAddress.isValid({ input: parts[0] }).valid;
+}
+
+/**
+ * Truncates the provided wallet address at the middle with an ellipsis.
+ *
+ * @param address - The wallet address to truncate.
+ * @param start - The number of characters to show at the beginning of the address.
+ * @param end - The number of characters to show at the end of the address.
+ * @returns The truncated address.
+ * @group Implementation
+ * @category Utils
+ */
+export function truncateAddress(address: string, start: number = 6, end: number = 5) {
+  return `${address.slice(0, start)}...${address.slice(-end)}`;
+}
+
+/**
+ * Constants for metadata address calculation
+ */
+const APTOS_COIN_TYPE_STR = "0x1::aptos_coin::AptosCoin";
+
+/**
+ * Helper function to standardize Move type string by converting all addresses to short form,
+ * including addresses within nested type parameters
+ */
+function standardizeMoveTypeString(input: string): string {
+  // Regular expression to match addresses in the type string, including those within type parameters
+  // This regex matches "0x" followed by hex digits, handling both standalone addresses and those within <>
+  const addressRegex = /0x[0-9a-fA-F]+/g;
+
+  return input.replace(addressRegex, (match) =>
+    // Use AccountAddress to handle the address
+    AccountAddress.from(match, { maxMissingChars: 63 }).toStringShort(),
+  );
+}
+
+/**
+ * Calculates the paired FA metadata address for a given coin type.
+ * This function is tolerant of various address formats in the coin type string,
+ * including complex nested types.
+ *
+ * @example
+ * // All these formats are valid and will produce the same result:
+ * pairedFaMetadataAddress("0x1::aptos_coin::AptosCoin")  // simple form
+ * pairedFaMetadataAddress("0x0000000000000000000000000000000000000000000000000000000000000001::aptos_coin::AptosCoin")  // long form
+ * pairedFaMetadataAddress("0x00001::aptos_coin::AptosCoin")  // with leading zeros
+ * pairedFaMetadataAddress("0x1::coin::Coin<0x1412::a::struct<0x0001::aptos_coin::AptosCoin>>")  // nested type parameters
+ *
+ * @param coinType - The coin type string in any of these formats:
+ *   - Short form address: "0x1::aptos_coin::AptosCoin"
+ *   - Long form address: "0x0000000000000000000000000000000000000000000000000000000000000001::aptos_coin::AptosCoin"
+ *   - With leading zeros: "0x00001::aptos_coin::AptosCoin"
+ *   - With nested types: "0x1::coin::Coin<0x1412::a::struct<0x0001::aptos_coin::AptosCoin>>"
+ * @returns The calculated metadata address as an AccountAddress instance
+ */
+export function pairedFaMetadataAddress(coinType: `0x${string}::${string}::${string}`): AccountAddress {
+  // Standardize the coin type string to handle any address format
+  const standardizedMoveTypeName = standardizeMoveTypeString(coinType);
+
+  return standardizedMoveTypeName === APTOS_COIN_TYPE_STR
+    ? AccountAddress.A
+    : createObjectAddress(AccountAddress.A, standardizedMoveTypeName);
+}

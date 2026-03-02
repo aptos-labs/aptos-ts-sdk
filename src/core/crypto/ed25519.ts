@@ -9,7 +9,7 @@ import { Hex } from "../hex";
 import { HexInput, SigningScheme as AuthenticationKeyScheme, PrivateKeyVariants } from "../../types";
 import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey";
 import { PrivateKey } from "./privateKey";
-import { AccountPublicKey, PublicKey, VerifySignatureArgs } from "./publicKey";
+import { AccountPublicKey, PublicKey, VerifySignatureArgs, VerifySignatureAsyncArgs } from "./publicKey";
 import { Signature } from "./signature";
 import { convertSigningMessage } from "./utils";
 
@@ -118,6 +118,24 @@ export class Ed25519PublicKey extends AccountPublicKey {
     const signatureBytes = signature.toUint8Array();
     const publicKeyBytes = this.key.toUint8Array();
     return ed25519.verify(signatureBytes, messageBytes, publicKeyBytes);
+  }
+
+  /**
+   * Note: Ed25519Signatures can be verified syncronously.
+   *
+   * Verifies the provided signature against the given message.
+   * This function helps ensure the integrity and authenticity of the message by confirming that the signature is valid.
+   *
+   * @param args - The arguments for signature verification.
+   * @param args.aptosConfig - The configuration object for connecting to the Aptos network
+   * @param args.message - The message that was signed.
+   * @param args.signature - The signature to verify, which must be an instance of Secp256k1Signature.
+   * @returns A boolean indicating whether the signature is valid for the given message.
+   * @group Implementation
+   * @category Serialization
+   */
+  async verifySignatureAsync(args: VerifySignatureAsyncArgs): Promise<boolean> {
+    return this.verifySignature(args);
   }
 
   /**
@@ -232,7 +250,13 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    * @group Implementation
    * @category Serialization
    */
-  private readonly signingKey: Hex;
+  private signingKey: Hex;
+
+  /**
+   * Whether the key has been cleared from memory
+   * @private
+   */
+  private cleared: boolean = false;
 
   // region Constructors
 
@@ -319,13 +343,62 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   // region PrivateKey
 
   /**
+   * Checks if the key has been cleared and throws an error if so.
+   * @private
+   */
+  private ensureNotCleared(): void {
+    if (this.cleared) {
+      throw new Error("Private key has been cleared from memory and can no longer be used");
+    }
+  }
+
+  /**
+   * Clears the private key from memory by overwriting it with random bytes.
+   * After calling this method, the private key can no longer be used for signing or deriving public keys.
+   *
+   * Note: Due to JavaScript's memory management, this cannot guarantee complete removal of
+   * sensitive data from memory, but it significantly reduces the window of exposure.
+   *
+   * @group Implementation
+   * @category Serialization
+   */
+  clear(): void {
+    if (!this.cleared) {
+      const keyBytes = this.signingKey.toUint8Array();
+      // Multiple overwrite passes for better security
+      // Pass 1: Random data
+      crypto.getRandomValues(keyBytes);
+      // Pass 2: Ones pattern (0xFF)
+      keyBytes.fill(0xff);
+      // Pass 3: Random data again
+      crypto.getRandomValues(keyBytes);
+      // Pass 4: Zeros pattern (final state)
+      keyBytes.fill(0);
+      this.cleared = true;
+    }
+  }
+
+  /**
+   * Returns whether the private key has been cleared from memory.
+   *
+   * @returns true if the key has been cleared, false otherwise
+   * @group Implementation
+   * @category Serialization
+   */
+  isCleared(): boolean {
+    return this.cleared;
+  }
+
+  /**
    * Derive the Ed25519PublicKey for this private key.
    *
    * @returns Ed25519PublicKey - The derived public key corresponding to the private key.
+   * @throws Error if the private key has been cleared from memory.
    * @group Implementation
    * @category Serialization
    */
   publicKey(): Ed25519PublicKey {
+    this.ensureNotCleared();
     const bytes = ed25519.getPublicKey(this.signingKey.toUint8Array());
     return new Ed25519PublicKey(bytes);
   }
@@ -336,10 +409,12 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    *
    * @param message - A message as a string or Uint8Array in HexInput format.
    * @returns A digital signature for the provided message.
+   * @throws Error if the private key has been cleared from memory.
    * @group Implementation
    * @category Serialization
    */
   sign(message: HexInput): Ed25519Signature {
+    this.ensureNotCleared();
     const messageToSign = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToSign).toUint8Array();
     const signatureBytes = ed25519.sign(messageBytes, this.signingKey.toUint8Array());
@@ -350,10 +425,12 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    * Get the private key in bytes (Uint8Array).
    *
    * @returns Uint8Array representation of the private key
+   * @throws Error if the private key has been cleared from memory.
    * @group Implementation
    * @category Serialization
    */
   toUint8Array(): Uint8Array {
+    this.ensureNotCleared();
     return this.signingKey.toUint8Array();
   }
 
@@ -361,19 +438,23 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    * Get the private key as a hex string with the 0x prefix.
    *
    * @returns string representation of the private key.
+   * @throws Error if the private key has been cleared from memory.
    * @group Implementation
    * @category Serialization
    */
   toString(): string {
-    return this.toHexString();
+    this.ensureNotCleared();
+    return this.toAIP80String();
   }
 
   /**
    * Get the private key as a hex string with the 0x prefix.
    *
    * @returns string representation of the private key.
+   * @throws Error if the private key has been cleared from memory.
    */
   toHexString(): string {
+    this.ensureNotCleared();
     return this.signingKey.toString();
   }
 
@@ -383,8 +464,10 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    * [Read about AIP-80](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md)
    *
    * @returns AIP-80 compliant string representation of the private key.
+   * @throws Error if the private key has been cleared from memory.
    */
   toAIP80String(): string {
+    this.ensureNotCleared();
     return PrivateKey.formatPrivateKey(this.signingKey.toString(), PrivateKeyVariants.Ed25519);
   }
 

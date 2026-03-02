@@ -3,7 +3,7 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { MoveOption, MoveString, MoveVector } from "../bcs/serializable/moveStructs";
-import { Bool, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/movePrimitives";
+import { Bool, I128, I16, I256, I32, I64, I8, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/movePrimitives";
 import { FixedBytes } from "../bcs/serializable/fixedBytes";
 import { AccountAddress, AccountAddressInput } from "../core";
 import { PublicKey } from "../core/crypto";
@@ -14,8 +14,17 @@ import {
   TransactionPayloadEntryFunction,
   TransactionPayloadMultiSig,
   TransactionPayloadScript,
+  TransactionInnerPayload,
 } from "./instances";
-import { AnyNumber, HexInput, MoveFunctionGenericTypeParam, MoveFunctionId, MoveStructId, MoveValue } from "../types";
+import {
+  AnyNumber,
+  HexInput,
+  MoveFunctionGenericTypeParam,
+  MoveFunctionId,
+  MoveStructId,
+  MoveValue,
+  TransactionSubmitter,
+} from "../types";
 import { TypeTag } from "./typeTag";
 import { AccountAuthenticator } from "./authenticator/account";
 import { SimpleTransaction } from "./instances/simpleTransaction";
@@ -51,6 +60,12 @@ export type EntryFunctionArgumentTypes =
   | U64
   | U128
   | U256
+  | I8
+  | I16
+  | I32
+  | I64
+  | I128
+  | I256
   | AccountAddress
   | MoveVector<EntryFunctionArgumentTypes>
   | MoveOption<EntryFunctionArgumentTypes>
@@ -70,6 +85,12 @@ export type ScriptFunctionArgumentTypes =
   | U64
   | U128
   | U256
+  | I8
+  | I16
+  | I32
+  | I64
+  | I128
+  | I256
   | AccountAddress
   | MoveVector<ScriptFunctionArgumentTypes>
   | MoveString
@@ -88,6 +109,12 @@ export type ScriptFunctionArgumentTypes =
  * - u64
  * - u128
  * - u256
+ * - i8
+ * - i16
+ * - i32
+ * - i64
+ * - i128
+ * - i256
  * - bool
  * - address
  * - signer
@@ -113,11 +140,30 @@ export type AnyRawTransactionInstance = RawTransaction | MultiAgentRawTransactio
  * @group Implementation
  * @category Transactions
  */
-export type InputGenerateTransactionOptions = {
+export type InputGenerateTransactionOptions =
+  | InputGenerateSequenceNumberTransactionOptions
+  | InputGenerateOrderlessTransactionOptions;
+
+/**
+ * Input options for generating a transaction that requires an account sequence number, which is the default method.
+ */
+export type InputGenerateSequenceNumberTransactionOptions = {
   maxGasAmount?: number;
   gasUnitPrice?: number;
   expireTimestamp?: number;
   accountSequenceNumber?: AnyNumber;
+  replayProtectionNonce?: undefined;
+};
+
+/**
+ * Input options for generating a transaction using the orderless method, which does not require an account sequence number.
+ */
+export type InputGenerateOrderlessTransactionOptions = {
+  maxGasAmount?: number;
+  gasUnitPrice?: number;
+  expireTimestamp?: number;
+  accountSequenceNumber?: undefined;
+  replayProtectionNonce: AnyNumber;
 };
 
 /**
@@ -129,7 +175,8 @@ export type InputGenerateTransactionOptions = {
 export type AnyTransactionPayloadInstance =
   | TransactionPayloadEntryFunction
   | TransactionPayloadScript
-  | TransactionPayloadMultiSig;
+  | TransactionPayloadMultiSig
+  | TransactionInnerPayload;
 
 /**
  * The data needed to generate a transaction payload for Entry Function, Script, or Multi Sig types.
@@ -157,7 +204,7 @@ export type InputGenerateTransactionPayloadDataWithRemoteABI =
 export type InputEntryFunctionData = {
   function: MoveFunctionId;
   typeArguments?: Array<TypeArgument>;
-  functionArguments: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
+  functionArguments?: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
   abi?: EntryFunctionABI;
 };
 
@@ -449,19 +496,41 @@ export type InputGenerateTransactionData =
   | InputGenerateSingleSignerRawTransactionData
   | InputGenerateMultiAgentRawTransactionData;
 
+interface InputSubmitTransactionDataInner {
+  transaction: AnyRawTransaction;
+  senderAuthenticator: AccountAuthenticator;
+  feePayerAuthenticator?: AccountAuthenticator;
+  additionalSignersAuthenticators?: Array<AccountAuthenticator>;
+}
+
+export interface InputTransactionPluginData {
+  /**
+   * Additional parameters that will be passed to the transaction submitter plugin if
+   * configured.
+   */
+  pluginParams?: Record<string, any>;
+
+  /**
+   * You can set this to override the configured transaction submitter (if any).
+   * Conversely you can set this to null to ignore any configured transaction submitter.
+   */
+  transactionSubmitter?: TransactionSubmitter | null;
+}
+
 /**
  * Holds user data input for submitting a transaction.
  *
  * @param transaction - The raw transaction data.
  * @param senderAuthenticator - The authenticator for the sender's account.
  * @param feePayerAuthenticator - Optional authenticator for the fee payer's account.
- * @param additionalSignersAuthenticators - Optional array of authenticators for additional signers.
+ * @param additionalSignersAuthenticators - Optional array of authenticators for
+ * additional signers.
+ * @param pluginParams - Additional parameters that will be passed to the transaction
+ * submitter plugin if configured.
+ * @param transactionSubmitter - You can set this to override the configured transaction
+ * submitter (if any). Conversely you can set this to null to ignore any configured
+ * transaction submitter.
  * @group Implementation
  * @category Transactions
  */
-export interface InputSubmitTransactionData {
-  transaction: AnyRawTransaction;
-  senderAuthenticator: AccountAuthenticator;
-  feePayerAuthenticator?: AccountAuthenticator;
-  additionalSignersAuthenticators?: Array<AccountAuthenticator>;
-}
+export type InputSubmitTransactionData = InputSubmitTransactionDataInner & InputTransactionPluginData;

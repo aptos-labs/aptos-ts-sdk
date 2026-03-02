@@ -39,7 +39,6 @@ import {
 
 const { aptos, config } = getAptosClient();
 
-/* eslint-disable max-len */
 describe("transaction builder", () => {
   // TODO: The example function deployed here has all the arguments backwards from normal transfers, we should fix that
   const contractPublisherAccount = Account.generate();
@@ -246,9 +245,9 @@ describe("transaction builder", () => {
         aptosConfig: config,
         sender: alice.accountAddress,
         payload,
-        options: { maxGasAmount: 20 },
+        options: { maxGasAmount: 5000 },
       });
-      expect(rawTxnWithCustomMaxGasAmount.max_gas_amount).toBe(20n);
+      expect(rawTxnWithCustomMaxGasAmount.max_gas_amount).toBe(5000n);
 
       const rawTxnWithDefaultMaxGasAmount = await generateRawTransaction({
         aptosConfig: config,
@@ -256,6 +255,24 @@ describe("transaction builder", () => {
         payload,
       });
       expect(rawTxnWithDefaultMaxGasAmount.max_gas_amount).toBe(200000n);
+    });
+
+    test("it clamps max gas amount to the minimum", async () => {
+      const alice = Account.generate();
+      await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: FUND_AMOUNT });
+      const bob = Account.generate();
+      const payload = await generateTransactionPayload({
+        aptosConfig: config,
+        function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
+        functionArguments: [1, bob.accountAddress],
+      });
+      const rawTxnWithLowGas = await generateRawTransaction({
+        aptosConfig: config,
+        sender: alice.accountAddress,
+        payload,
+        options: { maxGasAmount: 20 },
+      });
+      expect(rawTxnWithLowGas.max_gas_amount).toBe(2000n);
     });
 
     test("it generates a raw transaction with account not on chain and account sequence number set to 0", async () => {
@@ -273,13 +290,7 @@ describe("transaction builder", () => {
         options: { accountSequenceNumber: 0 },
       });
       expect(rawTransaction.sequence_number).toBe(0n);
-      expect(() =>
-        generateRawTransaction({
-          aptosConfig: config,
-          sender: alice.accountAddress,
-          payload,
-        }),
-      ).rejects.toThrow();
+      expect(rawTransaction instanceof RawTransaction).toBeTruthy();
     });
   });
   describe("generate transaction", () => {

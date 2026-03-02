@@ -22,8 +22,11 @@ export class LocalNode {
 
   process: ChildProcessWithoutNullStreams | null = null;
 
-  constructor(args?: { showStdout?: boolean }) {
+  extraArgs: string[] = [];
+
+  constructor(args?: { showStdout?: boolean; extraArgs?: string[] }) {
     this.showStdout = args?.showStdout ?? true;
+    this.extraArgs = args?.extraArgs ?? [];
   }
 
   /**
@@ -86,26 +89,25 @@ export class LocalNode {
    */
   start(): void {
     const cliCommand = "npx";
-    const cliArgs = ["aptos", "node", "run-localnet", "--force-restart", "--assume-yes", "--with-indexer-api"];
+    const cliArgs = [
+      "aptos",
+      "node",
+      "run-localnet",
+      "--force-restart",
+      "--assume-yes",
+      "--with-indexer-api",
+      ...this.extraArgs,
+    ];
 
     const currentPlatform = platform();
-    let childProcess;
-    // Check if current OS is windows
-    if (currentPlatform === "win32") {
-      childProcess = spawn(cliCommand, cliArgs, { shell: true });
-    } else {
-      childProcess = spawn(cliCommand, cliArgs);
-    }
+    const spawnConfig = {
+      env: { ...process.env, ENABLE_KEYLESS_DEFAULT: "1" },
+      ...(currentPlatform === "win32" && { shell: true }),
+    };
 
-    this.process = childProcess;
+    this.process = spawn(cliCommand, cliArgs, spawnConfig);
 
-    childProcess.stderr?.on("data", (data: any) => {
-      const str = data.toString();
-      // Print local node output error log
-      console.log(str);
-    });
-
-    childProcess.stdout?.on("data", (data: any) => {
+    this.process.stdout?.on("data", (data: any) => {
       const str = data.toString();
       // Print local node output log
       if (this.showStdout) {
@@ -128,9 +130,8 @@ export class LocalNode {
     let last = start;
 
     while (!operational && start + this.MAXIMUM_WAIT_TIME_SEC > last) {
-      // eslint-disable-next-line no-await-in-loop
       await sleep(1000);
-      // eslint-disable-next-line no-await-in-loop
+
       operational = await this.checkIfProcessIsUp();
       last = Date.now() / 1000;
     }
@@ -159,7 +160,7 @@ export class LocalNode {
         return true;
       }
       return false;
-    } catch (err: any) {
+    } catch {
       return false;
     }
   }

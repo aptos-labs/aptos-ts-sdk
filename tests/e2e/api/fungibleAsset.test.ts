@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, APTOS_COIN } from "../../../src";
+import { Account, APTOS_COIN, APTOS_FA } from "../../../src";
 import { getAptosClient } from "../helper";
 
 const { aptos } = getAptosClient();
@@ -33,7 +33,7 @@ describe("FungibleAsset", () => {
     let data = await aptos.getFungibleAssetMetadataByCreatorAddress({
       creatorAddress: "0x0000000000000000000000000000000000000000000000000000000000000001",
     });
-    expect(data[1].asset_type).toEqual(APTOS_COIN);
+    expect(data[1].asset_type).toEqual(APTOS_FA);
 
     // fetch by something that doesn't exist
     data = await aptos.getFungibleAssetMetadataByCreatorAddress({ creatorAddress: "0xc" });

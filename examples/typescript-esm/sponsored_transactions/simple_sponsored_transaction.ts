@@ -1,12 +1,13 @@
 /* eslint-disable no-console */
-/* eslint-disable max-len */
 
 /**
  * Example to submit a simple sponsored transaction where Alice transfers APT coin to Bob
  * with a sponsor account to pay for the gas fee
  */
-import "dotenv";
+import dotenv from "dotenv";
 import { Account, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
+
+dotenv.config();
 
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const SPONSOR_INITIAL_BALANCE = 100_000_000;
@@ -17,7 +18,7 @@ const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] |
 
 const example = async () => {
   console.log(
-    "This example will create three accounts (Alice, Bob and Sponsor), fund Alice and Sponsor, transfer between Alice and Bob with sponsor to pay the gas fee.",
+    "This example will create three accounts (Alice, Bob and Sponsor), fund Alice and Sponsor, transfer between Alice and Bob with a sponsor to pay the gas fee.",
   );
 
   // Set up the client

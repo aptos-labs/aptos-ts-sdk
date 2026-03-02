@@ -353,7 +353,7 @@ export class Move {
    * @group Implementation
    * @category CLI
    */
-  // eslint-disable-next-line class-methods-use-this
+
   private async runCommand(args: Array<string>, showStdout: boolean = true): Promise<{ result?: any; output: string }> {
     return new Promise((resolve, reject) => {
       const currentPlatform = platform();
@@ -396,7 +396,7 @@ export class Move {
             } else if (parsed.Result) {
               resolve({ result: parsed.Result, output: stdout }); // Resolve if the "Result" key exists
             }
-          } catch (error: any) {
+          } catch {
             // resolve the stdout as it might be just a stdout
             resolve({ output: stdout });
           }
@@ -416,7 +416,7 @@ export class Move {
    * @group Implementation
    * @category CLI
    */
-  // eslint-disable-next-line class-methods-use-this
+
   private prepareNamedAddresses(namedAddresses: Map<string, AccountAddress>): Array<string> {
     const totalNames = namedAddresses.size;
     const newArgs: Array<string> = [];
@@ -447,7 +447,7 @@ export class Move {
    * @group Implementation
    * @category CLI
    */
-  // eslint-disable-next-line class-methods-use-this
+
   private parseNamedAddresses(namedAddresses: Record<string, AccountAddress>): Map<string, AccountAddress> {
     const addressesMap = new Map();
 
@@ -468,7 +468,7 @@ export class Move {
    * @group Implementation
    * @category CLI
    */
-  // eslint-disable-next-line class-methods-use-this
+
   private extractAddressFromOutput(output: string): string {
     const match = output.match("Code was successfully deployed to object address (0x[0-9a-fA-F]+)");
     if (match) {

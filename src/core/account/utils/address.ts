@@ -1,6 +1,7 @@
 import { sha3_256 } from "@noble/hashes/sha3";
 import { AccountAddress } from "../../accountAddress";
 import { DeriveScheme } from "../../../types";
+import { TEXT_ENCODER } from "../../../utils/const";
 
 /**
  * Creates an object address from creator address and seed
@@ -14,8 +15,7 @@ import { DeriveScheme } from "../../../types";
  */
 export const createObjectAddress = (creatorAddress: AccountAddress, seed: Uint8Array | string): AccountAddress => {
   const creatorBytes = creatorAddress.bcsToBytes();
-
-  const seedBytes = typeof seed === "string" ? Buffer.from(seed, "utf8") : seed;
+  const seedBytes = typeof seed === "string" ? TEXT_ENCODER.encode(seed) : seed;
 
   const bytes = new Uint8Array([...creatorBytes, ...seedBytes, DeriveScheme.DeriveObjectAddressFromSeed]);
 
@@ -35,9 +35,31 @@ export const createObjectAddress = (creatorAddress: AccountAddress, seed: Uint8A
 export const createResourceAddress = (creatorAddress: AccountAddress, seed: Uint8Array | string): AccountAddress => {
   const creatorBytes = creatorAddress.bcsToBytes();
 
-  const seedBytes = typeof seed === "string" ? Buffer.from(seed, "utf8") : seed;
+  const seedBytes = typeof seed === "string" ? TEXT_ENCODER.encode(seed) : seed;
 
   const bytes = new Uint8Array([...creatorBytes, ...seedBytes, DeriveScheme.DeriveResourceAccountAddress]);
+
+  return new AccountAddress(sha3_256(bytes));
+};
+
+/**
+ * Creates a user derived object address from source address and derive_from address
+ *
+ * @param sourceAddress The source account address
+ * @param deriveFromAddress The address to derive from
+ *
+ * @returns The user derived object address
+ * @group Implementation
+ * @category Account (On-Chain Model)
+ */
+export const createUserDerivedObjectAddress = (
+  sourceAddress: AccountAddress,
+  deriveFromAddress: AccountAddress,
+): AccountAddress => {
+  const sourceBytes = sourceAddress.bcsToBytes();
+  const deriveFromBytes = deriveFromAddress.bcsToBytes();
+
+  const bytes = new Uint8Array([...sourceBytes, ...deriveFromBytes, DeriveScheme.DeriveObjectAddressFromObject]);
 
   return new AccountAddress(sha3_256(bytes));
 };

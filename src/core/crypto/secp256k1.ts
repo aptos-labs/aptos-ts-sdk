@@ -9,9 +9,10 @@ import { Hex } from "../hex";
 import { HexInput, PrivateKeyVariants } from "../../types";
 import { isValidBIP44Path, mnemonicToSeed } from "./hdKey";
 import { PrivateKey } from "./privateKey";
-import { PublicKey, VerifySignatureArgs } from "./publicKey";
+import { PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { convertSigningMessage } from "./utils";
+import { AptosConfig } from "../../api";
 
 /**
  * Represents a Secp256k1 ECDSA public key.
@@ -30,6 +31,9 @@ export class Secp256k1PublicKey extends PublicKey {
 
   // Hex value of the public key
   private readonly key: Hex;
+
+  // Identifier to distinguish from Secp256k1PublicKey
+  public readonly keyType: string = "secp256k1";
 
   /**
    * Create a new PublicKey instance from a HexInput, which can be a string or Uint8Array.
@@ -69,13 +73,35 @@ export class Secp256k1PublicKey extends PublicKey {
    * @group Implementation
    * @category Serialization
    */
-  verifySignature(args: VerifySignatureArgs): boolean {
+  verifySignature(args: { message: HexInput; signature: Secp256k1Signature }): boolean {
     const { message, signature } = args;
     const messageToVerify = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
     const messageSha3Bytes = sha3_256(messageBytes);
     const signatureBytes = signature.toUint8Array();
     return secp256k1.verify(signatureBytes, messageSha3Bytes, this.key.toUint8Array(), { lowS: true });
+  }
+
+  /**
+   * Note: Secp256k1Signatures can be verified syncronously.
+   *
+   * Verifies the provided signature against the given message.
+   * This function helps ensure the integrity and authenticity of the message by confirming that the signature is valid.
+   *
+   * @param args - The arguments for signature verification.
+   * @param args.aptosConfig - The configuration object for connecting to the Aptos network
+   * @param args.message - The message that was signed.
+   * @param args.signature - The signature to verify, which must be an instance of Secp256k1Signature.
+   * @returns A boolean indicating whether the signature is valid for the given message.
+   * @group Implementation
+   * @category Serialization
+   */
+  async verifySignatureAsync(args: {
+    aptosConfig: AptosConfig;
+    message: HexInput;
+    signature: Secp256k1Signature;
+  }): Promise<boolean> {
+    return this.verifySignature(args);
   }
 
   /**
@@ -113,7 +139,7 @@ export class Secp256k1PublicKey extends PublicKey {
    * @group Implementation
    * @category Serialization
    */
-  // eslint-disable-next-line class-methods-use-this
+
   deserialize(deserializer: Deserializer) {
     const hex = deserializer.deserializeBytes();
     return new Secp256k1Signature(hex);
@@ -148,7 +174,12 @@ export class Secp256k1PublicKey extends PublicKey {
    * @category Serialization
    */
   static isInstance(publicKey: PublicKey): publicKey is Secp256k1PublicKey {
-    return "key" in publicKey && (publicKey.key as any)?.data?.length === Secp256k1PublicKey.LENGTH;
+    return (
+      "key" in publicKey &&
+      (publicKey.key as any)?.data?.length === Secp256k1PublicKey.LENGTH &&
+      "keyType" in publicKey &&
+      (publicKey as any).keyType === "secp256k1"
+    );
   }
 }
 
@@ -172,7 +203,13 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    * @group Implementation
    * @category Serialization
    */
-  private readonly key: Hex;
+  private key: Hex;
+
+  /**
+   * Whether the key has been cleared from memory
+   * @private
+   */
+  private cleared: boolean = false;
 
   // region Constructors
 
@@ -254,15 +291,64 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
   // region PrivateKey
 
   /**
+   * Checks if the key has been cleared and throws an error if so.
+   * @private
+   */
+  private ensureNotCleared(): void {
+    if (this.cleared) {
+      throw new Error("Private key has been cleared from memory and can no longer be used");
+    }
+  }
+
+  /**
+   * Clears the private key from memory by overwriting it with random bytes.
+   * After calling this method, the private key can no longer be used for signing or deriving public keys.
+   *
+   * Note: Due to JavaScript's memory management, this cannot guarantee complete removal of
+   * sensitive data from memory, but it significantly reduces the window of exposure.
+   *
+   * @group Implementation
+   * @category Serialization
+   */
+  clear(): void {
+    if (!this.cleared) {
+      const keyBytes = this.key.toUint8Array();
+      // Multiple overwrite passes for better security
+      // Pass 1: Random data
+      crypto.getRandomValues(keyBytes);
+      // Pass 2: Ones pattern (0xFF)
+      keyBytes.fill(0xff);
+      // Pass 3: Random data again
+      crypto.getRandomValues(keyBytes);
+      // Pass 4: Zeros pattern (final state)
+      keyBytes.fill(0);
+      this.cleared = true;
+    }
+  }
+
+  /**
+   * Returns whether the private key has been cleared from memory.
+   *
+   * @returns true if the key has been cleared, false otherwise
+   * @group Implementation
+   * @category Serialization
+   */
+  isCleared(): boolean {
+    return this.cleared;
+  }
+
+  /**
    * Sign the given message with the private key.
    * This function generates a cryptographic signature for the provided message, ensuring the signature is canonical and non-malleable.
    *
    * @param message - A message in HexInput format to be signed.
    * @returns Signature - The generated signature for the provided message.
+   * @throws Error if the private key has been cleared from memory.
    * @group Implementation
    * @category Serialization
    */
   sign(message: HexInput): Secp256k1Signature {
+    this.ensureNotCleared();
     const messageToSign = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToSign);
     const messageHashBytes = sha3_256(messageBytes.toUint8Array());
@@ -274,10 +360,12 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    * Derive the Secp256k1PublicKey from this private key.
    *
    * @returns Secp256k1PublicKey The derived public key.
+   * @throws Error if the private key has been cleared from memory.
    * @group Implementation
    * @category Serialization
    */
   publicKey(): Secp256k1PublicKey {
+    this.ensureNotCleared();
     const bytes = secp256k1.getPublicKey(this.key.toUint8Array(), false);
     return new Secp256k1PublicKey(bytes);
   }
@@ -285,11 +373,13 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
   /**
    * Get the private key in bytes (Uint8Array).
    *
-   * @returns
+   * @returns Uint8Array representation of the private key
+   * @throws Error if the private key has been cleared from memory.
    * @group Implementation
    * @category Serialization
    */
   toUint8Array(): Uint8Array {
+    this.ensureNotCleared();
     return this.key.toUint8Array();
   }
 
@@ -297,19 +387,23 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    * Get the private key as a string representation.
    *
    * @returns string representation of the private key
+   * @throws Error if the private key has been cleared from memory.
    * @group Implementation
    * @category Serialization
    */
   toString(): string {
-    return this.toHexString();
+    this.ensureNotCleared();
+    return this.toAIP80String();
   }
 
   /**
    * Get the private key as a hex string with the 0x prefix.
    *
    * @returns string representation of the private key.
+   * @throws Error if the private key has been cleared from memory.
    */
   toHexString(): string {
+    this.ensureNotCleared();
     return this.key.toString();
   }
 
@@ -319,8 +413,10 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    * [Read about AIP-80](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md)
    *
    * @returns AIP-80 compliant string representation of the private key.
+   * @throws Error if the private key has been cleared from memory.
    */
   toAIP80String(): string {
+    this.ensureNotCleared();
     return PrivateKey.formatPrivateKey(this.key.toString(), PrivateKeyVariants.Secp256k1);
   }
 

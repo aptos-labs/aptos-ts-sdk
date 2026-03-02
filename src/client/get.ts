@@ -162,11 +162,10 @@ export async function getAptosPepperService<Req extends {}, Res extends {}>(
 export async function paginateWithCursor<Req extends Record<string, any>, Res extends Array<{}>>(
   options: GetAptosRequestOptions,
 ): Promise<Res> {
-  const out: any[] = [];
+  let out: Res = [] as unknown as Res;
   let cursor: string | undefined;
   const requestParams = options.params as { start?: string; limit?: number };
   do {
-    // eslint-disable-next-line no-await-in-loop
     const response = await get<Req, Res>({
       type: AptosApiType.FULLNODE,
       aptosConfig: options.aptosConfig,
@@ -186,8 +185,76 @@ export async function paginateWithCursor<Req extends Record<string, any>, Res ex
     // Now that we have the cursor (if any), we remove the headers before
     // adding these to the output of this function.
     delete response.headers;
-    out.push(...response.data);
+    // Use concat instead of push(...) for better performance with large arrays
+    out = out.concat(response.data) as Res;
     requestParams.start = cursor;
   } while (cursor !== null && cursor !== undefined);
-  return out as Res;
+  return out;
+}
+
+/// This function is a helper for paginating using a function wrapping an API using offset instead of start
+export async function paginateWithObfuscatedCursor<Req extends Record<string, any>, Res extends Array<{}>>(
+  options: GetAptosRequestOptions,
+): Promise<Res> {
+  let out: Res = [] as unknown as Res;
+  let cursor: string | undefined;
+  const requestParams = options.params as { start?: string; limit?: number };
+  const totalLimit = requestParams.limit;
+  do {
+    const { response, cursor: newCursor } = await getPageWithObfuscatedCursor<Req, Res>({ ...options });
+
+    /**
+     * the cursor is a "state key" from the API perspective. Client
+     * should not need to "care" what it represents but just use it
+     * to query the next chunk of data.
+     */
+    cursor = newCursor;
+    // Use concat instead of push(...) for better performance with large arrays
+    out = out.concat(response.data) as Res;
+    if (options?.params) {
+      options.params.start = cursor;
+    }
+
+    // Re-evaluate length
+    if (totalLimit !== undefined) {
+      const newLimit = totalLimit - out.length;
+      if (newLimit <= 0) {
+        break;
+      }
+      requestParams.limit = newLimit;
+    }
+  } while (cursor !== null && cursor !== undefined);
+  return out;
+}
+
+export async function getPageWithObfuscatedCursor<Req extends Record<string, any>, Res extends Array<{}>>(
+  options: GetAptosRequestOptions,
+): Promise<{ response: AptosResponse<Req, Res>; cursor: string | undefined }> {
+  const requestParams: { start?: string; limit?: number } = {};
+
+  // Drop any other values
+  // TODO: Throw error if cursor is not a string
+  if (typeof options.params?.cursor === "string") {
+    requestParams.start = options.params.cursor;
+  }
+  if (typeof options.params?.limit === "number") {
+    requestParams.limit = options.params.limit;
+  }
+
+  const response = await get<Req, Res>({
+    type: AptosApiType.FULLNODE,
+    aptosConfig: options.aptosConfig,
+    originMethod: options.originMethod,
+    path: options.path,
+    params: requestParams,
+    overrides: options.overrides,
+  });
+
+  /**
+   * the cursor is a "state key" from the API perspective. Client
+   * should not need to "care" what it represents but just use it
+   * to query the next chunk of data.
+   */
+  const cursor = response.headers["x-aptos-cursor"] ?? undefined;
+  return { response, cursor };
 }

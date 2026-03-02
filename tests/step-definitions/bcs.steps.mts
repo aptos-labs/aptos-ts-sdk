@@ -1,3 +1,5 @@
+/* eslint-disable func-names */
+
 import {
   AccountAddress,
   Bool,
@@ -12,7 +14,7 @@ import {
   Serializer,
   MoveVector,
   MoveString,
-} from "../../dist/esm/index.mjs"; // TODO: See if we can import directly from src
+} from "../../src";
 import { Given, Then, When } from "@cucumber/cucumber";
 import assert from "assert";
 
@@ -71,6 +73,7 @@ When(/^I serialize as ([0-9a-zA-Z ]+)$/, function(inputType: string) {
 
   switch (inputType) {
     case "sequence of uleb128":
+        // eslint-disable-next-line no-case-declarations
       const input = this.input! as MoveVector<U32>;
 
       // TODO: this is not really supported natively in the TS SDK, it's questionable about if we care about sequences of Uleb128
@@ -175,7 +178,9 @@ When(/^I deserialize as ([0-9a-zA-Z ]+)$/, function(inputType: string) {
         break;
       case "sequence of uleb128":
         // TODO: Check if we want this supported in the spec
+        // eslint-disable-next-line no-case-declarations
         const length = deserializer.deserializeUleb128AsU32();
+        // eslint-disable-next-line no-case-declarations
         const list: number[] = [];
 
         for (let i = 0; i < length; i++) {
@@ -254,9 +259,9 @@ function fromByteString(input: string) {
   // 0x allows for representing an empty array
   if (input === "0x") {
     return new Hex(new Uint8Array());
-  } else {
+  } 
     return Hex.fromHexString(input);
-  }
+  
 }
 
 // If there is no value, handle empty array

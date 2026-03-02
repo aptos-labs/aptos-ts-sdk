@@ -1,3 +1,4 @@
+import { vi, type MockInstance } from "vitest";
 import { longTestTimeout } from "../../unit/helper";
 import { Account } from "../../../src/account";
 import * as AccountQueries from "../../../src/internal/account";
@@ -9,7 +10,7 @@ const { aptos, config: aptosConfig } = getAptosClient();
 const account = Account.generate();
 
 const accountSequenceNumber = new AccountSequenceNumber(aptosConfig, account, 30, 100, 10);
-let getAccountInfoSpy: jest.SpyInstance;
+let getAccountInfoSpy: MockInstance;
 
 let lastSeqNumber: bigint | null;
 
@@ -19,7 +20,7 @@ describe("account sequence number", () => {
   }, longTestTimeout);
 
   beforeEach(() => {
-    getAccountInfoSpy = jest.spyOn(AccountQueries, "getInfo");
+    getAccountInfoSpy = vi.spyOn(AccountQueries, "getInfo");
   });
 
   afterEach(() => {
@@ -54,7 +55,6 @@ describe("account sequence number", () => {
         authentication_key: account.accountAddress.toString(),
       });
       for (let seqNum = 0; seqNum < 5; seqNum += 1) {
-        /* eslint-disable no-await-in-loop */
         lastSeqNumber = await accountSequenceNumber.nextSequenceNumber();
         expect(lastSeqNumber).toEqual(BigInt(seqNum));
       }
@@ -71,7 +71,6 @@ describe("account sequence number", () => {
         authentication_key: account.accountAddress.toString(),
       });
       for (let seqNum = 0; seqNum < accountSequenceNumber.maximumInFlight; seqNum += 1) {
-        /* eslint-disable no-await-in-loop */
         lastSeqNumber = await accountSequenceNumber.nextSequenceNumber();
         expect(lastSeqNumber).toEqual(BigInt(seqNum + parseInt(previousSeqNum, 10)));
       }

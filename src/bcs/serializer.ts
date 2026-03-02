@@ -1,7 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable no-bitwise */
 import {
   MAX_U128_BIG_INT,
   MAX_U16_NUMBER,
@@ -9,9 +8,22 @@ import {
   MAX_U64_BIG_INT,
   MAX_U8_NUMBER,
   MAX_U256_BIG_INT,
+  MIN_I8_NUMBER,
+  MAX_I8_NUMBER,
+  MIN_I16_NUMBER,
+  MAX_I16_NUMBER,
+  MIN_I32_NUMBER,
+  MAX_I32_NUMBER,
+  MIN_I64_BIG_INT,
+  MAX_I64_BIG_INT,
+  MIN_I128_BIG_INT,
+  MAX_I128_BIG_INT,
+  MIN_I256_BIG_INT,
+  MAX_I256_BIG_INT,
 } from "./consts";
 import { Hex } from "../core/hex";
 import { AnyNumber, Uint16, Uint32, Uint8 } from "../types";
+import { TEXT_ENCODER } from "../utils/const";
 
 /**
  * This class serves as a base class for all serializable types. It facilitates
@@ -66,6 +78,41 @@ export abstract class Serializable {
 }
 
 /**
+ * Minimum buffer growth increment to avoid too many small reallocations.
+ */
+const MIN_BUFFER_GROWTH = 256;
+
+/**
+ * Pool of reusable Serializer instances for temporary serialization operations.
+ * This reduces allocations when using serializeAsBytes() repeatedly.
+ */
+const serializerPool: Serializer[] = [];
+const MAX_POOL_SIZE = 8;
+
+/**
+ * Acquires a Serializer from the pool or creates a new one.
+ * @internal
+ */
+function acquireSerializer(): Serializer {
+  const serializer = serializerPool.pop();
+  if (serializer) {
+    serializer.reset();
+    return serializer;
+  }
+  return new Serializer();
+}
+
+/**
+ * Returns a Serializer to the pool for reuse.
+ * @internal
+ */
+function releaseSerializer(serializer: Serializer): void {
+  if (serializerPool.length < MAX_POOL_SIZE) {
+    serializerPool.push(serializer);
+  }
+}
+
+/**
  * A class for serializing various data types into a binary format.
  * It provides methods to serialize strings, bytes, numbers, and other serializable objects
  * using the Binary Coded Serialization (BCS) layout. The serialized data can be retrieved as a
@@ -77,6 +124,12 @@ export class Serializer {
   private buffer: ArrayBuffer;
 
   private offset: number;
+
+  /**
+   * Reusable DataView instance to reduce allocations during serialization.
+   * Recreated when buffer is resized.
+   */
+  private dataView: DataView;
 
   /**
    * Constructs a serializer with a buffer of size `length` bytes, 64 bytes by default.
@@ -91,23 +144,33 @@ export class Serializer {
       throw new Error("Length needs to be greater than 0");
     }
     this.buffer = new ArrayBuffer(length);
+    this.dataView = new DataView(this.buffer);
     this.offset = 0;
   }
 
   /**
    * Ensures that the internal buffer can accommodate the specified number of bytes.
-   * This function dynamically resizes the buffer if the current size is insufficient.
+   * This function dynamically resizes the buffer using a growth factor of 1.5x with
+   * a minimum growth increment to balance memory usage and reallocation frequency.
    *
    * @param bytes - The number of bytes to ensure the buffer can handle.
    * @group Implementation
    * @category BCS
    */
   private ensureBufferWillHandleSize(bytes: number) {
-    while (this.buffer.byteLength < this.offset + bytes) {
-      const newBuffer = new ArrayBuffer(this.buffer.byteLength * 2);
-      new Uint8Array(newBuffer).set(new Uint8Array(this.buffer));
-      this.buffer = newBuffer;
+    const requiredSize = this.offset + bytes;
+    if (this.buffer.byteLength >= requiredSize) {
+      return;
     }
+
+    // Calculate new size: max of (1.5x current size) or (current + required + MIN_GROWTH)
+    // Using 1.5x instead of 2x provides better memory efficiency
+    const growthSize = Math.max(Math.floor(this.buffer.byteLength * 1.5), requiredSize + MIN_BUFFER_GROWTH);
+
+    const newBuffer = new ArrayBuffer(growthSize);
+    new Uint8Array(newBuffer).set(new Uint8Array(this.buffer, 0, this.offset));
+    this.buffer = newBuffer;
+    this.dataView = new DataView(this.buffer);
   }
 
   /**
@@ -125,6 +188,7 @@ export class Serializer {
 
   /**
    * Serializes a value into the buffer using the provided function, ensuring the buffer can accommodate the size.
+   * Uses the cached DataView instance for better performance.
    *
    * @param fn - The function to serialize the value, which takes a byte offset, the value to serialize, and an optional little-endian flag.
    * @param fn.byteOffset - The byte offset at which to write the value.
@@ -140,8 +204,7 @@ export class Serializer {
     value: number,
   ) {
     this.ensureBufferWillHandleSize(bytesLength);
-    const dv = new DataView(this.buffer, this.offset);
-    fn.apply(dv, [0, value, true]);
+    fn.apply(this.dataView, [this.offset, value, true]);
     this.offset += bytesLength;
   }
 
@@ -165,8 +228,7 @@ export class Serializer {
    * @category BCS
    */
   serializeStr(value: string) {
-    const textEncoder = new TextEncoder();
-    this.serializeBytes(textEncoder.encode(value));
+    this.serializeBytes(TEXT_ENCODER.encode(value));
   }
 
   /**
@@ -339,6 +401,105 @@ export class Serializer {
   }
 
   /**
+   * Serializes an 8-bit signed integer value.
+   * BCS layout for "int8": One byte. Binary format in little-endian representation.
+   *
+   * @param value - The 8-bit signed integer value to serialize.
+   * @group Implementation
+   * @category BCS
+   */
+  @checkNumberRange(MIN_I8_NUMBER, MAX_I8_NUMBER)
+  serializeI8(value: number) {
+    this.serializeWithFunction(DataView.prototype.setInt8, 1, value);
+  }
+
+  /**
+   * Serializes a 16-bit signed integer value into a binary format.
+   * BCS layout for "int16": Two bytes. Binary format in little-endian representation.
+   *
+   * @param value - The 16-bit signed integer value to serialize.
+   * @group Implementation
+   * @category BCS
+   */
+  @checkNumberRange(MIN_I16_NUMBER, MAX_I16_NUMBER)
+  serializeI16(value: number) {
+    this.serializeWithFunction(DataView.prototype.setInt16, 2, value);
+  }
+
+  /**
+   * Serializes a 32-bit signed integer value into a binary format.
+   *
+   * @param value - The 32-bit signed integer value to serialize.
+   * @group Implementation
+   * @category BCS
+   */
+  @checkNumberRange(MIN_I32_NUMBER, MAX_I32_NUMBER)
+  serializeI32(value: number) {
+    this.serializeWithFunction(DataView.prototype.setInt32, 4, value);
+  }
+
+  /**
+   * Serializes a 64-bit signed integer into a format suitable for storage or transmission.
+   * This function uses two's complement representation for negative values.
+   *
+   * @param value - The 64-bit signed integer to serialize.
+   * @group Implementation
+   * @category BCS
+   */
+  @checkNumberRange(MIN_I64_BIG_INT, MAX_I64_BIG_INT)
+  serializeI64(value: AnyNumber) {
+    const val = BigInt(value);
+    // Convert to unsigned representation using two's complement
+    const unsigned = val < 0 ? (BigInt(1) << BigInt(64)) + val : val;
+    const low = unsigned & BigInt(MAX_U32_NUMBER);
+    const high = unsigned >> BigInt(32);
+
+    // write little endian number
+    this.serializeU32(Number(low));
+    this.serializeU32(Number(high));
+  }
+
+  /**
+   * Serializes a 128-bit signed integer value.
+   *
+   * @param value - The 128-bit signed integer value to serialize.
+   * @group Implementation
+   * @category BCS
+   */
+  @checkNumberRange(MIN_I128_BIG_INT, MAX_I128_BIG_INT)
+  serializeI128(value: AnyNumber) {
+    const val = BigInt(value);
+    // Convert to unsigned representation using two's complement
+    const unsigned = val < 0 ? (BigInt(1) << BigInt(128)) + val : val;
+    const low = unsigned & MAX_U64_BIG_INT;
+    const high = unsigned >> BigInt(64);
+
+    // write little endian number
+    this.serializeU64(low);
+    this.serializeU64(high);
+  }
+
+  /**
+   * Serializes a 256-bit signed integer value.
+   *
+   * @param value - The 256-bit signed integer value to serialize.
+   * @group Implementation
+   * @category BCS
+   */
+  @checkNumberRange(MIN_I256_BIG_INT, MAX_I256_BIG_INT)
+  serializeI256(value: AnyNumber) {
+    const val = BigInt(value);
+    // Convert to unsigned representation using two's complement
+    const unsigned = val < 0 ? (BigInt(1) << BigInt(256)) + val : val;
+    const low = unsigned & MAX_U128_BIG_INT;
+    const high = unsigned >> BigInt(128);
+
+    // write little endian number
+    this.serializeU128(low);
+    this.serializeU128(high);
+  }
+
+  /**
    * Serializes a 32-bit unsigned integer as a variable-length ULEB128 encoded byte array.
    * BCS uses uleb128 encoding in two cases: (1) lengths of variable-length sequences and (2) tags of enum values
    *
@@ -362,13 +523,57 @@ export class Serializer {
    * Returns the buffered bytes as a Uint8Array.
    *
    * This function allows you to retrieve the byte representation of the buffer up to the current offset.
+   * For better performance, returns a view when the buffer is exactly the right size, or copies
+   * only the used portion otherwise.
    *
    * @returns Uint8Array - The byte array representation of the buffer.
    * @group Implementation
    * @category BCS
    */
   toUint8Array(): Uint8Array {
-    return new Uint8Array(this.buffer).slice(0, this.offset);
+    // Return a copy of only the used portion of the buffer
+    // Using subarray + slice pattern for efficiency
+    return new Uint8Array(this.buffer, 0, this.offset).slice();
+  }
+
+  /**
+   * Resets the serializer to its initial state, allowing the buffer to be reused.
+   * This clears the buffer contents to prevent data leakage between uses.
+   *
+   * @group Implementation
+   * @category BCS
+   */
+  reset(): void {
+    // Clear buffer contents to prevent data leakage when reusing pooled serializers
+    // Only clear the portion that was used (up to offset) for efficiency
+    if (this.offset > 0) {
+      new Uint8Array(this.buffer, 0, this.offset).fill(0);
+    }
+    this.offset = 0;
+  }
+
+  /**
+   * Returns the current number of bytes written to the serializer.
+   *
+   * @returns The number of bytes written.
+   * @group Implementation
+   * @category BCS
+   */
+  getOffset(): number {
+    return this.offset;
+  }
+
+  /**
+   * Returns a view of the serialized bytes without copying.
+   * WARNING: The returned view is only valid until the next write operation.
+   * Use toUint8Array() if you need a persistent copy.
+   *
+   * @returns A Uint8Array view of the buffer (not a copy).
+   * @group Implementation
+   * @category BCS
+   */
+  toUint8ArrayView(): Uint8Array {
+    return new Uint8Array(this.buffer, 0, this.offset);
   }
 
   /**
@@ -384,6 +589,47 @@ export class Serializer {
     // NOTE: The `serialize` method called by `value` is defined in `value`'s
     // Serializable interface, not the one defined in this class.
     value.serialize(this);
+  }
+
+  /**
+   * Serializes a Serializable value as a byte array with a length prefix.
+   * This is the optimized pattern for entry function argument serialization.
+   *
+   * Instead of:
+   * ```typescript
+   * const bcsBytes = value.bcsToBytes();  // Creates new Serializer, copies bytes
+   * serializer.serializeBytes(bcsBytes);
+   * ```
+   *
+   * Use:
+   * ```typescript
+   * serializer.serializeAsBytes(value);  // Uses pooled Serializer, avoids extra copy
+   * ```
+   *
+   * This method uses a pooled Serializer instance to reduce allocations and
+   * directly appends the serialized bytes with a length prefix.
+   *
+   * @param value - The Serializable value to serialize as bytes.
+   * @group Implementation
+   * @category BCS
+   */
+  serializeAsBytes<T extends Serializable>(value: T): void {
+    // Acquire a pooled serializer for temporary use
+    const tempSerializer = acquireSerializer();
+
+    try {
+      // Serialize the value to the temporary serializer
+      value.serialize(tempSerializer);
+
+      // Get the serialized bytes (as a view to avoid copying)
+      const bytes = tempSerializer.toUint8ArrayView();
+
+      // Serialize with length prefix to this serializer
+      this.serializeBytes(bytes);
+    } finally {
+      // Return the serializer to the pool for reuse
+      releaseSerializer(tempSerializer);
+    }
   }
 
   /**
@@ -519,7 +765,7 @@ export function validateNumberInRange<T extends AnyNumber>(value: T, minValue: T
 function checkNumberRange<T extends AnyNumber>(minValue: T, maxValue: T) {
   return (target: unknown, propertyKey: string, descriptor: PropertyDescriptor) => {
     const childFunction = descriptor.value;
-    // eslint-disable-next-line no-param-reassign
+
     descriptor.value = function deco(value: AnyNumber) {
       validateNumberInRange(value, minValue, maxValue);
       return childFunction.apply(this, [value]);

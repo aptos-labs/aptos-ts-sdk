@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
@@ -12,6 +11,7 @@ import {
   ZkProof,
   ZkpVariant,
 } from "../../../src";
+import { clearMemoizeCache } from "../../../src/utils/memoize";
 
 import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper";
 import { getAptosClient } from "../helper";
@@ -71,6 +71,8 @@ describe("keyless api", () => {
   const jwkAccount = Account.generate();
 
   beforeEach(async () => {
+    // Clear the memoize cache to ensure fresh JWK lookups after installing new JWKs
+    clearMemoizeCache();
     await aptos.fundAccount({
       accountAddress: jwkAccount.accountAddress,
       amount: FUND_AMOUNT,
@@ -360,7 +362,7 @@ describe("keyless api", () => {
             : await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, jwkAddress });
         const message = "hello world";
         const signature = sender.sign(message);
-        expect(sender.verifySignature({ message, signature })).toBe(true);
+        expect(await sender.verifySignatureAsync({ aptosConfig: aptos.config, message, signature })).toBe(true);
       },
       KEYLESS_TEST_TIMEOUT,
     );

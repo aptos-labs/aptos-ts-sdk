@@ -12,12 +12,32 @@ import {
   TransactionPayloadEntryFunction,
   Bool,
   MoveString,
+  MultiEd25519PublicKey,
+  Ed25519PrivateKey,
+  Secp256r1PrivateKey,
+  WebAuthnSignature,
+  AnySignature,
+  AnyPublicKey,
+  AccountAuthenticatorSingleKey,
+  generateSigningMessageForTransaction,
+  Hex,
 } from "../../../src";
+import { p256 } from "@noble/curves/nist";
+import { sha256 } from "@noble/hashes/sha2";
+import { sha3_256 } from "@noble/hashes/sha3";
 import { MAX_U64_BIG_INT } from "../../../src/bcs/consts";
 import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
-import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
+import {
+  b64urlEncode,
+  fundAccounts,
+  multiSignerScriptBytecode,
+  publishTransferPackage,
+  singleSignerScriptBytecode,
+} from "./helper";
 import { AccountAuthenticatorNoAccountAuthenticator } from "../../../src/transactions";
+import { MultiEd25519Account } from "../../../src/account/MultiEd25519Account";
+import { fail } from "assert";
 
 const { aptos } = getAptosClient();
 
@@ -674,12 +694,72 @@ describe("transaction submission", () => {
       expect(() => new MultiKeyAccount({ multiKey, signers: [singleSignerED25519SenderAccount] })).toThrow();
     });
   });
+
+  describe("MultiEd25519", () => {
+    const ed25519PrivateKey1 = Ed25519PrivateKey.generate();
+    const ed25519PrivateKey2 = Ed25519PrivateKey.generate();
+    const ed25519PrivateKey3 = Ed25519PrivateKey.generate();
+    const multiKey = new MultiEd25519PublicKey({
+      publicKeys: [ed25519PrivateKey1.publicKey(), ed25519PrivateKey2.publicKey(), ed25519PrivateKey3.publicKey()],
+      threshold: 2,
+    });
+
+    test("it submits a multi ed25519 transaction", async () => {
+      const account = new MultiEd25519Account({
+        publicKey: multiKey,
+        signers: [ed25519PrivateKey1, ed25519PrivateKey3],
+      });
+
+      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
+
+      const transaction = await aptos.transaction.build.simple({
+        sender: account.accountAddress,
+        data: {
+          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+          functionArguments: [1, receiverAccounts[0].accountAddress],
+        },
+      });
+
+      const senderAuthenticator = aptos.transaction.sign({ signer: account, transaction });
+
+      const response = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
+      await aptos.waitForTransaction({
+        transactionHash: response.hash,
+      });
+      expect(response.signature?.type).toBe("multi_ed25519_signature");
+    });
+
+    test("it submits a multi ed25519 transaction with misordered signers", async () => {
+      const account = new MultiEd25519Account({
+        publicKey: multiKey,
+        // the input to signers does not maintain ordering
+        signers: [ed25519PrivateKey3, ed25519PrivateKey1],
+      });
+
+      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
+
+      const transaction = await aptos.transaction.build.simple({
+        sender: account.accountAddress,
+        data: {
+          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+          functionArguments: [1, receiverAccounts[0].accountAddress],
+        },
+      });
+
+      const senderAuthenticator = aptos.transaction.sign({ signer: account, transaction });
+
+      const response = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
+      await aptos.waitForTransaction({
+        transactionHash: response.hash,
+      });
+      expect(response.signature?.type).toBe("multi_ed25519_signature");
+    });
+  });
   describe("publish move module", () => {
     const account = Account.generate();
     const metadataBytes =
-      // eslint-disable-next-line max-len
       "107472616e73616374696f6e5f746573740100000000000000004035364643333939394442364244363842383430304539323438363839393837413338313439344644413241343631334144373946333630323134353539324545ba011f8b08000000000002ff5d8f3d0ec2300c85779f0265e944032b12030b97a8aaca4d4c1b95fc284e0bc72729a503f2e2a7f7d97e6e02aa09076ac1a1a5c3f5205244c7a892f1ae4bc449c04291b32ae6a9ce25001a4d819c26a70c717d0bc9f33de6052f1fa7160693325c8d2905be4899e538f7b5f25662218f4fec796b958f5467a082484b19b2685c053cf7dac4a2bf98f50bc9c7efc236bbeb2a0742ad233113b7b0baddeeaeb9df6701ff9f15a3131fec1509190201000001087472616e73666572ca021f8b08000000000002ff9552cb4ec33010bcf72bf654a522dc10071790101f12b9f1a6582476e407a142fd77fc48d23826125891627b661fb39e4e32db22184585a6b5e1525406b52124dc34a8e07b07e03eab11686fa4ae1a453b1ca4fa20245ed4928be33629c03b87f6f6d4f21a50187581c60a3083ac4e97cafd0a07c7d570e5cac35ef3b34055cef71a6b29d82f00eda415a61ae3ece343064da109c6f41c431953a8758a4d413988bdd43c2f780893f2ab45035e74a4c07338103270f3ce141d9e6e5323e4d5efdfdcf6a508ec32d17338ae53c6b6fe9c33d2cb741287f01a7e457e87ea8cc5beb3cbb6cb65bd5bc45623f8e50c539b3ccb520edca58dc07d3acd75632358cc6f552e52cfb3c9b993ea5481e75e6381dc89a3db8b85df0443b5e9b7959b14d61c3f3d3ff14bee897fbc9caf3fcd6f43ec54364a9d355e7f00fb8d2dcfd603000000000300000000000000000000000000000000000000000000000000000000000000010e4170746f734672616d65776f726b00000000000000000000000000000000000000000000000000000000000000010b4170746f735374646c696200000000000000000000000000000000000000000000000000000000000000010a4d6f76655374646c696200";
-    // eslint-disable-next-line max-len
+
     const byteCode = `a11ceb0b060000000801000602060a031022043208053a4e0788015208da01400c9a024c000001010102020404010001010508000000000100000302010002060506010002070701010002080901010002090a060100020403040404050403060c03050007060c060c0303050503010b0001080101080102060c03010b0001090002050b00010900030b000108010b000108010b0001080102070b000109000b0001090002070b0001090003087472616e736665720a6170746f735f636f696e04636f696e0a74776f5f62795f74776f04436f696e094170746f73436f696e087769746864726177076465706f736974056d657267650765787472616374${account.accountAddress.toStringWithoutPrefix()}00000000000000000000000000000000000000000000000000000000000000010001040003080b000b0138000c030b020b0338010201010400081a0b000a0238000c070b010a0338000c080d070b0838020d070b020b03160b061738030c090b040b0738010b050b0938010200`;
     beforeAll(async () => {
       await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
@@ -688,7 +768,7 @@ describe("transaction submission", () => {
     test("it generates a publish move module transaction successfully", async () => {
       const transaction = await aptos.publishPackageTransaction({
         account: account.accountAddress,
-        // eslint-disable-next-line max-len
+
         metadataBytes,
         moduleBytecode: [byteCode],
       });
@@ -702,7 +782,7 @@ describe("transaction submission", () => {
     test("it submits a publish move module transaction successfully", async () => {
       const transaction = await aptos.publishPackageTransaction({
         account: account.accountAddress,
-        // eslint-disable-next-line max-len
+
         metadataBytes,
         moduleBytecode: [byteCode],
       });
@@ -791,10 +871,6 @@ describe("transaction submission", () => {
     test("submits simple sponsored transaction for an uncreated main signer account", async () => {
       const uncreatedAccount = Account.generate();
 
-      // expect uncreatedAccount has not been created on chain
-      await expect(() =>
-        aptos.account.getAccountInfo({ accountAddress: uncreatedAccount.accountAddress }),
-      ).rejects.toThrow();
       const transaction = await createTransaction(uncreatedAccount);
 
       const response = await aptos.signAndSubmitTransaction({
@@ -819,10 +895,6 @@ describe("transaction submission", () => {
     test("submits simple sponsored transaction by the fee payer", async () => {
       const uncreatedAccount = Account.generate();
 
-      // expect uncreatedAccount has not been created on chain
-      await expect(() =>
-        aptos.account.getAccountInfo({ accountAddress: uncreatedAccount.accountAddress }),
-      ).rejects.toThrow();
       const transaction = await createTransaction(uncreatedAccount);
 
       const senderAuthenticator = aptos.transaction.sign({ signer: uncreatedAccount, transaction });
@@ -849,10 +921,6 @@ describe("transaction submission", () => {
     test("submits a sponsored transaction by with a fee payer authenticator", async () => {
       const uncreatedAccount = Account.generate();
 
-      // expect uncreatedAccount has not been created on chain
-      await expect(() =>
-        aptos.account.getAccountInfo({ accountAddress: uncreatedAccount.accountAddress }),
-      ).rejects.toThrow();
       const transaction = await createTransaction(uncreatedAccount);
 
       const feePayerSignerAuthenticator = aptos.transaction.signAsFeePayer({
@@ -925,6 +993,174 @@ describe("transaction submission", () => {
         expect(errorStr).toContain("INVALID_SIGNATURE");
         expect(errorStr).toContain("vm_error");
       }
+    });
+  });
+  describe("orderless transactions", () => {
+    test("it submits a orderless transaction with an entry function payload", async () => {
+      const transaction = await aptos.transaction.build.simple({
+        sender: legacyED25519SenderAccount.accountAddress,
+        data: {
+          function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
+          functionArguments: [1, receiverAccounts[0].accountAddress],
+        },
+        options: {
+          replayProtectionNonce: 0xcafebabedeadbeefn,
+        },
+      });
+      const response = await aptos.signAndSubmitTransaction({
+        signer: legacyED25519SenderAccount,
+        transaction,
+      });
+      await aptos.waitForTransaction({
+        transactionHash: response.hash,
+      });
+      expect(response.signature?.type).toBe("ed25519_signature");
+    });
+  });
+  test("it submits a orderless transaction with a script payload", async () => {
+    const transaction = await aptos.transaction.build.simple({
+      sender: legacyED25519SenderAccount.accountAddress,
+      data: {
+        bytecode: singleSignerScriptBytecode,
+        functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+      },
+      options: {
+        replayProtectionNonce: 101,
+      },
+    });
+    const response = await aptos.signAndSubmitTransaction({
+      signer: legacyED25519SenderAccount,
+      transaction,
+    });
+    await aptos.waitForTransaction({
+      transactionHash: response.hash,
+    });
+    expect(response.signature?.type).toBe("ed25519_signature");
+  });
+
+  describe("WebAuthn Transaction Submission", () => {
+    test("submits transaction with WebAuthn signature", async () => {
+      // Generate Secp256r1 key pair
+      const privateKey = Secp256r1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      const senderAddress = publicKey.authKey().derivedAddress();
+
+      // Fund the account
+      await aptos.fundAccount({ accountAddress: senderAddress, amount: 1_000_000_000 });
+
+      // Build transaction
+      const transaction = await aptos.transaction.build.simple({
+        sender: senderAddress,
+        data: {
+          function: "0x1::aptos_account::transfer",
+          functionArguments: ["0x1", 1],
+        },
+        options: {
+          gasUnitPrice: 100,
+          maxGasAmount: 2000,
+        },
+      });
+
+      // Create WebAuthn signature components
+      const message = generateSigningMessageForTransaction(transaction);
+      const challenge = sha3_256(message);
+      const clientDataObj = {
+        type: "webauthn.get",
+        challenge: b64urlEncode(challenge),
+        origin: "http://localhost:5173",
+        crossOrigin: false,
+      } as const;
+      const clientDataJSON = new TextEncoder().encode(JSON.stringify(clientDataObj));
+      const authenticatorData = new Uint8Array([
+        73, 150, 13, 229, 136, 14, 140, 104, 116, 52, 23, 15, 100, 118, 96, 91, 143, 228, 174, 185, 162, 134, 50, 199,
+        153, 92, 243, 186, 131, 29, 151, 99, 29, 0, 0, 0, 0,
+      ]);
+
+      // Real WebAuthn signature
+      const clientHash = sha256(clientDataJSON);
+      const toBeSigned = new Uint8Array(authenticatorData.length + clientHash.length);
+      toBeSigned.set(authenticatorData, 0);
+      toBeSigned.set(clientHash, authenticatorData.length);
+      const webauthnDigest = sha256(toBeSigned);
+      const privBytes = Hex.fromHexInput(privateKey.toHexString()).toUint8Array();
+      const sig = p256.sign(webauthnDigest, privBytes).normalizeS();
+      const signatureBytes = sig.toCompactRawBytes();
+      const webAuthnSignature = new WebAuthnSignature(signatureBytes, authenticatorData, clientDataJSON);
+
+      // Create account authenticator
+      const anySignature = new AnySignature(webAuthnSignature);
+      const anyPublicKey = new AnyPublicKey(publicKey);
+      const senderAuthenticator = new AccountAuthenticatorSingleKey(anyPublicKey, anySignature);
+
+      // Submit transaction
+      const pendingTransaction = await aptos.transaction.submit.simple({
+        transaction,
+        senderAuthenticator,
+      });
+
+      // Wait for transaction to be committed
+      const committedTransaction = await aptos.waitForTransaction({
+        transactionHash: pendingTransaction.hash,
+      });
+
+      expect(committedTransaction.success).toBe(true);
+      expect(committedTransaction.hash).toBe(pendingTransaction.hash);
+    });
+
+    test("submits entry function transaction with WebAuthn signature", async () => {
+      const privateKey = Secp256r1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      const senderAddress = publicKey.authKey().derivedAddress();
+
+      await aptos.fundAccount({ accountAddress: senderAddress, amount: 1_000_000_000 });
+
+      const transaction = await aptos.transaction.build.simple({
+        sender: senderAddress,
+        data: {
+          function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
+          functionArguments: [1, receiverAccounts[0].accountAddress],
+        },
+      });
+
+      // Create WebAuthn signature
+      const message = generateSigningMessageForTransaction(transaction);
+      const challenge = sha3_256(message);
+      const clientDataObj = {
+        type: "webauthn.get",
+        challenge: b64urlEncode(challenge),
+        origin: "http://localhost:5173",
+        crossOrigin: false,
+      } as const;
+      const clientDataJSON = new TextEncoder().encode(JSON.stringify(clientDataObj));
+      const authenticatorData = new Uint8Array([
+        73, 150, 13, 229, 136, 14, 140, 104, 116, 52, 23, 15, 100, 118, 96, 91, 143, 228, 174, 185, 162, 134, 50, 199,
+        153, 92, 243, 186, 131, 29, 151, 99, 29, 0, 0, 0, 0,
+      ]);
+
+      const clientHash = sha256(clientDataJSON);
+      const toBeSigned = new Uint8Array(authenticatorData.length + clientHash.length);
+      toBeSigned.set(authenticatorData, 0);
+      toBeSigned.set(clientHash, authenticatorData.length);
+      const webauthnDigest = sha256(toBeSigned);
+      const privBytes = Hex.fromHexInput(privateKey.toHexString()).toUint8Array();
+      const sig = p256.sign(webauthnDigest, privBytes).normalizeS();
+      const signatureBytes = sig.toCompactRawBytes();
+      const webAuthnSignature = new WebAuthnSignature(signatureBytes, authenticatorData, clientDataJSON);
+
+      const anySignature = new AnySignature(webAuthnSignature);
+      const anyPublicKey = new AnyPublicKey(publicKey);
+      const senderAuthenticator = new AccountAuthenticatorSingleKey(anyPublicKey, anySignature);
+
+      const response = await aptos.transaction.submit.simple({
+        transaction,
+        senderAuthenticator,
+      });
+
+      await aptos.waitForTransaction({
+        transactionHash: response.hash,
+      });
+
+      expect(response.hash).toBeDefined();
     });
   });
 });

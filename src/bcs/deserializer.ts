@@ -1,10 +1,21 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable no-bitwise */
 import { MAX_U32_NUMBER } from "./consts";
 import { Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, HexInput } from "../types";
 import { Hex } from "../core/hex";
+
+/**
+ * Shared TextDecoder instance for string deserialization to avoid repeated instantiation.
+ */
+const TEXT_DECODER = new TextDecoder();
+
+/**
+ * Maximum allowed length for deserialized byte arrays and strings.
+ * This prevents memory exhaustion attacks from malformed BCS data.
+ * Set to 10MB which should be sufficient for any legitimate use case.
+ */
+const MAX_DESERIALIZE_BYTES_LENGTH = 10 * 1024 * 1024; // 10MB
 
 /**
  * This interface exists to define Deserializable<T> inputs for functions that
@@ -70,18 +81,27 @@ export class Deserializer {
 
   /**
    * Reads a specified number of bytes from the buffer and advances the offset.
+   * Returns a view into the buffer rather than copying for better performance.
+   *
+   * SECURITY NOTE: This returns a view, not a copy. Callers that expose the result
+   * externally MUST call .slice() to create a copy. Internal numeric deserializers
+   * (deserializeU8, deserializeU16, etc.) only read values and don't expose the view.
+   * deserializeBytes() and deserializeFixedBytes() call .slice() before returning.
    *
    * @param length - The number of bytes to read from the buffer.
    * @throws Throws an error if the read operation exceeds the buffer's length.
    * @group Implementation
    * @category BCS
    */
-  private read(length: number): ArrayBuffer {
+  private read(length: number): Uint8Array {
     if (this.offset + length > this.buffer.byteLength) {
       throw new Error("Reached to the end of buffer");
     }
 
-    const bytes = this.buffer.slice(this.offset, this.offset + length);
+    // Use subarray to return a view instead of slice which copies
+    // SECURITY: View is safe because numeric deserializers only read values,
+    // and byte deserializers call .slice() before returning to caller
+    const bytes = new Uint8Array(this.buffer, this.offset, length);
     this.offset += length;
     return bytes;
   }
@@ -97,6 +117,19 @@ export class Deserializer {
    */
   remaining(): number {
     return this.buffer.byteLength - this.offset;
+  }
+
+  /**
+   * Asserts that the buffer has no remaining bytes.
+   *
+   * @throws {Error} Throws an error if there are remaining bytes in the buffer.
+   * @group Implementation
+   * @category BCS
+   */
+  assertFinished(): void {
+    if (this.remaining() !== 0) {
+      throw new Error("Buffer has remaining bytes");
+    }
   }
 
   /**
@@ -116,8 +149,7 @@ export class Deserializer {
    */
   deserializeStr(): string {
     const value = this.deserializeBytes();
-    const textDecoder = new TextDecoder();
-    return textDecoder.decode(value);
+    return TEXT_DECODER.decode(value);
   }
 
   /**
@@ -208,24 +240,34 @@ export class Deserializer {
    * The BCS layout for "bytes" consists of a bytes_length followed by the bytes themselves, where bytes_length is a u32 integer
    * encoded as a uleb128 integer, indicating the length of the bytes array.
    *
-   * @returns {Uint8Array} The deserialized array of bytes.
+   * @returns {Uint8Array} The deserialized array of bytes (a copy, safe to modify).
+   * @throws {Error} If the length exceeds the maximum allowed (10MB) to prevent memory exhaustion.
    * @group Implementation
    * @category BCS
    */
   deserializeBytes(): Uint8Array {
     const len = this.deserializeUleb128AsU32();
-    return new Uint8Array(this.read(len));
+    // Security: Prevent memory exhaustion from malformed data
+    if (len > MAX_DESERIALIZE_BYTES_LENGTH) {
+      throw new Error(
+        `Deserialization error: byte array length ${len} exceeds maximum allowed ${MAX_DESERIALIZE_BYTES_LENGTH}`,
+      );
+    }
+    // Return a copy so caller can safely modify without affecting buffer
+    return this.read(len).slice();
   }
 
   /**
    * Deserializes an array of bytes of a specified length.
    *
    * @param len - The number of bytes to read from the source.
+   * @returns {Uint8Array} The deserialized array of bytes (a copy, safe to modify).
    * @group Implementation
    * @category BCS
    */
   deserializeFixedBytes(len: number): Uint8Array {
-    return new Uint8Array(this.read(len));
+    // Return a copy so caller can safely modify without affecting buffer
+    return this.read(len).slice();
   }
 
   /**
@@ -240,7 +282,7 @@ export class Deserializer {
    * @category BCS
    */
   deserializeBool(): boolean {
-    const bool = new Uint8Array(this.read(1))[0];
+    const bool = this.read(1)[0];
     if (bool !== 1 && bool !== 0) {
       throw new Error("Invalid boolean value");
     }
@@ -257,7 +299,7 @@ export class Deserializer {
    * @category BCS
    */
   deserializeU8(): Uint8 {
-    return new DataView(this.read(1)).getUint8(0);
+    return this.read(1)[0];
   }
 
   /**
@@ -273,7 +315,8 @@ export class Deserializer {
    * @category BCS
    */
   deserializeU16(): Uint16 {
-    return new DataView(this.read(2)).getUint16(0, true);
+    const bytes = this.read(2);
+    return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint16(0, true);
   }
 
   /**
@@ -289,7 +332,8 @@ export class Deserializer {
    * @category BCS
    */
   deserializeU32(): Uint32 {
-    return new DataView(this.read(4)).getUint32(0, true);
+    const bytes = this.read(4);
+    return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(0, true);
   }
 
   /**
@@ -346,11 +390,120 @@ export class Deserializer {
   }
 
   /**
+   * Deserializes an 8-bit signed integer from the binary data.
+   * BCS layout for "int8": One byte. Binary format in little-endian representation.
+   *
+   * @returns {number} The deserialized int8 number.
+   * @group Implementation
+   * @category BCS
+   */
+  deserializeI8(): number {
+    const bytes = this.read(1);
+    return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getInt8(0);
+  }
+
+  /**
+   * Deserializes a 16-bit signed integer from a binary format in little-endian representation.
+   * BCS layout for "int16": Two bytes.
+   *
+   * @returns {number} The deserialized int16 number.
+   * @group Implementation
+   * @category BCS
+   */
+  deserializeI16(): number {
+    const bytes = this.read(2);
+    return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getInt16(0, true);
+  }
+
+  /**
+   * Deserializes a 32-bit signed integer from a binary format in little-endian representation.
+   * BCS layout for "int32": Four bytes.
+   *
+   * @returns {number} The deserialized int32 number.
+   * @group Implementation
+   * @category BCS
+   */
+  deserializeI32(): number {
+    const bytes = this.read(4);
+    return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getInt32(0, true);
+  }
+
+  /**
+   * Deserializes a 64-bit signed integer.
+   * This function combines two 32-bit values to return a 64-bit signed integer in little-endian representation.
+   *
+   * @returns {bigint} The deserialized int64 number.
+   * @group Implementation
+   * @category BCS
+   */
+  deserializeI64(): bigint {
+    const low = this.deserializeU32();
+    const high = this.deserializeU32();
+
+    // combine the two 32-bit values (little endian)
+    const unsigned = BigInt((BigInt(high) << BigInt(32)) | BigInt(low));
+
+    // Convert from unsigned to signed using two's complement
+    const signBit = BigInt(1) << BigInt(63);
+    if (unsigned >= signBit) {
+      return unsigned - (BigInt(1) << BigInt(64));
+    }
+    return unsigned;
+  }
+
+  /**
+   * Deserializes a 128-bit signed integer from its binary representation.
+   * This function combines two 64-bit values to return a single int128 value in little-endian format.
+   *
+   * @returns {bigint} The deserialized int128 number.
+   * @group Implementation
+   * @category BCS
+   */
+  deserializeI128(): bigint {
+    const low = this.deserializeU64();
+    const high = this.deserializeU64();
+
+    // combine the two 64-bit values (little endian)
+    const unsigned = BigInt((high << BigInt(64)) | low);
+
+    // Convert from unsigned to signed using two's complement
+    const signBit = BigInt(1) << BigInt(127);
+    if (unsigned >= signBit) {
+      return unsigned - (BigInt(1) << BigInt(128));
+    }
+    return unsigned;
+  }
+
+  /**
+   * Deserializes a 256-bit signed integer from its binary representation.
+   * BCS layout for "int256": Thirty-two bytes in little-endian format.
+   *
+   * @returns {bigint} The deserialized int256 number.
+   * @group Implementation
+   * @category BCS
+   */
+  deserializeI256(): bigint {
+    const low = this.deserializeU128();
+    const high = this.deserializeU128();
+
+    // combine the two 128-bit values (little endian)
+    const unsigned = BigInt((high << BigInt(128)) | low);
+
+    // Convert from unsigned to signed using two's complement
+    const signBit = BigInt(1) << BigInt(255);
+    if (unsigned >= signBit) {
+      return unsigned - (BigInt(1) << BigInt(256));
+    }
+    return unsigned;
+  }
+
+  /**
    * Deserializes a uleb128 encoded uint32 number.
    *
    * This function is used for interpreting lengths of variable-length sequences and tags of enum values in BCS encoding.
    *
    * @throws {Error} Throws an error if the parsed value exceeds the maximum uint32 number.
+   * @throws {Error} Throws an error if the uleb128 encoding is malformed (too many bytes).
    * @returns {number} The deserialized uint32 value.
    * @group Implementation
    * @category BCS
@@ -358,18 +511,30 @@ export class Deserializer {
   deserializeUleb128AsU32(): Uint32 {
     let value: bigint = BigInt(0);
     let shift = 0;
+    // Maximum 5 bytes for uleb128-encoded u32 (7 bits per byte, 5*7=35 bits > 32 bits needed)
+    const MAX_ULEB128_BYTES = 5;
+    let bytesRead = 0;
 
-    while (value < MAX_U32_NUMBER) {
+    while (bytesRead < MAX_ULEB128_BYTES) {
       const byte = this.deserializeU8();
+      bytesRead += 1;
+
       value |= BigInt(byte & 0x7f) << BigInt(shift);
+
+      // Early overflow check before continuing
+      if (value > MAX_U32_NUMBER) {
+        throw new Error("Overflow while parsing uleb128-encoded uint32 value");
+      }
 
       if ((byte & 0x80) === 0) {
         break;
       }
+
       shift += 7;
     }
 
-    if (value > MAX_U32_NUMBER) {
+    // If we read MAX_ULEB128_BYTES and the last byte had continuation bit set, it's malformed
+    if (bytesRead === MAX_ULEB128_BYTES && value > MAX_U32_NUMBER) {
       throw new Error("Overflow while parsing uleb128-encoded uint32 value");
     }
 

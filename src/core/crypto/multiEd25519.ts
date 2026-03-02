@@ -1,11 +1,12 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { AptosConfig } from "../../api";
 import { Deserializer, Serializer } from "../../bcs";
-import { SigningScheme as AuthenticationKeyScheme } from "../../types";
+import { SigningScheme as AuthenticationKeyScheme, HexInput } from "../../types";
 import { AuthenticationKey } from "../authenticationKey";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
-import { AccountPublicKey, VerifySignatureArgs } from "./publicKey";
+import { AbstractMultiKey } from "./multiKey";
 import { Signature } from "./signature";
 
 /**
@@ -19,7 +20,7 @@ import { Signature } from "./signature";
  * @group Implementation
  * @category Serialization
  */
-export class MultiEd25519PublicKey extends AccountPublicKey {
+export class MultiEd25519PublicKey extends AbstractMultiKey {
   /**
    * Maximum number of public keys supported
    * @group Implementation
@@ -69,8 +70,8 @@ export class MultiEd25519PublicKey extends AccountPublicKey {
    * @category Serialization
    */
   constructor(args: { publicKeys: Ed25519PublicKey[]; threshold: number }) {
-    super();
     const { publicKeys, threshold } = args;
+    super({ publicKeys });
 
     // Validate number of public keys
     if (publicKeys.length > MultiEd25519PublicKey.MAX_KEYS || publicKeys.length < MultiEd25519PublicKey.MIN_KEYS) {
@@ -91,6 +92,10 @@ export class MultiEd25519PublicKey extends AccountPublicKey {
     this.threshold = threshold;
   }
 
+  getSignaturesRequired(): number {
+    return this.threshold;
+  }
+
   // region AccountPublicKey
 
   /**
@@ -105,7 +110,7 @@ export class MultiEd25519PublicKey extends AccountPublicKey {
    * @group Implementation
    * @category Serialization
    */
-  verifySignature(args: VerifySignatureArgs): boolean {
+  verifySignature(args: { message: HexInput; signature: Signature }): boolean {
     const { message, signature } = args;
     if (!(signature instanceof MultiEd25519Signature)) {
       return false;
@@ -114,7 +119,6 @@ export class MultiEd25519PublicKey extends AccountPublicKey {
     const indices: number[] = [];
     for (let i = 0; i < 4; i += 1) {
       for (let j = 0; j < 8; j += 1) {
-        // eslint-disable-next-line no-bitwise
         const bitIsSet = (signature.bitmap[i] & (1 << (7 - j))) !== 0;
         if (bitIsSet) {
           const index = i * 8 + j;
@@ -138,6 +142,14 @@ export class MultiEd25519PublicKey extends AccountPublicKey {
       }
     }
     return true;
+  }
+
+  async verifySignatureAsync(args: {
+    aptosConfig: AptosConfig;
+    message: HexInput;
+    signature: Signature;
+  }): Promise<boolean> {
+    return this.verifySignature(args);
   }
 
   /**
@@ -208,7 +220,44 @@ export class MultiEd25519PublicKey extends AccountPublicKey {
     return new MultiEd25519PublicKey({ publicKeys: keys, threshold });
   }
 
+  /**
+   * Deserializes a MultiEd25519Signature from the provided deserializer.
+   * This function helps in reconstructing a MultiEd25519Signature object from its serialized byte representation.
+   *
+   * @param deserializer - The deserializer instance used to read the serialized data.
+   * @group Implementation
+   * @category Serialization
+   */
+  static deserializeWithoutLength(deserializer: Deserializer): MultiEd25519PublicKey {
+    const length = deserializer.remaining();
+    const bytes = deserializer.deserializeFixedBytes(length);
+    const threshold = bytes[bytes.length - 1];
+
+    const keys: Ed25519PublicKey[] = [];
+
+    for (let i = 0; i < bytes.length - 1; i += Ed25519PublicKey.LENGTH) {
+      const begin = i;
+      keys.push(new Ed25519PublicKey(bytes.subarray(begin, begin + Ed25519PublicKey.LENGTH)));
+    }
+    return new MultiEd25519PublicKey({ publicKeys: keys, threshold });
+  }
+
   // endregion
+
+  /**
+   * Get the index of the provided public key.
+   *
+   * This function retrieves the index of a specified public key within the MultiKey.
+   * If the public key does not exist, it throws an error.
+   *
+   * @param publicKey - The public key to find the index for.
+   * @returns The corresponding index of the public key, if it exists.
+   * @throws Error - If the public key is not found in the MultiKey.
+   * @group Implementation
+   */
+  getIndex(publicKey: Ed25519PublicKey): number {
+    return super.getIndex(publicKey);
+  }
 }
 
 /**
@@ -373,8 +422,7 @@ export class MultiEd25519Signature extends Signature {
 
       let byte = bitmap[byteOffset];
 
-      // eslint-disable-next-line no-bitwise
-      byte |= firstBitInByte >> bit % 8;
+      byte |= firstBitInByte >> (bit % 8);
 
       bitmap[byteOffset] = byte;
     });

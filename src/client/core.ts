@@ -20,6 +20,7 @@ import { AptosApiError } from "../errors";
  * @param options.overrides.HEADERS - Custom headers to include in the request.
  * @param options.overrides.AUTH_TOKEN - The authorization token for the request.
  * @param options.overrides.API_KEY - The API key for the request.
+ * @param options.overrides.http2 - Whether to use HTTP/2 for the request.
  * @param options.originMethod - The origin method for the request.
  * @param client - The client used to make the request.
  *
@@ -54,6 +55,7 @@ export async function request<Req, Res>(options: ClientRequest<Req>, client: Cli
     params,
     headers,
     overrides,
+    http2: overrides?.http2,
   });
 }
 

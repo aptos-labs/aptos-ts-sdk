@@ -184,6 +184,31 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   }
 
   /**
+   * Convert the account address to a string in SHORT format, which is 0x followed by the shortest
+   * possible representation (no leading zeros).
+   *
+   * @returns AccountAddress as a string in SHORT form.
+   * @group Implementation
+   * @category Serialization
+   */
+  toStringShort(): `0x${string}` {
+    return `0x${this.toStringShortWithoutPrefix()}`;
+  }
+
+  /**
+   * Returns a lossless short string representation of the address by trimming leading zeros.
+   * If the address consists of all zeros, returns "0".
+   *
+   * @returns A string representation of the address without leading zeros
+   * @group Implementation
+   * @category Serialization
+   */
+  toStringShortWithoutPrefix(): string {
+    const hex = bytesToHex(this.data).replace(/^0+/, "");
+    return hex === "" ? "0" : hex;
+  }
+
+  /**
    * Get the inner data as a Uint8Array.
    * The inner data is already a Uint8Array, so no conversion takes place.
    *
@@ -215,14 +240,14 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   /**
    * Serializes the current instance into a byte sequence suitable for entry functions.
    * This allows for the proper encoding of data when interacting with entry functions in the blockchain.
+   * Uses the optimized serializeAsBytes method to reduce allocations.
    *
    * @param serializer - The serializer instance used to convert the data into bytes.
    * @group Implementation
    * @category Serialization
    */
   serializeForEntryFunction(serializer: Serializer): void {
-    const bcsBytes = this.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
+    serializer.serializeAsBytes(this);
   }
 
   /**
@@ -314,7 +339,6 @@ export class AccountAddress extends Serializable implements TransactionArgument 
       } else if (input.length !== 3) {
         // 0x + one hex char is the only valid SHORT form for special addresses.
         throw new ParsingError(
-          // eslint-disable-next-line max-len
           `The given hex string ${input} is a special address not in LONG form, it must be 0x0 to 0xf without padding zeroes.`,
           AddressInvalidReason.INVALID_PADDING_ZEROES,
         );

@@ -194,3 +194,40 @@ export async function transferFungibleAsset(args: {
     options,
   });
 }
+
+/**
+ * Transfers a specified amount of a fungible asset from any (primary or secondary) fungible store to any (primary or secondary) fungible store.
+ * This function helps facilitate the transfer of digital assets between fungible stores on the Aptos blockchain.
+ *
+ * @param args - The parameters for the transfer operation.
+ * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.sender - The account initiating the transfer.
+ * @param args.fromStore - The address of the fungible store initiating the transfer.
+ * @param args.toStore - The address of the fungible store receiving the asset.
+ * @param args.amount - The amount of the fungible asset to transfer. Must be a positive number.
+ * @param args.options - Optional settings for generating the transaction.
+ * @returns A SimpleTransaction that can be submitted to the blockchain.
+ * @throws Error if the transaction generation fails or if the input parameters are invalid.
+ * @group Implementation
+ */
+export async function transferFungibleAssetBetweenStores(args: {
+  aptosConfig: AptosConfig;
+  sender: Account;
+  fromStore: AccountAddressInput;
+  toStore: AccountAddressInput;
+  amount: AnyNumber;
+  options?: InputGenerateTransactionOptions;
+}): Promise<SimpleTransaction> {
+  const { aptosConfig, sender, fromStore, toStore, amount, options } = args;
+  return generateTransaction({
+    aptosConfig,
+    sender: sender.accountAddress,
+    data: {
+      function: "0x1::dispatchable_fungible_asset::transfer",
+      typeArguments: ["0x1::fungible_asset::FungibleStore"],
+      functionArguments: [fromStore, toStore, amount],
+      abi: faTransferAbi,
+    },
+    options,
+  });
+}

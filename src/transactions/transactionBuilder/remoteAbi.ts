@@ -6,6 +6,12 @@ import {
   TypeTag,
   TypeTagAddress,
   TypeTagBool,
+  TypeTagI128,
+  TypeTagI16,
+  TypeTagI256,
+  TypeTagI32,
+  TypeTagI64,
+  TypeTagI8,
   TypeTagStruct,
   TypeTagU128,
   TypeTagU16,
@@ -23,7 +29,25 @@ import {
   FunctionABI,
   TypeArgument,
 } from "../types";
-import { Bool, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs";
+import {
+  Bool,
+  FixedBytes,
+  I128,
+  I16,
+  I256,
+  I32,
+  I64,
+  I8,
+  MoveOption,
+  MoveString,
+  MoveVector,
+  U128,
+  U16,
+  U256,
+  U32,
+  U64,
+  U8,
+} from "../../bcs";
 import { AccountAddress } from "../../core";
 import { getModule } from "../../internal/account";
 import {
@@ -44,10 +68,17 @@ import {
   isString,
   throwTypeMismatch,
   convertNumber,
+  isBcsI8,
+  isBcsI16,
+  isBcsI32,
+  isBcsI64,
+  isBcsI128,
+  isBcsI256,
 } from "./helpers";
-import { MoveFunction } from "../../types";
-
-const TEXT_ENCODER = new TextEncoder();
+import { MoveFunction, MoveModule } from "../../types";
+import { warnIfDevelopment } from "../../utils/helpers";
+import { memoizeAsync } from "../../utils/memoize";
+import { TEXT_ENCODER } from "../../utils";
 
 /**
  * Convert type arguments to only type tags, allowing for string representations of type tags.
@@ -70,6 +101,39 @@ export function standardizeTypeTags(typeArguments?: Array<TypeArgument>): Array<
 }
 
 /**
+ * Cache TTL for module ABIs in milliseconds (5 minutes).
+ * ABIs rarely change, so a longer cache is acceptable.
+ */
+const MODULE_ABI_CACHE_TTL_MS = 5 * 60 * 1000;
+
+/**
+ * Fetches the ABI of a specified module from the on-chain module ABI.
+ * Results are cached for 5 minutes to reduce redundant network calls.
+ *
+ * @param moduleAddress - The address of the module from which to fetch the ABI.
+ * @param moduleName - The name of the module containing the ABI.
+ * @param aptosConfig - The configuration settings for Aptos.
+ * @group Implementation
+ * @category Transactions
+ */
+export async function fetchModuleAbi(
+  moduleAddress: string,
+  moduleName: string,
+  aptosConfig: AptosConfig,
+): Promise<MoveModule | undefined> {
+  const cacheKey = `module-abi-${aptosConfig.network}-${moduleAddress}-${moduleName}`;
+
+  return memoizeAsync(
+    async () => {
+      const moduleBytecode = await getModule({ aptosConfig, accountAddress: moduleAddress, moduleName });
+      return moduleBytecode.abi;
+    },
+    cacheKey,
+    MODULE_ABI_CACHE_TTL_MS,
+  )();
+}
+
+/**
  * Fetches the ABI of a specified function from the on-chain module ABI. This function allows you to access the details of a
  * specific function within a module.
  *
@@ -86,14 +150,33 @@ export async function fetchFunctionAbi(
   functionName: string,
   aptosConfig: AptosConfig,
 ): Promise<MoveFunction | undefined> {
-  // This fetch from the API is currently cached
-  const module = await getModule({ aptosConfig, accountAddress: moduleAddress, moduleName });
+  const moduleAbi = await fetchModuleAbi(moduleAddress, moduleName, aptosConfig);
+  if (!moduleAbi) throw new Error(`Could not find module ABI for '${moduleAddress}::${moduleName}'`);
+  return moduleAbi.exposed_functions.find((func) => func.name === functionName);
+}
 
-  if (module.abi) {
-    return module.abi.exposed_functions.find((func) => func.name === functionName);
+/**
+ * @deprecated Use `fetchFunctionAbi` instead and manually parse the type tags.
+ */
+export async function fetchMoveFunctionAbi(
+  moduleAddress: string,
+  moduleName: string,
+  functionName: string,
+  aptosConfig: AptosConfig,
+): Promise<FunctionABI> {
+  const functionAbi = await fetchFunctionAbi(moduleAddress, moduleName, functionName, aptosConfig);
+  if (!functionAbi) {
+    throw new Error(`Could not find function ABI for '${moduleAddress}::${moduleName}::${functionName}'`);
+  }
+  const params: TypeTag[] = [];
+  for (let i = 0; i < functionAbi.params.length; i += 1) {
+    params.push(parseTypeTag(functionAbi.params[i], { allowGenerics: true }));
   }
 
-  return undefined;
+  return {
+    typeParameters: functionAbi.generic_type_params,
+    parameters: params,
+  };
 }
 
 /**
@@ -196,27 +279,54 @@ export async function fetchViewFunctionAbi(
  * This function checks the provided argument against the expected parameter type and converts it accordingly.
  *
  * @param functionName - The name of the function for which the argument is being converted.
- * @param functionAbi - The ABI (Application Binary Interface) of the function, which defines its parameters.
+ * @param functionAbiOrModuleAbi - The ABI (Application Binary Interface) of the function, which defines its parameters.
  * @param arg - The argument to be converted, which can be of various types.
  * @param position - The index of the argument in the function's parameter list.
  * @param genericTypeParams - An array of type tags for any generic type parameters.
+ * @param options - Options for the conversion process.
+ * @param options.allowUnknownStructs - If true, unknown structs will be allowed and converted to a `FixedBytes`.
  * @group Implementation
  * @category Transactions
  */
 export function convertArgument(
   functionName: string,
-  functionAbi: FunctionABI,
+  functionAbiOrModuleAbi: MoveModule | FunctionABI,
   arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes,
   position: number,
   genericTypeParams: Array<TypeTag>,
+  options?: { allowUnknownStructs?: boolean },
 ) {
-  // Ensure not too many arguments
-  if (position >= functionAbi.parameters.length) {
-    throw new Error(`Too many arguments for '${functionName}', expected ${functionAbi.parameters.length}`);
+  let param: TypeTag;
+
+  if ("exposed_functions" in functionAbiOrModuleAbi) {
+    const functionAbi = functionAbiOrModuleAbi.exposed_functions.find((func) => func.name === functionName);
+    if (!functionAbi) {
+      throw new Error(
+        `Could not find function ABI for '${functionAbiOrModuleAbi.address}::${functionAbiOrModuleAbi.name}::${functionName}'`,
+      );
+    }
+
+    if (position >= functionAbi.params.length) {
+      throw new Error(`Too many arguments for '${functionName}', expected ${functionAbi.params.length}`);
+    }
+
+    param = parseTypeTag(functionAbi.params[position], { allowGenerics: true });
+  } else {
+    if (position >= functionAbiOrModuleAbi.parameters.length) {
+      throw new Error(`Too many arguments for '${functionName}', expected ${functionAbiOrModuleAbi.parameters.length}`);
+    }
+
+    param = functionAbiOrModuleAbi.parameters[position];
   }
 
-  const param = functionAbi.parameters[position];
-  return checkOrConvertArgument(arg, param, position, genericTypeParams);
+  return checkOrConvertArgument(
+    arg,
+    param,
+    position,
+    genericTypeParams,
+    "exposed_functions" in functionAbiOrModuleAbi ? functionAbiOrModuleAbi : undefined,
+    options,
+  );
 }
 
 /**
@@ -235,6 +345,8 @@ export function checkOrConvertArgument(
   param: TypeTag,
   position: number,
   genericTypeParams: Array<TypeTag>,
+  moduleAbi?: MoveModule,
+  options?: { allowUnknownStructs?: boolean },
 ) {
   // If the argument is bcs encoded, we can just use it directly
   if (isEncodedEntryFunctionArgument(arg)) {
@@ -247,6 +359,8 @@ export function checkOrConvertArgument(
      * @param typeArgs - The expected type arguments.
      * @param arg - The argument to be checked.
      * @param position - The position of the argument in the context of the check.
+     * @param moduleAbi - The ABI of the module containing the function, used for type checking.
+     *                    This will typically have information about structs, enums, and other types.
      * @group Implementation
      * @category Transactions
      */
@@ -255,7 +369,7 @@ export function checkOrConvertArgument(
   }
 
   // If it is not BCS encoded, we will need to convert it with the ABI
-  return parseArg(arg, param, position, genericTypeParams);
+  return parseArg(arg, param, position, genericTypeParams, moduleAbi, options);
 }
 
 /**
@@ -267,6 +381,10 @@ export function checkOrConvertArgument(
  * @param param - The type tag that defines the expected type of the argument.
  * @param position - The position of the argument in the function call, used for error reporting.
  * @param genericTypeParams - An array of type tags for generic type parameters, used when the parameter type is generic.
+ * @param moduleAbi - The ABI of the module containing the function, used for type checking.
+ *                    This will typically have information about structs, enums, and other types.
+ * @param options - Options for the conversion process.
+ * @param options.allowUnknownStructs - If true, unknown structs will be allowed and converted to a `FixedBytes`.
  * @group Implementation
  * @category Transactions
  */
@@ -275,6 +393,8 @@ function parseArg(
   param: TypeTag,
   position: number,
   genericTypeParams: Array<TypeTag>,
+  moduleAbi?: MoveModule,
+  options?: { allowUnknownStructs?: boolean },
 ): EntryFunctionArgumentTypes {
   if (param.isBool()) {
     if (isBool(arg)) {
@@ -295,10 +415,15 @@ function parseArg(
      */
     throwTypeMismatch("boolean", position);
   }
-  // TODO: support uint8array?
   if (param.isAddress()) {
     if (isString(arg)) {
       return AccountAddress.fromString(arg);
+    }
+    // Support for Uint8Array coming from external sources
+    // Usually, dapps will be getting the account address as a Uint8Array from the wallet (following
+    // the wallet standard).
+    if (arg && typeof arg === "object" && "data" in arg && arg.data instanceof Uint8Array) {
+      return new AccountAddress(arg.data);
     }
     throwTypeMismatch("string | AccountAddress", position);
   }
@@ -341,6 +466,45 @@ function parseArg(
     }
     throwTypeMismatch("bigint | number | string", position);
   }
+  if (param.isI8()) {
+    const num = convertNumber(arg);
+    if (num !== undefined) {
+      return new I8(num);
+    }
+    throwTypeMismatch("number | string", position);
+  }
+  if (param.isI16()) {
+    const num = convertNumber(arg);
+    if (num !== undefined) {
+      return new I16(num);
+    }
+    throwTypeMismatch("number | string", position);
+  }
+  if (param.isI32()) {
+    const num = convertNumber(arg);
+    if (num !== undefined) {
+      return new I32(num);
+    }
+    throwTypeMismatch("number | string", position);
+  }
+  if (param.isI64()) {
+    if (isLargeNumber(arg)) {
+      return new I64(BigInt(arg));
+    }
+    throwTypeMismatch("bigint | number | string", position);
+  }
+  if (param.isI128()) {
+    if (isLargeNumber(arg)) {
+      return new I128(BigInt(arg));
+    }
+    throwTypeMismatch("bigint | number | string", position);
+  }
+  if (param.isI256()) {
+    if (isLargeNumber(arg)) {
+      return new I256(BigInt(arg));
+    }
+    throwTypeMismatch("bigint | number | string", position);
+  }
 
   // Generic needs to use the subtype
   if (param.isGeneric()) {
@@ -349,7 +513,7 @@ function parseArg(
       throw new Error(`Generic argument ${param.toString()} is invalid for argument ${position}`);
     }
 
-    return checkOrConvertArgument(arg, genericTypeParams[genericIndex], position, genericTypeParams);
+    return checkOrConvertArgument(arg, genericTypeParams[genericIndex], position, genericTypeParams, moduleAbi);
   }
 
   // We have to special case some vectors for Vector<u8>
@@ -369,10 +533,19 @@ function parseArg(
       }
     }
 
+    if (isString(arg)) {
+      // In a web env, arguments are passing as strings
+      if (arg.startsWith("[")) {
+        return checkOrConvertArgument(JSON.parse(arg), param, position, genericTypeParams);
+      }
+    }
+
     // TODO: Support Uint16Array, Uint32Array, BigUint64Array?
 
     if (Array.isArray(arg)) {
-      return new MoveVector(arg.map((item) => checkOrConvertArgument(item, param.value, position, genericTypeParams)));
+      return new MoveVector(
+        arg.map((item) => checkOrConvertArgument(item, param.value, position, genericTypeParams, moduleAbi)),
+      );
     }
 
     throw new Error(`Type mismatch for argument ${position}, type '${param.toString()}'`);
@@ -391,7 +564,18 @@ function parseArg(
       if (isString(arg)) {
         return AccountAddress.fromString(arg);
       }
+      // Support for Uint8Array coming from external sources
+      if (arg && typeof arg === "object" && "data" in arg && arg.data instanceof Uint8Array) {
+        return new AccountAddress(arg.data);
+      }
       throwTypeMismatch("string | AccountAddress", position);
+    }
+    // Handle known enum types from Aptos framework
+    if (param.isDelegationKey() || param.isRateLimiter()) {
+      if (arg instanceof Uint8Array) {
+        return new FixedBytes(arg);
+      }
+      throwTypeMismatch("Uint8Array", position);
     }
 
     if (param.isOption()) {
@@ -423,13 +607,47 @@ function parseArg(
         if (innerParam instanceof TypeTagU256) {
           return new MoveOption<U256>(null);
         }
+        if (innerParam instanceof TypeTagI8) {
+          return new MoveOption<I8>(null);
+        }
+        if (innerParam instanceof TypeTagI16) {
+          return new MoveOption<I16>(null);
+        }
+        if (innerParam instanceof TypeTagI32) {
+          return new MoveOption<I32>(null);
+        }
+        if (innerParam instanceof TypeTagI64) {
+          return new MoveOption<I64>(null);
+        }
+        if (innerParam instanceof TypeTagI128) {
+          return new MoveOption<I128>(null);
+        }
+        if (innerParam instanceof TypeTagI256) {
+          return new MoveOption<I256>(null);
+        }
 
         // In all other cases, we will use a placeholder, it doesn't actually matter what the type is, but it will be obvious
         // Note: This is a placeholder U8 type, and does not match the actual type, as that can't be dynamically grabbed
         return new MoveOption<MoveString>(null);
       }
 
-      return new MoveOption(checkOrConvertArgument(arg, param.value.typeArgs[0], position, genericTypeParams));
+      return new MoveOption(
+        checkOrConvertArgument(arg, param.value.typeArgs[0], position, genericTypeParams, moduleAbi),
+      );
+    }
+
+    // We are assuming that fieldless structs are enums, and therefore we cannot typecheck any further due
+    // to limited information from the ABI. This does not work for structs on other modules.
+    const structDefinition = moduleAbi?.structs.find((s) => s.name === param.value.name.identifier);
+    if (structDefinition?.fields.length === 0 && arg instanceof Uint8Array) {
+      return new FixedBytes(arg);
+    }
+
+    if (arg instanceof Uint8Array && options?.allowUnknownStructs) {
+      warnIfDevelopment(
+        `[Aptos SDK] Unsupported struct input type for argument ${position}. Continuing since 'allowUnknownStructs' is enabled.`,
+      );
+      return new FixedBytes(arg);
     }
 
     throw new Error(`Unsupported struct input type for argument ${position}, type '${param.toString()}'`);
@@ -494,6 +712,42 @@ function checkType(param: TypeTag, arg: EntryFunctionArgumentTypes, position: nu
       return;
     }
     throwTypeMismatch("U256", position);
+  }
+  if (param.isI8()) {
+    if (isBcsI8(arg)) {
+      return;
+    }
+    throwTypeMismatch("I8", position);
+  }
+  if (param.isI16()) {
+    if (isBcsI16(arg)) {
+      return;
+    }
+    throwTypeMismatch("I16", position);
+  }
+  if (param.isI32()) {
+    if (isBcsI32(arg)) {
+      return;
+    }
+    throwTypeMismatch("I32", position);
+  }
+  if (param.isI64()) {
+    if (isBcsI64(arg)) {
+      return;
+    }
+    throwTypeMismatch("I64", position);
+  }
+  if (param.isI128()) {
+    if (isBcsI128(arg)) {
+      return;
+    }
+    throwTypeMismatch("I128", position);
+  }
+  if (param.isI256()) {
+    if (isBcsI256(arg)) {
+      return;
+    }
+    throwTypeMismatch("I256", position);
   }
   if (param.isVector()) {
     if (arg instanceof MoveVector) {

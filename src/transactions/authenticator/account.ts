@@ -1,14 +1,15 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable @typescript-eslint/naming-convention */
-
 import { Serializer, Deserializer, Serializable } from "../../bcs";
 import { AnyPublicKey, AnySignature } from "../../core/crypto";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { MultiEd25519PublicKey, MultiEd25519Signature } from "../../core/crypto/multiEd25519";
 import { MultiKey, MultiKeySignature } from "../../core/crypto/multiKey";
-import { AccountAuthenticatorVariant } from "../../types";
+import { AccountAuthenticatorVariant, HexInput, MoveFunctionId } from "../../types";
+import { AASigningDataVariant, AbstractAuthenticationDataVariant } from "../../types/abstraction";
+import { AccountAddress, Hex } from "../../core";
+import { getFunctionParts, isValidFunctionInfo } from "../../utils/helpers";
 
 /**
  * Represents an account authenticator that can handle multiple authentication variants.
@@ -43,6 +44,8 @@ export abstract class AccountAuthenticator extends Serializable {
         return AccountAuthenticatorMultiKey.load(deserializer);
       case AccountAuthenticatorVariant.NoAccountAuthenticator:
         return AccountAuthenticatorNoAccountAuthenticator.load(deserializer);
+      case AccountAuthenticatorVariant.Abstraction:
+        return AccountAuthenticatorAbstraction.load(deserializer);
       default:
         throw new Error(`Unknown variant index for AccountAuthenticator: ${index}`);
     }
@@ -253,7 +256,6 @@ export class AccountAuthenticatorMultiKey extends AccountAuthenticator {
  * It allows skipping the public/auth key check during the simulation.
  */
 export class AccountAuthenticatorNoAccountAuthenticator extends AccountAuthenticator {
-  // eslint-disable-next-line class-methods-use-this
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(AccountAuthenticatorVariant.NoAccountAuthenticator);
   }
@@ -261,5 +263,140 @@ export class AccountAuthenticatorNoAccountAuthenticator extends AccountAuthentic
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   static load(deserializer: Deserializer): AccountAuthenticatorNoAccountAuthenticator {
     return new AccountAuthenticatorNoAccountAuthenticator();
+  }
+}
+
+/**
+ * Represents an account authenticator that supports abstract authentication.
+ *
+ * @param functionInfo - The function info of the authentication function.
+ * @param signingMessageDigest - The digest of the signing message.
+ * @param abstractionSignature - The signature of the authentication function.
+ * @param accountIdentity - optional. The account identity for DAA.
+ * @group Implementation
+ * @category Transactions
+ */
+export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
+  public readonly functionInfo: string;
+
+  public readonly signingMessageDigest: Hex;
+
+  public readonly abstractionSignature: Uint8Array;
+
+  /**
+   * DAA, which is extended of the AA module, requires an account identity
+   */
+  public readonly accountIdentity?: Uint8Array;
+
+  constructor(
+    functionInfo: string,
+    signingMessageDigest: HexInput,
+    abstractionSignature: Uint8Array,
+    accountIdentity?: Uint8Array,
+  ) {
+    super();
+    if (!isValidFunctionInfo(functionInfo)) {
+      throw new Error(`Invalid function info ${functionInfo} passed into AccountAuthenticatorAbstraction`);
+    }
+    this.functionInfo = functionInfo;
+    this.abstractionSignature = abstractionSignature;
+    this.signingMessageDigest = Hex.fromHexInput(Hex.fromHexInput(signingMessageDigest).toUint8Array());
+    this.accountIdentity = accountIdentity;
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(AccountAuthenticatorVariant.Abstraction);
+    const { moduleAddress, moduleName, functionName } = getFunctionParts(this.functionInfo as MoveFunctionId);
+    AccountAddress.fromString(moduleAddress).serialize(serializer);
+    serializer.serializeStr(moduleName);
+    serializer.serializeStr(functionName);
+    if (this.accountIdentity) {
+      serializer.serializeU32AsUleb128(AbstractAuthenticationDataVariant.DerivableV1);
+    } else {
+      serializer.serializeU32AsUleb128(AbstractAuthenticationDataVariant.V1);
+    }
+    serializer.serializeBytes(this.signingMessageDigest.toUint8Array());
+    if (this.accountIdentity) {
+      serializer.serializeBytes(this.abstractionSignature);
+    } else {
+      serializer.serializeFixedBytes(this.abstractionSignature);
+    }
+
+    if (this.accountIdentity) {
+      serializer.serializeBytes(this.accountIdentity);
+    }
+  }
+
+  static load(deserializer: Deserializer): AccountAuthenticatorAbstraction {
+    // deserialize the function info
+    const moduleAddress = AccountAddress.deserialize(deserializer);
+    const moduleName = deserializer.deserializeStr();
+    const functionName = deserializer.deserializeStr();
+    // deserialize the variant
+    const variant = deserializer.deserializeUleb128AsU32();
+    // deserialize the signing message digest
+    const signingMessageDigest = deserializer.deserializeBytes();
+
+    if (variant === AbstractAuthenticationDataVariant.V1) {
+      const abstractionSignature = deserializer.deserializeFixedBytes(deserializer.remaining());
+      return new AccountAuthenticatorAbstraction(
+        `${moduleAddress}::${moduleName}::${functionName}`,
+        signingMessageDigest,
+        abstractionSignature,
+      );
+    }
+    if (variant === AbstractAuthenticationDataVariant.DerivableV1) {
+      const abstractionSignature = deserializer.deserializeBytes();
+      const abstractPublicKey = deserializer.deserializeBytes();
+      return new AccountAuthenticatorAbstraction(
+        `${moduleAddress}::${moduleName}::${functionName}`,
+        signingMessageDigest,
+        abstractionSignature,
+        abstractPublicKey,
+      );
+    }
+    throw new Error(`Unknown variant index for AccountAuthenticatorAbstraction: ${variant}`);
+  }
+}
+
+/**
+ * Represents an account abstraction message that contains the original signing message and the function info.
+ *
+ * @param originalSigningMessage - The original signing message.
+ * @param functionInfo - The function info of the authentication function.
+ * @group Implementation
+ * @category Transactions
+ */
+export class AccountAbstractionMessage extends Serializable {
+  public readonly originalSigningMessage: Hex;
+
+  public readonly functionInfo: string;
+
+  constructor(originalSigningMessage: HexInput, functionInfo: string) {
+    super();
+    this.originalSigningMessage = Hex.fromHexInput(Hex.fromHexInput(originalSigningMessage).toUint8Array());
+    this.functionInfo = functionInfo;
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(AASigningDataVariant.V1);
+    serializer.serializeBytes(this.originalSigningMessage.toUint8Array());
+    const { moduleAddress, moduleName, functionName } = getFunctionParts(this.functionInfo as MoveFunctionId);
+    AccountAddress.fromString(moduleAddress).serialize(serializer);
+    serializer.serializeStr(moduleName);
+    serializer.serializeStr(functionName);
+  }
+
+  static deserialize(deserializer: Deserializer): AccountAbstractionMessage {
+    const variant = deserializer.deserializeUleb128AsU32();
+    if (variant !== AASigningDataVariant.V1) {
+      throw new Error(`Unknown variant index for AccountAbstractionMessage: ${variant}`);
+    }
+    const originalSigningMessage = deserializer.deserializeBytes();
+    const functionInfoModuleAddress = AccountAddress.deserialize(deserializer);
+    const functionInfoModuleName = deserializer.deserializeStr();
+    const functionInfoFunctionName = deserializer.deserializeStr();
+    const functionInfo = `${functionInfoModuleAddress}::${functionInfoModuleName}::${functionInfoFunctionName}`;
+    return new AccountAbstractionMessage(originalSigningMessage, functionInfo);
   }
 }

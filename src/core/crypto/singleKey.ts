@@ -1,12 +1,19 @@
 import { Deserializer, Serializer } from "../../bcs";
-import { AnyPublicKeyVariant, AnySignatureVariant, SigningScheme as AuthenticationKeyScheme } from "../../types";
+import {
+  AnyPublicKeyVariant,
+  AnySignatureVariant,
+  SigningScheme as AuthenticationKeyScheme,
+  HexInput,
+} from "../../types";
 import { AuthenticationKey } from "../authenticationKey";
 import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "./ed25519";
-import { AccountPublicKey, PublicKey, VerifySignatureArgs } from "./publicKey";
+import { AccountPublicKey, PublicKey } from "./publicKey";
 import { Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1";
 import { KeylessPublicKey, KeylessSignature } from "./keyless";
 import { Signature } from "./signature";
 import { FederatedKeylessPublicKey } from "./federatedKeyless";
+import { AptosConfig } from "../../api";
+import { Secp256r1PublicKey, WebAuthnSignature } from "./secp256r1";
 
 export type PrivateKeyInput = Ed25519PrivateKey | Secp256k1PrivateKey;
 
@@ -53,6 +60,8 @@ export class AnyPublicKey extends AccountPublicKey {
       this.variant = AnyPublicKeyVariant.Ed25519;
     } else if (publicKey instanceof Secp256k1PublicKey) {
       this.variant = AnyPublicKeyVariant.Secp256k1;
+    } else if (publicKey instanceof Secp256r1PublicKey) {
+      this.variant = AnyPublicKeyVariant.Secp256r1;
     } else if (publicKey instanceof KeylessPublicKey) {
       this.variant = AnyPublicKeyVariant.Keyless;
     } else if (publicKey instanceof FederatedKeylessPublicKey) {
@@ -77,15 +86,44 @@ export class AnyPublicKey extends AccountPublicKey {
    * @group Implementation
    * @category Serialization
    */
-  verifySignature(args: VerifySignatureArgs): boolean {
+  verifySignature(args: { message: HexInput; signature: AnySignature }): boolean {
     const { message, signature } = args;
-    if (!AnySignature.isInstance(signature)) {
-      return false;
+    if (this.publicKey instanceof KeylessPublicKey) {
+      throw new Error("Use verifySignatureAsync to verify Keyless signatures");
     }
-
     return this.publicKey.verifySignature({
       message,
       signature: signature.signature,
+    });
+  }
+
+  /**
+   * Verifies the provided signature against the given message.
+   * This function helps ensure the integrity and authenticity of the message by confirming that the signature is valid.
+   *
+   * @param args - The arguments for signature verification.
+   * @param args.aptosConfig - The configuration object for connecting to the Aptos network
+   * @param args.message - The message that was signed.
+   * @param args.signature - The signature to verify, which must be an instance of AnySignature.
+   * @returns A boolean indicating whether the signature is valid for the given message.
+   * @group Implementation
+   * @category Serialization
+   */
+  async verifySignatureAsync(args: {
+    aptosConfig: AptosConfig;
+    message: HexInput;
+    signature: Signature;
+    options?: { throwErrorWithReason?: boolean };
+  }): Promise<boolean> {
+    if (!(args.signature instanceof AnySignature)) {
+      if (args.options?.throwErrorWithReason) {
+        throw new Error("Signature must be an instance of AnySignature");
+      }
+      return false;
+    }
+    return await this.publicKey.verifySignatureAsync({
+      ...args,
+      signature: args.signature.signature,
     });
   }
 
@@ -114,7 +152,7 @@ export class AnyPublicKey extends AccountPublicKey {
    * @group Implementation
    * @category Serialization
    */
-  toUint8Array() {
+  toUint8Array(): Uint8Array {
     return this.bcsToBytes();
   }
 
@@ -153,12 +191,17 @@ export class AnyPublicKey extends AccountPublicKey {
       case AnyPublicKeyVariant.Secp256k1:
         publicKey = Secp256k1PublicKey.deserialize(deserializer);
         break;
+      case AnyPublicKeyVariant.Secp256r1:
+        publicKey = Secp256r1PublicKey.deserialize(deserializer);
+        break;
       case AnyPublicKeyVariant.Keyless:
         publicKey = KeylessPublicKey.deserialize(deserializer);
         break;
       case AnyPublicKeyVariant.FederatedKeyless:
         publicKey = FederatedKeylessPublicKey.deserialize(deserializer);
         break;
+      case AnyPublicKeyVariant.SlhDsaSha2_128s:
+        throw new Error("SlhDsaSha2_128s public key deserialization is not yet implemented");
       default:
         throw new Error(`Unknown variant index for AnyPublicKey: ${variantIndex}`);
     }
@@ -243,6 +286,8 @@ export class AnySignature extends Signature {
       this.variant = AnySignatureVariant.Ed25519;
     } else if (signature instanceof Secp256k1Signature) {
       this.variant = AnySignatureVariant.Secp256k1;
+    } else if (signature instanceof WebAuthnSignature) {
+      this.variant = AnySignatureVariant.WebAuthn;
     } else if (signature instanceof KeylessSignature) {
       this.variant = AnySignatureVariant.Keyless;
     } else {
@@ -254,7 +299,7 @@ export class AnySignature extends Signature {
 
   // region AccountSignature
 
-  toUint8Array() {
+  toUint8Array(): Uint8Array {
     // TODO: keep this warning around for a bit, and eventually change this to return `this.signature.toUint8Array()`.
     // eslint-disable-next-line no-console
     console.warn(
@@ -283,9 +328,14 @@ export class AnySignature extends Signature {
       case AnySignatureVariant.Secp256k1:
         signature = Secp256k1Signature.deserialize(deserializer);
         break;
+      case AnySignatureVariant.WebAuthn:
+        signature = WebAuthnSignature.deserialize(deserializer);
+        break;
       case AnySignatureVariant.Keyless:
         signature = KeylessSignature.deserialize(deserializer);
         break;
+      case AnySignatureVariant.SlhDsaSha2_128s:
+        throw new Error("SlhDsaSha2_128s signature deserialization is not yet implemented");
       default:
         throw new Error(`Unknown variant index for AnySignature: ${variantIndex}`);
     }

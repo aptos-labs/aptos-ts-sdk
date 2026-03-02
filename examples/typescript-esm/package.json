@@ -4,6 +4,11 @@
   "description": "",
   "main": "./dist/simple_transfer.ts",
   "type": "module",
+  "packageManager": "pnpm@8.15.1",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "build": "pnpm _build:esm",
     "_build:esm": "tsup *.ts sponsored_transactions/*.ts --platform node --format esm --dts --out-dir dist",
@@ -18,18 +23,22 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
   "dependencies": {
     "@aptos-labs/ts-sdk": "link:../..",
-    "@noble/hashes": "^1.3.3",
-    "dotenv": "^16.3.1",
-    "npm-run-all": "latest",
-    "superagent": "^8.1.2"
+    "@noble/hashes": "^1.7.1",
+    "dotenv": "17.2.2",
+    "npm-run-all2": "8.0.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "diff": ">=4.0.4",
+      "sucrase": ">=3.35.1"
+    }
   },
   "devDependencies": {
-    "@types/node": "latest",
-    "ts-node": "latest",
-    "tsup": "latest",
-    "typescript": "latest"
+    "@types/node": "24.4.0",
+    "ts-node": "^10.9.2",
+    "tsup": "8.5.1",
+    "typescript": "5.8.2"
   }
 }

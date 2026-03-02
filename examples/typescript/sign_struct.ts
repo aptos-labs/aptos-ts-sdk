@@ -1,21 +1,24 @@
 /* eslint-disable no-console */
-
+import dotenv from "dotenv";
 import {
   Account,
   AccountAddress,
   AnyNumber,
   Aptos,
   AptosConfig,
+  InputViewFunctionJsonData,
   MoveString,
   Network,
   NetworkToNetworkName,
   Serializable,
   Serializer,
+  sleep,
   U64,
 } from "@aptos-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils";
 
-const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
+dotenv.config();
+
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100_000_000;
 const TRANSFER_AMOUNT = 10000;
@@ -32,15 +35,15 @@ const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ??
  *
  */
 const balance = async (aptos: Aptos, name: string, address: AccountAddress): Promise<any> => {
-  type Coin = { coin: { value: string } };
-  const resource = await aptos.getAccountResource<Coin>({
-    accountAddress: address,
-    resourceType: COIN_STORE,
-  });
-  const amount = Number(resource.coin.value);
+  const payload: InputViewFunctionJsonData = {
+    function: "0x1::coin::balance",
+    typeArguments: ["0x1::aptos_coin::AptosCoin"],
+    functionArguments: [address.toString()],
+  };
+  const [balance] = await aptos.viewJson<[number]>({ payload });
 
-  console.log(`${name}'s balance is: ${amount}`);
-  return amount;
+  console.log(`${name}'s balance is: ${balance}`);
+  return Number(balance);
 };
 
 /**
@@ -126,6 +129,9 @@ const example = async () => {
 
   console.log("\n=== Compiling the package locally ===");
   compilePackage("move/claims", "move/claims/claims.json", [{ name: "my_addr", address: alice.accountAddress }]);
+
+  // Wait half a second to ensure the file was written
+  sleep(500);
 
   const { metadataBytes, byteCode } = getPackageBytesToPublish("move/claims/claims.json");
 

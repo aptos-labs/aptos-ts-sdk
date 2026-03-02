@@ -1,10 +1,11 @@
-import { SigningScheme as AuthenticationKeyScheme } from "../../types";
+import { AnyPublicKeyVariant, SigningScheme as AuthenticationKeyScheme, HexInput } from "../../types";
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializer } from "../../bcs/serializer";
 import { AuthenticationKey } from "../authenticationKey";
-import { AccountPublicKey, PublicKey, VerifySignatureArgs } from "./publicKey";
+import { AccountPublicKey, PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { AnyPublicKey, AnySignature } from "./singleKey";
+import { AptosConfig } from "../../api";
 
 /**
  * Counts the number of set bits (1s) in a byte.
@@ -14,14 +15,88 @@ import { AnyPublicKey, AnySignature } from "./singleKey";
  * @group Implementation
  * @category Serialization
  */
-/* eslint-disable no-bitwise */
+
 function bitCount(byte: number) {
   let n = byte;
   n -= (n >> 1) & 0x55555555;
   n = (n & 0x33333333) + ((n >> 2) & 0x33333333);
   return (((n + (n >> 4)) & 0xf0f0f0f) * 0x1010101) >> 24;
 }
-/* eslint-enable no-bitwise */
+
+const MAX_NUM_KEYLESS_PUBLIC_FOR_MULTI_KEY = 3;
+export abstract class AbstractMultiKey extends AccountPublicKey {
+  publicKeys: PublicKey[];
+
+  constructor(args: { publicKeys: PublicKey[] }) {
+    super();
+    this.publicKeys = args.publicKeys;
+  }
+
+  /**
+   * Create a bitmap that holds the mapping from the original public keys
+   * to the signatures passed in
+   *
+   * @param args.bits array of the index mapping to the matching public keys
+   * @returns Uint8array bit map
+   * @group Implementation
+   * @category Serialization
+   */
+  createBitmap(args: { bits: number[] }): Uint8Array {
+    const { bits } = args;
+    // Bits are read from left to right. e.g. 0b10000000 represents the first bit is set in one byte.
+    // The decimal value of 0b10000000 is 128.
+    const firstBitInByte = 128;
+    const bitmap = new Uint8Array([0, 0, 0, 0]);
+
+    // Check if duplicates exist in bits
+    const dupCheckSet = new Set();
+
+    bits.forEach((bit: number, idx: number) => {
+      if (idx + 1 > this.publicKeys.length) {
+        throw new Error(`Signature index ${idx + 1} is out of public keys range, ${this.publicKeys.length}.`);
+      }
+
+      if (dupCheckSet.has(bit)) {
+        throw new Error(`Duplicate bit ${bit} detected.`);
+      }
+
+      dupCheckSet.add(bit);
+
+      const byteOffset = Math.floor(bit / 8);
+
+      let byte = bitmap[byteOffset];
+
+      byte |= firstBitInByte >> (bit % 8);
+
+      bitmap[byteOffset] = byte;
+    });
+
+    return bitmap;
+  }
+
+  /**
+   * Get the index of the provided public key.
+   *
+   * This function retrieves the index of a specified public key within the MultiKey.
+   * If the public key does not exist, it throws an error.
+   *
+   * @param publicKey - The public key to find the index for.
+   * @returns The corresponding index of the public key, if it exists.
+   * @throws Error - If the public key is not found in the MultiKey.
+   * @group Implementation
+   * @category Serialization
+   */
+  getIndex(publicKey: PublicKey): number {
+    const index = this.publicKeys.findIndex((pk) => pk.toString() === publicKey.toString());
+
+    if (index !== -1) {
+      return index;
+    }
+    throw new Error(`Public key ${publicKey} not found in multi key set ${this.publicKeys}`);
+  }
+
+  abstract getSignaturesRequired(): number;
+}
 
 /**
  * Represents a multi-key authentication scheme for accounts, allowing multiple public keys
@@ -34,7 +109,7 @@ function bitCount(byte: number) {
  * @group Implementation
  * @category Serialization
  */
-export class MultiKey extends AccountPublicKey {
+export class MultiKey extends AbstractMultiKey {
   /**
    * List of any public keys
    * @group Implementation
@@ -65,8 +140,8 @@ export class MultiKey extends AccountPublicKey {
    */
   // region Constructors
   constructor(args: { publicKeys: Array<PublicKey>; signaturesRequired: number }) {
-    super();
     const { publicKeys, signaturesRequired } = args;
+    super({ publicKeys });
 
     // Validate number of public keys is greater than signature required
     if (signaturesRequired < 1) {
@@ -84,8 +159,24 @@ export class MultiKey extends AccountPublicKey {
     this.publicKeys = publicKeys.map((publicKey) =>
       publicKey instanceof AnyPublicKey ? publicKey : new AnyPublicKey(publicKey),
     );
+    if (signaturesRequired > MAX_NUM_KEYLESS_PUBLIC_FOR_MULTI_KEY) {
+      const keylessCount = this.publicKeys.filter(
+        (pk) => pk.variant === AnyPublicKeyVariant.Keyless || pk.variant === AnyPublicKeyVariant.FederatedKeyless,
+      ).length;
+      if (keylessCount > MAX_NUM_KEYLESS_PUBLIC_FOR_MULTI_KEY) {
+        throw new Error(
+          `Construction of MultiKey with more than ${MAX_NUM_KEYLESS_PUBLIC_FOR_MULTI_KEY} keyless public keys is not allowed when signaturesRequired 
+          is greater than ${MAX_NUM_KEYLESS_PUBLIC_FOR_MULTI_KEY}. This is because a maximum of 3 keyless signatures are supported for a 
+          K-of-N MultiKey transaction.`,
+        );
+      }
+    }
 
     this.signaturesRequired = signaturesRequired;
+  }
+
+  getSignaturesRequired(): number {
+    return this.signaturesRequired;
   }
 
   // endregion
@@ -96,15 +187,70 @@ export class MultiKey extends AccountPublicKey {
    * Verifies the provided signature against the given message.
    * This function helps ensure the integrity and authenticity of the message by checking if the signature is valid.
    *
+   * Note: This function will fail if a keyless signature is used.  Use `verifySignatureAsync` instead.
+   *
    * @param args - The arguments for verifying the signature.
    * @param args.message - The message that was signed.
    * @param args.signature - The signature to verify.
    * @group Implementation
    * @category Serialization
    */
-  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
-  verifySignature(args: VerifySignatureArgs): boolean {
-    throw new Error("not implemented");
+  verifySignature(args: { message: HexInput; signature: MultiKeySignature }): boolean {
+    const { message, signature } = args;
+    if (signature.signatures.length !== this.signaturesRequired) {
+      throw new Error("The number of signatures does not match the number of required signatures");
+    }
+    const signerIndices = signature.bitMapToSignerIndices();
+    for (let i = 0; i < signature.signatures.length; i += 1) {
+      const singleSignature = signature.signatures[i];
+      const publicKey = this.publicKeys[signerIndices[i]];
+      if (!publicKey.verifySignature({ message, signature: singleSignature })) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Verifies the provided signature against the given message.
+   * This function helps ensure the integrity and authenticity of the message by checking if the signature is valid.
+   *
+   * @param args - The arguments for verifying the signature.
+   * @param args.aptosConfig - The Aptos configuration to use
+   * @param args.message - The message that was signed.
+   * @param args.signature - The signature to verify.
+   * @group Implementation
+   * @category Serialization
+   */
+  async verifySignatureAsync(args: {
+    aptosConfig: AptosConfig;
+    message: HexInput;
+    signature: Signature;
+    options?: { throwErrorWithReason?: boolean };
+  }): Promise<boolean> {
+    const { signature } = args;
+    try {
+      if (!(signature instanceof MultiKeySignature)) {
+        throw new Error("Signature is not a MultiKeySignature");
+      }
+      if (signature.signatures.length !== this.signaturesRequired) {
+        throw new Error("The number of signatures does not match the number of required signatures");
+      }
+      const signerIndices = signature.bitMapToSignerIndices();
+      for (let i = 0; i < signature.signatures.length; i += 1) {
+        const singleSignature = signature.signatures[i];
+        const publicKey = this.publicKeys[signerIndices[i]];
+        if (!(await publicKey.verifySignatureAsync({ ...args, signature: singleSignature }))) {
+          return false;
+        }
+      }
+      return true;
+    } catch (error) {
+      if (args.options?.throwErrorWithReason) {
+        throw error;
+      }
+      return false;
+    }
   }
 
   /**
@@ -157,49 +303,6 @@ export class MultiKey extends AccountPublicKey {
   // endregion
 
   /**
-   * Create a bitmap that holds the mapping from the original public keys
-   * to the signatures passed in
-   *
-   * @param args.bits array of the index mapping to the matching public keys
-   * @returns Uint8array bit map
-   * @group Implementation
-   * @category Serialization
-   */
-  createBitmap(args: { bits: number[] }): Uint8Array {
-    const { bits } = args;
-    // Bits are read from left to right. e.g. 0b10000000 represents the first bit is set in one byte.
-    // The decimal value of 0b10000000 is 128.
-    const firstBitInByte = 128;
-    const bitmap = new Uint8Array([0, 0, 0, 0]);
-
-    // Check if duplicates exist in bits
-    const dupCheckSet = new Set();
-
-    bits.forEach((bit: number, idx: number) => {
-      if (idx + 1 > this.publicKeys.length) {
-        throw new Error(`Signature index ${idx + 1} is out of public keys range, ${this.publicKeys.length}.`);
-      }
-
-      if (dupCheckSet.has(bit)) {
-        throw new Error(`Duplicate bit ${bit} detected.`);
-      }
-
-      dupCheckSet.add(bit);
-
-      const byteOffset = Math.floor(bit / 8);
-
-      let byte = bitmap[byteOffset];
-
-      // eslint-disable-next-line no-bitwise
-      byte |= firstBitInByte >> bit % 8;
-
-      bitmap[byteOffset] = byte;
-    });
-
-    return bitmap;
-  }
-
-  /**
    * Get the index of the provided public key.
    *
    * This function retrieves the index of a specified public key within the MultiKey.
@@ -209,16 +312,10 @@ export class MultiKey extends AccountPublicKey {
    * @returns The corresponding index of the public key, if it exists.
    * @throws Error - If the public key is not found in the MultiKey.
    * @group Implementation
-   * @category Serialization
    */
   getIndex(publicKey: PublicKey): number {
     const anyPublicKey = publicKey instanceof AnyPublicKey ? publicKey : new AnyPublicKey(publicKey);
-    const index = this.publicKeys.findIndex((pk) => pk.toString() === anyPublicKey.toString());
-
-    if (index !== -1) {
-      return index;
-    }
-    throw new Error(`Public key ${publicKey} not found in MultiKey ${this.publicKeys}`);
+    return super.getIndex(anyPublicKey);
   }
 
   public static isInstance(value: PublicKey): value is MultiKey {
@@ -347,13 +444,37 @@ export class MultiKeySignature extends Signature {
 
       let byte = bitmap[byteOffset];
 
-      // eslint-disable-next-line no-bitwise
-      byte |= firstBitInByte >> bit % 8;
+      byte |= firstBitInByte >> (bit % 8);
 
       bitmap[byteOffset] = byte;
     });
 
     return bitmap;
+  }
+
+  /**
+   * Converts the bitmap to an array of signer indices.
+   *
+   * Example:
+   *
+   * bitmap: [0b10001000, 0b01000000, 0b00000000, 0b00000000]
+   * signerIndices: [0, 4, 9]
+   *
+   * @returns An array of signer indices.
+   * @group Implementation
+   * @category Serialization
+   */
+  bitMapToSignerIndices(): number[] {
+    const signerIndices: number[] = [];
+    for (let i = 0; i < this.bitmap.length; i += 1) {
+      const byte = this.bitmap[i];
+      for (let bit = 0; bit < 8; bit += 1) {
+        if ((byte & (128 >> bit)) !== 0) {
+          signerIndices.push(i * 8 + bit);
+        }
+      }
+    }
+    return signerIndices;
   }
 
   // region Serializable

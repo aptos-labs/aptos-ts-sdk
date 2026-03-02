@@ -27,6 +27,17 @@ export enum AptosApiType {
 export const DEFAULT_MAX_GAS_AMOUNT = 200000;
 
 /**
+ * The minimum max gas amount that the SDK will allow for a transaction.
+ *
+ * This value acts as a floor to prevent transactions from being built with a max gas amount
+ * below the network's minimum transaction gas units, which would cause
+ * MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS errors.
+ * @group Implementation
+ * @category Utils
+ */
+export const MIN_MAX_GAS_AMOUNT = 2000;
+
+/**
  * The default transaction expiration seconds from now.
  *
  * This time is how long until the blockchain nodes will reject the transaction.
@@ -70,6 +81,8 @@ export const RAW_TRANSACTION_SALT = "APTOS::RawTransaction";
  */
 export const RAW_TRANSACTION_WITH_DATA_SALT = "APTOS::RawTransactionWithData";
 
+export const ACCOUNT_ABSTRACTION_SIGNING_DATA_SALT = "APTOS::AASigningData";
+
 /**
  * Supported processor types for the indexer API, sourced from the processor_status table in the indexer database.
  * {@link https://cloud.hasura.io/public/graphiql?endpoint=https://api.mainnet.aptoslabs.com/v1/graphql}
@@ -77,6 +90,7 @@ export const RAW_TRANSACTION_WITH_DATA_SALT = "APTOS::RawTransactionWithData";
  * @category Utils
  */
 export enum ProcessorType {
+  ACCOUNT_RESTORATION_PROCESSOR = "account_restoration_processor",
   ACCOUNT_TRANSACTION_PROCESSOR = "account_transactions_processor",
   DEFAULT = "default_processor",
   EVENTS_PROCESSOR = "events_processor",
@@ -95,3 +109,8 @@ export enum ProcessorType {
  * where project-id can contain letters, numbers, hyphens, and underscores
  */
 export const FIREBASE_AUTH_ISS_PATTERN = /^https:\/\/securetoken\.google\.com\/[a-zA-Z0-9-_]+$/;
+
+/**
+ * Shared TextEncoder instance for string serialization to avoid repeated instantiation.
+ */
+export const TEXT_ENCODER = new TextEncoder();

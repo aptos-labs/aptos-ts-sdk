@@ -1,6 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import type { AptosConfig } from "../api";
+import { InputSubmitTransactionData } from "../transactions";
 import { Network } from "../utils/apiEndpoints";
 import { OrderBy, TokenStandard } from "./indexer";
 
@@ -44,6 +46,12 @@ export enum TypeTagVariants {
   U16 = 8,
   U32 = 9,
   U256 = 10,
+  I8 = 11,
+  I16 = 12,
+  I32 = 13,
+  I64 = 14,
+  I128 = 15,
+  I256 = 16,
   Reference = 254, // This is specifically a placeholder and does not represent a real type
   Generic = 255, // This is specifically a placeholder and does not represent a real type
 }
@@ -63,6 +71,13 @@ export enum ScriptTransactionArgumentVariants {
   U32 = 7,
   U256 = 8,
   Serialized = 9,
+  // NOTE: Added in bytecode version v9, do not reorder!
+  I8 = 10,
+  I16 = 11,
+  I32 = 12,
+  I64 = 13,
+  I128 = 14,
+  I256 = 15,
 }
 
 /**
@@ -73,6 +88,35 @@ export enum TransactionPayloadVariants {
   Script = 0,
   EntryFunction = 2,
   Multisig = 3,
+  Payload = 4,
+}
+
+/**
+ * The inner payload type to support orderless transactions and all future transaction types.
+ * {@link https://github.com/aptos-labs/aptos-core/blob/main/types/src/transaction/mod.rs#L478}
+ */
+export enum TransactionInnerPayloadVariants {
+  V1 = 0,
+}
+
+/**
+ * Executable types for transactions, which can be either a script or an entry function.
+ *
+ * Empty is reserved for Multisig voting transactions, which do not have an executable payload.
+ * {@link https://github.com/aptos-labs/aptos-core/blob/main/types/src/transaction/mod.rs#L685}
+ */
+export enum TransactionExecutableVariants {
+  Script = 0,
+  EntryFunction = 1,
+  Empty = 2,
+}
+
+/**
+ * Variants of transaction extra configurations, which can include additional settings or parameters.
+ * {@link https://github.com/aptos-labs/aptos-core/blob/main/types/src/transaction/mod.rs#L737}
+ */
+export enum TransactionExtraConfigVariants {
+  V1 = 0,
 }
 
 /**
@@ -106,6 +150,7 @@ export enum AccountAuthenticatorVariant {
   SingleKey = 2,
   MultiKey = 3,
   NoAccountAuthenticator = 4,
+  Abstraction = 5,
 }
 
 /**
@@ -115,6 +160,7 @@ export enum AccountAuthenticatorVariant {
 export enum PrivateKeyVariants {
   Ed25519 = "ed25519",
   Secp256k1 = "secp256k1",
+  Secp256r1 = "secp256r1",
 }
 
 /**
@@ -123,8 +169,33 @@ export enum PrivateKeyVariants {
 export enum AnyPublicKeyVariant {
   Ed25519 = 0,
   Secp256k1 = 1,
+  Secp256r1 = 2,
   Keyless = 3,
   FederatedKeyless = 4,
+  /**
+   * Post-quantum signature scheme (SLH-DSA-SHA2-128s).
+   * Note: Full implementation not yet available in this SDK.
+   */
+  SlhDsaSha2_128s = 5,
+}
+
+export function anyPublicKeyVariantToString(variant: AnyPublicKeyVariant): string {
+  switch (variant) {
+    case AnyPublicKeyVariant.Ed25519:
+      return "ed25519";
+    case AnyPublicKeyVariant.Secp256k1:
+      return "secp256k1";
+    case AnyPublicKeyVariant.Secp256r1:
+      return "secp256r1";
+    case AnyPublicKeyVariant.Keyless:
+      return "keyless";
+    case AnyPublicKeyVariant.FederatedKeyless:
+      return "federated_keyless";
+    case AnyPublicKeyVariant.SlhDsaSha2_128s:
+      return "slh_dsa_sha2_128s";
+    default:
+      throw new Error("Unknown public key variant");
+  }
 }
 
 /**
@@ -133,7 +204,13 @@ export enum AnyPublicKeyVariant {
 export enum AnySignatureVariant {
   Ed25519 = 0,
   Secp256k1 = 1,
+  WebAuthn = 2,
   Keyless = 3,
+  /**
+   * Post-quantum signature scheme (SLH-DSA-SHA2-128s).
+   * Note: Full implementation not yet available in this SDK.
+   */
+  SlhDsaSha2_128s = 4,
 }
 
 /**
@@ -195,6 +272,36 @@ export type Uint128 = bigint;
 export type Uint256 = bigint;
 
 /**
+ * A signed 8-bit integer.
+ */
+export type Int8 = number;
+
+/**
+ * A signed 16-bit integer.
+ */
+export type Int16 = number;
+
+/**
+ * A signed 32-bit integer.
+ */
+export type Int32 = number;
+
+/**
+ * A signed 64-bit integer.
+ */
+export type Int64 = bigint;
+
+/**
+ * A signed 128-bit integer.
+ */
+export type Int128 = bigint;
+
+/**
+ * A signed 256-bit integer.
+ */
+export type Int256 = bigint;
+
+/**
  * A number or a bigint value.
  */
 export type AnyNumber = number | bigint;
@@ -224,6 +331,10 @@ export type AptosSettings = {
   readonly indexerConfig?: IndexerConfig;
 
   readonly faucetConfig?: FaucetConfig;
+
+  readonly transactionGenerationConfig?: TransactionGenerationConfig;
+
+  readonly pluginSettings?: PluginSettings;
 };
 
 /**
@@ -233,6 +344,16 @@ export type AptosSettings = {
  */
 export interface PaginationArgs {
   offset?: AnyNumber;
+  limit?: number;
+}
+
+/**
+ * Defines the parameters for paginating query results, including the starting position and maximum number of items to return.
+ * @param cursor Specifies the starting position of the query result. Default is at the beginning if undefined.  This is not a number and must come from the API.
+ * @param limit Specifies the maximum number of items to return. Default is 25.
+ */
+export interface CursorPaginationArgs {
+  cursor?: string;
   limit?: number;
 }
 
@@ -259,10 +380,25 @@ export interface WhereArg<T extends {}> {
 
 /**
  * A configuration object for requests to the server, including API key, extra headers, and cookie handling options.
+ *
+ * Security Note: Consider implementing client-side rate limiting in your application to prevent
+ * accidental API abuse. You can use libraries like 'bottleneck' or 'p-queue' to limit request rates.
+ *
+ * @example
+ * ```typescript
+ * import Bottleneck from 'bottleneck';
+ *
+ * // Create a limiter that allows 10 requests per second
+ * const limiter = new Bottleneck({ minTime: 100, maxConcurrent: 5 });
+ *
+ * // Wrap your Aptos calls with the limiter
+ * const result = await limiter.schedule(() => aptos.getAccountInfo({ accountAddress }));
+ * ```
  */
 export type ClientConfig = ClientHeadersType & {
   WITH_CREDENTIALS?: boolean;
   API_KEY?: string;
+  http2?: boolean;
 };
 
 /**
@@ -283,11 +419,86 @@ export type FaucetConfig = ClientHeadersType & {
 };
 
 /**
+ * A configuration object for default parameters for transaction generation.
+ */
+export type TransactionGenerationConfig = {
+  defaultMaxGasAmount?: number;
+  defaultTxnExpirySecFromNow?: number;
+};
+
+/**
  * General type definition for client headers.
  */
 export type ClientHeadersType = {
   HEADERS?: Record<string, string | number | boolean>;
 };
+
+/**
+ * Config for plugins. This can be used to override certain client behavior.
+ */
+export type PluginConfig = {
+  /**
+   * If given, this will be used for submitting transactions instead of the default
+   * implementation (which submits transactions directly via a node).
+   */
+  TRANSACTION_SUBMITTER?: TransactionSubmitter;
+
+  /**
+   * If true, we won't use the TRANSACTION_SUBMITTER if set.
+   */
+  IGNORE_TRANSACTION_SUBMITTER?: boolean;
+};
+
+export type PluginSettings = Omit<PluginConfig, "IGNORE_TRANSACTION_SUBMITTER">;
+
+/**
+ * You can implement this interface and set it in {@link PluginSettings} when building a
+ * client to override the default transaction submission behavior. This is useful if
+ * you'd like to submit transactions via a gas station for example.
+ *
+ * @example
+ * ```typescript
+ * class MyGasStationClient implements TransactionSubmitter {
+ *   async submitTransaction(
+ *     args: { aptosConfig: AptosConfig } & InputSubmitTransactionData,
+ *   ): Promise<PendingTransactionResponse> {
+ *     // TODO: Implement the logic to submit the transaction to the gas station
+ *   }
+ * }
+ *
+ * const network = Network.MAINNET;
+ * const myGasStationClient = new MyGasStationClient(network);
+ * const config = new AptosConfig({
+ *   network,
+ *   pluginConfig: {
+ *     transactionSubmitter: myGasStationClient,
+ *   },
+ * });
+ * const aptos = new Aptos(config);
+ * ```
+ */
+export interface TransactionSubmitter {
+  /**
+   * Submit a transaction to the Aptos blockchain or something that will do it on your
+   * behalf, for example a gas station. See the comments of {@link TransactionSubmitter} for more.
+   *
+   * @param args - The arguments for submitting the transaction.
+   * @param args.aptosConfig - The configuration for connecting to the Aptos network.
+   * @param args.transaction - The Aptos transaction data to be submitted.
+   * @param args.senderAuthenticator - The account authenticator of the transaction sender.
+   * @param args.secondarySignerAuthenticators - Optional. Authenticators for additional signers in a multi-signer transaction.
+   * @param args.pluginParams - Optional. Additional parameters for the plugin.
+   * @param args.transactionSubmitter - Optional. An override for the transaction submitter.
+   *
+   * @returns PendingTransactionResponse - The response containing the status of the submitted transaction.
+   * @group Implementation
+   */
+  submitTransaction(
+    args: {
+      aptosConfig: AptosConfig;
+    } & Omit<InputSubmitTransactionData, "transactionSubmitter">,
+  ): Promise<PendingTransactionResponse>;
+}
 
 /**
  * Represents a client for making requests to a service provider.
@@ -304,6 +515,7 @@ export interface ClientRequest<Req> {
   params?: any;
   overrides?: ClientConfig & FullNodeConfig & IndexerConfig & FaucetConfig;
   headers?: Record<string, any>;
+  http2?: boolean;
 }
 
 export interface ClientResponse<Res> {
@@ -582,6 +794,7 @@ export type UserTransactionResponse = {
   changes: Array<WriteSetChange>;
   sender: string;
   sequence_number: string;
+  replay_protection_nonce: string;
   max_gas_amount: string;
   gas_unit_price: string;
   expiration_timestamp_secs: string;
@@ -951,7 +1164,8 @@ export type TransactionSignature =
   | TransactionSecp256k1Signature
   | TransactionMultiEd25519Signature
   | TransactionMultiAgentSignature
-  | TransactionFeePayerSignature;
+  | TransactionFeePayerSignature
+  | TransactionSingleSenderSignature;
 
 /**
  * Determine if the provided signature is an Ed25519 signature.
@@ -961,8 +1175,8 @@ export type TransactionSignature =
  * @param signature - The transaction signature to be checked.
  * @returns A boolean indicating whether the signature is an Ed25519 signature.
  */
-export function isEd25519Signature(signature: TransactionSignature): signature is TransactionFeePayerSignature {
-  return "signature" in signature && signature.signature === "ed25519_signature";
+export function isEd25519Signature(signature: TransactionSignature): signature is TransactionEd25519Signature {
+  return "signature" in signature && signature.type === "ed25519_signature";
 }
 
 /**
@@ -1008,6 +1222,18 @@ export function isMultiEd25519Signature(
 }
 
 /**
+ * Determine if the provided signature is of type "single_sender".
+ *
+ * @param signature - The transaction signature to check.
+ * @returns A boolean indicating whether the signature is a single-sender signature.
+ */
+export function isSingleSenderSignature(
+  signature: TransactionSignature,
+): signature is TransactionSingleSenderSignature {
+  return signature.type === "single_sender";
+}
+
+/**
  * The signature for a transaction using the Ed25519 algorithm.
  */
 export type TransactionEd25519Signature = {
@@ -1023,6 +1249,15 @@ export type TransactionSecp256k1Signature = {
   type: string;
   public_key: string;
   signature: "secp256k1_ecdsa_signature";
+};
+
+/**
+ * The structure for a multi-signature transaction using Ed25519.
+ */
+export type TransactionSingleSenderSignature = {
+  type: "single_sender";
+  public_key: { value: string; type: string };
+  signature: { value: string; type: string };
 };
 
 /**
@@ -1160,6 +1395,36 @@ export type MoveUint128Type = string;
 export type MoveUint256Type = string;
 
 /**
+ * A number representing a Move int8 type.
+ */
+export type MoveInt8Type = number;
+
+/**
+ * A 16-bit signed integer used in the Move programming language.
+ */
+export type MoveInt16Type = number;
+
+/**
+ * A 32-bit signed integer type used in Move programming.
+ */
+export type MoveInt32Type = number;
+
+/**
+ * A string representation of a 64-bit signed integer used in Move programming.
+ */
+export type MoveInt64Type = string;
+
+/**
+ * A string representing a 128-bit signed integer in the Move programming language.
+ */
+export type MoveInt128Type = string;
+
+/**
+ * A string representation of a 256-bit signed integer used in Move programming.
+ */
+export type MoveInt256Type = string;
+
+/**
  * A string representing a Move address.
  */
 export type MoveAddressType = string;
@@ -1200,6 +1465,12 @@ export type MoveType =
   | MoveUint64Type
   | MoveUint128Type
   | MoveUint256Type
+  | MoveInt8Type
+  | MoveInt16Type
+  | MoveInt32Type
+  | MoveInt64Type
+  | MoveInt128Type
+  | MoveInt256Type
   | MoveAddressType
   | MoveObjectType
   | MoveStructType
@@ -1215,6 +1486,10 @@ export type MoveType =
  * `u8, u16, u32 -> number`
  *
  * `u64, u128, u256 -> string`
+ *
+ * `i8, i16, i32 -> number`
+ *
+ * `i64, i128, i256 -> string`
  *
  * `String -> string`
  *
@@ -1237,6 +1512,12 @@ export type MoveValue =
   | MoveUint64Type
   | MoveUint128Type
   | MoveUint256Type
+  | MoveInt8Type
+  | MoveInt16Type
+  | MoveInt32Type
+  | MoveInt64Type
+  | MoveInt128Type
+  | MoveInt256Type
   | MoveAddressType
   | MoveObjectType
   | MoveStructId
@@ -1318,6 +1599,11 @@ export type MoveStruct = {
    * the Move source code. This attribute is only relevant for v2 events.
    */
   is_event: boolean;
+  /**
+   * True if the struct is an enum (e.g. enum MyEnum { A, B, C }), false if it is a
+   * regular struct (e.g. struct MyStruct { a: u8, b: u8 }).
+   */
+  is_enum: boolean;
   /**
    * Abilities associated with the struct
    */

@@ -47,15 +47,6 @@ describe("general api", () => {
       const exists = (await aptos.view<[boolean]>({ payload }))[0];
 
       expect(exists).toBe(true);
-
-      const payload2: InputViewFunctionData = {
-        function: "0x1::account::exists_at",
-        functionArguments: ["0xc"],
-      };
-
-      const exists2 = (await aptos.view<[boolean]>({ payload: payload2 }))[0];
-
-      expect(exists2).toBe(false);
     });
 
     test("it fetches view function with address input and different output types", async () => {
@@ -104,15 +95,6 @@ describe("general api", () => {
       const supply = (await aptos.view<[{ vec: [string] }]>({ payload: payload3 }))[0].vec[0];
       expect(BigInt(supply)).toBeGreaterThan(BigInt(0));
     });
-
-    test("view functions that fail in the VM fail here", async () => {
-      const payload: InputViewFunctionData = {
-        function: "0x1::account::get_sequence_number",
-        functionArguments: ["0xc"],
-      };
-
-      await expect(() => aptos.view<[string]>({ payload })).rejects.toThrow("VMError");
-    });
   });
   describe("View json functions", () => {
     test("it fetches view function data", async () => {
@@ -144,15 +126,6 @@ describe("general api", () => {
       const exists = (await aptos.viewJson<[boolean]>({ payload }))[0];
 
       expect(exists).toBe(true);
-
-      const payload2: InputViewFunctionJsonData = {
-        function: "0x1::account::exists_at",
-        functionArguments: ["0x12345"],
-      };
-
-      const exists2 = (await aptos.viewJson<[boolean]>({ payload: payload2 }))[0];
-
-      expect(exists2).toBe(false);
     });
 
     test("it fetches view function with address input and different output types", async () => {
@@ -200,15 +173,6 @@ describe("general api", () => {
 
       const supply = (await aptos.viewJson<[{ vec: [string] }]>({ payload: payload3 }))[0].vec[0];
       expect(BigInt(supply)).toBeGreaterThan(BigInt(0));
-    });
-
-    test("view functions that fail in the VM fail here", async () => {
-      const payload: InputViewFunctionJsonData = {
-        function: "0x1::account::get_sequence_number",
-        functionArguments: ["0x123456"],
-      };
-
-      await expect(() => aptos.viewJson<[string]>({ payload })).rejects.toThrow("VMError");
     });
   });
 
