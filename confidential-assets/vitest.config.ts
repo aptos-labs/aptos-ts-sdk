@@ -6,7 +6,7 @@ export default defineConfig({
     globals: true,
     environment: "node",
     setupFiles: [path.resolve(__dirname, "../tests/setupDotenv.ts")],
-    globalSetup: [path.resolve(__dirname, "../tests/preTest.ts")],
+    //globalSetup: [path.resolve(__dirname, "../tests/preTest.ts")],
     include: ["tests/**/*.test.ts"],
     exclude: ["tests/units/api/**"],
     coverage: {
