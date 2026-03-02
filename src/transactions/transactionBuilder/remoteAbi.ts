@@ -78,8 +78,7 @@ import {
 import { MoveFunction, MoveModule } from "../../types";
 import { warnIfDevelopment } from "../../utils/helpers";
 import { memoizeAsync } from "../../utils/memoize";
-
-const TEXT_ENCODER = new TextEncoder();
+import { TEXT_ENCODER } from "../../utils";
 
 /**
  * Convert type arguments to only type tags, allowing for string representations of type tags.

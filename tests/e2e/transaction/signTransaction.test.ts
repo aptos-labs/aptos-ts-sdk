@@ -19,6 +19,7 @@ import { sha3_256 } from "@noble/hashes/sha3";
 import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import { fundAccounts, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
+import { Base64 } from "js-base64";
 
 const { aptos } = getAptosClient();
 
@@ -228,8 +229,6 @@ describe("sign transaction", () => {
   describe("WebAuthn Signature", () => {
     test("it creates and validates WebAuthn signature", async () => {
       // Simple base64url encoder
-      const toB64 = (u8: Uint8Array) => Buffer.from(u8).toString("base64");
-      const b64urlEncode = (u8: Uint8Array) => toB64(u8).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 
       // Generate a Secp256r1 key pair
       const privateKey = Secp256r1PrivateKey.generate();
@@ -253,7 +252,7 @@ describe("sign transaction", () => {
       const challenge = sha3_256(message);
       const clientDataObj = {
         type: "webauthn.get",
-        challenge: b64urlEncode(challenge),
+        challenge: Base64.fromUint8Array(challenge, true),
         origin: "http://localhost:5173",
         crossOrigin: false,
       } as const;
@@ -288,8 +287,6 @@ describe("sign transaction", () => {
 
     test("it creates AccountAuthenticatorSingleKey with WebAuthn signature", async () => {
       // Simple base64url encoder
-      const toB64 = (u8: Uint8Array) => Buffer.from(u8).toString("base64");
-      const b64urlEncode = (u8: Uint8Array) => toB64(u8).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 
       const privateKey = Secp256r1PrivateKey.generate();
       const publicKey = privateKey.publicKey();
@@ -307,7 +304,7 @@ describe("sign transaction", () => {
       const challenge = sha3_256(message);
       const clientDataObj = {
         type: "webauthn.get",
-        challenge: b64urlEncode(challenge),
+        challenge: Base64.fromUint8Array(challenge, true),
         origin: "http://localhost:5173",
         crossOrigin: false,
       } as const;

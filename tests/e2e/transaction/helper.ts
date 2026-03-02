@@ -21,6 +21,7 @@ import {
 } from "../../../src";
 import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper";
 import { getAptosClient } from "../helper";
+import { Base64 } from "js-base64";
 
 export const EPHEMERAL_KEY_PAIR = new EphemeralKeyPair({
   privateKey: new Ed25519PrivateKey("ed25519-priv-0x1111111111111111111111111111111111111111111111111111111111111111"),
@@ -393,5 +394,4 @@ export async function publishHelloWorldAAPackage(aptos: Aptos, senderAccount: Ac
   );
 }
 
-export const toB64 = (u8: Uint8Array) => Buffer.from(u8).toString("base64");
-export const b64urlEncode = (u8: Uint8Array) => toB64(u8).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+export const b64urlEncode = (u8: Uint8Array) => Base64.fromUint8Array(u8, true);

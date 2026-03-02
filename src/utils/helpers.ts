@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { decode } from "js-base64";
+import { Base64, decode } from "js-base64";
 import { MoveFunctionId, MoveStructId } from "../types";
 import { AccountAddress } from "../core/accountAddress";
 import { createObjectAddress } from "../core/account/utils/address";
@@ -123,7 +123,7 @@ export function base64UrlToBytes(base64Url: string): Uint8Array {
     base64 += "=";
   }
   // Use Buffer to convert base64 to Uint8Array
-  return new Uint8Array(Buffer.from(base64, "base64"));
+  return new Uint8Array(Base64.toUint8Array(base64));
 }
 
 /**
