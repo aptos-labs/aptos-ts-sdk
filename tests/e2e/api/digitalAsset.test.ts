@@ -1,6 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { vi } from "vitest";
 import { Account, Bool, MoveString, MoveVector, U8 } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 import { getAptosClient } from "../helper";
@@ -57,7 +58,7 @@ async function setupToken(): Promise<string> {
   )[0].current_token_data?.token_data_id!;
 }
 
-jest.setTimeout(20000);
+vi.setConfig({ testTimeout: 20000 });
 
 describe("DigitalAsset", () => {
   let tokenAddress: string;

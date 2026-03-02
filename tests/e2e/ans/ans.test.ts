@@ -1,6 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { vi } from "vitest";
 import { Aptos, Network, Account, AnyRawTransaction, U8, AptosConfig, AccountAddress } from "../../../src";
 import { AnsName, ExpirationStatus, SubdomainExpirationPolicy } from "../../../src/types";
 import { generateTransaction } from "../../../src/internal/transactionSubmission";
@@ -9,7 +10,7 @@ import { publishAnsContract } from "./publishANSContracts";
 import { getANSExpirationStatus, isValidANSName } from "../../../src/internal/ans";
 
 // This isn't great, we should look into deploying outside the test
-jest.setTimeout(20000);
+vi.setConfig({ testTimeout: 20000 });
 
 describe.skip("ANS", () => {
   const { aptos, config } = getAptosClient();

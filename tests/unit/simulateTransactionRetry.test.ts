@@ -1,19 +1,20 @@
+import { vi, type MockedFunction } from "vitest";
 import { simulateTransaction } from "../../src/internal/transactionSubmission";
 import { AptosConfig } from "../../src/api/aptosConfig";
 import { Network } from "../../src/utils/apiEndpoints";
 import { UserTransactionResponse } from "../../src/types";
 import { postAptosFullNode } from "../../src/client";
 
-jest.mock("../../src/client", () => ({
-  postAptosFullNode: jest.fn(),
+vi.mock("../../src/client", () => ({
+  postAptosFullNode: vi.fn(),
 }));
 
-jest.mock("../../src/transactions/transactionBuilder/transactionBuilder", () => ({
-  ...jest.requireActual("../../src/transactions/transactionBuilder/transactionBuilder"),
-  generateSignedTransactionForSimulation: jest.fn().mockReturnValue(new Uint8Array([1, 2, 3])),
+vi.mock("../../src/transactions/transactionBuilder/transactionBuilder", async () => ({
+  ...(await vi.importActual("../../src/transactions/transactionBuilder/transactionBuilder")),
+  generateSignedTransactionForSimulation: vi.fn().mockReturnValue(new Uint8Array([1, 2, 3])),
 }));
 
-const mockPostAptosFullNode = postAptosFullNode as jest.MockedFunction<typeof postAptosFullNode>;
+const mockPostAptosFullNode = postAptosFullNode as MockedFunction<typeof postAptosFullNode>;
 
 const makeSimulationResponse = (overrides: Partial<UserTransactionResponse> = {}): UserTransactionResponse =>
   ({
@@ -48,7 +49,7 @@ describe("simulateTransaction retry on gas estimation failure", () => {
   const aptosConfig = new AptosConfig({ network: Network.LOCAL });
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test("retries without estimateMaxGasAmount when server returns MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS", async () => {
