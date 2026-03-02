@@ -20,7 +20,10 @@ const example = async () => {
   console.log(`Running with Deno version: ${Deno.version.deno}`);
 
   // Set up the client
-  const config = new AptosConfig({ network: APTOS_NETWORK });
+  const config = new AptosConfig({
+    network: APTOS_NETWORK,
+    clientConfig: { http2: false },
+  });
   const aptos = new Aptos(config);
 
   // Create accounts

@@ -42,23 +42,30 @@
     "e2e-test": "vitest run tests/e2e",
     "publish-zeta": "pnpm build && npm publish --tag zeta"
   },
+  "peerDependencies": {
+    "@aptos-labs/ts-sdk": "^5.2.1 || ^6.1.0"
+  },
   "dependencies": {
-    "@aptos-labs/confidential-asset-wasm-bindings": "^0.0.2",
-    "@aptos-labs/ts-sdk": "^5.0.0",
+    "@aptos-labs/confidential-asset-wasm-bindings": "^0.0.3",
     "@noble/curves": "^1.6.0",
     "@noble/hashes": "^1.5.0"
   },
   "devDependencies": {
-    "@swc/cli": "^0.7.8",
-    "@swc/core": "^1.13.5",
-    "@types/node": "^22.18.3",
+    "@swc/cli": "^0.8.0",
+    "@swc/core": "^1.15.18",
+    "@types/node": "^22.19.13",
     "@vitest/coverage-v8": "^4.0.18",
-    "ts-loader": "^9.5.4",
     "tsc-alias": "^1.8.16",
     "tslib": "^2.8.1",
-    "tsup": "^8.5.0",
-    "tsx": "^4.20.5",
-    "typescript": "^5.8.3",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
     "vitest": "^4.0.18"
+  },
+  "pnpm": {
+    "overrides": {
+      "glob@^10": "^10.5.0",
+      "minimatch@^9": "^9.0.7"
+    }
   }
 }
