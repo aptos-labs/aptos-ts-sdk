@@ -4,6 +4,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 - Remove usage of Buffer.from and replace with TextEncoder or js-base64 for greater compatibility
+- Log the Move command if `showStdout` is set to true
 
 ## Changed
 
