@@ -1,7 +1,7 @@
 import { sha3_256 } from "@noble/hashes/sha3";
 import { AccountAddress } from "../../accountAddress";
 import { DeriveScheme } from "../../../types";
-import { TEXT_ENCODER } from "../../../utils";
+import { TEXT_ENCODER } from "../../../utils/const";
 
 /**
  * Creates an object address from creator address and seed

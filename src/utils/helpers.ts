@@ -122,8 +122,8 @@ export function base64UrlToBytes(base64Url: string): Uint8Array {
   while (base64.length % 4 !== 0) {
     base64 += "=";
   }
-  // Use Buffer to convert base64 to Uint8Array
-  return new Uint8Array(Base64.toUint8Array(base64));
+  // Use js-base64 to convert base64 to Uint8Array
+  return Base64.toUint8Array(base64);
 }
 
 /**

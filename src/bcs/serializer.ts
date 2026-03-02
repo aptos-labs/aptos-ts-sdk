@@ -23,7 +23,7 @@ import {
 } from "./consts";
 import { Hex } from "../core/hex";
 import { AnyNumber, Uint16, Uint32, Uint8 } from "../types";
-import { TEXT_ENCODER } from "../utils";
+import { TEXT_ENCODER } from "../utils/const";
 
 /**
  * This class serves as a base class for all serializable types. It facilitates
