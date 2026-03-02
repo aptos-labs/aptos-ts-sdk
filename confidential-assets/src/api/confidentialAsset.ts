@@ -22,6 +22,9 @@ import {
   hasUserRegistered,
   isBalanceNormalized,
   isIncomingTransfersPaused,
+  getGlobalAuditorEpoch,
+  getAuditorEpochForAssetType,
+  getEffectiveAuditorEpoch,
 } from "../internal";
 
 // Constants
@@ -472,6 +475,57 @@ export class ConfidentialAsset {
     options?: LedgerVersionArg;
   }): Promise<TwistedEd25519PublicKey> {
     return getEncryptionKey({
+      client: this.client(),
+      moduleAddress: this.moduleAddress(),
+      ...args,
+    });
+  }
+
+  /**
+   * Get the global auditor epoch counter.
+   *
+   * @param args.options - Optional ledger version for the view call
+   * @returns The global auditor epoch
+   */
+  async getGlobalAuditorEpoch(args?: { options?: LedgerVersionArg }): Promise<number> {
+    return getGlobalAuditorEpoch({
+      client: this.client(),
+      moduleAddress: this.moduleAddress(),
+      ...args,
+    });
+  }
+
+  /**
+   * Get the auditor epoch counter for a specific asset type.
+   *
+   * @param args.tokenAddress - The token address of the asset
+   * @param args.options - Optional ledger version for the view call
+   * @returns The asset-specific auditor epoch
+   */
+  async getAuditorEpochForAssetType(args: {
+    tokenAddress: AccountAddressInput;
+    options?: LedgerVersionArg;
+  }): Promise<number> {
+    return getAuditorEpochForAssetType({
+      client: this.client(),
+      moduleAddress: this.moduleAddress(),
+      ...args,
+    });
+  }
+
+  /**
+   * Get the effective auditor epoch: asset-specific epoch if the asset has an auditor,
+   * otherwise global auditor epoch.
+   *
+   * @param args.tokenAddress - The token address of the asset
+   * @param args.options - Optional ledger version for the view call
+   * @returns The effective auditor epoch
+   */
+  async getEffectiveAuditorEpoch(args: {
+    tokenAddress: AccountAddressInput;
+    options?: LedgerVersionArg;
+  }): Promise<number> {
+    return getEffectiveAuditorEpoch({
       client: this.client(),
       moduleAddress: this.moduleAddress(),
       ...args,

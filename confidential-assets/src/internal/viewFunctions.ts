@@ -283,3 +283,80 @@ export async function getEncryptionKey(
     throw error;
   }
 }
+
+type AuditorEpochViewFunctionParams = {
+  client: Aptos;
+  tokenAddress: AccountAddressInput;
+  options?: LedgerVersionArg;
+  moduleAddress?: string;
+};
+
+/**
+ * Get the global auditor epoch counter.
+ *
+ * @param args.client - The Aptos client instance
+ * @param args.options - Optional ledger version for the view call
+ * @param args.moduleAddress - Optional module address
+ * @returns The global auditor epoch as a number
+ */
+export async function getGlobalAuditorEpoch(args: {
+  client: Aptos;
+  options?: LedgerVersionArg;
+  moduleAddress?: string;
+}): Promise<number> {
+  const { client, options, moduleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS } = args;
+  const [epoch] = await client.view<[string]>({
+    payload: {
+      function: `${moduleAddress}::${MODULE_NAME}::get_global_auditor_epoch`,
+      typeArguments: [],
+      functionArguments: [],
+    },
+    options,
+  });
+  return Number(epoch);
+}
+
+/**
+ * Get the auditor epoch counter for a specific asset type.
+ *
+ * @param args.client - The Aptos client instance
+ * @param args.tokenAddress - The token address of the asset
+ * @param args.options - Optional ledger version for the view call
+ * @param args.moduleAddress - Optional module address
+ * @returns The asset-specific auditor epoch as a number
+ */
+export async function getAuditorEpochForAssetType(args: AuditorEpochViewFunctionParams): Promise<number> {
+  const { client, tokenAddress, options, moduleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS } = args;
+  const [epoch] = await client.view<[string]>({
+    payload: {
+      function: `${moduleAddress}::${MODULE_NAME}::get_auditor_epoch_for_asset_type`,
+      typeArguments: [],
+      functionArguments: [tokenAddress],
+    },
+    options,
+  });
+  return Number(epoch);
+}
+
+/**
+ * Get the effective auditor epoch: asset-specific epoch if the asset has an auditor,
+ * otherwise global auditor epoch.
+ *
+ * @param args.client - The Aptos client instance
+ * @param args.tokenAddress - The token address of the asset
+ * @param args.options - Optional ledger version for the view call
+ * @param args.moduleAddress - Optional module address
+ * @returns The effective auditor epoch as a number
+ */
+export async function getEffectiveAuditorEpoch(args: AuditorEpochViewFunctionParams): Promise<number> {
+  const { client, tokenAddress, options, moduleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS } = args;
+  const [epoch] = await client.view<[string]>({
+    payload: {
+      function: `${moduleAddress}::${MODULE_NAME}::get_effective_auditor_epoch`,
+      typeArguments: [],
+      functionArguments: [tokenAddress],
+    },
+    options,
+  });
+  return Number(epoch);
+}
