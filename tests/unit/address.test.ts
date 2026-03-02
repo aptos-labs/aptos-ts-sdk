@@ -1,4 +1,4 @@
-import { AccountAddress } from "../../src";
+import { AccountAddress, TEXT_ENCODER } from "../../src";
 import {
   createTokenAddress,
   createObjectAddress,
@@ -15,7 +15,7 @@ describe("address", () => {
    */
   test("create an object address from creator address and seed as Uint8Array type", () => {
     const creatorAddress = AccountAddress.from("0x120e79e45d21ef439963580c77a023e2729db799e96e61f878fac98fde5b9cc9");
-    const seed = Buffer.from("migration::migration_contract", "utf8");
+    const seed = TEXT_ENCODER.encode("migration::migration_contract");
     const address = createObjectAddress(creatorAddress, seed);
     expect(address.toString()).toEqual("0xbe376272a5c4361ee96bc147525b26b3bf2ee25f433cbd410a7b3b4b881ffcbf");
   });
@@ -50,7 +50,7 @@ describe("address", () => {
    */
   test("create resource account address", () => {
     const creatorAddress = AccountAddress.from("0x41e724e1d4fce6472ffcb5c9886770893eb49489e3f531d0aa97bf951e66d70c");
-    const seed = Buffer.from("create_resource::create_resource", "utf8");
+    const seed = TEXT_ENCODER.encode("create_resource::create_resource");
     const address = createResourceAddress(creatorAddress, seed);
     expect(address.toString()).toEqual("0x764cb760889d5ab6caabf0594d82adfbf0c0076f36268563e5209fa3734d7f3e");
   });

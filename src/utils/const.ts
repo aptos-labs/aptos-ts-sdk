@@ -109,3 +109,8 @@ export enum ProcessorType {
  * where project-id can contain letters, numbers, hyphens, and underscores
  */
 export const FIREBASE_AUTH_ISS_PATTERN = /^https:\/\/securetoken\.google\.com\/[a-zA-Z0-9-_]+$/;
+
+/**
+ * Shared TextEncoder instance for string serialization to avoid repeated instantiation.
+ */
+export const TEXT_ENCODER = new TextEncoder();

@@ -23,6 +23,7 @@ import {
 } from "./consts";
 import { Hex } from "../core/hex";
 import { AnyNumber, Uint16, Uint32, Uint8 } from "../types";
+import { TEXT_ENCODER } from "../utils/const";
 
 /**
  * This class serves as a base class for all serializable types. It facilitates
@@ -80,11 +81,6 @@ export abstract class Serializable {
  * Minimum buffer growth increment to avoid too many small reallocations.
  */
 const MIN_BUFFER_GROWTH = 256;
-
-/**
- * Shared TextEncoder instance for string serialization to avoid repeated instantiation.
- */
-const TEXT_ENCODER = new TextEncoder();
 
 /**
  * Pool of reusable Serializer instances for temporary serialization operations.
