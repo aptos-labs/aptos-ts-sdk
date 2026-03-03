@@ -374,9 +374,13 @@ describe("Confidential Asset Sender API", () => {
     longTestTimeout,
   );
 
-  const AUDITOR = TwistedEd25519PrivateKey.generate();
+  // --- Auditor configuration tests ---
+
+  const EXTRA_AUDITOR = TwistedEd25519PrivateKey.generate();
+  const EFFECTIVE_AUDITOR = TwistedEd25519PrivateKey.generate();
+
   test(
-    "it should transfer Alice's tokens to Alice's confidential balance with auditor",
+    "it should transfer with extra auditor only (no effective auditor on-chain)",
     async () => {
       const confidentialBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
@@ -390,12 +394,11 @@ describe("Confidential Asset Sender API", () => {
         signer: alice,
         tokenAddress: TOKEN_ADDRESS,
         recipient: alice.accountAddress,
-        additionalAuditorEncryptionKeys: [AUDITOR.publicKey()],
+        additionalAuditorEncryptionKeys: [EXTRA_AUDITOR.publicKey()],
       });
 
       expect(transferTx.success).toBeTruthy();
 
-      // Verify the confidential balance has been updated correctly
       await checkAliceDecryptedBalance(
         confidentialBalance.availableBalance() - TRANSFER_AMOUNT,
         confidentialBalance.pendingBalance() + TRANSFER_AMOUNT,
@@ -403,6 +406,13 @@ describe("Confidential Asset Sender API", () => {
     },
     longTestTimeout,
   );
+
+  // Effective-auditor e2e tests require calling set_auditor_for_asset_type as the @aptos_framework (0x1)
+  // signer, which we can't do on localnet without the framework private key. The effective-auditor
+  // sigma protocol is fully covered by Move unit tests (all 6 configs) and SDK unit tests.
+  // TODO: once an `aptos` CLI profile for 0x1 is available on localnet, add e2e tests for:
+  //   - "effective auditor only" (set global auditor, transfer with no extras)
+  //   - "effective + extra auditors" (set global auditor, transfer with extra auditors)
 
   test(
     "it should check that Alice's incoming transfers are not paused",

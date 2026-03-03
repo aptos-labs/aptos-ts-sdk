@@ -140,6 +140,7 @@ describe("Generate 'confidential coin' proofs", () => {
         transferAmountC: confidentialTransfer.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.C),
         transferAmountDSender: confidentialTransfer.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.D),
         transferAmountDRecipient: confidentialTransfer.transferAmountEncryptedByRecipient.getCipherText().map((ct) => ct.D),
+        hasEffectiveAuditor: false,
         proof: confidentialTransferSigmaProof,
       });
 
@@ -199,6 +200,7 @@ describe("Generate 'confidential coin' proofs", () => {
   test(
     "Verify transfer with auditors sigma proof",
     () => {
+      // This test uses an extra auditor (not an on-chain effective auditor)
       const isValid = verifyTransfer({
         senderAddress: dummySenderAddress,
         recipientAddress: dummyRecipientAddress,
@@ -212,6 +214,7 @@ describe("Generate 'confidential coin' proofs", () => {
         transferAmountC: confidentialTransferWithAuditors.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.C),
         transferAmountDSender: confidentialTransferWithAuditors.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.D),
         transferAmountDRecipient: confidentialTransferWithAuditors.transferAmountEncryptedByRecipient.getCipherText().map((ct) => ct.D),
+        hasEffectiveAuditor: false,
         auditorEkBytes: [auditor.publicKey().toUint8Array()],
         newBalanceDAud: confidentialTransferWithAuditors.auditorEncryptedBalancesAfterTransfer.map(
           (ea) => ea.getCipherText().map((ct) => ct.D),

@@ -26,8 +26,8 @@ type ViewFunctionParams = {
 };
 
 export type ConfidentialBalanceResponse = {
-  C: { data: string }[];
-  D: { data: string }[];
+  P: { data: string }[];
+  R: { data: string }[];
 }[];
 
 /**
@@ -187,11 +187,11 @@ async function getBalanceCipherText(args: ViewFunctionParams): Promise<{
   ]);
 
   return {
-    pending: chunkedPendingBalance.C.map(
-      (c, i) => new TwistedElGamalCiphertext(c.data.slice(2), chunkedPendingBalance.D[i].data.slice(2)),
+    pending: chunkedPendingBalance.P.map(
+      (p, i) => new TwistedElGamalCiphertext(p.data.slice(2), chunkedPendingBalance.R[i].data.slice(2)),
     ),
-    available: chunkedActualBalances.C.map(
-      (c, i) => new TwistedElGamalCiphertext(c.data.slice(2), chunkedActualBalances.D[i].data.slice(2)),
+    available: chunkedActualBalances.P.map(
+      (p, i) => new TwistedElGamalCiphertext(p.data.slice(2), chunkedActualBalances.R[i].data.slice(2)),
     ),
   };
 }

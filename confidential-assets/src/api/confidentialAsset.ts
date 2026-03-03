@@ -559,14 +559,14 @@ export class ConfidentialAsset {
     const tokenAddr = AccountAddress.from(tokenAddress);
 
     // Get the auditor public key for the token
-    const globalAuditorPubKey = await this.getAssetAuditorEncryptionKey({ tokenAddress });
+    const effectiveAuditorPubKey = await this.getAssetAuditorEncryptionKey({ tokenAddress });
 
     const confidentialNormalization = await ConfidentialNormalization.create({
       decryptionKey: senderDecryptionKey,
       unnormalizedAvailableBalance: available,
       senderAddress: senderAddr.toUint8Array(),
       tokenAddress: tokenAddr.toUint8Array(),
-      auditorEncryptionKey: globalAuditorPubKey,
+      auditorEncryptionKey: effectiveAuditorPubKey,
     });
 
     const transaction = await confidentialNormalization.createTransaction({
