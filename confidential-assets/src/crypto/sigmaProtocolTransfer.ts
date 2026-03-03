@@ -9,14 +9,10 @@
  * Combines a "veiled withdrawal" on the sender side with an "equality" proof linking
  * the sender's transfer amount ciphertexts to the recipient's.
  *
- * Statement points (auditorless):
- *   [G, H, ek_sid, ek_rid,
- *    old_P[ell], old_R[ell],
- *    new_P[ell], new_R[ell],
- *    P[n], R_sid[n], R_rid[n]]
- *
- * With auditor:
- *   append [ek_aud, new_R_aud[ell], R_aud[n]]
+ * Statement points:
+ *   Base: [G, H, ek_sid, ek_rid, old_P[ell], old_R[ell], new_P[ell], new_R[ell], P[n], R_sid[n], R_rid[n]]
+ *   If has_effective_auditor: + [ek_aud_eff, new_R_aud_eff[ell], R_aud_eff[n]]
+ *   For each extra auditor: + [ek_extra, R_extra[n]]
  *
  * Witness: [dk, new_a[ell], new_r[ell], v[n], r[n]]
  */
@@ -49,6 +45,8 @@ const PROTOCOL_ID = "AptosConfidentialAsset/TransferV1";
  *   asset_type: Object<Metadata>,
  *   num_avail_chunks: u64,
  *   num_transfer_chunks: u64,
+ *   has_effective_auditor: bool,
+ *   num_extra_auditors: u64,
  * }
  * ```
  */
@@ -58,6 +56,8 @@ export function bcsSerializeTransferSession(
   tokenTypeAddress: Uint8Array,
   numAvailChunks: number,
   numTransferChunks: number,
+  hasEffectiveAuditor: boolean,
+  numExtraAuditors: number,
 ): Uint8Array {
   const serializer = new Serializer();
   serializer.serialize(new FixedBytes(senderAddress));
@@ -65,6 +65,8 @@ export function bcsSerializeTransferSession(
   serializer.serialize(new FixedBytes(tokenTypeAddress));
   serializer.serialize(new U64(numAvailChunks));
   serializer.serialize(new U64(numTransferChunks));
+  serializer.serializeBool(hasEffectiveAuditor);
+  serializer.serialize(new U64(numExtraAuditors));
   return serializer.toUint8Array();
 }
 
@@ -81,23 +83,19 @@ function computeBPowers(count: number): bigint[] {
 }
 
 /**
- * Statement point layout (auditorless):
- *   0: G
- *   1: H
- *   2: ek_sid
- *   3: ek_rid
- *   4 .. 4+ell-1: old_P[ell]
- *   4+ell .. 4+2ell-1: old_R[ell]
- *   4+2ell .. 4+3ell-1: new_P[ell]
- *   4+3ell .. 4+4ell-1: new_R[ell]
- *   4+4ell .. 4+4ell+n-1: P[n]          (transfer amount commitments)
- *   4+4ell+n .. 4+4ell+2n-1: R_sid[n]   (transfer amount D for sender)
- *   4+4ell+2n .. 4+4ell+3n-1: R_rid[n]  (transfer amount D for recipient)
+ * Statement point layout:
  *
- * With auditor, append:
- *   4+4ell+3n: ek_aud
- *   4+4ell+3n+1 .. 4+5ell+3n: new_R_aud[ell]
- *   4+5ell+3n+1 .. 4+5ell+4n: R_aud[n]
+ * Base (always):
+ *   [G, H, ek_sid, ek_rid, old_P[ell], old_R[ell], new_P[ell], new_R[ell], P[n], R_sid[n], R_rid[n]]
+ *   → 4 + 4*ell + 3*n points
+ *
+ * If has_effective_auditor:
+ *   + [ek_aud_eff, new_R_aud_eff[ell], R_aud_eff[n]]
+ *   → +1 + ell + n points
+ *
+ * For each extra auditor i ∈ [num_extra]:
+ *   + [ek_extra_i, R_extra_i[n]]
+ *   → +(1 + n) points per extra
  */
 const IDX_G = 0;
 const IDX_H = 1;
@@ -123,190 +121,17 @@ function getStartIdxRSid(ell: number, n: number): number {
 function getStartIdxRRid(ell: number, n: number): number {
   return START_IDX_OLD_P + 4 * ell + 2 * n;
 }
-function getIdxEkAud(ell: number, n: number): number {
+/** Start of the effective auditor section (if present). */
+function getIdxEkAudEff(ell: number, n: number): number {
   return START_IDX_OLD_P + 4 * ell + 3 * n;
 }
-function getStartIdxNewRAud(ell: number, n: number): number {
-  return START_IDX_OLD_P + 4 * ell + 3 * n + 1;
-}
-function getStartIdxRAud(ell: number, n: number): number {
-  return START_IDX_OLD_P + 5 * ell + 3 * n + 1;
+/** Start of the extra auditors section. */
+function getStartIdxExtras(ell: number, n: number, hasEffective: boolean): number {
+  return START_IDX_OLD_P + 4 * ell + 3 * n + (hasEffective ? 1 + ell + n : 0);
 }
 
-/**
- * Build the homomorphism psi for transfer.
- *
- * Witness layout: [dk, new_a[0..ell-1], new_r[0..ell-1], v[0..n-1], r[0..n-1]]
- *
- * psi outputs (auditorless, m = 2 + 2ell + 3n):
- *   0: dk * ek_sid
- *   1..ell: new_a[i]*G + new_r[i]*H
- *   ell+1..2ell: new_r[i]*ek_sid
- *   2ell+1: dk*<B,old_R> + (<B,new_a> + <B,v>)*G   (balance equation)
- *   2ell+2..2ell+1+n: v[j]*G + r[j]*H
- *   2ell+2+n..2ell+1+2n: r[j]*ek_sid
- *   2ell+2+2n..2ell+1+3n: r[j]*ek_rid
- *
- * With auditor (m = 2 + 3ell + 4n):
- *   After new_r[i]*ek_sid, insert new_r[i]*ek_aud
- *   After r[j]*ek_rid, insert r[j]*ek_aud
- */
-function makeTransferPsi(ell: number, n: number, hasAuditor: boolean): PsiFunction {
-  return (s: SigmaProtocolStatement, w: bigint[]): RistPoint[] => {
-    const dk = w[0];
-    const newA = w.slice(1, 1 + ell);
-    const newR = w.slice(1 + ell, 1 + 2 * ell);
-    const vChunks = w.slice(1 + 2 * ell, 1 + 2 * ell + n);
-    const rTransfer = w.slice(1 + 2 * ell + n, 1 + 2 * ell + 2 * n);
-
-    const G = s.points[IDX_G];
-    const H = s.points[IDX_H];
-    const ekSid = s.points[IDX_EK_SID];
-    const ekRid = s.points[IDX_EK_RID];
-
-    const result: RistPoint[] = [];
-
-    // 0: dk * ek_sid
-    result.push(ekSid.multiply(dk));
-
-    // 1..ell: new_a[i]*G + new_r[i]*H
-    for (let i = 0; i < ell; i++) {
-      result.push(G.multiply(newA[i]).add(H.multiply(newR[i])));
-    }
-
-    // ell+1..2ell: new_r[i]*ek_sid
-    for (let i = 0; i < ell; i++) {
-      result.push(ekSid.multiply(newR[i]));
-    }
-
-    // Auditor: new_r[i]*ek_aud
-    if (hasAuditor) {
-      const ekAud = s.points[getIdxEkAud(ell, n)];
-      for (let i = 0; i < ell; i++) {
-        result.push(ekAud.multiply(newR[i]));
-      }
-    }
-
-    // Balance equation: dk*<B,old_R> + (<B,new_a> + <B,v>)*G
-    const bPowersEll = computeBPowers(ell);
-    const bPowersN = computeBPowers(n);
-    let balanceResult = RistrettoPoint.ZERO;
-    const startOldR = getStartIdxOldR(ell);
-    for (let i = 0; i < ell; i++) {
-      balanceResult = balanceResult.add(s.points[startOldR + i].multiply(ed25519modN(dk * bPowersEll[i])));
-    }
-    for (let i = 0; i < ell; i++) {
-      balanceResult = balanceResult.add(G.multiply(ed25519modN(newA[i] * bPowersEll[i])));
-    }
-    for (let j = 0; j < n; j++) {
-      balanceResult = balanceResult.add(G.multiply(ed25519modN(vChunks[j] * bPowersN[j])));
-    }
-    result.push(balanceResult);
-
-    // Transfer amount commitments: v[j]*G + r[j]*H
-    for (let j = 0; j < n; j++) {
-      result.push(G.multiply(vChunks[j]).add(H.multiply(rTransfer[j])));
-    }
-
-    // r[j]*ek_sid
-    for (let j = 0; j < n; j++) {
-      result.push(ekSid.multiply(rTransfer[j]));
-    }
-
-    // r[j]*ek_rid
-    for (let j = 0; j < n; j++) {
-      result.push(ekRid.multiply(rTransfer[j]));
-    }
-
-    // Auditor: r[j]*ek_aud
-    if (hasAuditor) {
-      const ekAud = s.points[getIdxEkAud(ell, n)];
-      for (let j = 0; j < n; j++) {
-        result.push(ekAud.multiply(rTransfer[j]));
-      }
-    }
-
-    return result;
-  };
-}
-
-/**
- * Build the transformation function f for transfer.
- *
- * f outputs mirror psi but with statement points.
- */
-function makeTransferF(ell: number, n: number, hasAuditor: boolean): TransformationFunction {
-  return (s: SigmaProtocolStatement): RistPoint[] => {
-    const G = s.points[IDX_G];
-    const result: RistPoint[] = [];
-
-    // 0: H
-    result.push(s.points[IDX_H]);
-
-    // 1..ell: new_P[i]
-    const startNewP = getStartIdxNewP(ell);
-    for (let i = 0; i < ell; i++) {
-      result.push(s.points[startNewP + i]);
-    }
-
-    // ell+1..2ell: new_R[i]
-    const startNewR = getStartIdxNewR(ell);
-    for (let i = 0; i < ell; i++) {
-      result.push(s.points[startNewR + i]);
-    }
-
-    // Auditor: new_R_aud[i]
-    if (hasAuditor) {
-      const startNewRAud = getStartIdxNewRAud(ell, n);
-      for (let i = 0; i < ell; i++) {
-        result.push(s.points[startNewRAud + i]);
-      }
-    }
-
-    // Balance equation target: <B,old_P> - (<B,v>)*G
-    // But v is secret in transfer, so the target is just <B,old_P>
-    // Actually, the balance equation in transfer is:
-    //   dk*<B,old_R> + (<B,new_a> + <B,v>)*G = dk*<B,old_P> + <B,new_a>*G + <B,v>*G
-    //   which simplifies to: dk*<B,old_R> + ... = <B,old_P>  (since the secret terms cancel)
-    // Wait, let's re-derive. The relation is:
-    //   <B,old_P> = dk*<B,old_R> + <B,new_a>*G + <B,v>*G
-    // So f's balance output = <B,old_P>
-    const bPowersEll = computeBPowers(ell);
-    let balanceTarget = RistrettoPoint.ZERO;
-    for (let i = 0; i < ell; i++) {
-      balanceTarget = balanceTarget.add(s.points[START_IDX_OLD_P + i].multiply(bPowersEll[i]));
-    }
-    result.push(balanceTarget);
-
-    // Transfer amount: P[j]
-    const startP = getStartIdxP(ell);
-    for (let j = 0; j < n; j++) {
-      result.push(s.points[startP + j]);
-    }
-
-    // R_sid[j]
-    const startRSid = getStartIdxRSid(ell, n);
-    for (let j = 0; j < n; j++) {
-      result.push(s.points[startRSid + j]);
-    }
-
-    // R_rid[j]
-    const startRRid = getStartIdxRRid(ell, n);
-    for (let j = 0; j < n; j++) {
-      result.push(s.points[startRRid + j]);
-    }
-
-    // Auditor: R_aud[j]
-    if (hasAuditor) {
-      const startRAud = getStartIdxRAud(ell, n);
-      for (let j = 0; j < n; j++) {
-        result.push(s.points[startRAud + j]);
-      }
-    }
-
-    return result;
-  };
-}
+// Note: the old single-auditor makeTransferPsi/makeTransferF have been removed.
+// All auditor logic is handled by makeTransferPsi/makeTransferF below.
 
 export type TransferProofArgs = {
   /** The sender's decryption key */
@@ -343,38 +168,30 @@ export type TransferProofArgs = {
   transferAmountChunks: bigint[];
   /** Transfer amount randomness (n values) */
   transferRandomness: bigint[];
-  /** Optional auditor encryption keys */
+  /**
+   * Whether an effective (asset-level or global) auditor is present.
+   * If true, the LAST element in auditorEncryptionKeys / newBalanceDAud / transferAmountDAud
+   * is the effective auditor; all preceding elements are extra auditors.
+   */
+  hasEffectiveAuditor: boolean;
+  /** Auditor encryption keys: extras first, then effective (if hasEffectiveAuditor) */
   auditorEncryptionKeys?: TwistedEd25519PublicKey[];
-  /** Optional new balance D points encrypted under each auditor key */
+  /** New balance D points encrypted under each auditor key (only effective auditor's is used in sigma proof) */
   newBalanceDAud?: RistPoint[][];
-  /** Optional transfer amount D points encrypted under each auditor key */
+  /** Transfer amount D points encrypted under each auditor key (all used in sigma proof) */
   transferAmountDAud?: RistPoint[][];
 };
 
 /**
  * Prove a confidential transfer.
  *
- * When multiple auditors are present, we produce one sigma proof per auditor
- * (each with a single ek_aud), plus one proof for the auditorless base case.
- * The Move verifier expects exactly this structure.
+ * The sigma proof covers all auditors in a single proof. The statement layout
+ * distinguishes between the effective auditor (sees balance + transfer amount)
+ * and extra auditors (see only transfer amount).
  *
- * However, looking at the Move code more carefully, the verifier handles
- * multiple auditors in a single proof by concatenating all auditor points.
- * Let me re-examine...
- *
- * Actually, the Move contract does: for each auditor, it appends [ek_aud, new_R_aud[], R_aud[]]
- * and the sigma proof covers ALL auditors in a single proof. So we need to support
- * multiple auditors in one proof.
- *
- * Wait -- let me re-read the spec. The spec says "With auditor" singular. Looking at
- * the Move code, it handles a vector of auditors. But the sigma protocol proof structure
- * has a single ek_aud. The Move contract likely creates separate proofs or handles
- * auditors differently.
- *
- * For now, we support 0 or 1 auditor in the sigma proof (matching the current Move contract).
- * Multiple auditors: the contract creates one proof that covers all auditors by extending
- * the statement with [ek_aud_0, ..., ek_aud_k] etc. But for simplicity and to match
- * what the transaction builder currently does, we handle the single-auditor case.
+ * Convention: if hasEffectiveAuditor is true, the LAST element in auditorEncryptionKeys
+ * (and newBalanceDAud / transferAmountDAud) is the effective auditor. All preceding
+ * elements are extras.
  */
 export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
   const {
@@ -395,6 +212,7 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
     transferAmountDRecipient,
     transferAmountChunks,
     transferRandomness,
+    hasEffectiveAuditor,
     auditorEncryptionKeys = [],
     newBalanceDAud = [],
     transferAmountDAud = [],
@@ -402,8 +220,9 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
 
   const ell = oldBalanceC.length;
   const n = transferAmountC.length;
-  // We support at most one auditor in the sigma proof
-  const hasAuditor = auditorEncryptionKeys.length > 0;
+  const numExtra = hasEffectiveAuditor
+    ? auditorEncryptionKeys.length - 1
+    : auditorEncryptionKeys.length;
   const dkBigint = bytesToNumberLE(dk.toUint8Array());
 
   const G = RistrettoPoint.BASE;
@@ -413,95 +232,74 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
   const ekRidBytes = recipientEncryptionKey.toUint8Array();
   const ekRid = RistrettoPoint.fromHex(ekRidBytes);
 
-  // Build statement points
+  // Build statement points — base
   const stmtPoints: RistPoint[] = [G, H, ekSid, ekRid];
   const stmtCompressed: Uint8Array[] = [G.toRawBytes(), H.toRawBytes(), ekSidBytes, ekRidBytes];
 
-  // old_P
-  for (let i = 0; i < ell; i++) {
-    stmtPoints.push(oldBalanceC[i]);
-    stmtCompressed.push(oldBalanceC[i].toRawBytes());
-  }
-  // old_R
-  for (let i = 0; i < ell; i++) {
-    stmtPoints.push(oldBalanceD[i]);
-    stmtCompressed.push(oldBalanceD[i].toRawBytes());
-  }
-  // new_P
-  for (let i = 0; i < ell; i++) {
-    stmtPoints.push(newBalanceC[i]);
-    stmtCompressed.push(newBalanceC[i].toRawBytes());
-  }
-  // new_R
-  for (let i = 0; i < ell; i++) {
-    stmtPoints.push(newBalanceD[i]);
-    stmtCompressed.push(newBalanceD[i].toRawBytes());
-  }
-  // P (transfer amount commitments, shared between sender and recipient)
-  for (let j = 0; j < n; j++) {
-    stmtPoints.push(transferAmountC[j]);
-    stmtCompressed.push(transferAmountC[j].toRawBytes());
-  }
-  // R_sid (transfer amount D for sender)
-  for (let j = 0; j < n; j++) {
-    stmtPoints.push(transferAmountDSender[j]);
-    stmtCompressed.push(transferAmountDSender[j].toRawBytes());
-  }
-  // R_rid (transfer amount D for recipient)
-  for (let j = 0; j < n; j++) {
-    stmtPoints.push(transferAmountDRecipient[j]);
-    stmtCompressed.push(transferAmountDRecipient[j].toRawBytes());
+  const pushPoint = (p: RistPoint) => { stmtPoints.push(p); stmtCompressed.push(p.toRawBytes()); };
+  const pushPointBytes = (p: RistPoint, bytes: Uint8Array) => { stmtPoints.push(p); stmtCompressed.push(bytes); };
+
+  for (let i = 0; i < ell; i++) pushPoint(oldBalanceC[i]);    // old_P
+  for (let i = 0; i < ell; i++) pushPoint(oldBalanceD[i]);    // old_R
+  for (let i = 0; i < ell; i++) pushPoint(newBalanceC[i]);    // new_P
+  for (let i = 0; i < ell; i++) pushPoint(newBalanceD[i]);    // new_R
+  for (let j = 0; j < n; j++) pushPoint(transferAmountC[j]);          // P
+  for (let j = 0; j < n; j++) pushPoint(transferAmountDSender[j]);    // R_sid
+  for (let j = 0; j < n; j++) pushPoint(transferAmountDRecipient[j]); // R_rid
+
+  // Effective auditor: [ek_eff, new_R_aud_eff[ell], R_aud_eff[n]]
+  if (hasEffectiveAuditor) {
+    const effIdx = auditorEncryptionKeys.length - 1;
+    const ekEffBytes = auditorEncryptionKeys[effIdx].toUint8Array();
+    pushPointBytes(RistrettoPoint.fromHex(ekEffBytes), ekEffBytes);
+    for (let i = 0; i < ell; i++) pushPoint(newBalanceDAud[effIdx][i]);
+    for (let j = 0; j < n; j++) pushPoint(transferAmountDAud[effIdx][j]);
   }
 
-  // Auditor points
-  if (hasAuditor) {
-    // For each auditor: ek_aud, then new_R_aud[ell], then R_aud[n]
-    for (let a = 0; a < auditorEncryptionKeys.length; a++) {
-      const ekAudBytes = auditorEncryptionKeys[a].toUint8Array();
-      stmtPoints.push(RistrettoPoint.fromHex(ekAudBytes));
-      stmtCompressed.push(ekAudBytes);
-
-      for (let i = 0; i < ell; i++) {
-        stmtPoints.push(newBalanceDAud[a][i]);
-        stmtCompressed.push(newBalanceDAud[a][i].toRawBytes());
-      }
-
-      for (let j = 0; j < n; j++) {
-        stmtPoints.push(transferAmountDAud[a][j]);
-        stmtCompressed.push(transferAmountDAud[a][j].toRawBytes());
-      }
-    }
+  // Extra auditors: for each, [ek_extra, R_extra[n]]
+  for (let a = 0; a < numExtra; a++) {
+    const ekExtraBytes = auditorEncryptionKeys[a].toUint8Array();
+    pushPointBytes(RistrettoPoint.fromHex(ekExtraBytes), ekExtraBytes);
+    for (let j = 0; j < n; j++) pushPoint(transferAmountDAud[a][j]);
   }
 
-  // Transfer has no public scalars (v is secret)
   const stmt: SigmaProtocolStatement = {
     points: stmtPoints,
     compressedPoints: stmtCompressed,
     scalars: [],
   };
 
-  // Build witness: [dk, new_a[ell], new_r[ell], v[n], r[n]]
+  // Witness: [dk, new_a[ell], new_r[ell], v[n], r[n]]
   const witness: bigint[] = [dkBigint, ...newAmountChunks, ...newRandomness, ...transferAmountChunks, ...transferRandomness];
 
-  // Build domain separator
-  const sessionId = bcsSerializeTransferSession(senderAddress, recipientAddress, tokenAddress, ell, n);
+  // Domain separator
+  const sessionId = bcsSerializeTransferSession(
+    senderAddress, recipientAddress, tokenAddress, ell, n, hasEffectiveAuditor, numExtra,
+  );
   const dst: DomainSeparator = {
     protocolId: utf8ToBytes(PROTOCOL_ID),
     sessionId,
   };
 
-  return sigmaProtocolProve(dst, makeTransferPsiMultiAuditor(ell, n, auditorEncryptionKeys.length), stmt, witness);
+  return sigmaProtocolProve(dst, makeTransferPsi(ell, n, hasEffectiveAuditor, numExtra), stmt, witness);
 }
 
 /**
- * Build psi for transfer with support for multiple auditors.
+ * Build the homomorphism psi for the transfer relation.
  *
- * Statement layout with k auditors:
- *   [G, H, ek_sid, ek_rid, old_P[ell], old_R[ell], new_P[ell], new_R[ell], P[n], R_sid[n], R_rid[n],
- *    ek_aud_0, new_R_aud_0[ell], R_aud_0[n],
- *    ek_aud_1, new_R_aud_1[ell], R_aud_1[n], ...]
+ * Matches the Move implementation ordering:
+ *   1. dk * ek_sid
+ *   2. new_a[i]*G + new_r[i]*H,  ∀i ∈ [ℓ]
+ *   3. new_r[i]*ek_sid,           ∀i ∈ [ℓ]
+ *   3b. new_r[i]*ek_aud_eff,      ∀i ∈ [ℓ]  (effective auditor only)
+ *   4. dk*⟨B,old_R⟩ + (⟨B,new_a⟩ + ⟨B,v⟩)*G
+ *   5. v[j]*G + r[j]*H,          ∀j ∈ [n]
+ *   6. r[j]*ek_sid,              ∀j ∈ [n]
+ *   7. r[j]*ek_rid,              ∀j ∈ [n]
+ *   7b. r[j]*ek_aud_eff,          ∀j ∈ [n]  (effective auditor only)
+ *   7c. r[j]*ek_extra_t,          ∀j ∈ [n], ∀t ∈ [T]  (extra auditors)
  */
-function makeTransferPsiMultiAuditor(ell: number, n: number, numAuditors: number): PsiFunction {
+function makeTransferPsi(ell: number, n: number, hasEffective: boolean, numExtra: number): PsiFunction {
   return (s: SigmaProtocolStatement, w: bigint[]): RistPoint[] => {
     const dk = w[0];
     const newA = w.slice(1, 1 + ell);
@@ -516,30 +314,28 @@ function makeTransferPsiMultiAuditor(ell: number, n: number, numAuditors: number
 
     const result: RistPoint[] = [];
 
-    // 0: dk * ek_sid
+    // 1. dk * ek_sid
     result.push(ekSid.multiply(dk));
 
-    // 1..ell: new_a[i]*G + new_r[i]*H
+    // 2. new_a[i]*G + new_r[i]*H
     for (let i = 0; i < ell; i++) {
       result.push(G.multiply(newA[i]).add(H.multiply(newR[i])));
     }
 
-    // ell+1..2ell: new_r[i]*ek_sid
+    // 3. new_r[i]*ek_sid
     for (let i = 0; i < ell; i++) {
       result.push(ekSid.multiply(newR[i]));
     }
 
-    // For each auditor: new_r[i]*ek_aud_a
-    const auditorBaseIdx = START_IDX_OLD_P + 4 * ell + 3 * n;
-    for (let a = 0; a < numAuditors; a++) {
-      const ekAudIdx = auditorBaseIdx + a * (1 + ell + n);
-      const ekAud = s.points[ekAudIdx];
+    // 3b. (effective auditor only) new_r[i]*ek_aud_eff
+    if (hasEffective) {
+      const ekAudEff = s.points[getIdxEkAudEff(ell, n)];
       for (let i = 0; i < ell; i++) {
-        result.push(ekAud.multiply(newR[i]));
+        result.push(ekAudEff.multiply(newR[i]));
       }
     }
 
-    // Balance equation: dk*<B,old_R> + (<B,new_a> + <B,v>)*G
+    // 4. Balance equation: dk*⟨B,old_R⟩ + (⟨B,new_a⟩ + ⟨B,v⟩)*G
     const bPowersEll = computeBPowers(ell);
     const bPowersN = computeBPowers(n);
     let balanceResult = RistrettoPoint.ZERO;
@@ -555,27 +351,36 @@ function makeTransferPsiMultiAuditor(ell: number, n: number, numAuditors: number
     }
     result.push(balanceResult);
 
-    // Transfer amount commitments: v[j]*G + r[j]*H
+    // 5. v[j]*G + r[j]*H
     for (let j = 0; j < n; j++) {
       result.push(G.multiply(vChunks[j]).add(H.multiply(rTransfer[j])));
     }
 
-    // r[j]*ek_sid
+    // 6. r[j]*ek_sid
     for (let j = 0; j < n; j++) {
       result.push(ekSid.multiply(rTransfer[j]));
     }
 
-    // r[j]*ek_rid
+    // 7. r[j]*ek_rid
     for (let j = 0; j < n; j++) {
       result.push(ekRid.multiply(rTransfer[j]));
     }
 
-    // For each auditor: r[j]*ek_aud_a
-    for (let a = 0; a < numAuditors; a++) {
-      const ekAudIdx = auditorBaseIdx + a * (1 + ell + n);
-      const ekAud = s.points[ekAudIdx];
+    // 7b. (effective auditor only) r[j]*ek_aud_eff
+    if (hasEffective) {
+      const ekAudEff = s.points[getIdxEkAudEff(ell, n)];
       for (let j = 0; j < n; j++) {
-        result.push(ekAud.multiply(rTransfer[j]));
+        result.push(ekAudEff.multiply(rTransfer[j]));
+      }
+    }
+
+    // 7c. (extra auditors) r[j]*ek_extra_t
+    const extrasStart = getStartIdxExtras(ell, n, hasEffective);
+    for (let t = 0; t < numExtra; t++) {
+      const ekExtraIdx = extrasStart + t * (1 + n);
+      const ekExtra = s.points[ekExtraIdx];
+      for (let j = 0; j < n; j++) {
+        result.push(ekExtra.multiply(rTransfer[j]));
       }
     }
 
@@ -584,37 +389,38 @@ function makeTransferPsiMultiAuditor(ell: number, n: number, numAuditors: number
 }
 
 /**
- * Build f for transfer with multiple auditors.
+ * Build the transformation function f for the transfer relation.
+ *
+ * Matches the Move implementation ordering (mirrors psi with statement points).
  */
-function makeTransferFMultiAuditor(ell: number, n: number, numAuditors: number): TransformationFunction {
+function makeTransferF(ell: number, n: number, hasEffective: boolean, numExtra: number): TransformationFunction {
   return (s: SigmaProtocolStatement): RistPoint[] => {
     const result: RistPoint[] = [];
 
-    // 0: H
+    // 1. H
     result.push(s.points[IDX_H]);
 
-    // 1..ell: new_P[i]
+    // 2. new_P[i]
     const startNewP = getStartIdxNewP(ell);
     for (let i = 0; i < ell; i++) {
       result.push(s.points[startNewP + i]);
     }
 
-    // ell+1..2ell: new_R[i]
+    // 3. new_R[i]
     const startNewR = getStartIdxNewR(ell);
     for (let i = 0; i < ell; i++) {
       result.push(s.points[startNewR + i]);
     }
 
-    // For each auditor: new_R_aud_a[i]
-    const auditorBaseIdx = START_IDX_OLD_P + 4 * ell + 3 * n;
-    for (let a = 0; a < numAuditors; a++) {
-      const newRAudStart = auditorBaseIdx + a * (1 + ell + n) + 1;
+    // 3b. (effective auditor only) new_R_aud_eff[i]
+    if (hasEffective) {
+      const newRAudStart = getIdxEkAudEff(ell, n) + 1;
       for (let i = 0; i < ell; i++) {
         result.push(s.points[newRAudStart + i]);
       }
     }
 
-    // Balance equation target: <B,old_P>
+    // 4. Balance equation target: ⟨B,old_P⟩
     const bPowersEll = computeBPowers(ell);
     let balanceTarget = RistrettoPoint.ZERO;
     for (let i = 0; i < ell; i++) {
@@ -622,29 +428,38 @@ function makeTransferFMultiAuditor(ell: number, n: number, numAuditors: number):
     }
     result.push(balanceTarget);
 
-    // Transfer amount: P[j]
+    // 5. P[j]
     const startP = getStartIdxP(ell);
     for (let j = 0; j < n; j++) {
       result.push(s.points[startP + j]);
     }
 
-    // R_sid[j]
+    // 6. R_sid[j]
     const startRSid = getStartIdxRSid(ell, n);
     for (let j = 0; j < n; j++) {
       result.push(s.points[startRSid + j]);
     }
 
-    // R_rid[j]
+    // 7. R_rid[j]
     const startRRid = getStartIdxRRid(ell, n);
     for (let j = 0; j < n; j++) {
       result.push(s.points[startRRid + j]);
     }
 
-    // For each auditor: R_aud_a[j]
-    for (let a = 0; a < numAuditors; a++) {
-      const rAudStart = auditorBaseIdx + a * (1 + ell + n) + 1 + ell;
+    // 7b. (effective auditor only) R_aud_eff[j]
+    if (hasEffective) {
+      const rAudEffStart = getIdxEkAudEff(ell, n) + 1 + ell;
       for (let j = 0; j < n; j++) {
-        result.push(s.points[rAudStart + j]);
+        result.push(s.points[rAudEffStart + j]);
+      }
+    }
+
+    // 7c. (extra auditors) R_extra_t[j]
+    const extrasStart = getStartIdxExtras(ell, n, hasEffective);
+    for (let t = 0; t < numExtra; t++) {
+      const rExtraStart = extrasStart + t * (1 + n) + 1;
+      for (let j = 0; j < n; j++) {
+        result.push(s.points[rExtraStart + j]);
       }
     }
 
@@ -654,6 +469,9 @@ function makeTransferFMultiAuditor(ell: number, n: number, numAuditors: number):
 
 /**
  * Verify a confidential transfer proof.
+ *
+ * Convention: if hasEffectiveAuditor, the last element in auditorEkBytes / newBalanceDAud /
+ * transferAmountDAud is the effective auditor; preceding elements are extras.
  */
 export function verifyTransfer(args: {
   senderAddress: Uint8Array;
@@ -668,6 +486,7 @@ export function verifyTransfer(args: {
   transferAmountC: RistPoint[];
   transferAmountDSender: RistPoint[];
   transferAmountDRecipient: RistPoint[];
+  hasEffectiveAuditor: boolean;
   auditorEkBytes?: Uint8Array[];
   newBalanceDAud?: RistPoint[][];
   transferAmountDAud?: RistPoint[][];
@@ -686,6 +505,7 @@ export function verifyTransfer(args: {
     transferAmountC,
     transferAmountDSender,
     transferAmountDRecipient,
+    hasEffectiveAuditor,
     auditorEkBytes = [],
     newBalanceDAud = [],
     transferAmountDAud = [],
@@ -694,7 +514,7 @@ export function verifyTransfer(args: {
 
   const ell = oldBalanceC.length;
   const n = transferAmountC.length;
-  const numAuditors = auditorEkBytes.length;
+  const numExtra = hasEffectiveAuditor ? auditorEkBytes.length - 1 : auditorEkBytes.length;
 
   const G = RistrettoPoint.BASE;
   const H = H_RISTRETTO;
@@ -704,48 +524,29 @@ export function verifyTransfer(args: {
   const stmtPoints: RistPoint[] = [G, H, ekSid, ekRid];
   const stmtCompressed: Uint8Array[] = [G.toRawBytes(), H.toRawBytes(), ekSidBytes, ekRidBytes];
 
-  for (let i = 0; i < ell; i++) {
-    stmtPoints.push(oldBalanceC[i]);
-    stmtCompressed.push(oldBalanceC[i].toRawBytes());
-  }
-  for (let i = 0; i < ell; i++) {
-    stmtPoints.push(oldBalanceD[i]);
-    stmtCompressed.push(oldBalanceD[i].toRawBytes());
-  }
-  for (let i = 0; i < ell; i++) {
-    stmtPoints.push(newBalanceC[i]);
-    stmtCompressed.push(newBalanceC[i].toRawBytes());
-  }
-  for (let i = 0; i < ell; i++) {
-    stmtPoints.push(newBalanceD[i]);
-    stmtCompressed.push(newBalanceD[i].toRawBytes());
-  }
-  for (let j = 0; j < n; j++) {
-    stmtPoints.push(transferAmountC[j]);
-    stmtCompressed.push(transferAmountC[j].toRawBytes());
-  }
-  for (let j = 0; j < n; j++) {
-    stmtPoints.push(transferAmountDSender[j]);
-    stmtCompressed.push(transferAmountDSender[j].toRawBytes());
-  }
-  for (let j = 0; j < n; j++) {
-    stmtPoints.push(transferAmountDRecipient[j]);
-    stmtCompressed.push(transferAmountDRecipient[j].toRawBytes());
+  const pushPoint = (p: RistPoint) => { stmtPoints.push(p); stmtCompressed.push(p.toRawBytes()); };
+  const pushPointBytes = (p: RistPoint, bytes: Uint8Array) => { stmtPoints.push(p); stmtCompressed.push(bytes); };
+
+  for (let i = 0; i < ell; i++) pushPoint(oldBalanceC[i]);
+  for (let i = 0; i < ell; i++) pushPoint(oldBalanceD[i]);
+  for (let i = 0; i < ell; i++) pushPoint(newBalanceC[i]);
+  for (let i = 0; i < ell; i++) pushPoint(newBalanceD[i]);
+  for (let j = 0; j < n; j++) pushPoint(transferAmountC[j]);
+  for (let j = 0; j < n; j++) pushPoint(transferAmountDSender[j]);
+  for (let j = 0; j < n; j++) pushPoint(transferAmountDRecipient[j]);
+
+  // Effective auditor: [ek_eff, new_R_aud_eff[ell], R_aud_eff[n]]
+  if (hasEffectiveAuditor) {
+    const effIdx = auditorEkBytes.length - 1;
+    pushPointBytes(RistrettoPoint.fromHex(auditorEkBytes[effIdx]), auditorEkBytes[effIdx]);
+    for (let i = 0; i < ell; i++) pushPoint(newBalanceDAud[effIdx][i]);
+    for (let j = 0; j < n; j++) pushPoint(transferAmountDAud[effIdx][j]);
   }
 
-  for (let a = 0; a < numAuditors; a++) {
-    stmtPoints.push(RistrettoPoint.fromHex(auditorEkBytes[a]));
-    stmtCompressed.push(auditorEkBytes[a]);
-
-    for (let i = 0; i < ell; i++) {
-      stmtPoints.push(newBalanceDAud[a][i]);
-      stmtCompressed.push(newBalanceDAud[a][i].toRawBytes());
-    }
-
-    for (let j = 0; j < n; j++) {
-      stmtPoints.push(transferAmountDAud[a][j]);
-      stmtCompressed.push(transferAmountDAud[a][j].toRawBytes());
-    }
+  // Extra auditors: [ek_extra, R_extra[n]]
+  for (let a = 0; a < numExtra; a++) {
+    pushPointBytes(RistrettoPoint.fromHex(auditorEkBytes[a]), auditorEkBytes[a]);
+    for (let j = 0; j < n; j++) pushPoint(transferAmountDAud[a][j]);
   }
 
   const stmt: SigmaProtocolStatement = {
@@ -754,7 +555,9 @@ export function verifyTransfer(args: {
     scalars: [],
   };
 
-  const sessionId = bcsSerializeTransferSession(senderAddress, recipientAddress, tokenAddress, ell, n);
+  const sessionId = bcsSerializeTransferSession(
+    senderAddress, recipientAddress, tokenAddress, ell, n, hasEffectiveAuditor, numExtra,
+  );
   const dst: DomainSeparator = {
     protocolId: utf8ToBytes(PROTOCOL_ID),
     sessionId,
@@ -762,8 +565,8 @@ export function verifyTransfer(args: {
 
   return sigmaProtocolVerify(
     dst,
-    makeTransferPsiMultiAuditor(ell, n, numAuditors),
-    makeTransferFMultiAuditor(ell, n, numAuditors),
+    makeTransferPsi(ell, n, hasEffectiveAuditor, numExtra),
+    makeTransferF(ell, n, hasEffectiveAuditor, numExtra),
     stmt,
     proof,
   );

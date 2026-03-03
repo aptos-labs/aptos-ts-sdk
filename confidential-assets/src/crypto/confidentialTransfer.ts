@@ -25,6 +25,12 @@ export type CreateConfidentialTransferOpArgs = {
   senderAvailableBalanceCipherText: TwistedElGamalCiphertext[];
   amount: AnyNumber;
   recipientEncryptionKey: TwistedEd25519PublicKey;
+  /**
+   * Whether the last element in auditorEncryptionKeys is the effective (asset-level / global) auditor.
+   * Extras are all preceding elements. This affects the sigma protocol statement layout and
+   * domain separator.
+   */
+  hasEffectiveAuditor?: boolean;
   auditorEncryptionKeys?: TwistedEd25519PublicKey[];
   transferAmountRandomness?: bigint[];
   /** 32-byte sender address */
@@ -39,6 +45,8 @@ export class ConfidentialTransfer {
   senderDecryptionKey: TwistedEd25519PrivateKey;
 
   recipientEncryptionKey: TwistedEd25519PublicKey;
+
+  hasEffectiveAuditor: boolean;
 
   auditorEncryptionKeys: TwistedEd25519PublicKey[];
 
@@ -91,6 +99,7 @@ export class ConfidentialTransfer {
     senderDecryptionKey: TwistedEd25519PrivateKey;
     recipientEncryptionKey: TwistedEd25519PublicKey;
     amount: bigint;
+    hasEffectiveAuditor: boolean;
     auditorEncryptionKeys: TwistedEd25519PublicKey[];
     senderEncryptedAvailableBalance: EncryptedAmount;
     transferAmountEncryptedBySender: EncryptedAmount;
@@ -105,6 +114,7 @@ export class ConfidentialTransfer {
     const {
       senderDecryptionKey,
       recipientEncryptionKey,
+      hasEffectiveAuditor,
       auditorEncryptionKeys,
       senderEncryptedAvailableBalance,
       amount,
@@ -119,6 +129,7 @@ export class ConfidentialTransfer {
     } = args;
     this.senderDecryptionKey = senderDecryptionKey;
     this.recipientEncryptionKey = recipientEncryptionKey;
+    this.hasEffectiveAuditor = hasEffectiveAuditor;
     this.auditorEncryptionKeys = auditorEncryptionKeys;
     this.senderEncryptedAvailableBalance = senderEncryptedAvailableBalance;
     if (amount < 0n) {
@@ -158,6 +169,7 @@ export class ConfidentialTransfer {
       senderAvailableBalanceCipherText,
       senderDecryptionKey,
       recipientEncryptionKey,
+      hasEffectiveAuditor = false,
       auditorEncryptionKeys = [],
       transferAmountRandomness = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT),
       senderAddress,
@@ -213,6 +225,7 @@ export class ConfidentialTransfer {
     return new ConfidentialTransfer({
       senderDecryptionKey,
       recipientEncryptionKey,
+      hasEffectiveAuditor,
       auditorEncryptionKeys,
       senderEncryptedAvailableBalance,
       amount,
@@ -271,6 +284,7 @@ export class ConfidentialTransfer {
       transferAmountDRecipient,
       transferAmountChunks: this.transferAmountEncryptedBySender.getAmountChunks(),
       transferRandomness: this.transferAmountRandomness.slice(0, TRANSFER_AMOUNT_CHUNK_COUNT),
+      hasEffectiveAuditor: this.hasEffectiveAuditor,
       auditorEncryptionKeys,
       newBalanceDAud,
       transferAmountDAud,

@@ -146,7 +146,7 @@ export class ConfidentialAssetTransactionBuilder {
     const tokenAddr = AccountAddress.from(tokenAddress);
 
     // Get the auditor public key for the token
-    const globalAuditorPubKey = await this.getAssetAuditorEncryptionKey({ tokenAddress });
+    const effectiveAuditorPubKey = await this.getAssetAuditorEncryptionKey({ tokenAddress });
 
     // Get the sender's available balance from the chain
     const { available: senderEncryptedAvailableBalance } = await getBalance({
@@ -163,7 +163,7 @@ export class ConfidentialAssetTransactionBuilder {
       amount: BigInt(amount),
       senderAddress: senderAddr.toUint8Array(),
       tokenAddress: tokenAddr.toUint8Array(),
-      auditorEncryptionKey: globalAuditorPubKey,
+      auditorEncryptionKey: effectiveAuditorPubKey,
     });
 
     const [{ sigmaProof, rangeProof }, encryptedAmountAfterWithdraw, auditorEncryptedBalance] =
@@ -251,17 +251,17 @@ export class ConfidentialAssetTransactionBuilder {
     tokenAddress: AccountAddressInput;
     options?: LedgerVersionArg;
   }): Promise<TwistedEd25519PublicKey | undefined> {
-    const [{ vec: globalAuditorPubKey }] = await this.client.view<[{ vec: { data: string }[] }]>({
+    const [{ vec: effectiveAuditorPubKey }] = await this.client.view<[{ vec: { data: string }[] }]>({
       options: args.options,
       payload: {
         function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::get_effective_auditor`,
         functionArguments: [args.tokenAddress],
       },
     });
-    if (globalAuditorPubKey.length === 0) {
+    if (effectiveAuditorPubKey.length === 0) {
       return undefined;
     }
-    return new TwistedEd25519PublicKey(globalAuditorPubKey[0].data);
+    return new TwistedEd25519PublicKey(effectiveAuditorPubKey[0].data);
   }
 
   /**
@@ -301,7 +301,7 @@ export class ConfidentialAssetTransactionBuilder {
     const tokenAddr = AccountAddress.from(tokenAddress);
 
     // Get the auditor public key for the token
-    const globalAuditorPubKey = await this.getAssetAuditorEncryptionKey({
+    const effectiveAuditorPubKey = await this.getAssetAuditorEncryptionKey({
       tokenAddress,
     });
 
@@ -338,7 +338,7 @@ export class ConfidentialAssetTransactionBuilder {
     // The contract will append the global auditor itself, so we only send extra auditor EKs on-chain.
     const allAuditorEncryptionKeys = [
       ...additionalAuditorEncryptionKeys,
-      ...(globalAuditorPubKey ? [globalAuditorPubKey] : []),
+      ...(effectiveAuditorPubKey ? [effectiveAuditorPubKey] : []),
     ];
 
     // Create the confidential transfer object
@@ -347,6 +347,7 @@ export class ConfidentialAssetTransactionBuilder {
       senderAvailableBalanceCipherText: senderEncryptedAvailableBalance.getCipherText(),
       amount,
       recipientEncryptionKey,
+      hasEffectiveAuditor: !!effectiveAuditorPubKey,
       auditorEncryptionKeys: allAuditorEncryptionKeys,
       senderAddress: senderAddr.toUint8Array(),
       recipientAddress: recipientAddr.toUint8Array(),
@@ -510,7 +511,7 @@ export class ConfidentialAssetTransactionBuilder {
     const tokenAddr = AccountAddress.from(tokenAddress);
 
     // Get the auditor public key for the token
-    const globalAuditorPubKey = await this.getAssetAuditorEncryptionKey({ tokenAddress });
+    const effectiveAuditorPubKey = await this.getAssetAuditorEncryptionKey({ tokenAddress });
 
     const { available } = await getBalance({
       client: this.client,
@@ -525,7 +526,7 @@ export class ConfidentialAssetTransactionBuilder {
       unnormalizedAvailableBalance: available,
       senderAddress: senderAddr.toUint8Array(),
       tokenAddress: tokenAddr.toUint8Array(),
-      auditorEncryptionKey: globalAuditorPubKey,
+      auditorEncryptionKey: effectiveAuditorPubKey,
     });
 
     return confidentialNormalization.createTransaction({
