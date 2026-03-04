@@ -379,8 +379,9 @@ export class ConfidentialAssetTransactionBuilder {
       : allAuditorAmountCiphertexts
     ).map((cb) => cb.getCipherText().map((ct) => ct.D.toRawBytes()));
 
-    // Build A components for new balance (D points encrypted under the effective auditor key, i.e., the last one)
-    const newBalanceA = auditorNewBalanceList.length > 0
+    // Build R_aud components for new balance (D points encrypted under the effective auditor key, i.e., the last one)
+    // Only populated when there IS an effective auditor — extra auditors don't get new balance R components.
+    const newBalanceA = effectiveAuditorPubKey
       ? auditorNewBalanceList[auditorNewBalanceList.length - 1].getCipherText().map((ct) => ct.D.toRawBytes())
       : [];
 

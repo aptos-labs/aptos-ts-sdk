@@ -30,6 +30,7 @@ import { ed25519modN } from "../utils";
 import {
   sigmaProtocolProve,
   sigmaProtocolVerify,
+  APTOS_EXPERIMENTAL_ADDRESS,
   type DomainSeparator,
   type SigmaProtocolStatement,
   type SigmaProtocolProof,
@@ -331,6 +332,7 @@ function proveWithdrawInternal(
   // Build domain separator
   const sessionId = bcsSerializeWithdrawSession(senderAddress, tokenAddress, ell);
   const dst: DomainSeparator = {
+    contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
     protocolId: utf8ToBytes(protocolId),
     sessionId,
   };
@@ -470,6 +472,7 @@ function verifyWithdrawInternal(
 
   const sessionId = bcsSerializeWithdrawSession(senderAddress, tokenAddress, ell);
   const dst: DomainSeparator = {
+    contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
     protocolId: utf8ToBytes(protocolId),
     sessionId,
   };
