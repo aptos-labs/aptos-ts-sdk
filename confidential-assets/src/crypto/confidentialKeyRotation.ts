@@ -38,6 +38,7 @@ import {
   sigmaProtocolProve,
   sigmaProtocolVerify,
   bcsSerializeKeyRotationSession,
+  APTOS_EXPERIMENTAL_ADDRESS,
   type DomainSeparator,
   type SigmaProtocolStatement,
   type SigmaProtocolProof,
@@ -216,6 +217,7 @@ export class ConfidentialKeyRotation {
     // Build domain separator
     const sessionId = bcsSerializeKeyRotationSession(this.senderAddress, this.tokenAddress, numChunks);
     const dst: DomainSeparator = {
+      contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
       protocolId: utf8ToBytes(PROTOCOL_ID),
       sessionId,
     };
@@ -283,6 +285,7 @@ export class ConfidentialKeyRotation {
     // Build domain separator
     const sessionId = bcsSerializeKeyRotationSession(senderAddress, tokenAddress, numChunks);
     const dst: DomainSeparator = {
+      contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
       protocolId: utf8ToBytes(PROTOCOL_ID),
       sessionId,
     };

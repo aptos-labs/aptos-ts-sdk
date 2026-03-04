@@ -20,12 +20,23 @@ import type { RistPoint } from ".";
 // =============================================================================
 
 /**
+ * The `@aptos_experimental` contract address (0x7) as 32 raw bytes.
+ * Used in domain separators for defense-in-depth binding to the deployed contract.
+ */
+export const APTOS_EXPERIMENTAL_ADDRESS = (() => {
+  const addr = new Uint8Array(32);
+  addr[31] = 0x07;
+  return addr;
+})();
+
+/**
  * Matches the Move `DomainSeparator` struct:
  * ```move
- * struct DomainSeparator { protocol_id: vector<u8>, session_id: vector<u8> }
+ * struct DomainSeparator { contract_address: address, protocol_id: vector<u8>, session_id: vector<u8> }
  * ```
  */
 export interface DomainSeparator {
+  contractAddress: Uint8Array;
   protocolId: Uint8Array;
   sessionId: Uint8Array;
 }
@@ -39,6 +50,7 @@ class BcsDomainSeparator extends Serializable {
   }
 
   serialize(serializer: Serializer): void {
+    serializer.serialize(new FixedBytes(this.dst.contractAddress));
     serializer.serializeBytes(this.dst.protocolId);
     serializer.serializeBytes(this.dst.sessionId);
   }

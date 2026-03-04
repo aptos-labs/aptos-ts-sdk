@@ -24,6 +24,7 @@ import type { RistPoint } from ".";
 import {
   sigmaProtocolProve,
   sigmaProtocolVerify,
+  APTOS_EXPERIMENTAL_ADDRESS,
   type DomainSeparator,
   type SigmaProtocolStatement,
   type SigmaProtocolProof,
@@ -104,6 +105,7 @@ export function proveRegistration(args: {
 
   const sessionId = bcsSerializeRegistrationSession(senderAddress, tokenAddress);
   const dst: DomainSeparator = {
+    contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
     protocolId: utf8ToBytes(PROTOCOL_ID),
     sessionId,
   };
@@ -132,6 +134,7 @@ export function verifyRegistration(args: {
 
   const sessionId = bcsSerializeRegistrationSession(senderAddress, tokenAddress);
   const dst: DomainSeparator = {
+    contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
     protocolId: utf8ToBytes(PROTOCOL_ID),
     sessionId,
   };

@@ -26,6 +26,7 @@ import { ed25519modN } from "../utils";
 import {
   sigmaProtocolProve,
   sigmaProtocolVerify,
+  APTOS_EXPERIMENTAL_ADDRESS,
   type DomainSeparator,
   type SigmaProtocolStatement,
   type SigmaProtocolProof,
@@ -277,6 +278,7 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
     senderAddress, recipientAddress, tokenAddress, ell, n, hasEffectiveAuditor, numExtra,
   );
   const dst: DomainSeparator = {
+    contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
     protocolId: utf8ToBytes(PROTOCOL_ID),
     sessionId,
   };
@@ -559,6 +561,7 @@ export function verifyTransfer(args: {
     senderAddress, recipientAddress, tokenAddress, ell, n, hasEffectiveAuditor, numExtra,
   );
   const dst: DomainSeparator = {
+    contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
     protocolId: utf8ToBytes(PROTOCOL_ID),
     sessionId,
   };
