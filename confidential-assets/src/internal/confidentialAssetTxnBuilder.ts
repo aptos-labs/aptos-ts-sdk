@@ -370,7 +370,14 @@ export class ConfidentialAssetTransactionBuilder {
 
     // Only send D components for recipient and auditors (C components are shared with sender_amount)
     const recipientDPoints = encryptedAmountByRecipient.getCipherText().map((ct) => ct.D.toRawBytes());
-    const auditorDPoints = auditorsCBList.map((cb) => cb.getCipherText().map((ct) => ct.D.toRawBytes()));
+    // Split auditor D points into effective (last, if present) and extra (remaining)
+    const effectiveAuditorDPoints = effectiveAuditorPubKey
+      ? auditorsCBList[auditorsCBList.length - 1].getCipherText().map((ct) => ct.D.toRawBytes())
+      : [];
+    const extraAuditorDPoints = (effectiveAuditorPubKey
+      ? auditorsCBList.slice(0, -1)
+      : auditorsCBList
+    ).map((cb) => cb.getCipherText().map((ct) => ct.D.toRawBytes()));
 
     // Build A components for new balance (D points encrypted under the effective auditor key, i.e., the last one)
     const newBalanceA = auditorNewBalanceList.length > 0
@@ -391,8 +398,9 @@ export class ConfidentialAssetTransactionBuilder {
           confidentialTransfer.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.C.toRawBytes()), // sender_amount_C
           confidentialTransfer.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.D.toRawBytes()), // sender_amount_D
           recipientDPoints,
+          effectiveAuditorDPoints,
           extraAuditorEncryptionKeys,
-          auditorDPoints,
+          extraAuditorDPoints,
           rangeProofNewBalance,
           rangeProofAmount,
           sigmaProof.commitment,
