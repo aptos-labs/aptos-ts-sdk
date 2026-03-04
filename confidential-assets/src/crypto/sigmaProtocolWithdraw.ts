@@ -16,7 +16,7 @@
  *
  * where B = (1, 2^16, 2^32, ...) are the chunk base powers.
  *
- * For normalization, v = 0 and the protocol ID differs.
+ * For normalization, v = 0 (same protocol ID).
  *
  * When an auditor is present, additional outputs prove new_R_aud[i] = new_r[i] * ek_aud.
  */
@@ -39,7 +39,6 @@ import {
 import { Serializer, FixedBytes, U64 } from "@aptos-labs/ts-sdk";
 
 const PROTOCOL_ID_WITHDRAWAL = "AptosConfidentialAsset/WithdrawalV1";
-const PROTOCOL_ID_NORMALIZATION = "AptosConfidentialAsset/NormalizationV1";
 
 /**
  * BCS-serialize a WithdrawSession matching the Move struct:
@@ -348,9 +347,10 @@ export function proveWithdrawal(args: WithdrawProofArgs): SigmaProtocolProof {
 
 /**
  * Prove a confidential normalization (same as withdrawal with v = 0).
+ * @deprecated Use `proveWithdrawal` instead — normalization is just withdrawal with amount = 0.
  */
 export function proveNormalization(args: WithdrawProofArgs): SigmaProtocolProof {
-  return proveWithdrawInternal(PROTOCOL_ID_NORMALIZATION, args);
+  return proveWithdrawInternal(PROTOCOL_ID_WITHDRAWAL, args);
 }
 
 /**
@@ -374,6 +374,7 @@ export function verifyWithdrawal(args: {
 
 /**
  * Verify a confidential normalization proof.
+ * @deprecated Use `verifyWithdrawal` instead — normalization is just withdrawal with amount = 0.
  */
 export function verifyNormalization(args: {
   senderAddress: Uint8Array;
@@ -388,7 +389,7 @@ export function verifyNormalization(args: {
   newBalanceDAud?: RistPoint[];
   proof: SigmaProtocolProof;
 }): boolean {
-  return verifyWithdrawInternal(PROTOCOL_ID_NORMALIZATION, args);
+  return verifyWithdrawInternal(PROTOCOL_ID_WITHDRAWAL, args);
 }
 
 function verifyWithdrawInternal(

@@ -8,7 +8,7 @@ import { EncryptedAmount } from "./encryptedAmount";
 import { AVAILABLE_BALANCE_CHUNK_COUNT, CHUNK_BITS } from "./chunkedAmount";
 import { Aptos, SimpleTransaction, AccountAddressInput, InputGenerateTransactionOptions } from "@aptos-labs/ts-sdk";
 import type { SigmaProtocolProof } from "./sigmaProtocol";
-import { proveNormalization } from "./sigmaProtocolWithdraw";
+import { proveWithdrawal } from "./sigmaProtocolWithdraw";
 
 export type CreateConfidentialNormalizationOpArgs = {
   decryptionKey: TwistedEd25519PrivateKey;
@@ -121,7 +121,7 @@ export class ConfidentialNormalization {
       newBalanceDAud = this.auditorEncryptedNormalizedBalance.getCipherText().map((ct) => ct.D);
     }
 
-    return proveNormalization({
+    return proveWithdrawal({
       dk: this.decryptionKey,
       senderAddress: this.senderAddress,
       tokenAddress: this.tokenAddress,
