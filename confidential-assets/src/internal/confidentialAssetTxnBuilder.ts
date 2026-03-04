@@ -361,7 +361,7 @@ export class ConfidentialAssetTransactionBuilder {
       },
       encryptedAmountAfterTransfer,
       encryptedAmountByRecipient,
-      auditorsCBList,
+      allAuditorAmountCiphertexts,
       auditorNewBalanceList,
     ] = await confidentialTransfer.authorizeTransfer();
 
@@ -372,11 +372,11 @@ export class ConfidentialAssetTransactionBuilder {
     const recipientDPoints = encryptedAmountByRecipient.getCipherText().map((ct) => ct.D.toRawBytes());
     // Split auditor D points into effective (last, if present) and extra (remaining)
     const effectiveAuditorDPoints = effectiveAuditorPubKey
-      ? auditorsCBList[auditorsCBList.length - 1].getCipherText().map((ct) => ct.D.toRawBytes())
+      ? allAuditorAmountCiphertexts[allAuditorAmountCiphertexts.length - 1].getCipherText().map((ct) => ct.D.toRawBytes())
       : [];
     const extraAuditorDPoints = (effectiveAuditorPubKey
-      ? auditorsCBList.slice(0, -1)
-      : auditorsCBList
+      ? allAuditorAmountCiphertexts.slice(0, -1)
+      : allAuditorAmountCiphertexts
     ).map((cb) => cb.getCipherText().map((ct) => ct.D.toRawBytes()));
 
     // Build A components for new balance (D points encrypted under the effective auditor key, i.e., the last one)
