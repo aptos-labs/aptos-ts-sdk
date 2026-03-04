@@ -22,6 +22,8 @@ export type CreateConfidentialWithdrawOpArgs = {
   senderAddress: Uint8Array;
   /** 32-byte token address */
   tokenAddress: Uint8Array;
+  /** Chain ID for domain separation */
+  chainId: number;
   /** Optional auditor encryption key */
   auditorEncryptionKey?: TwistedEd25519PublicKey;
   randomness?: bigint[];
@@ -47,6 +49,8 @@ export class ConfidentialWithdraw {
 
   auditorEncryptionKey?: TwistedEd25519PublicKey;
 
+  chainId: number;
+
   constructor(args: {
     decryptionKey: TwistedEd25519PrivateKey;
     senderEncryptedAvailableBalance: EncryptedAmount;
@@ -56,6 +60,7 @@ export class ConfidentialWithdraw {
     randomness: bigint[];
     senderAddress: Uint8Array;
     tokenAddress: Uint8Array;
+    chainId: number;
     auditorEncryptionKey?: TwistedEd25519PublicKey;
   }) {
     const {
@@ -67,6 +72,7 @@ export class ConfidentialWithdraw {
       auditorEncryptedBalanceAfterWithdrawal,
       senderAddress,
       tokenAddress,
+      chainId,
       auditorEncryptionKey,
     } = args;
     if (amount < 0n) {
@@ -94,6 +100,7 @@ export class ConfidentialWithdraw {
     this.auditorEncryptedBalanceAfterWithdrawal = auditorEncryptedBalanceAfterWithdrawal;
     this.senderAddress = senderAddress;
     this.tokenAddress = tokenAddress;
+    this.chainId = chainId;
     this.auditorEncryptionKey = auditorEncryptionKey;
   }
 
@@ -103,6 +110,7 @@ export class ConfidentialWithdraw {
       randomness = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT),
       senderAddress,
       tokenAddress,
+      chainId,
       auditorEncryptionKey,
     } = args;
 
@@ -135,6 +143,7 @@ export class ConfidentialWithdraw {
       randomness,
       senderAddress,
       tokenAddress,
+      chainId,
       auditorEncryptionKey,
     });
   }
@@ -162,6 +171,7 @@ export class ConfidentialWithdraw {
       dk: this.decryptionKey,
       senderAddress: this.senderAddress,
       tokenAddress: this.tokenAddress,
+      chainId: this.chainId,
       amount: this.amount,
       oldBalanceC,
       oldBalanceD,

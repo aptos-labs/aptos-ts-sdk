@@ -17,6 +17,8 @@ export type CreateConfidentialNormalizationOpArgs = {
   senderAddress: Uint8Array;
   /** 32-byte token address */
   tokenAddress: Uint8Array;
+  /** Chain ID for domain separation */
+  chainId: number;
   /** Optional auditor encryption key */
   auditorEncryptionKey?: TwistedEd25519PublicKey;
   randomness?: bigint[];
@@ -40,6 +42,8 @@ export class ConfidentialNormalization {
 
   auditorEncryptionKey?: TwistedEd25519PublicKey;
 
+  chainId: number;
+
   constructor(args: {
     decryptionKey: TwistedEd25519PrivateKey;
     unnormalizedEncryptedAvailableBalance: EncryptedAmount;
@@ -47,6 +51,7 @@ export class ConfidentialNormalization {
     auditorEncryptedNormalizedBalance?: EncryptedAmount;
     senderAddress: Uint8Array;
     tokenAddress: Uint8Array;
+    chainId: number;
     auditorEncryptionKey?: TwistedEd25519PublicKey;
   }) {
     this.decryptionKey = args.decryptionKey;
@@ -55,6 +60,7 @@ export class ConfidentialNormalization {
     this.auditorEncryptedNormalizedBalance = args.auditorEncryptedNormalizedBalance;
     this.senderAddress = args.senderAddress;
     this.tokenAddress = args.tokenAddress;
+    this.chainId = args.chainId;
     this.auditorEncryptionKey = args.auditorEncryptionKey;
     const randomness = this.normalizedEncryptedAvailableBalance.getRandomness();
     if (!randomness) {
@@ -69,6 +75,7 @@ export class ConfidentialNormalization {
       randomness = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT),
       senderAddress,
       tokenAddress,
+      chainId,
       auditorEncryptionKey,
     } = args;
 
@@ -97,6 +104,7 @@ export class ConfidentialNormalization {
       auditorEncryptedNormalizedBalance,
       senderAddress,
       tokenAddress,
+      chainId,
       auditorEncryptionKey,
     });
   }
@@ -125,6 +133,7 @@ export class ConfidentialNormalization {
       dk: this.decryptionKey,
       senderAddress: this.senderAddress,
       tokenAddress: this.tokenAddress,
+      chainId: this.chainId,
       amount: 0n,
       oldBalanceC,
       oldBalanceD,

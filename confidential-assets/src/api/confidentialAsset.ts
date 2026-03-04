@@ -558,6 +558,9 @@ export class ConfidentialAsset {
     const senderAddr = AccountAddress.from(signer.accountAddress);
     const tokenAddr = AccountAddress.from(tokenAddress);
 
+    // Get chain ID for domain separation
+    const chainId = await this.transaction.getChainId();
+
     // Get the auditor public key for the token
     const effectiveAuditorPubKey = await this.getAssetAuditorEncryptionKey({ tokenAddress });
 
@@ -566,6 +569,7 @@ export class ConfidentialAsset {
       unnormalizedAvailableBalance: available,
       senderAddress: senderAddr.toUint8Array(),
       tokenAddress: tokenAddr.toUint8Array(),
+      chainId,
       auditorEncryptionKey: effectiveAuditorPubKey,
     });
 

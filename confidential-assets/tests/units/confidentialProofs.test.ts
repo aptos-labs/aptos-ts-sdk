@@ -46,6 +46,7 @@ describe("Generate 'confidential coin' proofs", () => {
         amount: WITHDRAW_AMOUNT,
         senderAddress: dummySenderAddress,
         tokenAddress: dummyTokenAddress,
+        chainId: 4,
       });
 
       confidentialWithdrawSigmaProof = confidentialWithdraw.genSigmaProof();
@@ -63,6 +64,7 @@ describe("Generate 'confidential coin' proofs", () => {
       const isValid = verifyWithdrawal({
         senderAddress: dummySenderAddress,
         tokenAddress: dummyTokenAddress,
+        chainId: 4,
         amount: WITHDRAW_AMOUNT,
         ekBytes: aliceConfidentialDecryptionKey.publicKey().toUint8Array(),
         oldBalanceC: confidentialWithdraw.senderEncryptedAvailableBalance.getCipherText().map((ct) => ct.C),
@@ -113,6 +115,7 @@ describe("Generate 'confidential coin' proofs", () => {
         senderAddress: dummySenderAddress,
         recipientAddress: dummyRecipientAddress,
         tokenAddress: dummyTokenAddress,
+        chainId: 4,
       });
 
       confidentialTransferSigmaProof = confidentialTransfer.genSigmaProof();
@@ -131,6 +134,7 @@ describe("Generate 'confidential coin' proofs", () => {
         senderAddress: dummySenderAddress,
         recipientAddress: dummyRecipientAddress,
         tokenAddress: dummyTokenAddress,
+        chainId: 4,
         ekSidBytes: aliceConfidentialDecryptionKey.publicKey().toUint8Array(),
         ekRidBytes: bobConfidentialDecryptionKey.publicKey().toUint8Array(),
         oldBalanceC: confidentialTransfer.senderEncryptedAvailableBalance.getCipherText().map((ct) => ct.C),
@@ -187,6 +191,7 @@ describe("Generate 'confidential coin' proofs", () => {
         senderAddress: dummySenderAddress,
         recipientAddress: dummyRecipientAddress,
         tokenAddress: dummyTokenAddress,
+        chainId: 4,
       });
 
       confidentialTransferWithAuditorsSigmaProof = confidentialTransferWithAuditors.genSigmaProof();
@@ -205,6 +210,7 @@ describe("Generate 'confidential coin' proofs", () => {
         senderAddress: dummySenderAddress,
         recipientAddress: dummyRecipientAddress,
         tokenAddress: dummyTokenAddress,
+        chainId: 4,
         ekSidBytes: aliceConfidentialDecryptionKey.publicKey().toUint8Array(),
         ekRidBytes: bobConfidentialDecryptionKey.publicKey().toUint8Array(),
         oldBalanceC: confidentialTransferWithAuditors.senderEncryptedAvailableBalance.getCipherText().map((ct) => ct.C),
@@ -268,6 +274,7 @@ describe("Generate 'confidential coin' proofs", () => {
         newSenderDecryptionKey: newAliceConfidentialPrivateKey,
         senderAddress: dummySenderAddress,
         tokenAddress: dummyTokenAddress,
+        chainId: 4,
       });
 
       keyRotationProofResult = confidentialKeyRotation.authorizeKeyRotation();
@@ -302,6 +309,7 @@ describe("Generate 'confidential coin' proofs", () => {
         newD: newDBytes,
         senderAddress: dummySenderAddress,
         tokenAddress: dummyTokenAddress,
+        chainId: 4,
         proof,
       });
 
@@ -329,6 +337,7 @@ describe("Generate 'confidential coin' proofs", () => {
         unnormalizedAvailableBalance: unnormalizedEncryptedBalance,
         senderAddress: dummySenderAddress,
         tokenAddress: dummyTokenAddress,
+        chainId: 4,
       });
 
       confidentialNormalizationSigmaProof = confidentialNormalization.genSigmaProof();
@@ -345,6 +354,7 @@ describe("Generate 'confidential coin' proofs", () => {
       const isValid = verifyNormalization({
         senderAddress: dummySenderAddress,
         tokenAddress: dummyTokenAddress,
+        chainId: 4,
         amount: 0n,
         ekBytes: aliceConfidentialDecryptionKey.publicKey().toUint8Array(),
         oldBalanceC: confidentialNormalization.unnormalizedEncryptedAvailableBalance.getCipherText().map((ct) => ct.C),

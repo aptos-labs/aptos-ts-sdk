@@ -228,6 +228,8 @@ export type WithdrawProofArgs = {
   senderAddress: Uint8Array;
   /** 32-byte token address */
   tokenAddress: Uint8Array;
+  /** Chain ID for domain separation */
+  chainId: number;
   /** The withdrawal amount (0 for normalization) */
   amount: bigint;
   /** Old balance C (commitment) points, one per chunk */
@@ -259,6 +261,7 @@ function proveWithdrawInternal(
     dk,
     senderAddress,
     tokenAddress,
+    chainId,
     amount,
     oldBalanceC,
     oldBalanceD,
@@ -333,6 +336,7 @@ function proveWithdrawInternal(
   const sessionId = bcsSerializeWithdrawSession(senderAddress, tokenAddress, ell);
   const dst: DomainSeparator = {
     contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
+    chainId,
     protocolId: utf8ToBytes(protocolId),
     sessionId,
   };
@@ -361,6 +365,7 @@ export function proveNormalization(args: WithdrawProofArgs): SigmaProtocolProof 
 export function verifyWithdrawal(args: {
   senderAddress: Uint8Array;
   tokenAddress: Uint8Array;
+  chainId: number;
   amount: bigint;
   ekBytes: Uint8Array;
   oldBalanceC: RistPoint[];
@@ -381,6 +386,7 @@ export function verifyWithdrawal(args: {
 export function verifyNormalization(args: {
   senderAddress: Uint8Array;
   tokenAddress: Uint8Array;
+  chainId: number;
   amount: bigint;
   ekBytes: Uint8Array;
   oldBalanceC: RistPoint[];
@@ -399,6 +405,7 @@ function verifyWithdrawInternal(
   args: {
     senderAddress: Uint8Array;
     tokenAddress: Uint8Array;
+    chainId: number;
     amount: bigint;
     ekBytes: Uint8Array;
     oldBalanceC: RistPoint[];
@@ -413,6 +420,7 @@ function verifyWithdrawInternal(
   const {
     senderAddress,
     tokenAddress,
+    chainId,
     amount,
     ekBytes,
     oldBalanceC,
@@ -473,6 +481,7 @@ function verifyWithdrawInternal(
   const sessionId = bcsSerializeWithdrawSession(senderAddress, tokenAddress, ell);
   const dst: DomainSeparator = {
     contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
+    chainId,
     protocolId: utf8ToBytes(protocolId),
     sessionId,
   };

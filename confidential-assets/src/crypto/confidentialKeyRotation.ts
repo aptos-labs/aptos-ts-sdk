@@ -119,6 +119,8 @@ export type CreateConfidentialKeyRotationOpArgs = {
   senderAddress: Uint8Array;
   /** 32-byte token/metadata object address */
   tokenAddress: Uint8Array;
+  /** Chain ID for domain separation */
+  chainId: number;
 };
 
 export type KeyRotationProof = {
@@ -141,18 +143,22 @@ export class ConfidentialKeyRotation {
 
   private tokenAddress: Uint8Array;
 
+  private chainId: number;
+
   constructor(args: {
     currentDecryptionKey: TwistedEd25519PrivateKey;
     newDecryptionKey: TwistedEd25519PrivateKey;
     currentEncryptedAvailableBalance: EncryptedAmount;
     senderAddress: Uint8Array;
     tokenAddress: Uint8Array;
+    chainId: number;
   }) {
     this.currentDecryptionKey = args.currentDecryptionKey;
     this.newDecryptionKey = args.newDecryptionKey;
     this.currentEncryptedAvailableBalance = args.currentEncryptedAvailableBalance;
     this.senderAddress = args.senderAddress;
     this.tokenAddress = args.tokenAddress;
+    this.chainId = args.chainId;
   }
 
   static create(args: CreateConfidentialKeyRotationOpArgs): ConfidentialKeyRotation {
@@ -162,6 +168,7 @@ export class ConfidentialKeyRotation {
       currentEncryptedAvailableBalance: args.currentEncryptedAvailableBalance,
       senderAddress: args.senderAddress,
       tokenAddress: args.tokenAddress,
+      chainId: args.chainId,
     });
   }
 
@@ -218,6 +225,7 @@ export class ConfidentialKeyRotation {
     const sessionId = bcsSerializeKeyRotationSession(this.senderAddress, this.tokenAddress, numChunks);
     const dst: DomainSeparator = {
       contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
+      chainId: this.chainId,
       protocolId: utf8ToBytes(PROTOCOL_ID),
       sessionId,
     };
@@ -251,9 +259,10 @@ export class ConfidentialKeyRotation {
     newD: Uint8Array[];
     senderAddress: Uint8Array;
     tokenAddress: Uint8Array;
+    chainId: number;
     proof: SigmaProtocolProof;
   }): boolean {
-    const { oldEk, newEk, oldD, newD, senderAddress, tokenAddress, proof } = args;
+    const { oldEk, newEk, oldD, newD, senderAddress, tokenAddress, chainId, proof } = args;
     const numChunks = oldD.length;
 
     if (newD.length !== numChunks) {
@@ -286,6 +295,7 @@ export class ConfidentialKeyRotation {
     const sessionId = bcsSerializeKeyRotationSession(senderAddress, tokenAddress, numChunks);
     const dst: DomainSeparator = {
       contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
+      chainId,
       protocolId: utf8ToBytes(PROTOCOL_ID),
       sessionId,
     };

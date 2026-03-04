@@ -32,11 +32,12 @@ export const APTOS_EXPERIMENTAL_ADDRESS = (() => {
 /**
  * Matches the Move `DomainSeparator` struct:
  * ```move
- * struct DomainSeparator { contract_address: address, protocol_id: vector<u8>, session_id: vector<u8> }
+ * struct DomainSeparator { contract_address: address, chain_id: u8, protocol_id: vector<u8>, session_id: vector<u8> }
  * ```
  */
 export interface DomainSeparator {
   contractAddress: Uint8Array;
+  chainId: number;
   protocolId: Uint8Array;
   sessionId: Uint8Array;
 }
@@ -51,6 +52,7 @@ class BcsDomainSeparator extends Serializable {
 
   serialize(serializer: Serializer): void {
     serializer.serialize(new FixedBytes(this.dst.contractAddress));
+    serializer.serializeU8(this.dst.chainId);
     serializer.serializeBytes(this.dst.protocolId);
     serializer.serializeBytes(this.dst.sessionId);
   }
