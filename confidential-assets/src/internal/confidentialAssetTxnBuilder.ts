@@ -31,6 +31,15 @@ export class ConfidentialAssetTransactionBuilder {
   readonly client: Aptos;
   readonly confidentialAssetModuleAddress: string;
 
+  private _chainId?: number;
+
+  async getChainId(): Promise<number> {
+    if (!this._chainId) {
+      this._chainId = await this.client.getChainId();
+    }
+    return this._chainId;
+  }
+
   constructor(config: AptosConfig, confidentialAssetModuleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS) {
     this.client = new Aptos(config);
     this.confidentialAssetModuleAddress = confidentialAssetModuleAddress;
@@ -60,11 +69,15 @@ export class ConfidentialAssetTransactionBuilder {
     const senderAddr = AccountAddress.from(sender);
     const tokenAddr = AccountAddress.from(tokenAddress);
 
+    // Get chain ID for domain separation
+    const chainId = await this.getChainId();
+
     // Generate the registration sigma proof
     const sigmaProof = proveRegistration({
       dk: decryptionKey,
       senderAddress: senderAddr.toUint8Array(),
       tokenAddress: tokenAddr.toUint8Array(),
+      chainId,
     });
 
     return this.client.transaction.build.simple({
@@ -145,6 +158,9 @@ export class ConfidentialAssetTransactionBuilder {
     const senderAddr = AccountAddress.from(sender);
     const tokenAddr = AccountAddress.from(tokenAddress);
 
+    // Get chain ID for domain separation
+    const chainId = await this.getChainId();
+
     // Get the auditor public key for the token
     const effectiveAuditorPubKey = await this.getAssetAuditorEncryptionKey({ tokenAddress });
 
@@ -163,6 +179,7 @@ export class ConfidentialAssetTransactionBuilder {
       amount: BigInt(amount),
       senderAddress: senderAddr.toUint8Array(),
       tokenAddress: tokenAddr.toUint8Array(),
+      chainId,
       auditorEncryptionKey: effectiveAuditorPubKey,
     });
 
@@ -300,6 +317,9 @@ export class ConfidentialAssetTransactionBuilder {
     const recipientAddr = AccountAddress.from(recipient);
     const tokenAddr = AccountAddress.from(tokenAddress);
 
+    // Get chain ID for domain separation
+    const chainId = await this.getChainId();
+
     // Get the auditor public key for the token
     const effectiveAuditorPubKey = await this.getAssetAuditorEncryptionKey({
       tokenAddress,
@@ -352,6 +372,7 @@ export class ConfidentialAssetTransactionBuilder {
       senderAddress: senderAddr.toUint8Array(),
       recipientAddress: recipientAddr.toUint8Array(),
       tokenAddress: tokenAddr.toUint8Array(),
+      chainId,
     });
 
     const [
@@ -465,6 +486,9 @@ export class ConfidentialAssetTransactionBuilder {
     const senderAddr = AccountAddress.from(sender);
     const tokenAddr = AccountAddress.from(tokenAddress);
 
+    // Get chain ID for domain separation
+    const chainId = await this.getChainId();
+
     // Create the confidential key rotation object and generate the proof
     const confidentialKeyRotation = ConfidentialKeyRotation.create({
       senderDecryptionKey,
@@ -472,6 +496,7 @@ export class ConfidentialAssetTransactionBuilder {
       currentEncryptedAvailableBalance,
       senderAddress: senderAddr.toUint8Array(),
       tokenAddress: tokenAddr.toUint8Array(),
+      chainId,
     });
 
     const { newEkBytes, newDBytes, proof } = confidentialKeyRotation.authorizeKeyRotation();
@@ -519,6 +544,9 @@ export class ConfidentialAssetTransactionBuilder {
     const senderAddr = AccountAddress.from(sender);
     const tokenAddr = AccountAddress.from(tokenAddress);
 
+    // Get chain ID for domain separation
+    const chainId = await this.getChainId();
+
     // Get the auditor public key for the token
     const effectiveAuditorPubKey = await this.getAssetAuditorEncryptionKey({ tokenAddress });
 
@@ -535,6 +563,7 @@ export class ConfidentialAssetTransactionBuilder {
       unnormalizedAvailableBalance: available,
       senderAddress: senderAddr.toUint8Array(),
       tokenAddress: tokenAddr.toUint8Array(),
+      chainId,
       auditorEncryptionKey: effectiveAuditorPubKey,
     });
 

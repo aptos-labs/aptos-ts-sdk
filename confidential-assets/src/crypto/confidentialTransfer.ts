@@ -39,6 +39,8 @@ export type CreateConfidentialTransferOpArgs = {
   recipientAddress: Uint8Array;
   /** 32-byte token address */
   tokenAddress: Uint8Array;
+  /** Chain ID for domain separation */
+  chainId: number;
 };
 
 export class ConfidentialTransfer {
@@ -95,6 +97,8 @@ export class ConfidentialTransfer {
 
   tokenAddress: Uint8Array;
 
+  chainId: number;
+
   private constructor(args: {
     senderDecryptionKey: TwistedEd25519PrivateKey;
     recipientEncryptionKey: TwistedEd25519PublicKey;
@@ -110,6 +114,7 @@ export class ConfidentialTransfer {
     senderAddress: Uint8Array;
     recipientAddress: Uint8Array;
     tokenAddress: Uint8Array;
+    chainId: number;
   }) {
     const {
       senderDecryptionKey,
@@ -126,6 +131,7 @@ export class ConfidentialTransfer {
       senderAddress,
       recipientAddress,
       tokenAddress,
+      chainId,
     } = args;
     this.senderDecryptionKey = senderDecryptionKey;
     this.recipientEncryptionKey = recipientEncryptionKey;
@@ -162,6 +168,7 @@ export class ConfidentialTransfer {
     this.senderAddress = senderAddress;
     this.recipientAddress = recipientAddress;
     this.tokenAddress = tokenAddress;
+    this.chainId = chainId;
   }
 
   static async create(args: CreateConfidentialTransferOpArgs) {
@@ -175,6 +182,7 @@ export class ConfidentialTransfer {
       senderAddress,
       recipientAddress,
       tokenAddress,
+      chainId,
     } = args;
     const amount = BigInt(args.amount);
     const newBalanceRandomness = ed25519GenListOfRandom(AVAILABLE_BALANCE_CHUNK_COUNT);
@@ -237,6 +245,7 @@ export class ConfidentialTransfer {
       senderAddress,
       recipientAddress,
       tokenAddress,
+      chainId,
     });
   }
 
@@ -271,6 +280,7 @@ export class ConfidentialTransfer {
       senderAddress: this.senderAddress,
       recipientAddress: this.recipientAddress,
       tokenAddress: this.tokenAddress,
+      chainId: this.chainId,
       senderEncryptionKey: this.senderDecryptionKey.publicKey(),
       recipientEncryptionKey: this.recipientEncryptionKey,
       oldBalanceC,

@@ -87,8 +87,9 @@ export function proveRegistration(args: {
   dk: TwistedEd25519PrivateKey;
   senderAddress: Uint8Array;
   tokenAddress: Uint8Array;
+  chainId: number;
 }): SigmaProtocolProof {
-  const { dk, senderAddress, tokenAddress } = args;
+  const { dk, senderAddress, tokenAddress, chainId } = args;
   const dkBigint = bytesToNumberLE(dk.toUint8Array());
 
   const ekBytes = dk.publicKey().toUint8Array();
@@ -106,6 +107,7 @@ export function proveRegistration(args: {
   const sessionId = bcsSerializeRegistrationSession(senderAddress, tokenAddress);
   const dst: DomainSeparator = {
     contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
+    chainId,
     protocolId: utf8ToBytes(PROTOCOL_ID),
     sessionId,
   };
@@ -120,9 +122,10 @@ export function verifyRegistration(args: {
   ek: Uint8Array;
   senderAddress: Uint8Array;
   tokenAddress: Uint8Array;
+  chainId: number;
   proof: SigmaProtocolProof;
 }): boolean {
-  const { ek: ekBytes, senderAddress, tokenAddress, proof } = args;
+  const { ek: ekBytes, senderAddress, tokenAddress, chainId, proof } = args;
   const ek = RistrettoPoint.fromHex(ekBytes);
   const H = H_RISTRETTO;
 
@@ -135,6 +138,7 @@ export function verifyRegistration(args: {
   const sessionId = bcsSerializeRegistrationSession(senderAddress, tokenAddress);
   const dst: DomainSeparator = {
     contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
+    chainId,
     protocolId: utf8ToBytes(PROTOCOL_ID),
     sessionId,
   };

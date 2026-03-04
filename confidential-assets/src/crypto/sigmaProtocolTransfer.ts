@@ -143,6 +143,8 @@ export type TransferProofArgs = {
   recipientAddress: Uint8Array;
   /** 32-byte token address */
   tokenAddress: Uint8Array;
+  /** Chain ID for domain separation */
+  chainId: number;
   /** Sender's encryption key */
   senderEncryptionKey: TwistedEd25519PublicKey;
   /** Recipient's encryption key */
@@ -200,6 +202,7 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
     senderAddress,
     recipientAddress,
     tokenAddress,
+    chainId,
     senderEncryptionKey,
     recipientEncryptionKey,
     oldBalanceC,
@@ -279,6 +282,7 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
   );
   const dst: DomainSeparator = {
     contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
+    chainId,
     protocolId: utf8ToBytes(PROTOCOL_ID),
     sessionId,
   };
@@ -479,6 +483,7 @@ export function verifyTransfer(args: {
   senderAddress: Uint8Array;
   recipientAddress: Uint8Array;
   tokenAddress: Uint8Array;
+  chainId: number;
   ekSidBytes: Uint8Array;
   ekRidBytes: Uint8Array;
   oldBalanceC: RistPoint[];
@@ -498,6 +503,7 @@ export function verifyTransfer(args: {
     senderAddress,
     recipientAddress,
     tokenAddress,
+    chainId,
     ekSidBytes,
     ekRidBytes,
     oldBalanceC,
@@ -562,6 +568,7 @@ export function verifyTransfer(args: {
   );
   const dst: DomainSeparator = {
     contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
+    chainId,
     protocolId: utf8ToBytes(PROTOCOL_ID),
     sessionId,
   };
