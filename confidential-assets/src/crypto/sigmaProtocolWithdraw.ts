@@ -41,6 +41,9 @@ import { Serializer, FixedBytes, U64 } from "@aptos-labs/ts-sdk";
 
 const PROTOCOL_ID_WITHDRAWAL = "AptosConfidentialAsset/WithdrawalV1";
 
+/** Fully-qualified Move type name for the phantom marker type, matching `type_info::type_name<Withdrawal>()` */
+const TYPE_NAME = "0x7::sigma_protocol_withdraw::Withdrawal";
+
 /**
  * BCS-serialize a WithdrawSession matching the Move struct:
  * ```move
@@ -341,7 +344,7 @@ function proveWithdrawInternal(
     sessionId,
   };
 
-  return sigmaProtocolProve(dst, makeWithdrawPsi(ell, hasAuditor), stmt, witness);
+  return sigmaProtocolProve(dst, TYPE_NAME, makeWithdrawPsi(ell, hasAuditor), stmt, witness);
 }
 
 /**
@@ -488,6 +491,7 @@ function verifyWithdrawInternal(
 
   return sigmaProtocolVerify(
     dst,
+    TYPE_NAME,
     makeWithdrawPsi(ell, hasAuditor),
     makeWithdrawF(ell, hasAuditor, amount),
     stmt,

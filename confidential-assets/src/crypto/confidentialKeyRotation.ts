@@ -49,6 +49,9 @@ import {
 /** Protocol ID matching the Move constant */
 const PROTOCOL_ID = "AptosConfidentialAsset/KeyRotationV1";
 
+/** Fully-qualified Move type name for the phantom marker type, matching `type_info::type_name<KeyRotation>()` */
+const TYPE_NAME = "0x7::sigma_protocol_key_rotation::KeyRotation";
+
 /** Statement point indices (matching Move constants) */
 const IDX_H = 0;
 const IDX_EK = 1;
@@ -231,7 +234,7 @@ export class ConfidentialKeyRotation {
     };
 
     // Generate the proof
-    const proof: SigmaProtocolProof = sigmaProtocolProve(dst, makeKeyRotationPsi(numChunks), stmt, witness);
+    const proof: SigmaProtocolProof = sigmaProtocolProve(dst, TYPE_NAME, makeKeyRotationPsi(numChunks), stmt, witness);
 
     return {
       newEkBytes: compressedNewEk,
@@ -300,6 +303,6 @@ export class ConfidentialKeyRotation {
       sessionId,
     };
 
-    return sigmaProtocolVerify(dst, makeKeyRotationPsi(numChunks), makeKeyRotationF(numChunks), stmt, proof);
+    return sigmaProtocolVerify(dst, TYPE_NAME, makeKeyRotationPsi(numChunks), makeKeyRotationF(numChunks), stmt, proof);
   }
 }
