@@ -37,6 +37,9 @@ import { Serializer, FixedBytes, U64 } from "@aptos-labs/ts-sdk";
 
 const PROTOCOL_ID = "AptosConfidentialAsset/TransferV1";
 
+/** Fully-qualified Move type name for the phantom marker type, matching `type_info::type_name<Transfer>()` */
+const TYPE_NAME = "0x7::sigma_protocol_transfer::Transfer";
+
 /**
  * BCS-serialize a TransferSession matching the Move struct:
  * ```move
@@ -287,7 +290,7 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
     sessionId,
   };
 
-  return sigmaProtocolProve(dst, makeTransferPsi(ell, n, hasEffectiveAuditor, numExtra), stmt, witness);
+  return sigmaProtocolProve(dst, TYPE_NAME, makeTransferPsi(ell, n, hasEffectiveAuditor, numExtra), stmt, witness);
 }
 
 /**
@@ -575,6 +578,7 @@ export function verifyTransfer(args: {
 
   return sigmaProtocolVerify(
     dst,
+    TYPE_NAME,
     makeTransferPsi(ell, n, hasEffectiveAuditor, numExtra),
     makeTransferF(ell, n, hasEffectiveAuditor, numExtra),
     stmt,

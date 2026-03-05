@@ -36,6 +36,9 @@ import { Serializer, FixedBytes } from "@aptos-labs/ts-sdk";
 /** Protocol ID matching the Move constant */
 const PROTOCOL_ID = "AptosConfidentialAsset/RegistrationV1";
 
+/** Fully-qualified Move type name for the phantom marker type, matching `type_info::type_name<Registration>()` */
+const TYPE_NAME = "0x7::sigma_protocol_registration::Registration";
+
 /** Statement point indices */
 const IDX_H = 0;
 const IDX_EK = 1;
@@ -112,7 +115,7 @@ export function proveRegistration(args: {
     sessionId,
   };
 
-  return sigmaProtocolProve(dst, makeRegistrationPsi(), stmt, witness);
+  return sigmaProtocolProve(dst, TYPE_NAME, makeRegistrationPsi(), stmt, witness);
 }
 
 /**
@@ -143,5 +146,5 @@ export function verifyRegistration(args: {
     sessionId,
   };
 
-  return sigmaProtocolVerify(dst, makeRegistrationPsi(), makeRegistrationF(), stmt, proof);
+  return sigmaProtocolVerify(dst, TYPE_NAME, makeRegistrationPsi(), makeRegistrationF(), stmt, proof);
 }

@@ -12,6 +12,7 @@ import { sha512 } from "@noble/hashes/sha512";
 import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/abstract/utils";
 import { Serializer, U64, Serializable, FixedBytes } from "@aptos-labs/ts-sdk";
 import { ed25519modN, ed25519GenListOfRandom } from "../utils";
+import { utf8ToBytes } from "@noble/hashes/utils";
 import { RistrettoPoint } from ".";
 import type { RistPoint } from ".";
 
@@ -107,6 +108,7 @@ export interface SigmaProtocolStatement {
  * ```move
  * struct FiatShamirInputs {
  *     dst: DomainSeparator,
+ *     type_name: String,
  *     k: u64,
  *     stmt_X: vector<CompressedRistretto>,
  *     stmt_x: vector<Scalar>,
@@ -117,6 +119,7 @@ export interface SigmaProtocolStatement {
 class BcsFiatShamirInputs extends Serializable {
   constructor(
     public readonly dst: DomainSeparator,
+    public readonly typeName: string,
     public readonly k: number,
     public readonly stmtX: Uint8Array[],
     public readonly stmtx: Uint8Array[],
@@ -127,6 +130,8 @@ class BcsFiatShamirInputs extends Serializable {
 
   serialize(serializer: Serializer): void {
     serializer.serialize(new BcsDomainSeparator(this.dst));
+    // String in Move is { bytes: vector<u8> }, BCS = ULEB128(len) || utf8_bytes
+    serializer.serializeBytes(utf8ToBytes(this.typeName));
     serializer.serialize(new U64(this.k));
     // vector<CompressedRistretto> where CompressedRistretto = { data: vector<u8> }
     serializer.serializeU32AsUleb128(this.stmtX.length);
@@ -157,10 +162,14 @@ function scalarFromUniform64Bytes(hash: Uint8Array): bigint {
 /**
  * Compute the Fiat-Shamir challenge matching Move's `sigma_protocol_fiat_shamir::fiat_shamir`.
  *
+ * @param typeName - The fully-qualified Move type name of the phantom marker type `P` in `Statement<P>`.
+ *   E.g., `"0x7::sigma_protocol_registration::Registration"`. Must match `type_info::type_name<P>()` on-chain.
+ *
  * Returns `{ e, betas }` where `e` is the challenge scalar and `betas = [1, beta, beta^2, ...]`.
  */
 export function sigmaProtocolFiatShamir(
   dst: DomainSeparator,
+  typeName: string,
   stmt: SigmaProtocolStatement,
   compressedA: Uint8Array[],
   k: number,
@@ -168,7 +177,14 @@ export function sigmaProtocolFiatShamir(
   const m = compressedA.length;
   if (m === 0) throw new Error("Proof commitment must not be empty");
 
-  const fiatShamirInputs = new BcsFiatShamirInputs(dst, k, stmt.compressedPoints, stmt.scalars, compressedA);
+  const fiatShamirInputs = new BcsFiatShamirInputs(
+    dst,
+    typeName,
+    k,
+    stmt.compressedPoints,
+    stmt.scalars,
+    compressedA,
+  );
   const bytes = fiatShamirInputs.bcsToBytes();
 
   // seed = SHA2-512(BCS(inputs))
@@ -239,6 +255,7 @@ export interface SigmaProtocolProof {
  */
 export function sigmaProtocolProve(
   dst: DomainSeparator,
+  typeName: string,
   psi: PsiFunction,
   stmt: SigmaProtocolStatement,
   witness: bigint[],
@@ -255,7 +272,7 @@ export function sigmaProtocolProve(
   const compressedA = _A.map((p) => p.toRawBytes());
 
   // Step 4: Derive challenge e via Fiat-Shamir
-  const { e } = sigmaProtocolFiatShamir(dst, stmt, compressedA, k);
+  const { e } = sigmaProtocolFiatShamir(dst, typeName, stmt, compressedA, k);
 
   // Step 5: sigma_i = alpha_i + e * w_i  (mod l)
   const sigma = witness.map((w_i, i) => ed25519modN(alpha[i] + e * w_i));
@@ -288,6 +305,7 @@ export function sigmaProtocolProve(
  */
 export function sigmaProtocolVerify(
   dst: DomainSeparator,
+  typeName: string,
   psi: PsiFunction,
   f: TransformationFunction,
   stmt: SigmaProtocolStatement,
@@ -303,7 +321,7 @@ export function sigmaProtocolVerify(
   const sigma = response.map((r) => bytesToNumberLE(r));
 
   // Recompute the challenge e
-  const { e } = sigmaProtocolFiatShamir(dst, stmt, commitment, k);
+  const { e } = sigmaProtocolFiatShamir(dst, typeName, stmt, commitment, k);
 
   // Compute psi(sigma) - evaluating the homomorphism on the response
   const psiSigma = psi(stmt, sigma);
