@@ -4,6 +4,7 @@
   "description": "Test Aptos TypeScript SDK in real browsers using Playwright",
   "type": "module",
   "license": "Apache-2.0",
+  "packageManager": "pnpm@10.30.3",
   "scripts": {
     "test": "playwright test",
     "test:headed": "playwright test --headed"
