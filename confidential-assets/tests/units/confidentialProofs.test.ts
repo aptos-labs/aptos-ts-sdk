@@ -205,7 +205,7 @@ describe("Generate 'confidential coin' proofs", () => {
   test(
     "Verify transfer with auditors sigma proof",
     () => {
-      // This test uses an extra auditor (not an on-chain effective auditor)
+      // This test uses a voluntary auditor (not an on-chain effective auditor)
       const isValid = verifyTransfer({
         senderAddress: dummySenderAddress,
         recipientAddress: dummyRecipientAddress,
