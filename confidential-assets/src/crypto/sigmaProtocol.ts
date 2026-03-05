@@ -171,8 +171,18 @@ export function sigmaProtocolFiatShamir(
   const fiatShamirInputs = new BcsFiatShamirInputs(dst, k, stmt.compressedPoints, stmt.scalars, compressedA);
   const bytes = fiatShamirInputs.bcsToBytes();
 
-  const eHash = sha512(bytes);
-  const betaHash = sha512(eHash);
+  // seed = SHA2-512(BCS(inputs))
+  const seed = sha512(bytes);
+
+  // e = scalar_from(SHA2-512(seed || 0x00))
+  const eInput = new Uint8Array(seed.length + 1);
+  eInput.set(seed);
+  eInput[seed.length] = 0x00;
+  const eHash = sha512(eInput);
+
+  // beta = scalar_from(SHA2-512(seed || 0x01))
+  eInput[seed.length] = 0x01;
+  const betaHash = sha512(eInput);
 
   const e = scalarFromUniform64Bytes(eHash);
   const beta = scalarFromUniform64Bytes(betaHash);
