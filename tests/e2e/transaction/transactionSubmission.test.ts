@@ -37,7 +37,7 @@ import {
 } from "./helper";
 import { AccountAuthenticatorNoAccountAuthenticator } from "../../../src/transactions";
 import { MultiEd25519Account } from "../../../src/account/MultiEd25519Account";
-import { fail } from "assert";
+import { fail } from "node:assert";
 
 const { aptos } = getAptosClient();
 

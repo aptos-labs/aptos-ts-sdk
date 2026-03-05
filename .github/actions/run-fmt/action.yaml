@@ -1,6 +1,6 @@
 name: "Verify SDK formatting"
 description: |
-  Run prettier on the codebase to ensure consistency
+  Run Biome formatter on the codebase to ensure consistency
 
 runs:
   using: composite
@@ -12,6 +12,6 @@ runs:
         registry-url: "https://registry.npmjs.org"
     - uses: pnpm/action-setup@v4
 
-    # Verify that the format is correct
-    - run: pnpm install --frozen-lockfile && pnpm _fmt --check
+    # Verify that the format is correct (biome format without --write checks formatting)
+    - run: pnpm install --frozen-lockfile && pnpm _fmt
       shell: bash

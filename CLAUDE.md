@@ -11,9 +11,10 @@ This is the **Aptos TypeScript SDK** (`@aptos-labs/ts-sdk`), a comprehensive SDK
 ```bash
 pnpm install              # Install dependencies (CI uses --frozen-lockfile)
 pnpm build                # Build CJS + ESM output to dist/
-pnpm fmt                  # Format code with Prettier
-pnpm _fmt --check         # Check formatting (what CI runs)
-pnpm lint                 # Run ESLint
+pnpm fmt                  # Format code with Biome
+pnpm _fmt                 # Check formatting without writing (what CI runs)
+pnpm lint                 # Run Biome linter
+pnpm check                # Run Biome check (lint + format)
 pnpm test                 # Run all tests (unit + e2e)
 vitest run <file>         # Run a specific test file (e.g., vitest run keyless.test.ts)
 pnpm doc                  # Generate TypeDoc documentation
@@ -26,8 +27,8 @@ pnpm indexer-codegen      # Generate GraphQL types from indexer schema
 
 Before every commit:
 
-1. **Format code**: Run `pnpm fmt` to format with Prettier
-2. **Lint code**: Run `pnpm lint` to check for ESLint errors
+1. **Check code**: Run `pnpm check` to run Biome (lint + format)
+2. **Format code**: Run `pnpm fmt` to auto-format with Biome
 3. **Update CHANGELOG.md**: Add a descriptive entry for the change under the appropriate section (Added, Changed, Fixed, etc.)
 4. **Write descriptive commit messages**: Commits should clearly explain what changed and why
 

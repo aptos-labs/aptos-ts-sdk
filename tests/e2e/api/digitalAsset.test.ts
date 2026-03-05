@@ -55,7 +55,7 @@ async function setupToken(): Promise<string> {
       ownerAddress: creator.accountAddress.toString(),
       minimumLedgerVersion: BigInt(response.version),
     })
-  )[0].current_token_data?.token_data_id!;
+  )[0].current_token_data!.token_data_id;
 }
 
 vi.setConfig({ testTimeout: 20000 });

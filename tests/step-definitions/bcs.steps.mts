@@ -1,5 +1,3 @@
-/* eslint-disable func-names */
-
 import {
   AccountAddress,
   Bool,
@@ -18,7 +16,7 @@ import {
 import { Given, Then, When } from "@cucumber/cucumber";
 import assert from "assert";
 
-Given(/^(bytes|address) (0x[0-9a-fA-F]*)$/, function(type: string, input: string) {
+Given(/^(bytes|address) (0x[0-9a-fA-F]*)$/, function (type: string, input: string) {
   switch (type) {
     case "bytes":
       this.input = fromByteString(input);
@@ -31,15 +29,15 @@ Given(/^(bytes|address) (0x[0-9a-fA-F]*)$/, function(type: string, input: string
   }
 });
 
-Given(/^string "(.*)"$/, function(input: string) {
+Given(/^string "(.*)"$/, function (input: string) {
   this.input = new MoveString(input);
 });
 
-Given(/^bool (true|false)$/, function(input: string) {
+Given(/^bool (true|false)$/, function (input: string) {
   this.input = new Bool(input === "true");
 });
 
-Given(/^([u8|u16|u32|u64|u128|u256]+) ([0-9]+)$/, function(type: string, input: string) {
+Given(/^([u8|u16|u32|u64|u128|u256]+) ([0-9]+)$/, function (type: string, input: string) {
   switch (type) {
     case "u8":
       this.input = new U8(parseInt(input, 10));
@@ -64,16 +62,15 @@ Given(/^([u8|u16|u32|u64|u128|u256]+) ([0-9]+)$/, function(type: string, input: 
   }
 });
 
-Given(/^sequence of ([0-9a-zA-Z]+) \[(.*)]$/, function(type: string, input: string) {
+Given(/^sequence of ([0-9a-zA-Z]+) \[(.*)]$/, function (type: string, input: string) {
   this.input = sequenceOf(type, input);
 });
 
-When(/^I serialize as ([0-9a-zA-Z ]+)$/, function(inputType: string) {
+When(/^I serialize as ([0-9a-zA-Z ]+)$/, function (inputType: string) {
   const serializer = new Serializer();
 
   switch (inputType) {
-    case "sequence of uleb128":
-        // eslint-disable-next-line no-case-declarations
+    case "sequence of uleb128": {
       const input = this.input! as MoveVector<U32>;
 
       // TODO: this is not really supported natively in the TS SDK, it's questionable about if we care about sequences of Uleb128
@@ -81,6 +78,7 @@ When(/^I serialize as ([0-9a-zA-Z ]+)$/, function(inputType: string) {
       serializer.serializeU32AsUleb128(input.values.length);
       input.values.forEach((item: U32) => serializer.serializeU32AsUleb128(item.value));
       break;
+    }
     case "uleb128":
       // TODO: Uleb doesn't have the same kind of top level support
       serializer.serializeU32AsUleb128(this.input!.value);
@@ -99,7 +97,7 @@ When(/^I serialize as ([0-9a-zA-Z ]+)$/, function(inputType: string) {
   this.result = serializer.toUint8Array();
 });
 
-When(/^I deserialize as ([0-9a-zA-Z ]+)$/, function(inputType: string) {
+When(/^I deserialize as ([0-9a-zA-Z ]+)$/, function (inputType: string) {
   const deserializer = new Deserializer((this.input! as Hex).toUint8Array());
   this.resultError = false;
   this.result = null;
@@ -176,11 +174,9 @@ When(/^I deserialize as ([0-9a-zA-Z ]+)$/, function(inputType: string) {
       case "sequence of string":
         this.result = MoveVector.deserialize(deserializer, MoveString);
         break;
-      case "sequence of uleb128":
+      case "sequence of uleb128": {
         // TODO: Check if we want this supported in the spec
-        // eslint-disable-next-line no-case-declarations
         const length = deserializer.deserializeUleb128AsU32();
-        // eslint-disable-next-line no-case-declarations
         const list: number[] = [];
 
         for (let i = 0; i < length; i++) {
@@ -189,6 +185,7 @@ When(/^I deserialize as ([0-9a-zA-Z ]+)$/, function(inputType: string) {
 
         this.result = MoveVector.U32(list);
         break;
+      }
       default:
         throw new Error(`Unsupported type: ${inputType}`);
     }
@@ -205,7 +202,7 @@ When(/^I deserialize as ([0-9a-zA-Z ]+)$/, function(inputType: string) {
   }
 });
 
-Then(/^the result should be ([0-9a-zA-Z]+) ([0-9a-zA-Z]+)$/, function(type: string, expected: string) {
+Then(/^the result should be ([0-9a-zA-Z]+) ([0-9a-zA-Z]+)$/, function (type: string, expected: string) {
   checkDeserializationError(this);
   switch (type) {
     case "bytes":
@@ -240,18 +237,18 @@ Then(/^the result should be ([0-9a-zA-Z]+) ([0-9a-zA-Z]+)$/, function(type: stri
   }
 });
 
-Then(/^the result should be string "(.*)"$/, function(expected: string) {
+Then(/^the result should be string "(.*)"$/, function (expected: string) {
   checkDeserializationError(this);
   assert.equal(this.result, expected);
 });
 
-Then(/^the result should be sequence of ([0-9a-zA-Z]+) \[(.*)]$/, function(typeName: string, expectedList: string) {
+Then(/^the result should be sequence of ([0-9a-zA-Z]+) \[(.*)]$/, function (typeName: string, expectedList: string) {
   checkDeserializationError(this);
   const expected = sequenceOf(typeName, expectedList);
   assert.deepEqual(this.result, expected);
 });
 
-Then(/^the deserialization should fail$/, function() {
+Then(/^the deserialization should fail$/, function () {
   assert(this.resultError || this.dataRemaining);
 });
 
@@ -259,9 +256,8 @@ function fromByteString(input: string) {
   // 0x allows for representing an empty array
   if (input === "0x") {
     return new Hex(new Uint8Array());
-  } 
-    return Hex.fromHexString(input);
-  
+  }
+  return Hex.fromHexString(input);
 }
 
 // If there is no value, handle empty array
@@ -273,7 +269,10 @@ function parseArray(input: string) {
 }
 
 function checkDeserializationError(input: any) {
-  assert(input.resultError === false || input.resultError === undefined, `Deserialization failed with error: ${input.error}`);
+  assert(
+    input.resultError === false || input.resultError === undefined,
+    `Deserialization failed with error: ${input.error}`,
+  );
   assert(input.dataRemaining === false || input.dataRemaining === undefined, "Data remaining after deserialization");
 }
 

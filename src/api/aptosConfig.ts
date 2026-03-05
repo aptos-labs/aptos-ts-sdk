@@ -160,7 +160,6 @@ export class AptosConfig {
     // If there are any endpoint overrides, they are custom networks, keep that in mind
     if (settings?.fullnode || settings?.indexer || settings?.faucet || settings?.pepper || settings?.prover) {
       if (settings?.network === Network.CUSTOM) {
-        // eslint-disable-next-line no-console
         console.info("Note: using CUSTOM network will require queries to lookup ChainId");
       } else if (!settings?.network) {
         throw new Error("Custom endpoints require a network to be specified");
@@ -170,7 +169,6 @@ export class AptosConfig {
     // Warn Bun users about HTTP/2 compatibility issues.
     // Bun's HTTP/2 support is not fully mature yet, so we recommend disabling it.
     if (isBun() && settings?.clientConfig?.http2 !== false) {
-      // eslint-disable-next-line no-console
       console.warn(
         "[Aptos SDK] Bun does not fully support HTTP/2, which is enabled by default in this SDK. " +
           "It is recommended to disable HTTP/2 by setting `clientConfig: { http2: false }` in your AptosConfig. " +
@@ -251,7 +249,7 @@ export class AptosConfig {
         if (this.network === Network.CUSTOM) throw new Error("Please provide a custom prover service url");
         return NetworkToProverAPI[this.network];
       default:
-        throw Error(`apiType ${apiType} is not supported`);
+        throw new Error(`apiType ${apiType} is not supported`);
     }
   }
 

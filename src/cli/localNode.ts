@@ -1,8 +1,6 @@
-/* eslint-disable no-console */
-
-import { ChildProcessWithoutNullStreams, spawn } from "child_process";
+import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import kill from "tree-kill";
-import { platform } from "os";
+import { platform } from "node:os";
 
 import { sleep } from "../utils/helpers";
 

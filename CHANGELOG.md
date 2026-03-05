@@ -13,6 +13,9 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Changed
 
+- Migrate from ESLint + Prettier to Biome for linting and formatting, providing ~37x faster lint and ~42x faster format checks
+- Replace `pnpm lint` (ESLint), `pnpm fmt` (Prettier) with Biome equivalents; add `pnpm check` for combined lint+format
+- Remove all obsolete `eslint-disable` comments
 - Migrate test framework from Jest to Vitest for the main SDK and confidential-assets packages
   - Replace `jest`/`ts-jest`/`@types/jest` with `vitest`/`@vitest/coverage-v8`
   - Migrate all Jest-specific APIs (`jest.fn`, `jest.mock`, `jest.spyOn`, etc.) to Vitest equivalents (`vi.fn`, `vi.mock`, `vi.spyOn`, etc.)

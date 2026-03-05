@@ -1,6 +1,6 @@
 name: "Lint SDK Code"
 description: |
-  Run eslint on the codebase to ensure consistency
+  Run Biome linter on the codebase to ensure consistency
 
 runs:
   using: composite
@@ -12,6 +12,6 @@ runs:
         registry-url: "https://registry.npmjs.org"
     - uses: pnpm/action-setup@v4
 
-    # Run eslint
+    # Run Biome linter
     - run: pnpm install --frozen-lockfile && pnpm lint
       shell: bash

@@ -61,7 +61,6 @@ export class PrivateKey {
     // Remove the prefix if it exists
     let formattedPrivateKey = privateKey;
     if (typeof formattedPrivateKey === "string" && formattedPrivateKey.startsWith(aip80Prefix)) {
-      // eslint-disable-next-line prefer-destructuring
       formattedPrivateKey = formattedPrivateKey.split("-")[2];
     }
 

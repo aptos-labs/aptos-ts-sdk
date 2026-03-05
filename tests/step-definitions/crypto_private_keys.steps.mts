@@ -1,8 +1,6 @@
 import { Given, Then, When } from "@cucumber/cucumber";
 import { Ed25519PrivateKey, Hex, PrivateKey, PrivateKeyVariants, Secp256k1PrivateKey } from "../../src";
-import assert from "assert";
-
-/* eslint-disable func-names */
+import assert from "node:assert";
 
 Given(
   /^key (ed25519|secp256k1) (hexstring|bytes|aip80_string) (.*)$/,

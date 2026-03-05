@@ -236,7 +236,7 @@ export abstract class Account {
    * @category Account (On-Chain Model)
    */
   static fromPrivateKeyAndAddress(args: CreateAccountFromPrivateKeyArgs) {
-    return this.fromPrivateKey(args);
+    return Account.fromPrivateKey(args);
   }
 
   /**

@@ -234,7 +234,6 @@ export class EphemeralKeyPair extends Serializable {
     let privateKey: PrivateKey;
 
     switch (args?.scheme) {
-      case EphemeralPublicKeyVariant.Ed25519:
       default:
         privateKey = Ed25519PrivateKey.generate();
     }

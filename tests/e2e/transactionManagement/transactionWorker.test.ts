@@ -73,7 +73,7 @@ describe("transactionWorker", () => {
         functionArguments: [recipient.accountAddress, 1],
         abi: { typeParameters: [], parameters: [new TypeTagAddress(), new TypeTagU64()] },
       };
-      const payloads = [...Array(5).fill(txn), ...Array(5).fill(txnWithAbi)];
+      const payloads = [...new Array(5).fill(txn), ...new Array(5).fill(txnWithAbi)];
 
       // start transactions worker
       const transactionWorker = new TransactionWorker(aptosConfig, sender);

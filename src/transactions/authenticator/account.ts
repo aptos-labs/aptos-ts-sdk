@@ -260,7 +260,6 @@ export class AccountAuthenticatorNoAccountAuthenticator extends AccountAuthentic
     serializer.serializeU32AsUleb128(AccountAuthenticatorVariant.NoAccountAuthenticator);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   static load(deserializer: Deserializer): AccountAuthenticatorNoAccountAuthenticator {
     return new AccountAuthenticatorNoAccountAuthenticator();
   }

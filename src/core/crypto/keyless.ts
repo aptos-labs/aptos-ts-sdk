@@ -1,7 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-// eslint-disable-next-line max-classes-per-file
 import { JwtPayload, jwtDecode } from "jwt-decode";
 import { sha3_256 } from "@noble/hashes/sha3";
 import { AccountPublicKey, PublicKey } from "./publicKey";

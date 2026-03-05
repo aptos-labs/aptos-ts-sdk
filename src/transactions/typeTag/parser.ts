@@ -382,7 +382,7 @@ function parseTypeTagInner(str: string, types: Array<TypeTag>, allowGenerics: bo
         throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedVectorTypeArgumentCount);
       }
       return new TypeTagVector(types[0]);
-    default:
+    default: {
       // Reference will have to handle the inner type
       if (isRef(trimmedStr)) {
         const actualType = trimmedStr.substring(1);
@@ -403,14 +403,12 @@ function parseTypeTagInner(str: string, types: Array<TypeTag>, allowGenerics: bo
       }
 
       // Parse for a struct tag
-      // eslint-disable-next-line no-case-declarations
       const structParts = trimmedStr.split("::");
       if (structParts.length !== 3) {
         throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedStructFormat);
       }
 
       // Validate struct address
-      // eslint-disable-next-line no-case-declarations
       let address: AccountAddress;
       try {
         address = AccountAddress.fromString(structParts[0]);
@@ -429,5 +427,6 @@ function parseTypeTagInner(str: string, types: Array<TypeTag>, allowGenerics: bo
       return new TypeTagStruct(
         new StructTag(address, new Identifier(structParts[1]), new Identifier(structParts[2]), types),
       );
+    }
   }
 }

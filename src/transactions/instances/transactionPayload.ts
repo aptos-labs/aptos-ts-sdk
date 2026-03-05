@@ -1,8 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable max-classes-per-file */
-
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializable, Serializer } from "../../bcs/serializer";
 import { EntryFunctionBytes } from "../../bcs/serializable/entryFunctionBytes";
@@ -656,7 +654,6 @@ export class TransactionExecutableEmpty extends TransactionExecutable {
     serializer.serializeU32AsUleb128(TransactionExecutableVariants.Empty);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   static load(_: Deserializer): TransactionExecutableEmpty {
     return new TransactionExecutableEmpty();
   }

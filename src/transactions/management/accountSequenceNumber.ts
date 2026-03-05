@@ -129,7 +129,6 @@ export class AccountSequenceNumber {
         while (this.currentNumber! - this.lastUncommintedNumber! >= this.maximumInFlight) {
           await sleep(this.sleepTime);
           if (nowInSeconds() - startTime > this.maxWaitTime) {
-            /* eslint-disable no-console */
             console.warn(
               `Waited over 30 seconds for a transaction to commit, re-syncing ${this.account.accountAddress.toString()}`,
             );
@@ -205,7 +204,6 @@ export class AccountSequenceNumber {
       const startTime = nowInSeconds();
       while (this.lastUncommintedNumber !== this.currentNumber) {
         if (nowInSeconds() - startTime > this.maxWaitTime) {
-          /* eslint-disable no-console */
           console.warn(
             `Waited over 30 seconds for a transaction to commit, re-syncing ${this.account.accountAddress.toString()}`,
           );
