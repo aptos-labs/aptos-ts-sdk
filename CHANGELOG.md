@@ -4,7 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 - Remove usage of Buffer.from and replace with TextEncoder or js-base64 for greater compatibility
-- Update dependencies for examples, gas station, and confidential assets packages
+- Update dependencies for examples, gas station, and confidential assets packages 
+- Increase max gas amount default to 2000000
 
 ## Fixed
 
