@@ -1,19 +1,19 @@
 # TypeScript SDK for Aptos
 
-![License][github-license]
-[![Discord][discord-image]][discord-url]
 [![NPM Package Version][npm-image-version]][npm-url]
 ![Node Version](https://img.shields.io/node/v/%40aptos-labs%2Fts-sdk)
-![NPM bundle size](https://img.shields.io/bundlephobia/min/%40aptos-labs/ts-sdk)
 [![NPM Package Downloads][npm-image-downloads]][npm-url]
 
 The [TypeScript SDK](https://www.npmjs.com/package/@aptos-labs/ts-sdk) allows you to connect, explore, and interact with the Aptos blockchain. You can use it to request data, send transactions, set up test environments, and more!
 
-## Learn How To Use The TypeScript SDK
-### [Quickstart](https://aptos.dev/en/build/sdks/ts-sdk/quickstart)
-### [Tutorials](https://aptos.dev/en/build/sdks/ts-sdk)
-### [Examples](./examples/README.md)
-### [Reference Docs (For looking up specific functions)](https://aptos-labs.github.io/aptos-ts-sdk/)
+## Learn More
+
+For comprehensive guides, tutorials, and API reference, visit [aptos.dev](https://aptos.dev):
+
+- **[Quickstart Guide](https://aptos.dev/en/build/sdks/ts-sdk/quickstart)** - Get up and running quickly
+- **[SDK Tutorials](https://aptos.dev/en/build/sdks/ts-sdk)** - Step-by-step tutorials
+- **[API Reference](https://aptos-labs.github.io/aptos-ts-sdk/)** - Complete API documentation
+- **[Examples](./examples/README.md)** - Code examples and sample applications
 
 ## Installation
 
@@ -248,7 +248,3 @@ pnpm jest keyless.test.ts
 [npm-image-version]: https://img.shields.io/npm/v/%40aptos-labs%2Fts-sdk.svg
 [npm-image-downloads]: https://img.shields.io/npm/dm/%40aptos-labs%2Fts-sdk.svg
 [npm-url]: https://npmjs.org/package/@aptos-labs/ts-sdk
-[experimental-url]: https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/experimental
-[discord-image]: https://img.shields.io/discord/945856774056083548?label=Discord&logo=discord&style=flat
-[discord-url]: https://discord.gg/aptosnetwork
-[github-license]: https://img.shields.io/github/license/aptos-labs/aptos-ts-sdk
