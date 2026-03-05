@@ -64,7 +64,6 @@ describe("aptos request", () => {
           );
         } catch (error: any) {
           // should not get here
-          // eslint-disable-next-line no-console
           console.log("Error in 'headers'", error);
           expect(true).toBe(false);
         }
@@ -92,7 +91,6 @@ describe("aptos request", () => {
           expect(response.config.headers).toHaveProperty("authorization", `Bearer ${dummyKey}`);
         } catch (error: any) {
           // should not get here
-          // eslint-disable-next-line no-console
           console.log("Error in 'api_token for full node requests'", error);
           expect(true).toBe(false);
         }
@@ -123,7 +121,6 @@ describe("aptos request", () => {
             });
           } catch (error: any) {
             // should not get here
-            // eslint-disable-next-line no-console
             console.log("Error in 'fullnode server returns 200 status code'", error);
             expect(true).toBe(false);
           }

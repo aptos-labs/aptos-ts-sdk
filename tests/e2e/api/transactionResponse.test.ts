@@ -1,12 +1,11 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
-/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { ValidatorTransactionResponse, TransactionResponseType, BlockMetadataTransactionResponse } from "../../../src";
 
 describe("transaction response types", () => {
   test("it tests a sample validator_transaction JSON response satisfies ValidatorTransactionResponse", async () => {
-    const txn = {
+    const _txn = {
       version: "3",
       hash: "0xc2f1a301b4af32c817f624f7b6edb778c5ec522e1e122b1b0d74472a10809cef",
       state_change_hash: "0xf8699a3b0194c10eb0242fdeb9361deee8a3c242a21222e74df857c3c0ac1961",
@@ -123,7 +122,7 @@ describe("transaction response types", () => {
   });
 
   test("it tests a sample block_metadata JSON response satisfies BlockMetadataTransactionResponse", async () => {
-    const txn = {
+    const _txn = {
       version: "2",
       hash: "0x55ac208f0e48f428f210125fcb7c21507f2ea3077a6526824d10a2511a9da188",
       state_change_hash: "0xb1aedbb0e61726f11bde3d5c6a44173659c288071e8deb4536ab61c7905b98b6",

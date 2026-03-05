@@ -708,9 +708,7 @@ export function getAuthenticatorForSimulation(publicKey?: PublicKey) {
           return new AnySignature(invalidSignature);
         }),
         bitmap: accountPublicKey.createBitmap({
-          bits: Array(accountPublicKey.publicKeys.length)
-            .fill(0)
-            .map((_, i) => i),
+          bits: new Array(accountPublicKey.publicKeys.length).fill(0).map((_, i) => i),
         }),
       }),
     );

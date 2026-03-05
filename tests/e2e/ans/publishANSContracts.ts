@@ -1,4 +1,4 @@
-import { execSync } from "child_process";
+import { execSync } from "node:child_process";
 import "dotenv";
 import { AccountAddress, Aptos, AptosApiType, Ed25519PrivateKey, PrivateKey, PrivateKeyVariants } from "../../../src";
 import { LOCAL_ANS_ACCOUNT_PK, LOCAL_ANS_ACCOUNT_ADDRESS } from "../../../src/internal/ans";
@@ -13,8 +13,6 @@ import { LOCAL_ANS_ACCOUNT_PK, LOCAL_ANS_ACCOUNT_ADDRESS } from "../../../src/in
  *
  * This script runs when testing locally and on CI (as part of sdk-release.yaml) using `pnpm test`.
  */
-
-/* eslint-disable no-console */
 
 // ANS account we use to publish the contract
 

@@ -43,7 +43,6 @@ export function warnIfDevelopment(message: string): void {
       process.env.APTOS_SDK_WARNINGS === "true");
 
   if (isDevelopment) {
-    // eslint-disable-next-line no-console
     console.warn(message);
   }
 }

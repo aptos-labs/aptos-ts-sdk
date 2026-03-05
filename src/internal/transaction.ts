@@ -310,12 +310,12 @@ export async function waitForIndexer(args: {
   const { aptosConfig, processorType } = args;
   const minimumLedgerVersion = BigInt(args.minimumLedgerVersion);
   const timeoutMilliseconds = 3000; // 3 seconds
-  const startTime = new Date().getTime();
+  const startTime = Date.now();
   let indexerVersion = BigInt(-1);
 
   while (indexerVersion < minimumLedgerVersion) {
     // check for timeout
-    if (new Date().getTime() - startTime > timeoutMilliseconds) {
+    if (Date.now() - startTime > timeoutMilliseconds) {
       throw new Error("waitForLastSuccessIndexerVersionSync timeout");
     }
 

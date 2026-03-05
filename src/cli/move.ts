@@ -1,5 +1,5 @@
-import { spawn } from "child_process";
-import { platform } from "os";
+import { spawn } from "node:child_process";
+import { platform } from "node:os";
 
 import { AccountAddress } from "../core";
 import { Network } from "../utils";

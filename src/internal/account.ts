@@ -733,7 +733,7 @@ export async function getAccountCoinsCount(args: {
   });
 
   if (!data.current_fungible_asset_balances_aggregate.aggregate) {
-    throw Error("Failed to get the count of account coins");
+    throw new Error("Failed to get the count of account coins");
   }
 
   return data.current_fungible_asset_balances_aggregate.aggregate.count;

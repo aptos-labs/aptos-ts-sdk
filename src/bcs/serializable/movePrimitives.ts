@@ -1,6 +1,5 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
-/* eslint-disable max-classes-per-file */
 import {
   MAX_U128_BIG_INT,
   MAX_U16_NUMBER,
