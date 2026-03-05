@@ -39,6 +39,10 @@ export async function view<T extends Array<MoveValue> = Array<MoveValue>>(args: 
   return data as T;
 }
 
+/**
+ * @deprecated Use `view` instead, which uses BCS encoding for type-safe view function calls.
+ * This function was kept for compatibility with the legacy `aptos` package and will be removed in a future release.
+ */
 export async function viewJson<T extends Array<MoveValue> = Array<MoveValue>>(args: {
   aptosConfig: AptosConfig;
   payload: InputViewFunctionJsonData;

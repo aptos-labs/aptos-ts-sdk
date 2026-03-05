@@ -206,12 +206,16 @@ export class General {
   }
 
   /**
-   * Queries for a Move view function with JSON, this provides compatability with the old `aptos` package
+   * Queries for a Move view function with JSON.
+   *
+   * @deprecated Use `view()` instead, which uses BCS encoding for type-safe view function calls.
+   * This method was kept for compatibility with the legacy `aptos` package and will be removed in a future release.
+   *
    * @param args.payload Payload for the view function
    * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
    *
    * @example
-   * const data = await aptos.view({
+   * const data = await aptos.viewJson({
    *  payload: {
    *   function: "0x1::coin::balance",
    *   typeArguments: ["0x1::aptos_coin::AptosCoin"],

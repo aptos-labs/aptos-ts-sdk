@@ -6,6 +6,12 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Remove usage of Buffer.from and replace with TextEncoder or js-base64 for greater compatibility
 - Update dependencies for examples, gas station, and confidential assets packages
 
+## Deprecated
+
+- Deprecate `viewJson()` in favor of `view()` which uses BCS encoding for type-safe view function calls. `viewJson()` was kept for compatibility with the legacy `aptos` package and will be removed in a future release.
+- Deprecate ts-sdk v5.x: drop v5 from `peerDependencies` in `@aptos-labs/confidential-assets` and `gas-station`. Users should upgrade to `@aptos-labs/ts-sdk` v6.x. See [UPGRADE_GUIDE_6.0.0.md](./upgrade-guides/UPGRADE_GUIDE_6.0.0.md) for migration instructions.
+- Mark all v5.x documentation versions as deprecated in docs index.
+
 ## Fixed
 
 - Fix `@noble/curves` v2.x import in `external_signing` example (use `.js` extension for subpath exports)
@@ -13,6 +19,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Changed
 
+- Update `examples/README.md` to reference `@aptos-labs/ts-sdk` instead of the legacy `aptos` package name
 - Migrate test framework from Jest to Vitest for the main SDK and confidential-assets packages
   - Replace `jest`/`ts-jest`/`@types/jest` with `vitest`/`@vitest/coverage-v8`
   - Migrate all Jest-specific APIs (`jest.fn`, `jest.mock`, `jest.spyOn`, etc.) to Vitest equivalents (`vi.fn`, `vi.mock`, `vi.spyOn`, etc.)

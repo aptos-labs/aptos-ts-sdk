@@ -13,8 +13,8 @@ dependencies:
     specifier: ^0.0.2
     version: 0.0.2
   '@aptos-labs/ts-sdk':
-    specifier: ^5.2.1 || ^6.1.0
-    version: 5.2.1(got@11.8.6)
+    specifier: ^6.1.0
+    version: 6.1.0(got@11.8.6)
   '@noble/curves':
     specifier: ^1.6.0
     version: 1.9.7
@@ -56,8 +56,8 @@ devDependencies:
 
 packages:
 
-  /@aptos-labs/aptos-cli@1.0.2:
-    resolution: {integrity: sha512-PYPsd0Kk3ynkxNfe3S4fanI3DiUICCoh4ibQderbvjPFL5A0oK6F4lPEO2t0MDsQySTk2t4vh99Xjy6Bd9y+aQ==}
+  /@aptos-labs/aptos-cli@1.1.1:
+    resolution: {integrity: sha512-sB7CokCM6s76SLJmccysbnFR+MDik6udKfj2+9ZsmTLV0/t73veIeCDKbvWJmbW267ibx4HiGbPI7L+1+yjEbQ==}
     hasBin: true
     dependencies:
       commander: 12.1.0
@@ -76,17 +76,17 @@ packages:
     resolution: {integrity: sha512-xfgRVc4WX4N7hjSHP91a3o686gC4307PGa9eDT7eWhp2VN9YgYhDIKRFRITpKT5JC7IXbuh6pGq1MqrqTjBokA==}
     dev: false
 
-  /@aptos-labs/ts-sdk@5.2.1(got@11.8.6):
-    resolution: {integrity: sha512-kazYjqfsPCBx2UJI+nYUOb6Ov7q7brSgYEfxp2sP27IeJWdDNa50lfs0WIpDJ92kQxdtlm9q3ZWw7Toh9f1gxQ==}
+  /@aptos-labs/ts-sdk@6.1.0(got@11.8.6):
+    resolution: {integrity: sha512-YjtEXivGj0xuf3eKzrnKOfjZcYIWUR1E2zNJ4JempgMgoM+VVPbp7b1Ubu24UcOYxRYLb8/kKavOUg62o8zElw==}
     engines: {node: '>=20.0.0'}
     dependencies:
-      '@aptos-labs/aptos-cli': 1.0.2
+      '@aptos-labs/aptos-cli': 1.1.1
       '@aptos-labs/aptos-client': 2.1.0(got@11.8.6)
       '@noble/curves': 1.9.7
       '@noble/hashes': 1.8.0
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0
-      eventemitter3: 5.0.1
+      eventemitter3: 5.0.4
       js-base64: 3.7.7
       jwt-decode: 4.0.0
       poseidon-lite: 0.2.1
@@ -1644,8 +1644,8 @@ packages:
       '@types/estree': 1.0.7
     dev: true
 
-  /eventemitter3@5.0.1:
-    resolution: {integrity: sha512-GWkBvjiSZK87ELrYOSESUYeVIc9mvLLf/nXalMOS5dYrgZq9o5OVkbZAVM06CVxYsCwH9BDZFPlQTlPA1j4ahA==}
+  /eventemitter3@5.0.4:
+    resolution: {integrity: sha512-mlsTRyGaPBjPedk6Bvw+aqbsXDtoAyAzm5MO7JgU+yVRyMQ5O8bD4Kcci7BS85f93veegeCPkL8R4GLClnjLFw==}
     dev: false
 
   /execa@5.1.1:

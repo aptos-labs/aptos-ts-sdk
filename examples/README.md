@@ -4,7 +4,7 @@ These examples show how to build common tasks in Javascript and Typescript.
 
 ### Running an example
 
-These examples use a linked version of the `aptos` package from the main repository. To run a test, first build the
+These examples use a linked version of the `@aptos-labs/ts-sdk` package from the main repository. To run a test, first build the
 package in the top level directory of this repo.
 
 ```bash
@@ -26,13 +26,13 @@ This will then print out the results of the test accordingly.
 Simply just replace the line in the associated `package.json` file:
 
 ```json
-  "aptos": "link:../../.."
+  "@aptos-labs/ts-sdk": "link:../.."
 ```
 
 with the appropriate version e.g.:
 
 ```json
-  "aptos": "latest"
+  "@aptos-labs/ts-sdk": "latest"
 ```
 
 You should be able then simply run:
