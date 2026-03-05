@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "simple_transfer.ts",
-  "packageManager": "pnpm@8.15.1",
+  "packageManager": "pnpm@10.30.3",
   "license": "Apache-2.0",
   "engines": {
     "node": ">=20.0.0"

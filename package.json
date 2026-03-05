@@ -1,7 +1,7 @@
 {
   "name": "@aptos-labs/ts-sdk",
   "description": "Aptos TypeScript SDK",
-  "packageManager": "pnpm@8.15.1",
+  "packageManager": "pnpm@10.30.3",
   "license": "Apache-2.0",
   "engines": {
     "node": ">=20.0.0"
@@ -66,11 +66,11 @@
     "@babel/traverse": "^7.28.6",
     "@biomejs/biome": "^2.4.6",
     "@cucumber/cucumber": "^12.6.0",
-    "@graphql-codegen/cli": "^6.1.1",
+    "@graphql-codegen/cli": "^6.1.2",
     "@graphql-codegen/import-types-preset": "^3.0.1",
-    "@graphql-codegen/typescript": "^5.0.7",
+    "@graphql-codegen/typescript": "^5.0.8",
     "@graphql-codegen/typescript-graphql-request": "^6.4.0",
-    "@graphql-codegen/typescript-operations": "^5.0.7",
+    "@graphql-codegen/typescript-operations": "^5.0.8",
     "@types/node": "^24.3.1",
     "@vitest/coverage-v8": "^4.0.18",
     "dotenv": "^16.6.1",
@@ -89,7 +89,8 @@
       "sucrase": "3.35.1",
       "lodash": "4.17.23",
       "js-yaml": "4.1.1",
-      "diff": "4.0.4"
+      "diff": "4.0.4",
+      "immutable": "^4.3.8"
     }
   }
 }

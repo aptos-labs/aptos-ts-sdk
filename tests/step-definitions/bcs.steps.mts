@@ -14,7 +14,7 @@ import {
   MoveString,
 } from "../../src";
 import { Given, Then, When } from "@cucumber/cucumber";
-import assert from "assert";
+import assert from "node:assert";
 
 Given(/^(bytes|address) (0x[0-9a-fA-F]*)$/, function (type: string, input: string) {
   switch (type) {
