@@ -21,6 +21,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
   - Migrate all Jest-specific APIs (`jest.fn`, `jest.mock`, `jest.spyOn`, etc.) to Vitest equivalents (`vi.fn`, `vi.mock`, `vi.spyOn`, etc.)
   - Convert globalSetup/globalTeardown from CJS to TypeScript
   - Update test commands: `pnpm test` now uses `vitest run`
+- Remove Discord, License, and bundlephobia badges from README.md and restructure documentation section to better reference aptos.dev for comprehensive guides and tutorials
 
 # 6.1.0 (2026-02-25)
 
