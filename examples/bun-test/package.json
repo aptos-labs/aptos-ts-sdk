@@ -4,11 +4,17 @@
   "description": "Test Aptos TypeScript SDK with Bun runtime",
   "type": "module",
   "license": "Apache-2.0",
+  "engines": {
+    "bun": "^1.0.0"
+  },
   "scripts": {
     "test": "bun run simple_transfer.ts",
     "test:all": "bun run simple_transfer.ts && bun run simple_sponsored_transaction.ts"
   },
   "dependencies": {
     "@aptos-labs/ts-sdk": "file:../.."
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.9"
   }
 }

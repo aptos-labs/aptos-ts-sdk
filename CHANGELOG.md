@@ -4,6 +4,12 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 - Remove usage of Buffer.from and replace with TextEncoder or js-base64 for greater compatibility
+- Update dependencies for examples, gas station, and confidential assets packages
+
+## Fixed
+
+- Fix `@noble/curves` v2.x import in `external_signing` example (use `.js` extension for subpath exports)
+- Revert `@aptos-labs/confidential-asset-wasm-bindings` to `^0.0.2` due to incompatible API changes in v0.0.3
 
 ## Changed
 

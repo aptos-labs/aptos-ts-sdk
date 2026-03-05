@@ -11,16 +11,29 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": "^22"
+  },
   "dependencies": {
-    "@aptos-labs/ts-sdk": "^5.0.0",
-    "dotenv": "^17.2.2",
-    "express": "^5.1.0"
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1"
   },
   "devDependencies": {
-    "@types/express": "^5.0.3",
-    "@types/node": "^20.12.18",
-    "tsx": "^4.20.5",
-    "tsup": "^8.5.0",
-    "typescript": "^5.8.3"
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.19.13",
+    "tsx": "^4.21.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "@aptos-labs/ts-sdk": "^5.2.1 || ^6.1.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "minimatch@^9": "^9.0.7",
+      "qs@^6": "^6.14.1",
+      "glob@^10": "^10.5.0",
+      "rollup@^4": "^4.59.0"
+    }
   }
 }

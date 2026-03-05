@@ -36,16 +36,16 @@
   "author": "",
   "dependencies": {
     "@aptos-labs/ts-sdk": "link:../..",
-    "@noble/curves": "2.0.0",
-    "@types/readline-sync": "1.4.8",
-    "dotenv": "17.2.2",
+    "@noble/curves": "2.0.1",
+    "dotenv": "17.3.1",
     "npm-run-all2": "8.0.4",
     "readline-sync": "1.4.10",
     "superagent": "10.3.0"
   },
   "devDependencies": {
-    "@types/node": "^24.3.1",
-    "typescript": "^5.8.3",
-    "tsx": "^4.20.5"
+    "@types/readline-sync": "1.4.8",
+    "@types/node": "^22.19.13",
+    "typescript": "^5.9.3",
+    "tsx": "^4.21.0"
   }
 }
