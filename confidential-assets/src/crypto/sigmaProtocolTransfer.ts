@@ -12,7 +12,7 @@
  * Statement points:
  *   Base: [G, H, ek_sid, ek_rid, old_P[ell], old_R[ell], new_P[ell], new_R[ell], P[n], R_sid[n], R_rid[n]]
  *   If has_effective_auditor: + [ek_aud_eff, new_R_aud_eff[ell], R_aud_eff[n]]
- *   For each extra auditor: + [ek_extra, R_extra[n]]
+ *   For each voluntary auditor: + [ek_volun, R_volun[n]]
  *
  * Witness: [dk, new_a[ell], new_r[ell], v[n], r[n]]
  */
@@ -50,7 +50,7 @@ const TYPE_NAME = "0x7::sigma_protocol_transfer::Transfer";
  *   num_avail_chunks: u64,
  *   num_transfer_chunks: u64,
  *   has_effective_auditor: bool,
- *   num_extra_auditors: u64,
+ *   num_volun_auditors: u64,
  * }
  * ```
  */
@@ -61,7 +61,7 @@ export function bcsSerializeTransferSession(
   numAvailChunks: number,
   numTransferChunks: number,
   hasEffectiveAuditor: boolean,
-  numExtraAuditors: number,
+  numVolunAuditors: number,
 ): Uint8Array {
   const serializer = new Serializer();
   serializer.serialize(new FixedBytes(senderAddress));
@@ -70,7 +70,7 @@ export function bcsSerializeTransferSession(
   serializer.serialize(new U64(numAvailChunks));
   serializer.serialize(new U64(numTransferChunks));
   serializer.serializeBool(hasEffectiveAuditor);
-  serializer.serialize(new U64(numExtraAuditors));
+  serializer.serialize(new U64(numVolunAuditors));
   return serializer.toUint8Array();
 }
 
@@ -97,9 +97,9 @@ function computeBPowers(count: number): bigint[] {
  *   + [ek_aud_eff, new_R_aud_eff[ell], R_aud_eff[n]]
  *   → +1 + ell + n points
  *
- * For each extra auditor i ∈ [num_extra]:
- *   + [ek_extra_i, R_extra_i[n]]
- *   → +(1 + n) points per extra
+ * For each voluntary auditor i ∈ [num_volun]:
+ *   + [ek_volun_i, R_volun_i[n]]
+ *   → +(1 + n) points per voluntary auditor
  */
 const IDX_G = 0;
 const IDX_H = 1;
@@ -129,8 +129,8 @@ function getStartIdxRRid(ell: number, n: number): number {
 function getIdxEkAudEff(ell: number, n: number): number {
   return START_IDX_OLD_P + 4 * ell + 3 * n;
 }
-/** Start of the extra auditors section. */
-function getStartIdxExtras(ell: number, n: number, hasEffective: boolean): number {
+/** Start of the voluntary auditors section. */
+function getStartIdxVolun(ell: number, n: number, hasEffective: boolean): number {
   return START_IDX_OLD_P + 4 * ell + 3 * n + (hasEffective ? 1 + ell + n : 0);
 }
 
@@ -177,10 +177,10 @@ export type TransferProofArgs = {
   /**
    * Whether an effective (asset-level or global) auditor is present.
    * If true, the LAST element in auditorEncryptionKeys / newBalanceDAud / transferAmountDAud
-   * is the effective auditor; all preceding elements are extra auditors.
+   * is the effective auditor; all preceding elements are voluntary auditors.
    */
   hasEffectiveAuditor: boolean;
-  /** Auditor encryption keys: extras first, then effective (if hasEffectiveAuditor) */
+  /** Auditor encryption keys: voluntary first, then effective (if hasEffectiveAuditor) */
   auditorEncryptionKeys?: TwistedEd25519PublicKey[];
   /** New balance D points encrypted under each auditor key (only effective auditor's is used in sigma proof) */
   newBalanceDAud?: RistPoint[][];
@@ -193,11 +193,11 @@ export type TransferProofArgs = {
  *
  * The sigma proof covers all auditors in a single proof. The statement layout
  * distinguishes between the effective auditor (sees balance + transfer amount)
- * and extra auditors (see only transfer amount).
+ * and voluntary auditors (see only transfer amount).
  *
  * Convention: if hasEffectiveAuditor is true, the LAST element in auditorEncryptionKeys
  * (and newBalanceDAud / transferAmountDAud) is the effective auditor. All preceding
- * elements are extras.
+ * elements are voluntary.
  */
 export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
   const {
@@ -227,7 +227,7 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
 
   const ell = oldBalanceC.length;
   const n = transferAmountC.length;
-  const numExtra = hasEffectiveAuditor
+  const numVolun = hasEffectiveAuditor
     ? auditorEncryptionKeys.length - 1
     : auditorEncryptionKeys.length;
   const dkBigint = bytesToNumberLE(dk.toUint8Array());
@@ -263,10 +263,10 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
     for (let j = 0; j < n; j++) pushPoint(transferAmountDAud[effIdx][j]);
   }
 
-  // Extra auditors: for each, [ek_extra, R_extra[n]]
-  for (let a = 0; a < numExtra; a++) {
-    const ekExtraBytes = auditorEncryptionKeys[a].toUint8Array();
-    pushPointBytes(RistrettoPoint.fromHex(ekExtraBytes), ekExtraBytes);
+  // Voluntary auditors: for each, [ek_volun, R_volun[n]]
+  for (let a = 0; a < numVolun; a++) {
+    const ekVolunBytes = auditorEncryptionKeys[a].toUint8Array();
+    pushPointBytes(RistrettoPoint.fromHex(ekVolunBytes), ekVolunBytes);
     for (let j = 0; j < n; j++) pushPoint(transferAmountDAud[a][j]);
   }
 
@@ -281,7 +281,7 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
 
   // Domain separator
   const sessionId = bcsSerializeTransferSession(
-    senderAddress, recipientAddress, tokenAddress, ell, n, hasEffectiveAuditor, numExtra,
+    senderAddress, recipientAddress, tokenAddress, ell, n, hasEffectiveAuditor, numVolun,
   );
   const dst: DomainSeparator = {
     contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
@@ -290,7 +290,7 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
     sessionId,
   };
 
-  return sigmaProtocolProve(dst, TYPE_NAME, makeTransferPsi(ell, n, hasEffectiveAuditor, numExtra), stmt, witness);
+  return sigmaProtocolProve(dst, TYPE_NAME, makeTransferPsi(ell, n, hasEffectiveAuditor, numVolun), stmt, witness);
 }
 
 /**
@@ -306,9 +306,9 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
  *   6. r[j]*ek_sid,              ∀j ∈ [n]
  *   7. r[j]*ek_rid,              ∀j ∈ [n]
  *   7b. r[j]*ek_aud_eff,          ∀j ∈ [n]  (effective auditor only)
- *   7c. r[j]*ek_extra_t,          ∀j ∈ [n], ∀t ∈ [T]  (extra auditors)
+ *   7c. r[j]*ek_volun_t,          ∀j ∈ [n], ∀t ∈ [T]  (voluntary auditors)
  */
-function makeTransferPsi(ell: number, n: number, hasEffective: boolean, numExtra: number): PsiFunction {
+function makeTransferPsi(ell: number, n: number, hasEffective: boolean, numVolun: number): PsiFunction {
   return (s: SigmaProtocolStatement, w: bigint[]): RistPoint[] => {
     const dk = w[0];
     const newA = w.slice(1, 1 + ell);
@@ -383,13 +383,13 @@ function makeTransferPsi(ell: number, n: number, hasEffective: boolean, numExtra
       }
     }
 
-    // 7c. (extra auditors) r[j]*ek_extra_t
-    const extrasStart = getStartIdxExtras(ell, n, hasEffective);
-    for (let t = 0; t < numExtra; t++) {
-      const ekExtraIdx = extrasStart + t * (1 + n);
-      const ekExtra = s.points[ekExtraIdx];
+    // 7c. (voluntary auditors) r[j]*ek_volun_t
+    const volunStart = getStartIdxVolun(ell, n, hasEffective);
+    for (let t = 0; t < numVolun; t++) {
+      const ekVolunIdx = volunStart + t * (1 + n);
+      const ekVolun = s.points[ekVolunIdx];
       for (let j = 0; j < n; j++) {
-        result.push(ekExtra.multiply(rTransfer[j]));
+        result.push(ekVolun.multiply(rTransfer[j]));
       }
     }
 
@@ -402,7 +402,7 @@ function makeTransferPsi(ell: number, n: number, hasEffective: boolean, numExtra
  *
  * Matches the Move implementation ordering (mirrors psi with statement points).
  */
-function makeTransferF(ell: number, n: number, hasEffective: boolean, numExtra: number): TransformationFunction {
+function makeTransferF(ell: number, n: number, hasEffective: boolean, numVolun: number): TransformationFunction {
   return (s: SigmaProtocolStatement): RistPoint[] => {
     const result: RistPoint[] = [];
 
@@ -463,12 +463,12 @@ function makeTransferF(ell: number, n: number, hasEffective: boolean, numExtra: 
       }
     }
 
-    // 7c. (extra auditors) R_extra_t[j]
-    const extrasStart = getStartIdxExtras(ell, n, hasEffective);
-    for (let t = 0; t < numExtra; t++) {
-      const rExtraStart = extrasStart + t * (1 + n) + 1;
+    // 7c. (voluntary auditors) R_volun_t[j]
+    const volunStart = getStartIdxVolun(ell, n, hasEffective);
+    for (let t = 0; t < numVolun; t++) {
+      const rVolunStart = volunStart + t * (1 + n) + 1;
       for (let j = 0; j < n; j++) {
-        result.push(s.points[rExtraStart + j]);
+        result.push(s.points[rVolunStart + j]);
       }
     }
 
@@ -480,7 +480,7 @@ function makeTransferF(ell: number, n: number, hasEffective: boolean, numExtra: 
  * Verify a confidential transfer proof.
  *
  * Convention: if hasEffectiveAuditor, the last element in auditorEkBytes / newBalanceDAud /
- * transferAmountDAud is the effective auditor; preceding elements are extras.
+ * transferAmountDAud is the effective auditor; preceding elements are voluntary.
  */
 export function verifyTransfer(args: {
   senderAddress: Uint8Array;
@@ -525,7 +525,7 @@ export function verifyTransfer(args: {
 
   const ell = oldBalanceC.length;
   const n = transferAmountC.length;
-  const numExtra = hasEffectiveAuditor ? auditorEkBytes.length - 1 : auditorEkBytes.length;
+  const numVolun = hasEffectiveAuditor ? auditorEkBytes.length - 1 : auditorEkBytes.length;
 
   const G = RistrettoPoint.BASE;
   const H = H_RISTRETTO;
@@ -554,8 +554,8 @@ export function verifyTransfer(args: {
     for (let j = 0; j < n; j++) pushPoint(transferAmountDAud[effIdx][j]);
   }
 
-  // Extra auditors: [ek_extra, R_extra[n]]
-  for (let a = 0; a < numExtra; a++) {
+  // Voluntary auditors: [ek_volun, R_volun[n]]
+  for (let a = 0; a < numVolun; a++) {
     pushPointBytes(RistrettoPoint.fromHex(auditorEkBytes[a]), auditorEkBytes[a]);
     for (let j = 0; j < n; j++) pushPoint(transferAmountDAud[a][j]);
   }
@@ -567,7 +567,7 @@ export function verifyTransfer(args: {
   };
 
   const sessionId = bcsSerializeTransferSession(
-    senderAddress, recipientAddress, tokenAddress, ell, n, hasEffectiveAuditor, numExtra,
+    senderAddress, recipientAddress, tokenAddress, ell, n, hasEffectiveAuditor, numVolun,
   );
   const dst: DomainSeparator = {
     contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
@@ -579,8 +579,8 @@ export function verifyTransfer(args: {
   return sigmaProtocolVerify(
     dst,
     TYPE_NAME,
-    makeTransferPsi(ell, n, hasEffectiveAuditor, numExtra),
-    makeTransferF(ell, n, hasEffectiveAuditor, numExtra),
+    makeTransferPsi(ell, n, hasEffectiveAuditor, numVolun),
+    makeTransferF(ell, n, hasEffectiveAuditor, numVolun),
     stmt,
     proof,
   );

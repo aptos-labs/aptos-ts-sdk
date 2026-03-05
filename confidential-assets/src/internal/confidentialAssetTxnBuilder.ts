@@ -354,8 +354,8 @@ export class ConfidentialAssetTransactionBuilder {
       decryptionKey: senderDecryptionKey,
     });
 
-    // Build the full auditor list for proof generation: [...extra, global (if set)]
-    // The contract will append the global auditor itself, so we only send extra auditor EKs on-chain.
+    // Build the full auditor list for proof generation: [...voluntary, global (if set)]
+    // The contract will append the global auditor itself, so we only send voluntary auditor EKs on-chain.
     const allAuditorEncryptionKeys = [
       ...additionalAuditorEncryptionKeys,
       ...(effectiveAuditorPubKey ? [effectiveAuditorPubKey] : []),
@@ -386,22 +386,22 @@ export class ConfidentialAssetTransactionBuilder {
       auditorNewBalanceList,
     ] = await confidentialTransfer.authorizeTransfer();
 
-    // Only send extra auditor EKs on-chain (not the global auditor, which the contract fetches itself)
-    const extraAuditorEncryptionKeys = additionalAuditorEncryptionKeys.map((pk) => pk.toUint8Array());
+    // Only send voluntary auditor EKs on-chain (not the global auditor, which the contract fetches itself)
+    const volunAuditorEncryptionKeys = additionalAuditorEncryptionKeys.map((pk) => pk.toUint8Array());
 
     // Only send D components for recipient and auditors (C components are shared with sender_amount)
     const recipientDPoints = encryptedAmountByRecipient.getCipherText().map((ct) => ct.D.toRawBytes());
-    // Split auditor D points into effective (last, if present) and extra (remaining)
+    // Split auditor D points into effective (last, if present) and voluntary (remaining)
     const effectiveAuditorDPoints = effectiveAuditorPubKey
       ? allAuditorAmountCiphertexts[allAuditorAmountCiphertexts.length - 1].getCipherText().map((ct) => ct.D.toRawBytes())
       : [];
-    const extraAuditorDPoints = (effectiveAuditorPubKey
+    const volunAuditorDPoints = (effectiveAuditorPubKey
       ? allAuditorAmountCiphertexts.slice(0, -1)
       : allAuditorAmountCiphertexts
     ).map((cb) => cb.getCipherText().map((ct) => ct.D.toRawBytes()));
 
     // Build R_aud components for new balance (D points encrypted under the effective auditor key, i.e., the last one)
-    // Only populated when there IS an effective auditor — extra auditors don't get new balance R components.
+    // Only populated when there IS an effective auditor — voluntary auditors don't get new balance R components.
     const newBalanceA = effectiveAuditorPubKey
       ? auditorNewBalanceList[auditorNewBalanceList.length - 1].getCipherText().map((ct) => ct.D.toRawBytes())
       : [];
@@ -421,8 +421,8 @@ export class ConfidentialAssetTransactionBuilder {
           confidentialTransfer.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.D.toRawBytes()), // sender_amount_D
           recipientDPoints,
           effectiveAuditorDPoints,
-          extraAuditorEncryptionKeys,
-          extraAuditorDPoints,
+          volunAuditorEncryptionKeys,
+          volunAuditorDPoints,
           rangeProofNewBalance,
           rangeProofAmount,
           sigmaProof.commitment,

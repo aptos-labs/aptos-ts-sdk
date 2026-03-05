@@ -29,6 +29,7 @@ describe("Confidential Asset Sender API", () => {
   const aliceConfidential = getTestConfidentialAccount(alice);
 
   const bob = Account.generate();
+  const bobConfidential = getTestConfidentialAccount(bob);
 
   async function getPublicTokenBalance(accountAddress: AccountAddressInput) {
     return await aptos.getAccountCoinAmount({
@@ -45,6 +46,21 @@ describe("Confidential Asset Sender API", () => {
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       decryptionKey: decryptionKey || aliceConfidential,
+      useCachedValue: false,
+    });
+
+    expect(confidentialBalance.availableBalance()).toBe(BigInt(expectedAvailable));
+    expect(confidentialBalance.pendingBalance()).toBe(BigInt(expectedPending));
+  }
+
+  async function checkBobDecryptedBalance(
+    expectedAvailable: AnyNumber,
+    expectedPending: AnyNumber,
+  ) {
+    const confidentialBalance = await confidentialAsset.getBalance({
+      accountAddress: bob.accountAddress,
+      tokenAddress: TOKEN_ADDRESS,
+      decryptionKey: bobConfidential,
       useCachedValue: false,
     });
 
@@ -286,6 +302,19 @@ describe("Confidential Asset Sender API", () => {
   );
 
   test(
+    "it should register Bob's confidential balance",
+    async () => {
+      const registerBobTx = await confidentialAsset.registerBalance({
+        signer: bob,
+        tokenAddress: TOKEN_ADDRESS,
+        decryptionKey: bobConfidential,
+      });
+      expect(registerBobTx.success).toBeTruthy();
+    },
+    longTestTimeout,
+  );
+
+  test(
     "it should throw if transferring more than the available balance",
     async () => {
       await confidentialAsset.deposit({
@@ -306,7 +335,7 @@ describe("Confidential Asset Sender API", () => {
           tokenAddress: TOKEN_ADDRESS,
           senderDecryptionKey: aliceConfidential,
           amount: confidentialBalance.availableBalance() + BigInt(1), // This is more than the available balance
-          recipient: alice.accountAddress,
+          recipient: bob.accountAddress,
         }),
       ).rejects.toThrow("Insufficient balance");
     },
@@ -336,19 +365,19 @@ describe("Confidential Asset Sender API", () => {
         tokenAddress: TOKEN_ADDRESS,
         senderDecryptionKey: aliceConfidential,
         amount: transferAmount,
-        recipient: alice.accountAddress,
+        recipient: bob.accountAddress,
       });
 
       await checkAliceDecryptedBalance(
         confidentialBalance.availableBalance() + confidentialBalance.pendingBalance() - transferAmount,
-        transferAmount,
+        0,
       );
     },
     longTestTimeout,
   );
 
   test(
-    "it should transfer Alice's tokens to Alice's pending balance without auditor",
+    "it should transfer Alice's tokens to Bob's pending balance without auditor",
     async () => {
       const confidentialBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
@@ -361,14 +390,14 @@ describe("Confidential Asset Sender API", () => {
         amount: TRANSFER_AMOUNT,
         signer: alice,
         tokenAddress: TOKEN_ADDRESS,
-        recipient: alice.accountAddress,
+        recipient: bob.accountAddress,
       });
 
       expect(transferTx.success).toBeTruthy();
       // Verify the confidential balance has been updated correctly
       await checkAliceDecryptedBalance(
         confidentialBalance.availableBalance() - TRANSFER_AMOUNT,
-        confidentialBalance.pendingBalance() + TRANSFER_AMOUNT,
+        confidentialBalance.pendingBalance(),
       );
     },
     longTestTimeout,
@@ -376,11 +405,11 @@ describe("Confidential Asset Sender API", () => {
 
   // --- Auditor configuration tests ---
 
-  const EXTRA_AUDITOR = TwistedEd25519PrivateKey.generate();
+  const VOLUNTARY_AUDITOR = TwistedEd25519PrivateKey.generate();
   const EFFECTIVE_AUDITOR = TwistedEd25519PrivateKey.generate();
 
   test(
-    "it should transfer with extra auditor only (no effective auditor on-chain)",
+    "it should transfer with voluntary auditor only (no effective auditor on-chain)",
     async () => {
       const confidentialBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
@@ -393,15 +422,15 @@ describe("Confidential Asset Sender API", () => {
         amount: TRANSFER_AMOUNT,
         signer: alice,
         tokenAddress: TOKEN_ADDRESS,
-        recipient: alice.accountAddress,
-        additionalAuditorEncryptionKeys: [EXTRA_AUDITOR.publicKey()],
+        recipient: bob.accountAddress,
+        additionalAuditorEncryptionKeys: [VOLUNTARY_AUDITOR.publicKey()],
       });
 
       expect(transferTx.success).toBeTruthy();
 
       await checkAliceDecryptedBalance(
         confidentialBalance.availableBalance() - TRANSFER_AMOUNT,
-        confidentialBalance.pendingBalance() + TRANSFER_AMOUNT,
+        confidentialBalance.pendingBalance(),
       );
     },
     longTestTimeout,
@@ -411,8 +440,8 @@ describe("Confidential Asset Sender API", () => {
   // signer, which we can't do on localnet without the framework private key. The effective-auditor
   // sigma protocol is fully covered by Move unit tests (all 6 configs) and SDK unit tests.
   // TODO: once an `aptos` CLI profile for 0x1 is available on localnet, add e2e tests for:
-  //   - "effective auditor only" (set global auditor, transfer with no extras)
-  //   - "effective + extra auditors" (set global auditor, transfer with extra auditors)
+  //   - "effective auditor only" (set global auditor, transfer with no voluntary auditors)
+  //   - "effective + voluntary auditors" (set global auditor, transfer with voluntary auditors)
 
   test(
     "it should check that Alice's incoming transfers are not paused",
@@ -428,11 +457,12 @@ describe("Confidential Asset Sender API", () => {
   );
 
   test(
-    "it should throw if checking whether Bob's incoming transfers are paused and he has no registered balance",
+    "it should throw if checking whether an unregistered account's incoming transfers are paused",
     async () => {
+      const unregistered = Account.generate();
       await expect(
         confidentialAsset.isIncomingTransfersPaused({
-          accountAddress: bob.accountAddress,
+          accountAddress: unregistered.accountAddress,
           tokenAddress: TOKEN_ADDRESS,
         }),
       ).rejects.toThrow("E_CONFIDENTIAL_STORE_NOT_REGISTERED");
@@ -506,10 +536,11 @@ describe("Confidential Asset Sender API", () => {
   test(
     "it should throw if checking if account balance is normalized and the account has not registered a balance",
     async () => {
+      const unregistered = Account.generate();
       await expect(
         confidentialAsset.isBalanceNormalized({
           tokenAddress: TOKEN_ADDRESS,
-          accountAddress: bob.accountAddress,
+          accountAddress: unregistered.accountAddress,
         }),
       ).rejects.toThrow("E_CONFIDENTIAL_STORE_NOT_REGISTERED");
     },
@@ -575,7 +606,7 @@ describe("Confidential Asset Sender API", () => {
         amount: TRANSFER_AMOUNT,
         signer: alice,
         tokenAddress: TOKEN_ADDRESS,
-        recipient: alice.accountAddress,
+        recipient: bob.accountAddress,
       });
       expect(transferTx.success).toBeTruthy();
 
