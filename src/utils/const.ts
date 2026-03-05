@@ -24,7 +24,7 @@ export enum AptosApiType {
  * @group Implementation
  * @category Utils
  */
-export const DEFAULT_MAX_GAS_AMOUNT = 200000;
+export const DEFAULT_MAX_GAS_AMOUNT = 2000000;
 
 /**
  * The minimum max gas amount that the SDK will allow for a transaction.
