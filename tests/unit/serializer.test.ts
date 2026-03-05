@@ -257,7 +257,9 @@ describe("BCS Serializer", () => {
     expect(() => {
       new Serializer(0);
     }).toThrow();
-    expect(() => {}).toThrow();
+    expect(() => {
+      new Serializer(-1);
+    }).toThrow();
   });
 
   it("serializes a vector of Serializable types correctly", () => {

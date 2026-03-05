@@ -110,7 +110,7 @@ export async function getProof(args: {
     throw new Error("iat was not found");
   }
   if (maxExpHorizonSecs < ephemeralKeyPair.expiryDateSecs - decodedJwt.iat) {
-    throw new Error(`The EphemeralKeyPair is too long lived.  It's lifespan must be less than ${maxExpHorizonSecs}`);
+    throw new Error(`The EphemeralKeyPair is too long lived. Its lifespan must be less than ${maxExpHorizonSecs}`);
   }
   const json = {
     jwt_b64: jwt,
