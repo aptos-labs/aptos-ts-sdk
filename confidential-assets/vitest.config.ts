@@ -6,6 +6,9 @@ export default defineConfig({
     globals: true,
     environment: "node",
     setupFiles: [path.resolve(__dirname, "../tests/setupDotenv.ts")],
+    // NOTE: We typically test confidential assets after making changes to the
+    // Aptos framework, which require a manual localnet re-deployment. So this
+    // automatic deployment before every test is disabled, as a result.
     //globalSetup: [path.resolve(__dirname, "../tests/preTest.ts")],
     include: ["tests/**/*.test.ts"],
     exclude: ["tests/units/api/**"],

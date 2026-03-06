@@ -94,7 +94,7 @@ pnpm test tests/e2e/
 
 pnpm test decryption
 
-pnpm jest tests/e2e/confidentialAsset.test.ts -t "rotate Alice" --runInBand
+pnpm test tests/e2e/confidentialAsset.test.ts -t "rotate Alice" --runInBand
 ```
 
 Or, run all tests:
@@ -107,11 +107,11 @@ pnpm test
 ### Discrete log / decryption benchmarks
 
 ```bash
-pnpm jest tests/units/discrete-log.test.ts
+pnpm test tests/units/discrete-log.test.ts
 ```
 
 ### Range proof tests
 
 ```bash
-pnpm jest tests/units/confidentialProofs.test.ts
+pnpm test tests/units/confidentialProofs.test.ts
 ```

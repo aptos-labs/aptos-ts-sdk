@@ -47,18 +47,20 @@ const TYPE_NAME = "0x7::sigma_protocol_withdraw::Withdrawal";
 /**
  * BCS-serialize a WithdrawSession matching the Move struct:
  * ```move
- * struct WithdrawSession { sender: address, asset_type: Object<Metadata>, num_chunks: u64 }
+ * struct WithdrawSession { sender: address, asset_type: Object<Metadata>, num_chunks: u64, has_auditor: bool }
  * ```
  */
 export function bcsSerializeWithdrawSession(
   senderAddress: Uint8Array,
   tokenTypeAddress: Uint8Array,
   numChunks: number,
+  hasAuditor: boolean,
 ): Uint8Array {
   const serializer = new Serializer();
   serializer.serialize(new FixedBytes(senderAddress));
   serializer.serialize(new FixedBytes(tokenTypeAddress));
   serializer.serialize(new U64(numChunks));
+  serializer.serializeBool(hasAuditor);
   return serializer.toUint8Array();
 }
 
@@ -336,7 +338,7 @@ function proveWithdrawInternal(
   const witness: bigint[] = [dkBigint, ...newAmountChunks, ...newRandomness];
 
   // Build domain separator
-  const sessionId = bcsSerializeWithdrawSession(senderAddress, tokenAddress, ell);
+  const sessionId = bcsSerializeWithdrawSession(senderAddress, tokenAddress, ell, hasAuditor);
   const dst: DomainSeparator = {
     contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
     chainId,
@@ -481,7 +483,7 @@ function verifyWithdrawInternal(
     scalars: [vScalar],
   };
 
-  const sessionId = bcsSerializeWithdrawSession(senderAddress, tokenAddress, ell);
+  const sessionId = bcsSerializeWithdrawSession(senderAddress, tokenAddress, ell, hasAuditor);
   const dst: DomainSeparator = {
     contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
     chainId,
