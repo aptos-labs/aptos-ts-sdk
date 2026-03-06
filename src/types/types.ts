@@ -1565,6 +1565,18 @@ export type MoveStructField = {
 };
 
 /**
+ * A variant of a Move enum, containing a name and its associated fields.
+ */
+export type MoveStructVariant = {
+  name: string;
+  /**
+   * Fields belonging to this variant. This will be empty if the enum variant has no
+   * fields. e.g. if enum MyEnum { A { field: u64 }, B }, then B will have no fields.
+   */
+  fields: Array<MoveStructField>;
+};
+
+/**
  * A Move module
  */
 export type MoveModule = {
@@ -1613,9 +1625,14 @@ export type MoveStruct = {
    */
   generic_type_params: Array<MoveFunctionGenericTypeParam>;
   /**
-   * Fields associated with the struct
+   * Fields associated with the struct. Populated for regular structs, empty for enums.
    */
   fields: Array<MoveStructField>;
+  /**
+   * Variants of the enum. Populated when `is_enum` is true, empty for regular structs.
+   * Each variant has a name and can have its own set of fields.
+   */
+  variants: Array<MoveStructVariant>;
 };
 
 /**

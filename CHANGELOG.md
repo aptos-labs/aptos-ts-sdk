@@ -25,6 +25,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # 6.1.0 (2026-02-25)
 
+- Add `variants` field to `MoveStruct` now that the ABI fully describes enums.
+
 ## Added
 
 - Add JWK caching for keyless authentication with 5-minute TTL to improve performance
