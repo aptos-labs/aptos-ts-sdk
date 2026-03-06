@@ -29,6 +29,7 @@ describe("Confidential Asset Sender API", () => {
   const aliceConfidential = getTestConfidentialAccount(alice);
 
   const bob = Account.generate();
+  const bobConfidential = getTestConfidentialAccount(bob);
 
   async function getPublicTokenBalance(accountAddress: AccountAddressInput) {
     return await aptos.getAccountCoinAmount({
@@ -52,6 +53,21 @@ describe("Confidential Asset Sender API", () => {
     expect(confidentialBalance.pendingBalance()).toBe(BigInt(expectedPending));
   }
 
+  async function checkBobDecryptedBalance(
+    expectedAvailable: AnyNumber,
+    expectedPending: AnyNumber,
+  ) {
+    const confidentialBalance = await confidentialAsset.getBalance({
+      accountAddress: bob.accountAddress,
+      tokenAddress: TOKEN_ADDRESS,
+      decryptionKey: bobConfidential,
+      useCachedValue: false,
+    });
+
+    expect(confidentialBalance.availableBalance()).toBe(BigInt(expectedAvailable));
+    expect(confidentialBalance.pendingBalance()).toBe(BigInt(expectedPending));
+  }
+
   async function checkAliceNormalizedBalanceStatus(expectedStatus: boolean) {
     const isNormalized = await confidentialAsset.isBalanceNormalized({
       accountAddress: alice.accountAddress,
@@ -61,12 +77,12 @@ describe("Confidential Asset Sender API", () => {
     expect(isNormalized).toBe(expectedStatus);
   }
 
-  async function checkAliceBalanceFrozenStatus(expectedStatus: boolean) {
-    const isFrozen = await confidentialAsset.isPendingBalanceFrozen({
+  async function checkAliceIncomingTransfersPausedStatus(expectedStatus: boolean) {
+    const isPaused = await confidentialAsset.isIncomingTransfersPaused({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
-    expect(isFrozen).toBe(expectedStatus);
+    expect(isPaused).toBe(expectedStatus);
   }
   beforeAll(async () => {
     await aptos.fundAccount({
@@ -286,6 +302,19 @@ describe("Confidential Asset Sender API", () => {
   );
 
   test(
+    "it should register Bob's confidential balance",
+    async () => {
+      const registerBobTx = await confidentialAsset.registerBalance({
+        signer: bob,
+        tokenAddress: TOKEN_ADDRESS,
+        decryptionKey: bobConfidential,
+      });
+      expect(registerBobTx.success).toBeTruthy();
+    },
+    longTestTimeout,
+  );
+
+  test(
     "it should throw if transferring more than the available balance",
     async () => {
       await confidentialAsset.deposit({
@@ -306,7 +335,7 @@ describe("Confidential Asset Sender API", () => {
           tokenAddress: TOKEN_ADDRESS,
           senderDecryptionKey: aliceConfidential,
           amount: confidentialBalance.availableBalance() + BigInt(1), // This is more than the available balance
-          recipient: alice.accountAddress,
+          recipient: bob.accountAddress,
         }),
       ).rejects.toThrow("Insufficient balance");
     },
@@ -336,19 +365,19 @@ describe("Confidential Asset Sender API", () => {
         tokenAddress: TOKEN_ADDRESS,
         senderDecryptionKey: aliceConfidential,
         amount: transferAmount,
-        recipient: alice.accountAddress,
+        recipient: bob.accountAddress,
       });
 
       await checkAliceDecryptedBalance(
         confidentialBalance.availableBalance() + confidentialBalance.pendingBalance() - transferAmount,
-        transferAmount,
+        0,
       );
     },
     longTestTimeout,
   );
 
   test(
-    "it should transfer Alice's tokens to Alice's pending balance without auditor",
+    "it should transfer Alice's tokens to Bob's pending balance without auditor",
     async () => {
       const confidentialBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
@@ -361,22 +390,26 @@ describe("Confidential Asset Sender API", () => {
         amount: TRANSFER_AMOUNT,
         signer: alice,
         tokenAddress: TOKEN_ADDRESS,
-        recipient: alice.accountAddress,
+        recipient: bob.accountAddress,
       });
 
       expect(transferTx.success).toBeTruthy();
       // Verify the confidential balance has been updated correctly
       await checkAliceDecryptedBalance(
         confidentialBalance.availableBalance() - TRANSFER_AMOUNT,
-        confidentialBalance.pendingBalance() + TRANSFER_AMOUNT,
+        confidentialBalance.pendingBalance(),
       );
     },
     longTestTimeout,
   );
 
-  const AUDITOR = TwistedEd25519PrivateKey.generate();
+  // --- Auditor configuration tests ---
+
+  const VOLUNTARY_AUDITOR = TwistedEd25519PrivateKey.generate();
+  const EFFECTIVE_AUDITOR = TwistedEd25519PrivateKey.generate();
+
   test(
-    "it should transfer Alice's tokens to Alice's confidential balance with auditor",
+    "it should transfer with voluntary auditor only (no effective auditor on-chain)",
     async () => {
       const confidentialBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
@@ -389,43 +422,50 @@ describe("Confidential Asset Sender API", () => {
         amount: TRANSFER_AMOUNT,
         signer: alice,
         tokenAddress: TOKEN_ADDRESS,
-        recipient: alice.accountAddress,
-        additionalAuditorEncryptionKeys: [AUDITOR.publicKey()],
+        recipient: bob.accountAddress,
+        additionalAuditorEncryptionKeys: [VOLUNTARY_AUDITOR.publicKey()],
       });
 
       expect(transferTx.success).toBeTruthy();
 
-      // Verify the confidential balance has been updated correctly
       await checkAliceDecryptedBalance(
         confidentialBalance.availableBalance() - TRANSFER_AMOUNT,
-        confidentialBalance.pendingBalance() + TRANSFER_AMOUNT,
+        confidentialBalance.pendingBalance(),
       );
     },
     longTestTimeout,
   );
 
+  // Effective-auditor e2e tests require calling set_auditor_for_asset_type as the @aptos_framework (0x1)
+  // signer, which we can't do on localnet without the framework private key. The effective-auditor
+  // sigma protocol is fully covered by Move unit tests (all 6 configs) and SDK unit tests.
+  // TODO: once an `aptos` CLI profile for 0x1 is available on localnet, add e2e tests for:
+  //   - "effective auditor only" (set global auditor, transfer with no voluntary auditors)
+  //   - "effective + voluntary auditors" (set global auditor, transfer with voluntary auditors)
+
   test(
-    "it should check is Alice's balance not frozen",
+    "it should check that Alice's incoming transfers are not paused",
     async () => {
-      const isFrozen = await confidentialAsset.isPendingBalanceFrozen({
+      const isPaused = await confidentialAsset.isIncomingTransfersPaused({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
       });
 
-      expect(isFrozen).toBeFalsy();
+      expect(isPaused).toBeFalsy();
     },
     longTestTimeout,
   );
 
   test(
-    "it should throw if checking is Bob's balance not frozen",
+    "it should throw if checking whether an unregistered account's incoming transfers are paused",
     async () => {
+      const unregistered = Account.generate();
       await expect(
-        confidentialAsset.isPendingBalanceFrozen({
-          accountAddress: bob.accountAddress,
+        confidentialAsset.isIncomingTransfersPaused({
+          accountAddress: unregistered.accountAddress,
           tokenAddress: TOKEN_ADDRESS,
         }),
-      ).rejects.toThrow("ECA_STORE_NOT_PUBLISHED");
+      ).rejects.toThrow("E_CONFIDENTIAL_STORE_NOT_REGISTERED");
     },
     longTestTimeout,
   );
@@ -496,12 +536,13 @@ describe("Confidential Asset Sender API", () => {
   test(
     "it should throw if checking if account balance is normalized and the account has not registered a balance",
     async () => {
+      const unregistered = Account.generate();
       await expect(
         confidentialAsset.isBalanceNormalized({
           tokenAddress: TOKEN_ADDRESS,
-          accountAddress: bob.accountAddress,
+          accountAddress: unregistered.accountAddress,
         }),
-      ).rejects.toThrow("ECA_STORE_NOT_PUBLISHED");
+      ).rejects.toThrow("E_CONFIDENTIAL_STORE_NOT_REGISTERED");
     },
     longTestTimeout,
   );
@@ -565,7 +606,7 @@ describe("Confidential Asset Sender API", () => {
         amount: TRANSFER_AMOUNT,
         signer: alice,
         tokenAddress: TOKEN_ADDRESS,
-        recipient: alice.accountAddress,
+        recipient: bob.accountAddress,
       });
       expect(transferTx.success).toBeTruthy();
 
@@ -593,20 +634,19 @@ describe("Confidential Asset Sender API", () => {
         decryptionKey: aliceConfidential,
       });
 
-      // This should unfreeze the balance even though withUnfreezeBalance is unset as it will check the
-      // chain for frozen state.
-      const keyRotationAndUnfreezeTx = await confidentialAsset.rotateEncryptionKey({
+      // This will unpause incoming transfers after rotation (unpause defaults to true).
+      const keyRotationAndUnpauseTx = await confidentialAsset.rotateEncryptionKey({
         signer: alice,
         senderDecryptionKey: aliceConfidential,
         newSenderDecryptionKey: ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY,
         tokenAddress: TOKEN_ADDRESS,
       });
-      for (const tx of keyRotationAndUnfreezeTx) {
+      for (const tx of keyRotationAndUnpauseTx) {
         expect(tx.success).toBeTruthy();
       }
 
-      // Check that the balance is unfrozen
-      await checkAliceBalanceFrozenStatus(false);
+      // Check that incoming transfers are unpaused
+      await checkAliceIncomingTransfersPausedStatus(false);
 
       // If this decrypts correctly, then the key rotation worked.
       await checkAliceDecryptedBalance(
