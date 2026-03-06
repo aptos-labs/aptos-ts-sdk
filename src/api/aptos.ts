@@ -9,6 +9,7 @@ import { Faucet } from "./faucet";
 import { FungibleAsset } from "./fungibleAsset";
 import { General } from "./general";
 import { ANS } from "./ans";
+import { Permissions } from "./permissions";
 import { Staking } from "./staking";
 import { Transaction } from "./transaction";
 import { Table } from "./table";
@@ -41,12 +42,15 @@ import { AccountAbstraction } from "./account/abstraction";
  * ```
  * @group Client
  */
+
 export class Aptos {
   readonly config: AptosConfig;
 
   readonly account: Account;
 
   readonly ans: ANS;
+
+  readonly permissions: Permissions;
 
   readonly coin: Coin;
 
@@ -94,6 +98,7 @@ export class Aptos {
     this.account = new Account(this.config);
     this.abstraction = new AccountAbstraction(this.config);
     this.ans = new ANS(this.config);
+    this.permissions = new Permissions(this.config);
     this.coin = new Coin(this.config);
     this.digitalAsset = new DigitalAsset(this.config);
     this.faucet = new Faucet(this.config);
@@ -116,6 +121,7 @@ export class Aptos {
 export interface Aptos
   extends Account,
     ANS,
+    Permissions,
     Coin,
     DigitalAsset,
     Faucet,
@@ -157,6 +163,7 @@ function applyMixin(targetClass: any, baseClass: any, baseClassProp: string) {
 applyMixin(Aptos, Account, "account");
 applyMixin(Aptos, AccountAbstraction, "abstraction");
 applyMixin(Aptos, ANS, "ans");
+applyMixin(Aptos, Permissions, "permissions");
 applyMixin(Aptos, Coin, "coin");
 applyMixin(Aptos, DigitalAsset, "digitalAsset");
 applyMixin(Aptos, Faucet, "faucet");
