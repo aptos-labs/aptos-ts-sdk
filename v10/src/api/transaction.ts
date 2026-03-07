@@ -1,35 +1,30 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import type { AnyNumber, EntryFunctionArgument } from "../bcs/types.js";
+import type { Account } from "../account/types.js";
 import { Serializer } from "../bcs/serializer.js";
-import { AptosApiType } from "../core/constants.js";
-import type { AccountAddressInput } from "../core/account-address.js";
-import { AccountAddress } from "../core/account-address.js";
-import type { HexInput } from "../hex/index.js";
-import { Hex } from "../hex/index.js";
-import type { TypeTag } from "../core/type-tag.js";
+import type { AnyNumber, EntryFunctionArgument } from "../bcs/types.js";
 import { get } from "../client/get.js";
 import { post } from "../client/post.js";
 import { MimeType } from "../client/types.js";
-import { RawTransaction } from "../transactions/raw-transaction.js";
-import { SimpleTransaction } from "../transactions/simple-transaction.js";
-import { SignedTransaction } from "../transactions/signed-transaction.js";
-import { EntryFunction, TransactionPayloadEntryFunction } from "../transactions/transaction-payload.js";
+import type { AccountAddressInput } from "../core/account-address.js";
+import { AccountAddress } from "../core/account-address.js";
+import { AptosApiType } from "../core/constants.js";
+import type { TypeTag } from "../core/type-tag.js";
+import type { HexInput } from "../hex/index.js";
+import { Hex } from "../hex/index.js";
+import { type AccountAuthenticator, TransactionAuthenticatorSingleSender } from "../transactions/authenticator.js";
 import { ChainId } from "../transactions/chain-id.js";
-import {
-  TransactionAuthenticatorEd25519,
-  TransactionAuthenticatorSingleSender,
-  type AccountAuthenticator,
-} from "../transactions/authenticator.js";
+import { RawTransaction } from "../transactions/raw-transaction.js";
+import { SignedTransaction } from "../transactions/signed-transaction.js";
 import { generateSigningMessageForTransaction } from "../transactions/signing-message.js";
+import { SimpleTransaction } from "../transactions/simple-transaction.js";
+import { EntryFunction, TransactionPayloadEntryFunction } from "../transactions/transaction-payload.js";
 import type { AnyRawTransaction } from "../transactions/types.js";
-import type { Account } from "../account/types.js";
 import type { AptosConfig } from "./config.js";
-import { getLedgerInfo, getGasPriceEstimation } from "./general.js";
+import { getGasPriceEstimation, getLedgerInfo } from "./general.js";
 import type {
   CommittedTransactionResponse,
-  GasEstimation,
   MoveStructId,
   PendingTransactionResponse,
   TransactionResponse,

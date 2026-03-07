@@ -1,11 +1,10 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { Aptos, AptosConfig, createConfig } from "../../../src/api/index.js";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { Aptos, AptosConfig } from "../../../src/api/index.js";
+import type { AccountData, GasEstimation, LedgerInfo } from "../../../src/api/types.js";
 import { Network } from "../../../src/core/network.js";
-import { AptosApiType } from "../../../src/core/constants.js";
-import type { LedgerInfo, GasEstimation, AccountData } from "../../../src/api/types.js";
 
 function mockJsonResponse(data: unknown, status = 200, headers: Record<string, string> = {}) {
   return new Response(JSON.stringify(data), {
@@ -44,7 +43,6 @@ describe("Aptos facade", () => {
 
 describe("General API", () => {
   let fetchSpy: ReturnType<typeof vi.spyOn>;
-  const config = createConfig({ network: Network.LOCAL });
 
   beforeEach(() => {
     fetchSpy = vi.spyOn(globalThis, "fetch");

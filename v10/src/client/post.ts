@@ -3,8 +3,7 @@
 
 import type { AnyNumber } from "../bcs/types.js";
 import { aptosRequest } from "./aptos-request.js";
-import type { AptosResponse, ClientConfig } from "./types.js";
-import { AptosApiType, MimeType } from "./types.js";
+import type { AptosApiType, AptosResponse, ClientConfig, MimeType } from "./types.js";
 
 export interface PostRequestOptions {
   url: string;

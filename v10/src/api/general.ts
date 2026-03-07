@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { AnyNumber } from "../bcs/types.js";
-import { AptosApiType } from "../core/constants.js";
 import { get } from "../client/get.js";
 import { post } from "../client/post.js";
 import { MimeType } from "../client/types.js";
+import { AptosApiType } from "../core/constants.js";
 import type { AptosConfig } from "./config.js";
 import type { Block, GasEstimation, LedgerInfo, ViewFunctionPayload } from "./types.js";
 

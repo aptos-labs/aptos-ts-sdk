@@ -3,8 +3,7 @@
 
 import type { AnyNumber } from "../bcs/types.js";
 import { aptosRequest } from "./aptos-request.js";
-import type { AptosResponse, ClientConfig } from "./types.js";
-import { AptosApiType, MimeType } from "./types.js";
+import type { AptosApiType, AptosResponse, ClientConfig, MimeType } from "./types.js";
 
 export interface GetRequestOptions {
   url: string;
@@ -25,7 +24,9 @@ export async function get<Res>(options: GetRequestOptions): Promise<AptosRespons
   );
 }
 
-export async function paginateWithCursor<Res extends Array<{}>>(options: GetRequestOptions): Promise<Res> {
+export async function paginateWithCursor<Res extends Array<Record<string, unknown>>>(
+  options: GetRequestOptions,
+): Promise<Res> {
   let out: Res = [] as unknown as Res;
   let cursor: string | undefined;
   const requestParams = (options.params ?? {}) as Record<string, string | AnyNumber | boolean | undefined>;
@@ -38,7 +39,9 @@ export async function paginateWithCursor<Res extends Array<{}>>(options: GetRequ
   return out;
 }
 
-export async function paginateWithObfuscatedCursor<Res extends Array<{}>>(options: GetRequestOptions): Promise<Res> {
+export async function paginateWithObfuscatedCursor<Res extends Array<Record<string, unknown>>>(
+  options: GetRequestOptions,
+): Promise<Res> {
   let out: Res = [] as unknown as Res;
   let cursor: string | undefined;
   const requestParams = (options.params ?? {}) as Record<string, string | AnyNumber | boolean | undefined>;

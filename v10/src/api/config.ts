@@ -1,16 +1,16 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import type { ClientConfig, FaucetConfig, FullNodeConfig, IndexerConfig } from "../client/types.js";
 import { AptosApiType, DEFAULT_MAX_GAS_AMOUNT, DEFAULT_TXN_EXP_SEC_FROM_NOW } from "../core/constants.js";
 import {
   Network,
-  NetworkToNodeAPI,
   NetworkToFaucetAPI,
   NetworkToIndexerAPI,
+  NetworkToNodeAPI,
   NetworkToPepperAPI,
   NetworkToProverAPI,
 } from "../core/network.js";
-import type { ClientConfig, FullNodeConfig, IndexerConfig, FaucetConfig } from "../client/types.js";
 
 export interface AptosSettings {
   network?: Network;

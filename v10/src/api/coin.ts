@@ -5,18 +5,17 @@ import { U64 } from "../bcs/move-primitives.js";
 import type { AnyNumber } from "../bcs/types.js";
 import type { AccountAddressInput } from "../core/account-address.js";
 import { AccountAddress } from "../core/account-address.js";
-import { APTOS_COIN } from "../core/constants.js";
-import { SimpleTransaction } from "../transactions/simple-transaction.js";
-import type { MoveStructId } from "./types.js";
+import type { SimpleTransaction } from "../transactions/simple-transaction.js";
 import type { AptosConfig } from "./config.js";
-import { buildSimpleTransaction, type BuildSimpleTransactionOptions } from "./transaction.js";
+import { type BuildSimpleTransactionOptions, buildSimpleTransaction } from "./transaction.js";
+import type { MoveStructId } from "./types.js";
 
 export async function transferCoinTransaction(
   config: AptosConfig,
   sender: AccountAddressInput,
   recipient: AccountAddressInput,
   amount: AnyNumber,
-  coinType?: MoveStructId,
+  _coinType?: MoveStructId,
   options?: BuildSimpleTransactionOptions,
 ): Promise<SimpleTransaction> {
   return buildSimpleTransaction(

@@ -10,7 +10,7 @@ import { Ed25519PublicKey, Ed25519Signature } from "./ed25519.js";
 import { EphemeralPublicKey, EphemeralSignature } from "./ephemeral.js";
 import { bigIntToBytesLE, bytesToBigIntLE, hashStrToField, poseidonHash } from "./poseidon.js";
 import { Proof } from "./proof.js";
-import { AccountPublicKey, createAuthKey, type PublicKey, type VerifySignatureArgs } from "./public-key.js";
+import { AccountPublicKey, type PublicKey, type VerifySignatureArgs } from "./public-key.js";
 import { Signature } from "./signature.js";
 import { EphemeralCertificateVariant, ZkpVariant } from "./types.js";
 

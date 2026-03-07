@@ -1,15 +1,15 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig, type AptosSettings } from "./config.js";
+import type { Account as AccountSigner } from "../account/types.js";
+import type { AnyRawTransaction } from "../transactions/types.js";
 import * as accountFns from "./account.js";
 import * as coinFns from "./coin.js";
+import { AptosConfig, type AptosSettings } from "./config.js";
 import * as faucetFns from "./faucet.js";
 import * as generalFns from "./general.js";
 import * as tableFns from "./table.js";
 import * as transactionFns from "./transaction.js";
-import type { Account as AccountSigner } from "../account/types.js";
-import type { AnyRawTransaction } from "../transactions/types.js";
 
 // ── Namespace API classes (composition, not mixins) ──
 
@@ -134,37 +134,37 @@ export class Aptos {
 // ── Helper type ──
 type DropFirst<T extends any[]> = T extends [any, ...infer Rest] ? Rest : never;
 
-// ── Re-exports ──
-export { AptosConfig, createConfig, type AptosSettings } from "./config.js";
-export * from "./types.js";
-export {
-  getLedgerInfo,
-  getChainId,
-  getBlockByVersion,
-  getBlockByHeight,
-  view,
-  getGasPriceEstimation,
-} from "./general.js";
 export {
   getAccountInfo,
-  getAccountModules,
   getAccountModule,
+  getAccountModules,
   getAccountResource,
   getAccountResources,
   getAccountTransactions,
 } from "./account.js";
+export { transferCoinTransaction } from "./coin.js";
+// ── Re-exports ──
+export { AptosConfig, type AptosSettings, createConfig } from "./config.js";
+export { fundAccount } from "./faucet.js";
+export {
+  getBlockByHeight,
+  getBlockByVersion,
+  getChainId,
+  getGasPriceEstimation,
+  getLedgerInfo,
+  view,
+} from "./general.js";
+export { getTableItem } from "./table.js";
+export type { BuildSimpleTransactionOptions } from "./transaction.js";
 export {
   buildSimpleTransaction,
-  signTransaction,
-  submitTransaction,
-  signAndSubmitTransaction,
-  waitForTransaction,
+  getSigningMessage,
   getTransactionByHash,
   getTransactionByVersion,
   getTransactions,
-  getSigningMessage,
+  signAndSubmitTransaction,
+  signTransaction,
+  submitTransaction,
+  waitForTransaction,
 } from "./transaction.js";
-export type { BuildSimpleTransactionOptions } from "./transaction.js";
-export { fundAccount } from "./faucet.js";
-export { transferCoinTransaction } from "./coin.js";
-export { getTableItem } from "./table.js";
+export * from "./types.js";

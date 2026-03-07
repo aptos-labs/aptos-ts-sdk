@@ -2,17 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { AnyNumber } from "../bcs/types.js";
-import { AptosApiType } from "../core/constants.js";
+import { get, paginateWithCursor, paginateWithObfuscatedCursor } from "../client/get.js";
 import type { AccountAddressInput } from "../core/account-address.js";
 import { AccountAddress } from "../core/account-address.js";
-import { get, paginateWithCursor, paginateWithObfuscatedCursor } from "../client/get.js";
+import { AptosApiType } from "../core/constants.js";
 import type { AptosConfig } from "./config.js";
 import type {
   AccountData,
+  CommittedTransactionResponse,
   MoveModuleBytecode,
   MoveResource,
   MoveStructId,
-  CommittedTransactionResponse,
 } from "./types.js";
 
 export async function getAccountInfo(config: AptosConfig, accountAddress: AccountAddressInput): Promise<AccountData> {

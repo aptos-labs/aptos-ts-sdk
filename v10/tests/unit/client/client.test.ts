@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { aptosRequest } from "../../../src/client/aptos-request.js";
 import { get, paginateWithCursor } from "../../../src/client/get.js";
 import { post } from "../../../src/client/post.js";

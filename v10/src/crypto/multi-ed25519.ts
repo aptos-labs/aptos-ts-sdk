@@ -3,8 +3,8 @@ import type { Serializer } from "../bcs/serializer.js";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519.js";
 import { AbstractMultiKey } from "./multi-key.js";
 import { createAuthKey, type VerifySignatureArgs } from "./public-key.js";
-import { SigningScheme } from "./types.js";
 import { Signature } from "./signature.js";
+import { SigningScheme } from "./types.js";
 
 export class MultiEd25519PublicKey extends AbstractMultiKey {
   static readonly MAX_KEYS = 32;

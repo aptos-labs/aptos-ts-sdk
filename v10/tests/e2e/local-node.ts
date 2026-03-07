@@ -1,7 +1,7 @@
 // Simple local testnet runner for v10 E2E tests
 // Starts `aptos node run-localnet` and waits for readiness
 
-import { spawn, type ChildProcess } from "node:child_process";
+import { type ChildProcess, spawn } from "node:child_process";
 
 const READINESS_URL = "http://127.0.0.1:8070/";
 const MAX_WAIT_SEC = 75;

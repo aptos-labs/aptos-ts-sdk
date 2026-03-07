@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { AnyNumber } from "../bcs/types.js";
-import { AptosApiType } from "../core/constants.js";
 import { post } from "../client/post.js";
+import { AptosApiType } from "../core/constants.js";
 import type { AptosConfig } from "./config.js";
 import type { TableItemRequest } from "./types.js";
 

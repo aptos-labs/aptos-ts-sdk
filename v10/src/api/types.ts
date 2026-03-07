@@ -5,6 +5,7 @@
 
 // Re-export MoveStructId from transactions to avoid duplication
 import type { MoveStructId } from "../transactions/types.js";
+
 export type { MoveStructId } from "../transactions/types.js";
 
 export enum RoleType {
@@ -29,7 +30,7 @@ export type AccountData = {
   authentication_key: string;
 };
 
-export type MoveResource<T = {}> = {
+export type MoveResource<T = Record<string, unknown>> = {
   type: MoveStructId;
   data: T;
 };

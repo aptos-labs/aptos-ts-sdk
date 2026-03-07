@@ -1,13 +1,13 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { describe, expect, it, beforeAll } from "vitest";
-import { Aptos } from "../../../src/api/index.js";
-import { Network } from "../../../src/core/network.js";
+import { beforeAll, describe, expect, it } from "vitest";
+import type { Ed25519Account } from "../../../src/account/ed25519-account.js";
 import { generateAccount } from "../../../src/account/factory.js";
-import { Ed25519Account } from "../../../src/account/ed25519-account.js";
-import { AccountAddress } from "../../../src/core/account-address.js";
+import { Aptos } from "../../../src/api/index.js";
 import { U64 } from "../../../src/bcs/move-primitives.js";
+import { AccountAddress } from "../../../src/core/account-address.js";
+import { Network } from "../../../src/core/network.js";
 
 const aptos = new Aptos({ network: Network.LOCAL });
 
