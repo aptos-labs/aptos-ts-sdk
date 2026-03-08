@@ -15,6 +15,12 @@ import type {
   MoveStructId,
 } from "./types.js";
 
+/**
+ * Retrieves core account information including the sequence number and authentication key.
+ * @param config - The Aptos configuration specifying which network and endpoints to use.
+ * @param accountAddress - The address of the account to query.
+ * @returns The account data containing sequence number and authentication key.
+ */
 export async function getAccountInfo(config: AptosConfig, accountAddress: AccountAddressInput): Promise<AccountData> {
   const url = config.getRequestUrl(AptosApiType.FULLNODE);
   const response = await get<AccountData>({
@@ -27,6 +33,15 @@ export async function getAccountInfo(config: AptosConfig, accountAddress: Accoun
   return response.data;
 }
 
+/**
+ * Retrieves all Move modules published under the specified account. Results are paginated automatically.
+ * @param config - The Aptos configuration specifying which network and endpoints to use.
+ * @param accountAddress - The address of the account whose modules to retrieve.
+ * @param options - Optional parameters.
+ * @param options.limit - Maximum number of modules per page. Defaults to 1000.
+ * @param options.ledgerVersion - The ledger version to query at. Defaults to the latest version.
+ * @returns An array of all Move modules published under the account.
+ */
 export async function getAccountModules(
   config: AptosConfig,
   accountAddress: AccountAddressInput,
@@ -43,6 +58,15 @@ export async function getAccountModules(
   });
 }
 
+/**
+ * Retrieves a single Move module by name from the specified account.
+ * @param config - The Aptos configuration specifying which network and endpoints to use.
+ * @param accountAddress - The address of the account that published the module.
+ * @param moduleName - The name of the module to retrieve.
+ * @param options - Optional parameters.
+ * @param options.ledgerVersion - The ledger version to query at. Defaults to the latest version.
+ * @returns The Move module bytecode and ABI.
+ */
 export async function getAccountModule(
   config: AptosConfig,
   accountAddress: AccountAddressInput,
@@ -61,6 +85,16 @@ export async function getAccountModule(
   return response.data;
 }
 
+/**
+ * Retrieves a specific Move resource by type from the specified account.
+ * @typeParam T - The expected shape of the resource data.
+ * @param config - The Aptos configuration specifying which network and endpoints to use.
+ * @param accountAddress - The address of the account holding the resource.
+ * @param resourceType - The fully qualified Move struct type of the resource (e.g. `"0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>"`).
+ * @param options - Optional parameters.
+ * @param options.ledgerVersion - The ledger version to query at. Defaults to the latest version.
+ * @returns The deserialized resource data.
+ */
 export async function getAccountResource<T = unknown>(
   config: AptosConfig,
   accountAddress: AccountAddressInput,
@@ -79,6 +113,15 @@ export async function getAccountResource<T = unknown>(
   return response.data.data;
 }
 
+/**
+ * Retrieves all Move resources stored under the specified account. Results are paginated automatically.
+ * @param config - The Aptos configuration specifying which network and endpoints to use.
+ * @param accountAddress - The address of the account whose resources to retrieve.
+ * @param options - Optional parameters.
+ * @param options.limit - Maximum number of resources per page. Defaults to 999.
+ * @param options.ledgerVersion - The ledger version to query at. Defaults to the latest version.
+ * @returns An array of all Move resources stored under the account.
+ */
 export async function getAccountResources(
   config: AptosConfig,
   accountAddress: AccountAddressInput,
@@ -95,6 +138,15 @@ export async function getAccountResources(
   });
 }
 
+/**
+ * Retrieves transactions sent by the specified account. Results are paginated automatically.
+ * @param config - The Aptos configuration specifying which network and endpoints to use.
+ * @param accountAddress - The address of the account whose transactions to retrieve.
+ * @param options - Optional parameters.
+ * @param options.offset - The sequence number to start listing transactions from.
+ * @param options.limit - Maximum number of transactions to return per page.
+ * @returns An array of committed transactions sent by the account.
+ */
 export async function getAccountTransactions(
   config: AptosConfig,
   accountAddress: AccountAddressInput,

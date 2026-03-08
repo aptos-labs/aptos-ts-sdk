@@ -31,7 +31,7 @@ function base64UrlDecode(input: string): string {
   return atob(padded);
 }
 
-function decodeJwtPayload(jwt: string): Record<string, any> {
+function decodeJwtPayload(jwt: string): Record<string, unknown> {
   const parts = jwt.split(".");
   if (parts.length !== 3) {
     throw new Error("Invalid JWT format");
@@ -39,7 +39,7 @@ function decodeJwtPayload(jwt: string): Record<string, any> {
   return JSON.parse(base64UrlDecode(parts[1]));
 }
 
-function decodeJwtHeader(jwt: string): Record<string, any> {
+function decodeJwtHeader(jwt: string): Record<string, unknown> {
   const parts = jwt.split(".");
   if (parts.length !== 3) {
     throw new Error("Invalid JWT format");
@@ -47,13 +47,25 @@ function decodeJwtHeader(jwt: string): Record<string, any> {
   return JSON.parse(base64UrlDecode(parts[0]));
 }
 
+/**
+ * Extracts the `iss`, `aud`, and the uid value identified by `uidKey` from a
+ * raw JWT string without requiring a network request.
+ *
+ * @param args.jwt - The raw JSON Web Token string.
+ * @param args.uidKey - The JWT payload claim to use as the user identifier.
+ *   Defaults to `"sub"`.
+ * @returns An object with `iss`, `aud`, and `uidVal` extracted from the JWT payload.
+ *
+ * @throws {@link KeylessError} with type `JWT_PARSING_ERROR` if the JWT is
+ *   malformed or missing required claims.
+ */
 export function getIssAudAndUidVal(args: { jwt: string; uidKey?: string }): {
   iss: string;
   aud: string;
   uidVal: string;
 } {
   const { jwt, uidKey = "sub" } = args;
-  let jwtPayload: Record<string, any>;
+  let jwtPayload: Record<string, unknown>;
   try {
     jwtPayload = decodeJwtPayload(jwt);
   } catch {
@@ -74,32 +86,78 @@ export function getIssAudAndUidVal(args: { jwt: string; uidKey?: string }): {
       details: "Invalid JWT: missing or malformed required claim",
     });
   }
-  return { iss: jwtPayload.iss, aud: jwtPayload.aud, uidVal: jwtPayload[uidKey] };
+  return { iss: jwtPayload.iss as string, aud: jwtPayload.aud as string, uidVal: jwtPayload[uidKey] as string };
 }
 
 // ── Proof fetch types ──
 
+/** Indicates that a background proof fetch completed successfully. */
 export type ProofFetchSuccess = { status: "Success" };
+
+/** Indicates that a background proof fetch failed, along with an error description. */
 export type ProofFetchFailure = { status: "Failed"; error: string };
+
+/** Union of the two possible outcomes of an asynchronous proof fetch. */
 export type ProofFetchStatus = ProofFetchSuccess | ProofFetchFailure;
+
+/**
+ * Callback invoked once a background zero-knowledge proof fetch resolves.
+ *
+ * @param status - The final {@link ProofFetchStatus} of the fetch attempt.
+ * @returns A promise that the caller may await.
+ */
 export type ProofFetchCallback = (status: ProofFetchStatus) => Promise<void>;
 
 // ── AbstractKeylessAccount ──
 
+/**
+ * Abstract base class shared by {@link KeylessAccount} and
+ * {@link FederatedKeylessAccount}.
+ *
+ * Manages the ephemeral key pair, zero-knowledge proof, JWT, and pepper that
+ * are common to all keyless signing flows.  Subclasses supply the concrete
+ * public key type and serialization details.
+ *
+ * Proof can be provided either eagerly (as a resolved {@link ZeroKnowledgeSig})
+ * or lazily (as a `Promise<ZeroKnowledgeSig>` with a `proofFetchCallback`).
+ */
 export abstract class AbstractKeylessAccount extends Serializable implements Account, SingleKeySigner {
+  /** Length in bytes of the pepper value used to blind the user identifier. */
   static readonly PEPPER_LENGTH: number = 31;
 
+  /** The keyless public key (either standard or federated). */
   readonly publicKey: KeylessPublicKey | FederatedKeylessPublicKey;
+  /** The short-lived ephemeral key pair used to produce the inner signature. */
   readonly ephemeralKeyPair: EphemeralKeyPair;
+  /** The JWT payload claim used as the user identifier (e.g. `"sub"`). */
   readonly uidKey: string;
+  /** The value of the {@link uidKey} claim from the JWT payload. */
   readonly uidVal: string;
+  /** The `aud` (audience) claim from the JWT payload. */
   readonly aud: string;
+  /** The 31-byte pepper that blinds the user identifier in the public key. */
   readonly pepper: Uint8Array;
+  /** The on-chain address of this account. */
   readonly accountAddress: AccountAddress;
+  /**
+   * The resolved zero-knowledge proof, or `undefined` while an async fetch is
+   * still in progress.
+   */
   proof: ZeroKnowledgeSig | undefined;
+  /**
+   * Either the resolved proof or the promise that will resolve to it.
+   * Use {@link waitForProofFetch} to await a pending promise.
+   */
   readonly proofOrPromise: ZeroKnowledgeSig | Promise<ZeroKnowledgeSig>;
+  /** Always `SigningScheme.SingleKey` for keyless accounts. */
   readonly signingScheme: SigningScheme = SigningScheme.SingleKey;
+  /** The raw JWT string used to derive the public key. */
   readonly jwt: string;
+  /**
+   * Optional 32-byte hash of the Groth16 verification key that was used to
+   * generate the proof.  When present, it is included in signatures to allow
+   * on-chain verification key rotation.
+   */
   readonly verificationKeyHash?: Uint8Array;
 
   // Use native EventTarget instead of eventemitter3
@@ -137,7 +195,7 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
     this.publicKey = publicKey;
     this.accountAddress = address
       ? AccountAddress.from(address)
-      : (new AnyPublicKey(this.publicKey).authKey() as any).derivedAddress();
+      : (new AnyPublicKey(this.publicKey).authKey() as { derivedAddress(): AccountAddress }).derivedAddress();
     this.uidKey = uidKey;
     this.uidVal = uidVal;
     this.aud = aud;
@@ -176,10 +234,24 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
     }
   }
 
+  /**
+   * Returns the {@link AnyPublicKey} wrapper around this account's keyless public key.
+   *
+   * @returns An {@link AnyPublicKey} wrapping the underlying keyless public key.
+   */
   getAnyPublicKey(): AnyPublicKey {
     return new AnyPublicKey(this.publicKey);
   }
 
+  /**
+   * Awaits a pending proof fetch promise and stores the resolved proof.
+   *
+   * Dispatches a `proofFetchFinish` event on success or failure, which triggers
+   * the registered {@link ProofFetchCallback}.
+   *
+   * @param promise - The promise that will resolve to a {@link ZeroKnowledgeSig}.
+   * @returns A promise that resolves once the proof has been stored (or the fetch fails).
+   */
   async init(promise: Promise<ZeroKnowledgeSig>): Promise<void> {
     try {
       this.proof = await promise;
@@ -192,6 +264,13 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
     }
   }
 
+  /**
+   * Serializes this account into BCS bytes.
+   *
+   * Throws if the proof has not yet been resolved (i.e. async fetch is still pending).
+   *
+   * @param serializer - The BCS serializer to write into.
+   */
   serialize(serializer: Serializer): void {
     this.accountAddress.serialize(serializer);
     serializer.serializeStr(this.jwt);
@@ -205,6 +284,17 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
     serializer.serializeOption(this.verificationKeyHash, 32);
   }
 
+  /**
+   * Deserializes the fields that are common to all keyless account types from a
+   * BCS byte stream.
+   *
+   * Concrete subclasses call this method and then deserialize any additional
+   * type-specific fields before constructing themselves.
+   *
+   * @param deserializer - The BCS deserializer to read from.
+   * @returns An object containing `address`, `jwt`, `uidKey`, `pepper`,
+   *   `ephemeralKeyPair`, `proof`, and an optional `verificationKeyHash`.
+   */
   static partialDeserialize(deserializer: Deserializer): {
     address: AccountAddress;
     jwt: string;
@@ -224,14 +314,32 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
     return { address, jwt, uidKey, pepper, ephemeralKeyPair, proof, verificationKeyHash };
   }
 
+  /**
+   * Returns whether this account's ephemeral key pair has passed its expiry date.
+   *
+   * @returns `true` if the ephemeral key pair is expired, `false` otherwise.
+   */
   isExpired(): boolean {
     return this.ephemeralKeyPair.isExpired();
   }
 
+  /**
+   * Signs a message and returns an {@link AccountAuthenticatorSingleKey} wrapping
+   * the keyless public key and the {@link KeylessSignature}.
+   *
+   * @param message - The message bytes to sign, in any supported hex input format.
+   * @returns An {@link AccountAuthenticatorSingleKey} ready for use in a transaction.
+   */
   signWithAuthenticator(message: HexInput): AccountAuthenticatorSingleKey {
     return new AccountAuthenticatorSingleKey(new AnyPublicKey(this.publicKey), new AnySignature(this.sign(message)));
   }
 
+  /**
+   * Signs a raw transaction and returns an {@link AccountAuthenticatorSingleKey}.
+   *
+   * @param transaction - The raw transaction to sign.
+   * @returns An {@link AccountAuthenticatorSingleKey} containing the keyless signature.
+   */
   signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorSingleKey {
     return new AccountAuthenticatorSingleKey(
       new AnyPublicKey(this.publicKey),
@@ -239,13 +347,32 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
     );
   }
 
+  /**
+   * Waits for a pending background proof fetch to complete.
+   *
+   * If the proof was supplied eagerly, this resolves immediately.
+   *
+   * @returns A promise that resolves once {@link proofOrPromise} has settled.
+   */
   async waitForProofFetch(): Promise<void> {
     if (this.proofOrPromise instanceof Promise) {
       await this.proofOrPromise;
     }
   }
 
-  async checkKeylessAccountValidity(..._args: any[]): Promise<void> {
+  /**
+   * Validates the account state prior to signing a transaction.
+   *
+   * Checks that:
+   * - The ephemeral key pair has not expired.
+   * - The zero-knowledge proof has been resolved (waits if needed).
+   * - The JWT header contains a `kid` field.
+   *
+   * @returns A promise that resolves when the account is ready to sign.
+   * @throws {@link KeylessError} if the account is expired, the proof is missing,
+   *   or the JWT is malformed.
+   */
+  async checkKeylessAccountValidity(..._args: unknown[]): Promise<void> {
     if (this.isExpired()) {
       throw KeylessError.fromErrorType({ type: KeylessErrorType.EPHEMERAL_KEY_PAIR_EXPIRED });
     }
@@ -264,6 +391,19 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
     // Additional checks can be added in the API layer's checkKeylessAccountValidity wrapper.
   }
 
+  /**
+   * Signs a raw message and returns a {@link KeylessSignature}.
+   *
+   * The signature includes the JWT header, an ephemeral certificate wrapping the
+   * zero-knowledge proof, the ephemeral public key, and the inner ephemeral
+   * signature over the message.
+   *
+   * @param message - The message bytes to sign, in any supported hex input format.
+   * @returns A {@link KeylessSignature} over the message.
+   *
+   * @throws {@link KeylessError} if the ephemeral key pair is expired or the
+   *   proof has not yet been resolved.
+   */
   sign(message: HexInput): KeylessSignature {
     const { expiryDateSecs } = this.ephemeralKeyPair;
     if (this.isExpired()) {
@@ -287,6 +427,17 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
     });
   }
 
+  /**
+   * Signs a raw transaction and returns a {@link KeylessSignature}.
+   *
+   * The signing message is derived by hashing the transaction together with the
+   * zero-knowledge proof to prevent proof replay.
+   *
+   * @param transaction - The raw transaction to sign.
+   * @returns A {@link KeylessSignature} over the combined transaction-and-proof message.
+   *
+   * @throws {@link KeylessError} if the proof has not yet been resolved.
+   */
   signTransaction(transaction: AnyRawTransaction): KeylessSignature {
     if (this.proof === undefined) {
       throw KeylessError.fromErrorType({
@@ -300,6 +451,19 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
     return this.sign(signMess);
   }
 
+  /**
+   * Computes the signing message for a transaction combined with the
+   * zero-knowledge proof.
+   *
+   * This is the message that is passed to the ephemeral key's inner signing
+   * operation and allows the proof to be bound to the specific transaction.
+   *
+   * @param transaction - The raw transaction.
+   * @returns The 32-byte signing message (SHA3-256 hash of the BCS-encoded
+   *   {@link TransactionAndProof}).
+   *
+   * @throws {@link KeylessError} if the proof has not yet been resolved.
+   */
   getSigningMessage(transaction: AnyRawTransaction): Uint8Array {
     if (this.proof === undefined) {
       throw KeylessError.fromErrorType({
@@ -312,29 +476,64 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
     return txnAndProof.hash();
   }
 
-  verifySignature(args: { message: HexInput; signature: KeylessSignature; [key: string]: any }): boolean {
+  /**
+   * Verifies that a {@link KeylessSignature} is valid for the given message.
+   *
+   * @param args - An object with the `message` (hex input) and the
+   *   `signature` ({@link KeylessSignature}) to verify.
+   * @returns `true` if the signature is valid, `false` otherwise.
+   */
+  verifySignature(args: { message: HexInput; signature: KeylessSignature; [key: string]: unknown }): boolean {
     return this.publicKey.verifySignature(args);
   }
 }
 
 // ── TransactionAndProof ──
 
+/**
+ * A BCS-serializable container that binds a raw transaction to an optional
+ * zero-knowledge proof.
+ *
+ * The hash of this structure is the actual bytes signed by the ephemeral key
+ * inside a keyless signature, ensuring the proof cannot be replayed across
+ * different transactions.
+ */
 export class TransactionAndProof extends Serializable {
+  /** The raw transaction instance to be signed. */
   transaction: AnyRawTransactionInstance;
+  /** The optional zero-knowledge proof to bind to the transaction. */
   proof?: ZkProof;
+  /** The domain separator used when hashing this structure. */
   readonly domainSeparator = "APTOS::TransactionAndProof";
 
+  /**
+   * Creates a {@link TransactionAndProof}.
+   *
+   * @param transaction - The raw transaction to include.
+   * @param proof - An optional {@link ZkProof} to bind to the transaction.
+   */
   constructor(transaction: AnyRawTransactionInstance, proof?: ZkProof) {
     super();
     this.transaction = transaction;
     this.proof = proof;
   }
 
+  /**
+   * BCS-serializes the transaction and the optional proof into the given serializer.
+   *
+   * @param serializer - The BCS serializer to write into.
+   */
   serialize(serializer: Serializer): void {
     serializer.serializeFixedBytes(this.transaction.bcsToBytes());
     serializer.serializeOption(this.proof);
   }
 
+  /**
+   * Computes the signing message for this structure by hashing its BCS bytes
+   * with the {@link domainSeparator}.
+   *
+   * @returns A 32-byte `Uint8Array` representing the signing message.
+   */
   hash(): Uint8Array {
     return generateSigningMessage(this.bcsToBytes(), this.domainSeparator);
   }

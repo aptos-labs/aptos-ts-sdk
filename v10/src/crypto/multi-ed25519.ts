@@ -6,14 +6,43 @@ import { createAuthKey, type VerifySignatureArgs } from "./public-key.js";
 import { Signature } from "./signature.js";
 import { SigningScheme } from "./types.js";
 
+/**
+ * A K-of-N multi-signature public key using the legacy MultiEd25519 scheme.
+ *
+ * All constituent keys must be Ed25519 keys.  The `threshold` specifies how
+ * many signatures are required to authorise a transaction.
+ *
+ * @example
+ * ```ts
+ * const multiKey = new MultiEd25519PublicKey({
+ *   publicKeys: [key1, key2, key3],
+ *   threshold: 2,
+ * });
+ * ```
+ */
 export class MultiEd25519PublicKey extends AbstractMultiKey {
+  /** Maximum number of public keys in a MultiEd25519 key set. */
   static readonly MAX_KEYS = 32;
+  /** Minimum number of public keys in a MultiEd25519 key set. */
   static readonly MIN_KEYS = 2;
+  /** Minimum acceptable signature threshold. */
   static readonly MIN_THRESHOLD = 1;
 
+  /** The ordered list of constituent Ed25519 public keys. */
   public readonly publicKeys: Ed25519PublicKey[];
+  /** The minimum number of valid signatures required to authenticate. */
   public readonly threshold: number;
 
+  /**
+   * Creates a `MultiEd25519PublicKey`.
+   *
+   * @param args - Configuration object.
+   * @param args.publicKeys - Between 2 and 32 Ed25519 public keys.
+   * @param args.threshold - The minimum number of signatures required (1 ≤
+   *   threshold ≤ `publicKeys.length`).
+   * @throws If the number of keys is not in the range [2, 32].
+   * @throws If `threshold` is not in the range [1, `publicKeys.length`].
+   */
   constructor(args: { publicKeys: Ed25519PublicKey[]; threshold: number }) {
     const { publicKeys, threshold } = args;
     super({ publicKeys });
@@ -33,10 +62,29 @@ export class MultiEd25519PublicKey extends AbstractMultiKey {
     this.threshold = threshold;
   }
 
+  /**
+   * Returns the signature threshold (the minimum number of signatures
+   * required to authorise a transaction).
+   *
+   * @returns The `threshold` value.
+   */
   getSignaturesRequired(): number {
     return this.threshold;
   }
 
+  /**
+   * Verifies a {@link MultiEd25519Signature} against this multi-key.
+   *
+   * The bitmap in the signature specifies which keys signed; each corresponding
+   * Ed25519 signature is verified individually.
+   *
+   * @param args - Object containing `message` and `signature`.
+   * @returns `true` if all signed signatures are valid and the count meets the
+   *   threshold, `false` if any signature is invalid.
+   * @throws If `signature` is not a `MultiEd25519Signature`.
+   * @throws If the bitmap and signature array lengths do not match.
+   * @throws If fewer signatures are provided than the threshold requires.
+   */
   verifySignature(args: VerifySignatureArgs): boolean {
     const { message, signature } = args;
     if (!(signature instanceof MultiEd25519Signature)) return false;
@@ -66,10 +114,22 @@ export class MultiEd25519PublicKey extends AbstractMultiKey {
     return true;
   }
 
+  /**
+   * Derives the on-chain authentication key for this multi-key using the
+   * `MultiEd25519` signing scheme.
+   *
+   * @returns The `AccountAddress` representing the authentication key.
+   */
   authKey(): unknown {
     return createAuthKey(SigningScheme.MultiEd25519, this.toUint8Array());
   }
 
+  /**
+   * Returns the raw byte representation: the concatenation of all public key
+   * bytes followed by the single-byte threshold.
+   *
+   * @returns The multi-key bytes as a `Uint8Array`.
+   */
   toUint8Array(): Uint8Array {
     const bytes = new Uint8Array(this.publicKeys.length * Ed25519PublicKey.LENGTH + 1);
     this.publicKeys.forEach((k: Ed25519PublicKey, i: number) => {
@@ -79,10 +139,21 @@ export class MultiEd25519PublicKey extends AbstractMultiKey {
     return bytes;
   }
 
+  /**
+   * BCS-serialises the multi-key by writing its raw bytes with a length prefix.
+   *
+   * @param serializer - The BCS serializer to write into.
+   */
   serialize(serializer: Serializer): void {
     serializer.serializeBytes(this.toUint8Array());
   }
 
+  /**
+   * Deserialises a `MultiEd25519PublicKey` from a BCS stream.
+   *
+   * @param deserializer - The BCS deserializer to read from.
+   * @returns A new `MultiEd25519PublicKey`.
+   */
   static deserialize(deserializer: Deserializer): MultiEd25519PublicKey {
     const bytes = deserializer.deserializeBytes();
     const threshold = bytes[bytes.length - 1];
@@ -94,13 +165,39 @@ export class MultiEd25519PublicKey extends AbstractMultiKey {
   }
 }
 
+/**
+ * A multi-signature for the legacy `MultiEd25519` scheme, consisting of
+ * individual Ed25519 signatures and a bitmap indicating which keys signed.
+ *
+ * @example
+ * ```ts
+ * const multiSig = new MultiEd25519Signature({
+ *   signatures: [sig0, sig1],
+ *   bitmap: MultiEd25519Signature.createBitmap({ bits: [0, 1] }),
+ * });
+ * ```
+ */
 export class MultiEd25519Signature extends Signature {
+  /** Maximum number of signatures supported. */
   static MAX_SIGNATURES_SUPPORTED = 32;
+  /** Byte length of the bitmap. */
   static BITMAP_LEN: number = 4;
 
+  /** The individual Ed25519 signatures from each signer. */
   public readonly signatures: Ed25519Signature[];
+  /** A 4-byte bitmap indicating which key indices signed. */
   public readonly bitmap: Uint8Array;
 
+  /**
+   * Creates a `MultiEd25519Signature`.
+   *
+   * @param args - Configuration object.
+   * @param args.signatures - The individual Ed25519 signatures.
+   * @param args.bitmap - Either a pre-built 4-byte `Uint8Array` or an array of
+   *   signer index numbers from which the bitmap is constructed.
+   * @throws If the number of signatures exceeds `MAX_SIGNATURES_SUPPORTED`.
+   * @throws If the bitmap length is not 4 bytes.
+   */
   constructor(args: { signatures: Ed25519Signature[]; bitmap: Uint8Array | number[] }) {
     super();
     const { signatures, bitmap } = args;
@@ -121,6 +218,12 @@ export class MultiEd25519Signature extends Signature {
     }
   }
 
+  /**
+   * Returns the raw byte representation: the concatenation of all signature
+   * bytes followed by the 4-byte bitmap.
+   *
+   * @returns The multi-signature bytes as a `Uint8Array`.
+   */
   toUint8Array(): Uint8Array {
     const bytes = new Uint8Array(this.signatures.length * Ed25519Signature.LENGTH + MultiEd25519Signature.BITMAP_LEN);
     this.signatures.forEach((k: Ed25519Signature, i: number) => {
@@ -130,10 +233,22 @@ export class MultiEd25519Signature extends Signature {
     return bytes;
   }
 
+  /**
+   * BCS-serialises the multi-signature by writing its raw bytes with a length
+   * prefix.
+   *
+   * @param serializer - The BCS serializer to write into.
+   */
   serialize(serializer: Serializer): void {
     serializer.serializeBytes(this.toUint8Array());
   }
 
+  /**
+   * Deserialises a `MultiEd25519Signature` from a BCS stream.
+   *
+   * @param deserializer - The BCS deserializer to read from.
+   * @returns A new `MultiEd25519Signature`.
+   */
   static deserialize(deserializer: Deserializer): MultiEd25519Signature {
     const bytes = deserializer.deserializeBytes();
     const bitmap = bytes.subarray(bytes.length - 4);
@@ -144,6 +259,22 @@ export class MultiEd25519Signature extends Signature {
     return new MultiEd25519Signature({ signatures, bitmap });
   }
 
+  /**
+   * Builds a 4-byte bitmap from an array of signer index numbers.
+   *
+   * Indices must be in strictly ascending order.
+   *
+   * @param args - Object containing the `bits` array of signer indices.
+   * @returns A 4-byte `Uint8Array` with the corresponding bits set.
+   * @throws If any index is ≥ `MAX_SIGNATURES_SUPPORTED`.
+   * @throws If any index appears more than once.
+   * @throws If the indices are not in strictly ascending order.
+   *
+   * @example
+   * ```ts
+   * const bitmap = MultiEd25519Signature.createBitmap({ bits: [0, 2] });
+   * ```
+   */
   static createBitmap(args: { bits: number[] }): Uint8Array {
     const { bits } = args;
     const firstBitInByte = 128;

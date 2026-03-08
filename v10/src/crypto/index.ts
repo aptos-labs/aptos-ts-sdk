@@ -1,3 +1,17 @@
+/**
+ * @module crypto
+ *
+ * Public API for the Aptos TypeScript SDK cryptographic primitives.
+ *
+ * Re-exports all public types and utilities from the individual crypto
+ * sub-modules (Ed25519, Secp256k1, Secp256r1, multi-key schemes, Keyless
+ * authentication, BIP-39/SLIP-0010 HD key derivation, Poseidon hashing,
+ * BCS serialisation helpers, and more).
+ *
+ * Side-effect: registers the Keyless public-key types with the `AnyPublicKey`
+ * / `AnySignature` deserialisers to break the circular dependency between
+ * `single-key.ts` and `keyless.ts`.
+ */
 export * from "./abstraction.js";
 export * from "./deserialization-utils.js";
 export * from "./ed25519.js";

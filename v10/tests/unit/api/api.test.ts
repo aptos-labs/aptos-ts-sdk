@@ -3,7 +3,8 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Aptos, AptosConfig } from "../../../src/api/index.js";
-import type { AccountData, GasEstimation, LedgerInfo } from "../../../src/api/types.js";
+import type { AccountData, GasEstimation, LedgerInfo, TransactionResponse } from "../../../src/api/types.js";
+import { RoleType } from "../../../src/api/types.js";
 import { Network } from "../../../src/core/network.js";
 
 function mockJsonResponse(data: unknown, status = 200, headers: Record<string, string> = {}) {
@@ -26,7 +27,7 @@ describe("Aptos facade", () => {
 
   it("creates with AptosConfig instance", () => {
     const config = new AptosConfig({ network: Network.LOCAL });
-    const aptos = new Aptos(config as any);
+    const aptos = new Aptos(config);
     expect(aptos.config.network).toBe(Network.LOCAL);
   });
 
@@ -59,7 +60,7 @@ describe("General API", () => {
       ledger_version: "100",
       oldest_ledger_version: "0",
       ledger_timestamp: "1000",
-      node_role: "full_node" as any,
+      node_role: RoleType.FULL_NODE,
       oldest_block_height: "0",
       block_height: "50",
     };
@@ -176,7 +177,7 @@ describe("Account API", () => {
     const aptos = new Aptos({ network: Network.LOCAL });
     const resource = await aptos.account.getResource<{ coin: { value: string } }>(
       "0x1",
-      "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>" as any,
+      "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>" as `${string}::${string}::${string}`,
     );
     expect(resource.coin.value).toBe("100");
   });
@@ -248,7 +249,7 @@ describe("Transaction API", () => {
 
     const aptos = new Aptos({ network: Network.LOCAL });
     const txn = await aptos.transaction.getByVersion(42);
-    expect((txn as any).version).toBe("42");
+    expect((txn as TransactionResponse & { version?: string }).version).toBe("42");
   });
 
   it("buildSimple creates a SimpleTransaction", async () => {

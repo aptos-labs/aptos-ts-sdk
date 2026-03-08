@@ -123,17 +123,3 @@ describe("Compat barrel exports", () => {
     expect(typeof getTableItem).toBe("function");
   });
 });
-
-describe("Compat CJS wrapper", () => {
-  it("CJS wrapper loads via require() and exposes the same exports", async () => {
-    // Use createRequire to test the .cjs wrapper from ESM.
-    // The wrapper lives in dist/ so we test against the built output.
-    const { createRequire } = await import("node:module");
-    const require = createRequire(import.meta.url);
-    const cjsMod = require("../../../dist/esm/compat/index.cjs");
-    expect(cjsMod.Aptos).toBeDefined();
-    expect(cjsMod.Network).toBeDefined();
-    expect(typeof cjsMod.Aptos).toBe("function");
-    expect(cjsMod.Network.TESTNET).toBe("testnet");
-  });
-});

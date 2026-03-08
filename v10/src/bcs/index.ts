@@ -1,6 +1,24 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+/**
+ * @module bcs
+ *
+ * Binary Canonical Serialization (BCS) module.
+ *
+ * Provides serialization and deserialization of Move primitive types and structs
+ * for use in Aptos transactions and on-chain data encoding.
+ *
+ * Key exports:
+ * - {@link Serializer} / {@link Deserializer} — low-level byte I/O
+ * - {@link Serializable} / {@link Deserializable} — base types for custom structs
+ * - Move primitives: {@link Bool}, {@link U8}, {@link U16}, {@link U32}, {@link U64},
+ *   {@link U128}, {@link U256}, {@link I8}, {@link I16}, {@link I32}, {@link I64},
+ *   {@link I128}, {@link I256}
+ * - Move structs: {@link MoveVector}, {@link MoveOption}, {@link MoveString},
+ *   {@link FixedBytes}, {@link EntryFunctionBytes}, {@link Serialized}
+ * - Numeric bounds constants (e.g. {@link MAX_U64_BIG_INT}, {@link MIN_I8_NUMBER})
+ */
 export {
   MAX_I8_NUMBER,
   MAX_I16_NUMBER,

@@ -12,6 +12,28 @@ import { AnyPublicKey, AnySignature } from "./single-key.js";
 
 const MULTIPLE_DESERIALIZATIONS_ERROR_MSG = "Multiple possible deserializations found";
 
+/**
+ * Attempts to deserialise a `PublicKey` from hex-encoded BCS bytes by trying
+ * each known public-key type in order.
+ *
+ * The function succeeds if exactly one type deserialises the bytes without
+ * error and consumes all input.  If no type matches, or if more than one type
+ * matches, an error is thrown.
+ *
+ * Supported types (tried in order):
+ * `Ed25519PublicKey`, `AnyPublicKey`, `MultiEd25519PublicKey`, `MultiKey`,
+ * `KeylessPublicKey`, `FederatedKeylessPublicKey`, `Secp256k1PublicKey`.
+ *
+ * @param publicKey - The BCS-encoded public key as a hex string or `Uint8Array`.
+ * @returns The deserialised {@link PublicKey}.
+ * @throws If the bytes match no known public-key type.
+ * @throws If the bytes match more than one public-key type (ambiguous).
+ *
+ * @example
+ * ```ts
+ * const key = deserializePublicKey("0x...");
+ * ```
+ */
 export function deserializePublicKey(publicKey: HexInput): PublicKey {
   const publicKeyTypes = [
     Ed25519PublicKey,
@@ -47,6 +69,28 @@ export function deserializePublicKey(publicKey: HexInput): PublicKey {
   return result;
 }
 
+/**
+ * Attempts to deserialise a `Signature` from hex-encoded BCS bytes by trying
+ * each known signature type in order.
+ *
+ * The function succeeds if exactly one type deserialises the bytes without
+ * error and consumes all input.  If no type matches, or if more than one type
+ * matches, an error is thrown.
+ *
+ * Supported types (tried in order):
+ * `Ed25519Signature`, `AnySignature`, `MultiEd25519Signature`,
+ * `MultiKeySignature`, `KeylessSignature`, `Secp256k1Signature`.
+ *
+ * @param signature - The BCS-encoded signature as a hex string or `Uint8Array`.
+ * @returns The deserialised {@link Signature}.
+ * @throws If the bytes match no known signature type.
+ * @throws If the bytes match more than one signature type (ambiguous).
+ *
+ * @example
+ * ```ts
+ * const sig = deserializeSignature("0x...");
+ * ```
+ */
 export function deserializeSignature(signature: HexInput): Signature {
   const signatureTypes = [
     Ed25519Signature,

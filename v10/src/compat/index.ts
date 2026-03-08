@@ -1,13 +1,34 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-// v6-compatible barrel export
-// Import from "@aptos-labs/ts-sdk/compat" to use v6-style API.
-//
-// Usage:
-//   import { Aptos, AptosConfig, Network, Account } from "@aptos-labs/ts-sdk/compat";
-//   const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
-//   const info = await aptos.getAccountInfo({ accountAddress: "0x1" });
+/**
+ * @module compat
+ *
+ * v6-compatibility layer for the Aptos TypeScript SDK.
+ *
+ * Import from `@aptos-labs/ts-sdk/compat` to use the v6-style flat API on top
+ * of the v10 SDK. This module re-exports all v10 primitives alongside a
+ * compatibility {@link Aptos} class that exposes the flat method style from v6.
+ *
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, Account } from "@aptos-labs/ts-sdk/compat";
+ *
+ * const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
+ *
+ * // v6-style flat calls
+ * const info = await aptos.getAccountInfo({ accountAddress: "0x1" });
+ * const txn  = await aptos.transaction.build.simple({
+ *   sender: myAccount.accountAddress,
+ *   data: {
+ *     function: "0x1::coin::transfer",
+ *     functionArguments: [recipient, new U64(amount)],
+ *   },
+ * });
+ * ```
+ *
+ * @deprecated Migrate to the v10 namespaced `Aptos` class from `@aptos-labs/ts-sdk`.
+ */
 
 // ── Compat Aptos class (v6-style flat methods) ──
 export { Aptos } from "./aptos.js";

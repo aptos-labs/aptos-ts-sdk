@@ -5,7 +5,7 @@
   "type": "module",
   "sideEffects": false,
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.1.2"
   },
   "exports": {
     ".": {
@@ -63,24 +63,24 @@
     "check": "biome check src tests",
     "lint": "biome lint src tests",
     "test": "vitest run",
-    "test:unit": "vitest run",
-    "test:e2e": "vitest run --config vitest.e2e.config.ts",
-    "test:compat": "vitest run --config vitest.e2e.config.ts tests/e2e/compat"
+    "test:unit": "vitest run tests/unit",
+    "test:e2e": "vitest run tests/e2e",
+    "test:compat": "vitest run tests/e2e/compat"
   },
   "dependencies": {
-    "@noble/curves": "^1.8.2",
-    "@noble/hashes": "^1.7.2",
-    "@scure/bip32": "^1.7.0",
-    "@scure/bip39": "^1.5.4",
-    "poseidon-lite": "^0.2.1"
+    "@noble/curves": "^2.0.1",
+    "@noble/hashes": "^2.0.1",
+    "@scure/bip32": "^2.0.1",
+    "@scure/bip39": "^2.0.1",
+    "poseidon-lite": "^0.3.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.6",
+    "@biomejs/biome": "^2.4.6",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   },
   "peerDependencies": {
-    "@aptos-labs/aptos-cli": ">=1.0.0"
+    "@aptos-labs/aptos-cli": "^1.1.1"
   },
   "peerDependenciesMeta": {
     "@aptos-labs/aptos-cli": {

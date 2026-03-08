@@ -12,35 +12,72 @@ import {
   NetworkToProverAPI,
 } from "../core/network.js";
 
+/**
+ * Configuration options for creating an {@link AptosConfig} instance.
+ * All fields are optional; sensible defaults are used when omitted.
+ */
 export interface AptosSettings {
+  /** The Aptos network to connect to. Defaults to `Network.DEVNET`. */
   network?: Network;
+  /** Custom fullnode REST API URL. Requires `network` to be specified. */
   fullnode?: string;
+  /** Custom faucet API URL. Requires `network` to be specified. */
   faucet?: string;
+  /** Custom pepper service URL for keyless accounts. Requires `network` to be specified. */
   pepper?: string;
+  /** Custom prover service URL for keyless accounts. Requires `network` to be specified. */
   prover?: string;
+  /** Custom indexer API URL. Requires `network` to be specified. */
   indexer?: string;
+  /** Global client configuration applied to all API requests (headers, API key, etc.). */
   clientConfig?: ClientConfig;
+  /** Client configuration overrides specific to fullnode requests. */
   fullnodeConfig?: FullNodeConfig;
+  /** Client configuration overrides specific to indexer requests. */
   indexerConfig?: IndexerConfig;
+  /** Client configuration overrides specific to faucet requests. */
   faucetConfig?: FaucetConfig;
+  /** Default maximum gas amount for transactions. Defaults to {@link DEFAULT_MAX_GAS_AMOUNT}. */
   defaultMaxGasAmount?: number;
+  /** Default transaction expiration in seconds from now. Defaults to {@link DEFAULT_TXN_EXP_SEC_FROM_NOW}. */
   defaultTxnExpSecFromNow?: number;
 }
 
+/**
+ * Holds the resolved configuration for interacting with the Aptos blockchain.
+ * Resolves endpoint URLs based on the chosen network and optional custom overrides.
+ */
 export class AptosConfig {
+  /** The Aptos network this config targets. */
   readonly network: Network;
+  /** Custom fullnode REST API URL, if provided. */
   readonly fullnode?: string;
+  /** Custom faucet API URL, if provided. */
   readonly faucet?: string;
+  /** Custom pepper service URL, if provided. */
   readonly pepper?: string;
+  /** Custom prover service URL, if provided. */
   readonly prover?: string;
+  /** Custom indexer API URL, if provided. */
   readonly indexer?: string;
+  /** Global client configuration applied to all API requests. */
   readonly clientConfig?: ClientConfig;
+  /** Client configuration overrides for fullnode requests. */
   readonly fullnodeConfig?: FullNodeConfig;
+  /** Client configuration overrides for indexer requests. */
   readonly indexerConfig?: IndexerConfig;
+  /** Client configuration overrides for faucet requests. */
   readonly faucetConfig?: FaucetConfig;
+  /** Default maximum gas amount for transactions. */
   readonly defaultMaxGasAmount: number;
+  /** Default transaction expiration in seconds from now. */
   readonly defaultTxnExpSecFromNow: number;
 
+  /**
+   * Creates a new AptosConfig instance.
+   * @param settings - Optional configuration settings. If custom endpoint URLs are provided,
+   *   the `network` field must also be specified.
+   */
   constructor(settings?: AptosSettings) {
     if (settings?.fullnode || settings?.indexer || settings?.faucet || settings?.pepper || settings?.prover) {
       if (!settings?.network) {
@@ -62,6 +99,12 @@ export class AptosConfig {
     this.defaultTxnExpSecFromNow = settings?.defaultTxnExpSecFromNow ?? DEFAULT_TXN_EXP_SEC_FROM_NOW;
   }
 
+  /**
+   * Resolves the base URL for a given API type, using custom overrides or network defaults.
+   * @param apiType - The type of API endpoint to resolve (fullnode, faucet, indexer, etc.).
+   * @returns The resolved base URL string.
+   * @throws Error if a custom URL is required but not provided.
+   */
   getRequestUrl(apiType: AptosApiType): string {
     switch (apiType) {
       case AptosApiType.FULLNODE:
@@ -95,6 +138,11 @@ export class AptosConfig {
     }
   }
 
+  /**
+   * Returns the merged client configuration for fullnode requests, combining global, fullnode-specific, and per-call overrides.
+   * @param overrides - Optional per-call client configuration overrides.
+   * @returns The merged client configuration.
+   */
   getMergedFullnodeConfig(overrides?: ClientConfig): ClientConfig {
     return {
       ...this.clientConfig,
@@ -104,6 +152,11 @@ export class AptosConfig {
     };
   }
 
+  /**
+   * Returns the merged client configuration for indexer requests, combining global, indexer-specific, and per-call overrides.
+   * @param overrides - Optional per-call client configuration overrides.
+   * @returns The merged client configuration.
+   */
   getMergedIndexerConfig(overrides?: ClientConfig): ClientConfig {
     return {
       ...this.clientConfig,
@@ -113,6 +166,12 @@ export class AptosConfig {
     };
   }
 
+  /**
+   * Returns the merged client configuration for faucet requests, combining global and faucet-specific overrides.
+   * Note: the `API_KEY` field is excluded for faucet requests.
+   * @param overrides - Optional per-call client configuration overrides.
+   * @returns The merged client configuration.
+   */
   getMergedFaucetConfig(overrides?: ClientConfig): ClientConfig {
     // Faucet does not support API_KEY
     const { API_KEY: _, ...clientConfig } = this.clientConfig ?? {};
@@ -125,6 +184,11 @@ export class AptosConfig {
   }
 }
 
+/**
+ * Factory function that creates a new {@link AptosConfig} instance.
+ * @param settings - Optional configuration settings.
+ * @returns A new AptosConfig instance.
+ */
 export function createConfig(settings?: AptosSettings): AptosConfig {
   return new AptosConfig(settings);
 }

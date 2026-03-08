@@ -2,15 +2,23 @@ import { AptosApiType } from "./constants.js";
 
 // ── Keyless Errors ──
 
+/** High-level categories for classifying Keyless authentication errors. */
 export enum KeylessErrorCategory {
+  /** An error from an Aptos-operated API (pepper, prover, full node). */
   API_ERROR,
+  /** An error from an external API (e.g., OIDC provider JWKS endpoint). */
   EXTERNAL_API_ERROR,
+  /** The keyless session has expired and re-authentication is required. */
   SESSION_EXPIRED,
+  /** The keyless account is in an invalid internal state. */
   INVALID_STATE,
+  /** The keyless signature failed verification on-chain. */
   INVALID_SIGNATURE,
+  /** An unknown or uncategorized error. */
   UNKNOWN,
 }
 
+/** Human-readable resolution tips for Keyless errors, guiding developers toward a fix. */
 export enum KeylessErrorResolutionTip {
   REAUTHENTICATE = "Re-authentiate to continue using your keyless account",
   REAUTHENTICATE_UNSURE = "Try re-authentiating. If the error persists join the telegram group at https://t.me/+h5CN-W35yUFiYzkx for further support",
@@ -23,6 +31,7 @@ export enum KeylessErrorResolutionTip {
   UNKNOWN = "Error unknown. For support join the telegram group at https://t.me/+h5CN-W35yUFiYzkx",
 }
 
+/** Specific error types that can occur during Keyless account operations. */
 export enum KeylessErrorType {
   EPHEMERAL_KEY_PAIR_EXPIRED,
   PROOF_NOT_FOUND,
@@ -233,13 +242,32 @@ const KeylessErrors: { [key in KeylessErrorType]: [string, KeylessErrorCategory,
   ],
 };
 
+/**
+ * Error class for Keyless authentication failures.
+ *
+ * Provides structured error information including category, type, resolution tips,
+ * and optional inner errors from API calls.
+ */
 export class KeylessError extends Error {
+  /** The underlying error that caused this KeylessError, if any. */
   readonly innerError?: unknown;
+  /** The broad category of this error. */
   readonly category: KeylessErrorCategory;
+  /** A human-readable tip for resolving this error. */
   readonly resolutionTip: KeylessErrorResolutionTip;
+  /** The specific error type. */
   readonly type: KeylessErrorType;
+  /** Additional details about the error context. */
   readonly details?: string;
 
+  /**
+   * @param args.innerError - The underlying error, if any.
+   * @param args.category - The error category.
+   * @param args.resolutionTip - A resolution tip for the developer.
+   * @param args.type - The specific error type.
+   * @param args.message - Optional custom message (defaults to the message for the given type).
+   * @param args.details - Optional additional details.
+   */
   constructor(args: {
     innerError?: unknown;
     category: KeylessErrorCategory;
@@ -278,6 +306,14 @@ export class KeylessError extends Error {
     return result;
   }
 
+  /**
+   * Creates a KeylessError from a {@link KeylessErrorType}, automatically looking up
+   * the default message, category, and resolution tip.
+   * @param args.type - The specific error type.
+   * @param args.error - The underlying error, if any.
+   * @param args.details - Optional additional details.
+   * @returns A new KeylessError instance.
+   */
   static fromErrorType(args: { type: KeylessErrorType; error?: unknown; details?: string }): KeylessError {
     const { error, type, details } = args;
     const [message, category, resolutionTip] = KeylessErrors[type];
@@ -287,38 +323,58 @@ export class KeylessError extends Error {
 
 // ── API Errors ──
 
+/** Describes the parameters of an outgoing HTTP request to an Aptos API. */
 export interface AptosRequest {
   url: string;
   method: string;
-  body?: any;
+  body?: unknown;
   contentType?: string;
   params?: Record<string, string | string[] | undefined>;
-  overrides?: Record<string, any>;
+  overrides?: Record<string, unknown>;
   originMethod?: string;
   headers?: Record<string, string | string[] | undefined>;
 }
 
+/**
+ * Describes an HTTP response received from an Aptos API.
+ * @typeParam Res - The type of the response body data.
+ * @typeParam Req - The type of the underlying request object.
+ */
 export interface AptosResponse<Res, Req> {
   status: number;
   statusText: string;
   data: Res;
   url: string;
-  headers?: Record<string, any>;
-  config?: any;
+  headers?: Record<string, string | undefined>;
+  config?: unknown;
   request?: Req;
 }
 
+/**
+ * Error thrown when an Aptos API request fails.
+ * Contains the request details, HTTP status, and response body for debugging.
+ */
 export class AptosApiError extends Error {
+  /** The URL that was requested. */
   readonly url: string;
+  /** The HTTP status code of the response. */
   readonly status: number;
+  /** The HTTP status text of the response. */
   readonly statusText: string;
-  readonly data: any;
+  /** The response body data. */
+  readonly data: unknown;
+  /** The original request parameters. */
   readonly request: AptosRequest;
 
+  /**
+   * @param args.apiType - The type of API that was called (fullnode, indexer, etc.).
+   * @param args.aptosRequest - The original request parameters.
+   * @param args.aptosResponse - The response received from the API.
+   */
   constructor(args: {
     apiType: AptosApiType;
     aptosRequest: AptosRequest;
-    aptosResponse: AptosResponse<any, any>;
+    aptosResponse: AptosResponse<unknown, unknown>;
   }) {
     const { apiType, aptosRequest, aptosResponse } = args;
     super(deriveErrorMessage({ apiType, aptosRequest, aptosResponse }));
@@ -334,7 +390,7 @@ export class AptosApiError extends Error {
 function deriveErrorMessage(args: {
   apiType: AptosApiType;
   aptosRequest: AptosRequest;
-  aptosResponse: AptosResponse<any, any>;
+  aptosResponse: AptosResponse<unknown, unknown>;
 }): string {
   const { apiType, aptosRequest, aptosResponse } = args;
   const traceId = aptosResponse.headers?.traceparent?.split("-")[1];
@@ -344,11 +400,15 @@ function deriveErrorMessage(args: {
     aptosResponse.url ?? aptosRequest.url
   } ${traceIdString}failed with`;
 
-  if (apiType === AptosApiType.INDEXER && aptosResponse.data?.errors?.[0]?.message != null) {
-    return `${errorPrelude}: ${aptosResponse.data.errors[0].message}`;
+  const data = aptosResponse.data as Record<string, unknown> | undefined;
+  if (
+    apiType === AptosApiType.INDEXER &&
+    (data?.errors as Array<{ message?: string }> | undefined)?.[0]?.message != null
+  ) {
+    return `${errorPrelude}: ${(data?.errors as Array<{ message: string }>)[0].message}`;
   }
 
-  if (aptosResponse.data?.message != null && aptosResponse.data?.error_code != null) {
+  if (data?.message != null && data?.error_code != null) {
     return `${errorPrelude}: ${JSON.stringify(aptosResponse.data)}`;
   }
 

@@ -33,13 +33,39 @@ import { isPendingTransactionResponse } from "./types.js";
 
 // ── Transaction building ──
 
+/** Options for customizing how a simple transaction is built. */
 export interface BuildSimpleTransactionOptions {
+  /** The maximum amount of gas units the sender is willing to pay. Defaults to the config's `defaultMaxGasAmount`. */
   maxGasAmount?: AnyNumber;
+  /** The gas unit price in Octas. Defaults to the network's estimated gas price. */
   gasUnitPrice?: AnyNumber;
+  /** The transaction expiration timestamp in seconds since the Unix epoch. Defaults to `now + config.defaultTxnExpSecFromNow`. */
   expireTimestamp?: AnyNumber;
+  /** The sender's account sequence number. If omitted, it is fetched from the network automatically. */
   sequenceNumber?: AnyNumber;
 }
 
+/**
+ * Builds a simple entry function transaction. Automatically fetches the sender's sequence number,
+ * chain ID, and gas estimation from the network if not provided in `options`.
+ *
+ * @param config - The Aptos configuration specifying which network and endpoints to use.
+ * @param sender - The address of the transaction sender.
+ * @param payload - The entry function to call.
+ * @param payload.function - The fully qualified function name (e.g. `"0x1::aptos_account::transfer"`).
+ * @param payload.typeArguments - Optional type arguments for generic functions.
+ * @param payload.functionArguments - Optional arguments to pass to the function.
+ * @param options - Optional transaction parameters (gas, expiration, sequence number).
+ * @returns A {@link SimpleTransaction} ready to be signed and submitted.
+ *
+ * @example
+ * ```typescript
+ * const txn = await buildSimpleTransaction(config, senderAddress, {
+ *   function: "0x1::aptos_account::transfer",
+ *   functionArguments: [recipientAddress, new U64(1_000_000)],
+ * });
+ * ```
+ */
 export async function buildSimpleTransaction(
   config: AptosConfig,
   sender: AccountAddressInput,
@@ -98,12 +124,25 @@ async function getAccountSequenceNumber(config: AptosConfig, address: AccountAdd
 
 // ── Signing ──
 
+/**
+ * Signs a transaction using the provided account's private key.
+ * @param signer - The account that will sign the transaction.
+ * @param transaction - The raw transaction to sign.
+ * @returns An authenticator containing the signature.
+ */
 export function signTransaction(signer: Account, transaction: AnyRawTransaction): AccountAuthenticator {
   return signer.signTransactionWithAuthenticator(transaction);
 }
 
 // ── Submission ──
 
+/**
+ * Submits a signed transaction to the Aptos fullnode for inclusion in the mempool.
+ * @param config - The Aptos configuration specifying which network and endpoints to use.
+ * @param transaction - The raw transaction that was signed.
+ * @param senderAuthenticator - The authenticator produced by signing the transaction.
+ * @returns The pending transaction response containing the transaction hash.
+ */
 export async function submitTransaction(
   config: AptosConfig,
   transaction: AnyRawTransaction,
@@ -131,6 +170,25 @@ export async function submitTransaction(
   return response.data;
 }
 
+/**
+ * Signs and submits a transaction in a single step. This is a convenience wrapper
+ * that calls {@link signTransaction} followed by {@link submitTransaction}.
+ *
+ * @param config - The Aptos configuration specifying which network and endpoints to use.
+ * @param signer - The account that will sign and submit the transaction.
+ * @param transaction - The raw transaction to sign and submit.
+ * @returns The pending transaction response containing the transaction hash.
+ *
+ * @example
+ * ```typescript
+ * const txn = await buildSimpleTransaction(config, sender.accountAddress, {
+ *   function: "0x1::aptos_account::transfer",
+ *   functionArguments: [recipient, new U64(1_000_000)],
+ * });
+ * const pending = await signAndSubmitTransaction(config, sender, txn);
+ * const committed = await waitForTransaction(config, pending.hash);
+ * ```
+ */
 export async function signAndSubmitTransaction(
   config: AptosConfig,
   signer: Account,
@@ -142,6 +200,27 @@ export async function signAndSubmitTransaction(
 
 // ── Waiting ──
 
+/**
+ * Waits for a transaction to be committed on-chain. First attempts a long-poll endpoint,
+ * then falls back to polling with exponential backoff.
+ *
+ * @param config - The Aptos configuration specifying which network and endpoints to use.
+ * @param transactionHash - The hash of the pending transaction to wait for.
+ * @param options - Optional parameters.
+ * @param options.timeoutSecs - Maximum time to wait in seconds. Defaults to 20.
+ * @param options.checkSuccess - If `true` (the default), throws an error if the transaction fails on-chain.
+ * @returns The committed transaction response.
+ * @throws Error if the transaction times out or fails (when `checkSuccess` is `true`).
+ *
+ * @example
+ * ```typescript
+ * const committed = await waitForTransaction(config, pendingTxn.hash, {
+ *   timeoutSecs: 30,
+ *   checkSuccess: true,
+ * });
+ * console.log("Transaction version:", committed.version);
+ * ```
+ */
 export async function waitForTransaction(
   config: AptosConfig,
   transactionHash: HexInput,
@@ -166,7 +245,7 @@ export async function waitForTransaction(
     });
     if (!isPendingTransactionResponse(response.data)) {
       if (checkSuccess && !("success" in response.data && response.data.success)) {
-        throw new Error(`Transaction ${hashStr} failed: ${(response.data as any).vm_status}`);
+        throw new Error(`Transaction ${hashStr} failed: ${(response.data as Record<string, unknown>).vm_status}`);
       }
       return response.data as CommittedTransactionResponse;
     }
@@ -184,7 +263,7 @@ export async function waitForTransaction(
       const txn = await getTransactionByHash(config, hashStr);
       if (!isPendingTransactionResponse(txn)) {
         if (checkSuccess && !("success" in txn && txn.success)) {
-          throw new Error(`Transaction ${hashStr} failed: ${(txn as any).vm_status}`);
+          throw new Error(`Transaction ${hashStr} failed: ${(txn as Record<string, unknown>).vm_status}`);
         }
         return txn as CommittedTransactionResponse;
       }
@@ -198,6 +277,12 @@ export async function waitForTransaction(
 
 // ── Transaction queries ──
 
+/**
+ * Retrieves a transaction by its hash. The returned transaction may be pending or committed.
+ * @param config - The Aptos configuration specifying which network and endpoints to use.
+ * @param transactionHash - The hash of the transaction to look up.
+ * @returns The transaction response (pending or committed).
+ */
 export async function getTransactionByHash(
   config: AptosConfig,
   transactionHash: HexInput,
@@ -214,6 +299,12 @@ export async function getTransactionByHash(
   return response.data;
 }
 
+/**
+ * Retrieves a committed transaction by its ledger version number.
+ * @param config - The Aptos configuration specifying which network and endpoints to use.
+ * @param ledgerVersion - The ledger version of the transaction to retrieve.
+ * @returns The transaction response at the specified version.
+ */
 export async function getTransactionByVersion(
   config: AptosConfig,
   ledgerVersion: AnyNumber,
@@ -229,6 +320,14 @@ export async function getTransactionByVersion(
   return response.data;
 }
 
+/**
+ * Retrieves a list of transactions from the ledger, ordered by version.
+ * @param config - The Aptos configuration specifying which network and endpoints to use.
+ * @param options - Optional parameters.
+ * @param options.offset - The ledger version to start listing from.
+ * @param options.limit - Maximum number of transactions to return.
+ * @returns An array of transaction responses.
+ */
 export async function getTransactions(
   config: AptosConfig,
   options?: { offset?: AnyNumber; limit?: number },
@@ -245,6 +344,11 @@ export async function getTransactions(
   return response.data;
 }
 
+/**
+ * Generates the BCS-serialized signing message (bytes to sign) for a raw transaction.
+ * @param transaction - The raw transaction to generate the signing message for.
+ * @returns The signing message as a `Uint8Array`.
+ */
 export async function getSigningMessage(transaction: AnyRawTransaction): Promise<Uint8Array> {
   return generateSigningMessageForTransaction(transaction);
 }

@@ -44,6 +44,25 @@ function mergeHeaders(
   return headers;
 }
 
+/**
+ * Executes a single HTTP request to an Aptos API endpoint and returns the parsed response.
+ *
+ * Handles:
+ * - Building the full URL with query string parameters
+ * - Setting `content-type`, `accept`, SDK version, and authorization headers
+ * - Serializing the request body (JSON, BCS bytes, or plain string)
+ * - Parsing the response body based on the `content-type` header
+ * - Throwing an {@link AptosApiError} for non-2xx responses, 401, or GraphQL errors
+ *
+ * This is the low-level fetch primitive used by {@link get} and {@link post}.
+ * Most callers should prefer those helpers rather than calling `aptosRequest` directly.
+ *
+ * @typeParam Res - The expected type of the parsed response body.
+ * @param options - The request options (URL, method, path, body, headers, etc.).
+ * @param apiType - The Aptos API service being called (used for error context).
+ * @returns A promise that resolves to an {@link AptosResponse} containing the parsed data.
+ * @throws {AptosApiError} If the response is an error (4xx/5xx or a GraphQL error payload).
+ */
 export async function aptosRequest<Res>(options: AptosRequest, apiType: AptosApiType): Promise<AptosResponse<Res>> {
   const { url, method, path, body, contentType, acceptType, params, originMethod, overrides } = options;
 
@@ -69,7 +88,7 @@ export async function aptosRequest<Res>(options: AptosRequest, apiType: AptosApi
   const response = await fetch(fullUrl, init);
 
   // Determine response data based on accept type
-  let data: any;
+  let data: unknown;
   const responseContentType = response.headers.get("content-type") ?? "";
   if (responseContentType.includes("application/json") || acceptType === MimeType.JSON || !acceptType) {
     data = await response.json();
@@ -82,12 +101,13 @@ export async function aptosRequest<Res>(options: AptosRequest, apiType: AptosApi
   const result: AptosResponse<Res> = {
     status: response.status,
     statusText: response.statusText,
-    data,
+    data: data as Res,
     url: fullUrl,
     headers: response.headers,
   };
 
   const throwError = (): never => {
+    // biome-ignore lint/suspicious/noExplicitAny: bridging client and error-layer request/response types
     throw new AptosApiError({ apiType, aptosRequest: options as any, aptosResponse: result as any });
   };
 
@@ -97,11 +117,12 @@ export async function aptosRequest<Res>(options: AptosRequest, apiType: AptosApi
   }
 
   if (apiType === AptosApiType.INDEXER) {
-    if ((data as any)?.errors) {
+    const indexerData = data as Record<string, unknown>;
+    if (indexerData.errors) {
       throwError();
     }
-    if ((data as any)?.data !== undefined) {
-      result.data = (data as any).data;
+    if (indexerData.data !== undefined) {
+      result.data = indexerData.data as Res;
     }
   }
 
