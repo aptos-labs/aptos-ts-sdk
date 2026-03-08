@@ -1,0 +1,13 @@
+{
+  "name": "v10-bun-sdk-test",
+  "version": "1.0.0",
+  "description": "Test Aptos TypeScript SDK v10 with Bun runtime",
+  "type": "module",
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "bun run simple_transfer.ts"
+  },
+  "dependencies": {
+    "@aptos-labs/ts-sdk": "file:../.."
+  }
+}

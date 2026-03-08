@@ -1,0 +1,271 @@
+name: "v10 SDK Tests"
+on:
+  pull_request:
+    types: [labeled, opened, synchronize, reopened, auto_merge_enabled]
+    paths:
+      - "v10/**"
+      - ".github/workflows/run-v10-tests.yaml"
+  push:
+    branches:
+      - main
+    paths:
+      - "v10/**"
+      - ".github/workflows/run-v10-tests.yaml"
+
+permissions:
+  contents: read
+
+# Cancel in-progress runs for the same branch
+concurrency:
+  group: v10-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Build + Lint ──
+  build-and-lint:
+    name: "Build & Lint"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: v10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          registry-url: "https://registry.npmjs.org"
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm check
+
+  # ── Unit Tests ──
+  unit-tests:
+    name: "Unit Tests"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: v10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          registry-url: "https://registry.npmjs.org"
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:unit
+
+  # ── E2E Tests (local testnet) ──
+  e2e-tests:
+    name: "E2E Tests"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: v10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          registry-url: "https://registry.npmjs.org"
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+      # Install the CLI and start local testnet
+      - run: pnpm install -g @aptos-labs/aptos-cli
+        shell: bash
+      - run: aptos node run-local-testnet --force-restart --assume-yes --with-indexer-api --log-to-stdout >& "$TESTNET_LOG" &
+        shell: bash
+        env:
+          TESTNET_LOG: ${{ runner.temp }}/local-testnet-logs.txt
+      - run: pnpm install -g wait-on
+        shell: bash
+      - run: wait-on --verbose --interval 1500 --timeout 120000 --httpTimeout 120000 http-get://127.0.0.1:8070
+        shell: bash
+
+      # Run E2E tests (API + compat)
+      - uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # pin@v3
+        name: v10-e2e-tests
+        env:
+          TMPDIR: ${{ runner.temp }}
+        with:
+          max_attempts: 3
+          timeout_minutes: 10
+          command: cd v10 && pnpm test:e2e
+
+      - name: Print local testnet logs on failure
+        shell: bash
+        if: failure()
+        env:
+          TESTNET_LOG: ${{ runner.temp }}/local-testnet-logs.txt
+        run: cat "$TESTNET_LOG"
+
+  # ── Bun Runtime Tests ──
+  bun-tests:
+    name: "Bun Runtime"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          registry-url: "https://registry.npmjs.org"
+      - uses: pnpm/action-setup@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # Build v10 SDK
+      - run: cd v10 && pnpm install --frozen-lockfile && pnpm build
+        shell: bash
+
+      # Install the CLI and start local testnet
+      - run: pnpm install -g @aptos-labs/aptos-cli
+        shell: bash
+      - run: aptos node run-local-testnet --force-restart --assume-yes --with-indexer-api --log-to-stdout >& "$TESTNET_LOG" &
+        shell: bash
+        env:
+          TESTNET_LOG: ${{ runner.temp }}/local-testnet-logs.txt
+      - run: pnpm install -g wait-on
+        shell: bash
+      - run: wait-on --verbose --interval 1500 --timeout 120000 --httpTimeout 120000 http-get://127.0.0.1:8070
+        shell: bash
+
+      # Run Bun tests
+      - uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # pin@v3
+        name: v10-bun-tests
+        env:
+          TMPDIR: ${{ runner.temp }}
+          APTOS_NETWORK: local
+        with:
+          max_attempts: 3
+          timeout_minutes: 10
+          command: |
+            cd v10/examples/bun-test
+            bun install
+            bun run test
+
+      - name: Print local testnet logs on failure
+        shell: bash
+        if: failure()
+        env:
+          TESTNET_LOG: ${{ runner.temp }}/local-testnet-logs.txt
+        run: cat "$TESTNET_LOG"
+
+  # ── Deno Runtime Tests ──
+  deno-tests:
+    name: "Deno Runtime"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          registry-url: "https://registry.npmjs.org"
+      - uses: pnpm/action-setup@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      # Build v10 SDK
+      - run: cd v10 && pnpm install --frozen-lockfile && pnpm build
+        shell: bash
+
+      # Install the CLI and start local testnet
+      - run: pnpm install -g @aptos-labs/aptos-cli
+        shell: bash
+      - run: aptos node run-local-testnet --force-restart --assume-yes --with-indexer-api --log-to-stdout >& "$TESTNET_LOG" &
+        shell: bash
+        env:
+          TESTNET_LOG: ${{ runner.temp }}/local-testnet-logs.txt
+      - run: pnpm install -g wait-on
+        shell: bash
+      - run: wait-on --verbose --interval 1500 --timeout 120000 --httpTimeout 120000 http-get://127.0.0.1:8070
+        shell: bash
+
+      # Run Deno tests
+      - uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # pin@v3
+        name: v10-deno-tests
+        env:
+          TMPDIR: ${{ runner.temp }}
+          APTOS_NETWORK: local
+        with:
+          max_attempts: 3
+          timeout_minutes: 10
+          command: |
+            cd v10/examples/deno-test
+            pnpm install
+            deno install
+            deno task test
+
+      - name: Print local testnet logs on failure
+        shell: bash
+        if: failure()
+        env:
+          TESTNET_LOG: ${{ runner.temp }}/local-testnet-logs.txt
+        run: cat "$TESTNET_LOG"
+
+  # ── Browser Tests (Playwright) ──
+  browser-tests:
+    name: "Browser (Playwright)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          registry-url: "https://registry.npmjs.org"
+      - uses: pnpm/action-setup@v4
+
+      # Build v10 SDK
+      - run: cd v10 && pnpm install --frozen-lockfile && pnpm build
+        shell: bash
+
+      # Install the CLI and start local testnet
+      - run: pnpm install -g @aptos-labs/aptos-cli
+        shell: bash
+      - run: aptos node run-local-testnet --force-restart --assume-yes --with-indexer-api --log-to-stdout >& "$TESTNET_LOG" &
+        shell: bash
+        env:
+          TESTNET_LOG: ${{ runner.temp }}/local-testnet-logs.txt
+      - run: pnpm install -g wait-on
+        shell: bash
+      - run: wait-on --verbose --interval 1500 --timeout 120000 --httpTimeout 120000 http-get://127.0.0.1:8070
+        shell: bash
+
+      # Install web test deps + Playwright browsers
+      - run: |
+          cd v10/examples/web-test
+          pnpm install
+          pnpm exec playwright install --with-deps chromium
+        shell: bash
+
+      # Run browser tests
+      - uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # pin@v3
+        name: v10-browser-tests
+        env:
+          TMPDIR: ${{ runner.temp }}
+          APTOS_NETWORK: local
+        with:
+          max_attempts: 3
+          timeout_minutes: 15
+          command: |
+            cd v10/examples/web-test
+            pnpm test
+
+      - name: Print local testnet logs on failure
+        shell: bash
+        if: failure()
+        env:
+          TESTNET_LOG: ${{ runner.temp }}/local-testnet-logs.txt
+        run: cat "$TESTNET_LOG"
+
+      - name: Upload Playwright report on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: v10-playwright-report
+          path: v10/examples/web-test/playwright-report/
+          retention-days: 7

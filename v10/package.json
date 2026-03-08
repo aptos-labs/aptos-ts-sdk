@@ -1,0 +1,95 @@
+{
+  "name": "@aptos-labs/ts-sdk",
+  "version": "10.0.0",
+  "description": "Aptos TypeScript SDK v10 — ESM-only, tree-shakeable, function-first",
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22.1.2"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/esm/index.js"
+    },
+    "./bcs": {
+      "types": "./dist/types/bcs/index.d.ts",
+      "default": "./dist/esm/bcs/index.js"
+    },
+    "./hex": {
+      "types": "./dist/types/hex/index.d.ts",
+      "default": "./dist/esm/hex/index.js"
+    },
+    "./crypto": {
+      "types": "./dist/types/crypto/index.d.ts",
+      "default": "./dist/esm/crypto/index.js"
+    },
+    "./core": {
+      "types": "./dist/types/core/index.d.ts",
+      "default": "./dist/esm/core/index.js"
+    },
+    "./transactions": {
+      "types": "./dist/types/transactions/index.d.ts",
+      "default": "./dist/esm/transactions/index.js"
+    },
+    "./account": {
+      "types": "./dist/types/account/index.d.ts",
+      "default": "./dist/esm/account/index.js"
+    },
+    "./client": {
+      "types": "./dist/types/client/index.d.ts",
+      "default": "./dist/esm/client/index.js"
+    },
+    "./api": {
+      "types": "./dist/types/api/index.d.ts",
+      "default": "./dist/esm/api/index.js"
+    },
+    "./compat": {
+      "types": "./dist/types/compat/index.d.ts",
+      "require": "./dist/esm/compat/index.cjs",
+      "default": "./dist/esm/compat/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && cp src/compat/index.cjs dist/esm/compat/index.cjs",
+    "fmt": "biome format --write src tests",
+    "check": "biome check src tests",
+    "lint": "biome lint src tests",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:e2e": "vitest run tests/e2e",
+    "test:compat": "vitest run tests/e2e/compat"
+  },
+  "dependencies": {
+    "@noble/curves": "^2.0.1",
+    "@noble/hashes": "^2.0.1",
+    "@scure/bip32": "^2.0.1",
+    "@scure/bip39": "^2.0.1",
+    "poseidon-lite": "^0.3.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.6",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
+  "peerDependencies": {
+    "@aptos-labs/aptos-cli": "^1.1.1"
+  },
+  "peerDependenciesMeta": {
+    "@aptos-labs/aptos-cli": {
+      "optional": true
+    }
+  },
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}
