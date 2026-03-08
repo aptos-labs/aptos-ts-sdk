@@ -197,6 +197,7 @@ jobs:
           command: |
             cd v10/examples/deno-test
             pnpm install
+            deno install
             deno task test
 
       - name: Print local testnet logs on failure

@@ -86,5 +86,10 @@
     "@aptos-labs/aptos-cli": {
       "optional": true
     }
+  },
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
