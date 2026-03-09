@@ -27,6 +27,8 @@ export enum TypeTagVariants {
   Generic = 255,
 }
 
+const MAX_TYPE_TAG_NESTING = 128;
+
 // ── Identifier (simple BCS string wrapper) ──
 
 /**
@@ -75,9 +77,13 @@ export abstract class TypeTag extends Serializable {
   /**
    * Deserializes a TypeTag from BCS bytes by reading the variant index and dispatching.
    * @param deserializer - The BCS deserializer to read from.
+   * @param depth - Current recursion depth (guards against stack overflow from malicious payloads).
    * @returns The deserialized TypeTag subclass instance.
    */
-  static deserialize(deserializer: Deserializer): TypeTag {
+  static deserialize(deserializer: Deserializer, depth = 0): TypeTag {
+    if (depth > MAX_TYPE_TAG_NESTING) {
+      throw new Error(`TypeTag deserialization exceeded maximum nesting depth of ${MAX_TYPE_TAG_NESTING}`);
+    }
     const index = deserializer.deserializeUleb128AsU32();
     switch (index) {
       case TypeTagVariants.Bool:
@@ -93,9 +99,9 @@ export abstract class TypeTag extends Serializable {
       case TypeTagVariants.Signer:
         return TypeTagSigner.load(deserializer);
       case TypeTagVariants.Vector:
-        return TypeTagVector.load(deserializer);
+        return TypeTagVector.load(deserializer, depth + 1);
       case TypeTagVariants.Struct:
-        return TypeTagStruct.load(deserializer);
+        return TypeTagStruct.load(deserializer, depth + 1);
       case TypeTagVariants.U16:
         return TypeTagU16.load(deserializer);
       case TypeTagVariants.U32:
@@ -424,8 +430,8 @@ export class TypeTagReference extends TypeTag {
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(TypeTagVariants.Reference);
   }
-  static load(deserializer: Deserializer): TypeTagReference {
-    const value = TypeTag.deserialize(deserializer);
+  static load(deserializer: Deserializer, depth = 0): TypeTagReference {
+    const value = TypeTag.deserialize(deserializer, depth);
     return new TypeTagReference(value);
   }
 }
@@ -477,8 +483,8 @@ export class TypeTagVector extends TypeTag {
     serializer.serializeU32AsUleb128(TypeTagVariants.Vector);
     this.value.serialize(serializer);
   }
-  static load(deserializer: Deserializer): TypeTagVector {
-    const value = TypeTag.deserialize(deserializer);
+  static load(deserializer: Deserializer, depth = 0): TypeTagVector {
+    const value = TypeTag.deserialize(deserializer, depth);
     return new TypeTagVector(value);
   }
 }
@@ -508,8 +514,8 @@ export class TypeTagStruct extends TypeTag {
     this.value.serialize(serializer);
   }
 
-  static load(deserializer: Deserializer): TypeTagStruct {
-    const value = StructTag.deserialize(deserializer);
+  static load(deserializer: Deserializer, depth = 0): TypeTagStruct {
+    const value = StructTag.deserialize(deserializer, depth);
     return new TypeTagStruct(value);
   }
 
@@ -589,11 +595,15 @@ export class StructTag extends Serializable {
     serializer.serializeVector(this.typeArgs);
   }
 
-  static deserialize(deserializer: Deserializer): StructTag {
+  static deserialize(deserializer: Deserializer, depth = 0): StructTag {
     const address = AccountAddress.deserialize(deserializer);
     const moduleName = Identifier.deserialize(deserializer);
     const name = Identifier.deserialize(deserializer);
-    const typeArgs = deserializer.deserializeVector(TypeTag);
+    const length = deserializer.deserializeUleb128AsU32();
+    const typeArgs: TypeTag[] = [];
+    for (let i = 0; i < length; i += 1) {
+      typeArgs.push(TypeTag.deserialize(deserializer, depth));
+    }
     return new StructTag(address, moduleName, name, typeArgs);
   }
 }

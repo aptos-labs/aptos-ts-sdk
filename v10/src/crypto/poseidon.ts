@@ -131,11 +131,12 @@ function chunkUint8Array(array: Uint8Array, chunkSize: number): Uint8Array[] {
 const BIGINT_0 = BigInt(0);
 const BIGINT_8 = BigInt(8);
 const BIGINT_0xFF = BigInt(0xff);
+const BYTE_TO_BIGINT = Array.from({ length: 256 }, (_, i) => BigInt(i));
 
 export function bytesToBigIntLE(bytes: Uint8Array): bigint {
   let result = BIGINT_0;
   for (let i = bytes.length - 1; i >= 0; i -= 1) {
-    result = (result << BIGINT_8) | BigInt(bytes[i]);
+    result = (result << BIGINT_8) | BYTE_TO_BIGINT[bytes[i]];
   }
   return result;
 }

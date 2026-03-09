@@ -398,6 +398,9 @@ export class MultiKeySignature extends Signature {
   static deserialize(deserializer: Deserializer): MultiKeySignature {
     const signatures = deserializer.deserializeVector(AnySignature);
     const bitmap = deserializer.deserializeBytes();
+    if (bitmap.length !== MultiKeySignature.BITMAP_LEN) {
+      throw new Error(`MultiKeySignature bitmap must be ${MultiKeySignature.BITMAP_LEN} bytes, got ${bitmap.length}`);
+    }
     return new MultiKeySignature({ signatures, bitmap });
   }
 }

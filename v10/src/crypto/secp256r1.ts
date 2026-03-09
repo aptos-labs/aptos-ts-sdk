@@ -339,6 +339,11 @@ export class WebAuthnSignature extends Signature {
    * @returns A new `WebAuthnSignature`.
    * @throws If the variant id is not `0`.
    */
+  /** Maximum expected size for authenticator data (2 KB). */
+  static readonly MAX_AUTHENTICATOR_DATA_LENGTH = 2048;
+  /** Maximum expected size for client data JSON (4 KB). */
+  static readonly MAX_CLIENT_DATA_JSON_LENGTH = 4096;
+
   static deserialize(deserializer: Deserializer) {
     const id = deserializer.deserializeUleb128AsU32();
     if (id !== 0) {
@@ -346,7 +351,17 @@ export class WebAuthnSignature extends Signature {
     }
     const signature = deserializer.deserializeBytes();
     const authenticatorData = deserializer.deserializeBytes();
+    if (authenticatorData.length > WebAuthnSignature.MAX_AUTHENTICATOR_DATA_LENGTH) {
+      throw new Error(
+        `WebAuthn authenticatorData length ${authenticatorData.length} exceeds maximum ${WebAuthnSignature.MAX_AUTHENTICATOR_DATA_LENGTH}`,
+      );
+    }
     const clientDataJSON = deserializer.deserializeBytes();
+    if (clientDataJSON.length > WebAuthnSignature.MAX_CLIENT_DATA_JSON_LENGTH) {
+      throw new Error(
+        `WebAuthn clientDataJSON length ${clientDataJSON.length} exceeds maximum ${WebAuthnSignature.MAX_CLIENT_DATA_JSON_LENGTH}`,
+      );
+    }
     return new WebAuthnSignature(signature, authenticatorData, clientDataJSON);
   }
 }
