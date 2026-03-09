@@ -294,21 +294,22 @@ export class Deserializer {
     const MAX_ULEB128_BYTES = 5;
     let bytesRead = 0;
 
+    let lastByte = 0;
     while (bytesRead < MAX_ULEB128_BYTES) {
-      const byte = this.deserializeU8();
+      lastByte = this.deserializeU8();
       bytesRead += 1;
-      value |= BigInt(byte & 0x7f) << BigInt(shift);
+      value |= BigInt(lastByte & 0x7f) << BigInt(shift);
 
       if (value > MAX_U32_NUMBER) {
         throw new Error("Overflow while parsing uleb128-encoded uint32 value");
       }
 
-      if ((byte & 0x80) === 0) break;
+      if ((lastByte & 0x80) === 0) break;
       shift += 7;
     }
 
-    if (bytesRead === MAX_ULEB128_BYTES && value > MAX_U32_NUMBER) {
-      throw new Error("Overflow while parsing uleb128-encoded uint32 value");
+    if ((lastByte & 0x80) !== 0) {
+      throw new Error("Malformed ULEB128: continuation bit set on terminal byte");
     }
 
     return Number(value);

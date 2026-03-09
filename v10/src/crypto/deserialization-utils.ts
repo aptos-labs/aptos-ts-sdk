@@ -11,6 +11,11 @@ import type { Signature } from "./signature.js";
 import { AnyPublicKey, AnySignature } from "./single-key.js";
 
 const MULTIPLE_DESERIALIZATIONS_ERROR_MSG = "Multiple possible deserializations found";
+const MAX_ERROR_INPUT_LENGTH = 128;
+function truncateForError(input: HexInput): string {
+  const str = typeof input === "string" ? input : `Uint8Array(${input.length})`;
+  return str.length > MAX_ERROR_INPUT_LENGTH ? `${str.slice(0, MAX_ERROR_INPUT_LENGTH)}...` : str;
+}
 
 /**
  * Attempts to deserialise a `PublicKey` from hex-encoded BCS bytes by trying
@@ -52,7 +57,7 @@ export function deserializePublicKey(publicKey: HexInput): PublicKey {
       const key = KeyType.deserialize(deserializer);
       deserializer.assertFinished();
       if (result) {
-        throw new Error(`${MULTIPLE_DESERIALIZATIONS_ERROR_MSG}: ${publicKey}`);
+        throw new Error(`${MULTIPLE_DESERIALIZATIONS_ERROR_MSG}: ${truncateForError(publicKey)}`);
       }
       result = key;
     } catch (error) {
@@ -63,7 +68,7 @@ export function deserializePublicKey(publicKey: HexInput): PublicKey {
   }
 
   if (!result) {
-    throw new Error(`Failed to deserialize public key: ${publicKey}`);
+    throw new Error(`Failed to deserialize public key: ${truncateForError(publicKey)}`);
   }
 
   return result;
@@ -108,7 +113,7 @@ export function deserializeSignature(signature: HexInput): Signature {
       const sig = SignatureType.deserialize(deserializer);
       deserializer.assertFinished();
       if (result) {
-        throw new Error(`${MULTIPLE_DESERIALIZATIONS_ERROR_MSG}: ${signature}`);
+        throw new Error(`${MULTIPLE_DESERIALIZATIONS_ERROR_MSG}: ${truncateForError(signature)}`);
       }
       result = sig;
     } catch (error) {
@@ -119,7 +124,7 @@ export function deserializeSignature(signature: HexInput): Signature {
   }
 
   if (!result) {
-    throw new Error(`Failed to deserialize signature: ${signature}`);
+    throw new Error(`Failed to deserialize signature: ${truncateForError(signature)}`);
   }
 
   return result;

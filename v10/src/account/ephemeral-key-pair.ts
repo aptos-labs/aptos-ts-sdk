@@ -63,6 +63,10 @@ export class EphemeralKeyPair extends Serializable {
   /**
    * The string nonce value that must be embedded in the OIDC authentication
    * request so that the JWT commits to this ephemeral public key.
+   *
+   * Not zeroed on {@link clear} because the nonce is a public Poseidon hash
+   * derived from the ephemeral public key, expiry, and blinder — it does not
+   * reveal private key material.
    */
   readonly nonce: string;
 

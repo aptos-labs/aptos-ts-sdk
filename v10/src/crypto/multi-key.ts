@@ -55,9 +55,12 @@ export abstract class AbstractMultiKey extends AccountPublicKey {
     const bitmap = new Uint8Array([0, 0, 0, 0]);
     const dupCheckSet = new Set<number>();
 
-    bits.forEach((bit: number, idx: number) => {
-      if (idx + 1 > this.publicKeys.length) {
-        throw new Error(`Signature index ${idx + 1} is out of public keys range, ${this.publicKeys.length}.`);
+    bits.forEach((bit: number) => {
+      if (bit >= this.publicKeys.length) {
+        throw new Error(`Signature index ${bit} is out of public keys range ${this.publicKeys.length}.`);
+      }
+      if (bit >= 32) {
+        throw new Error(`Signature index ${bit} exceeds maximum bitmap capacity of 32.`);
       }
       if (dupCheckSet.has(bit)) {
         throw new Error(`Duplicate bit ${bit} detected.`);
@@ -127,10 +130,16 @@ export class MultiKey extends AbstractMultiKey {
    * @throws If `signaturesRequired > 3` and the set contains more than 3
    *   Keyless public keys.
    */
+  /** Maximum number of public keys in a MultiKey set (constrained by 4-byte bitmap). */
+  static readonly MAX_KEYS = 32;
+
   constructor(args: { publicKeys: Array<PublicKey>; signaturesRequired: number }) {
     const { publicKeys, signaturesRequired } = args;
     super({ publicKeys });
 
+    if (publicKeys.length > MultiKey.MAX_KEYS) {
+      throw new Error(`MultiKey supports at most ${MultiKey.MAX_KEYS} public keys, received ${publicKeys.length}`);
+    }
     if (signaturesRequired < 1) {
       throw new Error("The number of required signatures needs to be greater than 0");
     }

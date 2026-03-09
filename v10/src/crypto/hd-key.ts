@@ -98,10 +98,10 @@ const removeApostrophes = (val: string): string => val.replace(/'/g, "");
  */
 export const deriveKey = (hashSeed: Uint8Array | string, data: Uint8Array | string): DerivedKeys => {
   const digest = hmac.create(sha512, toBytes(hashSeed)).update(toBytes(data)).digest();
-  return {
-    key: digest.slice(0, 32),
-    chainCode: digest.slice(32),
-  };
+  const key = digest.slice(0, 32);
+  const chainCode = digest.slice(32);
+  digest.fill(0);
+  return { key, chainCode };
 };
 
 /**
@@ -124,7 +124,9 @@ export const CKDPriv = ({ key, chainCode }: DerivedKeys, index: number): Derived
   const indexBytes = new Uint8Array(buffer);
   const zero = new Uint8Array([0]);
   const data = new Uint8Array([...zero, ...key, ...indexBytes]);
-  return deriveKey(chainCode, data);
+  const result = deriveKey(chainCode, data);
+  data.fill(0);
+  return result;
 };
 
 /**

@@ -74,7 +74,7 @@ export const PrivateKeyUtils = {
     const aip80Prefix = PrivateKeyUtils.AIP80_PREFIXES[type];
     let formattedPrivateKey = privateKey;
     if (typeof formattedPrivateKey === "string" && formattedPrivateKey.startsWith(aip80Prefix)) {
-      formattedPrivateKey = formattedPrivateKey.split("-")[2];
+      formattedPrivateKey = formattedPrivateKey.slice(aip80Prefix.length);
     }
     return `${aip80Prefix}${Hex.fromHexInput(formattedPrivateKey).toString()}`;
   },
@@ -97,16 +97,13 @@ export const PrivateKeyUtils = {
     const aip80Prefix = PrivateKeyUtils.AIP80_PREFIXES[type];
 
     if (typeof value === "string") {
-      if (!strict && !value.startsWith(aip80Prefix)) {
-        return Hex.fromHexInput(value);
-      }
       if (value.startsWith(aip80Prefix)) {
-        return Hex.fromHexString(value.split("-")[2]);
+        return Hex.fromHexString(value.slice(aip80Prefix.length));
       }
       if (strict) {
         throw new Error("Invalid HexString input while parsing private key. Must AIP-80 compliant string.");
       }
-      throw new Error("Invalid HexString input while parsing private key.");
+      return Hex.fromHexInput(value);
     }
 
     return Hex.fromHexInput(value);

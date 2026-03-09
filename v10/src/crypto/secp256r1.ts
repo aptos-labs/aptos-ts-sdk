@@ -8,6 +8,7 @@ import { type PrivateKey, PrivateKeyUtils } from "./private-key.js";
 import { PublicKey, type VerifySignatureArgs } from "./public-key.js";
 import { Signature } from "./signature.js";
 import { PrivateKeyVariants } from "./types.js";
+import { convertSigningMessage } from "./utils.js";
 
 /**
  * Represents a secp256r1 (NIST P-256) public key (65-byte uncompressed or
@@ -70,7 +71,8 @@ export class Secp256r1PublicKey extends PublicKey {
    */
   verifySignature(args: VerifySignatureArgs): boolean {
     const { message, signature } = args;
-    const msgHex = Hex.fromHexInput(message).toUint8Array();
+    const messageToVerify = convertSigningMessage(message);
+    const msgHex = Hex.fromHexInput(messageToVerify).toUint8Array();
     const sha3Message = sha3_256(msgHex);
     const rawSignature = signature.toUint8Array();
     return p256.verify(rawSignature, sha3Message, this.toUint8Array(), { prehash: false, lowS: true });
@@ -207,7 +209,8 @@ export class Secp256r1PrivateKey extends Serializable implements PrivateKey {
    */
   sign(message: HexInput): Secp256r1Signature {
     this.ensureNotCleared();
-    const msgHex = Hex.fromHexInput(message);
+    const messageToSign = convertSigningMessage(message);
+    const msgHex = Hex.fromHexInput(messageToSign);
     const sha3Message = sha3_256(msgHex.toUint8Array());
     const signatureBytes = p256.sign(sha3Message, this.key.toUint8Array(), { prehash: false, lowS: true });
     return new Secp256r1Signature(signatureBytes);

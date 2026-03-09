@@ -262,9 +262,20 @@ export class MultiEd25519Signature extends Signature {
    */
   static deserialize(deserializer: Deserializer): MultiEd25519Signature {
     const bytes = deserializer.deserializeBytes();
-    const bitmap = bytes.subarray(bytes.length - 4);
+    if (bytes.length < MultiEd25519Signature.BITMAP_LEN) {
+      throw new Error(
+        `MultiEd25519Signature bytes too short: expected at least ${MultiEd25519Signature.BITMAP_LEN}, got ${bytes.length}`,
+      );
+    }
+    const sigBytes = bytes.length - MultiEd25519Signature.BITMAP_LEN;
+    if (sigBytes % Ed25519Signature.LENGTH !== 0) {
+      throw new Error(
+        `MultiEd25519Signature signature bytes are not aligned: ${sigBytes} is not a multiple of ${Ed25519Signature.LENGTH}`,
+      );
+    }
+    const bitmap = bytes.subarray(bytes.length - MultiEd25519Signature.BITMAP_LEN);
     const signatures: Ed25519Signature[] = [];
-    for (let i = 0; i < bytes.length - bitmap.length; i += Ed25519Signature.LENGTH) {
+    for (let i = 0; i < sigBytes; i += Ed25519Signature.LENGTH) {
       signatures.push(new Ed25519Signature(bytes.subarray(i, i + Ed25519Signature.LENGTH)));
     }
     return new MultiEd25519Signature({ signatures, bitmap });

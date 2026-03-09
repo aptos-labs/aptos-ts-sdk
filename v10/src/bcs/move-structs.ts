@@ -136,10 +136,14 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
   /**
    * @param values - The array of elements to wrap.
    */
-  constructor(values: Array<T>) {
+  constructor(values: Array<T>, isU8 = false) {
     super();
     this.values = values;
+    this._isU8 = isU8;
   }
+
+  /** @internal Tracks whether this vector was created as a U8 vector, for correct script function serialization. */
+  readonly _isU8: boolean;
 
   serialize(serializer: Serializer): void {
     serializer.serializeVector(this.values);
@@ -150,13 +154,14 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
-    if (this.values[0] !== undefined && !(this.values[0] instanceof U8)) {
-      const serialized = new Serialized(this.bcsToBytes());
-      serialized.serializeForScriptFunction(serializer);
+    // U8 vectors use a dedicated tag; all other types (including empty non-U8 vectors) use Serialized
+    if (this._isU8 || (this.values.length > 0 && this.values[0] instanceof U8)) {
+      serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.U8Vector);
+      serializer.serialize(this);
       return;
     }
-    serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.U8Vector);
-    serializer.serialize(this);
+    const serialized = new Serialized(this.bcsToBytes());
+    serialized.serializeForScriptFunction(serializer);
   }
 
   // ── Factory methods ──
@@ -182,7 +187,10 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
       throw new Error("Invalid input type, must be an number[], Uint8Array, or hex string");
     }
 
-    return new MoveVector<U8>(numbers.map((v) => new U8(v)));
+    return new MoveVector<U8>(
+      numbers.map((v) => new U8(v)),
+      true,
+    );
   }
 
   /**

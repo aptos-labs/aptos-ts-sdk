@@ -33,15 +33,11 @@ const serializerPool: Serializer[] = [];
 const MAX_POOL_SIZE = 8;
 
 function acquireSerializer(): Serializer {
-  const serializer = serializerPool.pop();
-  if (serializer) {
-    serializer.reset();
-    return serializer;
-  }
-  return new Serializer();
+  return serializerPool.pop() ?? new Serializer();
 }
 
 function releaseSerializer(serializer: Serializer): void {
+  serializer.reset();
   if (serializerPool.length < MAX_POOL_SIZE) {
     serializerPool.push(serializer);
   }

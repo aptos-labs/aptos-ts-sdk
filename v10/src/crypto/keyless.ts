@@ -6,6 +6,7 @@ import { sha3_256 } from "@noble/hashes/sha3.js";
 import { Deserializer } from "../bcs/deserializer.js";
 import { Serializable, Serializer } from "../bcs/serializer.js";
 import { Hex, type HexInput } from "../hex/index.js";
+import { generateSigningMessage } from "../transactions/signing-message.js";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519.js";
 import { EphemeralPublicKey, EphemeralSignature } from "./ephemeral.js";
 import { bigIntToBytesLE, bytesToBigIntLE, hashStrToField, poseidonHash } from "./poseidon.js";
@@ -298,6 +299,9 @@ export class KeylessSignature extends Signature {
   static deserialize(deserializer: Deserializer): KeylessSignature {
     const ephemeralCertificate = EphemeralCertificate.deserialize(deserializer);
     const jwtHeader = deserializer.deserializeStr();
+    if (new TextEncoder().encode(jwtHeader).length > MAX_JWT_HEADER_B64_BYTES) {
+      throw new Error(`JWT header exceeds maximum length of ${MAX_JWT_HEADER_B64_BYTES} bytes`);
+    }
     const expiryDateSecs = deserializer.deserializeU64();
     const ephemeralPublicKey = EphemeralPublicKey.deserialize(deserializer);
     const ephemeralSignature = EphemeralSignature.deserialize(deserializer);
@@ -630,12 +634,7 @@ export class Groth16ProofAndStatement extends Serializable {
    * @returns A 32-byte hash `Uint8Array`.
    */
   hash(): Uint8Array {
-    // NOTE: Full implementation needs generateSigningMessage from transactions layer.
-    // For now, just hash directly with domain separator prefix.
-    const bcsBytes = this.bcsToBytes();
-    const encoder = new TextEncoder();
-    const prefix = sha3_256.create().update(encoder.encode(this.domainSeparator)).digest();
-    return sha3_256.create().update(prefix).update(bcsBytes).digest();
+    return generateSigningMessage(this.bcsToBytes(), this.domainSeparator);
   }
 }
 
@@ -1039,9 +1038,10 @@ export class MoveJWK extends Serializable {
       throw new Error("Only RSA 256 is supported for JWK to scalar conversion");
     }
     const uint8Array = base64UrlToBytes(this.n);
+    const modulusBits = uint8Array.length * 8;
     const chunks = chunkInto24Bytes(uint8Array.reverse());
     const scalars = chunks.map((chunk) => bytesToBigIntLE(chunk));
-    scalars.push(256n); // Add the modulus size
+    scalars.push(BigInt(modulusBits));
     return poseidonHash(scalars);
   }
 
@@ -1066,7 +1066,12 @@ export class MoveJWK extends Serializable {
 function base64UrlToBytes(base64url: string): Uint8Array {
   const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
   const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
-  const binary = atob(padded);
+  let binary: string;
+  try {
+    binary = atob(padded);
+  } catch {
+    throw new Error("Invalid base64url encoding");
+  }
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i += 1) {
     bytes[i] = binary.charCodeAt(i);
@@ -1109,8 +1114,8 @@ interface JwtHeader {
  */
 export function parseJwtHeader(jwtHeader: string): JwtHeader {
   const header = JSON.parse(jwtHeader);
-  if (header.kid === undefined) {
-    throw new Error("Invalid JWT header: missing kid field");
+  if (typeof header.kid !== "string") {
+    throw new Error("Invalid JWT header: missing or non-string kid field");
   }
   return header;
 }

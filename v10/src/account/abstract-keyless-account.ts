@@ -10,6 +10,9 @@ import {
   EphemeralCertificate,
   type KeylessPublicKey,
   KeylessSignature,
+  MAX_AUD_VAL_BYTES,
+  MAX_ISS_VAL_BYTES,
+  MAX_UID_VAL_BYTES,
   ZeroKnowledgeSig,
   type ZkProof,
 } from "../crypto/keyless.js";
@@ -94,6 +97,25 @@ export function getIssAudAndUidVal(args: { jwt: string; uidKey?: string }): {
     throw KeylessError.fromErrorType({
       type: KeylessErrorType.JWT_PARSING_ERROR,
       details: `Invalid JWT: claim '${uidKey}' is missing or not a string`,
+    });
+  }
+  const encoder = new TextEncoder();
+  if (encoder.encode(jwtPayload.iss).length > MAX_ISS_VAL_BYTES) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWT_PARSING_ERROR,
+      details: `Invalid JWT: 'iss' exceeds maximum length of ${MAX_ISS_VAL_BYTES} bytes`,
+    });
+  }
+  if (encoder.encode(jwtPayload.aud).length > MAX_AUD_VAL_BYTES) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWT_PARSING_ERROR,
+      details: `Invalid JWT: 'aud' exceeds maximum length of ${MAX_AUD_VAL_BYTES} bytes`,
+    });
+  }
+  if (encoder.encode(uidVal).length > MAX_UID_VAL_BYTES) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWT_PARSING_ERROR,
+      details: `Invalid JWT: '${uidKey}' exceeds maximum length of ${MAX_UID_VAL_BYTES} bytes`,
     });
   }
   return { iss: jwtPayload.iss, aud: jwtPayload.aud, uidVal };

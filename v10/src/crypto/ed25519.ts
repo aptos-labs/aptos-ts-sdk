@@ -208,13 +208,16 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   }
 
   private static fromDerivationPathInner(path: string, seed: Uint8Array, offset = HARDENED_OFFSET): Ed25519PrivateKey {
-    const { key, chainCode } = deriveKey(Ed25519PrivateKey.SLIP_0010_SEED, seed);
     const segments = splitPath(path).map((el) => parseInt(el, 10));
-    const { key: privateKey } = segments.reduce((parentKeys, segment) => CKDPriv(parentKeys, segment + offset), {
-      key,
-      chainCode,
-    });
-    return new Ed25519PrivateKey(privateKey, false);
+    let current = deriveKey(Ed25519PrivateKey.SLIP_0010_SEED, seed);
+    for (const segment of segments) {
+      const next = CKDPriv(current, segment + offset);
+      current.key.fill(0);
+      current.chainCode.fill(0);
+      current = next;
+    }
+    current.chainCode.fill(0);
+    return new Ed25519PrivateKey(current.key, false);
   }
 
   private ensureNotCleared(): void {
