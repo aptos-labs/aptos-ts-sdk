@@ -113,7 +113,7 @@ export class MultiEd25519Account implements Account {
 
     this.signers = signersAndBitPosition.map((value) => value[0]);
     this.signerIndices = signersAndBitPosition.map((value) => value[1]);
-    this.signaturesBitmap = this.publicKey.createBitmap({ bits: bitPositions });
+    this.signaturesBitmap = this.publicKey.createBitmap({ bits: this.signerIndices });
   }
 
   /**

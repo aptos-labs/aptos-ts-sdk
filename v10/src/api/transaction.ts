@@ -81,7 +81,7 @@ export async function buildSimpleTransaction(
 
   // Fetch account info and gas estimation in parallel if not provided
   const [ledgerInfo, gasEstimation, accountData] = await Promise.all([
-    options?.expireTimestamp !== undefined ? null : getLedgerInfo(config),
+    getLedgerInfo(config),
     options?.gasUnitPrice !== undefined ? null : getGasPriceEstimation(config),
     options?.sequenceNumber !== undefined ? null : getAccountSequenceNumber(config, senderAddress),
   ]);
@@ -257,7 +257,12 @@ export async function waitForTransaction(
       return response.data as CommittedTransactionResponse;
     }
   } catch (e) {
-    lastError = e instanceof Error ? e : new Error(String(e));
+    // Only suppress 404 (not found yet) and 429 (rate limit); re-throw everything else
+    if (e instanceof AptosApiError && (e.status === 404 || e.status === 429)) {
+      lastError = e;
+    } else {
+      throw e;
+    }
   }
 
   // Fall back to polling

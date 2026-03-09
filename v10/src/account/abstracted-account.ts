@@ -142,8 +142,11 @@ export class AbstractedAccount implements Account {
    */
   signWithAuthenticator(message: HexInput): AccountAuthenticatorAbstraction {
     const messageBytes = Hex.fromHexInput(message).toUint8Array();
-    const digest = sha3_256(messageBytes);
-    return new AccountAuthenticatorAbstraction(this.authenticationFunction, digest, this.sign(digest).toUint8Array());
+    return new AccountAuthenticatorAbstraction(
+      this.authenticationFunction,
+      messageBytes,
+      this.sign(messageBytes).toUint8Array(),
+    );
   }
 
   /**
@@ -172,7 +175,13 @@ export class AbstractedAccount implements Account {
    * @returns The {@link AbstractSignature} over the transaction signing message.
    */
   signTransaction(transaction: AnyRawTransaction): AbstractSignature {
-    return this.sign(generateSigningMessageForTransaction(transaction));
+    const digest = Hex.fromHexInput(
+      AbstractedAccount.generateAccountAbstractionMessage(
+        generateSigningMessageForTransaction(transaction),
+        this.authenticationFunction,
+      ),
+    ).toUint8Array();
+    return this.sign(digest);
   }
 
   /**
@@ -296,11 +305,10 @@ export class DerivableAbstractedAccount extends AbstractedAccount {
    */
   signWithAuthenticator(message: HexInput): AccountAuthenticatorAbstraction {
     const messageBytes = Hex.fromHexInput(message).toUint8Array();
-    const digest = sha3_256(messageBytes);
     return new AccountAuthenticatorAbstraction(
       this.authenticationFunction,
-      digest,
-      this.sign(digest).value,
+      messageBytes,
+      this.sign(messageBytes).value,
       this.abstractPublicKey,
     );
   }

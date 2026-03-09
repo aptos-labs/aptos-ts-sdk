@@ -67,7 +67,7 @@ export function hashStrToField(str: string, maxSizeBytes: number): bigint {
 
 function hashBytesWithLen(bytes: Uint8Array, maxSizeBytes: number): bigint {
   if (bytes.length > maxSizeBytes) {
-    throw new Error(`Inputted bytes of length ${bytes} is longer than ${maxSizeBytes}`);
+    throw new Error(`Inputted bytes of length ${bytes.length} is longer than ${maxSizeBytes}`);
   }
   const packed = padAndPackBytesWithLen(bytes, maxSizeBytes);
   return poseidonHash(packed);
@@ -75,7 +75,7 @@ function hashBytesWithLen(bytes: Uint8Array, maxSizeBytes: number): bigint {
 
 function padAndPackBytesNoLen(bytes: Uint8Array, maxSizeBytes: number): bigint[] {
   if (bytes.length > maxSizeBytes) {
-    throw new Error(`Input bytes of length ${bytes} is longer than ${maxSizeBytes}`);
+    throw new Error(`Input bytes of length ${bytes.length} is longer than ${maxSizeBytes}`);
   }
   const paddedStrBytes = padUint8ArrayWithZeros(bytes, maxSizeBytes);
   return packBytes(paddedStrBytes);
@@ -92,7 +92,7 @@ function padAndPackBytesNoLen(bytes: Uint8Array, maxSizeBytes: number): bigint[]
  */
 export function padAndPackBytesWithLen(bytes: Uint8Array, maxSizeBytes: number): bigint[] {
   if (bytes.length > maxSizeBytes) {
-    throw new Error(`Input bytes of length ${bytes} is longer than ${maxSizeBytes}`);
+    throw new Error(`Input bytes of length ${bytes.length} is longer than ${maxSizeBytes}`);
   }
   return padAndPackBytesNoLen(bytes, maxSizeBytes).concat([BigInt(bytes.length)]);
 }
@@ -148,6 +148,13 @@ export function bytesToBigIntLE(bytes: Uint8Array): bigint {
  */
 export function bigIntToBytesLE(value: bigint | number, length: number): Uint8Array {
   let val = BigInt(value);
+  if (val < 0n) {
+    throw new Error(`bigIntToBytesLE does not support negative values, received ${val}`);
+  }
+  const maxVal = (1n << BigInt(length * 8)) - 1n;
+  if (val > maxVal) {
+    throw new Error(`Value ${val} does not fit in ${length} bytes (max ${maxVal})`);
+  }
   const bytes = new Uint8Array(length);
   for (let i = 0; i < length; i += 1) {
     bytes[i] = Number(val & BigInt(0xff));

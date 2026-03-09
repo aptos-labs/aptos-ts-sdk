@@ -81,9 +81,12 @@ export function getIssAudAndUidVal(args: { jwt: string; uidKey?: string }): {
     });
   }
   if (typeof jwtPayload.aud !== "string") {
+    const details = Array.isArray(jwtPayload.aud)
+      ? "Invalid JWT: 'aud' claim is an array; only a single string audience is supported"
+      : "Invalid JWT: missing or malformed 'aud' claim";
     throw KeylessError.fromErrorType({
       type: KeylessErrorType.JWT_PARSING_ERROR,
-      details: "Invalid JWT: missing or malformed required claim",
+      details,
     });
   }
   const uidVal = jwtPayload[uidKey];
@@ -527,12 +530,20 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
   /**
    * Verifies that a {@link KeylessSignature} is valid for the given message.
    *
-   * @param args - An object with the `message` (hex input) and the
+   * **Note:** Keyless signature verification requires on-chain ZK proof
+   * verification and cannot be performed client-side. This method always
+   * throws an error. Use on-chain transaction submission to verify keyless
+   * signatures.
+   *
+   * @param _args - An object with the `message` (hex input) and the
    *   `signature` ({@link KeylessSignature}) to verify.
-   * @returns `true` if the signature is valid, `false` otherwise.
+   * @returns Never — always throws.
+   * @throws Always throws because client-side keyless verification is not supported.
    */
-  verifySignature(args: { message: HexInput; signature: KeylessSignature; [key: string]: unknown }): boolean {
-    return this.publicKey.verifySignature(args);
+  verifySignature(_args: { message: HexInput; signature: KeylessSignature; [key: string]: unknown }): boolean {
+    throw new Error(
+      "Keyless signature verification is not supported client-side. Keyless signatures are verified on-chain.",
+    );
   }
 }
 

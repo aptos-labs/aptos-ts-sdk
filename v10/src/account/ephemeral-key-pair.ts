@@ -158,6 +158,9 @@ export class EphemeralKeyPair extends Serializable {
    * @param serializer - The BCS serializer to write into.
    */
   serialize(serializer: Serializer): void {
+    if (this.cleared) {
+      throw new Error("EphemeralKeyPair has been cleared from memory and cannot be serialized");
+    }
     serializer.serializeU32AsUleb128(this.publicKey.variant);
     serializer.serializeBytes(this.privateKey.toUint8Array());
     serializer.serializeU64(this.expiryDateSecs);

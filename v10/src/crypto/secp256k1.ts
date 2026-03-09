@@ -47,6 +47,8 @@ export class Secp256k1PublicKey extends PublicKey {
     const hex = Hex.fromHexInput(hexInput);
     const { length } = hex.toUint8Array();
     if (length === Secp256k1PublicKey.LENGTH) {
+      // Validate uncompressed key is a valid curve point
+      secp256k1.Point.fromBytes(hex.toUint8Array());
       this.key = hex;
     } else if (length === Secp256k1PublicKey.COMPRESSED_LENGTH) {
       const point = secp256k1.Point.fromBytes(hex.toUint8Array());

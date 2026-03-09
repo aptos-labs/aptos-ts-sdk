@@ -1,7 +1,7 @@
 import { p256 } from "@noble/curves/nist.js";
 import { sha3_256 } from "@noble/hashes/sha3.js";
 import type { Deserializer } from "../bcs/deserializer.js";
-import type { Serializer } from "../bcs/serializer.js";
+import { Serializable, type Serializer } from "../bcs/serializer.js";
 import type { HexInput } from "../hex/index.js";
 import { Hex } from "../hex/index.js";
 import { type PrivateKey, PrivateKeyUtils } from "./private-key.js";
@@ -53,6 +53,8 @@ export class Secp256r1PublicKey extends PublicKey {
       const point = p256.Point.fromBytes(hex.toUint8Array());
       this.key = Hex.fromHexInput(point.toBytes(false));
     } else {
+      // Validate uncompressed key is a valid curve point
+      p256.Point.fromBytes(hex.toUint8Array());
       this.key = hex;
     }
   }
@@ -115,7 +117,7 @@ export class Secp256r1PublicKey extends PublicKey {
  * const signature = privateKey.sign("0xdeadbeef");
  * ```
  */
-export class Secp256r1PrivateKey implements PrivateKey {
+export class Secp256r1PrivateKey extends Serializable implements PrivateKey {
   /** The expected byte length of a secp256r1 private key. */
   static readonly LENGTH: number = 32;
 
@@ -132,6 +134,7 @@ export class Secp256r1PrivateKey implements PrivateKey {
    * @throws If the decoded key is not exactly 32 bytes.
    */
   constructor(hexInput: HexInput, strict?: boolean) {
+    super();
     const privateKeyHex = PrivateKeyUtils.parseHexInput(hexInput, PrivateKeyVariants.Secp256r1, strict);
     const keyLength = privateKeyHex.toUint8Array().length;
     if (keyLength !== Secp256r1PrivateKey.LENGTH) {
@@ -253,6 +256,26 @@ export class Secp256r1PrivateKey implements PrivateKey {
   toHexString(): string {
     this.ensureNotCleared();
     return this.key.toString();
+  }
+
+  /**
+   * BCS-serialises the private key by writing its bytes with a length prefix.
+   *
+   * @param serializer - The BCS serializer to write into.
+   */
+  serialize(serializer: Serializer): void {
+    serializer.serializeBytes(this.toUint8Array());
+  }
+
+  /**
+   * Deserialises a `Secp256r1PrivateKey` from a BCS stream.
+   *
+   * @param deserializer - The BCS deserializer to read from.
+   * @returns A new `Secp256r1PrivateKey`.
+   */
+  static deserialize(deserializer: Deserializer): Secp256r1PrivateKey {
+    const bytes = deserializer.deserializeBytes();
+    return new Secp256r1PrivateKey(bytes);
   }
 }
 

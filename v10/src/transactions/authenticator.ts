@@ -476,11 +476,7 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
       serializer.serializeU32AsUleb128(AbstractAuthenticationDataVariant.V1);
     }
     serializer.serializeBytes(this.signingMessageDigest.toUint8Array());
-    if (this.accountIdentity) {
-      serializer.serializeBytes(this.abstractionSignature);
-    } else {
-      serializer.serializeFixedBytes(this.abstractionSignature);
-    }
+    serializer.serializeBytes(this.abstractionSignature);
     if (this.accountIdentity) {
       serializer.serializeBytes(this.accountIdentity);
     }
@@ -502,7 +498,7 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
     const signingMessageDigest = deserializer.deserializeBytes();
 
     if (variant === AbstractAuthenticationDataVariant.V1) {
-      const abstractionSignature = deserializer.deserializeFixedBytes(deserializer.remaining());
+      const abstractionSignature = deserializer.deserializeBytes();
       return new AccountAuthenticatorAbstraction(
         `${moduleAddress}::${moduleName}::${functionName}`,
         signingMessageDigest,

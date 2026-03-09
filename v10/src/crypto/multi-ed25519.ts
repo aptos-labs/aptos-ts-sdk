@@ -156,9 +156,20 @@ export class MultiEd25519PublicKey extends AbstractMultiKey {
    */
   static deserialize(deserializer: Deserializer): MultiEd25519PublicKey {
     const bytes = deserializer.deserializeBytes();
+    if (bytes.length < Ed25519PublicKey.LENGTH + 1) {
+      throw new Error(
+        `MultiEd25519PublicKey bytes too short: expected at least ${Ed25519PublicKey.LENGTH + 1}, got ${bytes.length}`,
+      );
+    }
+    const keyBytes = bytes.length - 1;
+    if (keyBytes % Ed25519PublicKey.LENGTH !== 0) {
+      throw new Error(
+        `MultiEd25519PublicKey key bytes are not aligned: ${keyBytes} is not a multiple of ${Ed25519PublicKey.LENGTH}`,
+      );
+    }
     const threshold = bytes[bytes.length - 1];
     const keys: Ed25519PublicKey[] = [];
-    for (let i = 0; i < bytes.length - 1; i += Ed25519PublicKey.LENGTH) {
+    for (let i = 0; i < keyBytes; i += Ed25519PublicKey.LENGTH) {
       keys.push(new Ed25519PublicKey(bytes.subarray(i, i + Ed25519PublicKey.LENGTH)));
     }
     return new MultiEd25519PublicKey({ publicKeys: keys, threshold });
