@@ -190,9 +190,12 @@ export class EphemeralKeyPair extends Serializable {
       default:
         throw new Error(`Unknown variant index for EphemeralPublicKey: ${variantIndex}`);
     }
-    const expiryDateSecs = deserializer.deserializeU64();
+    const expiryDateSecsBig = deserializer.deserializeU64();
+    if (expiryDateSecsBig > BigInt(Number.MAX_SAFE_INTEGER)) {
+      throw new Error(`expiryDateSecs ${expiryDateSecsBig} exceeds safe integer range`);
+    }
     const blinder = deserializer.deserializeFixedBytes(31);
-    return new EphemeralKeyPair({ privateKey, expiryDateSecs: Number(expiryDateSecs), blinder });
+    return new EphemeralKeyPair({ privateKey, expiryDateSecs: Number(expiryDateSecsBig), blinder });
   }
 
   /**

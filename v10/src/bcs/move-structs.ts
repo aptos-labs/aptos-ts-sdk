@@ -686,6 +686,9 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
     cls: Deserializable<U>,
   ): MoveOption<U> {
     const vector = MoveVector.deserialize(deserializer, cls);
+    if (vector.values.length > 1) {
+      throw new Error(`MoveOption deserialized with ${vector.values.length} elements; expected 0 or 1`);
+    }
     return new MoveOption(vector.values[0]);
   }
 }

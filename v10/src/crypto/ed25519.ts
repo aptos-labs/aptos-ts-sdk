@@ -208,7 +208,13 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   }
 
   private static fromDerivationPathInner(path: string, seed: Uint8Array, offset = HARDENED_OFFSET): Ed25519PrivateKey {
-    const segments = splitPath(path).map((el) => parseInt(el, 10));
+    const segments = splitPath(path).map((el) => {
+      const n = parseInt(el, 10);
+      if (!Number.isInteger(n) || n < 0 || n >= HARDENED_OFFSET) {
+        throw new Error(`Invalid derivation path segment: ${el} (must be 0–2147483647)`);
+      }
+      return n;
+    });
     let current = deriveKey(Ed25519PrivateKey.SLIP_0010_SEED, seed);
     for (const segment of segments) {
       const next = CKDPriv(current, segment + offset);

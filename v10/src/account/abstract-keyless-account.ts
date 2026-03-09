@@ -355,6 +355,9 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
    * @param serializer - The BCS serializer to write into.
    */
   serialize(serializer: Serializer): void {
+    if (this.sensitiveDataCleared) {
+      throw new Error("Cannot serialize a KeylessAccount whose sensitive data has been cleared");
+    }
     this.accountAddress.serialize(serializer);
     serializer.serializeStr(this.jwt);
     serializer.serializeStr(this.uidKey);

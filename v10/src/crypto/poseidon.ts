@@ -95,7 +95,9 @@ export function padAndPackBytesWithLen(bytes: Uint8Array, maxSizeBytes: number):
   if (bytes.length > maxSizeBytes) {
     throw new Error(`Input bytes of length ${bytes.length} is longer than ${maxSizeBytes}`);
   }
-  return padAndPackBytesNoLen(bytes, maxSizeBytes).concat([BigInt(bytes.length)]);
+  const packed = padAndPackBytesNoLen(bytes, maxSizeBytes);
+  packed.push(BigInt(bytes.length));
+  return packed;
 }
 
 function packBytes(bytes: Uint8Array): bigint[] {

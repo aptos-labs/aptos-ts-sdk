@@ -452,8 +452,7 @@ export class Serializer {
     const tempSerializer = acquireSerializer();
     try {
       value.serialize(tempSerializer);
-      const bytes = tempSerializer.toUint8Array();
-      this.serializeBytes(bytes);
+      this.serializeBytes(tempSerializer.toUint8ArrayView());
     } finally {
       releaseSerializer(tempSerializer);
     }
@@ -550,8 +549,10 @@ export function validateNumberInRange<T extends AnyNumber>(value: T, minValue: T
     }
     return;
   }
-  const valueBigInt = BigInt(value);
-  if (valueBigInt > BigInt(maxValue) || valueBigInt < BigInt(minValue)) {
+  const v = typeof value === "bigint" ? value : BigInt(value);
+  const hi = typeof maxValue === "bigint" ? maxValue : BigInt(maxValue);
+  const lo = typeof minValue === "bigint" ? minValue : BigInt(minValue);
+  if (v > hi || v < lo) {
     throw new Error(outOfRangeErrorMessage(value, minValue, maxValue));
   }
 }

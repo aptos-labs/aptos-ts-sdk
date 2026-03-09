@@ -304,7 +304,11 @@ export class KeylessSignature extends Signature {
     if (TEXT_ENCODER.encode(jwtHeader).length > MAX_JWT_HEADER_B64_BYTES) {
       throw new Error(`JWT header exceeds maximum length of ${MAX_JWT_HEADER_B64_BYTES} bytes`);
     }
-    const expiryDateSecs = deserializer.deserializeU64();
+    const expiryDateSecsBig = deserializer.deserializeU64();
+    if (expiryDateSecsBig > BigInt(Number.MAX_SAFE_INTEGER)) {
+      throw new Error(`expiryDateSecs ${expiryDateSecsBig} exceeds safe integer range`);
+    }
+    const expiryDateSecs = Number(expiryDateSecsBig);
     const ephemeralPublicKey = EphemeralPublicKey.deserialize(deserializer);
     const ephemeralSignature = EphemeralSignature.deserialize(deserializer);
     return new KeylessSignature({
@@ -493,8 +497,10 @@ class G2Bytes extends Serializable {
 
   toProjectivePoint(): WeierstrassPoint<Fp2> {
     const bytes = new Uint8Array(this.data);
-    const x0 = bytes.slice(0, 32).reverse();
-    const x1 = bytes.slice(32, 64).reverse();
+    const x0 = bytes.subarray(0, 32);
+    const x1 = bytes.subarray(32, 64);
+    x0.reverse();
+    x1.reverse();
     const yFlag = (x1[0] & 0x80) >> 7;
     const { Fp2 } = bn254.fields;
     const x = Fp2.fromBigTuple([bytesToBn254FpBE(x0), bytesToBn254FpBE(x1)]);
@@ -770,7 +776,11 @@ export class ZeroKnowledgeSig extends Signature {
    */
   static deserialize(deserializer: Deserializer): ZeroKnowledgeSig {
     const proof = ZkProof.deserialize(deserializer);
-    const expHorizonSecs = Number(deserializer.deserializeU64());
+    const expHorizonSecsBig = deserializer.deserializeU64();
+    if (expHorizonSecsBig > BigInt(Number.MAX_SAFE_INTEGER)) {
+      throw new Error(`expHorizonSecs ${expHorizonSecsBig} exceeds safe integer range`);
+    }
+    const expHorizonSecs = Number(expHorizonSecsBig);
     const extraField = deserializer.deserializeOption("string");
     const overrideAudVal = deserializer.deserializeOption("string");
     const trainingWheelsSignature = deserializer.deserializeOption(EphemeralSignature);
