@@ -98,11 +98,17 @@ export class AccountAddress extends Serializable implements TransactionArgument 
 
   /** Returns the canonical string representation without the "0x" prefix. */
   toStringWithoutPrefix(): string {
-    let hex = bytesToHex(this.data);
-    if (this.isSpecial()) {
-      hex = hex[hex.length - 1];
+    if (this.data[this.data.length - 1] < 0x10) {
+      let special = true;
+      for (let i = 0; i < this.data.length - 1; i++) {
+        if (this.data[i] !== 0) {
+          special = false;
+          break;
+        }
+      }
+      if (special) return this.data[this.data.length - 1].toString(16);
     }
-    return hex;
+    return bytesToHex(this.data);
   }
 
   /** Returns the full 64-character hex representation with "0x" prefix (always zero-padded). */

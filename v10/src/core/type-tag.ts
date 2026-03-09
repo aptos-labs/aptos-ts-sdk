@@ -476,8 +476,9 @@ export class TypeTagVector extends TypeTag {
     return `vector<${this.value.toString()}>`;
   }
   /** Convenience factory for `vector<u8>`, commonly used for byte strings. */
+  static readonly VECTOR_U8: TypeTagVector = new TypeTagVector(new TypeTagU8());
   static u8(): TypeTagVector {
-    return new TypeTagVector(new TypeTagU8());
+    return TypeTagVector.VECTOR_U8;
   }
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(TypeTagVariants.Vector);
@@ -600,9 +601,12 @@ export class StructTag extends Serializable {
     const moduleName = Identifier.deserialize(deserializer);
     const name = Identifier.deserialize(deserializer);
     const length = deserializer.deserializeUleb128AsU32();
+    if (length > 32) {
+      throw new Error(`StructTag typeArgs count ${length} exceeds maximum 32`);
+    }
     const typeArgs: TypeTag[] = [];
     for (let i = 0; i < length; i += 1) {
-      typeArgs.push(TypeTag.deserialize(deserializer, depth));
+      typeArgs.push(TypeTag.deserialize(deserializer, depth + 1));
     }
     return new StructTag(address, moduleName, name, typeArgs);
   }
@@ -610,12 +614,21 @@ export class StructTag extends Serializable {
 
 // ── Factory helpers ──
 
+const APTOS_COIN_STRUCT_TAG = new StructTag(
+  AccountAddress.ONE,
+  new Identifier("aptos_coin"),
+  new Identifier("AptosCoin"),
+  [],
+);
+
+const STRING_STRUCT_TAG = new StructTag(AccountAddress.ONE, new Identifier("string"), new Identifier("String"), []);
+
 /**
  * Creates a StructTag for `0x1::aptos_coin::AptosCoin`.
  * @returns The StructTag for the native Aptos coin.
  */
 export function aptosCoinStructTag(): StructTag {
-  return new StructTag(AccountAddress.ONE, new Identifier("aptos_coin"), new Identifier("AptosCoin"), []);
+  return APTOS_COIN_STRUCT_TAG;
 }
 
 /**
@@ -623,7 +636,7 @@ export function aptosCoinStructTag(): StructTag {
  * @returns The StructTag for the Move String type.
  */
 export function stringStructTag(): StructTag {
-  return new StructTag(AccountAddress.ONE, new Identifier("string"), new Identifier("String"), []);
+  return STRING_STRUCT_TAG;
 }
 
 /**

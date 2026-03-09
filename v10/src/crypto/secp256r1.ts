@@ -339,6 +339,8 @@ export class WebAuthnSignature extends Signature {
    * @returns A new `WebAuthnSignature`.
    * @throws If the variant id is not `0`.
    */
+  /** Maximum expected size for an ECDSA-P256 signature (DER or compact). */
+  static readonly MAX_SIGNATURE_LENGTH = 128;
   /** Maximum expected size for authenticator data (2 KB). */
   static readonly MAX_AUTHENTICATOR_DATA_LENGTH = 2048;
   /** Maximum expected size for client data JSON (4 KB). */
@@ -350,6 +352,11 @@ export class WebAuthnSignature extends Signature {
       throw new Error(`Invalid id for WebAuthnSignature: ${id}`);
     }
     const signature = deserializer.deserializeBytes();
+    if (signature.length > WebAuthnSignature.MAX_SIGNATURE_LENGTH) {
+      throw new Error(
+        `WebAuthn signature length ${signature.length} exceeds maximum ${WebAuthnSignature.MAX_SIGNATURE_LENGTH}`,
+      );
+    }
     const authenticatorData = deserializer.deserializeBytes();
     if (authenticatorData.length > WebAuthnSignature.MAX_AUTHENTICATOR_DATA_LENGTH) {
       throw new Error(

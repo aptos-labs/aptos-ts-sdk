@@ -55,6 +55,7 @@ export interface Deserializable<T> {
  */
 export class Deserializer {
   private buffer: ArrayBuffer;
+  private dataView: DataView;
   private offset: number;
 
   /**
@@ -65,6 +66,7 @@ export class Deserializer {
     // Copy to prevent outside mutation
     this.buffer = new ArrayBuffer(data.length);
     new Uint8Array(this.buffer).set(data, 0);
+    this.dataView = new DataView(this.buffer);
     this.offset = 0;
   }
 
@@ -172,8 +174,12 @@ export class Deserializer {
    * @returns A number in the range [0, 65535].
    */
   deserializeU16(): Uint16 {
-    const bytes = this.read(2);
-    return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint16(0, true);
+    if (this.offset + 2 > this.buffer.byteLength) {
+      throw new Error("Reached to the end of buffer");
+    }
+    const value = this.dataView.getUint16(this.offset, true);
+    this.offset += 2;
+    return value;
   }
 
   /**
@@ -181,8 +187,12 @@ export class Deserializer {
    * @returns A number in the range [0, 4294967295].
    */
   deserializeU32(): Uint32 {
-    const bytes = this.read(4);
-    return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(0, true);
+    if (this.offset + 4 > this.buffer.byteLength) {
+      throw new Error("Reached to the end of buffer");
+    }
+    const value = this.dataView.getUint32(this.offset, true);
+    this.offset += 4;
+    return value;
   }
 
   /**
@@ -222,8 +232,12 @@ export class Deserializer {
    * @returns A number in the range [-128, 127].
    */
   deserializeI8(): number {
-    const bytes = this.read(1);
-    return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getInt8(0);
+    if (this.offset + 1 > this.buffer.byteLength) {
+      throw new Error("Reached to the end of buffer");
+    }
+    const value = this.dataView.getInt8(this.offset);
+    this.offset += 1;
+    return value;
   }
 
   /**
@@ -231,8 +245,12 @@ export class Deserializer {
    * @returns A number in the range [-32768, 32767].
    */
   deserializeI16(): number {
-    const bytes = this.read(2);
-    return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getInt16(0, true);
+    if (this.offset + 2 > this.buffer.byteLength) {
+      throw new Error("Reached to the end of buffer");
+    }
+    const value = this.dataView.getInt16(this.offset, true);
+    this.offset += 2;
+    return value;
   }
 
   /**
@@ -240,8 +258,12 @@ export class Deserializer {
    * @returns A number in the range [-2147483648, 2147483647].
    */
   deserializeI32(): number {
-    const bytes = this.read(4);
-    return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getInt32(0, true);
+    if (this.offset + 4 > this.buffer.byteLength) {
+      throw new Error("Reached to the end of buffer");
+    }
+    const value = this.dataView.getInt32(this.offset, true);
+    this.offset += 4;
+    return value;
   }
 
   /**

@@ -225,7 +225,7 @@ export class MultiAgentRawTransaction extends RawTransactionWithData {
    */
   static load(deserializer: Deserializer): MultiAgentRawTransaction {
     const rawTxn = RawTransaction.deserialize(deserializer);
-    const secondarySignerAddresses = deserializer.deserializeVector(AccountAddress);
+    const secondarySignerAddresses = deserializer.deserializeVector(AccountAddress, 255);
     return new MultiAgentRawTransaction(rawTxn, secondarySignerAddresses);
   }
 }
@@ -296,7 +296,7 @@ export class FeePayerRawTransaction extends RawTransactionWithData {
    */
   static load(deserializer: Deserializer): FeePayerRawTransaction {
     const rawTxn = RawTransaction.deserialize(deserializer);
-    const secondarySignerAddresses = deserializer.deserializeVector(AccountAddress);
+    const secondarySignerAddresses = deserializer.deserializeVector(AccountAddress, 255);
     const feePayerAddress = AccountAddress.deserialize(deserializer);
     return new FeePayerRawTransaction(rawTxn, secondarySignerAddresses, feePayerAddress);
   }

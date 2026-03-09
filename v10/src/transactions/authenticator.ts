@@ -871,8 +871,8 @@ export class TransactionAuthenticatorMultiAgent extends TransactionAuthenticator
    */
   static load(deserializer: Deserializer): TransactionAuthenticatorMultiAgent {
     const sender = AccountAuthenticator.deserialize(deserializer);
-    const secondary_signer_addresses = deserializer.deserializeVector(AccountAddress);
-    const secondary_signers = deserializer.deserializeVector(AccountAuthenticator);
+    const secondary_signer_addresses = deserializer.deserializeVector(AccountAddress, 255);
+    const secondary_signers = deserializer.deserializeVector(AccountAuthenticator, 255);
     return new TransactionAuthenticatorMultiAgent(sender, secondary_signer_addresses, secondary_signers);
   }
 }
@@ -955,8 +955,8 @@ export class TransactionAuthenticatorFeePayer extends TransactionAuthenticator {
    */
   static load(deserializer: Deserializer): TransactionAuthenticatorFeePayer {
     const sender = AccountAuthenticator.deserialize(deserializer);
-    const secondary_signer_addresses = deserializer.deserializeVector(AccountAddress);
-    const secondary_signers = deserializer.deserializeVector(AccountAuthenticator);
+    const secondary_signer_addresses = deserializer.deserializeVector(AccountAddress, 255);
+    const secondary_signers = deserializer.deserializeVector(AccountAuthenticator, 255);
     const address = AccountAddress.deserialize(deserializer);
     const authenticator = AccountAuthenticator.deserialize(deserializer);
     const fee_payer = { address, authenticator };

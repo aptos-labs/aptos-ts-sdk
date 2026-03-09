@@ -583,8 +583,10 @@ export class MultiSigTransactionPayload extends Serializable {
    * @returns A new `MultiSigTransactionPayload` instance.
    */
   static deserialize(deserializer: Deserializer): MultiSigTransactionPayload {
-    // Consume the variant index (currently always 0 for EntryFunction)
-    deserializer.deserializeUleb128AsU32();
+    const variant = deserializer.deserializeUleb128AsU32();
+    if (variant !== 0) {
+      throw new Error(`Unknown MultiSigTransactionPayload variant: ${variant}. Only EntryFunction (0) is supported.`);
+    }
     return new MultiSigTransactionPayload(EntryFunction.deserialize(deserializer));
   }
 }

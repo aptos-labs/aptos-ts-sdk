@@ -261,10 +261,9 @@ export class Serializer {
    */
   serializeU64(value: AnyNumber) {
     validateNumberInRange(value, BIGINT_0, MAX_U64_BIG_INT);
-    const low = BigInt(value) & BIGINT_MAX_U32;
-    const high = BigInt(value) >> BIGINT_32;
-    this.serializeU32(Number(low));
-    this.serializeU32(Number(high));
+    const v = BigInt(value);
+    this.serializeU32(Number(v & BIGINT_MAX_U32));
+    this.serializeU32(Number(v >> BIGINT_32));
   }
 
   /**
@@ -274,10 +273,9 @@ export class Serializer {
    */
   serializeU128(value: AnyNumber) {
     validateNumberInRange(value, BIGINT_0, MAX_U128_BIG_INT);
-    const low = BigInt(value) & MAX_U64_BIG_INT;
-    const high = BigInt(value) >> BIGINT_64;
-    this.serializeU64(low);
-    this.serializeU64(high);
+    const v = BigInt(value);
+    this.serializeU64(v & MAX_U64_BIG_INT);
+    this.serializeU64(v >> BIGINT_64);
   }
 
   /**
@@ -287,10 +285,9 @@ export class Serializer {
    */
   serializeU256(value: AnyNumber) {
     validateNumberInRange(value, BIGINT_0, MAX_U256_BIG_INT);
-    const low = BigInt(value) & MAX_U128_BIG_INT;
-    const high = BigInt(value) >> BIGINT_128;
-    this.serializeU128(low);
-    this.serializeU128(high);
+    const v = BigInt(value);
+    this.serializeU128(v & MAX_U128_BIG_INT);
+    this.serializeU128(v >> BIGINT_128);
   }
 
   // ── Signed integers ──

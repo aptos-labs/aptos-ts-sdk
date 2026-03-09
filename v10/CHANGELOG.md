@@ -81,13 +81,27 @@ A ground-up rewrite of the Aptos TypeScript SDK. See [MIGRATION.md](./MIGRATION.
 
 ### Security
 
-- **TypeTag deserialization depth limit.** Added a recursion depth limit (128) to `TypeTag.deserialize()` to prevent stack overflow DoS from deeply nested `vector<vector<...>>` payloads.
+- **TypeTag deserialization depth limit.** Added a recursion depth limit (128) to `TypeTag.deserialize()` to prevent stack overflow DoS from deeply nested `vector<vector<...>>` payloads. `StructTag.deserialize` correctly increments depth for type arguments and caps count at 32.
 
 - **MultiKeySignature bitmap validation.** `MultiKeySignature.deserialize()` now validates the bitmap is exactly 4 bytes before constructing the object.
 
-- **WebAuthnSignature field size limits.** `WebAuthnSignature.deserialize()` now enforces size limits on `authenticatorData` (2 KB) and `clientDataJSON` (4 KB) to prevent excessive memory allocation from malicious BCS payloads.
+- **WebAuthnSignature field size limits.** `WebAuthnSignature.deserialize()` now enforces size limits on all fields: `signature` (128 bytes), `authenticatorData` (2 KB), and `clientDataJSON` (4 KB).
+
+- **MultiSigTransactionPayload variant validation.** `MultiSigTransactionPayload.deserialize()` now validates the variant index instead of silently discarding it.
+
+- **Secondary signer vector bounds.** Multi-agent and fee-payer transaction deserializers cap secondary signer vectors at 255 elements (matching on-chain limits).
 
 - **bytesToBigIntLE lookup table.** Pre-computed 256-element byte-to-bigint lookup table avoids per-byte BigInt allocations in the Poseidon hash path.
+
+### Performance
+
+- **Serializer single BigInt conversion.** `serializeU64`, `serializeU128`, and `serializeU256` now call `BigInt(value)` once instead of 2–4 times per invocation.
+
+- **Deserializer DataView singleton.** `Deserializer` now creates a single `DataView` at construction time instead of allocating a new one per `deserializeU16/U32/I8/I16/I32` call.
+
+- **TypeTag and StructTag singletons.** `TypeTagVector.u8()`, `aptosCoinStructTag()`, and `stringStructTag()` return cached singleton instances instead of allocating new objects per call.
+
+- **AccountAddress.toStringWithoutPrefix fast path.** Special addresses (`0x0`–`0xf`) skip the full 32-byte hex encoding and return immediately.
 
 ### Changed
 
