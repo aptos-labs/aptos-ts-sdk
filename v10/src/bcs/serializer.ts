@@ -3,6 +3,13 @@
 
 import { Hex } from "../hex/hex.js";
 import {
+  BIGINT_0,
+  BIGINT_1,
+  BIGINT_32,
+  BIGINT_64,
+  BIGINT_128,
+  BIGINT_256,
+  BIGINT_MAX_U32,
   MAX_I8_NUMBER,
   MAX_I16_NUMBER,
   MAX_I32_NUMBER,
@@ -253,9 +260,9 @@ export class Serializer {
    * @param value - A value in the range [0, 2^64 - 1].
    */
   serializeU64(value: AnyNumber) {
-    validateNumberInRange(value, BigInt(0), MAX_U64_BIG_INT);
-    const low = BigInt(value) & BigInt(MAX_U32_NUMBER);
-    const high = BigInt(value) >> BigInt(32);
+    validateNumberInRange(value, BIGINT_0, MAX_U64_BIG_INT);
+    const low = BigInt(value) & BIGINT_MAX_U32;
+    const high = BigInt(value) >> BIGINT_32;
     this.serializeU32(Number(low));
     this.serializeU32(Number(high));
   }
@@ -266,9 +273,9 @@ export class Serializer {
    * @param value - A value in the range [0, 2^128 - 1].
    */
   serializeU128(value: AnyNumber) {
-    validateNumberInRange(value, BigInt(0), MAX_U128_BIG_INT);
+    validateNumberInRange(value, BIGINT_0, MAX_U128_BIG_INT);
     const low = BigInt(value) & MAX_U64_BIG_INT;
-    const high = BigInt(value) >> BigInt(64);
+    const high = BigInt(value) >> BIGINT_64;
     this.serializeU64(low);
     this.serializeU64(high);
   }
@@ -279,9 +286,9 @@ export class Serializer {
    * @param value - A value in the range [0, 2^256 - 1].
    */
   serializeU256(value: AnyNumber) {
-    validateNumberInRange(value, BigInt(0), MAX_U256_BIG_INT);
+    validateNumberInRange(value, BIGINT_0, MAX_U256_BIG_INT);
     const low = BigInt(value) & MAX_U128_BIG_INT;
-    const high = BigInt(value) >> BigInt(128);
+    const high = BigInt(value) >> BIGINT_128;
     this.serializeU128(low);
     this.serializeU128(high);
   }
@@ -323,9 +330,9 @@ export class Serializer {
   serializeI64(value: AnyNumber) {
     validateNumberInRange(value, MIN_I64_BIG_INT, MAX_I64_BIG_INT);
     const val = BigInt(value);
-    const unsigned = val < 0 ? (BigInt(1) << BigInt(64)) + val : val;
-    const low = unsigned & BigInt(MAX_U32_NUMBER);
-    const high = unsigned >> BigInt(32);
+    const unsigned = val < 0 ? (BIGINT_1 << BIGINT_64) + val : val;
+    const low = unsigned & BIGINT_MAX_U32;
+    const high = unsigned >> BIGINT_32;
     this.serializeU32(Number(low));
     this.serializeU32(Number(high));
   }
@@ -338,9 +345,9 @@ export class Serializer {
   serializeI128(value: AnyNumber) {
     validateNumberInRange(value, MIN_I128_BIG_INT, MAX_I128_BIG_INT);
     const val = BigInt(value);
-    const unsigned = val < 0 ? (BigInt(1) << BigInt(128)) + val : val;
+    const unsigned = val < 0 ? (BIGINT_1 << BIGINT_128) + val : val;
     const low = unsigned & MAX_U64_BIG_INT;
-    const high = unsigned >> BigInt(64);
+    const high = unsigned >> BIGINT_64;
     this.serializeU64(low);
     this.serializeU64(high);
   }
@@ -353,9 +360,9 @@ export class Serializer {
   serializeI256(value: AnyNumber) {
     validateNumberInRange(value, MIN_I256_BIG_INT, MAX_I256_BIG_INT);
     const val = BigInt(value);
-    const unsigned = val < 0 ? (BigInt(1) << BigInt(256)) + val : val;
+    const unsigned = val < 0 ? (BIGINT_1 << BIGINT_256) + val : val;
     const low = unsigned & MAX_U128_BIG_INT;
-    const high = unsigned >> BigInt(128);
+    const high = unsigned >> BIGINT_128;
     this.serializeU128(low);
     this.serializeU128(high);
   }

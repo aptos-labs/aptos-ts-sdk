@@ -83,7 +83,15 @@ export abstract class AbstractMultiKey extends AccountPublicKey {
    * @throws If the public key is not found in the set.
    */
   getIndex(publicKey: PublicKey): number {
-    const index = this.publicKeys.findIndex((pk) => pk.toString() === publicKey.toString());
+    const target = publicKey.toUint8Array();
+    const index = this.publicKeys.findIndex((pk) => {
+      const other = pk.toUint8Array();
+      if (other.length !== target.length) return false;
+      for (let i = 0; i < target.length; i++) {
+        if (other[i] !== target[i]) return false;
+      }
+      return true;
+    });
     if (index !== -1) return index;
     throw new Error(`Public key ${publicKey} not found in multi key set ${this.publicKeys}`);
   }

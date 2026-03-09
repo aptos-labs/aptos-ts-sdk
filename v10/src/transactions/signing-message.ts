@@ -41,6 +41,7 @@ export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTra
 }
 
 const textEncoder = new TextEncoder();
+const MAX_DOMAIN_SEPARATOR_CACHE = 64;
 const domainSeparatorCache = new Map<string, Uint8Array>();
 
 /**
@@ -75,6 +76,10 @@ export function generateSigningMessage(bytes: Uint8Array, domainSeparator: strin
   let prefix = domainSeparatorCache.get(domainSeparator);
   if (prefix === undefined) {
     prefix = sha3Hash.create().update(textEncoder.encode(domainSeparator)).digest();
+    if (domainSeparatorCache.size >= MAX_DOMAIN_SEPARATOR_CACHE) {
+      const oldest = domainSeparatorCache.keys().next().value;
+      if (oldest !== undefined) domainSeparatorCache.delete(oldest);
+    }
     domainSeparatorCache.set(domainSeparator, prefix);
   }
 

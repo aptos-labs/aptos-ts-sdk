@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
+  BIGINT_0,
   MAX_I8_NUMBER,
   MAX_I16_NUMBER,
   MAX_I32_NUMBER,
@@ -237,7 +238,7 @@ export class U64 extends Serializable implements TransactionArgument {
    */
   constructor(value: AnyNumber) {
     super();
-    validateNumberInRange(value, BigInt(0), MAX_U64_BIG_INT);
+    validateNumberInRange(value, BIGINT_0, MAX_U64_BIG_INT);
     this.value = BigInt(value);
   }
 
@@ -285,7 +286,7 @@ export class U128 extends Serializable implements TransactionArgument {
    */
   constructor(value: AnyNumber) {
     super();
-    validateNumberInRange(value, BigInt(0), MAX_U128_BIG_INT);
+    validateNumberInRange(value, BIGINT_0, MAX_U128_BIG_INT);
     this.value = BigInt(value);
   }
 
@@ -333,7 +334,7 @@ export class U256 extends Serializable implements TransactionArgument {
    */
   constructor(value: AnyNumber) {
     super();
-    validateNumberInRange(value, BigInt(0), MAX_U256_BIG_INT);
+    validateNumberInRange(value, BIGINT_0, MAX_U256_BIG_INT);
     this.value = BigInt(value);
   }
 

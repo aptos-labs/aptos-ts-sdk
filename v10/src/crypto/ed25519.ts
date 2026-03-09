@@ -217,7 +217,12 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
       current = next;
     }
     current.chainCode.fill(0);
-    return new Ed25519PrivateKey(current.key, false);
+    try {
+      return new Ed25519PrivateKey(current.key, false);
+    } catch (err) {
+      current.key.fill(0);
+      throw err;
+    }
   }
 
   private ensureNotCleared(): void {

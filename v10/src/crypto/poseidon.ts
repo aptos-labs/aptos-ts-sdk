@@ -59,9 +59,10 @@ const MAX_NUM_INPUT_BYTES = (MAX_NUM_INPUT_SCALARS - 1) * BYTES_PACKED_PER_SCALA
  * const fieldElement = hashStrToField("user@example.com", MAX_UID_VAL_BYTES);
  * ```
  */
+const TEXT_ENCODER = new TextEncoder();
+
 export function hashStrToField(str: string, maxSizeBytes: number): bigint {
-  const textEncoder = new TextEncoder();
-  const strBytes = textEncoder.encode(str);
+  const strBytes = TEXT_ENCODER.encode(str);
   return hashBytesWithLen(strBytes, maxSizeBytes);
 }
 

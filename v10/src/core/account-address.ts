@@ -81,9 +81,11 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * Special addresses are displayed in short form (e.g., `0xa` instead of the full 64-char hex).
    */
   isSpecial(): boolean {
-    return (
-      this.data.slice(0, this.data.length - 1).every((byte) => byte === 0) && this.data[this.data.length - 1] < 0b10000
-    );
+    if (this.data[this.data.length - 1] >= 0b10000) return false;
+    for (let i = 0; i < this.data.length - 1; i++) {
+      if (this.data[i] !== 0) return false;
+    }
+    return true;
   }
 
   /**

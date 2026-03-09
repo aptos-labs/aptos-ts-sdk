@@ -28,6 +28,9 @@ import type { Account, SingleKeySigner } from "./types.js";
 
 // ── JWT Helpers (replaces jwt-decode dependency) ──
 
+const MAX_JWT_SEGMENT_BYTES = 8192;
+const TEXT_ENCODER = new TextEncoder();
+
 function base64UrlDecode(input: string): string {
   const base64 = input.replace(/-/g, "+").replace(/_/g, "/");
   const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
@@ -39,7 +42,11 @@ function decodeJwtPayload(jwt: string): Record<string, unknown> {
   if (parts.length !== 3) {
     throw new Error("Invalid JWT format");
   }
-  return JSON.parse(base64UrlDecode(parts[1]));
+  const decoded = base64UrlDecode(parts[1]);
+  if (decoded.length > MAX_JWT_SEGMENT_BYTES) {
+    throw new Error(`JWT payload exceeds maximum size of ${MAX_JWT_SEGMENT_BYTES} bytes`);
+  }
+  return JSON.parse(decoded);
 }
 
 function decodeJwtHeader(jwt: string): Record<string, unknown> {
@@ -47,7 +54,11 @@ function decodeJwtHeader(jwt: string): Record<string, unknown> {
   if (parts.length !== 3) {
     throw new Error("Invalid JWT format");
   }
-  return JSON.parse(base64UrlDecode(parts[0]));
+  const decoded = base64UrlDecode(parts[0]);
+  if (decoded.length > MAX_JWT_SEGMENT_BYTES) {
+    throw new Error(`JWT header exceeds maximum size of ${MAX_JWT_SEGMENT_BYTES} bytes`);
+  }
+  return JSON.parse(decoded);
 }
 
 /**
@@ -99,20 +110,19 @@ export function getIssAudAndUidVal(args: { jwt: string; uidKey?: string }): {
       details: `Invalid JWT: claim '${uidKey}' is missing or not a string`,
     });
   }
-  const encoder = new TextEncoder();
-  if (encoder.encode(jwtPayload.iss).length > MAX_ISS_VAL_BYTES) {
+  if (TEXT_ENCODER.encode(jwtPayload.iss).length > MAX_ISS_VAL_BYTES) {
     throw KeylessError.fromErrorType({
       type: KeylessErrorType.JWT_PARSING_ERROR,
       details: `Invalid JWT: 'iss' exceeds maximum length of ${MAX_ISS_VAL_BYTES} bytes`,
     });
   }
-  if (encoder.encode(jwtPayload.aud).length > MAX_AUD_VAL_BYTES) {
+  if (TEXT_ENCODER.encode(jwtPayload.aud).length > MAX_AUD_VAL_BYTES) {
     throw KeylessError.fromErrorType({
       type: KeylessErrorType.JWT_PARSING_ERROR,
       details: `Invalid JWT: 'aud' exceeds maximum length of ${MAX_AUD_VAL_BYTES} bytes`,
     });
   }
-  if (encoder.encode(uidVal).length > MAX_UID_VAL_BYTES) {
+  if (TEXT_ENCODER.encode(uidVal).length > MAX_UID_VAL_BYTES) {
     throw KeylessError.fromErrorType({
       type: KeylessErrorType.JWT_PARSING_ERROR,
       details: `Invalid JWT: '${uidKey}' exceeds maximum length of ${MAX_UID_VAL_BYTES} bytes`,

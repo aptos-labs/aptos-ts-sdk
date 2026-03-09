@@ -451,7 +451,7 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
     }
     this.functionInfo = functionInfo;
     this.abstractionSignature = abstractionSignature;
-    this.signingMessageDigest = Hex.fromHexInput(Hex.fromHexInput(signingMessageDigest).toUint8Array());
+    this.signingMessageDigest = Hex.fromHexInput(signingMessageDigest);
     this.accountIdentity = accountIdentity;
   }
 
@@ -557,7 +557,7 @@ export class AccountAbstractionMessage extends Serializable {
    */
   constructor(originalSigningMessage: HexInput, functionInfo: string) {
     super();
-    this.originalSigningMessage = Hex.fromHexInput(Hex.fromHexInput(originalSigningMessage).toUint8Array());
+    this.originalSigningMessage = Hex.fromHexInput(originalSigningMessage);
     this.functionInfo = functionInfo;
   }
 

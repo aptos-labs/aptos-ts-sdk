@@ -348,7 +348,7 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
     for (let i = 0; i < length; i += 1) {
       values.push(cls.deserialize(deserializer));
     }
-    return new MoveVector(values);
+    return new MoveVector(values, cls === (U8 as unknown));
   }
 }
 

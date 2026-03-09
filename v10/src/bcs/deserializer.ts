@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Hex } from "../hex/hex.js";
+import { BIGINT_1, BIGINT_32, BIGINT_63, BIGINT_64, BIGINT_127, BIGINT_128, BIGINT_255, BIGINT_256 } from "./consts.js";
 import type { HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256 } from "./types.js";
 
 const TEXT_DECODER = new TextDecoder();
@@ -191,7 +192,7 @@ export class Deserializer {
   deserializeU64(): Uint64 {
     const low = this.deserializeU32();
     const high = this.deserializeU32();
-    return BigInt((BigInt(high) << BigInt(32)) | BigInt(low));
+    return (BigInt(high) << BIGINT_32) | BigInt(low);
   }
 
   /**
@@ -201,7 +202,7 @@ export class Deserializer {
   deserializeU128(): Uint128 {
     const low = this.deserializeU64();
     const high = this.deserializeU64();
-    return BigInt((high << BigInt(64)) | low);
+    return (high << BIGINT_64) | low;
   }
 
   /**
@@ -211,7 +212,7 @@ export class Deserializer {
   deserializeU256(): Uint256 {
     const low = this.deserializeU128();
     const high = this.deserializeU128();
-    return BigInt((high << BigInt(128)) | low);
+    return (high << BIGINT_128) | low;
   }
 
   // ── Signed integers ──
@@ -250,9 +251,9 @@ export class Deserializer {
   deserializeI64(): bigint {
     const low = this.deserializeU32();
     const high = this.deserializeU32();
-    const unsigned = BigInt((BigInt(high) << BigInt(32)) | BigInt(low));
-    const signBit = BigInt(1) << BigInt(63);
-    return unsigned >= signBit ? unsigned - (BigInt(1) << BigInt(64)) : unsigned;
+    const unsigned = (BigInt(high) << BIGINT_32) | BigInt(low);
+    const signBit = BIGINT_1 << BIGINT_63;
+    return unsigned >= signBit ? unsigned - (BIGINT_1 << BIGINT_64) : unsigned;
   }
 
   /**
@@ -262,9 +263,9 @@ export class Deserializer {
   deserializeI128(): bigint {
     const low = this.deserializeU64();
     const high = this.deserializeU64();
-    const unsigned = BigInt((high << BigInt(64)) | low);
-    const signBit = BigInt(1) << BigInt(127);
-    return unsigned >= signBit ? unsigned - (BigInt(1) << BigInt(128)) : unsigned;
+    const unsigned = (high << BIGINT_64) | low;
+    const signBit = BIGINT_1 << BIGINT_127;
+    return unsigned >= signBit ? unsigned - (BIGINT_1 << BIGINT_128) : unsigned;
   }
 
   /**
@@ -274,9 +275,9 @@ export class Deserializer {
   deserializeI256(): bigint {
     const low = this.deserializeU128();
     const high = this.deserializeU128();
-    const unsigned = BigInt((high << BigInt(128)) | low);
-    const signBit = BigInt(1) << BigInt(255);
-    return unsigned >= signBit ? unsigned - (BigInt(1) << BigInt(256)) : unsigned;
+    const unsigned = (high << BIGINT_128) | low;
+    const signBit = BIGINT_1 << BIGINT_255;
+    return unsigned >= signBit ? unsigned - (BIGINT_1 << BIGINT_256) : unsigned;
   }
 
   // ── ULEB128 ──

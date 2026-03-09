@@ -15,6 +15,8 @@ import { AccountPublicKey, type PublicKey, type VerifySignatureArgs } from "./pu
 import { Signature } from "./signature.js";
 import { EphemeralCertificateVariant, ZkpVariant } from "./types.js";
 
+const TEXT_ENCODER = new TextEncoder();
+
 /** Maximum seconds in the future an ephemeral key may expire. */
 export const EPK_HORIZON_SECS = 10000000;
 /** Maximum byte length of an `aud` (audience) value. */
@@ -299,7 +301,7 @@ export class KeylessSignature extends Signature {
   static deserialize(deserializer: Deserializer): KeylessSignature {
     const ephemeralCertificate = EphemeralCertificate.deserialize(deserializer);
     const jwtHeader = deserializer.deserializeStr();
-    if (new TextEncoder().encode(jwtHeader).length > MAX_JWT_HEADER_B64_BYTES) {
+    if (TEXT_ENCODER.encode(jwtHeader).length > MAX_JWT_HEADER_B64_BYTES) {
       throw new Error(`JWT header exceeds maximum length of ${MAX_JWT_HEADER_B64_BYTES} bytes`);
     }
     const expiryDateSecs = deserializer.deserializeU64();

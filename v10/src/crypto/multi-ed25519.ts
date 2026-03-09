@@ -98,12 +98,8 @@ export class MultiEd25519PublicKey extends AbstractMultiKey {
       }
     }
 
-    if (indices.length !== signature.signatures.length) {
-      throw new Error("Bitmap and signatures length mismatch");
-    }
-    if (indices.length < this.threshold) {
-      throw new Error("Not enough signatures");
-    }
+    if (indices.length !== signature.signatures.length) return false;
+    if (indices.length < this.threshold) return false;
 
     for (let i = 0; i < indices.length; i += 1) {
       const publicKey = this.publicKeys[indices[i]];
