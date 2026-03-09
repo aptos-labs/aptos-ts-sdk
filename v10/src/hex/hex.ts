@@ -244,4 +244,6 @@ export class Hex {
  * hexToAsciiString("0x68656c6c6f"); // "hello"
  * ```
  */
-export const hexToAsciiString = (hex: string): string => new TextDecoder().decode(Hex.fromHexInput(hex).toUint8Array());
+const TEXT_DECODER = new TextDecoder();
+
+export const hexToAsciiString = (hex: string): string => TEXT_DECODER.decode(Hex.fromHexInput(hex).toUint8Array());

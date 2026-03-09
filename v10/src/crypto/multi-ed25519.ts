@@ -170,7 +170,7 @@ export class MultiEd25519PublicKey extends AbstractMultiKey {
     const threshold = bytes[bytes.length - 1];
     const keys: Ed25519PublicKey[] = [];
     for (let i = 0; i < keyBytes; i += Ed25519PublicKey.LENGTH) {
-      keys.push(new Ed25519PublicKey(bytes.subarray(i, i + Ed25519PublicKey.LENGTH)));
+      keys.push(new Ed25519PublicKey(bytes.slice(i, i + Ed25519PublicKey.LENGTH)));
     }
     return new MultiEd25519PublicKey({ publicKeys: keys, threshold });
   }
@@ -273,10 +273,10 @@ export class MultiEd25519Signature extends Signature {
         `MultiEd25519Signature signature bytes are not aligned: ${sigBytes} is not a multiple of ${Ed25519Signature.LENGTH}`,
       );
     }
-    const bitmap = bytes.subarray(bytes.length - MultiEd25519Signature.BITMAP_LEN);
+    const bitmap = bytes.slice(bytes.length - MultiEd25519Signature.BITMAP_LEN);
     const signatures: Ed25519Signature[] = [];
     for (let i = 0; i < sigBytes; i += Ed25519Signature.LENGTH) {
-      signatures.push(new Ed25519Signature(bytes.subarray(i, i + Ed25519Signature.LENGTH)));
+      signatures.push(new Ed25519Signature(bytes.slice(i, i + Ed25519Signature.LENGTH)));
     }
     return new MultiEd25519Signature({ signatures, bitmap });
   }

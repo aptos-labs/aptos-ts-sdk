@@ -290,11 +290,11 @@ export class Secp256r1PrivateKey extends Serializable implements PrivateKey {
  */
 export class WebAuthnSignature extends Signature {
   /** The raw ECDSA signature bytes. */
-  signature: Hex;
+  readonly signature: Hex;
   /** The authenticator data from the WebAuthn assertion response. */
-  authenticatorData: Hex;
+  readonly authenticatorData: Hex;
   /** The client data JSON from the WebAuthn assertion response. */
-  clientDataJSON: Hex;
+  readonly clientDataJSON: Hex;
 
   /**
    * Creates a `WebAuthnSignature`.
@@ -390,7 +390,7 @@ export class Secp256r1Signature extends Signature {
       const n = (p256.Point as any).Fn.ORDER as bigint;
       this.data = Hex.fromHexInput(new p256.Signature(sig.r, n - sig.s).toBytes());
     } else {
-      this.data = Hex.fromHexInput(sig.toBytes());
+      this.data = hex;
     }
   }
 

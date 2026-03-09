@@ -26,10 +26,10 @@ const L: number[] = [
  * @returns `true` if the signature is canonical, `false` otherwise.
  */
 export function isCanonicalEd25519Signature(signature: Signature): boolean {
-  const s = signature.toUint8Array().slice(32);
+  const sigBytes = signature.toUint8Array();
   for (let i = L.length - 1; i >= 0; i -= 1) {
-    if (s[i] < L[i]) return true;
-    if (s[i] > L[i]) return false;
+    if (sigBytes[i + 32] < L[i]) return true;
+    if (sigBytes[i + 32] > L[i]) return false;
   }
   return false;
 }

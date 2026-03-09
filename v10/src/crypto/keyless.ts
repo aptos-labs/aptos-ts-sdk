@@ -416,14 +416,15 @@ function bytesToBn254FpBE(bytes: Uint8Array): bigint {
 class G1Bytes extends Serializable {
   private static readonly B = bn254.fields.Fp.create(3n);
 
-  data: Uint8Array;
+  readonly data: Uint8Array;
 
   constructor(data: HexInput) {
     super();
-    this.data = Hex.fromHexInput(data).toUint8Array();
-    if (this.data.length !== 32) {
+    const bytes = Hex.fromHexInput(data).toUint8Array();
+    if (bytes.length !== 32) {
       throw new Error("Input needs to be 32 bytes");
     }
+    this.data = bytes.slice();
   }
 
   serialize(serializer: Serializer): void {
@@ -459,14 +460,15 @@ class G2Bytes extends Serializable {
     266929791119991161246907387137283842545076965332900288569378510910307636690n,
   ]);
 
-  data: Uint8Array;
+  readonly data: Uint8Array;
 
   constructor(data: HexInput) {
     super();
-    this.data = Hex.fromHexInput(data).toUint8Array();
-    if (this.data.length !== 64) {
+    const bytes = Hex.fromHexInput(data).toUint8Array();
+    if (bytes.length !== 64) {
       throw new Error("Input needs to be 64 bytes");
     }
+    this.data = bytes.slice();
   }
 
   serialize(serializer: Serializer): void {
@@ -552,9 +554,9 @@ export class Groth16Zkp extends Proof {
    * @returns A new `Groth16Zkp`.
    */
   static deserialize(deserializer: Deserializer): Groth16Zkp {
-    const a = G1Bytes.deserialize(deserializer).bcsToBytes();
-    const b = G2Bytes.deserialize(deserializer).bcsToBytes();
-    const c = G1Bytes.deserialize(deserializer).bcsToBytes();
+    const a = G1Bytes.deserialize(deserializer).data;
+    const b = G2Bytes.deserialize(deserializer).data;
+    const c = G1Bytes.deserialize(deserializer).data;
     return new Groth16Zkp({ a, b, c });
   }
 
@@ -1038,6 +1040,10 @@ export class MoveJWK extends Serializable {
       throw new Error("Only RSA 256 is supported for JWK to scalar conversion");
     }
     const uint8Array = base64UrlToBytes(this.n);
+    // RSA-4096 has a 512-byte modulus; reject anything larger to prevent DoS
+    if (uint8Array.length > 512) {
+      throw new Error(`RSA modulus too large: ${uint8Array.length} bytes (max 512)`);
+    }
     const modulusBits = uint8Array.length * 8;
     const chunks = chunkInto24Bytes(uint8Array.reverse());
     const scalars = chunks.map((chunk) => bytesToBigIntLE(chunk));
@@ -1112,10 +1118,15 @@ interface JwtHeader {
  * console.log(header.kid); // "abc123"
  * ```
  */
+const MAX_JWT_HEADER_JSON_BYTES = 4096;
+
 export function parseJwtHeader(jwtHeader: string): JwtHeader {
+  if (jwtHeader.length > MAX_JWT_HEADER_JSON_BYTES) {
+    throw new Error(`JWT header exceeds maximum size of ${MAX_JWT_HEADER_JSON_BYTES} bytes`);
+  }
   const header = JSON.parse(jwtHeader);
   if (typeof header.kid !== "string") {
     throw new Error("Invalid JWT header: missing or non-string kid field");
   }
-  return header;
+  return { kid: header.kid };
 }

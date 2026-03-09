@@ -79,9 +79,13 @@ export abstract class Serializable {
    * @returns A `Uint8Array` containing the serialized bytes.
    */
   bcsToBytes(): Uint8Array {
-    const serializer = new Serializer();
-    this.serialize(serializer);
-    return serializer.toUint8Array();
+    const serializer = acquireSerializer();
+    try {
+      this.serialize(serializer);
+      return serializer.toUint8Array();
+    } finally {
+      releaseSerializer(serializer);
+    }
   }
 
   /**
@@ -207,7 +211,9 @@ export class Serializer {
    */
   serializeBool(value: boolean) {
     ensureBoolean(value);
-    this.appendToBuffer(new Uint8Array([value ? 1 : 0]));
+    this.ensureBufferWillHandleSize(1);
+    new Uint8Array(this.buffer, this.offset, 1)[0] = value ? 1 : 0;
+    this.offset += 1;
   }
 
   // ── Unsigned integers ──
@@ -218,7 +224,9 @@ export class Serializer {
    */
   serializeU8(value: Uint8) {
     validateNumberInRange(value, 0, MAX_U8_NUMBER);
-    this.appendToBuffer(new Uint8Array([value]));
+    this.ensureBufferWillHandleSize(1);
+    new Uint8Array(this.buffer, this.offset, 1)[0] = value;
+    this.offset += 1;
   }
 
   /**
@@ -361,14 +369,16 @@ export class Serializer {
    */
   serializeU32AsUleb128(val: Uint32) {
     validateNumberInRange(val, 0, MAX_U32_NUMBER);
+    this.ensureBufferWillHandleSize(5);
+    const view = new Uint8Array(this.buffer, this.offset);
     let value = val;
-    const valueArray = [];
+    let i = 0;
     while (value >>> 7 !== 0) {
-      valueArray.push((value & 0x7f) | 0x80);
+      view[i++] = (value & 0x7f) | 0x80;
       value >>>= 7;
     }
-    valueArray.push(value);
-    this.appendToBuffer(new Uint8Array(valueArray));
+    view[i++] = value;
+    this.offset += i;
   }
 
   // ── Output / management ──
@@ -435,7 +445,7 @@ export class Serializer {
     const tempSerializer = acquireSerializer();
     try {
       value.serialize(tempSerializer);
-      const bytes = tempSerializer.toUint8ArrayView();
+      const bytes = tempSerializer.toUint8Array();
       this.serializeBytes(bytes);
     } finally {
       releaseSerializer(tempSerializer);
@@ -527,6 +537,12 @@ export const outOfRangeErrorMessage = (value: AnyNumber, min: AnyNumber, max: An
  * @throws {Error} If `value` is less than `minValue` or greater than `maxValue`.
  */
 export function validateNumberInRange<T extends AnyNumber>(value: T, minValue: T, maxValue: T) {
+  if (typeof value === "number" && typeof minValue === "number" && typeof maxValue === "number") {
+    if (value > maxValue || value < minValue) {
+      throw new Error(outOfRangeErrorMessage(value, minValue, maxValue));
+    }
+    return;
+  }
   const valueBigInt = BigInt(value);
   if (valueBigInt > BigInt(maxValue) || valueBigInt < BigInt(minValue)) {
     throw new Error(outOfRangeErrorMessage(value, minValue, maxValue));

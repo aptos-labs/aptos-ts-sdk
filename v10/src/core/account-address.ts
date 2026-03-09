@@ -73,7 +73,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
         AddressInvalidReason.INCORRECT_NUMBER_OF_BYTES,
       );
     }
-    this.data = input;
+    this.data = input.slice();
   }
 
   /**

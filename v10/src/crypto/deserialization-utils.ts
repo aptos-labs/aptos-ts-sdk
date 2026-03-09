@@ -64,6 +64,9 @@ export function deserializePublicKey(publicKey: HexInput): PublicKey {
       if (error instanceof Error && error.message.includes(MULTIPLE_DESERIALIZATIONS_ERROR_MSG)) {
         throw error;
       }
+      if (!(error instanceof Error) || error instanceof TypeError || error instanceof RangeError) {
+        throw error;
+      }
     }
   }
 
@@ -118,6 +121,9 @@ export function deserializeSignature(signature: HexInput): Signature {
       result = sig;
     } catch (error) {
       if (error instanceof Error && error.message.includes(MULTIPLE_DESERIALIZATIONS_ERROR_MSG)) {
+        throw error;
+      }
+      if (!(error instanceof Error) || error instanceof TypeError || error instanceof RangeError) {
         throw error;
       }
     }

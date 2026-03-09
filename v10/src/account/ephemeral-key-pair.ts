@@ -88,7 +88,8 @@ export class EphemeralKeyPair extends Serializable {
     const { privateKey, expiryDateSecs, blinder } = args;
     this.privateKey = privateKey;
     this.publicKey = new EphemeralPublicKey(privateKey.publicKey());
-    this.expiryDateSecs = expiryDateSecs || floorToWholeHour(nowInSeconds() + TWO_WEEKS_IN_SECONDS);
+    this.expiryDateSecs =
+      expiryDateSecs !== undefined ? expiryDateSecs : floorToWholeHour(nowInSeconds() + TWO_WEEKS_IN_SECONDS);
     this.blinder =
       blinder !== undefined ? Hex.fromHexInput(blinder).toUint8Array() : randomBytes(EphemeralKeyPair.BLINDER_LENGTH);
 

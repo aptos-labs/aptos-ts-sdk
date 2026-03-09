@@ -63,7 +63,9 @@ export class AuthenticationKey extends Serializable {
   static fromSchemeAndBytes(args: { scheme: AuthenticationKeyScheme; input: HexInput }): AuthenticationKey {
     const { scheme, input } = args;
     const inputBytes = Hex.fromHexInput(input).toUint8Array();
-    const hashInput = new Uint8Array([...inputBytes, scheme]);
+    const hashInput = new Uint8Array(inputBytes.length + 1);
+    hashInput.set(inputBytes);
+    hashInput[inputBytes.length] = scheme;
     const hashDigest = sha3_256.create().update(hashInput).digest();
     return new AuthenticationKey({ data: hashDigest });
   }

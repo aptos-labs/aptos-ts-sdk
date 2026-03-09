@@ -41,6 +41,7 @@ export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTra
 }
 
 const textEncoder = new TextEncoder();
+const domainSeparatorCache = new Map<string, Uint8Array>();
 
 /**
  * Constructs an Aptos-prefixed signing message from arbitrary bytes and a domain separator.
@@ -67,14 +68,15 @@ const textEncoder = new TextEncoder();
  * ```
  */
 export function generateSigningMessage(bytes: Uint8Array, domainSeparator: string): Uint8Array {
-  const hash = sha3Hash.create();
-
   if (!domainSeparator.startsWith("APTOS::")) {
     throw new Error(`Domain separator needs to start with 'APTOS::'.  Provided - ${domainSeparator}`);
   }
 
-  hash.update(textEncoder.encode(domainSeparator));
-  const prefix = hash.digest();
+  let prefix = domainSeparatorCache.get(domainSeparator);
+  if (prefix === undefined) {
+    prefix = sha3Hash.create().update(textEncoder.encode(domainSeparator)).digest();
+    domainSeparatorCache.set(domainSeparator, prefix);
+  }
 
   const mergedArray = new Uint8Array(prefix.length + bytes.length);
   mergedArray.set(prefix);

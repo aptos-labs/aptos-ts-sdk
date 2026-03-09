@@ -119,11 +119,10 @@ export const deriveKey = (hashSeed: Uint8Array | string, data: Uint8Array | stri
  * ```
  */
 export const CKDPriv = ({ key, chainCode }: DerivedKeys, index: number): DerivedKeys => {
-  const buffer = new ArrayBuffer(4);
-  new DataView(buffer).setUint32(0, index);
-  const indexBytes = new Uint8Array(buffer);
-  const zero = new Uint8Array([0]);
-  const data = new Uint8Array([...zero, ...key, ...indexBytes]);
+  const data = new Uint8Array(1 + key.length + 4);
+  // data[0] = 0 (already zero-initialized)
+  data.set(key, 1);
+  new DataView(data.buffer).setUint32(1 + key.length, index);
   const result = deriveKey(chainCode, data);
   data.fill(0);
   return result;

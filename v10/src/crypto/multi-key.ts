@@ -189,7 +189,7 @@ export class MultiKey extends AbstractMultiKey {
   verifySignature(args: { message: HexInput; signature: MultiKeySignature }): boolean {
     const { message, signature } = args;
     if (signature.signatures.length !== this.signaturesRequired) {
-      throw new Error("The number of signatures does not match the number of required signatures");
+      return false;
     }
     const signerIndices = signature.bitMapToSignerIndices();
     for (let i = 0; i < signature.signatures.length; i += 1) {

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Hex } from "../hex/hex.js";
-import { MAX_U32_NUMBER } from "./consts.js";
 import type { HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256 } from "./types.js";
 
 const TEXT_DECODER = new TextDecoder();
@@ -289,30 +288,26 @@ export class Deserializer {
    * @throws {Error} If the encoded value overflows a u32.
    */
   deserializeUleb128AsU32(): Uint32 {
-    let value: bigint = BigInt(0);
+    let value = 0;
     let shift = 0;
-    const MAX_ULEB128_BYTES = 5;
-    let bytesRead = 0;
 
-    let lastByte = 0;
-    while (bytesRead < MAX_ULEB128_BYTES) {
-      lastByte = this.deserializeU8();
-      bytesRead += 1;
-      value |= BigInt(lastByte & 0x7f) << BigInt(shift);
+    for (let i = 0; i < 5; i++) {
+      const byte = this.deserializeU8();
 
-      if (value > MAX_U32_NUMBER) {
+      // On the 5th byte (shift=28), only bits 0-3 can contribute to u32
+      if (i === 4 && (byte & 0x70) !== 0) {
         throw new Error("Overflow while parsing uleb128-encoded uint32 value");
       }
 
-      if ((lastByte & 0x80) === 0) break;
+      value = (value | ((byte & 0x7f) << shift)) >>> 0;
+
+      if ((byte & 0x80) === 0) {
+        return value;
+      }
       shift += 7;
     }
 
-    if ((lastByte & 0x80) !== 0) {
-      throw new Error("Malformed ULEB128: continuation bit set on terminal byte");
-    }
-
-    return Number(value);
+    throw new Error("Malformed ULEB128: continuation bit set on terminal byte");
   }
 
   // ── Composable deserialization ──

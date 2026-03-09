@@ -185,11 +185,17 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
   }
 
   private static fromDerivationPathInner(path: string, seed: Uint8Array): Secp256k1PrivateKey {
-    const { privateKey } = HDKey.fromMasterSeed(seed).derive(path);
+    const hdKey = HDKey.fromMasterSeed(seed).derive(path);
+    const { privateKey } = hdKey;
     if (privateKey === null) {
       throw new Error("Invalid key");
     }
-    return new Secp256k1PrivateKey(privateKey, false);
+    // Copy the private key before wiping HDKey internals
+    const keyCopy = privateKey.slice();
+    // Zero HDKey internals to prevent key material lingering in memory
+    if (hdKey.privateKey) hdKey.privateKey.fill(0);
+    if (hdKey.chainCode) hdKey.chainCode.fill(0);
+    return new Secp256k1PrivateKey(keyCopy, false);
   }
 
   private ensureNotCleared(): void {

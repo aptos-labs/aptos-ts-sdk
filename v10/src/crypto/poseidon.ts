@@ -125,10 +125,14 @@ function chunkUint8Array(array: Uint8Array, chunkSize: number): Uint8Array[] {
  * bytesToBigIntLE(new Uint8Array([0, 1])); // 256n
  * ```
  */
+const BIGINT_0 = BigInt(0);
+const BIGINT_8 = BigInt(8);
+const BIGINT_0xFF = BigInt(0xff);
+
 export function bytesToBigIntLE(bytes: Uint8Array): bigint {
-  let result = BigInt(0);
+  let result = BIGINT_0;
   for (let i = bytes.length - 1; i >= 0; i -= 1) {
-    result = (result << BigInt(8)) | BigInt(bytes[i]);
+    result = (result << BIGINT_8) | BigInt(bytes[i]);
   }
   return result;
 }
@@ -157,8 +161,8 @@ export function bigIntToBytesLE(value: bigint | number, length: number): Uint8Ar
   }
   const bytes = new Uint8Array(length);
   for (let i = 0; i < length; i += 1) {
-    bytes[i] = Number(val & BigInt(0xff));
-    val >>= BigInt(8);
+    bytes[i] = Number(val & BIGINT_0xFF);
+    val >>= BIGINT_8;
   }
   return bytes;
 }

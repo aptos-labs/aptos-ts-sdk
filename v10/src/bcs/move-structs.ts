@@ -9,6 +9,8 @@ import { Serializable, type Serializer } from "./serializer.js";
 import type { AnyNumber, EntryFunctionArgument, HexInput, TransactionArgument } from "./types.js";
 import { ScriptTransactionArgumentVariants } from "./types.js";
 
+const TEXT_ENCODER = new TextEncoder();
+
 // ── FixedBytes ──
 
 /**
@@ -180,9 +182,16 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
     } else if (Array.isArray(values) && typeof values[0] === "number") {
       numbers = values;
     } else if (typeof values === "string") {
-      numbers = Array.from(Hex.fromHexInput(values).toUint8Array());
+      const bytes = Hex.fromHexInput(values).toUint8Array();
+      return new MoveVector<U8>(
+        Array.from({ length: bytes.length }, (_, i) => new U8(bytes[i])),
+        true,
+      );
     } else if (values instanceof Uint8Array) {
-      numbers = Array.from(values);
+      return new MoveVector<U8>(
+        Array.from({ length: values.length }, (_, i) => new U8(values[i])),
+        true,
+      );
     } else {
       throw new Error("Invalid input type, must be an number[], Uint8Array, or hex string");
     }
@@ -403,9 +412,9 @@ export class Serialized extends Serializable implements TransactionArgument {
    * @returns A new `MoveVector<T>` decoded from the stored bytes.
    */
   toMoveVector<T extends Serializable & EntryFunctionArgument>(cls: Deserializable<T>): MoveVector<T> {
-    const deserializer = new Deserializer(this.bcsToBytes());
-    deserializer.deserializeUleb128AsU32();
+    const deserializer = new Deserializer(this.value);
     const vec = deserializer.deserializeVector(cls);
+    deserializer.assertFinished();
     return new MoveVector(vec);
   }
 }
@@ -444,7 +453,7 @@ export class MoveString extends Serializable implements TransactionArgument {
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
-    const fixedStringBytes = new TextEncoder().encode(this.value);
+    const fixedStringBytes = TEXT_ENCODER.encode(this.value);
     const vectorU8 = MoveVector.U8(fixedStringBytes);
     vectorU8.serializeForScriptFunction(serializer);
   }

@@ -1,5 +1,7 @@
 import type { HexInput } from "../hex/index.js";
-import { Hex } from "../hex/index.js";
+
+const HEX_REGEX = /^(?:0x)?[0-9a-fA-F]+$/;
+const TEXT_ENCODER = new TextEncoder();
 
 /**
  * Normalises a signing message so that it is always in a form that can be
@@ -23,11 +25,10 @@ import { Hex } from "../hex/index.js";
  */
 export const convertSigningMessage = (message: HexInput): HexInput => {
   if (typeof message === "string") {
-    const isValid = Hex.isValid(message);
-    if (!isValid.valid) {
-      return new TextEncoder().encode(message);
+    if (message.length >= 2 && message.length % 2 === 0 && HEX_REGEX.test(message)) {
+      return message;
     }
-    return message;
+    return TEXT_ENCODER.encode(message);
   }
   return message;
 };
