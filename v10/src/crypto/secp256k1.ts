@@ -201,6 +201,11 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    * then marks the key as cleared.
    *
    * After calling this method any further use of the key will throw.
+   *
+   * **Note:** If the key was constructed from a hex string, the original string
+   * cannot be zeroed (JavaScript strings are immutable). For maximum security,
+   * construct keys from `Uint8Array` sources when possible and ensure the
+   * original string reference is not retained.
    */
   clear(): void {
     if (!this.cleared) {

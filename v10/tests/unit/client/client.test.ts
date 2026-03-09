@@ -1,33 +1,39 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { aptosRequest } from "../../../src/client/aptos-request.js";
 import { get, paginateWithCursor } from "../../../src/client/get.js";
 import { post } from "../../../src/client/post.js";
+import type { Client } from "../../../src/client/types.js";
 import { AptosApiType, MimeType } from "../../../src/client/types.js";
 import { AptosApiError } from "../../../src/core/errors.js";
+
+// Mock @aptos-labs/aptos-client — aptosRequest delegates to this
+vi.mock("@aptos-labs/aptos-client", () => ({
+  jsonRequest: vi.fn(),
+  bcsRequest: vi.fn(),
+}));
+
+import { bcsRequest, jsonRequest } from "@aptos-labs/aptos-client";
+
+const mockClient = vi.mocked(jsonRequest);
+const mockBcsClient = vi.mocked(bcsRequest);
+
+/** Build a mock AptosClientResponse for JSON calls. */
+function mockJsonResponse(data: unknown, status = 200, headers: Record<string, string> = {}) {
+  return { status, statusText: status === 200 ? "OK" : "Error", data, headers };
+}
 
 // ── aptosRequest ──
 
 describe("aptosRequest", () => {
-  let fetchSpy: ReturnType<typeof vi.spyOn>;
-
-  beforeEach(() => {
-    fetchSpy = vi.spyOn(globalThis, "fetch");
-  });
-
   afterEach(() => {
-    fetchSpy.mockRestore();
+    vi.clearAllMocks();
   });
 
   it("makes a GET request and parses JSON response", async () => {
-    fetchSpy.mockResolvedValueOnce(
-      new Response(JSON.stringify({ chain_id: 4 }), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      }),
-    );
+    mockClient.mockResolvedValueOnce(mockJsonResponse({ chain_id: 4 }));
 
     const result = await aptosRequest<{ chain_id: number }>(
       { url: "http://localhost:8080/v1", method: "GET", path: "" },
@@ -39,71 +45,73 @@ describe("aptosRequest", () => {
   });
 
   it("includes SDK headers", async () => {
-    fetchSpy.mockResolvedValueOnce(
-      new Response("{}", { status: 200, headers: { "content-type": "application/json" } }),
-    );
+    mockClient.mockResolvedValueOnce(mockJsonResponse({}));
 
     await aptosRequest({ url: "http://localhost:8080/v1", method: "GET", path: "" }, AptosApiType.FULLNODE);
 
-    const [, init] = fetchSpy.mock.calls[0];
-    const headers = init?.headers as Record<string, string>;
-    expect(headers["x-aptos-client"]).toMatch(/^aptos-typescript-sdk\//);
-    expect(headers["content-type"]).toBe(MimeType.JSON);
-    expect(headers.accept).toBe(MimeType.JSON);
+    const requestArg = mockClient.mock.calls[0][0];
+    expect(requestArg.headers["x-aptos-client"]).toMatch(/^aptos-typescript-sdk\//);
+    expect(requestArg.headers["content-type"]).toBe(MimeType.JSON);
+    expect(requestArg.headers.accept).toBe(MimeType.JSON);
   });
 
   it("includes origin method header when provided", async () => {
-    fetchSpy.mockResolvedValueOnce(
-      new Response("{}", { status: 200, headers: { "content-type": "application/json" } }),
-    );
+    mockClient.mockResolvedValueOnce(mockJsonResponse({}));
 
     await aptosRequest(
       { url: "http://localhost:8080/v1", method: "GET", path: "", originMethod: "getBalance" },
       AptosApiType.FULLNODE,
     );
 
-    const [, init] = fetchSpy.mock.calls[0];
-    const headers = init?.headers as Record<string, string>;
-    expect(headers["x-aptos-typescript-sdk-origin-method"]).toBe("getBalance");
+    const requestArg = mockClient.mock.calls[0][0];
+    expect(requestArg.headers["x-aptos-typescript-sdk-origin-method"]).toBe("getBalance");
   });
 
-  it("builds query string from params", async () => {
-    fetchSpy.mockResolvedValueOnce(
-      new Response("{}", { status: 200, headers: { "content-type": "application/json" } }),
-    );
+  it("passes params to aptos-client for query string handling", async () => {
+    mockClient.mockResolvedValueOnce(mockJsonResponse({}));
 
     await aptosRequest(
       { url: "http://localhost:8080/v1", method: "GET", path: "accounts", params: { limit: "25", start: "0" } },
       AptosApiType.FULLNODE,
     );
 
-    const [url] = fetchSpy.mock.calls[0];
-    expect(url).toBe("http://localhost:8080/v1/accounts?limit=25&start=0");
+    const requestArg = mockClient.mock.calls[0][0];
+    expect(requestArg.url).toBe("http://localhost:8080/v1/accounts");
+    expect(requestArg.params).toEqual({ limit: "25", start: "0" });
   });
 
-  it("sends POST body as JSON", async () => {
-    fetchSpy.mockResolvedValueOnce(
-      new Response("{}", { status: 200, headers: { "content-type": "application/json" } }),
+  it("filters out undefined param values", async () => {
+    mockClient.mockResolvedValueOnce(mockJsonResponse({}));
+
+    await aptosRequest(
+      {
+        url: "http://localhost:8080/v1",
+        method: "GET",
+        path: "accounts",
+        params: { limit: "25", start: undefined },
+      },
+      AptosApiType.FULLNODE,
     );
+
+    const requestArg = mockClient.mock.calls[0][0];
+    expect(requestArg.params).toEqual({ limit: "25" });
+  });
+
+  it("sends POST body to aptos-client", async () => {
+    mockClient.mockResolvedValueOnce(mockJsonResponse({}));
 
     await aptosRequest(
       { url: "http://localhost:8080/v1", method: "POST", path: "transactions", body: { sender: "0x1" } },
       AptosApiType.FULLNODE,
     );
 
-    const [, init] = fetchSpy.mock.calls[0];
-    expect(init?.method).toBe("POST");
-    expect(init?.body).toBe('{"sender":"0x1"}');
+    const requestArg = mockClient.mock.calls[0][0];
+    expect(requestArg.method).toBe("POST");
+    expect(requestArg.body).toEqual({ sender: "0x1" });
   });
 
   it("throws AptosApiError on 401", async () => {
-    fetchSpy.mockResolvedValueOnce(
-      new Response(JSON.stringify({ message: "Unauthorized" }), {
-        status: 401,
-        statusText: "Unauthorized",
-        headers: { "content-type": "application/json" },
-      }),
-    );
+    mockClient.mockResolvedValueOnce(mockJsonResponse({ message: "Unauthorized" }, 401));
 
     await expect(
       aptosRequest({ url: "http://localhost:8080/v1", method: "GET", path: "" }, AptosApiType.FULLNODE),
@@ -111,13 +119,7 @@ describe("aptosRequest", () => {
   });
 
   it("throws AptosApiError on non-2xx status", async () => {
-    fetchSpy.mockResolvedValueOnce(
-      new Response(JSON.stringify({ message: "Not found" }), {
-        status: 404,
-        statusText: "Not Found",
-        headers: { "content-type": "application/json" },
-      }),
-    );
+    mockClient.mockResolvedValueOnce(mockJsonResponse({ message: "Not found" }, 404));
 
     await expect(
       aptosRequest({ url: "http://localhost:8080/v1", method: "GET", path: "" }, AptosApiType.FULLNODE),
@@ -125,12 +127,7 @@ describe("aptosRequest", () => {
   });
 
   it("throws on indexer errors", async () => {
-    fetchSpy.mockResolvedValueOnce(
-      new Response(JSON.stringify({ errors: [{ message: "bad query" }] }), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      }),
-    );
+    mockClient.mockResolvedValueOnce(mockJsonResponse({ errors: [{ message: "bad query" }] }));
 
     await expect(
       aptosRequest({ url: "http://localhost:8090/v1/graphql", method: "POST", path: "" }, AptosApiType.INDEXER),
@@ -138,12 +135,7 @@ describe("aptosRequest", () => {
   });
 
   it("unwraps indexer data wrapper", async () => {
-    fetchSpy.mockResolvedValueOnce(
-      new Response(JSON.stringify({ data: { account: { balance: 100 } } }), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      }),
-    );
+    mockClient.mockResolvedValueOnce(mockJsonResponse({ data: { account: { balance: 100 } } }));
 
     const result = await aptosRequest<{ account: { balance: number } }>(
       { url: "http://localhost:8090/v1/graphql", method: "POST", path: "" },
@@ -153,14 +145,14 @@ describe("aptosRequest", () => {
     expect(result.data).toEqual({ account: { balance: 100 } });
   });
 
-  it("handles BCS response", async () => {
+  it("handles BCS response via bcsRequest", async () => {
     const bcsData = new Uint8Array([1, 2, 3, 4]);
-    fetchSpy.mockResolvedValueOnce(
-      new Response(bcsData, {
-        status: 200,
-        headers: { "content-type": "application/x-bcs" },
-      }),
-    );
+    mockBcsClient.mockResolvedValueOnce({
+      status: 200,
+      statusText: "OK",
+      data: Buffer.from(bcsData),
+      headers: {},
+    });
 
     const result = await aptosRequest<Uint8Array>(
       { url: "http://localhost:8080/v1", method: "GET", path: "", acceptType: MimeType.BCS },
@@ -169,12 +161,12 @@ describe("aptosRequest", () => {
 
     expect(result.data).toBeInstanceOf(Uint8Array);
     expect(result.data).toEqual(bcsData);
+    expect(mockBcsClient).toHaveBeenCalledTimes(1);
+    expect(mockClient).not.toHaveBeenCalled();
   });
 
   it("merges custom headers from overrides", async () => {
-    fetchSpy.mockResolvedValueOnce(
-      new Response("{}", { status: 200, headers: { "content-type": "application/json" } }),
-    );
+    mockClient.mockResolvedValueOnce(mockJsonResponse({}));
 
     await aptosRequest(
       {
@@ -186,16 +178,13 @@ describe("aptosRequest", () => {
       AptosApiType.FULLNODE,
     );
 
-    const [, init] = fetchSpy.mock.calls[0];
-    const headers = init?.headers as Record<string, string>;
-    expect(headers["x-custom"]).toBe("value");
-    expect(headers.Authorization).toBe("Bearer test-key");
+    const requestArg = mockClient.mock.calls[0][0];
+    expect(requestArg.headers["x-custom"]).toBe("value");
+    expect(requestArg.headers.Authorization).toBe("Bearer test-key");
   });
 
   it("prefers AUTH_TOKEN over API_KEY", async () => {
-    fetchSpy.mockResolvedValueOnce(
-      new Response("{}", { status: 200, headers: { "content-type": "application/json" } }),
-    );
+    mockClient.mockResolvedValueOnce(mockJsonResponse({}));
 
     await aptosRequest(
       {
@@ -207,32 +196,20 @@ describe("aptosRequest", () => {
       AptosApiType.FULLNODE,
     );
 
-    const [, init] = fetchSpy.mock.calls[0];
-    const headers = init?.headers as Record<string, string>;
-    expect(headers.Authorization).toBe("Bearer my-token");
+    const requestArg = mockClient.mock.calls[0][0];
+    expect(requestArg.headers.Authorization).toBe("Bearer my-token");
   });
 });
 
 // ── get / post helpers ──
 
 describe("get helper", () => {
-  let fetchSpy: ReturnType<typeof vi.spyOn>;
-
-  beforeEach(() => {
-    fetchSpy = vi.spyOn(globalThis, "fetch");
-  });
-
   afterEach(() => {
-    fetchSpy.mockRestore();
+    vi.clearAllMocks();
   });
 
   it("delegates to aptosRequest with GET method", async () => {
-    fetchSpy.mockResolvedValueOnce(
-      new Response(JSON.stringify({ ledger_version: "1" }), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      }),
-    );
+    mockClient.mockResolvedValueOnce(mockJsonResponse({ ledger_version: "1" }));
 
     const result = await get<{ ledger_version: string }>({
       url: "http://localhost:8080/v1",
@@ -242,29 +219,18 @@ describe("get helper", () => {
     });
 
     expect(result.data.ledger_version).toBe("1");
-    const [, init] = fetchSpy.mock.calls[0];
-    expect(init?.method).toBe("GET");
+    const requestArg = mockClient.mock.calls[0][0];
+    expect(requestArg.method).toBe("GET");
   });
 });
 
 describe("post helper", () => {
-  let fetchSpy: ReturnType<typeof vi.spyOn>;
-
-  beforeEach(() => {
-    fetchSpy = vi.spyOn(globalThis, "fetch");
-  });
-
   afterEach(() => {
-    fetchSpy.mockRestore();
+    vi.clearAllMocks();
   });
 
   it("delegates to aptosRequest with POST method", async () => {
-    fetchSpy.mockResolvedValueOnce(
-      new Response(JSON.stringify({ hash: "0xabc" }), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      }),
-    );
+    mockClient.mockResolvedValueOnce(mockJsonResponse({ hash: "0xabc" }));
 
     const result = await post<{ hash: string }>({
       url: "http://localhost:8080/v1",
@@ -275,39 +241,28 @@ describe("post helper", () => {
     });
 
     expect(result.data.hash).toBe("0xabc");
-    const [, init] = fetchSpy.mock.calls[0];
-    expect(init?.method).toBe("POST");
+    const requestArg = mockClient.mock.calls[0][0];
+    expect(requestArg.method).toBe("POST");
   });
 });
 
 // ── paginateWithCursor ──
 
 describe("paginateWithCursor", () => {
-  let fetchSpy: ReturnType<typeof vi.spyOn>;
-
-  beforeEach(() => {
-    fetchSpy = vi.spyOn(globalThis, "fetch");
-  });
-
   afterEach(() => {
-    fetchSpy.mockRestore();
+    vi.clearAllMocks();
   });
 
   it("fetches all pages until no cursor", async () => {
     // Page 1: has cursor
-    fetchSpy.mockResolvedValueOnce(
-      new Response(JSON.stringify([{ id: 1 }, { id: 2 }]), {
-        status: 200,
-        headers: { "content-type": "application/json", "x-aptos-cursor": "cursor_abc" },
-      }),
-    );
+    mockClient.mockResolvedValueOnce({
+      status: 200,
+      statusText: "OK",
+      data: [{ id: 1 }, { id: 2 }],
+      headers: { "x-aptos-cursor": "cursor_abc" },
+    });
     // Page 2: no cursor
-    fetchSpy.mockResolvedValueOnce(
-      new Response(JSON.stringify([{ id: 3 }]), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      }),
-    );
+    mockClient.mockResolvedValueOnce(mockJsonResponse([{ id: 3 }]));
 
     const results = await paginateWithCursor<Array<{ id: number }>>({
       url: "http://localhost:8080/v1",
@@ -317,16 +272,11 @@ describe("paginateWithCursor", () => {
     });
 
     expect(results).toEqual([{ id: 1 }, { id: 2 }, { id: 3 }]);
-    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect(mockClient).toHaveBeenCalledTimes(2);
   });
 
   it("returns single page when no cursor", async () => {
-    fetchSpy.mockResolvedValueOnce(
-      new Response(JSON.stringify([{ id: 1 }]), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      }),
-    );
+    mockClient.mockResolvedValueOnce(mockJsonResponse([{ id: 1 }]));
 
     const results = await paginateWithCursor<Array<{ id: number }>>({
       url: "http://localhost:8080/v1",
@@ -336,6 +286,83 @@ describe("paginateWithCursor", () => {
     });
 
     expect(results).toEqual([{ id: 1 }]);
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(mockClient).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ── Custom client ──
+
+describe("custom Client", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("uses custom client.sendRequest instead of jsonRequest/bcsRequest", async () => {
+    const customClient: Client = {
+      sendRequest: vi.fn().mockResolvedValueOnce({
+        status: 200,
+        statusText: "OK",
+        data: { custom: true },
+        headers: {},
+      }),
+    };
+
+    const result = await aptosRequest<{ custom: boolean }>(
+      { url: "http://localhost:8080/v1", method: "GET", path: "" },
+      AptosApiType.FULLNODE,
+      customClient,
+    );
+
+    expect(result.data).toEqual({ custom: true });
+    expect(customClient.sendRequest).toHaveBeenCalledTimes(1);
+    expect(mockClient).not.toHaveBeenCalled();
+    expect(mockBcsClient).not.toHaveBeenCalled();
+  });
+
+  it("forwards custom client through get helper", async () => {
+    const customClient: Client = {
+      sendRequest: vi.fn().mockResolvedValueOnce({
+        status: 200,
+        statusText: "OK",
+        data: { via: "get" },
+        headers: {},
+      }),
+    };
+
+    const result = await get<{ via: string }>({
+      url: "http://localhost:8080/v1",
+      apiType: AptosApiType.FULLNODE,
+      path: "",
+      originMethod: "test",
+      client: customClient,
+    });
+
+    expect(result.data).toEqual({ via: "get" });
+    expect(customClient.sendRequest).toHaveBeenCalledTimes(1);
+    expect(mockClient).not.toHaveBeenCalled();
+  });
+
+  it("forwards custom client through post helper", async () => {
+    const customClient: Client = {
+      sendRequest: vi.fn().mockResolvedValueOnce({
+        status: 200,
+        statusText: "OK",
+        data: { via: "post" },
+        headers: {},
+      }),
+    };
+
+    const result = await post<{ via: string }>({
+      url: "http://localhost:8080/v1",
+      apiType: AptosApiType.FULLNODE,
+      path: "transactions",
+      originMethod: "test",
+      body: { sender: "0x1" },
+      client: customClient,
+    });
+
+    expect(result.data).toEqual({ via: "post" });
+    expect(customClient.sendRequest).toHaveBeenCalledTimes(1);
+    expect(mockClient).not.toHaveBeenCalled();
   });
 });

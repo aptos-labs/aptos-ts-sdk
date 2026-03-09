@@ -182,6 +182,9 @@ function padUint8ArrayWithZeros(inputArray: Uint8Array, paddedSize: number): Uin
  * ```
  */
 export function poseidonHash(inputs: (number | bigint | string)[]): bigint {
+  if (inputs.length === 0) {
+    throw new Error("Poseidon hash requires at least 1 input");
+  }
   if (inputs.length > numInputsToPoseidonFunc.length) {
     throw new Error(
       `Unable to hash input of length ${inputs.length}.  Max input length is ${numInputsToPoseidonFunc.length}`,

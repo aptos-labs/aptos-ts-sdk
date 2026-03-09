@@ -20,12 +20,12 @@ export enum KeylessErrorCategory {
 
 /** Human-readable resolution tips for Keyless errors, guiding developers toward a fix. */
 export enum KeylessErrorResolutionTip {
-  REAUTHENTICATE = "Re-authentiate to continue using your keyless account",
-  REAUTHENTICATE_UNSURE = "Try re-authentiating. If the error persists join the telegram group at https://t.me/+h5CN-W35yUFiYzkx for further support",
+  REAUTHENTICATE = "Re-authenticate to continue using your keyless account",
+  REAUTHENTICATE_UNSURE = "Try re-authenticating. If the error persists join the telegram group at https://t.me/+h5CN-W35yUFiYzkx for further support",
   UPDATE_REQUEST_PARAMS = "Update the invalid request parameters and reauthenticate.",
   RATE_LIMIT_EXCEEDED = "Cache the keyless account and reuse it to avoid making too many requests.  Keyless accounts are valid until either the EphemeralKeyPair expires, when the JWK is rotated, or when the proof verifying key is changed, whichever comes soonest.",
   SERVER_ERROR = "Try again later.  See aptosApiError error for more context. For additional support join the telegram group at https://t.me/+h5CN-W35yUFiYzkx",
-  CALL_PRECHECK = "Call `await account.checkKeylessAccountValidity()` to wait for asyncronous changes and check for account validity before signing or serializing.",
+  CALL_PRECHECK = "Call `await account.checkKeylessAccountValidity()` to wait for asynchronous changes and check for account validity before signing or serializing.",
   REINSTANTIATE = "Try instantiating the account again.  Avoid manipulating the account object directly",
   JOIN_SUPPORT_GROUP = "For support join the telegram group at https://t.me/+h5CN-W35yUFiYzkx",
   UNKNOWN = "Error unknown. For support join the telegram group at https://t.me/+h5CN-W35yUFiYzkx",
@@ -387,6 +387,19 @@ export class AptosApiError extends Error {
   }
 }
 
+/** Strips query string and userinfo from a URL to avoid leaking credentials in error messages. */
+function sanitizeUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    parsed.search = "";
+    parsed.username = "";
+    parsed.password = "";
+    return parsed.toString();
+  } catch {
+    return url.split("?")[0];
+  }
+}
+
 function deriveErrorMessage(args: {
   apiType: AptosApiType;
   aptosRequest: AptosRequest;
@@ -396,9 +409,8 @@ function deriveErrorMessage(args: {
   const traceId = aptosResponse.headers?.traceparent?.split("-")[1];
   const traceIdString = traceId ? `(trace_id:${traceId}) ` : "";
 
-  const errorPrelude = `Request to [${apiType}]: ${aptosRequest.method} ${
-    aptosResponse.url ?? aptosRequest.url
-  } ${traceIdString}failed with`;
+  const displayUrl = sanitizeUrl(aptosResponse.url ?? aptosRequest.url);
+  const errorPrelude = `Request to [${apiType}]: ${aptosRequest.method} ${displayUrl} ${traceIdString}failed with`;
 
   const data = aptosResponse.data as Record<string, unknown> | undefined;
   if (

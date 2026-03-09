@@ -71,7 +71,7 @@ export class Secp256r1PublicKey extends PublicKey {
     const msgHex = Hex.fromHexInput(message).toUint8Array();
     const sha3Message = sha3_256(msgHex);
     const rawSignature = signature.toUint8Array();
-    return p256.verify(rawSignature, sha3Message, this.toUint8Array(), { prehash: false });
+    return p256.verify(rawSignature, sha3Message, this.toUint8Array(), { prehash: false, lowS: true });
   }
 
   /**
@@ -119,7 +119,8 @@ export class Secp256r1PrivateKey implements PrivateKey {
   /** The expected byte length of a secp256r1 private key. */
   static readonly LENGTH: number = 32;
 
-  private readonly key: Hex;
+  private key: Hex;
+  private cleared: boolean = false;
 
   /**
    * Creates a `Secp256r1PrivateKey` from raw bytes or a hex/AIP-80 string.
@@ -154,6 +155,43 @@ export class Secp256r1PrivateKey implements PrivateKey {
     return new Secp256r1PrivateKey(hexInput);
   }
 
+  private ensureNotCleared(): void {
+    if (this.cleared) {
+      throw new Error("Private key has been cleared from memory and can no longer be used");
+    }
+  }
+
+  /**
+   * Overwrites the private key material in memory with random and zero bytes,
+   * then marks the key as cleared.
+   *
+   * After calling this method any further use of the key will throw.
+   *
+   * **Note:** If the key was constructed from a hex string, the original string
+   * cannot be zeroed (JavaScript strings are immutable). For maximum security,
+   * construct keys from `Uint8Array` sources when possible and ensure the
+   * original string reference is not retained.
+   */
+  clear(): void {
+    if (!this.cleared) {
+      const keyBytes = this.key.toUint8Array();
+      crypto.getRandomValues(keyBytes);
+      keyBytes.fill(0xff);
+      crypto.getRandomValues(keyBytes);
+      keyBytes.fill(0);
+      this.cleared = true;
+    }
+  }
+
+  /**
+   * Returns whether the key has been cleared from memory.
+   *
+   * @returns `true` if {@link clear} has been called, `false` otherwise.
+   */
+  isCleared(): boolean {
+    return this.cleared;
+  }
+
   /**
    * Signs a message and returns a {@link Secp256r1Signature}.
    *
@@ -162,11 +200,13 @@ export class Secp256r1PrivateKey implements PrivateKey {
    *
    * @param message - The message to sign, as raw bytes or a hex string.
    * @returns The resulting {@link Secp256r1Signature}.
+   * @throws If the key has been cleared.
    */
   sign(message: HexInput): Secp256r1Signature {
+    this.ensureNotCleared();
     const msgHex = Hex.fromHexInput(message);
     const sha3Message = sha3_256(msgHex.toUint8Array());
-    const signatureBytes = p256.sign(sha3Message, this.key.toUint8Array(), { prehash: false });
+    const signatureBytes = p256.sign(sha3Message, this.key.toUint8Array(), { prehash: false, lowS: true });
     return new Secp256r1Signature(signatureBytes);
   }
 
@@ -174,8 +214,10 @@ export class Secp256r1PrivateKey implements PrivateKey {
    * Derives and returns the secp256r1 public key corresponding to this private key.
    *
    * @returns The associated {@link Secp256r1PublicKey} in uncompressed form.
+   * @throws If the key has been cleared.
    */
   publicKey(): Secp256r1PublicKey {
+    this.ensureNotCleared();
     const bytes = p256.getPublicKey(this.key.toUint8Array(), false);
     return new Secp256r1PublicKey(bytes);
   }
@@ -184,8 +226,10 @@ export class Secp256r1PrivateKey implements PrivateKey {
    * Returns the raw 32-byte private key material.
    *
    * @returns The private key as a `Uint8Array`.
+   * @throws If the key has been cleared.
    */
   toUint8Array(): Uint8Array {
+    this.ensureNotCleared();
     return this.key.toUint8Array();
   }
 
@@ -193,8 +237,10 @@ export class Secp256r1PrivateKey implements PrivateKey {
    * Returns the private key as an AIP-80 compliant string.
    *
    * @returns A string of the form `"secp256r1-priv-0x<hex>"`.
+   * @throws If the key has been cleared.
    */
   toString(): string {
+    this.ensureNotCleared();
     return PrivateKeyUtils.formatPrivateKey(this.key.toString(), PrivateKeyVariants.Secp256r1);
   }
 
@@ -202,8 +248,10 @@ export class Secp256r1PrivateKey implements PrivateKey {
    * Returns the private key as a plain hex string (without AIP-80 prefix).
    *
    * @returns A `0x`-prefixed hex string.
+   * @throws If the key has been cleared.
    */
   toHexString(): string {
+    this.ensureNotCleared();
     return this.key.toString();
   }
 }
@@ -312,7 +360,8 @@ export class Secp256r1Signature extends Signature {
     }
     const sig = p256.Signature.fromBytes(hex.toUint8Array());
     if (sig.hasHighS()) {
-      const n = p256.Point.CURVE().n;
+      // biome-ignore lint/suspicious/noExplicitAny: Point.Fn.ORDER is not in the TypeScript types
+      const n = (p256.Point as any).Fn.ORDER as bigint;
       this.data = Hex.fromHexInput(new p256.Signature(sig.r, n - sig.s).toBytes());
     } else {
       this.data = Hex.fromHexInput(sig.toBytes());

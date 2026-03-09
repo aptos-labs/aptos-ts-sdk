@@ -27,7 +27,10 @@ export { post } from "./post.js";
 export type {
   AptosRequest,
   AptosResponse,
+  Client,
   ClientConfig,
+  ClientRequest,
+  ClientResponse,
   FaucetConfig,
   FullNodeConfig,
   IndexerConfig,

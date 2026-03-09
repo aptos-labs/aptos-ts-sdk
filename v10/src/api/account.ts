@@ -29,6 +29,7 @@ export async function getAccountInfo(config: AptosConfig, accountAddress: Accoun
     path: `accounts/${AccountAddress.from(accountAddress)}`,
     originMethod: "getAccountInfo",
     overrides: config.getMergedFullnodeConfig(),
+    client: config.client,
   });
   return response.data;
 }
@@ -55,6 +56,7 @@ export async function getAccountModules(
     originMethod: "getAccountModules",
     params: { limit: options?.limit ?? 1000, ledger_version: options?.ledgerVersion },
     overrides: config.getMergedFullnodeConfig(),
+    client: config.client,
   });
 }
 
@@ -81,6 +83,7 @@ export async function getAccountModule(
     originMethod: "getAccountModule",
     params: { ledger_version: options?.ledgerVersion },
     overrides: config.getMergedFullnodeConfig(),
+    client: config.client,
   });
   return response.data;
 }
@@ -109,6 +112,7 @@ export async function getAccountResource<T = unknown>(
     originMethod: "getAccountResource",
     params: { ledger_version: options?.ledgerVersion },
     overrides: config.getMergedFullnodeConfig(),
+    client: config.client,
   });
   return response.data.data;
 }
@@ -118,7 +122,7 @@ export async function getAccountResource<T = unknown>(
  * @param config - The Aptos configuration specifying which network and endpoints to use.
  * @param accountAddress - The address of the account whose resources to retrieve.
  * @param options - Optional parameters.
- * @param options.limit - Maximum number of resources per page. Defaults to 999.
+ * @param options.limit - Maximum number of resources per page. Defaults to 1000.
  * @param options.ledgerVersion - The ledger version to query at. Defaults to the latest version.
  * @returns An array of all Move resources stored under the account.
  */
@@ -133,8 +137,9 @@ export async function getAccountResources(
     apiType: AptosApiType.FULLNODE,
     path: `accounts/${AccountAddress.from(accountAddress)}/resources`,
     originMethod: "getAccountResources",
-    params: { limit: options?.limit ?? 999, ledger_version: options?.ledgerVersion },
+    params: { limit: options?.limit ?? 1000, ledger_version: options?.ledgerVersion },
     overrides: config.getMergedFullnodeConfig(),
+    client: config.client,
   });
 }
 
@@ -160,5 +165,6 @@ export async function getAccountTransactions(
     originMethod: "getAccountTransactions",
     params: { start: options?.offset, limit: options?.limit },
     overrides: config.getMergedFullnodeConfig(),
+    client: config.client,
   });
 }

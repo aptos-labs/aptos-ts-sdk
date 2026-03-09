@@ -10,6 +10,7 @@ import { MimeType } from "../client/types.js";
 import type { AccountAddressInput } from "../core/account-address.js";
 import { AccountAddress } from "../core/account-address.js";
 import { AptosApiType } from "../core/constants.js";
+import { AptosApiError } from "../core/errors.js";
 import type { TypeTag } from "../core/type-tag.js";
 import type { HexInput } from "../hex/index.js";
 import { Hex } from "../hex/index.js";
@@ -80,13 +81,16 @@ export async function buildSimpleTransaction(
 
   // Fetch account info and gas estimation in parallel if not provided
   const [ledgerInfo, gasEstimation, accountData] = await Promise.all([
-    options?.expireTimestamp ? null : getLedgerInfo(config),
-    options?.gasUnitPrice ? null : getGasPriceEstimation(config),
+    options?.expireTimestamp !== undefined ? null : getLedgerInfo(config),
+    options?.gasUnitPrice !== undefined ? null : getGasPriceEstimation(config),
     options?.sequenceNumber !== undefined ? null : getAccountSequenceNumber(config, senderAddress),
   ]);
 
-  const [moduleAddress, moduleName] = payload.function.split("::") as [string, string, string];
-  const functionName = payload.function.split("::")[2];
+  const parts = payload.function.split("::");
+  if (parts.length !== 3) {
+    throw new Error(`Invalid function identifier: "${payload.function}". Expected format: "address::module::function"`);
+  }
+  const [moduleAddress, moduleName, functionName] = parts;
   const moduleId = `${moduleAddress}::${moduleName}` as `${string}::${string}`;
 
   const entryFunction = EntryFunction.build(
@@ -118,6 +122,7 @@ async function getAccountSequenceNumber(config: AptosConfig, address: AccountAdd
     path: `accounts/${address}`,
     originMethod: "getAccountSequenceNumber",
     overrides: config.getMergedFullnodeConfig(),
+    client: config.client,
   });
   return BigInt(response.data.sequence_number);
 }
@@ -165,6 +170,7 @@ export async function submitTransaction(
     body: serializer.toUint8Array(),
     contentType: MimeType.BCS_SIGNED_TRANSACTION,
     overrides: config.getMergedFullnodeConfig(),
+    client: config.client,
   });
 
   return response.data;
@@ -242,6 +248,7 @@ export async function waitForTransaction(
       path: `transactions/wait_by_hash/${hashStr}`,
       originMethod: "waitForTransaction",
       overrides: config.getMergedFullnodeConfig(),
+      client: config.client,
     });
     if (!isPendingTransactionResponse(response.data)) {
       if (checkSuccess && !("success" in response.data && response.data.success)) {
@@ -267,8 +274,13 @@ export async function waitForTransaction(
         }
         return txn as CommittedTransactionResponse;
       }
-    } catch {
-      // Transaction may not be found yet, keep waiting
+    } catch (e) {
+      // Only suppress 404-like "not found yet" errors; re-throw everything else
+      if (e instanceof AptosApiError && e.status === 404) {
+        // Transaction not committed yet, keep polling
+      } else {
+        throw e;
+      }
     }
   }
 
@@ -295,6 +307,7 @@ export async function getTransactionByHash(
     path: `transactions/by_hash/${hashStr}`,
     originMethod: "getTransactionByHash",
     overrides: config.getMergedFullnodeConfig(),
+    client: config.client,
   });
   return response.data;
 }
@@ -316,6 +329,7 @@ export async function getTransactionByVersion(
     path: `transactions/by_version/${ledgerVersion}`,
     originMethod: "getTransactionByVersion",
     overrides: config.getMergedFullnodeConfig(),
+    client: config.client,
   });
   return response.data;
 }
@@ -340,6 +354,7 @@ export async function getTransactions(
     originMethod: "getTransactions",
     params: { start: options?.offset, limit: options?.limit },
     overrides: config.getMergedFullnodeConfig(),
+    client: config.client,
   });
   return response.data;
 }
@@ -349,6 +364,6 @@ export async function getTransactions(
  * @param transaction - The raw transaction to generate the signing message for.
  * @returns The signing message as a `Uint8Array`.
  */
-export async function getSigningMessage(transaction: AnyRawTransaction): Promise<Uint8Array> {
+export function getSigningMessage(transaction: AnyRawTransaction): Uint8Array {
   return generateSigningMessageForTransaction(transaction);
 }

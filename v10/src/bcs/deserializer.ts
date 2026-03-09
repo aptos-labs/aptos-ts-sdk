@@ -346,8 +346,11 @@ export class Deserializer {
    * const items = deserializer.deserializeVector(MyType);
    * ```
    */
-  deserializeVector<T>(cls: Deserializable<T>): Array<T> {
+  deserializeVector<T>(cls: Deserializable<T>, maxLen = 65_536): Array<T> {
     const length = this.deserializeUleb128AsU32();
+    if (length > maxLen) {
+      throw new Error(`BCS vector length ${length} exceeds maximum allowed ${maxLen}`);
+    }
     const vector: T[] = [];
     for (let i = 0; i < length; i += 1) {
       vector.push(this.deserialize(cls));

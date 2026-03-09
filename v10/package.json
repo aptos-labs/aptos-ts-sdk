@@ -68,6 +68,7 @@
     "test:compat": "vitest run tests/e2e/compat"
   },
   "dependencies": {
+    "@aptos-labs/aptos-client": "^2.1.0",
     "@noble/curves": "^2.0.1",
     "@noble/hashes": "^2.0.1",
     "@scure/bip32": "^2.0.1",

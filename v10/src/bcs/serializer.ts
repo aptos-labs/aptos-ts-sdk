@@ -387,8 +387,13 @@ export class Serializer {
 
   /**
    * Returns a non-copying view of the serialized bytes written so far.
-   * The view is invalidated if the serializer writes more data that causes a buffer resize.
-   * Prefer {@link toUint8Array} for most use cases.
+   *
+   * **Warning:** The returned view is backed by the serializer's internal buffer.
+   * It becomes invalid if any further writes cause the buffer to resize. Only use
+   * this method when you need zero-copy access and will consume the bytes immediately
+   * (e.g. passing to a hash update). For most use cases, prefer {@link toUint8Array}.
+   *
+   * @internal
    * @returns A `Uint8Array` view into the internal buffer.
    */
   toUint8ArrayView(): Uint8Array {

@@ -35,14 +35,19 @@ export interface ClientConfig {
   HEADERS?: Record<string, string | number | boolean>;
   /**
    * API key used for authentication. Sent as a `Bearer` token in the
-   * `Authorization` header. Takes precedence over {@link AUTH_TOKEN} if both are set.
+   * `Authorization` header. Ignored if {@link AUTH_TOKEN} is also set.
    */
   API_KEY?: string;
   /**
    * Authentication bearer token. Sent in the `Authorization` header.
-   * Use {@link API_KEY} instead when connecting to a hosted Aptos API endpoint.
+   * Takes precedence over {@link API_KEY} if both are set.
    */
   AUTH_TOKEN?: string;
+  /**
+   * Whether to use HTTP/2. Defaults to `true` in Node.js (via `got`),
+   * ignored in browsers (which use native `fetch`).
+   */
+  http2?: boolean;
 }
 
 /** Client configuration specific to full node REST API requests. */
@@ -51,6 +56,71 @@ export interface FullNodeConfig extends ClientConfig {}
 export interface IndexerConfig extends ClientConfig {}
 /** Client configuration specific to faucet API requests. */
 export interface FaucetConfig extends ClientConfig {}
+
+// ── Custom HTTP client ──
+
+/**
+ * Shape of a request passed to a custom {@link Client} implementation.
+ * Contains all the information needed to make an HTTP request.
+ */
+export interface ClientRequest {
+  /** The full URL to send the request to (including any path segments). */
+  url: string;
+  /** The HTTP method. */
+  method: "GET" | "POST";
+  /** The request body (only present for POST requests). */
+  body?: unknown;
+  /** Query string parameters. Values are URL-encoded by the HTTP library. */
+  params?: Record<string, string | number | bigint | boolean>;
+  /** Merged HTTP headers including `content-type`, `accept`, auth, and SDK version. */
+  headers: Record<string, string>;
+  /** Whether to use HTTP/2 (Node.js only). */
+  http2?: boolean;
+}
+
+/**
+ * Shape of a response returned by a custom {@link Client} implementation.
+ * @typeParam T - The parsed response body type (`object` for JSON, `Uint8Array`/`ArrayBuffer` for BCS).
+ */
+export interface ClientResponse<T> {
+  /** The HTTP status code. */
+  status: number;
+  /** The HTTP status text. */
+  statusText: string;
+  /** The parsed response body. */
+  data: T;
+  /** The response headers. */
+  headers?: Record<string, string | string[]> | Headers;
+}
+
+/**
+ * Interface for a custom HTTP client that can replace the default `@aptos-labs/aptos-client` transport.
+ * Implement this to add custom auth, proxies, logging, or use an alternative HTTP library.
+ *
+ * @example
+ * ```typescript
+ * const myClient: Client = {
+ *   async sendRequest<Res>(request: ClientRequest): Promise<ClientResponse<Res>> {
+ *     const response = await fetch(request.url, {
+ *       method: request.method,
+ *       headers: request.headers,
+ *       body: request.body ? JSON.stringify(request.body) : undefined,
+ *     });
+ *     return {
+ *       status: response.status,
+ *       statusText: response.statusText,
+ *       data: await response.json() as Res,
+ *       headers: response.headers,
+ *     };
+ *   },
+ * };
+ * const config = new AptosConfig({ network: Network.DEVNET, client: myClient });
+ * ```
+ */
+export interface Client {
+  /** Sends an HTTP request and returns the parsed response. */
+  sendRequest<Res>(request: ClientRequest): Promise<ClientResponse<Res>>;
+}
 
 // ── Request / Response ──
 

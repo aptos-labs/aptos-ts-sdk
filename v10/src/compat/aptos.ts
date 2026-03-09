@@ -6,7 +6,7 @@
 
 import * as accountFns from "../api/account.js";
 import * as coinFns from "../api/coin.js";
-import { AptosConfig, type AptosSettings } from "../api/config.js";
+import type { AptosConfig, AptosSettings } from "../api/config.js";
 import * as faucetFns from "../api/faucet.js";
 import * as generalFns from "../api/general.js";
 import { Aptos as V10Aptos } from "../api/index.js";
@@ -125,7 +125,7 @@ export class Aptos extends V10Aptos {
    *   If omitted, defaults to `Network.DEVNET`.
    */
   constructor(config?: AptosConfig | AptosSettings) {
-    super(config instanceof AptosConfig ? config : config);
+    super(config);
 
     // Attach the compat Build sub-object to the existing transaction namespace
     const compatBuild = new CompatBuild(this.config);
@@ -308,9 +308,9 @@ export class Aptos extends V10Aptos {
   /**
    * Returns the bytes that a signer must sign for a given raw transaction.
    * @param args - Contains `transaction` (the raw transaction to get the signing message for).
-   * @returns A promise resolving to a `Uint8Array` of the signing message bytes.
+   * @returns A `Uint8Array` of the signing message bytes.
    */
-  getSigningMessage(args: GetSigningMessageArgs): Promise<Uint8Array> {
+  getSigningMessage(args: GetSigningMessageArgs): Uint8Array {
     return transactionFns.getSigningMessage(args.transaction);
   }
 
@@ -330,7 +330,7 @@ export class Aptos extends V10Aptos {
 
   /**
    * Builds a simple coin transfer transaction.
-   * @param args - Contains `sender`, `recipient`, `amount`, optional `coinType`, and optional `options`.
+   * @param args - Contains `sender`, `recipient`, `amount`, and optional `options`.
    * @returns A promise resolving to a {@link SimpleTransaction} ready to be signed and submitted.
    */
   transferCoinTransaction(args: TransferCoinArgs): Promise<SimpleTransaction> {
@@ -342,14 +342,7 @@ export class Aptos extends V10Aptos {
           sequenceNumber: args.options.accountSequenceNumber,
         }
       : undefined;
-    return coinFns.transferCoinTransaction(
-      this.config,
-      args.sender,
-      args.recipient,
-      args.amount,
-      args.coinType,
-      options,
-    );
+    return coinFns.transferCoinTransaction(this.config, args.sender, args.recipient, args.amount, options);
   }
 
   // ── Table API (flat) ──

@@ -22,6 +22,7 @@ export async function getLedgerInfo(config: AptosConfig): Promise<LedgerInfo> {
     path: "",
     originMethod: "getLedgerInfo",
     overrides: config.getMergedFullnodeConfig(),
+    client: config.client,
   });
   return response.data;
 }
@@ -57,6 +58,7 @@ export async function getBlockByVersion(
     originMethod: "getBlockByVersion",
     params: { with_transactions: options?.withTransactions },
     overrides: config.getMergedFullnodeConfig(),
+    client: config.client,
   });
   return response.data;
 }
@@ -82,6 +84,7 @@ export async function getBlockByHeight(
     originMethod: "getBlockByHeight",
     params: { with_transactions: options?.withTransactions },
     overrides: config.getMergedFullnodeConfig(),
+    client: config.client,
   });
   return response.data;
 }
@@ -122,6 +125,7 @@ export async function view<T extends unknown[]>(
     contentType: MimeType.JSON,
     acceptType: MimeType.JSON,
     overrides: config.getMergedFullnodeConfig(),
+    client: config.client,
   });
   return response.data;
 }
@@ -139,6 +143,7 @@ export async function getGasPriceEstimation(config: AptosConfig): Promise<GasEst
     path: "estimate_gas_price",
     originMethod: "getGasPriceEstimation",
     overrides: config.getMergedFullnodeConfig(),
+    client: config.client,
   });
   return response.data;
 }

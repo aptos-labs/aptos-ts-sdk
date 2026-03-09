@@ -69,7 +69,7 @@ export class Ed25519Account implements Account {
   constructor(args: Ed25519SignerConstructorArgs) {
     const { privateKey, address } = args;
     this.privateKey = privateKey;
-    this.publicKey = privateKey.publicKey() as Ed25519PublicKey;
+    this.publicKey = privateKey.publicKey();
     this.accountAddress = address
       ? AccountAddress.from(address)
       : AuthenticationKey.fromSchemeAndBytes({
@@ -132,7 +132,7 @@ export class Ed25519Account implements Account {
    * @returns An {@link AccountAuthenticatorEd25519} ready for use in a transaction.
    */
   signWithAuthenticator(message: HexInput): AccountAuthenticatorEd25519 {
-    return new AccountAuthenticatorEd25519(this.publicKey, this.privateKey.sign(message) as Ed25519Signature);
+    return new AccountAuthenticatorEd25519(this.publicKey, this.privateKey.sign(message));
   }
 
   /**
@@ -152,7 +152,7 @@ export class Ed25519Account implements Account {
    * @returns The {@link Ed25519Signature} over the message.
    */
   sign(message: HexInput): Ed25519Signature {
-    return this.privateKey.sign(message) as Ed25519Signature;
+    return this.privateKey.sign(message);
   }
 
   /**

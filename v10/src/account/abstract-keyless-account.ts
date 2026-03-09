@@ -86,7 +86,14 @@ export function getIssAudAndUidVal(args: { jwt: string; uidKey?: string }): {
       details: "Invalid JWT: missing or malformed required claim",
     });
   }
-  return { iss: jwtPayload.iss as string, aud: jwtPayload.aud as string, uidVal: jwtPayload[uidKey] as string };
+  const uidVal = jwtPayload[uidKey];
+  if (typeof uidVal !== "string") {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWT_PARSING_ERROR,
+      details: `Invalid JWT: claim '${uidKey}' is missing or not a string`,
+    });
+  }
+  return { iss: jwtPayload.iss, aud: jwtPayload.aud, uidVal };
 }
 
 // ── Proof fetch types ──
@@ -151,7 +158,16 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
   readonly proofOrPromise: ZeroKnowledgeSig | Promise<ZeroKnowledgeSig>;
   /** Always `SigningScheme.SingleKey` for keyless accounts. */
   readonly signingScheme: SigningScheme = SigningScheme.SingleKey;
-  /** The raw JWT string used to derive the public key. */
+  /**
+   * The raw JWT string used to derive the public key.
+   *
+   * **Security note:** The JWT payload may contain personally identifiable
+   * information (email, name, etc.) and is serialized to BCS when persisting
+   * the account. Call {@link clearSensitiveData} when the account is no longer
+   * needed to minimize exposure. Note that JavaScript strings are immutable
+   * and cannot be zeroed in memory — the runtime may retain copies until
+   * garbage collection.
+   */
   readonly jwt: string;
   /**
    * Optional 32-byte hash of the Groth16 verification key that was used to
@@ -159,6 +175,9 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
    * on-chain verification key rotation.
    */
   readonly verificationKeyHash?: Uint8Array;
+
+  /** Whether sensitive data (pepper, etc.) has been cleared from memory. */
+  private sensitiveDataCleared = false;
 
   // Use native EventTarget instead of eventemitter3
   private readonly eventTarget: EventTarget;
@@ -241,6 +260,35 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
    */
   getAnyPublicKey(): AnyPublicKey {
     return new AnyPublicKey(this.publicKey);
+  }
+
+  /**
+   * Overwrites the pepper bytes with random and zero data, then marks the
+   * account's sensitive material as cleared.
+   *
+   * After calling this method, the account can no longer sign transactions or
+   * be serialized. Use this when the account is no longer needed to reduce the
+   * window during which sensitive data resides in memory.
+   *
+   * **Limitations:**
+   * - The JWT string (`this.jwt`) is a JavaScript string and cannot be zeroed.
+   *   The runtime may retain it until garbage collection.
+   * - The ephemeral key pair should be cleared separately via
+   *   `ephemeralKeyPair.clear()` if supported.
+   */
+  clearSensitiveData(): void {
+    if (!this.sensitiveDataCleared) {
+      crypto.getRandomValues(this.pepper);
+      this.pepper.fill(0);
+      this.sensitiveDataCleared = true;
+    }
+  }
+
+  /**
+   * Returns whether {@link clearSensitiveData} has been called.
+   */
+  isSensitiveDataCleared(): boolean {
+    return this.sensitiveDataCleared;
   }
 
   /**

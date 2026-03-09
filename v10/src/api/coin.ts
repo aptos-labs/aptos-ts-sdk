@@ -8,7 +8,6 @@ import { AccountAddress } from "../core/account-address.js";
 import type { SimpleTransaction } from "../transactions/simple-transaction.js";
 import type { AptosConfig } from "./config.js";
 import { type BuildSimpleTransactionOptions, buildSimpleTransaction } from "./transaction.js";
-import type { MoveStructId } from "./types.js";
 
 /**
  * Builds a transaction to transfer APT coins from one account to another using `0x1::aptos_account::transfer_coins`.
@@ -16,7 +15,6 @@ import type { MoveStructId } from "./types.js";
  * @param sender - The address of the account sending the coins.
  * @param recipient - The address of the account receiving the coins.
  * @param amount - The amount of coins to transfer in Octas (1 APT = 10^8 Octas).
- * @param _coinType - Reserved for future use; currently unused.
  * @param options - Optional transaction building parameters (gas, expiration, sequence number).
  * @returns A {@link SimpleTransaction} ready to be signed and submitted.
  */
@@ -25,7 +23,6 @@ export async function transferCoinTransaction(
   sender: AccountAddressInput,
   recipient: AccountAddressInput,
   amount: AnyNumber,
-  _coinType?: MoveStructId,
   options?: BuildSimpleTransactionOptions,
 ): Promise<SimpleTransaction> {
   return buildSimpleTransaction(

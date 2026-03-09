@@ -44,9 +44,13 @@ export async function fundAccount(
     originMethod: "fundAccount",
     body: { address, amount },
     overrides: config.getMergedFaucetConfig(),
+    client: config.client,
   });
 
   const txnHash = response.data.txn_hashes[0];
+  if (!txnHash) {
+    throw new Error("Faucet response contained no transaction hashes");
+  }
   const result = await waitForTransaction(config, txnHash, {
     timeoutSecs: options?.timeoutSecs,
     checkSuccess: options?.checkSuccess,

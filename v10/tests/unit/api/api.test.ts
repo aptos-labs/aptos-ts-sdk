@@ -1,17 +1,25 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Aptos, AptosConfig } from "../../../src/api/index.js";
 import type { AccountData, GasEstimation, LedgerInfo, TransactionResponse } from "../../../src/api/types.js";
 import { RoleType } from "../../../src/api/types.js";
 import { Network } from "../../../src/core/network.js";
 
+// Mock @aptos-labs/aptos-client — all HTTP requests flow through this
+vi.mock("@aptos-labs/aptos-client", () => ({
+  jsonRequest: vi.fn(),
+  bcsRequest: vi.fn(),
+}));
+
+import { jsonRequest } from "@aptos-labs/aptos-client";
+
+const mockClient = vi.mocked(jsonRequest);
+
+/** Build a mock AptosClientResponse for JSON calls. */
 function mockJsonResponse(data: unknown, status = 200, headers: Record<string, string> = {}) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { "content-type": "application/json", ...headers },
-  });
+  return { status, statusText: status === 200 ? "OK" : "Error", data, headers };
 }
 
 describe("Aptos facade", () => {
@@ -43,14 +51,8 @@ describe("Aptos facade", () => {
 });
 
 describe("General API", () => {
-  let fetchSpy: ReturnType<typeof vi.spyOn>;
-
-  beforeEach(() => {
-    fetchSpy = vi.spyOn(globalThis, "fetch");
-  });
-
   afterEach(() => {
-    fetchSpy.mockRestore();
+    vi.clearAllMocks();
   });
 
   it("getLedgerInfo", async () => {
@@ -64,7 +66,7 @@ describe("General API", () => {
       oldest_block_height: "0",
       block_height: "50",
     };
-    fetchSpy.mockResolvedValueOnce(mockJsonResponse(ledgerInfo));
+    mockClient.mockResolvedValueOnce(mockJsonResponse(ledgerInfo));
 
     const aptos = new Aptos({ network: Network.LOCAL });
     const result = await aptos.general.getLedgerInfo();
@@ -73,7 +75,7 @@ describe("General API", () => {
   });
 
   it("getChainId", async () => {
-    fetchSpy.mockResolvedValueOnce(
+    mockClient.mockResolvedValueOnce(
       mockJsonResponse({
         chain_id: 4,
         epoch: "1",
@@ -97,7 +99,7 @@ describe("General API", () => {
       deprioritized_gas_estimate: 50,
       prioritized_gas_estimate: 200,
     };
-    fetchSpy.mockResolvedValueOnce(mockJsonResponse(gasEstimation));
+    mockClient.mockResolvedValueOnce(mockJsonResponse(gasEstimation));
 
     const aptos = new Aptos({ network: Network.LOCAL });
     const result = await aptos.general.getGasPriceEstimation();
@@ -105,7 +107,7 @@ describe("General API", () => {
   });
 
   it("getBlockByHeight", async () => {
-    fetchSpy.mockResolvedValueOnce(
+    mockClient.mockResolvedValueOnce(
       mockJsonResponse({
         block_height: "10",
         block_hash: "0xabc",
@@ -121,7 +123,7 @@ describe("General API", () => {
   });
 
   it("view function", async () => {
-    fetchSpy.mockResolvedValueOnce(mockJsonResponse(["100"]));
+    mockClient.mockResolvedValueOnce(mockJsonResponse(["100"]));
 
     const aptos = new Aptos({ network: Network.LOCAL });
     const result = await aptos.general.view({
@@ -134,14 +136,8 @@ describe("General API", () => {
 });
 
 describe("Account API", () => {
-  let fetchSpy: ReturnType<typeof vi.spyOn>;
-
-  beforeEach(() => {
-    fetchSpy = vi.spyOn(globalThis, "fetch");
-  });
-
   afterEach(() => {
-    fetchSpy.mockRestore();
+    vi.clearAllMocks();
   });
 
   it("getInfo", async () => {
@@ -149,7 +145,7 @@ describe("Account API", () => {
       sequence_number: "42",
       authentication_key: "0x1234",
     };
-    fetchSpy.mockResolvedValueOnce(mockJsonResponse(accountData));
+    mockClient.mockResolvedValueOnce(mockJsonResponse(accountData));
 
     const aptos = new Aptos({ network: Network.LOCAL });
     const result = await aptos.account.getInfo("0x1");
@@ -157,7 +153,7 @@ describe("Account API", () => {
   });
 
   it("getModule", async () => {
-    fetchSpy.mockResolvedValueOnce(
+    mockClient.mockResolvedValueOnce(
       mockJsonResponse({
         bytecode: "0x01",
         abi: { address: "0x1", name: "coin", friends: [], exposed_functions: [], structs: [] },
@@ -170,7 +166,7 @@ describe("Account API", () => {
   });
 
   it("getResource", async () => {
-    fetchSpy.mockResolvedValueOnce(
+    mockClient.mockResolvedValueOnce(
       mockJsonResponse({ type: "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>", data: { coin: { value: "100" } } }),
     );
 
@@ -184,18 +180,12 @@ describe("Account API", () => {
 });
 
 describe("Transaction API", () => {
-  let fetchSpy: ReturnType<typeof vi.spyOn>;
-
-  beforeEach(() => {
-    fetchSpy = vi.spyOn(globalThis, "fetch");
-  });
-
   afterEach(() => {
-    fetchSpy.mockRestore();
+    vi.clearAllMocks();
   });
 
   it("getByHash", async () => {
-    fetchSpy.mockResolvedValueOnce(
+    mockClient.mockResolvedValueOnce(
       mockJsonResponse({
         type: "user_transaction",
         version: "1",
@@ -224,7 +214,7 @@ describe("Transaction API", () => {
   });
 
   it("getByVersion", async () => {
-    fetchSpy.mockResolvedValueOnce(
+    mockClient.mockResolvedValueOnce(
       mockJsonResponse({
         type: "user_transaction",
         version: "42",
@@ -254,7 +244,7 @@ describe("Transaction API", () => {
 
   it("buildSimple creates a SimpleTransaction", async () => {
     // Mock 3 parallel requests: ledgerInfo, gasEstimation, accountSequenceNumber
-    fetchSpy.mockResolvedValueOnce(
+    mockClient.mockResolvedValueOnce(
       mockJsonResponse({
         chain_id: 4,
         epoch: "1",
@@ -266,10 +256,10 @@ describe("Transaction API", () => {
         block_height: "50",
       }),
     );
-    fetchSpy.mockResolvedValueOnce(
+    mockClient.mockResolvedValueOnce(
       mockJsonResponse({ gas_estimate: 100, deprioritized_gas_estimate: 50, prioritized_gas_estimate: 200 }),
     );
-    fetchSpy.mockResolvedValueOnce(mockJsonResponse({ sequence_number: "5", authentication_key: "0x1234" }));
+    mockClient.mockResolvedValueOnce(mockJsonResponse({ sequence_number: "5", authentication_key: "0x1234" }));
 
     const aptos = new Aptos({ network: Network.LOCAL });
     const tx = await aptos.transaction.buildSimple("0x1", {
@@ -285,18 +275,12 @@ describe("Transaction API", () => {
 });
 
 describe("Table API", () => {
-  let fetchSpy: ReturnType<typeof vi.spyOn>;
-
-  beforeEach(() => {
-    fetchSpy = vi.spyOn(globalThis, "fetch");
-  });
-
   afterEach(() => {
-    fetchSpy.mockRestore();
+    vi.clearAllMocks();
   });
 
   it("getItem", async () => {
-    fetchSpy.mockResolvedValueOnce(mockJsonResponse({ value: "42" }));
+    mockClient.mockResolvedValueOnce(mockJsonResponse({ value: "42" }));
 
     const aptos = new Aptos({ network: Network.LOCAL });
     const item = await aptos.table.getItem<{ value: string }>("0xhandle", {

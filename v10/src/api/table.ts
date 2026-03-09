@@ -32,6 +32,7 @@ export async function getTableItem<T = unknown>(
     body: data,
     params: { ledger_version: options?.ledgerVersion },
     overrides: config.getMergedFullnodeConfig(),
+    client: config.client,
   });
   return response.data;
 }

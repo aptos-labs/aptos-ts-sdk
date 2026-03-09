@@ -142,11 +142,8 @@ export class AbstractedAccount implements Account {
    */
   signWithAuthenticator(message: HexInput): AccountAuthenticatorAbstraction {
     const messageBytes = Hex.fromHexInput(message).toUint8Array();
-    return new AccountAuthenticatorAbstraction(
-      this.authenticationFunction,
-      sha3_256(messageBytes),
-      this.sign(sha3_256(messageBytes)).toUint8Array(),
-    );
+    const digest = sha3_256(messageBytes);
+    return new AccountAuthenticatorAbstraction(this.authenticationFunction, digest, this.sign(digest).toUint8Array());
   }
 
   /**
@@ -159,11 +156,13 @@ export class AbstractedAccount implements Account {
    * @returns An {@link AccountAuthenticatorAbstraction} containing the signature.
    */
   signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorAbstraction {
-    const message = AbstractedAccount.generateAccountAbstractionMessage(
-      generateSigningMessageForTransaction(transaction),
-      this.authenticationFunction,
-    );
-    return this.signWithAuthenticator(message);
+    const digest = Hex.fromHexInput(
+      AbstractedAccount.generateAccountAbstractionMessage(
+        generateSigningMessageForTransaction(transaction),
+        this.authenticationFunction,
+      ),
+    ).toUint8Array();
+    return new AccountAuthenticatorAbstraction(this.authenticationFunction, digest, this.sign(digest).toUint8Array());
   }
 
   /**
@@ -297,10 +296,26 @@ export class DerivableAbstractedAccount extends AbstractedAccount {
    */
   signWithAuthenticator(message: HexInput): AccountAuthenticatorAbstraction {
     const messageBytes = Hex.fromHexInput(message).toUint8Array();
+    const digest = sha3_256(messageBytes);
     return new AccountAuthenticatorAbstraction(
       this.authenticationFunction,
-      sha3_256(messageBytes),
-      this.sign(sha3_256(messageBytes)).value,
+      digest,
+      this.sign(digest).value,
+      this.abstractPublicKey,
+    );
+  }
+
+  signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorAbstraction {
+    const digest = Hex.fromHexInput(
+      AbstractedAccount.generateAccountAbstractionMessage(
+        generateSigningMessageForTransaction(transaction),
+        this.authenticationFunction,
+      ),
+    ).toUint8Array();
+    return new AccountAuthenticatorAbstraction(
+      this.authenticationFunction,
+      digest,
+      this.sign(digest).value,
       this.abstractPublicKey,
     );
   }

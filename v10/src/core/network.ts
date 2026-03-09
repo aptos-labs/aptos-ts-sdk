@@ -17,7 +17,7 @@ export enum Network {
 }
 
 /** Maps network names to their GraphQL indexer API endpoints. */
-export const NetworkToIndexerAPI: Record<string, string> = {
+export const NetworkToIndexerAPI: Partial<Record<Network, string>> = {
   mainnet: "https://api.mainnet.aptoslabs.com/v1/graphql",
   testnet: "https://api.testnet.aptoslabs.com/v1/graphql",
   devnet: "https://api.devnet.aptoslabs.com/v1/graphql",
@@ -27,7 +27,7 @@ export const NetworkToIndexerAPI: Record<string, string> = {
 };
 
 /** Maps network names to their full node REST API endpoints. */
-export const NetworkToNodeAPI: Record<string, string> = {
+export const NetworkToNodeAPI: Partial<Record<Network, string>> = {
   mainnet: "https://api.mainnet.aptoslabs.com/v1",
   testnet: "https://api.testnet.aptoslabs.com/v1",
   devnet: "https://api.devnet.aptoslabs.com/v1",
@@ -37,7 +37,7 @@ export const NetworkToNodeAPI: Record<string, string> = {
 };
 
 /** Maps network names to their faucet API endpoints (not all networks have faucets). */
-export const NetworkToFaucetAPI: Record<string, string> = {
+export const NetworkToFaucetAPI: Partial<Record<Network, string>> = {
   devnet: "https://faucet.devnet.aptoslabs.com",
   shelbynet: "https://faucet.shelbynet.shelby.xyz",
   netna: "https://faucet-dev-netna-us-central1-410192433417.us-central1.run.app",
@@ -45,7 +45,7 @@ export const NetworkToFaucetAPI: Record<string, string> = {
 };
 
 /** Maps network names to their Keyless pepper service API endpoints. */
-export const NetworkToPepperAPI: Record<string, string> = {
+export const NetworkToPepperAPI: Partial<Record<Network, string>> = {
   mainnet: "https://api.mainnet.aptoslabs.com/keyless/pepper/v0",
   testnet: "https://api.testnet.aptoslabs.com/keyless/pepper/v0",
   devnet: "https://api.devnet.aptoslabs.com/keyless/pepper/v0",
@@ -55,7 +55,7 @@ export const NetworkToPepperAPI: Record<string, string> = {
 };
 
 /** Maps network names to their Keyless prover service API endpoints. */
-export const NetworkToProverAPI: Record<string, string> = {
+export const NetworkToProverAPI: Partial<Record<Network, string>> = {
   mainnet: "https://api.mainnet.aptoslabs.com/keyless/prover/v0",
   testnet: "https://api.testnet.aptoslabs.com/keyless/prover/v0",
   devnet: "https://api.devnet.aptoslabs.com/keyless/prover/v0",
@@ -65,14 +65,14 @@ export const NetworkToProverAPI: Record<string, string> = {
 };
 
 /** Maps network names to their known chain IDs (only networks with stable chain IDs are included). */
-export const NetworkToChainId: Record<string, number> = {
+export const NetworkToChainId: Partial<Record<Network, number>> = {
   mainnet: 1,
   testnet: 2,
   local: 4,
 };
 
 /** Maps network name strings to their corresponding {@link Network} enum values. */
-export const NetworkToNetworkName: Record<string, Network> = {
+export const NetworkToNetworkName: Record<Network, Network> = {
   mainnet: Network.MAINNET,
   testnet: Network.TESTNET,
   devnet: Network.DEVNET,

@@ -48,17 +48,17 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   static readonly LONG_STRING_LENGTH: number = 64;
 
   /** The special address `0x0`. */
-  static ZERO: AccountAddress = AccountAddress.from("0x0");
+  static readonly ZERO: AccountAddress = AccountAddress.from("0x0");
   /** The special address `0x1` (Aptos framework). */
-  static ONE: AccountAddress = AccountAddress.from("0x1");
+  static readonly ONE: AccountAddress = AccountAddress.from("0x1");
   /** The special address `0x2`. */
-  static TWO: AccountAddress = AccountAddress.from("0x2");
+  static readonly TWO: AccountAddress = AccountAddress.from("0x2");
   /** The special address `0x3`. */
-  static THREE: AccountAddress = AccountAddress.from("0x3");
+  static readonly THREE: AccountAddress = AccountAddress.from("0x3");
   /** The special address `0x4`. */
-  static FOUR: AccountAddress = AccountAddress.from("0x4");
+  static readonly FOUR: AccountAddress = AccountAddress.from("0x4");
   /** The special address `0xA` (fungible asset metadata). */
-  static A: AccountAddress = AccountAddress.from("0xA");
+  static readonly A: AccountAddress = AccountAddress.from("0xA");
 
   /**
    * Creates an AccountAddress from a 32-byte Uint8Array.
@@ -296,12 +296,14 @@ export class AccountAddress extends Serializable implements TransactionArgument 
       }
       return { valid: true };
     } catch (error: unknown) {
-      const parsingError = error as ParsingError<AddressInvalidReason>;
-      return {
-        valid: false,
-        invalidReason: parsingError?.invalidReason,
-        invalidReasonMessage: parsingError?.message,
-      };
+      if (error instanceof ParsingError) {
+        return {
+          valid: false,
+          invalidReason: error.invalidReason as AddressInvalidReason,
+          invalidReasonMessage: error.message,
+        };
+      }
+      return { valid: false, invalidReasonMessage: error instanceof Error ? error.message : String(error) };
     }
   }
 
@@ -310,8 +312,15 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * @param other - The address to compare against.
    * @returns True if both addresses contain identical bytes.
    */
+  /**
+   * Constant-time comparison to avoid timing side-channels when comparing addresses.
+   */
   equals(other: AccountAddress): boolean {
     if (this.data.length !== other.data.length) return false;
-    return this.data.every((value, index) => value === other.data[index]);
+    let result = 0;
+    for (let i = 0; i < this.data.length; i++) {
+      result |= this.data[i] ^ other.data[i];
+    }
+    return result === 0;
   }
 }

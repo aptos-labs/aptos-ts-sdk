@@ -186,6 +186,7 @@ export type TransferCoinArgs = {
   sender: AccountAddressInput;
   recipient: AccountAddressInput;
   amount: AnyNumber;
+  /** @deprecated The `coinType` parameter is not supported in v10. Passing it has no effect. */
   coinType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
 };

@@ -218,9 +218,17 @@ export class Hex {
    * @param other - The `Hex` instance to compare against.
    * @returns Whether the two instances have identical byte content.
    */
+  /**
+   * Constant-time comparison to avoid timing side-channels when comparing
+   * secret or security-sensitive data.
+   */
   equals(other: Hex): boolean {
     if (this.data.length !== other.data.length) return false;
-    return this.data.every((value, index) => value === other.data[index]);
+    let result = 0;
+    for (let i = 0; i < this.data.length; i++) {
+      result |= this.data[i] ^ other.data[i];
+    }
+    return result === 0;
   }
 }
 

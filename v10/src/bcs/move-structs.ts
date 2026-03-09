@@ -311,11 +311,22 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
    * @param cls - A {@link Deserializable} class for the element type.
    * @returns A new `MoveVector<T>`.
    */
+  /**
+   * Maximum number of elements allowed when deserializing a `MoveVector`.
+   * Prevents resource exhaustion from malicious or corrupted BCS data.
+   */
+  static readonly MAX_DESERIALIZE_LENGTH = 1_048_576;
+
   static deserialize<T extends Serializable & EntryFunctionArgument>(
     deserializer: Deserializer,
     cls: Deserializable<T>,
   ): MoveVector<T> {
     const length = deserializer.deserializeUleb128AsU32();
+    if (length > MoveVector.MAX_DESERIALIZE_LENGTH) {
+      throw new Error(
+        `MoveVector deserialization length ${length} exceeds maximum allowed ${MoveVector.MAX_DESERIALIZE_LENGTH}`,
+      );
+    }
     const values: T[] = [];
     for (let i = 0; i < length; i += 1) {
       values.push(cls.deserialize(deserializer));

@@ -3,7 +3,7 @@
 
 import type { AnyNumber } from "../bcs/types.js";
 import { aptosRequest } from "./aptos-request.js";
-import type { AptosApiType, AptosResponse, ClientConfig, MimeType } from "./types.js";
+import type { AptosApiType, AptosResponse, Client, ClientConfig, MimeType } from "./types.js";
 
 /**
  * Options for a GET request to an Aptos API endpoint.
@@ -26,6 +26,8 @@ export interface GetRequestOptions {
   acceptType?: MimeType;
   /** Per-request client configuration overrides (auth, headers, etc.). */
   overrides?: ClientConfig;
+  /** Custom HTTP client to use instead of the default transport. */
+  client?: Client;
 }
 
 /**
@@ -47,10 +49,11 @@ export interface GetRequestOptions {
  * ```
  */
 export async function get<Res>(options: GetRequestOptions): Promise<AptosResponse<Res>> {
-  const { url, apiType, path, originMethod, params, contentType, acceptType, overrides } = options;
+  const { url, apiType, path, originMethod, params, contentType, acceptType, overrides, client } = options;
   return aptosRequest<Res>(
     { url, method: "GET", path, originMethod, params, contentType, acceptType, overrides },
     apiType,
+    client,
   );
 }
 
@@ -82,10 +85,15 @@ export async function get<Res>(options: GetRequestOptions): Promise<AptosRespons
 export async function paginateWithCursor<Res extends Array<Record<string, unknown>>>(
   options: GetRequestOptions,
 ): Promise<Res> {
+  const MAX_PAGES = 1000;
   let out: Res = [] as unknown as Res;
   let cursor: string | undefined;
+  let pages = 0;
   const requestParams = (options.params ?? {}) as Record<string, string | AnyNumber | boolean | undefined>;
   do {
+    if (++pages > MAX_PAGES) {
+      throw new Error(`Pagination exceeded ${MAX_PAGES} pages — aborting to prevent infinite loop`);
+    }
     const response = await get<Res>({ ...options, params: requestParams });
     cursor = response.headers.get("x-aptos-cursor") ?? undefined;
     out = out.concat(response.data) as Res;

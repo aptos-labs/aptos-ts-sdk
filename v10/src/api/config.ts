@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import type { ClientConfig, FaucetConfig, FullNodeConfig, IndexerConfig } from "../client/types.js";
+import type { Client, ClientConfig, FaucetConfig, FullNodeConfig, IndexerConfig } from "../client/types.js";
 import { AptosApiType, DEFAULT_MAX_GAS_AMOUNT, DEFAULT_TXN_EXP_SEC_FROM_NOW } from "../core/constants.js";
 import {
   Network,
@@ -29,6 +29,8 @@ export interface AptosSettings {
   prover?: string;
   /** Custom indexer API URL. Requires `network` to be specified. */
   indexer?: string;
+  /** Custom HTTP client to replace the default `@aptos-labs/aptos-client` transport. */
+  client?: Client;
   /** Global client configuration applied to all API requests (headers, API key, etc.). */
   clientConfig?: ClientConfig;
   /** Client configuration overrides specific to fullnode requests. */
@@ -60,6 +62,8 @@ export class AptosConfig {
   readonly prover?: string;
   /** Custom indexer API URL, if provided. */
   readonly indexer?: string;
+  /** Custom HTTP client to replace the default transport. */
+  readonly client?: Client;
   /** Global client configuration applied to all API requests. */
   readonly clientConfig?: ClientConfig;
   /** Client configuration overrides for fullnode requests. */
@@ -91,6 +95,7 @@ export class AptosConfig {
     this.pepper = settings?.pepper;
     this.prover = settings?.prover;
     this.indexer = settings?.indexer;
+    this.client = settings?.client;
     this.clientConfig = settings?.clientConfig;
     this.fullnodeConfig = settings?.fullnodeConfig;
     this.indexerConfig = settings?.indexerConfig;
@@ -110,7 +115,12 @@ export class AptosConfig {
       case AptosApiType.FULLNODE:
         if (this.fullnode !== undefined) return this.fullnode;
         if (this.network === Network.CUSTOM) throw new Error("Please provide a custom full node url");
-        return NetworkToNodeAPI[this.network];
+        return (
+          NetworkToNodeAPI[this.network] ??
+          (() => {
+            throw new Error(`No fullnode URL configured for network ${this.network}`);
+          })()
+        );
       case AptosApiType.FAUCET:
         if (this.faucet !== undefined) return this.faucet;
         if (this.network === Network.TESTNET) {
@@ -120,19 +130,39 @@ export class AptosConfig {
         }
         if (this.network === Network.MAINNET) throw new Error("There is no mainnet faucet");
         if (this.network === Network.CUSTOM) throw new Error("Please provide a custom faucet url");
-        return NetworkToFaucetAPI[this.network];
+        return (
+          NetworkToFaucetAPI[this.network] ??
+          (() => {
+            throw new Error(`No faucet URL configured for network ${this.network}`);
+          })()
+        );
       case AptosApiType.INDEXER:
         if (this.indexer !== undefined) return this.indexer;
         if (this.network === Network.CUSTOM) throw new Error("Please provide a custom indexer url");
-        return NetworkToIndexerAPI[this.network];
+        return (
+          NetworkToIndexerAPI[this.network] ??
+          (() => {
+            throw new Error(`No indexer URL configured for network ${this.network}`);
+          })()
+        );
       case AptosApiType.PEPPER:
         if (this.pepper !== undefined) return this.pepper;
         if (this.network === Network.CUSTOM) throw new Error("Please provide a custom pepper service url");
-        return NetworkToPepperAPI[this.network];
+        return (
+          NetworkToPepperAPI[this.network] ??
+          (() => {
+            throw new Error(`No pepper service URL configured for network ${this.network}`);
+          })()
+        );
       case AptosApiType.PROVER:
         if (this.prover !== undefined) return this.prover;
         if (this.network === Network.CUSTOM) throw new Error("Please provide a custom prover service url");
-        return NetworkToProverAPI[this.network];
+        return (
+          NetworkToProverAPI[this.network] ??
+          (() => {
+            throw new Error(`No prover service URL configured for network ${this.network}`);
+          })()
+        );
       default:
         throw new Error(`apiType ${apiType as string} is not supported`);
     }

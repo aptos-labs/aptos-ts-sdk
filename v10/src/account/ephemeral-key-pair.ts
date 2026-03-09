@@ -151,6 +151,10 @@ export class EphemeralKeyPair extends Serializable {
   /**
    * Serializes this key pair into BCS bytes.
    *
+   * **Security warning:** The serialized output includes the private key material.
+   * Only persist the result in secure storage (e.g. encrypted at rest) and avoid
+   * logging or transmitting it over insecure channels.
+   *
    * @param serializer - The BCS serializer to write into.
    */
   serialize(serializer: Serializer): void {

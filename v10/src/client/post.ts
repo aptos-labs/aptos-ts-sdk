@@ -3,7 +3,7 @@
 
 import type { AnyNumber } from "../bcs/types.js";
 import { aptosRequest } from "./aptos-request.js";
-import type { AptosApiType, AptosResponse, ClientConfig, MimeType } from "./types.js";
+import type { AptosApiType, AptosResponse, Client, ClientConfig, MimeType } from "./types.js";
 
 /**
  * Options for a POST request to an Aptos API endpoint.
@@ -28,6 +28,8 @@ export interface PostRequestOptions {
   acceptType?: MimeType;
   /** Per-request client configuration overrides (auth, headers, etc.). */
   overrides?: ClientConfig;
+  /** Custom HTTP client to use instead of the default transport. */
+  client?: Client;
 }
 
 /**
@@ -51,9 +53,10 @@ export interface PostRequestOptions {
  * ```
  */
 export async function post<Res>(options: PostRequestOptions): Promise<AptosResponse<Res>> {
-  const { url, apiType, path, originMethod, body, params, contentType, acceptType, overrides } = options;
+  const { url, apiType, path, originMethod, body, params, contentType, acceptType, overrides, client } = options;
   return aptosRequest<Res>(
     { url, method: "POST", path, originMethod, body, params, contentType, acceptType, overrides },
     apiType,
+    client,
   );
 }
