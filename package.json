@@ -83,7 +83,7 @@
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   },
-  "version": "6.1.0",
+  "version": "6.2.0",
   "pnpm": {
     "overrides": {
       "sucrase": "3.35.1",
