@@ -1,0 +1,22 @@
+{
+  "name": "sponsored-txn-server-example",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:e2e": "APTOS_E2E=1 vitest run tests/e2e"
+  },
+  "dependencies": {
+    "@aptos-labs/ts-sdk": "link:../..",
+    "hono": "^4.7.0",
+    "@hono/node-server": "^1.14.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}
