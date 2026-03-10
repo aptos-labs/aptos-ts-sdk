@@ -40,7 +40,7 @@ describe("custom client", () => {
       path: "fund",
       body: {
         address: AccountAddress.from(account.accountAddress).toString(),
-        amount: 100_000_000,
+        amount: 1_000_000_000,
       },
       originMethod: "testFundAccount",
     });
@@ -51,7 +51,7 @@ describe("custom client", () => {
     const { aptos, config } = getAptosClient({ client: { provider: customClient } });
     const account = Account.generate();
     const recipient = Account.generate();
-    await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
+    await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
     const transaction = await aptos.transferCoinTransaction({
       sender: account.accountAddress,
       recipient: recipient.accountAddress,

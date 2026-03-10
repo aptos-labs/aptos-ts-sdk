@@ -254,7 +254,7 @@ describe("transaction builder", () => {
         sender: alice.accountAddress,
         payload,
       });
-      expect(rawTxnWithDefaultMaxGasAmount.max_gas_amount).toBe(200000n);
+      expect(rawTxnWithDefaultMaxGasAmount.max_gas_amount).toBe(2000000n);
     });
 
     test("it clamps max gas amount to the minimum", async () => {

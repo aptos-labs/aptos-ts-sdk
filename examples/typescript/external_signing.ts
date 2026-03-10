@@ -24,7 +24,7 @@ import {
 dotenv.config();
 
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
-const COLD_INITIAL_BALANCE = 100_000_000;
+const COLD_INITIAL_BALANCE = 1_000_000_000;
 const HOT_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 100;
 

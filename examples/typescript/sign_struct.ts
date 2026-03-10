@@ -19,8 +19,8 @@ import { compilePackage, getPackageBytesToPublish } from "./utils";
 
 dotenv.config();
 
-const ALICE_INITIAL_BALANCE = 100_000_000;
-const BOB_INITIAL_BALANCE = 100_000_000;
+const ALICE_INITIAL_BALANCE = 1_000_000_000;
+const BOB_INITIAL_BALANCE = 1_000_000_000;
 const TRANSFER_AMOUNT = 10000;
 
 // Default to devnet, but allow for overriding

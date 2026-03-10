@@ -11,7 +11,7 @@ import { Account, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@apt
 
 // Alice needs funds to transfer, Bob (sponsor) pays the gas
 const ALICE_INITIAL_BALANCE = 100; // Just enough to transfer
-const BOB_INITIAL_BALANCE = 100_000_000;
+const BOB_INITIAL_BALANCE = 1_000_000_000;
 const TRANSFER_AMOUNT = 10;
 
 // Default to devnet, but allow for overriding

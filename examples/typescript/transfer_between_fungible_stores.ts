@@ -151,9 +151,9 @@ async function main() {
 
     // Fund accounts
     await Promise.all([
-      aptos.fundAccount({ accountAddress: alice.accountAddress, amount: 100_000_000 }),
-      aptos.fundAccount({ accountAddress: bob.accountAddress, amount: 100_000_000 }),
-      aptos.fundAccount({ accountAddress: charlie.accountAddress, amount: 100_000_000 }),
+      aptos.fundAccount({ accountAddress: alice.accountAddress, amount: 1_000_000_000 }),
+      aptos.fundAccount({ accountAddress: bob.accountAddress, amount: 1_000_000_000 }),
+      aptos.fundAccount({ accountAddress: charlie.accountAddress, amount: 1_000_000_000 }),
     ]);
 
     // Compile and publish package

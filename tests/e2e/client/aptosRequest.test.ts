@@ -28,7 +28,7 @@ describe("aptos request", () => {
       async () => {
         const sender = Account.generate();
         const receiverAccounts = Account.generate();
-        await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: 100_000_000 });
+        await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: 1_000_000_000 });
         const transaction = await aptos.transaction.build.simple({
           sender: sender.accountAddress,
           data: {
@@ -342,7 +342,7 @@ describe("aptos request", () => {
       async () => {
         const sender = Account.generate();
         const receiverAccounts = Account.generate();
-        await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: 100_000_000 });
+        await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: 1_000_000_000 });
         const transaction = await aptos.transaction.build.simple({
           sender: sender.accountAddress,
           data: {

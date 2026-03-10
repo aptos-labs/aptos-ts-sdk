@@ -629,7 +629,7 @@ describe("transaction submission", () => {
         signers: [singleSignerED25519SenderAccount, singleSignerSecp256k1Account],
       });
 
-      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
+      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
 
       const transaction = await aptos.transaction.build.simple({
         sender: account.accountAddress,
@@ -664,7 +664,7 @@ describe("transaction submission", () => {
         signers: [singleSignerSecp256k1Account, singleSignerED25519SenderAccount],
       });
 
-      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
+      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
 
       const transaction = await aptos.transaction.build.simple({
         sender: account.accountAddress,
@@ -710,7 +710,7 @@ describe("transaction submission", () => {
         signers: [ed25519PrivateKey1, ed25519PrivateKey3],
       });
 
-      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
+      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
 
       const transaction = await aptos.transaction.build.simple({
         sender: account.accountAddress,
@@ -736,7 +736,7 @@ describe("transaction submission", () => {
         signers: [ed25519PrivateKey3, ed25519PrivateKey1],
       });
 
-      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
+      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
 
       const transaction = await aptos.transaction.build.simple({
         sender: account.accountAddress,
@@ -762,7 +762,7 @@ describe("transaction submission", () => {
 
     const byteCode = `a11ceb0b060000000801000602060a031022043208053a4e0788015208da01400c9a024c000001010102020404010001010508000000000100000302010002060506010002070701010002080901010002090a060100020403040404050403060c03050007060c060c0303050503010b0001080101080102060c03010b0001090002050b00010900030b000108010b000108010b0001080102070b000109000b0001090002070b0001090003087472616e736665720a6170746f735f636f696e04636f696e0a74776f5f62795f74776f04436f696e094170746f73436f696e087769746864726177076465706f736974056d657267650765787472616374${account.accountAddress.toStringWithoutPrefix()}00000000000000000000000000000000000000000000000000000000000000010001040003080b000b0138000c030b020b0338010201010400081a0b000a0238000c070b010a0338000c080d070b0838020d070b020b03160b061738030c090b040b0738010b050b0938010200`;
     beforeAll(async () => {
-      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
+      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
     });
 
     test("it generates a publish move module transaction successfully", async () => {

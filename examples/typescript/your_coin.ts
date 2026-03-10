@@ -98,7 +98,7 @@ async function main() {
   // Fund alice account
   await aptos.fundAccount({
     accountAddress: alice.accountAddress,
-    amount: 100_000_000,
+    amount: 1_000_000_000,
   });
 
   // Please ensure you have the aptos CLI installed

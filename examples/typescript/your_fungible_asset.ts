@@ -144,10 +144,10 @@ async function main() {
   console.log(`Bob: ${bob.accountAddress.toString()}`);
   console.log(`Charlie: ${charlie.accountAddress.toString()}`);
 
-  await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: 100_000_000 });
+  await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: 1_000_000_000 });
   await aptos.fundAccount({
     accountAddress: bob.accountAddress,
-    amount: 100_000_000,
+    amount: 1_000_000_000,
   });
 
   console.log("\n=== Compiling FACoin package locally ===");

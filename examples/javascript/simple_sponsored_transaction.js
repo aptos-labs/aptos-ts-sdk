@@ -6,8 +6,8 @@ const dotenv = require("dotenv");
 dotenv.config();
 const { Account, Aptos, AptosConfig, NetworkToNetworkName, Network } = require("@aptos-labs/ts-sdk");
 
-const ALICE_INITIAL_BALANCE = 100_000_000;
-const SPONSOR_INITIAL_BALANCE = 100_000_000;
+const ALICE_INITIAL_BALANCE = 1_000_000_000;
+const SPONSOR_INITIAL_BALANCE = 1_000_000_000;
 const BOB_INITIAL_BALANCE = 0;
 const TRANSFER_AMOUNT = 10;
 // Default to devnet, but allow for overriding

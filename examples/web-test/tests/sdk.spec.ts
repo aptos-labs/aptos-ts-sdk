@@ -80,7 +80,7 @@ test.describe("Aptos SDK Browser Tests", () => {
 
   test.describe("Account Funding and Balance", () => {
     test("should fund an account and check balance", async ({ page }) => {
-      const fundAmount = 100_000_000;
+      const fundAmount = 1_000_000_000;
 
       const result = await page.evaluate(async (amount) => {
         const account = window.aptosSDK.generateAccount();
@@ -100,7 +100,7 @@ test.describe("Aptos SDK Browser Tests", () => {
         const alice = window.aptosSDK.generateAccount();
         const bob = window.aptosSDK.generateAccount();
 
-        const aliceInitialBalance = 100_000_000;
+        const aliceInitialBalance = 1_000_000_000;
         const bobInitialBalance = 100;
         const transferAmount = 1000;
 
@@ -135,7 +135,7 @@ test.describe("Aptos SDK Browser Tests", () => {
 
         // Alice needs funds to transfer, Bob (sponsor) pays the gas
         const aliceInitialBalance = 100;
-        const bobInitialBalance = 100_000_000;
+        const bobInitialBalance = 1_000_000_000;
         const transferAmount = 10;
 
         // Fund both accounts

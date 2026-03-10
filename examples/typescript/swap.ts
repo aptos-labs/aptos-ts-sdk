@@ -214,7 +214,7 @@ const example = async () => {
   console.log(`Admin's address is: ${admin.accountAddress.toString()}`);
   console.log(`Swap address is: ${swapAddress.toString()}`);
   // Fund Admin account
-  await aptos.fundAccount({ accountAddress: admin.accountAddress, amount: 100_000_000 });
+  await aptos.fundAccount({ accountAddress: admin.accountAddress, amount: 1_000_000_000 });
 
   console.log("\n====== Create Fungible Asset -> (Dog and Cat coin) ======\n");
   await createFungibleAsset(aptos, admin);

@@ -7,8 +7,8 @@
 import { Account, AccountAddress, Aptos, AptosConfig, EphemeralKeyPair, Network } from "@aptos-labs/ts-sdk";
 import * as readlineSync from "readline-sync";
 
-const ALICE_INITIAL_BALANCE = 100_000_000;
-const BOB_INITIAL_BALANCE = 100_000_000;
+const ALICE_INITIAL_BALANCE = 1_000_000_000;
+const BOB_INITIAL_BALANCE = 1_000_000_000;
 const TRANSFER_AMOUNT = 10_000;
 
 /**
