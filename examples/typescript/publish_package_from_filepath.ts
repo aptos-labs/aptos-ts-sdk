@@ -29,7 +29,7 @@ async function main() {
   console.log("\n=== Addresses ===");
   console.log(`Alice: ${alice.accountAddress}`);
 
-  await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: 100_000_000 });
+  await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: 1_000_000_000 });
 
   // Please ensure you have the aptos CLI installed
   console.log("\n=== Compiling the package locally ===");

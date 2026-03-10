@@ -48,7 +48,7 @@ const example = async () => {
   });
   await aptos.fundAccount({
     accountAddress: alice.accountAddress,
-    amount: 100_000_000,
+    amount: 1_000_000_000,
   });
 
   const jwkTxn = await aptos.updateFederatedKeylessJwkSetTransaction({ sender: alice, iss });

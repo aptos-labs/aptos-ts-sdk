@@ -88,9 +88,9 @@ const getSignatureThreshold = async (): Promise<void> => {
 };
 
 const fundOwnerAccounts = async () => {
-  await aptos.fundAccount({ accountAddress: owner1.accountAddress, amount: 100_000_000 });
-  await aptos.fundAccount({ accountAddress: owner2.accountAddress, amount: 100_000_000 });
-  await aptos.fundAccount({ accountAddress: owner3.accountAddress, amount: 100_000_000 });
+  await aptos.fundAccount({ accountAddress: owner1.accountAddress, amount: 1_000_000_000 });
+  await aptos.fundAccount({ accountAddress: owner2.accountAddress, amount: 1_000_000_000 });
+  await aptos.fundAccount({ accountAddress: owner3.accountAddress, amount: 1_000_000_000 });
   console.log(`owner1: ${owner1.accountAddress.toString()}`);
   console.log(`owner2: ${owner2.accountAddress.toString()}`);
   console.log(`owner3: ${owner3.accountAddress.toString()}`);
@@ -140,7 +140,7 @@ const settingUpMultiSigAccount = async () => {
 const fundMultiSigAccount = async () => {
   console.log("Funding the multisig account...");
   // Fund the multisig account for transfers.
-  await aptos.fundAccount({ accountAddress: multisigAddress, amount: 100_000_000 });
+  await aptos.fundAccount({ accountAddress: multisigAddress, amount: 1_000_000_000 });
 };
 
 const createMultiSigTransferTransaction = async () => {

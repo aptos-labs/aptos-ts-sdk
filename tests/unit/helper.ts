@@ -14,7 +14,7 @@ import {
   ZeroKnowledgeSig,
 } from "../../src";
 
-export const FUND_AMOUNT = 100_000_000;
+export const FUND_AMOUNT = 1_000_000_000;
 export const TRANSFER_AMOUNT = 500_000;
 
 export const EPHEMERAL_KEY_PAIR = new EphemeralKeyPair({

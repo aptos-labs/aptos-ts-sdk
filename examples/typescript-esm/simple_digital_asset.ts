@@ -9,7 +9,7 @@ import { Account, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@apt
 
 dotenv.config();
 
-const INITIAL_BALANCE = 100_000_000;
+const INITIAL_BALANCE = 1_000_000_000;
 
 // Set up the client
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;

@@ -18,7 +18,7 @@ import {
 } from "@aptos-labs/ts-sdk";
 
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
-const ALICE_INITIAL_BALANCE = 100_000_000;
+const ALICE_INITIAL_BALANCE = 1_000_000_000;
 const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 100;
 

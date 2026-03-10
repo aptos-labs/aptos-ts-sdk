@@ -22,7 +22,7 @@ import {
 
 dotenv.config();
 
-const INITIAL_BALANCE = 100_000_000;
+const INITIAL_BALANCE = 1_000_000_000;
 const TRANSFER_AMOUNT = 100;
 
 // Default to devnet, but allow for overriding

@@ -20,7 +20,7 @@ import { getAptosClient } from "../helper";
 import { simpleCoinTransactionHeler } from "../transaction/helper";
 
 describe("account api", () => {
-  const FUND_AMOUNT = 100_000_000;
+  const FUND_AMOUNT = 1_000_000_000;
 
   describe("fetch data", () => {
     test("it fetches account data", async () => {
@@ -294,14 +294,14 @@ describe("account api", () => {
         accountAddress: senderAccount.accountAddress,
         coinType: APTOS_COIN,
       });
-      expect(accountAPTAmount).toBe(100000000);
+      expect(accountAPTAmount).toBe(FUND_AMOUNT);
 
       // APT Aptos coin by fungible asset metadata
       const accountAPTAmount2 = await aptos.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
         faMetadataAddress: AccountAddress.A,
       });
-      expect(accountAPTAmount2).toBe(100000000);
+      expect(accountAPTAmount2).toBe(FUND_AMOUNT);
       // By both
       // APT Aptos coin by fungible asset metadata
       const accountAPTAmount3 = await aptos.getAccountCoinAmount({
@@ -309,7 +309,7 @@ describe("account api", () => {
         coinType: APTOS_COIN,
         faMetadataAddress: "0xA",
       });
-      expect(accountAPTAmount3).toBe(100000000);
+      expect(accountAPTAmount3).toBe(FUND_AMOUNT);
       // By neither
       const failForNoCoinTypeGiven = aptos.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
