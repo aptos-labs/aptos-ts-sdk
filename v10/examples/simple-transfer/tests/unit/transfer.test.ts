@@ -58,7 +58,7 @@ describe("simple transfer (unit)", () => {
     const alice = generateAccount();
     const bob = generateAccount();
 
-    const aptos = new Aptos({ network: Network.DEVNET });
+    const aptos = new Aptos({ network: Network.LOCAL });
 
     // ---- 1. Fund alice ----
     // faucet.fund makes a POST to faucet, then calls waitForTransaction
