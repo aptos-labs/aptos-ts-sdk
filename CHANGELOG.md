@@ -3,9 +3,8 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
-- Remove usage of Buffer.from and replace with TextEncoder or js-base64 for greater compatibility
-- Update dependencies for examples, gas station, and confidential assets packages 
-- Increase max gas amount default to 2000000
+
+# 6.2.0 (2026-03-22)
 
 ## Fixed
 
@@ -14,6 +13,9 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Changed
 
+- Remove usage of Buffer.from and replace with TextEncoder or js-base64 for greater compatibility
+- Update dependencies for examples, gas station, and confidential assets packages
+- Increase max gas amount default to 2000000
 - Migrate from ESLint + Prettier to Biome for linting and formatting, providing ~37x faster lint and ~42x faster format checks
 - Replace `pnpm lint` (ESLint), `pnpm fmt` (Prettier) with Biome equivalents; add `pnpm check` for combined lint+format
 - Remove all obsolete `eslint-disable` comments
