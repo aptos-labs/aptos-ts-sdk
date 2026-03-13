@@ -16,8 +16,8 @@ importers:
   .:
     dependencies:
       '@aptos-labs/aptos-cli':
-        specifier: ^1.1.1
-        version: 1.1.1
+        specifier: ^2.0.0
+        version: 2.0.0
       '@aptos-labs/aptos-client':
         specifier: ^2.1.0
         version: 2.1.0(got@11.8.6)
@@ -106,8 +106,9 @@ importers:
 
 packages:
 
-  '@aptos-labs/aptos-cli@1.1.1':
-    resolution: {integrity: sha512-sB7CokCM6s76SLJmccysbnFR+MDik6udKfj2+9ZsmTLV0/t73veIeCDKbvWJmbW267ibx4HiGbPI7L+1+yjEbQ==}
+  '@aptos-labs/aptos-cli@2.0.0':
+    resolution: {integrity: sha512-b5xcV4/Aia7GpCRRswmXUr/icE02vY0C+4McwlNGo6dbJQwPh/TpL1ewGvk7vbSJAMKa9l85yJY6JFZdpfDwVQ==}
+    engines: {node: '>=22'}
     hasBin: true
 
   '@aptos-labs/aptos-client@2.1.0':
@@ -1669,10 +1670,6 @@ packages:
   colorette@2.0.20:
     resolution: {integrity: sha512-IfEDxwoWIjkeXL1eXcDiow4UbKjhLdq6/EuSVR9GMN7KVH3r9gQ83e73hsz1Nd1T3ijd5xv1wcWRYO+D6kCI2w==}
 
-  commander@12.1.0:
-    resolution: {integrity: sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==}
-    engines: {node: '>=18'}
-
   commander@14.0.0:
     resolution: {integrity: sha512-2uM9rYjPvyq39NwLRqaiLtWHyDC1FvryJDa2ATTVims5YAS4PupsEQsDvP14FqhFr0P49CYDugi59xaxJlTXRA==}
     engines: {node: '>=20'}
@@ -3114,9 +3111,9 @@ packages:
 
 snapshots:
 
-  '@aptos-labs/aptos-cli@1.1.1':
+  '@aptos-labs/aptos-cli@2.0.0':
     dependencies:
-      commander: 12.1.0
+      commander: 14.0.3
 
   '@aptos-labs/aptos-client@2.1.0(got@11.8.6)':
     dependencies:
@@ -4951,8 +4948,6 @@ snapshots:
   color-name@1.1.4: {}
 
   colorette@2.0.20: {}
-
-  commander@12.1.0: {}
 
   commander@14.0.0: {}
 

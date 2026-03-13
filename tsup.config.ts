@@ -17,7 +17,7 @@ const DEFAULT_CONFIG: Options = {
   skipNodeModulesBundle: true,
   sourcemap: true,
   splitting: true,
-  target: "es2020",
+  target: "es2022",
   platform: "node",
   env: {
     APTOS_NETWORK: process.env.APTOS_NETWORK ?? "Devnet",
