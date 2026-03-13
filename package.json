@@ -1,7 +1,7 @@
 {
   "name": "@aptos-labs/ts-sdk",
   "description": "Aptos TypeScript SDK",
-  "packageManager": "pnpm@10.30.3",
+  "packageManager": "pnpm@10.32.1",
   "license": "Apache-2.0",
   "engines": {
     "node": ">=22.0.0"
@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@aptos-labs/aptos-cli": "^2.0.0",
-    "@aptos-labs/aptos-client": "^2.1.0",
+    "@aptos-labs/aptos-client": "^3.0.1",
     "@noble/curves": "^1.9.0",
     "@noble/hashes": "^1.5.0",
     "@scure/bip32": "^1.4.0",
