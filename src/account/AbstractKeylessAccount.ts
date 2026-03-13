@@ -396,7 +396,7 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
       });
     }
     const ephemeralPublicKey = this.ephemeralKeyPair.getPublicKey();
-    const ephemeralSignature = this.ephemeralKeyPair.sign(message);
+    const ephemeralSignature = this.ephemeralKeyPair.sign(new Uint8Array(32));
 
     return new KeylessSignature({
       jwtHeader: base64UrlDecode(this.jwt.split(".")[0]),
