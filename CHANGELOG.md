@@ -15,6 +15,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Upgrade `@aptos-labs/aptos-client` from ^2.1.0 to ^3.0.1
 - Build and TypeScript compilation targets raised from ES2020 to ES2022
 
+## Added
+
+- Add `undici` as a dependency (^7.24.1) to satisfy `@aptos-labs/aptos-client` v3 peer dependency for Node.js HTTP support
+
 ## Changed
 
 - CJS build target remains at ES2020 due to a sucrase transformer bug that generates invalid syntax for ES2022 class fields; ESM target is ES2022
