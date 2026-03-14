@@ -4,6 +4,27 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 7.0.0 (2026-03-14)
+
+> **Upgrade Guide**: See [UPGRADE_GUIDE_7.0.0.md](./upgrade-guides/UPGRADE_GUIDE_7.0.0.md) for detailed migration instructions.
+
+## Breaking Changes
+
+- **Node.js >=22 required**: Dropped support for Node.js 20 (which reaches EOL in April 2026). The minimum engine version is now `>=22.0.0`.
+- Upgrade `@aptos-labs/aptos-cli` from ^1.1.1 to ^2.0.0
+- Upgrade `@aptos-labs/aptos-client` from ^2.1.0 to ^3.0.1
+- Build and TypeScript compilation targets raised from ES2020 to ES2022
+
+## Changed
+
+- Update TypeScript module resolution from `node` to `bundler` for improved compatibility with modern bundlers
+- Update pnpm from 10.30.3 to 10.32.1
+- Modernize `tsconfig.json`: add `isolatedModules`, `forceConsistentCasingInFileNames`, `resolveJsonModule`, `skipLibCheck`; remove `allowJs`, `allowSyntheticDefaultImports`, `noImplicitAny` (covered by `strict`)
+
+## Removed
+
+- Remove `SIGNED_INTEGER_TYPETAGS.md` standalone documentation file (signed integer TypeTag information is available in the SDK source and [aptos.dev](https://aptos.dev) docs)
+
 # 6.2.0 (2026-03-22)
 
 ## Fixed
