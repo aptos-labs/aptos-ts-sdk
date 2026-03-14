@@ -17,6 +17,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Changed
 
+- CJS build target remains at ES2020 due to a sucrase transformer bug that generates invalid syntax for ES2022 class fields; ESM target is ES2022
 - Update TypeScript module resolution from `node` to `bundler` for improved compatibility with modern bundlers
 - Update pnpm from 10.30.3 to 10.32.1
 - Modernize `tsconfig.json`: add `isolatedModules`, `forceConsistentCasingInFileNames`, `resolveJsonModule`, `skipLibCheck`; remove `allowJs`, `allowSyntheticDefaultImports`, `noImplicitAny` (covered by `strict`)

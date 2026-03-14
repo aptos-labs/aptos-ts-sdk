@@ -28,12 +28,15 @@ const DEFAULT_CONFIG: Options = {
   },
 };
 
-// Common.js config
+// Common.js config — target es2020 for CJS because tsup's sucrase transformer
+// generates invalid syntax (semicolons inside `if()` conditions) when esbuild
+// preserves ES2022 class fields in the CJS output.
 const COMMON_CONFIG: MandatoryOptions = {
   ...DEFAULT_CONFIG,
   entry: ["src/index.ts", "src/cli/index.ts"],
   format: "cjs",
   outDir: "dist/common",
+  target: "es2020",
 };
 
 // ESM config

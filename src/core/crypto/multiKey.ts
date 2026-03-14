@@ -165,9 +165,7 @@ export class MultiKey extends AbstractMultiKey {
       ).length;
       if (keylessCount > MAX_NUM_KEYLESS_PUBLIC_FOR_MULTI_KEY) {
         throw new Error(
-          `Construction of MultiKey with more than ${MAX_NUM_KEYLESS_PUBLIC_FOR_MULTI_KEY} keyless public keys is not allowed when signaturesRequired 
-          is greater than ${MAX_NUM_KEYLESS_PUBLIC_FOR_MULTI_KEY}. This is because a maximum of 3 keyless signatures are supported for a 
-          K-of-N MultiKey transaction.`,
+          `Construction of MultiKey with more than ${MAX_NUM_KEYLESS_PUBLIC_FOR_MULTI_KEY} keyless public keys is not allowed when signaturesRequired is greater than ${MAX_NUM_KEYLESS_PUBLIC_FOR_MULTI_KEY}. This is because a maximum of 3 keyless signatures are supported for a K-of-N MultiKey transaction.`,
         );
       }
     }
