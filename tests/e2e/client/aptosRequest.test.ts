@@ -55,13 +55,11 @@ describe("aptos request", () => {
             config,
             AptosApiType.FULLNODE,
           );
-          expect(response.config.headers).toHaveProperty("x-aptos-client", `aptos-typescript-sdk/${VERSION}`);
-          expect(response.config.headers).toHaveProperty("my", "header");
-          expect(response.config.headers).toHaveProperty("content-type", "application/x.aptos.signed_transaction+bcs");
-          expect(response.config.headers).toHaveProperty(
-            "x-aptos-typescript-sdk-origin-method",
-            "test request includes all headers",
-          );
+          const h = response.config.headers;
+          expect(h.get("x-aptos-client")).toEqual(`aptos-typescript-sdk/${VERSION}`);
+          expect(h.get("my")).toEqual("header");
+          expect(h.get("content-type")).toEqual("application/x.aptos.signed_transaction+bcs");
+          expect(h.get("x-aptos-typescript-sdk-origin-method")).toEqual("test request includes all headers");
         } catch (error: any) {
           // should not get here
           console.log("Error in 'headers'", error);
@@ -88,7 +86,7 @@ describe("aptos request", () => {
             config,
             AptosApiType.FULLNODE,
           );
-          expect(response.config.headers).toHaveProperty("authorization", `Bearer ${dummyKey}`);
+          expect(response.config.headers.get("authorization")).toEqual(`Bearer ${dummyKey}`);
         } catch (error: any) {
           // should not get here
           console.log("Error in 'api_token for full node requests'", error);

@@ -407,7 +407,11 @@ export class AptosApiError extends Error {
 function deriveErrorMessage({ apiType, aptosRequest, aptosResponse }: AptosApiErrorOpts): string {
   // extract the W3C trace_id from the response headers if it exists. Some services set this in the response, and it's useful for debugging.
   // See https://www.w3.org/TR/trace-context/#relationship-between-the-headers .
-  const traceId = aptosResponse.headers?.traceparent?.split("-")[1];
+  const traceparent =
+    typeof aptosResponse.headers?.get === "function"
+      ? aptosResponse.headers.get("traceparent")
+      : aptosResponse.headers?.traceparent;
+  const traceId = traceparent?.split("-")[1];
   const traceIdString = traceId ? `(trace_id:${traceId}) ` : "";
 
   const errorPrelude: string = `Request to [${apiType}]: ${aptosRequest.method} ${

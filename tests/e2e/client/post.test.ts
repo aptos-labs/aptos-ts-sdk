@@ -39,15 +39,12 @@ describe("post request", () => {
         },
         overrides: { WITH_CREDENTIALS: false },
       });
-      expect(response.config.headers).toHaveProperty("clientconfig");
-      expect(response.config.headers.clientconfig).toEqual("clientConfig-header");
-      expect(response.config.headers).toHaveProperty("authorization");
-      expect(response.config.headers.authorization).toEqual("Bearer api-key");
-      expect(response.config.headers).toHaveProperty("indexerheader");
-      expect(response.config.headers.indexerheader).toEqual("indexer-header");
-      // Properties that should not be included
-      expect(response.config.headers).not.toHaveProperty("fullnodeheader");
-      expect(response.config.headers).not.toHaveProperty("faucetheader");
+      const h = response.config.headers;
+      expect(h.get("clientconfig")).toEqual("clientConfig-header");
+      expect(h.get("authorization")).toEqual("Bearer api-key");
+      expect(h.get("indexerheader")).toEqual("indexer-header");
+      expect(h.get("fullnodeheader")).toBeNull();
+      expect(h.get("faucetheader")).toBeNull();
     });
   });
   describe("fullnode", () => {
@@ -62,15 +59,12 @@ describe("post request", () => {
           arguments: [],
         },
       });
-      expect(response.config.headers).toHaveProperty("clientconfig");
-      expect(response.config.headers.clientconfig).toEqual("clientConfig-header");
-      expect(response.config.headers).toHaveProperty("authorization");
-      expect(response.config.headers.authorization).toEqual("Bearer api-key");
-      expect(response.config.headers).toHaveProperty("fullnodeheader");
-      expect(response.config.headers.fullnodeheader).toEqual("fullnode-header");
-      // Properties that should not be included
-      expect(response.config.headers).not.toHaveProperty("indexerheader");
-      expect(response.config.headers).not.toHaveProperty("faucetheader");
+      const h = response.config.headers;
+      expect(h.get("clientconfig")).toEqual("clientConfig-header");
+      expect(h.get("authorization")).toEqual("Bearer api-key");
+      expect(h.get("fullnodeheader")).toEqual("fullnode-header");
+      expect(h.get("indexerheader")).toBeNull();
+      expect(h.get("faucetheader")).toBeNull();
     });
   });
   describe("faucet", () => {
@@ -85,15 +79,12 @@ describe("post request", () => {
         },
         originMethod: "testQueryFaucet",
       });
-      expect(response.config.headers).toHaveProperty("clientconfig");
-      expect(response.config.headers.clientconfig).toEqual("clientConfig-header");
-      expect(response.config.headers).toHaveProperty("authorization");
-      expect(response.config.headers.authorization).toEqual("Bearer auth-token");
-      expect(response.config.headers).toHaveProperty("faucetheader");
-      expect(response.config.headers.faucetheader).toEqual("faucet-header");
-      // Properties that should not be included
-      expect(response.config.headers).not.toHaveProperty("fullnodeheader");
-      expect(response.config.headers).not.toHaveProperty("indexerheader");
+      const h = response.config.headers;
+      expect(h.get("clientconfig")).toEqual("clientConfig-header");
+      expect(h.get("authorization")).toEqual("Bearer auth-token");
+      expect(h.get("faucetheader")).toEqual("faucet-header");
+      expect(h.get("fullnodeheader")).toBeNull();
+      expect(h.get("indexerheader")).toBeNull();
     });
   });
 });
