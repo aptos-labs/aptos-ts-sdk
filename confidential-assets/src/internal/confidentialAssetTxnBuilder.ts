@@ -268,17 +268,25 @@ export class ConfidentialAssetTransactionBuilder {
     tokenAddress: AccountAddressInput;
     options?: LedgerVersionArg;
   }): Promise<TwistedEd25519PublicKey | undefined> {
-    const [{ vec: effectiveAuditorPubKey }] = await this.client.view<[{ vec: { data: string }[] }]>({
+    // EffectiveAuditorConfig::V1 { is_global: bool, config: AuditorConfig::V1 { ek: Option<CompressedRistretto>, epoch: u64 } }
+    type EffectiveAuditorConfigResponse = {
+      is_global: boolean;
+      config: {
+        ek: { vec: { data: string }[] };
+        epoch: string;
+      };
+    };
+    const [{ config }] = await this.client.view<[EffectiveAuditorConfigResponse]>({
       options: args.options,
       payload: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::get_effective_auditor`,
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::get_effective_auditor_config`,
         functionArguments: [args.tokenAddress],
       },
     });
-    if (effectiveAuditorPubKey.length === 0) {
+    if (config.ek.vec.length === 0) {
       return undefined;
     }
-    return new TwistedEd25519PublicKey(effectiveAuditorPubKey[0].data);
+    return new TwistedEd25519PublicKey(config.ek.vec[0].data);
   }
 
   /**
