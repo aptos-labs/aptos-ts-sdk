@@ -17,7 +17,14 @@ import {
   MoveResource,
 } from "../../types";
 import { EphemeralPublicKey, EphemeralSignature } from "./ephemeral";
-import { bigIntToBytesLE, bytesToBigIntLE, hashStrToField, padAndPackBytesWithLen, poseidonHash } from "./poseidon";
+import {
+  bigIntToBytesLE,
+  bytesToBigIntLE,
+  hashStrToField,
+  padAndPackBytesWithLen,
+  poseidonHash,
+  ensurePoseidonLoaded,
+} from "./poseidon";
 import { AuthenticationKey } from "../authenticationKey";
 import { Proof } from "./proof";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
@@ -344,6 +351,7 @@ export async function verifyKeylessSignature(args: {
   jwk?: MoveJWK;
   options?: { throwErrorWithReason?: boolean };
 }): Promise<boolean> {
+  await ensurePoseidonLoaded();
   const {
     aptosConfig,
     publicKey,

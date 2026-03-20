@@ -21,6 +21,7 @@ import {
   ZeroKnowledgeSig,
   ZkProof,
   getKeylessConfig,
+  ensurePoseidonLoaded,
 } from "../core";
 import { HexInput, ZkpVariant } from "../types";
 import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
@@ -197,6 +198,7 @@ export async function deriveKeylessAccount(args: {
   pepper?: HexInput;
   proofFetchCallback?: ProofFetchCallback;
 }): Promise<KeylessAccount | FederatedKeylessAccount> {
+  await ensurePoseidonLoaded();
   const { aptosConfig, jwt, jwkAddress, uidKey, proofFetchCallback, pepper = await getPepper(args) } = args;
   const { verificationKey, maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
 

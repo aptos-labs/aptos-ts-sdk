@@ -13,6 +13,7 @@ import {
   Groth16Zkp,
   ZkpVariant,
   Groth16VerificationKey,
+  ensurePoseidonLoaded,
 } from "../../src";
 import { AccountUtils } from "../../src/account/AccountUtils";
 
@@ -40,38 +41,50 @@ describe("Account Serialization", () => {
   const jwt =
     "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ0ZXN0IiwiYXVkIjoidGVzdC1hdWQiLCJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNzMxMjE0NTIxLCJleHAiOjE3MzEyMTgxMjF9.jZeCpYDDWx0pW_WcBpg8b0NzDWCABvH3lSmmmub8BBg";
 
-  const legacyEdAccount = Account.generate();
-  const singleSignerEdAccount = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
-  const secp256k1Account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
-  const keylessAccount = KeylessAccount.create({
-    proof,
-    ephemeralKeyPair: EphemeralKeyPair.generate(),
-    pepper: new Uint8Array(31),
-    jwt,
-  });
-  const keylessAccountWithVerificationKey = KeylessAccount.create({
-    proof,
-    ephemeralKeyPair: EphemeralKeyPair.generate(),
-    pepper: new Uint8Array(31),
-    jwt,
-    verificationKey,
-  });
-  const federatedKeylessAccount = FederatedKeylessAccount.create({
-    ephemeralKeyPair: EphemeralKeyPair.generate(),
-    pepper: new Uint8Array(31),
-    jwt,
-    jwkAddress: Account.generate().accountAddress,
-    proof,
-  });
-  const multiKeyAccount = MultiKeyAccount.fromPublicKeysAndSigners({
-    publicKeys: [singleSignerEdAccount.publicKey, secp256k1Account.publicKey, Account.generate().publicKey],
-    signaturesRequired: 2,
-    signers: [singleSignerEdAccount, secp256k1Account],
-  });
-  const keylessAccountWithBackupSigner = MultiKeyAccount.fromPublicKeysAndSigners({
-    publicKeys: [keylessAccount.publicKey, Account.generate().publicKey],
-    signaturesRequired: 1,
-    signers: [keylessAccount],
+  let legacyEdAccount: Account;
+  let singleSignerEdAccount: Account;
+  let secp256k1Account: Account;
+  let keylessAccount: KeylessAccount;
+  let keylessAccountWithVerificationKey: KeylessAccount;
+  let federatedKeylessAccount: FederatedKeylessAccount;
+  let multiKeyAccount: MultiKeyAccount;
+  let keylessAccountWithBackupSigner: MultiKeyAccount;
+
+  beforeAll(async () => {
+    await ensurePoseidonLoaded();
+    legacyEdAccount = Account.generate();
+    singleSignerEdAccount = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
+    secp256k1Account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
+    keylessAccount = KeylessAccount.create({
+      proof,
+      ephemeralKeyPair: await EphemeralKeyPair.generate(),
+      pepper: new Uint8Array(31),
+      jwt,
+    });
+    keylessAccountWithVerificationKey = KeylessAccount.create({
+      proof,
+      ephemeralKeyPair: await EphemeralKeyPair.generate(),
+      pepper: new Uint8Array(31),
+      jwt,
+      verificationKey,
+    });
+    federatedKeylessAccount = FederatedKeylessAccount.create({
+      ephemeralKeyPair: await EphemeralKeyPair.generate(),
+      pepper: new Uint8Array(31),
+      jwt,
+      jwkAddress: Account.generate().accountAddress,
+      proof,
+    });
+    multiKeyAccount = MultiKeyAccount.fromPublicKeysAndSigners({
+      publicKeys: [singleSignerEdAccount.publicKey, secp256k1Account.publicKey, Account.generate().publicKey],
+      signaturesRequired: 2,
+      signers: [singleSignerEdAccount, secp256k1Account],
+    });
+    keylessAccountWithBackupSigner = MultiKeyAccount.fromPublicKeysAndSigners({
+      publicKeys: [keylessAccount.publicKey, Account.generate().publicKey],
+      signaturesRequired: 1,
+      signers: [keylessAccount],
+    });
   });
 
   describe("serialize", () => {

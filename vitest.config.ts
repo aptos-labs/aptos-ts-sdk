@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
-    setupFiles: [path.resolve(__dirname, "tests/setupDotenv.ts")],
+    setupFiles: [path.resolve(__dirname, "tests/setupDotenv.ts"), path.resolve(__dirname, "tests/setupPoseidon.ts")],
     globalSetup: [path.resolve(__dirname, "tests/preTest.ts")],
     include: ["tests/**/*.test.ts"],
     exclude: ["dist/**", "examples/**", "confidential-assets/**"],
