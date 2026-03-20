@@ -1057,7 +1057,6 @@ describe("transaction submission", () => {
         },
         options: {
           gasUnitPrice: 100,
-          maxGasAmount: 2000,
         },
       });
 

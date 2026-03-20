@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Fixed
+
+- Remove hardcoded `maxGasAmount: 2000` from e2e tests (Account Derivation APIs, WebAuthn submission) that caused `MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS` failures after the on-chain minimum gas increase
+
 # 6.2.0 (2026-03-22)
 
 ## Fixed
