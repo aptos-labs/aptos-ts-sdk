@@ -5,6 +5,7 @@ export * from "./abstraction";
 export * from "./ed25519";
 export * from "./ephemeral";
 export * from "./federatedKeyless";
+export * from "./keystore";
 export * from "./hdKey";
 export * from "./keyless";
 export * from "./multiEd25519";
