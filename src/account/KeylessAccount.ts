@@ -36,6 +36,10 @@ export class KeylessAccount extends AbstractKeylessAccount {
    * Use the static generator `create(...)` instead.
    * Creates an instance of the KeylessAccount with an optional proof.
    *
+   * **Important**: This constructor uses `KeylessPublicKey.createSync()` which requires
+   * poseidon-lite to already be loaded. Use `KeylessAccount.create()` (async) for the
+   * standard flow, or call `await ensurePoseidonLoaded()` before constructing/deserializing directly.
+   *
    * @param args - The parameters for creating a KeylessAccount.
    * @param args.address - Optional account address associated with the KeylessAccount.
    * @param args.ephemeralKeyPair - The ephemeral key pair used in the account creation.

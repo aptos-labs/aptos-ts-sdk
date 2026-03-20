@@ -38,6 +38,10 @@ export class FederatedKeylessAccount extends AbstractKeylessAccount {
    * Creates a KeylessAccount instance using the provided parameters.
    * This function allows you to set up a KeylessAccount with specific attributes such as address, proof, and JWT.
    *
+   * **Important**: This constructor uses `FederatedKeylessPublicKey.createSync()` which requires
+   * poseidon-lite to already be loaded. Use `FederatedKeylessAccount.create()` (async) for the
+   * standard flow, or call `await ensurePoseidonLoaded()` before constructing/deserializing directly.
+   *
    * @param args - The parameters for creating a KeylessAccount.
    * @param args.address - Optional account address associated with the KeylessAccount.
    * @param args.proof - A Zero Knowledge Signature or a promise that resolves to one.

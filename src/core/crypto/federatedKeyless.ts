@@ -68,6 +68,12 @@ export class FederatedKeylessPublicKey extends AccountPublicKey {
    * @group Implementation
    * @category Serialization
    */
+  /**
+   * @deprecated This method always throws. Use {@link verifySignatureAsync} or
+   * {@link verifyKeylessSignatureWithJwkAndConfig} (now async) instead.
+   * @group Implementation
+   * @category Serialization
+   */
   verifySignature(args: {
     message: HexInput;
     signature: Signature;
@@ -75,7 +81,7 @@ export class FederatedKeylessPublicKey extends AccountPublicKey {
     keylessConfig: KeylessConfiguration;
   }): boolean {
     throw new Error(
-      "KeylessPublicKey.verifySignature is no longer synchronous. Use verifySignatureAsync() instead, " +
+      "FederatedKeylessPublicKey.verifySignature is no longer synchronous. Use verifySignatureAsync() instead, " +
         "or call verifyKeylessSignatureWithJwkAndConfig() directly (which is now async).",
     );
   }

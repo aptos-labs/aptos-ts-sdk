@@ -102,8 +102,16 @@ export class EphemeralKeyPair extends Serializable {
     const fields = padAndPackBytesWithLen(this.publicKey.bcsToBytes(), 93);
     fields.push(BigInt(this.expiryDateSecs));
     fields.push(bytesToBigIntLE(this.blinder));
-    const nonceHash = poseidonHashSync(fields);
-    this.nonce = nonceHash.toString();
+    try {
+      const nonceHash = poseidonHashSync(fields);
+      this.nonce = nonceHash.toString();
+    } catch (error) {
+      const message =
+        "Failed to compute EphemeralKeyPair nonce. Ensure Poseidon has been initialized via ensurePoseidonLoaded() " +
+        "before constructing or deserializing EphemeralKeyPair instances. Original error: " +
+        (error instanceof Error ? error.message : String(error));
+      throw new Error(message);
+    }
   }
 
   /**

@@ -165,14 +165,8 @@ export class KeylessPublicKey extends AccountPublicKey {
   }
 
   /**
-   * Verifies the validity of a signature for a given message.
-   *
-   * @param args - The arguments for signature verification.
-   * @param args.message - The message that was signed.
-   * @param args.signature - The signature to verify against the message.
-   * @param args.jwk - The JWK to use for verification.
-   * @param args.keylessConfig - The keyless configuration to use for verification.
-   * @returns true if the signature is valid; otherwise, false.
+   * @deprecated This method always throws. Use {@link verifySignatureAsync} or
+   * {@link verifyKeylessSignatureWithJwkAndConfig} (now async) instead.
    * @group Implementation
    * @category Serialization
    */
@@ -402,7 +396,7 @@ export async function verifyKeylessSignature(args: {
  * @param args.signature The signature to verify.
  * @param args.keylessConfig The keyless configuration.
  * @param args.jwk The JWK to use for verification.
- * @returns true if the signature is valid
+ * @returns A Promise that resolves if the signature is valid.
  * @throws KeylessError if the signature is invalid
  */
 export async function verifyKeylessSignatureWithJwkAndConfig(args: {

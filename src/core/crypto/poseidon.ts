@@ -1,44 +1,54 @@
 type PoseidonFunc = (inputs: (number | bigint | string)[]) => bigint;
 
 let numInputsToPoseidonFunc: PoseidonFunc[] | undefined;
+let loadPromise: Promise<void> | undefined;
 
 /**
  * Dynamically loads the poseidon-lite module and caches the result.
- * This must be called before using `poseidonHash` or any function that depends on it.
+ *
+ * For most async APIs (e.g. `poseidonHash`, `hashStrToField`, `deriveKeylessAccount`,
+ * `EphemeralKeyPair.generate`), this is called automatically on first use, so most users
+ * do not need to call it directly.
+ *
+ * Explicit preloading is only required for synchronous entry points that depend on Poseidon
+ * (e.g. `poseidonHashSync`, `hashStrToFieldSync`, `*.createSync`, constructors/deserialization),
+ * or when you want to prefetch the poseidon-lite chunk ahead of time to avoid a lazy-load
+ * latency spike.
  *
  * Bundlers (webpack, rollup, vite, esbuild) will automatically code-split the poseidon-lite
  * module into a separate chunk, keeping it out of the main bundle. This reduces the initial
  * bundle size by ~421KB (minified+gzipped) for applications that don't use Keyless accounts.
  *
- * The SDK's async entry points (e.g. `deriveKeylessAccount`, `EphemeralKeyPair.generate`)
- * call this automatically, so most users do not need to call it directly.
- *
  * @group Implementation
  * @category Serialization
  */
-export async function ensurePoseidonLoaded(): Promise<void> {
+export function ensurePoseidonLoaded(): Promise<void> {
   if (numInputsToPoseidonFunc !== undefined) {
-    return;
+    return Promise.resolve();
   }
-  const mod = await import("poseidon-lite");
-  numInputsToPoseidonFunc = [
-    mod.poseidon1,
-    mod.poseidon2,
-    mod.poseidon3,
-    mod.poseidon4,
-    mod.poseidon5,
-    mod.poseidon6,
-    mod.poseidon7,
-    mod.poseidon8,
-    mod.poseidon9,
-    mod.poseidon10,
-    mod.poseidon11,
-    mod.poseidon12,
-    mod.poseidon13,
-    mod.poseidon14,
-    mod.poseidon15,
-    mod.poseidon16,
-  ];
+  if (loadPromise === undefined) {
+    loadPromise = import("poseidon-lite").then((mod) => {
+      numInputsToPoseidonFunc = [
+        mod.poseidon1,
+        mod.poseidon2,
+        mod.poseidon3,
+        mod.poseidon4,
+        mod.poseidon5,
+        mod.poseidon6,
+        mod.poseidon7,
+        mod.poseidon8,
+        mod.poseidon9,
+        mod.poseidon10,
+        mod.poseidon11,
+        mod.poseidon12,
+        mod.poseidon13,
+        mod.poseidon14,
+        mod.poseidon15,
+        mod.poseidon16,
+      ];
+    });
+  }
+  return loadPromise;
 }
 
 const BYTES_PACKED_PER_SCALAR = 31;
@@ -59,7 +69,7 @@ export async function hashStrToField(str: string, maxSizeBytes: number): Promise
   const textEncoder = new TextEncoder();
   const strBytes = textEncoder.encode(str);
   if (strBytes.length > maxSizeBytes) {
-    throw new Error(`Inputted bytes of length ${strBytes} is longer than ${maxSizeBytes}`);
+    throw new Error(`Inputted bytes of length ${strBytes.length} is longer than ${maxSizeBytes}`);
   }
   const packed = padAndPackBytesWithLen(strBytes, maxSizeBytes);
   return poseidonHash(packed);
@@ -79,7 +89,7 @@ export function hashStrToFieldSync(str: string, maxSizeBytes: number): bigint {
   const textEncoder = new TextEncoder();
   const strBytes = textEncoder.encode(str);
   if (strBytes.length > maxSizeBytes) {
-    throw new Error(`Inputted bytes of length ${strBytes} is longer than ${maxSizeBytes}`);
+    throw new Error(`Inputted bytes of length ${strBytes.length} is longer than ${maxSizeBytes}`);
   }
   const packed = padAndPackBytesWithLen(strBytes, maxSizeBytes);
   return poseidonHashSync(packed);
@@ -97,7 +107,7 @@ export function hashStrToFieldSync(str: string, maxSizeBytes: number): bigint {
  */
 function padAndPackBytesNoLen(bytes: Uint8Array, maxSizeBytes: number): bigint[] {
   if (bytes.length > maxSizeBytes) {
-    throw new Error(`Input bytes of length ${bytes} is longer than ${maxSizeBytes}`);
+    throw new Error(`Input bytes of length ${bytes.length} is longer than ${maxSizeBytes}`);
   }
   const paddedStrBytes = padUint8ArrayWithZeros(bytes, maxSizeBytes);
   return packBytes(paddedStrBytes);
@@ -117,7 +127,7 @@ function padAndPackBytesNoLen(bytes: Uint8Array, maxSizeBytes: number): bigint[]
  */
 export function padAndPackBytesWithLen(bytes: Uint8Array, maxSizeBytes: number): bigint[] {
   if (bytes.length > maxSizeBytes) {
-    throw new Error(`Input bytes of length ${bytes} is longer than ${maxSizeBytes}`);
+    throw new Error(`Input bytes of length ${bytes.length} is longer than ${maxSizeBytes}`);
   }
   return padAndPackBytesNoLen(bytes, maxSizeBytes).concat([BigInt(bytes.length)]);
 }
@@ -207,13 +217,9 @@ function padUint8ArrayWithZeros(inputArray: Uint8Array, paddedSize: number): Uin
     throw new Error("Padded size must be greater than or equal to the input array size.");
   }
 
-  // Create a new Uint8Array with the padded size
   const paddedArray = new Uint8Array(paddedSize);
-
-  // Copy the content of the input array to the new array
   paddedArray.set(inputArray);
 
-  // Fill the remaining space with zeros
   for (let i = inputArray.length; i < paddedSize; i += 1) {
     paddedArray[i] = 0;
   }
