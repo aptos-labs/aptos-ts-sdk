@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
-import { Serializable, Serializer } from "../bcs/serializer";
+import { Serializable, Serializer, serializeEntryFunctionBytesCompat } from "../bcs/serializer";
 import { Deserializer } from "../bcs/deserializer";
 import { ParsingError, ParsingResult } from "./common";
 import { TransactionArgument } from "../transactions/instances/transactionArgument";
@@ -247,7 +247,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * @category Serialization
    */
   serializeForEntryFunction(serializer: Serializer): void {
-    serializer.serializeAsBytes(this);
+    serializeEntryFunctionBytesCompat(serializer, this);
   }
 
   /**
