@@ -436,7 +436,7 @@ describe("Confidential Asset Sender API", () => {
     longTestTimeout,
   );
 
-  // Effective-auditor e2e tests require calling set_auditor_for_asset_type as the @aptos_framework (0x1)
+  // Effective-auditor e2e tests require calling set_asset_specific_auditor as the @aptos_framework (0x1)
   // signer, which we can't do on localnet without the framework private key. The effective-auditor
   // sigma protocol is fully covered by Move unit tests (all 6 configs) and SDK unit tests.
   // TODO: once an `aptos` CLI profile for 0x1 is available on localnet, add e2e tests for:

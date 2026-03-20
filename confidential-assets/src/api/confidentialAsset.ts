@@ -18,6 +18,7 @@ import {
   ConfidentialAssetTransactionBuilder,
   ConfidentialBalance,
   getBalance,
+  getEffectiveAuditorHint,
   getEncryptionKey,
   hasUserRegistered,
   isBalanceNormalized,
@@ -472,6 +473,27 @@ export class ConfidentialAsset {
     options?: LedgerVersionArg;
   }): Promise<TwistedEd25519PublicKey> {
     return getEncryptionKey({
+      client: this.client(),
+      moduleAddress: this.moduleAddress(),
+      ...args,
+    });
+  }
+
+  /**
+   * Get the effective auditor hint for a user's confidential store.
+   * Indicates which auditor (global vs asset-specific) and epoch the balance ciphertext is encrypted for.
+   *
+   * @param args.accountAddress - The account address to query
+   * @param args.tokenAddress - The token address of the asset
+   * @param args.options - Optional ledger version for the view call
+   * @returns The auditor hint, or undefined if no auditor hint is set
+   */
+  async getEffectiveAuditorHint(args: {
+    accountAddress: AccountAddressInput;
+    tokenAddress: AccountAddressInput;
+    options?: LedgerVersionArg;
+  }): Promise<{ isGlobal: boolean; epoch: bigint } | undefined> {
+    return getEffectiveAuditorHint({
       client: this.client(),
       moduleAddress: this.moduleAddress(),
       ...args,

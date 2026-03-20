@@ -257,6 +257,44 @@ export async function hasUserRegistered(args: ViewFunctionParams): Promise<boole
  * @returns The encryption key as a TwistedEd25519PublicKey
  * @throws {Error} If the encryption key cannot be retrieved
  */
+/**
+ * Response type for the effective auditor hint view function.
+ * Mirrors Move's `Option<EffectiveAuditorHint::V1 { is_global: bool, epoch: u64 }>`.
+ */
+export type EffectiveAuditorHintResponse = {
+  vec: { is_global: boolean; epoch: string }[];
+};
+
+/**
+ * Get the effective auditor hint for a user's confidential store.
+ * Indicates which auditor (global vs asset-specific) and epoch the balance ciphertext is encrypted for.
+ *
+ * @returns The auditor hint, or undefined if no auditor hint is set (e.g., balance is zero or no auditor was active).
+ */
+export async function getEffectiveAuditorHint(
+  args: ViewFunctionParams,
+): Promise<{ isGlobal: boolean; epoch: bigint } | undefined> {
+  const {
+    client,
+    accountAddress,
+    tokenAddress,
+    options,
+    moduleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS,
+  } = args;
+  const [hint] = await client.view<[EffectiveAuditorHintResponse]>({
+    options,
+    payload: {
+      function: `${moduleAddress}::${MODULE_NAME}::get_effective_auditor_hint`,
+      typeArguments: [],
+      functionArguments: [accountAddress, tokenAddress],
+    },
+  });
+  if (hint.vec.length === 0) {
+    return undefined;
+  }
+  return { isGlobal: hint.vec[0].is_global, epoch: BigInt(hint.vec[0].epoch) };
+}
+
 export async function getEncryptionKey(
   args: ViewFunctionParams & {
     useCachedValue?: boolean;
