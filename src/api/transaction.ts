@@ -100,6 +100,7 @@ import { rotateAuthKey, rotateAuthKeyUnverified } from "../internal/account";
  *       function: "0x1::aptos_account::transfer",
  *       functionArguments: [bob.accountAddress, TRANSFER_AMOUNT],
  *     },
+ *     options: { maxGasAmount: 100000 },
  *   });
  *
  *   console.log("\n=== Transfer transaction ===\n");
