@@ -6,6 +6,7 @@ import { Serializable, Serializer } from "../serializer";
 import { Deserializable, Deserializer } from "../deserializer";
 import { AnyNumber, HexInput, ScriptTransactionArgumentVariants } from "../../types";
 import { Hex } from "../../core/hex";
+import { AccountAddress, AccountAddressInput } from "../../core/accountAddress";
 import { EntryFunctionArgument, TransactionArgument } from "../../transactions/instances/transactionArgument";
 
 /**
@@ -373,6 +374,23 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
    */
   static MoveString(values: Array<string>): MoveVector<MoveString> {
     return new MoveVector<MoveString>(values.map((v) => new MoveString(v)));
+  }
+
+  /**
+   * Factory method to generate a MoveVector<AccountAddress> from an array of `AccountAddressInput` values.
+   *
+   * @param values - The values used to fill the MoveVector.
+   * @returns A MoveVector<AccountAddress> with the inner values.
+   *
+   * @example
+   * ```typescript
+   * const v = MoveVector.Address(["0x1", "0x2"]);
+   * ```
+   * @group Implementation
+   * @category BCS
+   */
+  static Address(values: Array<AccountAddressInput>): MoveVector<AccountAddress> {
+    return new MoveVector<AccountAddress>(values.map((v) => AccountAddress.from(v)));
   }
 
   /**
@@ -811,6 +829,25 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    */
   static MoveString(value?: string | null): MoveOption<MoveString> {
     return new MoveOption<MoveString>(value !== null && value !== undefined ? new MoveString(value) : undefined);
+  }
+
+  /**
+   * Factory method to generate a MoveOption<AccountAddress> from an `AccountAddressInput` or `undefined`.
+   *
+   * @example
+   * MoveOption.Address("0x1").isSome() === true;
+   * MoveOption.Address().isSome() === false;
+   * MoveOption.Address(undefined).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * the resulting MoveOption's .isSome() method will return false.
+   * @returns a MoveOption<AccountAddress> with an inner value `value`
+   * @group Implementation
+   * @category BCS
+   */
+  static Address(value?: AccountAddressInput | null): MoveOption<AccountAddress> {
+    return new MoveOption<AccountAddress>(
+      value !== null && value !== undefined ? AccountAddress.from(value) : undefined,
+    );
   }
 
   static deserialize<U extends Serializable & EntryFunctionArgument>(

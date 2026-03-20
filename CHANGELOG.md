@@ -15,6 +15,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Added
 
+- Add `MoveOption.Address` factory method for creating `MoveOption<AccountAddress>` from `AccountAddressInput`
+- Add `MoveVector.Address` factory method for creating `MoveVector<AccountAddress>` from an array of `AccountAddressInput`
 - Add MultiKey (K-of-N mixed key types) transfer example (`examples/typescript/multikey_transfer.ts`)
 - Add MultiEd25519 (K-of-N Ed25519) transfer example (`examples/typescript/multi_ed25519_transfer.ts`)
 
