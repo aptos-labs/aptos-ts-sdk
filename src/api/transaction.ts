@@ -3,6 +3,7 @@
 
 import { AptosConfig } from "./aptosConfig";
 import {
+  enrichTransactionWithTableItemData,
   getGasPriceEstimation,
   getTransactionByHash,
   getTransactionByVersion,
@@ -268,6 +269,51 @@ export class Transaction {
    */
   async getTransactionByHash(args: { transactionHash: HexInput }): Promise<TransactionResponse> {
     return getTransactionByHash({
+      aptosConfig: this.config,
+      ...args,
+    });
+  }
+
+  /**
+   * Enriches a committed transaction response by populating the `data` field on
+   * `WriteSetChangeWriteTableItem` and `WriteSetChangeDeleteTableItem` entries
+   * whose `data` is currently null or undefined.
+   *
+   * This queries the indexer for decoded table item data and table metadata,
+   * then merges the decoded key, value, and type information back into the
+   * transaction's change entries in place.
+   *
+   * @param args - The arguments for enriching the transaction.
+   * @param args.transaction - The committed transaction response to enrich.
+   * @returns The same transaction object, mutated with decoded table data populated.
+   *
+   * @example
+   * ```typescript
+   * import { Aptos, AptosConfig, Network, isUserTransactionResponse } from "@aptos-labs/ts-sdk";
+   *
+   * const config = new AptosConfig({ network: Network.MAINNET });
+   * const aptos = new Aptos(config);
+   *
+   * async function runExample() {
+   *   const tx = await aptos.getTransactionByVersion({ ledgerVersion: 563060087 });
+   *   if (isUserTransactionResponse(tx)) {
+   *     const enriched = await aptos.enrichTransactionWithTableItemData({ transaction: tx });
+   *     // Now write_table_item changes will have decoded data populated
+   *     for (const change of enriched.changes) {
+   *       if (change.type === "write_table_item" && "data" in change) {
+   *         console.log(change.data); // { key, key_type, value, value_type }
+   *       }
+   *     }
+   *   }
+   * }
+   * runExample().catch(console.error);
+   * ```
+   * @group Transaction
+   */
+  async enrichTransactionWithTableItemData(args: {
+    transaction: CommittedTransactionResponse;
+  }): Promise<CommittedTransactionResponse> {
+    return enrichTransactionWithTableItemData({
       aptosConfig: this.config,
       ...args,
     });

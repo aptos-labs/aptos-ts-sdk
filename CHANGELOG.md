@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Added
+
+- Add `enrichTransactionWithTableItemData` method to populate the `data` field on `WriteSetChangeWriteTableItem` and `WriteSetChangeDeleteTableItem` entries in transaction responses. Uses the indexer to fetch decoded table item data and table metadata, resolving the issue where these fields were always null from the fullnode API.
+
 ## Fixed
 
 - Remove hardcoded `maxGasAmount: 2000` from e2e tests (Account Derivation APIs, WebAuthn submission) that caused `MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS` failures after the on-chain minimum gas increase
