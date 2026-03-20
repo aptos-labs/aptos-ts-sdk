@@ -185,6 +185,7 @@ Docker is pre-installed and the daemon is running. The Docker socket at `/var/ru
 
 Examples under `examples/` link to the root SDK via `link:../..`. Always run `pnpm build` in the repo root before working with examples.
 
-### Known Flaky Test
+### Known Flaky Tests
 
-`tests/e2e/api/account.test.ts` — the "it doesn't return default account if it is rotated" test can fail intermittently due to timing on the local testnet. This is a pre-existing issue, not an environment problem.
+- `tests/e2e/api/account.test.ts` — Several Account Derivation API tests (including "it doesn't return default account if it is rotated") can fail intermittently with `MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS`. This is a pre-existing issue, not an environment problem.
+- `tests/e2e/api/keyless.test.ts` — The federated keyless account test can fail with 429 rate limiting from the external Prover API (`api.devnet.aptoslabs.com`). This is an external service constraint, not a local environment issue.
