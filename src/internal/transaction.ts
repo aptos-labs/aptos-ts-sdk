@@ -23,7 +23,7 @@ import {
   CommittedTransactionResponse,
   Block,
 } from "../types";
-import { DEFAULT_TXN_TIMEOUT_SEC, ProcessorType } from "../utils/const";
+import { DEFAULT_INDEXER_SYNC_TIMEOUT_SEC, DEFAULT_TXN_TIMEOUT_SEC, ProcessorType } from "../utils/const";
 import { sleep } from "../utils/helpers";
 import { memoizeAsync } from "../utils/memoize";
 import { getIndexerLastSuccessVersion, getProcessorStatus } from "./general";
@@ -294,44 +294,46 @@ export async function waitForTransaction(args: {
 }
 
 /**
- * Waits for the indexer to sync up to the specified ledger version. The timeout is 3 seconds.
+ * Waits for the indexer to sync up to the specified ledger version.
+ * Defaults to {@link DEFAULT_INDEXER_SYNC_TIMEOUT_SEC} seconds.
  *
  * @param args - The arguments for the function.
  * @param args.aptosConfig - The configuration object for Aptos.
  * @param args.minimumLedgerVersion - The minimum ledger version that the indexer should sync to.
  * @param args.processorType - (Optional) The type of processor to check the last success version from.
+ * @param args.timeoutMilliseconds - (Optional) The maximum time to wait in milliseconds.
  * @group Implementation
  */
 export async function waitForIndexer(args: {
   aptosConfig: AptosConfig;
   minimumLedgerVersion: AnyNumber;
   processorType?: ProcessorType;
+  timeoutMilliseconds?: number;
 }): Promise<void> {
   const { aptosConfig, processorType } = args;
   const minimumLedgerVersion = BigInt(args.minimumLedgerVersion);
-  const timeoutMilliseconds = 3000; // 3 seconds
+  const timeoutMilliseconds = args.timeoutMilliseconds ?? DEFAULT_INDEXER_SYNC_TIMEOUT_SEC * 1000;
   const startTime = Date.now();
   let indexerVersion = BigInt(-1);
 
   while (indexerVersion < minimumLedgerVersion) {
-    // check for timeout
     if (Date.now() - startTime > timeoutMilliseconds) {
-      throw new Error("waitForLastSuccessIndexerVersionSync timeout");
+      throw new Error(
+        `Timeout waiting for indexer to sync to version ${minimumLedgerVersion}. ` +
+          `Indexer is at version ${indexerVersion}. ` +
+          `This may indicate the indexer is lagging behind the fullnode. ` +
+          `You can pass { waitForIndexer: false } in the options to skip waiting.`,
+      );
     }
 
     if (processorType === undefined) {
-      // Get the last success version from all processor
-
       indexerVersion = await getIndexerLastSuccessVersion({ aptosConfig });
     } else {
-      // Get the last success version from the specific processor
-
       const processor = await getProcessorStatus({ aptosConfig, processorType });
       indexerVersion = processor.last_success_version;
     }
 
     if (indexerVersion >= minimumLedgerVersion) {
-      // break out immediately if we are synced
       break;
     }
 
