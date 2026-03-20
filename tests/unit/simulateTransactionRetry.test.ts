@@ -1,20 +1,9 @@
 import { vi, type MockedFunction } from "vitest";
-import { simulateTransaction } from "../../src/internal/transactionSubmission";
 import { AptosConfig } from "../../src/api/aptosConfig";
 import { Network } from "../../src/utils/apiEndpoints";
-import { UserTransactionResponse } from "../../src/types";
-import { postAptosFullNode } from "../../src/client";
-
-vi.mock("../../src/client", () => ({
-  postAptosFullNode: vi.fn(),
-}));
-
-vi.mock("../../src/transactions/transactionBuilder/transactionBuilder", async () => ({
-  ...(await vi.importActual("../../src/transactions/transactionBuilder/transactionBuilder")),
-  generateSignedTransactionForSimulation: vi.fn().mockReturnValue(new Uint8Array([1, 2, 3])),
-}));
-
-const mockPostAptosFullNode = postAptosFullNode as MockedFunction<typeof postAptosFullNode>;
+import type { UserTransactionResponse } from "../../src/types";
+import type { postAptosFullNode as PostType } from "../../src/client";
+import type { simulateTransaction as SimType } from "../../src/internal/transactionSubmission";
 
 const makeSimulationResponse = (overrides: Partial<UserTransactionResponse> = {}): UserTransactionResponse =>
   ({
@@ -45,14 +34,35 @@ const dummyTransaction = {
   secondarySignerAddresses: undefined,
 } as any;
 
+async function setupMocks() {
+  vi.resetModules();
+
+  vi.doMock("../../src/client", () => ({
+    postAptosFullNode: vi.fn(),
+  }));
+
+  vi.doMock("../../src/transactions/transactionBuilder/transactionBuilder", () => ({
+    generateSignedTransactionForSimulation: vi.fn().mockReturnValue(new Uint8Array([1, 2, 3])),
+    buildTransaction: vi.fn(),
+    generateTransactionPayload: vi.fn(),
+    generateSignedTransaction: vi.fn(),
+    getAuthenticatorForSimulation: vi.fn(),
+  }));
+
+  const { postAptosFullNode } = await import("../../src/client");
+  const { simulateTransaction } = await import("../../src/internal/transactionSubmission");
+  return {
+    mockPost: postAptosFullNode as MockedFunction<typeof PostType>,
+    simulateTransaction: simulateTransaction as typeof SimType,
+  };
+}
+
 describe("simulateTransaction retry on gas estimation failure", () => {
   const aptosConfig = new AptosConfig({ network: Network.LOCAL });
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   test("retries without estimateMaxGasAmount when server returns MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS", async () => {
+    const { mockPost, simulateTransaction } = await setupMocks();
+
     const failedResponse = makeSimulationResponse({
       success: false,
       vm_status: "MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS",
@@ -65,7 +75,7 @@ describe("simulateTransaction retry on gas estimation failure", () => {
       max_gas_amount: "200000",
     });
 
-    mockPostAptosFullNode
+    mockPost
       .mockResolvedValueOnce({ data: [failedResponse] } as any)
       .mockResolvedValueOnce({ data: [successResponse] } as any);
 
@@ -78,85 +88,71 @@ describe("simulateTransaction retry on gas estimation failure", () => {
       },
     });
 
-    expect(mockPostAptosFullNode).toHaveBeenCalledTimes(2);
-
-    // First call should have estimate_max_gas_amount: true
-    expect(mockPostAptosFullNode.mock.calls[0][0].params).toEqual(
-      expect.objectContaining({ estimate_max_gas_amount: true }),
-    );
-
-    // Retry call should have estimate_max_gas_amount: false
-    expect(mockPostAptosFullNode.mock.calls[1][0].params).toEqual(
-      expect.objectContaining({ estimate_max_gas_amount: false }),
-    );
-
-    // Retry should preserve other estimation flags
-    expect(mockPostAptosFullNode.mock.calls[1][0].params).toEqual(
-      expect.objectContaining({ estimate_gas_unit_price: true }),
-    );
-
-    // Should return the retry result
+    expect(mockPost).toHaveBeenCalledTimes(2);
+    expect(mockPost.mock.calls[0][0].params).toEqual(expect.objectContaining({ estimate_max_gas_amount: true }));
+    expect(mockPost.mock.calls[1][0].params).toEqual(expect.objectContaining({ estimate_max_gas_amount: false }));
+    expect(mockPost.mock.calls[1][0].params).toEqual(expect.objectContaining({ estimate_gas_unit_price: true }));
     expect(result).toEqual([successResponse]);
   });
 
   test("does not retry when estimateMaxGasAmount is false", async () => {
+    const { mockPost, simulateTransaction } = await setupMocks();
+
     const failedResponse = makeSimulationResponse({
       success: false,
       vm_status: "MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS",
       max_gas_amount: "2",
     });
 
-    mockPostAptosFullNode.mockResolvedValueOnce({ data: [failedResponse] } as any);
+    mockPost.mockResolvedValueOnce({ data: [failedResponse] } as any);
 
     const result = await simulateTransaction({
       aptosConfig,
       transaction: dummyTransaction,
-      options: {
-        estimateMaxGasAmount: false,
-      },
+      options: { estimateMaxGasAmount: false },
     });
 
-    expect(mockPostAptosFullNode).toHaveBeenCalledTimes(1);
+    expect(mockPost).toHaveBeenCalledTimes(1);
     expect(result).toEqual([failedResponse]);
   });
 
   test("does not retry when simulation succeeds", async () => {
+    const { mockPost, simulateTransaction } = await setupMocks();
+
     const successResponse = makeSimulationResponse({
       success: true,
       vm_status: "Executed successfully",
     });
 
-    mockPostAptosFullNode.mockResolvedValueOnce({ data: [successResponse] } as any);
+    mockPost.mockResolvedValueOnce({ data: [successResponse] } as any);
 
     const result = await simulateTransaction({
       aptosConfig,
       transaction: dummyTransaction,
-      options: {
-        estimateMaxGasAmount: true,
-      },
+      options: { estimateMaxGasAmount: true },
     });
 
-    expect(mockPostAptosFullNode).toHaveBeenCalledTimes(1);
+    expect(mockPost).toHaveBeenCalledTimes(1);
     expect(result).toEqual([successResponse]);
   });
 
   test("does not retry when vm_status is a different error", async () => {
+    const { mockPost, simulateTransaction } = await setupMocks();
+
     const failedResponse = makeSimulationResponse({
       success: false,
       vm_status: "INSUFFICIENT_BALANCE_FOR_TRANSACTION_FEE",
     });
 
-    mockPostAptosFullNode.mockResolvedValueOnce({ data: [failedResponse] } as any);
+    mockPost.mockResolvedValueOnce({ data: [failedResponse] } as any);
 
     const result = await simulateTransaction({
       aptosConfig,
       transaction: dummyTransaction,
-      options: {
-        estimateMaxGasAmount: true,
-      },
+      options: { estimateMaxGasAmount: true },
     });
 
-    expect(mockPostAptosFullNode).toHaveBeenCalledTimes(1);
+    expect(mockPost).toHaveBeenCalledTimes(1);
     expect(result).toEqual([failedResponse]);
   });
 });
