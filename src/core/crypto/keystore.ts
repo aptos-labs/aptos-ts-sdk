@@ -6,11 +6,14 @@
  *
  * Based on the Ethereum Web3 Secret Storage Definition (keystore v3) and ERC-2335,
  * adapted for Aptos key types. Supports encrypting Ed25519, Secp256k1, and Secp256r1
- * private keys with a password or key file using industry-standard cryptography:
+ * private keys with a password or key file using modern cryptography:
  *
- * - KDF: scrypt (default) or PBKDF2-HMAC-SHA256
- * - Cipher: AES-128-CTR
- * - MAC: SHA-256
+ * - KDF: Argon2id (default), scrypt, or PBKDF2-HMAC-SHA256
+ * - Cipher: AES-256-GCM (authenticated encryption)
+ *
+ * AES-256-GCM provides both confidentiality and integrity in a single operation,
+ * eliminating the need for a separate MAC. The GCM authentication tag verifies
+ * both the ciphertext integrity and the correctness of the password.
  *
  * The resulting JSON is portable across Aptos SDKs (TypeScript, Rust, Python, Go, etc.).
  *
@@ -21,6 +24,7 @@ import { sha256 } from "@noble/hashes/sha256";
 import { scrypt as nobleScrypt } from "@noble/hashes/scrypt";
 import { pbkdf2 as noblePbkdf2 } from "@noble/hashes/pbkdf2";
 import { randomBytes, bytesToHex, hexToBytes } from "@noble/hashes/utils";
+import { argon2id as hashWasmArgon2id } from "hash-wasm";
 import { Ed25519PrivateKey } from "./ed25519";
 import { Secp256k1PrivateKey } from "./secp256k1";
 import { Secp256r1PrivateKey } from "./secp256r1";
@@ -32,6 +36,22 @@ import { PrivateKeyVariants } from "../../types";
 export type KeystorePrivateKey = Ed25519PrivateKey | Secp256k1PrivateKey | Secp256r1PrivateKey;
 
 // region Types
+
+/**
+ * Argon2id KDF parameters stored in the keystore JSON.
+ */
+export interface Argon2idKdfParams {
+  /** Number of iterations (time cost). */
+  iterations: number;
+  /** Degree of parallelism. */
+  parallelism: number;
+  /** Memory size in kibibytes (1024 bytes). */
+  memorySize: number;
+  /** Derived key length in bytes. */
+  dklen: number;
+  /** Hex-encoded salt (no 0x prefix). */
+  salt: string;
+}
 
 /**
  * Scrypt KDF parameters stored in the keystore JSON.
@@ -63,12 +83,17 @@ export interface Pbkdf2KdfParams {
   salt: string;
 }
 
+/** Supported KDF algorithms. */
+export type KeystoreKdf = "argon2id" | "scrypt" | "pbkdf2";
+
+/** Union of all KDF parameter types. */
+export type KeystoreKdfParams = Argon2idKdfParams | ScryptKdfParams | Pbkdf2KdfParams;
+
 /**
  * The Aptos Keystore JSON structure for encrypted private key storage.
  *
- * This format is based on the Ethereum Web3 Secret Storage Definition (v3),
- * with additions for Aptos-specific key types. It is designed to be portable
- * across all Aptos SDK implementations.
+ * Uses AES-256-GCM authenticated encryption: the GCM authentication tag provides
+ * both integrity and password verification, so no separate MAC field is needed.
  *
  * @example
  * ```json
@@ -78,12 +103,11 @@ export interface Pbkdf2KdfParams {
  *   "key_type": "ed25519",
  *   "address": "0x1234...abcd",
  *   "crypto": {
- *     "cipher": "aes-128-ctr",
- *     "cipherparams": { "iv": "..." },
+ *     "cipher": "aes-256-gcm",
+ *     "cipherparams": { "iv": "...", "tag": "..." },
  *     "ciphertext": "...",
- *     "kdf": "scrypt",
- *     "kdfparams": { "n": 131072, "r": 8, "p": 1, "dklen": 32, "salt": "..." },
- *     "mac": "..."
+ *     "kdf": "argon2id",
+ *     "kdfparams": { "iterations": 3, "parallelism": 4, "memorySize": 65536, "dklen": 32, "salt": "..." }
  *   }
  * }
  * ```
@@ -100,20 +124,20 @@ export interface AptosKeyStore {
   /** Cryptographic parameters and encrypted data. */
   crypto: {
     /** Symmetric cipher algorithm. */
-    cipher: "aes-128-ctr";
+    cipher: "aes-256-gcm";
     /** Cipher parameters. */
     cipherparams: {
-      /** Hex-encoded initialization vector (no 0x prefix). */
+      /** Hex-encoded 12-byte GCM nonce (no 0x prefix). */
       iv: string;
+      /** Hex-encoded 16-byte GCM authentication tag (no 0x prefix). */
+      tag: string;
     };
     /** Hex-encoded encrypted private key (no 0x prefix). */
     ciphertext: string;
     /** Key derivation function identifier. */
-    kdf: "scrypt" | "pbkdf2";
+    kdf: KeystoreKdf;
     /** KDF-specific parameters. */
-    kdfparams: ScryptKdfParams | Pbkdf2KdfParams;
-    /** Hex-encoded MAC for password verification: SHA-256(DK[16..31] ++ ciphertext) (no 0x prefix). */
-    mac: string;
+    kdfparams: KeystoreKdfParams;
   };
 }
 
@@ -121,8 +145,14 @@ export interface AptosKeyStore {
  * Options for customizing keystore encryption.
  */
 export interface KeystoreEncryptOptions {
-  /** KDF to use. Defaults to "scrypt". */
-  kdf?: "scrypt" | "pbkdf2";
+  /** KDF to use. Defaults to "argon2id". */
+  kdf?: KeystoreKdf;
+  /** Argon2id iterations (time cost). Defaults to 3. */
+  argon2Iterations?: number;
+  /** Argon2id parallelism. Defaults to 4. */
+  argon2Parallelism?: number;
+  /** Argon2id memory size in KiB. Defaults to 65536 (64 MiB). */
+  argon2MemorySize?: number;
   /** scrypt cost parameter N. Defaults to 131072 (2^17). Must be a power of 2. */
   scryptN?: number;
   /** scrypt block size parameter r. Defaults to 8. */
@@ -140,7 +170,8 @@ export interface KeystoreEncryptOptions {
 // region Internal helpers
 
 const DKLEN = 32;
-const IV_LENGTH = 16;
+const GCM_IV_LENGTH = 12;
+const GCM_TAG_LENGTH = 16;
 const SALT_LENGTH = 32;
 
 function passwordToBytes(password: string | Uint8Array): Uint8Array {
@@ -150,24 +181,21 @@ function passwordToBytes(password: string | Uint8Array): Uint8Array {
   return password;
 }
 
-function concat(a: Uint8Array, b: Uint8Array): Uint8Array {
-  const result = new Uint8Array(a.length + b.length);
-  result.set(a, 0);
-  result.set(b, a.length);
-  return result;
-}
-
-function computeMac(derivedKey: Uint8Array, ciphertext: Uint8Array): Uint8Array {
-  const macBody = concat(derivedKey.slice(16, 32), ciphertext);
-  return sha256(macBody);
-}
-
-function deriveKey(
-  password: Uint8Array,
-  kdf: "scrypt" | "pbkdf2",
-  kdfparams: ScryptKdfParams | Pbkdf2KdfParams,
-): Uint8Array {
+async function deriveKey(password: Uint8Array, kdf: KeystoreKdf, kdfparams: KeystoreKdfParams): Promise<Uint8Array> {
   const salt = hexToBytes(kdfparams.salt);
+
+  if (kdf === "argon2id") {
+    const params = kdfparams as Argon2idKdfParams;
+    return hashWasmArgon2id({
+      password,
+      salt,
+      iterations: params.iterations,
+      parallelism: params.parallelism,
+      memorySize: params.memorySize,
+      hashLength: params.dklen,
+      outputType: "binary",
+    });
+  }
 
   if (kdf === "scrypt") {
     const params = kdfparams as ScryptKdfParams;
@@ -192,32 +220,44 @@ function toArrayBuffer(data: Uint8Array): ArrayBuffer {
   return buf;
 }
 
-async function aesCtr128Encrypt(key: Uint8Array, iv: Uint8Array, plaintext: Uint8Array): Promise<Uint8Array> {
-  const cryptoKey = await globalThis.crypto.subtle.importKey("raw", toArrayBuffer(key), { name: "AES-CTR" }, false, [
+async function aes256GcmEncrypt(
+  key: Uint8Array,
+  iv: Uint8Array,
+  plaintext: Uint8Array,
+): Promise<{ ciphertext: Uint8Array; tag: Uint8Array }> {
+  const cryptoKey = await globalThis.crypto.subtle.importKey("raw", toArrayBuffer(key), { name: "AES-GCM" }, false, [
     "encrypt",
   ]);
   const result = await globalThis.crypto.subtle.encrypt(
-    { name: "AES-CTR", counter: toArrayBuffer(iv), length: 128 },
+    { name: "AES-GCM", iv: toArrayBuffer(iv), tagLength: GCM_TAG_LENGTH * 8 },
     cryptoKey,
     toArrayBuffer(plaintext),
   );
-  return new Uint8Array(result);
+  const resultBytes = new Uint8Array(result);
+  return {
+    ciphertext: resultBytes.slice(0, resultBytes.length - GCM_TAG_LENGTH),
+    tag: resultBytes.slice(resultBytes.length - GCM_TAG_LENGTH),
+  };
 }
 
-async function aesCtr128Decrypt(key: Uint8Array, iv: Uint8Array, ciphertext: Uint8Array): Promise<Uint8Array> {
-  const cryptoKey = await globalThis.crypto.subtle.importKey("raw", toArrayBuffer(key), { name: "AES-CTR" }, false, [
+async function aes256GcmDecrypt(
+  key: Uint8Array,
+  iv: Uint8Array,
+  ciphertext: Uint8Array,
+  tag: Uint8Array,
+): Promise<Uint8Array> {
+  const cryptoKey = await globalThis.crypto.subtle.importKey("raw", toArrayBuffer(key), { name: "AES-GCM" }, false, [
     "decrypt",
   ]);
+  const combined = new Uint8Array(ciphertext.length + tag.length);
+  combined.set(ciphertext, 0);
+  combined.set(tag, ciphertext.length);
   const result = await globalThis.crypto.subtle.decrypt(
-    { name: "AES-CTR", counter: toArrayBuffer(iv), length: 128 },
+    { name: "AES-GCM", iv: toArrayBuffer(iv), tagLength: GCM_TAG_LENGTH * 8 },
     cryptoKey,
-    toArrayBuffer(ciphertext),
+    toArrayBuffer(combined),
   );
   return new Uint8Array(result);
-}
-
-function generateUUID(): string {
-  return globalThis.crypto.randomUUID();
 }
 
 function getKeyType(privateKey: KeystorePrivateKey): PrivateKeyVariants {
@@ -250,6 +290,8 @@ function createPrivateKey(bytes: Uint8Array, keyType: PrivateKeyVariants): Keyst
  * Supports all Aptos private key types (Ed25519, Secp256k1, Secp256r1).
  * The password can be a string (passphrase) or raw bytes (e.g., contents of a key file).
  *
+ * Uses AES-256-GCM authenticated encryption with Argon2id key derivation by default.
+ *
  * @param args.privateKey - The private key to encrypt.
  * @param args.password - Password string or key-file bytes used to derive the encryption key.
  * @param args.options - Optional encryption parameters (KDF, cost parameters, address).
@@ -273,16 +315,34 @@ export async function encryptKeystore(args: {
   options?: KeystoreEncryptOptions;
 }): Promise<AptosKeyStore> {
   const { privateKey, password, options = {} } = args;
-  const { kdf = "scrypt", scryptN = 131072, scryptR = 8, scryptP = 1, pbkdf2C = 262144, address } = options;
+  const {
+    kdf = "argon2id",
+    argon2Iterations = 3,
+    argon2Parallelism = 4,
+    argon2MemorySize = 65536,
+    scryptN = 131072,
+    scryptR = 8,
+    scryptP = 1,
+    pbkdf2C = 262144,
+    address,
+  } = options;
 
   const passwordBytes = passwordToBytes(password);
   const salt = randomBytes(SALT_LENGTH);
-  const iv = randomBytes(IV_LENGTH);
+  const iv = randomBytes(GCM_IV_LENGTH);
   const keyType = getKeyType(privateKey);
   const plaintext = privateKey.toUint8Array();
 
-  let kdfparams: ScryptKdfParams | Pbkdf2KdfParams;
-  if (kdf === "scrypt") {
+  let kdfparams: KeystoreKdfParams;
+  if (kdf === "argon2id") {
+    kdfparams = {
+      iterations: argon2Iterations,
+      parallelism: argon2Parallelism,
+      memorySize: argon2MemorySize,
+      dklen: DKLEN,
+      salt: bytesToHex(salt),
+    };
+  } else if (kdf === "scrypt") {
     kdfparams = {
       n: scryptN,
       r: scryptR,
@@ -299,22 +359,22 @@ export async function encryptKeystore(args: {
     };
   }
 
-  const dk = deriveKey(passwordBytes, kdf, kdfparams);
-  const encryptionKey = dk.slice(0, 16);
-  const ciphertext = await aesCtr128Encrypt(encryptionKey, iv, plaintext);
-  const mac = computeMac(dk, ciphertext);
+  const dk = await deriveKey(passwordBytes, kdf, kdfparams);
+  const { ciphertext, tag } = await aes256GcmEncrypt(dk, iv, plaintext);
 
   const keystore: AptosKeyStore = {
     version: 1,
-    id: generateUUID(),
+    id: globalThis.crypto.randomUUID(),
     key_type: keyType,
     crypto: {
-      cipher: "aes-128-ctr",
-      cipherparams: { iv: bytesToHex(iv) },
+      cipher: "aes-256-gcm",
+      cipherparams: {
+        iv: bytesToHex(iv),
+        tag: bytesToHex(tag),
+      },
       ciphertext: bytesToHex(ciphertext),
       kdf,
       kdfparams,
-      mac: bytesToHex(mac),
     },
   };
 
@@ -328,14 +388,14 @@ export async function encryptKeystore(args: {
 /**
  * Decrypt an Aptos Keystore to recover the private key.
  *
- * Verifies the MAC to ensure the password is correct before decrypting.
- * Returns the appropriate private key type (Ed25519, Secp256k1, or Secp256r1)
- * based on the `key_type` field in the keystore.
+ * Uses AES-256-GCM authenticated decryption: the GCM tag verifies both the
+ * ciphertext integrity and the correctness of the derived key (and therefore
+ * the password). If the password is wrong, decryption will fail with an error.
  *
  * @param args.keystore - The keystore object or a JSON string to decrypt.
  * @param args.password - The password string or key-file bytes used during encryption.
  * @returns A promise that resolves to the decrypted private key.
- * @throws Error if the password is incorrect (MAC verification fails).
+ * @throws Error if the password is incorrect (GCM authentication fails).
  * @throws Error if the keystore format is invalid.
  *
  * @example
@@ -360,24 +420,22 @@ export async function decryptKeystore(args: {
   }
 
   const { crypto: cryptoData } = keystore;
-  if (cryptoData.cipher !== "aes-128-ctr") {
+  if (cryptoData.cipher !== "aes-256-gcm") {
     throw new Error(`Unsupported cipher: ${cryptoData.cipher}`);
   }
 
   const passwordBytes = passwordToBytes(password);
-  const dk = deriveKey(passwordBytes, cryptoData.kdf, cryptoData.kdfparams);
+  const dk = await deriveKey(passwordBytes, cryptoData.kdf, cryptoData.kdfparams);
   const ciphertext = hexToBytes(cryptoData.ciphertext);
-
-  const expectedMac = computeMac(dk, ciphertext);
-  const storedMac = hexToBytes(cryptoData.mac);
-
-  if (bytesToHex(expectedMac) !== bytesToHex(storedMac)) {
-    throw new Error("Invalid password: MAC verification failed");
-  }
-
-  const encryptionKey = dk.slice(0, 16);
   const iv = hexToBytes(cryptoData.cipherparams.iv);
-  const plaintext = await aesCtr128Decrypt(encryptionKey, iv, ciphertext);
+  const tag = hexToBytes(cryptoData.cipherparams.tag);
+
+  let plaintext: Uint8Array;
+  try {
+    plaintext = await aes256GcmDecrypt(dk, iv, ciphertext, tag);
+  } catch {
+    throw new Error("Invalid password: decryption failed (GCM authentication)");
+  }
 
   return createPrivateKey(plaintext, keystore.key_type);
 }

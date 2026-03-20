@@ -13,10 +13,46 @@ import type { AptosKeyStore } from "../../src";
 
 describe("AptosKeystore", () => {
   const TEST_PASSWORD = "test-password-123";
-  const FAST_SCRYPT_OPTIONS = { scryptN: 1024, scryptR: 8, scryptP: 1 } as const;
+  const FAST_ARGON2_OPTIONS = { argon2Iterations: 2, argon2Parallelism: 1, argon2MemorySize: 1024 } as const;
+  const FAST_SCRYPT_OPTIONS = { kdf: "scrypt" as const, scryptN: 1024, scryptR: 8, scryptP: 1 };
   const FAST_PBKDF2_OPTIONS = { kdf: "pbkdf2" as const, pbkdf2C: 1024 };
 
   describe("encryptKeystore", () => {
+    it("should encrypt an Ed25519 private key with argon2id (default)", async () => {
+      const privateKey = Ed25519PrivateKey.generate();
+      const keystore = await encryptKeystore({
+        privateKey,
+        password: TEST_PASSWORD,
+        options: FAST_ARGON2_OPTIONS,
+      });
+
+      expect(keystore.version).toBe(1);
+      expect(keystore.key_type).toBe(PrivateKeyVariants.Ed25519);
+      expect(keystore.crypto.cipher).toBe("aes-256-gcm");
+      expect(keystore.crypto.kdf).toBe("argon2id");
+      expect(keystore.id).toBeDefined();
+      expect(keystore.crypto.ciphertext).toBeDefined();
+      expect(keystore.crypto.cipherparams.iv).toBeDefined();
+      expect(keystore.crypto.cipherparams.tag).toBeDefined();
+      expect(keystore.crypto.cipherparams.iv.length).toBe(24); // 12 bytes = 24 hex chars
+      expect(keystore.crypto.cipherparams.tag.length).toBe(32); // 16 bytes = 32 hex chars
+    });
+
+    it("should use argon2id as default KDF when no kdf option specified", async () => {
+      const privateKey = Ed25519PrivateKey.generate();
+      const keystore = await encryptKeystore({
+        privateKey,
+        password: TEST_PASSWORD,
+        options: FAST_ARGON2_OPTIONS,
+      });
+
+      expect(keystore.crypto.kdf).toBe("argon2id");
+      const params = keystore.crypto.kdfparams as { iterations: number; parallelism: number; memorySize: number };
+      expect(params.iterations).toBe(2);
+      expect(params.parallelism).toBe(1);
+      expect(params.memorySize).toBe(1024);
+    });
+
     it("should encrypt an Ed25519 private key with scrypt", async () => {
       const privateKey = Ed25519PrivateKey.generate();
       const keystore = await encryptKeystore({
@@ -25,14 +61,8 @@ describe("AptosKeystore", () => {
         options: FAST_SCRYPT_OPTIONS,
       });
 
-      expect(keystore.version).toBe(1);
-      expect(keystore.key_type).toBe(PrivateKeyVariants.Ed25519);
-      expect(keystore.crypto.cipher).toBe("aes-128-ctr");
       expect(keystore.crypto.kdf).toBe("scrypt");
-      expect(keystore.id).toBeDefined();
-      expect(keystore.crypto.ciphertext).toBeDefined();
-      expect(keystore.crypto.mac).toBeDefined();
-      expect(keystore.crypto.cipherparams.iv).toBeDefined();
+      expect(keystore.crypto.cipher).toBe("aes-256-gcm");
     });
 
     it("should encrypt an Ed25519 private key with pbkdf2", async () => {
@@ -43,8 +73,6 @@ describe("AptosKeystore", () => {
         options: FAST_PBKDF2_OPTIONS,
       });
 
-      expect(keystore.version).toBe(1);
-      expect(keystore.key_type).toBe(PrivateKeyVariants.Ed25519);
       expect(keystore.crypto.kdf).toBe("pbkdf2");
       const params = keystore.crypto.kdfparams as { prf: string };
       expect(params.prf).toBe("hmac-sha256");
@@ -55,7 +83,7 @@ describe("AptosKeystore", () => {
       const keystore = await encryptKeystore({
         privateKey,
         password: TEST_PASSWORD,
-        options: FAST_SCRYPT_OPTIONS,
+        options: FAST_ARGON2_OPTIONS,
       });
 
       expect(keystore.key_type).toBe(PrivateKeyVariants.Secp256k1);
@@ -66,7 +94,7 @@ describe("AptosKeystore", () => {
       const keystore = await encryptKeystore({
         privateKey,
         password: TEST_PASSWORD,
-        options: FAST_SCRYPT_OPTIONS,
+        options: FAST_ARGON2_OPTIONS,
       });
 
       expect(keystore.key_type).toBe(PrivateKeyVariants.Secp256r1);
@@ -78,7 +106,7 @@ describe("AptosKeystore", () => {
       const keystore = await encryptKeystore({
         privateKey,
         password: TEST_PASSWORD,
-        options: { ...FAST_SCRYPT_OPTIONS, address: testAddress },
+        options: { ...FAST_ARGON2_OPTIONS, address: testAddress },
       });
 
       expect(keystore.address).toBe(testAddress);
@@ -89,7 +117,7 @@ describe("AptosKeystore", () => {
       const keystore = await encryptKeystore({
         privateKey,
         password: TEST_PASSWORD,
-        options: FAST_SCRYPT_OPTIONS,
+        options: FAST_ARGON2_OPTIONS,
       });
 
       expect(keystore.address).toBeUndefined();
@@ -103,7 +131,7 @@ describe("AptosKeystore", () => {
       const keystore = await encryptKeystore({
         privateKey,
         password: keyFileBytes,
-        options: FAST_SCRYPT_OPTIONS,
+        options: FAST_ARGON2_OPTIONS,
       });
 
       const decrypted = await decryptKeystore({
@@ -120,16 +148,15 @@ describe("AptosKeystore", () => {
       const keystore1 = await encryptKeystore({
         privateKey,
         password: "password-one",
-        options: FAST_SCRYPT_OPTIONS,
+        options: FAST_ARGON2_OPTIONS,
       });
       const keystore2 = await encryptKeystore({
         privateKey,
         password: "password-two",
-        options: FAST_SCRYPT_OPTIONS,
+        options: FAST_ARGON2_OPTIONS,
       });
 
       expect(keystore1.crypto.ciphertext).not.toBe(keystore2.crypto.ciphertext);
-      expect(keystore1.crypto.mac).not.toBe(keystore2.crypto.mac);
     });
 
     it("should produce unique IDs for each keystore", async () => {
@@ -138,12 +165,12 @@ describe("AptosKeystore", () => {
       const keystore1 = await encryptKeystore({
         privateKey,
         password: TEST_PASSWORD,
-        options: FAST_SCRYPT_OPTIONS,
+        options: FAST_ARGON2_OPTIONS,
       });
       const keystore2 = await encryptKeystore({
         privateKey,
         password: TEST_PASSWORD,
-        options: FAST_SCRYPT_OPTIONS,
+        options: FAST_ARGON2_OPTIONS,
       });
 
       expect(keystore1.id).not.toBe(keystore2.id);
@@ -154,17 +181,30 @@ describe("AptosKeystore", () => {
       const keystore = await encryptKeystore({
         privateKey,
         password: TEST_PASSWORD,
-        options: FAST_SCRYPT_OPTIONS,
+        options: FAST_ARGON2_OPTIONS,
       });
 
       const json = JSON.stringify(keystore);
       const parsed = JSON.parse(json) as AptosKeyStore;
       expect(parsed.version).toBe(1);
-      expect(parsed.crypto.cipher).toBe("aes-128-ctr");
+      expect(parsed.crypto.cipher).toBe("aes-256-gcm");
     });
   });
 
   describe("decryptKeystore", () => {
+    it("should round-trip an Ed25519 private key with argon2id", async () => {
+      const privateKey = Ed25519PrivateKey.generate();
+      const keystore = await encryptKeystore({
+        privateKey,
+        password: TEST_PASSWORD,
+        options: FAST_ARGON2_OPTIONS,
+      });
+
+      const decrypted = await decryptKeystore({ keystore, password: TEST_PASSWORD });
+      expect(decrypted).toBeInstanceOf(Ed25519PrivateKey);
+      expect(decrypted.toUint8Array()).toEqual(privateKey.toUint8Array());
+    });
+
     it("should round-trip an Ed25519 private key with scrypt", async () => {
       const privateKey = Ed25519PrivateKey.generate();
       const keystore = await encryptKeystore({
@@ -196,7 +236,7 @@ describe("AptosKeystore", () => {
       const keystore = await encryptKeystore({
         privateKey,
         password: TEST_PASSWORD,
-        options: FAST_SCRYPT_OPTIONS,
+        options: FAST_ARGON2_OPTIONS,
       });
 
       const decrypted = await decryptKeystore({ keystore, password: TEST_PASSWORD });
@@ -209,7 +249,7 @@ describe("AptosKeystore", () => {
       const keystore = await encryptKeystore({
         privateKey,
         password: TEST_PASSWORD,
-        options: FAST_SCRYPT_OPTIONS,
+        options: FAST_ARGON2_OPTIONS,
       });
 
       const decrypted = await decryptKeystore({ keystore, password: TEST_PASSWORD });
@@ -222,7 +262,7 @@ describe("AptosKeystore", () => {
       const keystore = await encryptKeystore({
         privateKey,
         password: TEST_PASSWORD,
-        options: FAST_SCRYPT_OPTIONS,
+        options: FAST_ARGON2_OPTIONS,
       });
 
       const json = JSON.stringify(keystore);
@@ -235,11 +275,11 @@ describe("AptosKeystore", () => {
       const keystore = await encryptKeystore({
         privateKey,
         password: TEST_PASSWORD,
-        options: FAST_SCRYPT_OPTIONS,
+        options: FAST_ARGON2_OPTIONS,
       });
 
       await expect(decryptKeystore({ keystore, password: "wrong-password" })).rejects.toThrow(
-        "Invalid password: MAC verification failed",
+        "Invalid password: decryption failed (GCM authentication)",
       );
     });
 
@@ -248,7 +288,7 @@ describe("AptosKeystore", () => {
       const keystore = await encryptKeystore({
         privateKey,
         password: TEST_PASSWORD,
-        options: FAST_SCRYPT_OPTIONS,
+        options: FAST_ARGON2_OPTIONS,
       });
 
       const modified = { ...keystore, version: 99 as any };
@@ -262,53 +302,69 @@ describe("AptosKeystore", () => {
       const keystore = await encryptKeystore({
         privateKey,
         password: TEST_PASSWORD,
-        options: FAST_SCRYPT_OPTIONS,
+        options: FAST_ARGON2_OPTIONS,
       });
 
       const modified = {
         ...keystore,
-        crypto: { ...keystore.crypto, cipher: "aes-256-cbc" as any },
+        crypto: { ...keystore.crypto, cipher: "aes-128-ctr" as any },
       };
       await expect(decryptKeystore({ keystore: modified, password: TEST_PASSWORD })).rejects.toThrow(
-        "Unsupported cipher: aes-256-cbc",
+        "Unsupported cipher: aes-128-ctr",
       );
     });
 
-    it("should throw on tampered ciphertext", async () => {
+    it("should throw on tampered ciphertext (GCM detects tampering)", async () => {
       const privateKey = Ed25519PrivateKey.generate();
       const keystore = await encryptKeystore({
         privateKey,
         password: TEST_PASSWORD,
-        options: FAST_SCRYPT_OPTIONS,
+        options: FAST_ARGON2_OPTIONS,
       });
 
-      const tamperedCiphertext = keystore.crypto.ciphertext.replace(/[0-9a-f]/, "0");
-      if (tamperedCiphertext === keystore.crypto.ciphertext) {
-        const chars = keystore.crypto.ciphertext.split("");
-        chars[0] = chars[0] === "a" ? "b" : "a";
-        const modified = {
-          ...keystore,
-          crypto: { ...keystore.crypto, ciphertext: chars.join("") },
-        };
-        await expect(decryptKeystore({ keystore: modified, password: TEST_PASSWORD })).rejects.toThrow(
-          "Invalid password: MAC verification failed",
-        );
-      } else {
-        const modified = {
-          ...keystore,
-          crypto: { ...keystore.crypto, ciphertext: tamperedCiphertext },
-        };
-        await expect(decryptKeystore({ keystore: modified, password: TEST_PASSWORD })).rejects.toThrow(
-          "Invalid password: MAC verification failed",
-        );
-      }
+      const chars = keystore.crypto.ciphertext.split("");
+      chars[0] = chars[0] === "a" ? "b" : "a";
+      const modified = {
+        ...keystore,
+        crypto: { ...keystore.crypto, ciphertext: chars.join("") },
+      };
+      await expect(decryptKeystore({ keystore: modified, password: TEST_PASSWORD })).rejects.toThrow(
+        "Invalid password: decryption failed (GCM authentication)",
+      );
+    });
+
+    it("should throw on tampered tag", async () => {
+      const privateKey = Ed25519PrivateKey.generate();
+      const keystore = await encryptKeystore({
+        privateKey,
+        password: TEST_PASSWORD,
+        options: FAST_ARGON2_OPTIONS,
+      });
+
+      const chars = keystore.crypto.cipherparams.tag.split("");
+      chars[0] = chars[0] === "a" ? "b" : "a";
+      const modified = {
+        ...keystore,
+        crypto: {
+          ...keystore.crypto,
+          cipherparams: { ...keystore.crypto.cipherparams, tag: chars.join("") },
+        },
+      };
+      await expect(decryptKeystore({ keystore: modified, password: TEST_PASSWORD })).rejects.toThrow(
+        "Invalid password: decryption failed (GCM authentication)",
+      );
     });
   });
 
   describe("cross-KDF compatibility", () => {
-    it("should produce different keystore structures for scrypt vs pbkdf2", async () => {
+    it("all three KDFs should produce valid keystores that decrypt correctly", async () => {
       const privateKey = Ed25519PrivateKey.generate();
 
+      const argon2Ks = await encryptKeystore({
+        privateKey,
+        password: TEST_PASSWORD,
+        options: FAST_ARGON2_OPTIONS,
+      });
       const scryptKs = await encryptKeystore({
         privateKey,
         password: TEST_PASSWORD,
@@ -320,33 +376,17 @@ describe("AptosKeystore", () => {
         options: FAST_PBKDF2_OPTIONS,
       });
 
+      expect(argon2Ks.crypto.kdf).toBe("argon2id");
       expect(scryptKs.crypto.kdf).toBe("scrypt");
       expect(pbkdf2Ks.crypto.kdf).toBe("pbkdf2");
 
+      const argon2Decrypted = await decryptKeystore({ keystore: argon2Ks, password: TEST_PASSWORD });
       const scryptDecrypted = await decryptKeystore({ keystore: scryptKs, password: TEST_PASSWORD });
       const pbkdf2Decrypted = await decryptKeystore({ keystore: pbkdf2Ks, password: TEST_PASSWORD });
 
+      expect(argon2Decrypted.toUint8Array()).toEqual(privateKey.toUint8Array());
       expect(scryptDecrypted.toUint8Array()).toEqual(privateKey.toUint8Array());
       expect(pbkdf2Decrypted.toUint8Array()).toEqual(privateKey.toUint8Array());
-    });
-  });
-
-  describe("known test vector", () => {
-    it("should decrypt a known keystore correctly", async () => {
-      const knownPrivateKey = Ed25519PrivateKey.generate();
-      const knownPassword = "aptos-keystore-test-vector";
-
-      const keystore = await encryptKeystore({
-        privateKey: knownPrivateKey,
-        password: knownPassword,
-        options: { ...FAST_SCRYPT_OPTIONS, address: "0x1" },
-      });
-
-      expect(keystore.address).toBe("0x1");
-      expect(keystore.key_type).toBe("ed25519");
-
-      const recovered = await decryptKeystore({ keystore, password: knownPassword });
-      expect(recovered.toUint8Array()).toEqual(knownPrivateKey.toUint8Array());
     });
   });
 
@@ -358,7 +398,7 @@ describe("AptosKeystore", () => {
       const keystore = await encryptKeystore({
         privateKey,
         password: TEST_PASSWORD,
-        options: FAST_SCRYPT_OPTIONS,
+        options: FAST_ARGON2_OPTIONS,
       });
 
       const decrypted = await decryptKeystore({ keystore, password: TEST_PASSWORD });
@@ -374,7 +414,7 @@ describe("AptosKeystore", () => {
       const keystore = await encryptKeystore({
         privateKey,
         password: TEST_PASSWORD,
-        options: FAST_SCRYPT_OPTIONS,
+        options: FAST_ARGON2_OPTIONS,
       });
 
       const decrypted = (await decryptKeystore({ keystore, password: TEST_PASSWORD })) as Ed25519PrivateKey;
