@@ -9,10 +9,10 @@ import {
   TransactionPayloadEntryFunction,
   TypeTagU64,
   TypeTagAddress,
-} from "../../../src/index.js";
-import { longTestTimeout } from "../../unit/helper.js";
-import { getAptosClient } from "../helper.js";
-import { fundAccounts, singleSignerScriptBytecode } from "./helper.js";
+} from "../../../src";
+import { longTestTimeout } from "../../unit/helper";
+import { getAptosClient } from "../helper";
+import { fundAccounts, singleSignerScriptBytecode } from "./helper";
 
 describe("generate transaction", () => {
   const { aptos } = getAptosClient();

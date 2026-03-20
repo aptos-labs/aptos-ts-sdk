@@ -9,8 +9,8 @@ import {
   MultiEd25519PublicKey,
   MultiEd25519Signature,
   Serializer,
-} from "../../src/index.js";
-import { multiEd25519PkTestObject, multiEd25519SigTestObject } from "./helper.js";
+} from "../../src";
+import { multiEd25519PkTestObject, multiEd25519SigTestObject } from "./helper";
 
 describe("MultiEd25519PublicKey", () => {
   it("should verify the signature correctly", () => {

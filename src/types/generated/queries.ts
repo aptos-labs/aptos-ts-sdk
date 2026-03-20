@@ -1,4 +1,4 @@
-import * as Types from "./operations.js";
+import * as Types from "./operations";
 
 import { GraphQLClient, RequestOptions } from "graphql-request";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];

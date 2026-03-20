@@ -20,10 +20,10 @@ import {
   MAX_I128_BIG_INT,
   MIN_I256_BIG_INT,
   MAX_I256_BIG_INT,
-} from "./consts.js";
-import { Hex } from "../core/hex.js";
-import { AnyNumber, Uint16, Uint32, Uint8 } from "../types/index.js";
-import { TEXT_ENCODER } from "../utils/const.js";
+} from "./consts";
+import { Hex } from "../core/hex";
+import { AnyNumber, Uint16, Uint32, Uint8 } from "../types";
+import { TEXT_ENCODER } from "../utils/const";
 
 /**
  * This class serves as a base class for all serializable types. It facilitates
@@ -70,29 +70,10 @@ export abstract class Serializable {
 
   /**
    * Returns the hex string representation of the `Serializable` value with the 0x prefix.
-   * @returns the hex format as a string prefixed by `0x`.
+   * @returns the hex formatas a string prefixed by `0x`.
    */
   toString(): string {
     return `0x${this.toStringWithoutPrefix()}`;
-  }
-}
-
-/**
- * Serialize a Serializable value as length-prefixed bytes into a Serializer,
- * with backwards compatibility for older Serializer implementations that lack
- * the `serializeAsBytes` method. This is critical for cross-version compatibility
- * when SDK objects built with a newer SDK are serialized by an older SDK's Serializer
- * (e.g., wallet extensions bundling an older SDK version).
- *
- * @param serializer - The serializer to write into (may be from any SDK version).
- * @param value - The Serializable value to serialize as bytes.
- */
-export function serializeEntryFunctionBytesCompat(serializer: Serializer, value: Serializable): void {
-  if ("serializeAsBytes" in serializer && typeof serializer.serializeAsBytes === "function") {
-    serializer.serializeAsBytes(value);
-  } else {
-    const bcsBytes = value.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
   }
 }
 

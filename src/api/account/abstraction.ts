@@ -1,14 +1,14 @@
-import { AccountAddress, AccountAddressInput } from "../../core/index.js";
+import { AccountAddress, AccountAddressInput } from "../../core";
 import {
   addAuthenticationFunctionTransaction,
   removeAuthenticationFunctionTransaction,
   removeDispatchableAuthenticatorTransaction,
-} from "../../internal/abstraction.js";
-import { view } from "../../internal/view.js";
-import { InputGenerateTransactionOptions, TypeTagAddress } from "../../transactions/index.js";
-import { MoveFunctionId } from "../../types/index.js";
-import { getFunctionParts } from "../../utils/helpers.js";
-import { AptosConfig } from "../aptosConfig.js";
+} from "../../internal/abstraction";
+import { view } from "../../internal/view";
+import { InputGenerateTransactionOptions, TypeTagAddress } from "../../transactions";
+import { MoveFunctionId } from "../../types";
+import { getFunctionParts } from "../../utils/helpers";
+import { AptosConfig } from "../aptosConfig";
 
 export class AccountAbstraction {
   constructor(readonly config: AptosConfig) {}
@@ -34,7 +34,7 @@ export class AccountAbstraction {
    */
   public async addAuthenticationFunctionTransaction(args: {
     accountAddress: AccountAddressInput;
-    authenticationFunction: MoveFunctionId;
+    authenticationFunction: string;
     options?: InputGenerateTransactionOptions;
   }) {
     const { accountAddress, authenticationFunction, options } = args;
@@ -67,7 +67,7 @@ export class AccountAbstraction {
    */
   public async removeAuthenticationFunctionTransaction(args: {
     accountAddress: AccountAddressInput;
-    authenticationFunction: MoveFunctionId;
+    authenticationFunction: string;
     options?: InputGenerateTransactionOptions;
   }) {
     const { accountAddress, authenticationFunction, options } = args;
@@ -166,10 +166,10 @@ export class AccountAbstraction {
    */
   public isAccountAbstractionEnabled = async (args: {
     accountAddress: AccountAddressInput;
-    authenticationFunction: MoveFunctionId;
+    authenticationFunction: string;
   }) => {
     const functionInfos = await this.getAuthenticationFunction(args);
-    const { moduleAddress, moduleName, functionName } = getFunctionParts(args.authenticationFunction);
+    const { moduleAddress, moduleName, functionName } = getFunctionParts(args.authenticationFunction as MoveFunctionId);
     return (
       functionInfos?.some(
         (functionInfo) =>
@@ -223,7 +223,7 @@ export class AccountAbstraction {
    */
   public disableAccountAbstractionTransaction = async (args: {
     accountAddress: AccountAddressInput;
-    authenticationFunction?: MoveFunctionId;
+    authenticationFunction?: string;
     options?: InputGenerateTransactionOptions;
   }) => {
     const { accountAddress, authenticationFunction, options } = args;

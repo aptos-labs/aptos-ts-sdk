@@ -1,23 +1,19 @@
-import { Deserializer, Serializer } from "../../bcs/index.js";
+import { Deserializer, Serializer } from "../../bcs";
 import {
   AnyPublicKeyVariant,
   AnySignatureVariant,
   SigningScheme as AuthenticationKeyScheme,
   HexInput,
-} from "../../types/index.js";
-import { AuthenticationKey } from "../authenticationKey.js";
-import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "./ed25519.js";
-import { AccountPublicKey, PublicKey } from "./publicKey.js";
-import { Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1.js";
-import { Signature } from "./signature.js";
-import { AptosConfig } from "../../api/aptosConfig.js";
-import { Secp256r1PublicKey, WebAuthnSignature } from "./secp256r1.js";
-import {
-  detectPublicKeyVariant,
-  detectSignatureVariant,
-  getPublicKeyDeserializer,
-  getSignatureDeserializer,
-} from "./anyKeyRegistry.js";
+} from "../../types";
+import { AuthenticationKey } from "../authenticationKey";
+import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "./ed25519";
+import { AccountPublicKey, PublicKey } from "./publicKey";
+import { Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1";
+import { KeylessPublicKey, KeylessSignature } from "./keyless";
+import { Signature } from "./signature";
+import { FederatedKeylessPublicKey } from "./federatedKeyless";
+import { AptosConfig } from "../../api";
+import { Secp256r1PublicKey, WebAuthnSignature } from "./secp256r1";
 
 export type PrivateKeyInput = Ed25519PrivateKey | Secp256k1PrivateKey;
 
@@ -57,25 +53,21 @@ export class AnyPublicKey extends AccountPublicKey {
    * @group Implementation
    * @category Serialization
    */
-  constructor(publicKey: PublicKey, variant?: AnyPublicKeyVariant) {
+  constructor(publicKey: PublicKey) {
     super();
     this.publicKey = publicKey;
-    if (variant !== undefined) {
-      this.variant = variant;
-    } else if (publicKey instanceof Ed25519PublicKey) {
+    if (publicKey instanceof Ed25519PublicKey) {
       this.variant = AnyPublicKeyVariant.Ed25519;
     } else if (publicKey instanceof Secp256k1PublicKey) {
       this.variant = AnyPublicKeyVariant.Secp256k1;
     } else if (publicKey instanceof Secp256r1PublicKey) {
       this.variant = AnyPublicKeyVariant.Secp256r1;
+    } else if (publicKey instanceof KeylessPublicKey) {
+      this.variant = AnyPublicKeyVariant.Keyless;
+    } else if (publicKey instanceof FederatedKeylessPublicKey) {
+      this.variant = AnyPublicKeyVariant.FederatedKeyless;
     } else {
-      // Check registered variants (e.g., keyless, federated keyless)
-      const registeredVariant = detectPublicKeyVariant(publicKey);
-      if (registeredVariant !== undefined) {
-        this.variant = registeredVariant;
-      } else {
-        throw new Error("Unsupported public key type");
-      }
+      throw new Error("Unsupported public key type");
     }
   }
 
@@ -96,7 +88,7 @@ export class AnyPublicKey extends AccountPublicKey {
    */
   verifySignature(args: { message: HexInput; signature: AnySignature }): boolean {
     const { message, signature } = args;
-    if (this.variant === AnyPublicKeyVariant.Keyless || this.variant === AnyPublicKeyVariant.FederatedKeyless) {
+    if (this.publicKey instanceof KeylessPublicKey) {
       throw new Error("Use verifySignatureAsync to verify Keyless signatures");
     }
     return this.publicKey.verifySignature({
@@ -202,18 +194,16 @@ export class AnyPublicKey extends AccountPublicKey {
       case AnyPublicKeyVariant.Secp256r1:
         publicKey = Secp256r1PublicKey.deserialize(deserializer);
         break;
-      default: {
-        // Check registered variant deserializers (e.g., keyless, federated keyless)
-        const registeredDeserializer = getPublicKeyDeserializer(variantIndex);
-        if (registeredDeserializer) {
-          publicKey = registeredDeserializer(deserializer);
-          break;
-        }
-        throw new Error(
-          `Unknown variant index for AnyPublicKey: ${variantIndex}. ` +
-            "If this is a keyless key, ensure keyless support is imported.",
-        );
-      }
+      case AnyPublicKeyVariant.Keyless:
+        publicKey = KeylessPublicKey.deserialize(deserializer);
+        break;
+      case AnyPublicKeyVariant.FederatedKeyless:
+        publicKey = FederatedKeylessPublicKey.deserialize(deserializer);
+        break;
+      case AnyPublicKeyVariant.SlhDsaSha2_128s:
+        throw new Error("SlhDsaSha2_128s public key deserialization is not yet implemented");
+      default:
+        throw new Error(`Unknown variant index for AnyPublicKey: ${variantIndex}`);
     }
     return new AnyPublicKey(publicKey);
   }
@@ -298,14 +288,10 @@ export class AnySignature extends Signature {
       this.variant = AnySignatureVariant.Secp256k1;
     } else if (signature instanceof WebAuthnSignature) {
       this.variant = AnySignatureVariant.WebAuthn;
+    } else if (signature instanceof KeylessSignature) {
+      this.variant = AnySignatureVariant.Keyless;
     } else {
-      // Check registered variants (e.g., keyless)
-      const registeredVariant = detectSignatureVariant(signature);
-      if (registeredVariant !== undefined) {
-        this.variant = registeredVariant;
-      } else {
-        throw new Error("Unsupported signature type");
-      }
+      throw new Error("Unsupported signature type");
     }
   }
 
@@ -344,18 +330,13 @@ export class AnySignature extends Signature {
       case AnySignatureVariant.WebAuthn:
         signature = WebAuthnSignature.deserialize(deserializer);
         break;
-      default: {
-        // Check registered variant deserializers (e.g., keyless)
-        const registeredDeserializer = getSignatureDeserializer(variantIndex);
-        if (registeredDeserializer) {
-          signature = registeredDeserializer(deserializer);
-          break;
-        }
-        throw new Error(
-          `Unknown variant index for AnySignature: ${variantIndex}. ` +
-            "If this is a keyless signature, ensure keyless support is imported.",
-        );
-      }
+      case AnySignatureVariant.Keyless:
+        signature = KeylessSignature.deserialize(deserializer);
+        break;
+      case AnySignatureVariant.SlhDsaSha2_128s:
+        throw new Error("SlhDsaSha2_128s signature deserialization is not yet implemented");
+      default:
+        throw new Error(`Unknown variant index for AnySignature: ${variantIndex}`);
     }
     return new AnySignature(signature);
   }

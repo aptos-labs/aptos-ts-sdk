@@ -6,11 +6,11 @@
  * @group Implementation
  * @category Transactions
  */
-import { sha3_256 as sha3Hash } from "@noble/hashes/sha3.js";
-import { RAW_TRANSACTION_SALT, RAW_TRANSACTION_WITH_DATA_SALT, TEXT_ENCODER } from "../../utils/const.js";
-import { FeePayerRawTransaction, MultiAgentRawTransaction } from "../instances/index.js";
-import { AnyRawTransaction, AnyRawTransactionInstance } from "../types.js";
-import { Serializable } from "../../bcs/index.js";
+import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
+import { RAW_TRANSACTION_SALT, RAW_TRANSACTION_WITH_DATA_SALT } from "../../utils/const";
+import { FeePayerRawTransaction, MultiAgentRawTransaction } from "../instances";
+import { AnyRawTransaction, AnyRawTransactionInstance } from "../types";
+import { Serializable } from "../../bcs";
 
 /**
  * Derives the appropriate raw transaction type based on the provided transaction details.
@@ -59,7 +59,7 @@ export function generateSigningMessage(bytes: Uint8Array, domainSeparator: strin
     throw new Error(`Domain separator needs to start with 'APTOS::'.  Provided - ${domainSeparator}`);
   }
 
-  hash.update(TEXT_ENCODER.encode(domainSeparator));
+  hash.update(domainSeparator);
 
   const prefix = hash.digest();
 

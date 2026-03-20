@@ -9,18 +9,13 @@
  * @group Implementation
  */
 
-import { AptosConfig } from "../api/aptosConfig.js";
-import { getAptosFullNode, postAptosIndexer } from "../client/index.js";
-import {
-  GetChainTopUserTransactionsResponse,
-  GetProcessorStatusResponse,
-  GraphqlQuery,
-  LedgerInfo,
-} from "../types/index.js";
-import { GetChainTopUserTransactionsQuery, GetProcessorStatusQuery } from "../types/generated/operations.js";
-import { GetChainTopUserTransactions, GetProcessorStatus } from "../types/generated/queries.js";
-import { ProcessorType } from "../utils/const.js";
-import { memoizeAsync } from "../utils/memoize.js";
+import { AptosConfig } from "../api/aptosConfig";
+import { getAptosFullNode, postAptosIndexer } from "../client";
+import { GetChainTopUserTransactionsResponse, GetProcessorStatusResponse, GraphqlQuery, LedgerInfo } from "../types";
+import { GetChainTopUserTransactionsQuery, GetProcessorStatusQuery } from "../types/generated/operations";
+import { GetChainTopUserTransactions, GetProcessorStatus } from "../types/generated/queries";
+import { ProcessorType } from "../utils/const";
+import { memoizeAsync } from "../utils/memoize";
 
 /**
  * Cache TTL for ledger info in milliseconds (10 seconds).

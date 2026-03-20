@@ -4,37 +4,6 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
-## Added
-
-- Add support for script payloads in multisig transactions. `MultiSigTransactionPayload` now accepts both `EntryFunction` and `Script` payloads, and the new `InputMultiSigScriptData` type allows building multisig transactions with script bytecode. This aligns with the upstream `MultisigTransactionPayload::Script` variant added in aptos-core.
-- `x-aptos-client` request header now includes the runtime platform (and engine version where cheaply available) for telemetry. Examples: `aptos-typescript-sdk/<version>; platform=node/22.12.0`, `platform=bun/1.1.38`, `platform=deno/2.1.4`, `platform=browser`, `platform=react-native`, `platform=unknown`. Runtime detection is internal — not exported from the SDK public API.
-- **Tree-shakeable standalone function API** — all SDK operations available as standalone functions (`getLedgerInfo`, `getBalance`, `transferCoinTransaction`, etc.) that accept `{ aptosConfig, ...args }`.
-- **Sub-path exports** — import from `@aptos-labs/ts-sdk/account`, `@aptos-labs/ts-sdk/transaction`, `@aptos-labs/ts-sdk/keyless`, etc. for minimal bundle sizes.
-- **`sideEffects: false`** in package.json for bundler tree-shaking.
-- **Variant registry pattern** for `AnyPublicKey`/`AnySignature` — keyless variants register at runtime, removing compile-time poseidon dependency from core crypto.
-
-## Breaking
-
-- ESM-only output; removed CommonJS `"require"` exports. Node.js 22+ required.
-  - Migration: Update imports from `require()` to `import` syntax
-  - See: `upgrade-guides/UPGRADE_GUIDE_7.0.0.md`
-- **Namespace classes available from sub-paths** — `import { General, AptosConfig } from "@aptos-labs/ts-sdk/general"` for tree-shakeable usage with autocomplete. The `Aptos` class remains available but is not tree-shakeable.
-- **Plain `tsc` build** — replaced tsup bundler with plain TypeScript compiler. Output is unbundled, unminified ESM with 1:1 file mapping. `nodenext` module resolution.
-- **Removed `js-base64` dependency** — replaced with native `atob`/`btoa` (universal across all runtimes).
-- **Keyless imports moved** — `KeylessAccount`, `FederatedKeylessAccount`, `EphemeralKeyPair`, poseidon utilities, and keyless crypto types are no longer exported from the main entry. Import from sub-paths or direct file paths.
-- **HD Key and deserialization utils moved** — no longer in the crypto barrel. Import directly from their files.
-- **`generateSignedTransactionForSimulation` is now async** — callers must `await` it.
-  - See: `upgrade-guides/UPGRADE_GUIDE_7.0.0.md`
-- Rename `AccountSequenceNumber.lastUncommintedNumber` → `lastUncommittedNumber` (typo fix).
-
-## Changed
-
-- Introduce `MultiSigTransactionPayloadVariants` for multisig inner payload BCS tags and consolidate bytecode handling in `buildTransactionPayload`.
-- Upgraded `@noble/curves` and `@noble/hashes` to 2.x (ESM-only).
-- Remove `dotenv` usage from all TypeScript/JavaScript examples. Node 22+ users can rely on the built-in `node --env-file=.env` flag (or `tsx --env-file=.env`) when a `.env` file is needed; the examples default to devnet and don't require one.
-- `AnsName` now reports nullable indexer fields honestly instead of fabricating placeholder values. `domain`, `token_standard`, and `is_primary` are typed as optional (`string | undefined` / `AnsTokenStandard | undefined` / `boolean | undefined`), and `sanitizeANSName` passes them through as `undefined` rather than defaulting to `"N/A"`, `"v2"`, `false`, or `""`. Consumers that previously relied on these fields always being present should handle the `undefined` case (or filter the row out as bad indexer data).
-- `AccountAbstraction.addAuthenticationFunctionTransaction`, `removeAuthenticationFunctionTransaction`, and `disableAccountAbstractionTransaction` now type their `authenticationFunction` parameter as `MoveFunctionId` instead of `string`. `MoveFunctionId` is a string alias, so string literals still compile; callers passing a typed `string` variable may need to retype it (or cast) to satisfy the tightened signature. Updated the `hello_world_authenticator_account_abstraction.ts` and `public_key_authenticator_account_abstraction.ts` examples accordingly — they now annotate `authenticationFunction` as `MoveFunctionId` and call `.toString()` on the account address so the template literal type resolves correctly.
-
 ## Fixed
 
 - Fix Windows compatibility when using `aptos move` CLI helpers (e.g. `aptos move compile`). The previous implementation attempted to spawn `npx.cmd` directly without `shell: true`, which is rejected by Node.js ≥20.12.2+ due to security restrictions on executing `.cmd`/`.bat` shims. Now correctly passes `{ shell: true }` on Windows (consistent with `LocalNode`).
@@ -79,7 +48,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Added
 
-- Add e2e tests for external signer flow (build → getSigningMessage → sign externally → submit) to verify the flow works correctly with the latest SDK version
+- Add `MoveOption.Address` factory method for creating `MoveOption<AccountAddress>` from `AccountAddressInput`
+- Add `MoveVector.Address` factory method for creating `MoveVector<AccountAddress>` from an array of `AccountAddressInput`
 - Add MultiKey (K-of-N mixed key types) transfer example (`examples/typescript/multikey_transfer.ts`)
 - Add MultiEd25519 (K-of-N Ed25519) transfer example (`examples/typescript/multi_ed25519_transfer.ts`)
 

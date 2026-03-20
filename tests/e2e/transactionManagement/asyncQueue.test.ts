@@ -1,4 +1,4 @@
-import { AsyncQueue, AsyncQueueCancelledError } from "../../../src/transactions/management/asyncQueue.js";
+import { AsyncQueue, AsyncQueueCancelledError } from "../../../src/transactions/management/asyncQueue";
 
 describe("asyncQueue", () => {
   it("should enqueue and dequeue items", async () => {

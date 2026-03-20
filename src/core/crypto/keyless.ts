@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { JwtPayload, jwtDecode } from "jwt-decode";
-import { sha3_256 } from "@noble/hashes/sha3.js";
-import { AccountPublicKey, PublicKey } from "./publicKey.js";
-import { Signature } from "./signature.js";
-import { Deserializer, Serializable, Serializer } from "../../bcs/index.js";
-import { Hex, hexToAsciiString } from "../hex.js";
+import { sha3_256 } from "@noble/hashes/sha3";
+import { AccountPublicKey, PublicKey } from "./publicKey";
+import { Signature } from "./signature";
+import { Deserializer, Serializable, Serializer } from "../../bcs";
+import { Hex, hexToAsciiString } from "../hex";
 import {
   HexInput,
   EphemeralCertificateVariant,
@@ -15,30 +15,31 @@ import {
   ZkpVariant,
   LedgerVersionArg,
   MoveResource,
-} from "../../types/index.js";
-import { EphemeralPublicKey, EphemeralSignature } from "./ephemeral.js";
-import { bigIntToBytesLE, bytesToBigIntLE, hashStrToField, padAndPackBytesWithLen, poseidonHash } from "./poseidon.js";
-import { AuthenticationKey } from "../authenticationKey.js";
-import { Proof } from "./proof.js";
-import { Ed25519PublicKey, Ed25519Signature } from "./ed25519.js";
+} from "../../types";
+import { EphemeralPublicKey, EphemeralSignature } from "./ephemeral";
+import { bigIntToBytesLE, bytesToBigIntLE, hashStrToField, padAndPackBytesWithLen, poseidonHash } from "./poseidon";
+import { AuthenticationKey } from "../authenticationKey";
+import { Proof } from "./proof";
+import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
 import {
   Groth16VerificationKeyResponse,
   KeylessConfigurationResponse,
   MoveAnyStruct,
   PatchedJWKsResponse,
-} from "../../types/keyless.js";
-import { AptosConfig } from "../../api/aptosConfig.js";
-import { getAptosFullNode } from "../../client/index.js";
-import { memoizeAsync } from "../../utils/memoize.js";
-import { AccountAddress, AccountAddressInput } from "../accountAddress.js";
-import { base64UrlEncode, base64UrlToBytes, nowInSeconds } from "../../utils/index.js";
-import { KeylessError, KeylessErrorType } from "../../errors/index.js";
-import { bn254 } from "@noble/curves/bn254.js";
-import { bytesToNumberBE } from "@noble/curves/utils.js";
-import { FederatedKeylessPublicKey } from "./federatedKeyless.js";
-import { generateSigningMessage } from "../../transactions/transactionBuilder/signingMessage.js";
-import { WeierstrassPoint } from "@noble/curves/abstract/weierstrass.js";
-import { Fp2 } from "@noble/curves/abstract/tower.js";
+} from "../../types/keyless";
+import { AptosConfig } from "../../api/aptosConfig";
+import { getAptosFullNode } from "../../client";
+import { memoizeAsync } from "../../utils/memoize";
+import { AccountAddress, AccountAddressInput } from "../accountAddress";
+import { base64UrlToBytes, nowInSeconds } from "../../utils";
+import { KeylessError, KeylessErrorType } from "../../errors";
+import { bn254 } from "@noble/curves/bn254";
+import { bytesToNumberBE } from "@noble/curves/abstract/utils";
+import { FederatedKeylessPublicKey } from "./federatedKeyless";
+import { encode } from "js-base64";
+import { generateSigningMessage } from "../..";
+import { ProjPointType } from "@noble/curves/abstract/weierstrass";
+import { Fp2 } from "@noble/curves/abstract/tower";
 
 /**
  * @group Implementation
@@ -492,8 +493,7 @@ function getPublicInputsHash(args: {
     fields.push(1n);
     fields.push(hashStrToField(proof.extraField, keylessConfig.maxExtraFieldBytes));
   }
-  const jwtHeaderB64Url = base64UrlEncode(signature.jwtHeader);
-  fields.push(hashStrToField(`${jwtHeaderB64Url}.`, keylessConfig.maxJwtHeaderB64Bytes));
+  fields.push(hashStrToField(`${encode(signature.jwtHeader, true)}.`, keylessConfig.maxJwtHeaderB64Bytes));
   fields.push(jwk.toScalar());
   if (!proof.overrideAudVal) {
     fields.push(hashStrToField("", MAX_AUD_VAL_BYTES));
@@ -767,14 +767,14 @@ class G1Bytes extends Serializable {
   // Convert the projective coordinates to strings
   toArray(): string[] {
     const point = this.toProjectivePoint();
-    return [point.x.toString(), point.y.toString(), point.Z.toString()];
+    return [point.x.toString(), point.y.toString(), point.pz.toString()];
   }
 
   /**
    * Converts the G1 bytes to a projective point.
    * @returns The projective point.
    */
-  toProjectivePoint(): WeierstrassPoint<bigint> {
+  toProjectivePoint(): ProjPointType<bigint> {
     const bytes = new Uint8Array(this.data);
     // Reverse the bytes to convert from little-endian to big-endian.
     bytes.reverse();
@@ -785,7 +785,7 @@ class G1Bytes extends Serializable {
     const y = Fp.sqrt(Fp.add(Fp.pow(x, 3n), G1Bytes.B));
     const negY = Fp.neg(y);
     const yToUse = y > negY === (yFlag === 1) ? y : negY;
-    return bn254.G1.Point.fromAffine({
+    return bn254.G1.ProjectivePoint.fromAffine({
       x,
       y: yToUse,
     });
@@ -851,13 +851,13 @@ class G2Bytes extends Serializable {
         point.y.c1.toString(),
       ], // y imaginary part
       [
-        point.Z.c0.toString(), // z real part
-        point.Z.c1.toString(),
+        point.pz.c0.toString(), // z real part
+        point.pz.c1.toString(),
       ], // z imaginary part
     ];
   }
 
-  toProjectivePoint(): WeierstrassPoint<Fp2> {
+  toProjectivePoint(): ProjPointType<Fp2> {
     const bytes = new Uint8Array(this.data);
     // Reverse the bytes to convert from little-endian to big-endian for each part of x.
     const x0 = bytes.slice(0, 32).reverse();
@@ -870,7 +870,7 @@ class G2Bytes extends Serializable {
     const negY = Fp2.neg(y);
     const isYGreaterThanNegY = y.c1 > negY.c1 || (y.c1 === negY.c1 && y.c0 > negY.c0);
     const yToUse = isYGreaterThanNegY === (yFlag === 1) ? y : negY;
-    return bn254.G2.Point.fromAffine({
+    return bn254.G2.ProjectivePoint.fromAffine({
       x,
       y: yToUse,
     });

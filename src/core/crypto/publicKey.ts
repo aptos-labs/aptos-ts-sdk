@@ -1,9 +1,9 @@
-import { AptosConfig } from "../../api/aptosConfig.js";
-import { Serializable } from "../../bcs/index.js";
-import { HexInput } from "../../types/index.js";
-import { AuthenticationKey } from "../authenticationKey.js";
-import { Hex } from "../hex.js";
-import { Signature } from "./signature.js";
+import { AptosConfig } from "../../api";
+import { Serializable } from "../../bcs";
+import { HexInput } from "../../types";
+import { AuthenticationKey } from "../authenticationKey";
+import { Hex } from "../hex";
+import { Signature } from "./signature";
 
 /**
  * Represents the arguments required to verify a digital signature.

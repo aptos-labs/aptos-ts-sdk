@@ -1,14 +1,14 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account as AccountModule } from "../account/index.js";
+import { Account as AccountModule } from "../account";
 import {
   AccountAddress,
   AccountAddressInput,
   createObjectAddress,
   BaseAccountPublicKey,
   PrivateKeyInput,
-} from "../core/index.js";
+} from "../core";
 import {
   AccountData,
   AnyNumber,
@@ -27,7 +27,7 @@ import {
   TokenStandardArg,
   TransactionResponse,
   WhereArg,
-} from "../types/index.js";
+} from "../types";
 import {
   deriveAccountFromPrivateKey,
   getAccountCoinsCount,
@@ -51,15 +51,15 @@ import {
   lookupOriginalAccountAddress,
   deriveOwnedAccountsFromSigner,
   AccountInfo,
-} from "../internal/account.js";
-import { APTOS_COIN, APTOS_FA, ProcessorType } from "../utils/const.js";
-import { AptosConfig } from "./aptosConfig.js";
-import { waitForIndexerOnVersion } from "./utils.js";
-import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types.js";
-import { view } from "../internal/view.js";
-import { isEncodedStruct, parseEncodedStruct } from "../utils/index.js";
-import { memoizeAsync } from "../utils/memoize.js";
-import { AccountAbstraction } from "./account/abstraction.js";
+} from "../internal/account";
+import { APTOS_COIN, APTOS_FA, ProcessorType } from "../utils/const";
+import { AptosConfig } from "./aptosConfig";
+import { waitForIndexerOnVersion } from "./utils";
+import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
+import { view } from "../internal/view";
+import { isEncodedStruct, parseEncodedStruct } from "../utils";
+import { memoizeAsync } from "../utils/memoize";
+import { AccountAbstraction } from "./account/abstraction";
 
 /**
  * A class to query all `Account` related queries on Aptos.

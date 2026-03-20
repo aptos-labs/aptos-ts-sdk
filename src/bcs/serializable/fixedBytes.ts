@@ -1,11 +1,11 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Serializer, Serializable } from "../serializer.js";
-import { Deserializer } from "../deserializer.js";
-import { HexInput } from "../../types/index.js";
-import { Hex } from "../../core/hex.js";
-import { TransactionArgument } from "../../transactions/instances/transactionArgument.js";
+import { Serializer, Serializable } from "../serializer";
+import { Deserializer } from "../deserializer";
+import { HexInput } from "../../types";
+import { Hex } from "../../core/hex";
+import { TransactionArgument } from "../../transactions/instances/transactionArgument";
 
 /**
  * Represents a contiguous sequence of already serialized BCS bytes.

@@ -11,6 +11,7 @@
  * 5. Create a liquidity pool with Alice's FA and Bob's FA
  * 6. Swap between Alice's FA and Bob's FA
  */
+import "dotenv";
 import {
   Account,
   AccountAddress,
@@ -21,7 +22,7 @@ import {
   Network,
   NetworkToNetworkName,
 } from "@aptos-labs/ts-sdk";
-import { createInterface } from "node:readline";
+import { createInterface } from "readline";
 // Default to devnet, but allow for overriding
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 

@@ -1,19 +1,14 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { HexInput } from "../types/index.js";
-import { AccountAddress } from "../core/accountAddress.js";
-import {
-  getIssAudAndUidVal,
-  Groth16VerificationKey,
-  KeylessPublicKey,
-  ZeroKnowledgeSig,
-} from "../core/crypto/keyless.js";
+import { HexInput } from "../types";
+import { AccountAddress } from "../core/accountAddress";
+import { getIssAudAndUidVal, Groth16VerificationKey, KeylessPublicKey, ZeroKnowledgeSig } from "../core/crypto";
 
-import { EphemeralKeyPair } from "./EphemeralKeyPair.js";
-import { Deserializer, Serializer } from "../bcs/index.js";
-import { AbstractKeylessAccount, ProofFetchCallback } from "./AbstractKeylessAccount.js";
-import { Hex } from "../core/hex.js";
+import { EphemeralKeyPair } from "./EphemeralKeyPair";
+import { Deserializer, Serializer } from "../bcs";
+import { AbstractKeylessAccount, ProofFetchCallback } from "./AbstractKeylessAccount";
+import { Hex } from "../core/hex";
 
 /**
  * Account implementation for the Keyless authentication scheme.

@@ -17,7 +17,7 @@ import {
 // Get network from URL params or default to devnet
 const urlParams = new URLSearchParams(window.location.search);
 const networkParam = urlParams.get("network") || "devnet";
-const APTOS_NETWORK: Network = NetworkToNetworkName[networkParam] ?? Network.DEVNET;
+const APTOS_NETWORK: Network = NetworkToNetworkName[networkParam] || Network.DEVNET;
 
 // Create the Aptos client
 const config = new AptosConfig({ network: APTOS_NETWORK });

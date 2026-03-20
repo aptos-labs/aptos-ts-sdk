@@ -1,12 +1,12 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { fundAccount } from "../internal/faucet.js";
-import { UserTransactionResponse, WaitForTransactionOptions } from "../types/index.js";
-import { AccountAddressInput } from "../core/index.js";
-import { AptosConfig } from "./aptosConfig.js";
-import { waitForIndexer } from "../internal/transaction.js";
-import { ProcessorType } from "../utils/index.js";
+import { fundAccount } from "../internal/faucet";
+import { UserTransactionResponse, WaitForTransactionOptions } from "../types";
+import { AccountAddressInput } from "../core";
+import { AptosConfig } from "./aptosConfig";
+import { waitForIndexer } from "../internal/transaction";
+import { ProcessorType } from "../utils";
 
 /**
  * A class to query all `Faucet` related queries on Aptos.

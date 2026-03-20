@@ -9,9 +9,13 @@
  */
 /* eslint-disable no-console */
 
-import assert from "node:assert";
+import dotenv from "dotenv";
+
+import assert from "assert";
 import { Account, Aptos, AptosConfig, Hex, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
-import { compilePackage, getPackageBytesToPublish } from "./utils.js";
+import { compilePackage, getPackageBytesToPublish } from "./utils";
+
+dotenv.config();
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 
@@ -63,4 +67,6 @@ async function main() {
   console.log("Modules onchain check passed");
 }
 
-main();
+if (require.main === module) {
+  main();
+}

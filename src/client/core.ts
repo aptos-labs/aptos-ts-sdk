@@ -1,20 +1,11 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "../api/aptosConfig.js";
-import { VERSION } from "../version.js";
-import {
-  AnyNumber,
-  AptosRequest,
-  AptosResponse,
-  Client,
-  ClientRequest,
-  ClientResponse,
-  MimeType,
-} from "../types/index.js";
-import { AptosApiType } from "../utils/index.js";
-import { getRuntimePlatformTag } from "../utils/runtime.js";
-import { AptosApiError } from "../errors/index.js";
+import { AptosConfig } from "../api/aptosConfig";
+import { VERSION } from "../version";
+import { AnyNumber, AptosRequest, AptosResponse, Client, ClientRequest, ClientResponse, MimeType } from "../types";
+import { AptosApiType } from "../utils";
+import { AptosApiError } from "../errors";
 
 /**
  * Sends a request using the specified options and returns the response.
@@ -41,7 +32,7 @@ export async function request<Req, Res>(options: ClientRequest<Req>, client: Cli
   const { url, method, body, contentType, params, overrides, originMethod } = options;
   const headers: Record<string, string | AnyNumber | boolean | undefined> = {
     ...overrides?.HEADERS,
-    "x-aptos-client": `aptos-typescript-sdk/${VERSION}; platform=${getRuntimePlatformTag()}`,
+    "x-aptos-client": `aptos-typescript-sdk/${VERSION}`,
     "content-type": contentType ?? MimeType.JSON,
     "x-aptos-typescript-sdk-origin-method": originMethod,
   };
@@ -105,22 +96,16 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
   // to support both fullnode and indexer responses,
   // check if it is an indexer query, and adjust response.data
   if (apiType === AptosApiType.INDEXER) {
-    const indexerResponse = aptosResponse.data;
-    // Only probe for `errors`/`data` keys on actual objects; `in` throws a
-    // `TypeError` on primitives/null and would mask the underlying API error.
-    if (typeof indexerResponse === "object" && indexerResponse !== null) {
-      // Handle Indexer general errors
-      if ("errors" in indexerResponse && indexerResponse.errors) {
-        throw new AptosApiError({
-          apiType,
-          aptosRequest: aptosRequestOpts,
-          aptosResponse,
-        });
-      }
-      if ("data" in indexerResponse) {
-        aptosResponse.data = indexerResponse.data as Res;
-      }
+    const indexerResponse = aptosResponse.data as any;
+    // Handle Indexer general errors
+    if (indexerResponse.errors) {
+      throw new AptosApiError({
+        apiType,
+        aptosRequest: aptosRequestOpts,
+        aptosResponse,
+      });
     }
+    aptosResponse.data = indexerResponse.data as Res;
   } else if (apiType === AptosApiType.PEPPER || apiType === AptosApiType.PROVER) {
     if (aptosResponse.status >= 400) {
       throw new AptosApiError({ apiType, aptosRequest: aptosRequestOpts, aptosResponse });

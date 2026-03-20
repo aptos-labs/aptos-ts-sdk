@@ -1,12 +1,20 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, SigningSchemeInput, MultiKeyAccount, ZkpVariant } from "../../src/index.js";
-import { KeylessAccount } from "../../src/account/KeylessAccount.js";
-import { FederatedKeylessAccount } from "../../src/account/FederatedKeylessAccount.js";
-import { EphemeralKeyPair } from "../../src/account/EphemeralKeyPair.js";
-import { ZeroKnowledgeSig, ZkProof, Groth16Zkp, Groth16VerificationKey } from "../../src/core/crypto/keyless.js";
-import { AccountUtils } from "../../src/account/AccountUtils.js";
+import {
+  Account,
+  SigningSchemeInput,
+  MultiKeyAccount,
+  KeylessAccount,
+  FederatedKeylessAccount,
+  EphemeralKeyPair,
+  ZeroKnowledgeSig,
+  ZkProof,
+  Groth16Zkp,
+  ZkpVariant,
+  Groth16VerificationKey,
+} from "../../src";
+import { AccountUtils } from "../../src/account/AccountUtils";
 
 export function testAccountSerializationDeserialization(account: Account) {
   const bytes = AccountUtils.toBytes(account);

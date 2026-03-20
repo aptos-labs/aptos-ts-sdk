@@ -9,11 +9,12 @@
  * @group Implementation
  */
 
-import { AptosConfig } from "../api/aptosConfig.js";
-import { AccountAddress, AccountAddressInput } from "../core/index.js";
-import { InputGenerateTransactionOptions, InputEntryFunctionData } from "../transactions/types.js";
+import { AptosConfig } from "../api/aptosConfig";
+import { AccountAddress, AccountAddressInput } from "../core";
+import { InputGenerateTransactionOptions, InputEntryFunctionData } from "../transactions/types";
 import {
   AnsName,
+  AnsTokenStandard,
   ExpirationStatus,
   MoveAddressType,
   OrderByArg,
@@ -21,16 +22,15 @@ import {
   RawANSName,
   SubdomainExpirationPolicy,
   WhereArg,
-} from "../types/index.js";
-import { GetNamesQuery } from "../types/generated/operations.js";
-import { GetNames } from "../types/generated/queries.js";
-import { CurrentAptosNamesBoolExp } from "../types/generated/types.js";
-import { Network } from "../utils/apiEndpoints.js";
-import { getEnvVar } from "../utils/helpers.js";
-import { queryIndexer } from "./general.js";
-import { view } from "./view.js";
-import { generateTransaction } from "./transactionSubmission.js";
-import { SimpleTransaction } from "../transactions/instances/simpleTransaction.js";
+} from "../types";
+import { GetNamesQuery } from "../types/generated/operations";
+import { GetNames } from "../types/generated/queries";
+import { CurrentAptosNamesBoolExp } from "../types/generated/types";
+import { Network } from "../utils/apiEndpoints";
+import { queryIndexer } from "./general";
+import { view } from "./view";
+import { generateTransaction } from "./transactionSubmission";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 let GRACE_PERIOD_IN_SECONDS: number | undefined;
 
@@ -55,7 +55,8 @@ export function isValidANSSegment(fragment: string): boolean {
   if (fragment.length < 3) return false;
   if (fragment.length > 63) return false;
   // only lowercase a-z and 0-9 are allowed, along with -. a domain may not start or end with a hyphen
-  return /^[a-z\d][a-z\d-]{1,61}[a-z\d]$/.test(fragment);
+  if (!/^[a-z\d][a-z\d-]{1,61}[a-z\d]$/.test(fragment)) return false;
+  return true;
 }
 
 /**
@@ -89,7 +90,6 @@ export function isValidANSName(name: string): { domainName: string; subdomainNam
  * Determines the status of an ANS name's expiration.
  *
  * @param name - An ANS name returned from one of the functions of the SDK.
- * @param gracePeriod - grace period after expiration
  * @returns An ExpirationStatus indicating whether the name is Active, InGracePeriod, or Expired.
  * @group Implementation
  */
@@ -135,10 +135,10 @@ export function getANSExpirationStatus({
 }
 
 export const LOCAL_ANS_ACCOUNT_PK =
-  getEnvVar("ANS_TEST_ACCOUNT_PRIVATE_KEY") ??
+  process.env.ANS_TEST_ACCOUNT_PRIVATE_KEY ??
   "ed25519-priv-0x37368b46ce665362562c6d1d4ec01a08c8644c488690df5a17e13ba163e20221";
 export const LOCAL_ANS_ACCOUNT_ADDRESS =
-  getEnvVar("ANS_TEST_ACCOUNT_ADDRESS") ?? "0x585fc9f0f0c54183b039ffc770ca282ebd87307916c215a3e692f2f8e4305e82";
+  process.env.ANS_TEST_ACCOUNT_ADDRESS ?? "0x585fc9f0f0c54183b039ffc770ca282ebd87307916c215a3e692f2f8e4305e82";
 
 const NetworkToAnsContract: Record<Network, string | null> = {
   [Network.TESTNET]: "0x5f8fd2347449685cf41d4db97926ec3a096eaf381332be4f1318ad4d16a8497c",
@@ -969,8 +969,6 @@ export async function renewDomain(args: {
  * be extended.
  *
  * @param name - The ANS name response to sanitize.
- * @param aptosConfig - config for the aptos client
- * @param gracePeriod - grace period after expiration
  * @param name.expiration_timestamp - The expiration timestamp in ISO string format.
  * @group Implementation
  */
@@ -987,7 +985,7 @@ function sanitizeANSName({
   const domain_expiration_timestamp = `${name.domain_expiration_timestamp}Z`;
 
   const isSubdomain = !!name.subdomain;
-  const expirationPolicy = name.subdomain_expiration_policy;
+  const expirationPolicy = name.subdomain_expiration_policy as SubdomainExpirationPolicy;
   const expiration =
     isSubdomain && expirationPolicy === SubdomainExpirationPolicy.FollowsDomain
       ? domain_expiration_timestamp
@@ -1007,23 +1005,18 @@ function sanitizeANSName({
     isInRenewablePeriod = expirationDate < renewalWindowDate;
   }
 
-  // Pass nullable indexer fields through as `undefined` rather than fabricating
-  // placeholder values ("N/A", "v2", false, ""). Consumers that need these
-  // fields should treat a missing value as a bad row from the indexer.
-  // `subdomain_expiration_policy` keeps a default of `FollowsDomain` because
-  // that is the contract's semantic fallback for subdomains, not a fabrication.
   return {
-    domain: name.domain ?? undefined,
+    domain: name.domain!,
     subdomain: name.subdomain || undefined,
     expiration_timestamp,
     expiration_status,
-    domain_expiration_timestamp,
+    domain_expiration_timestamp: domain_expiration_timestamp!,
     expiration: new Date(expiration),
-    token_standard: name.token_standard ?? undefined,
-    is_primary: name.is_primary ?? undefined,
+    token_standard: name.token_standard! as AnsTokenStandard,
+    is_primary: name.is_primary!,
     subdomain_expiration_policy: name.subdomain_expiration_policy ?? SubdomainExpirationPolicy.FollowsDomain,
-    owner_address: name.owner_address ?? undefined,
-    registered_address: name.registered_address ?? undefined,
+    owner_address: name.owner_address ?? "",
+    registered_address: name.registered_address!,
     isInRenewablePeriod,
   };
 }

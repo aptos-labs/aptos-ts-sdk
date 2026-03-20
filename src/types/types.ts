@@ -1,10 +1,10 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import type { AptosConfig } from "../api/aptosConfig.js";
-import { InputSubmitTransactionData } from "../transactions/index.js";
-import { Network } from "../utils/apiEndpoints.js";
-import { OrderBy, TokenStandard } from "./indexer.js";
+import type { AptosConfig } from "../api";
+import { InputSubmitTransactionData } from "../transactions";
+import { Network } from "../utils/apiEndpoints";
+import { OrderBy, TokenStandard } from "./indexer";
 
 /**
  * Different MIME types used for data interchange in transactions and responses.
@@ -89,15 +89,6 @@ export enum TransactionPayloadVariants {
   EntryFunction = 2,
   Multisig = 3,
   Payload = 4,
-}
-
-/**
- * Variants for the inner payload of a multisig account transaction.
- * {@link https://github.com/aptos-labs/aptos-core/blob/main/aptos-move/framework/aptos-framework/sources/multisig_account.move}
- */
-export enum MultiSigTransactionPayloadVariants {
-  EntryFunction = 0,
-  Script = 1,
 }
 
 /**

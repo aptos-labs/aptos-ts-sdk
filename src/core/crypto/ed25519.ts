@@ -1,17 +1,17 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { ed25519 } from "@noble/curves/ed25519.js";
-import { Deserializer } from "../../bcs/deserializer.js";
-import { Serializable, Serializer } from "../../bcs/serializer.js";
-import { AuthenticationKey } from "../authenticationKey.js";
-import { Hex } from "../hex.js";
-import { HexInput, SigningScheme as AuthenticationKeyScheme, PrivateKeyVariants } from "../../types/index.js";
-import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey.js";
-import { PrivateKey } from "./privateKey.js";
-import { AccountPublicKey, PublicKey, VerifySignatureArgs, VerifySignatureAsyncArgs } from "./publicKey.js";
-import { Signature } from "./signature.js";
-import { convertSigningMessage } from "./utils.js";
+import { ed25519 } from "@noble/curves/ed25519";
+import { Deserializer } from "../../bcs/deserializer";
+import { Serializable, Serializer } from "../../bcs/serializer";
+import { AuthenticationKey } from "../authenticationKey";
+import { Hex } from "../hex";
+import { HexInput, SigningScheme as AuthenticationKeyScheme, PrivateKeyVariants } from "../../types";
+import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey";
+import { PrivateKey } from "./privateKey";
+import { AccountPublicKey, PublicKey, VerifySignatureArgs, VerifySignatureAsyncArgs } from "./publicKey";
+import { Signature } from "./signature";
+import { convertSigningMessage } from "./utils";
 
 /**
  * L is the value that greater than or equal to will produce a non-canonical signature, and must be rejected
@@ -219,16 +219,7 @@ export class Ed25519PublicKey extends AccountPublicKey {
    * @category Serialization
    */
   static isInstance(publicKey: PublicKey): publicKey is Ed25519PublicKey {
-    return (
-      "key" in publicKey &&
-      typeof publicKey.key === "object" &&
-      publicKey.key !== null &&
-      "data" in publicKey.key &&
-      typeof publicKey.key.data === "object" &&
-      publicKey.key.data !== null &&
-      "length" in publicKey.key.data &&
-      publicKey.key?.data?.length === Ed25519PublicKey.LENGTH
-    );
+    return "key" in publicKey && (publicKey.key as any)?.data?.length === Ed25519PublicKey.LENGTH;
   }
 }
 
@@ -299,7 +290,7 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    * @category Serialization
    */
   static generate(): Ed25519PrivateKey {
-    const keyPair = ed25519.utils.randomSecretKey();
+    const keyPair = ed25519.utils.randomPrivateKey();
     return new Ed25519PrivateKey(keyPair, false);
   }
 

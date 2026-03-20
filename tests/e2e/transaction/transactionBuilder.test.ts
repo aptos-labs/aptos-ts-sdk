@@ -25,17 +25,17 @@ import {
   generateTransactionPayloadWithABI,
   SignedTransaction,
   generateUserTransactionHash,
-} from "../../../src/index.js";
-import { KeylessPublicKey } from "../../../src/core/crypto/keyless.js";
-import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper.js";
-import { getAptosClient } from "../helper.js";
+  KeylessPublicKey,
+} from "../../../src";
+import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
+import { getAptosClient } from "../helper";
 import {
   EPHEMERAL_KEY_PAIR,
   fundAccounts,
   multiSignerScriptBytecode,
   publishTransferPackage,
   TYPED_SCRIPT_TEST,
-} from "./helper.js";
+} from "./helper";
 
 const { aptos, config } = getAptosClient();
 
@@ -68,22 +68,6 @@ describe("transaction builder", () => {
         functionArguments: [200, "0x1"],
       });
       expect(payload instanceof TransactionPayloadMultiSig).toBeTruthy();
-    });
-    test("it generates a multi sig script transaction payload", async () => {
-      const payload = await generateTransactionPayload({
-        multisigAddress: Account.generate().accountAddress,
-        bytecode: multiSignerScriptBytecode,
-        functionArguments: [
-          new U64(100),
-          new U64(200),
-          Account.generate().accountAddress,
-          Account.generate().accountAddress,
-          new U64(50),
-        ],
-      });
-      expect(payload instanceof TransactionPayloadMultiSig).toBeTruthy();
-      const msPayload = payload as TransactionPayloadMultiSig;
-      expect(msPayload.multiSig.transaction_payload).toBeDefined();
     });
     test("it generates an entry function transaction payload", async () => {
       const payload = await generateTransactionPayload({

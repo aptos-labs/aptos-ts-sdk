@@ -1,9 +1,9 @@
 import { vi, type MockInstance } from "vitest";
-import { longTestTimeout } from "../../unit/helper.js";
-import { Account } from "../../../src/account/index.js";
-import * as AccountQueries from "../../../src/internal/account.js";
-import { AccountSequenceNumber } from "../../../src/transactions/management/accountSequenceNumber.js";
-import { getAptosClient } from "../helper.js";
+import { longTestTimeout } from "../../unit/helper";
+import { Account } from "../../../src/account";
+import * as AccountQueries from "../../../src/internal/account";
+import { AccountSequenceNumber } from "../../../src/transactions/management/accountSequenceNumber";
+import { getAptosClient } from "../helper";
 
 const { aptos, config: aptosConfig } = getAptosClient();
 
@@ -32,7 +32,7 @@ describe("account sequence number", () => {
     async () => {
       await accountSequenceNumber.initialize();
       expect(accountSequenceNumber.currentNumber).toEqual(BigInt(0));
-      expect(accountSequenceNumber.lastUncommittedNumber).toEqual(BigInt(0));
+      expect(accountSequenceNumber.lastUncommintedNumber).toEqual(BigInt(0));
     },
     longTestTimeout,
   );
@@ -44,7 +44,7 @@ describe("account sequence number", () => {
       authentication_key: account.accountAddress.toString(),
     });
     await accountSequenceNumber.update();
-    expect(accountSequenceNumber.lastUncommittedNumber).toEqual(BigInt(parseInt(seqNum, 10)));
+    expect(accountSequenceNumber.lastUncommintedNumber).toEqual(BigInt(parseInt(seqNum, 10)));
   });
 
   it(

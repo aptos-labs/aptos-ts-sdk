@@ -1,10 +1,10 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { MoveFunctionId, MoveStructId } from "../types/index.js";
-import { AccountAddress } from "../core/accountAddress.js";
-import { createObjectAddress } from "../core/account/utils/address.js";
-import { TEXT_ENCODER } from "./const.js";
+import { Base64, decode } from "js-base64";
+import { MoveFunctionId, MoveStructId } from "../types";
+import { AccountAddress } from "../core/accountAddress";
+import { createObjectAddress } from "../core/account/utils/address";
 
 /**
  * Checks if the current runtime environment is Bun.
@@ -21,17 +21,6 @@ export function isBun(): boolean {
   } catch {
     return false;
   }
-}
-
-/**
- * Read an environment variable in a runtime-agnostic way. Returns `undefined` when
- * `process.env` is not available (browsers, some bundlers) or the variable is unset.
- *
- * @group Implementation
- * @category Utils
- */
-export function getEnvVar(name: string): string | undefined {
-  return typeof process !== "undefined" ? process.env?.[name] : undefined;
 }
 
 /**
@@ -66,7 +55,7 @@ export function warnIfDevelopment(message: string): void {
  * @group Implementation
  * @category Utils
  */
-export async function sleep(timeMs: number): Promise<void> {
+export async function sleep(timeMs: number): Promise<null> {
   return new Promise((resolve) => {
     setTimeout(resolve, timeMs);
   });
@@ -117,52 +106,23 @@ export function floorToWholeHour(timestampInSeconds: number): number {
  * @category Utils
  */
 export function base64UrlDecode(base64Url: string): string {
-  // Decode the bytes, then interpret as UTF-8. `atob` alone returns a Latin-1 binary
-  // string which corrupts any non-ASCII characters in JWT headers/payloads.
-  return new TextDecoder("utf-8").decode(base64UrlToBytes(base64Url));
-}
-
-/**
- * Encode a string or byte array as a base64url string (RFC 4648 §5) with no padding.
- *
- * @param input - The data to encode. Strings are interpreted as UTF-8.
- * @returns The base64url-encoded string.
- * @group Implementation
- * @category Utils
- */
-export function base64UrlEncode(input: string | Uint8Array): string {
-  const bytes = typeof input === "string" ? TEXT_ENCODER.encode(input) : input;
-  // btoa requires a Latin-1 string. Build it in chunks of 8 KiB so we avoid
-  // `String.fromCharCode(...hugeArray)` call-stack overflows while still
-  // keeping conversion linear-time (concatenating per-byte is O(n^2) in many
-  // engines).
-  const CHUNK = 0x8000;
-  let binary = "";
-  if (bytes.length <= CHUNK) {
-    binary = String.fromCharCode.apply(null, bytes as unknown as number[]);
-  } else {
-    const parts: string[] = [];
-    for (let i = 0; i < bytes.length; i += CHUNK) {
-      const chunk = bytes.subarray(i, i + CHUNK);
-      parts.push(String.fromCharCode.apply(null, chunk as unknown as number[]));
-    }
-    binary = parts.join("");
-  }
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  // Replace base64url-specific characters
+  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  // Pad the string with '=' characters if needed
+  const paddedBase64 = base64 + "==".substring(0, (3 - (base64.length % 3)) % 3);
+  const decodedString = decode(paddedBase64);
+  return decodedString;
 }
 
 export function base64UrlToBytes(base64Url: string): Uint8Array {
-  // Convert base64url to standard base64, then decode with universal atob.
-  // Standard base64 encodes 3 bytes as 4 chars, so the decoded input length
-  // must be a multiple of 4 — pad with `=` based on `length % 4`.
-  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = base64 + "===".substring(0, (4 - (base64.length % 4)) % 4);
-  const binary = atob(padded);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
+  // Convert Base64Url to Base64
+  let base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  // Add padding if needed
+  while (base64.length % 4 !== 0) {
+    base64 += "=";
   }
-  return bytes;
+  // Use js-base64 to convert base64 to Uint8Array
+  return Base64.toUint8Array(base64);
 }
 
 /**

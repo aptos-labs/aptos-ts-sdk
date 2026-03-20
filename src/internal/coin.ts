@@ -1,11 +1,11 @@
-import { AptosConfig } from "../api/aptosConfig.js";
-import { AccountAddressInput } from "../core/index.js";
-import { EntryFunctionABI, InputGenerateTransactionOptions } from "../transactions/types.js";
-import { AnyNumber, MoveStructId } from "../types/index.js";
-import { APTOS_COIN } from "../utils/const.js";
-import { generateTransaction } from "./transactionSubmission.js";
-import { TypeTagAddress, TypeTagU64 } from "../transactions/index.js";
-import { SimpleTransaction } from "../transactions/instances/simpleTransaction.js";
+import { AptosConfig } from "../api/aptosConfig";
+import { AccountAddressInput } from "../core";
+import { EntryFunctionABI, InputGenerateTransactionOptions } from "../transactions/types";
+import { AnyNumber, MoveStructId } from "../types";
+import { APTOS_COIN } from "../utils/const";
+import { generateTransaction } from "./transactionSubmission";
+import { TypeTagAddress, TypeTagU64 } from "../transactions";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 const coinTransferAbi: EntryFunctionABI = {
   typeParameters: [{ constraints: [] }],

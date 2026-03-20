@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountAddress, AccountAddressInput } from "../core/index.js";
+import { AccountAddress, AccountAddressInput } from "../core";
 import {
   RegisterNameParameters,
   getExpiration,
@@ -22,11 +22,11 @@ import {
   GetAccountNamesArgs,
   getDomainSubdomains,
   GetDomainSubdomainsArgs,
-} from "../internal/ans.js";
-import { type AnsName } from "../types/index.js";
-import { InputGenerateTransactionOptions, InputEntryFunctionData } from "../transactions/types.js";
-import { AptosConfig } from "./aptosConfig.js";
-import { SimpleTransaction } from "../transactions/instances/simpleTransaction.js";
+} from "../internal/ans";
+import { type AnsName } from "../types";
+import { InputGenerateTransactionOptions, InputEntryFunctionData } from "../transactions/types";
+import { AptosConfig } from "./aptosConfig";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 /**
  * A class to handle all `ANS` operations.

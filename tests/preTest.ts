@@ -1,4 +1,4 @@
-import { LocalNode } from "../src/cli/localNode.js";
+import { LocalNode } from "../src/cli/localNode";
 
 let localNode: LocalNode;
 

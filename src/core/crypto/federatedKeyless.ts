@@ -1,11 +1,11 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountPublicKey, PublicKey } from "./publicKey.js";
-import { Deserializer, Serializer } from "../../bcs/index.js";
-import { HexInput, AnyPublicKeyVariant, SigningScheme } from "../../types/index.js";
-import { AuthenticationKey } from "../authenticationKey.js";
-import { AccountAddress, AccountAddressInput } from "../accountAddress.js";
+import { AccountPublicKey, PublicKey } from "./publicKey";
+import { Deserializer, Serializer } from "../../bcs";
+import { HexInput, AnyPublicKeyVariant, SigningScheme } from "../../types";
+import { AuthenticationKey } from "../authenticationKey";
+import { AccountAddress, AccountAddressInput } from "../accountAddress";
 import {
   KeylessConfiguration,
   KeylessPublicKey,
@@ -13,9 +13,9 @@ import {
   MoveJWK,
   verifyKeylessSignature,
   verifyKeylessSignatureWithJwkAndConfig,
-} from "./keyless.js";
-import { AptosConfig } from "../../api/aptosConfig.js";
-import { Signature } from "../index.js";
+} from "./keyless";
+import { AptosConfig } from "../../api";
+import { Signature } from "..";
 
 /**
  * Represents the FederatedKeylessPublicKey public key

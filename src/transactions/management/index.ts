@@ -1,2 +1,2 @@
-export * from "./accountSequenceNumber.js";
-export * from "./transactionWorker.js";
+export * from "./accountSequenceNumber";
+export * from "./transactionWorker";

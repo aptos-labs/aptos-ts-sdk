@@ -1,11 +1,11 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Serializable, Serializer } from "../../bcs/serializer.js";
-import { Deserializer } from "../../bcs/deserializer.js";
-import { AccountAddress } from "../../core/index.js";
-import { Identifier } from "./identifier.js";
-import { MoveModuleId } from "../../types/index.js";
+import { Serializable, Serializer } from "../../bcs/serializer";
+import { Deserializer } from "../../bcs/deserializer";
+import { AccountAddress } from "../../core";
+import { Identifier } from "./identifier";
+import { MoveModuleId } from "../../types";
 
 /**
  * Represents a ModuleId that can be serialized and deserialized.

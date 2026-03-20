@@ -1,8 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig, Aptos, Network } from "../../../src/index.js";
-import { longTestTimeout } from "../../unit/helper.js";
+import { AptosConfig, Aptos, Network } from "../../../src";
+import { longTestTimeout } from "../../unit/helper";
 
 describe("staking api", () => {
   test(

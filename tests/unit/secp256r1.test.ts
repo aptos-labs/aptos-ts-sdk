@@ -1,8 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { p256 } from "@noble/curves/nist.js";
-import { singleSignerSecp256r1 } from "./helper.js";
+import { p256 } from "@noble/curves/nist";
+import { singleSignerSecp256r1 } from "./helper";
 import {
   Deserializer,
   Hex,
@@ -12,19 +12,17 @@ import {
   Secp256r1PublicKey,
   Secp256r1Signature,
   Serializer,
-} from "../../src/index.js";
+} from "../../src";
 
 describe("Secp256r1PublicKey", () => {
   it("should create the instance correctly without error", () => {
     // Create from string
     const publicKey = new Secp256r1PublicKey(singleSignerSecp256r1.publicKey);
     expect(publicKey).toBeInstanceOf(Secp256r1PublicKey);
-    expect(publicKey.toString()).toEqual(
-      `0x${Hex.fromHexInput(singleSignerSecp256r1.publicKey).toStringWithoutPrefix()}`,
-    );
+    expect(publicKey.toString()).toEqual(`0x${singleSignerSecp256r1.publicKey.replace("0x", "")}`);
 
     // Create from Uint8Array
-    const hexUint8Array = p256.getPublicKey(p256.utils.randomSecretKey(), false);
+    const hexUint8Array = p256.getPublicKey(p256.utils.randomPrivateKey(), false);
     const publicKey2 = new Secp256r1PublicKey(hexUint8Array);
     expect(publicKey2).toBeInstanceOf(Secp256r1PublicKey);
     expect(publicKey2.toUint8Array()).toEqual(hexUint8Array);
@@ -34,8 +32,8 @@ describe("Secp256r1PublicKey", () => {
     const uncompressedPublicKey = Hex.fromHexInput(singleSignerSecp256r1.publicKey);
     expect(uncompressedPublicKey.toUint8Array().length).toEqual(65);
 
-    const point = p256.Point.fromHex(uncompressedPublicKey.toStringWithoutPrefix());
-    const compressedPublicKey = point.toBytes(true);
+    const point = p256.ProjectivePoint.fromHex(uncompressedPublicKey.toUint8Array());
+    const compressedPublicKey = point.toRawBytes(true);
     const compressedPublicKeyHex = Hex.fromHexInput(compressedPublicKey);
     expect(compressedPublicKey.length).toEqual(33);
 
@@ -86,12 +84,12 @@ describe("Secp256r1PublicKey", () => {
     publicKey.serialize(serializer);
 
     const serialized = Hex.fromHexInput(serializer.toUint8Array()).toString();
-    const expected = `0x41${Hex.fromHexInput(singleSignerSecp256r1.publicKey).toStringWithoutPrefix()}`;
+    const expected = `0x41${singleSignerSecp256r1.publicKey.replace("0x", "")}`;
     expect(serialized).toEqual(expected);
   });
 
   it("should deserialize correctly", () => {
-    const serializedPublicKeyStr = `0x41${Hex.fromHexInput(singleSignerSecp256r1.publicKey).toStringWithoutPrefix()}`;
+    const serializedPublicKeyStr = `0x41${singleSignerSecp256r1.publicKey.replace("0x", "")}`;
     const serializedPublicKey = Hex.fromHexString(serializedPublicKeyStr).toUint8Array();
     const deserializer = new Deserializer(serializedPublicKey);
     const publicKey = Secp256r1PublicKey.deserialize(deserializer);
@@ -160,13 +158,13 @@ describe("Secp256r1PrivateKey", () => {
 
     const received = Hex.fromHexInput(serializer.toUint8Array()).toString();
     const expectedHex = singleSignerSecp256r1.privateKey.replace("secp256r1-priv-", "");
-    const expected = `0x20${Hex.fromHexInput(expectedHex).toStringWithoutPrefix()}`;
+    const expected = `0x20${expectedHex.replace("0x", "")}`;
     expect(received).toEqual(expected);
   });
 
   it("should deserialize correctly", () => {
     const privateKeyHex = singleSignerSecp256r1.privateKey.replace("secp256r1-priv-", "");
-    const serializedPrivateKeyStr = `0x20${Hex.fromHexInput(privateKeyHex).toStringWithoutPrefix()}`;
+    const serializedPrivateKeyStr = `0x20${privateKeyHex.replace("0x", "")}`;
     const serializedPrivateKey = Hex.fromHexString(serializedPrivateKeyStr).toUint8Array();
     const deserializer = new Deserializer(serializedPrivateKey);
     const privateKey = Secp256r1PrivateKey.deserialize(deserializer);
@@ -222,12 +220,12 @@ describe("Secp256r1Signature", () => {
     signature.serialize(serializer);
 
     const received = Hex.fromHexInput(serializer.toUint8Array()).toString();
-    const expected = `0x40${Hex.fromHexInput(singleSignerSecp256r1.signatureHex).toStringWithoutPrefix()}`;
+    const expected = `0x40${singleSignerSecp256r1.signatureHex.replace("0x", "")}`;
     expect(received).toEqual(expected);
   });
 
   it("should deserialize correctly", () => {
-    const serializedSignature = `0x40${Hex.fromHexInput(singleSignerSecp256r1.signatureHex).toStringWithoutPrefix()}`;
+    const serializedSignature = `0x40${singleSignerSecp256r1.signatureHex.replace("0x", "")}`;
     const serializedSignatureUint8Array = Hex.fromHexString(serializedSignature).toUint8Array();
     const deserializer = new Deserializer(serializedSignatureUint8Array);
     const signature = Secp256r1Signature.deserialize(deserializer);

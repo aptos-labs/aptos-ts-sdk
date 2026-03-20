@@ -1,4 +1,4 @@
-import { convertAmountFromHumanReadableToOnChain, convertAmountFromOnChainToHumanReadable } from "../../src/index.js";
+import { convertAmountFromHumanReadableToOnChain, convertAmountFromOnChainToHumanReadable } from "../../src";
 
 describe("conversion", () => {
   test("it converts amount from human readable format to on chain format", () => {

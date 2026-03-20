@@ -1,9 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { MAX_U32_NUMBER } from "./consts.js";
-import { Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, HexInput } from "../types/index.js";
-import { Hex } from "../core/hex.js";
+import { MAX_U32_NUMBER } from "./consts";
+import { Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, HexInput } from "../types";
+import { Hex } from "../core/hex";
 
 /**
  * Shared TextDecoder instance for string deserialization to avoid repeated instantiation.

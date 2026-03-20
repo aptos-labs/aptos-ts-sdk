@@ -1,6 +1,6 @@
-import { AptosApiType } from "../utils/const.js";
-import { getErrorMessage } from "../utils/helpers.js";
-import { AptosRequest, AptosResponse } from "../types/index.js";
+import { AptosApiType } from "../utils/const";
+import { getErrorMessage } from "../utils/helpers";
+import { AptosRequest, AptosResponse } from "../types";
 
 export enum KeylessErrorCategory {
   API_ERROR,

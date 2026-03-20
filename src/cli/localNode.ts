@@ -2,7 +2,7 @@ import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import kill from "tree-kill";
 import { platform } from "node:os";
 
-import { sleep } from "../utils/helpers.js";
+import { sleep } from "../utils/helpers";
 
 /**
  * Represents a local node for running a localnet environment.

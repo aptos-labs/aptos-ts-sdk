@@ -3,6 +3,7 @@
 /**
  * This example shows an example of how one might send transactions elsewhere to be signed outside the SDK.
  */
+import dotenv from "dotenv";
 import { ed25519 } from "@noble/curves/ed25519.js";
 import {
   Account,
@@ -19,6 +20,8 @@ import {
   SimpleTransaction,
   InputViewFunctionJsonData,
 } from "@aptos-labs/ts-sdk";
+
+dotenv.config();
 
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
 const COLD_INITIAL_BALANCE = 1_000_000_000;

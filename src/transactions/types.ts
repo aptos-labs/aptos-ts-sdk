@@ -1,26 +1,12 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "../api/aptosConfig.js";
-import { MoveOption, MoveString, MoveVector } from "../bcs/serializable/moveStructs.js";
-import {
-  Bool,
-  I128,
-  I16,
-  I256,
-  I32,
-  I64,
-  I8,
-  U128,
-  U16,
-  U256,
-  U32,
-  U64,
-  U8,
-} from "../bcs/serializable/movePrimitives.js";
-import { FixedBytes } from "../bcs/serializable/fixedBytes.js";
-import { AccountAddress, AccountAddressInput } from "../core/index.js";
-import { PublicKey } from "../core/crypto/index.js";
+import { AptosConfig } from "../api/aptosConfig";
+import { MoveOption, MoveString, MoveVector } from "../bcs/serializable/moveStructs";
+import { Bool, I128, I16, I256, I32, I64, I8, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/movePrimitives";
+import { FixedBytes } from "../bcs/serializable/fixedBytes";
+import { AccountAddress, AccountAddressInput } from "../core";
+import { PublicKey } from "../core/crypto";
 import {
   MultiAgentRawTransaction,
   FeePayerRawTransaction,
@@ -29,7 +15,7 @@ import {
   TransactionPayloadMultiSig,
   TransactionPayloadScript,
   TransactionInnerPayload,
-} from "./instances/index.js";
+} from "./instances";
 import {
   AnyNumber,
   HexInput,
@@ -38,13 +24,12 @@ import {
   MoveStructId,
   MoveValue,
   TransactionSubmitter,
-} from "../types/index.js";
-import { TypeTag } from "./typeTag/index.js";
-import { AccountAuthenticator } from "./authenticator/account.js";
-import { SimpleTransaction } from "./instances/simpleTransaction.js";
-import { MultiAgentTransaction } from "./instances/multiAgentTransaction.js";
-import { Serialized } from "../bcs/index.js";
-import type { MoveStructArgument, MoveEnumArgument } from "./transactionBuilder/structEnumParser.js";
+} from "../types";
+import { TypeTag } from "./typeTag";
+import { AccountAuthenticator } from "./authenticator/account";
+import { SimpleTransaction } from "./instances/simpleTransaction";
+import { MultiAgentTransaction } from "./instances/multiAgentTransaction";
+import { Serialized } from "../bcs";
 
 /**
  * Entry function arguments for building a raw transaction using remote ABI, supporting various data types including primitives and arrays.
@@ -85,8 +70,6 @@ export type EntryFunctionArgumentTypes =
   | MoveVector<EntryFunctionArgumentTypes>
   | MoveOption<EntryFunctionArgumentTypes>
   | MoveString
-  | MoveStructArgument
-  | MoveEnumArgument
   | FixedBytes;
 
 /**
@@ -200,11 +183,7 @@ export type AnyTransactionPayloadInstance =
  * @group Implementation
  * @category Transactions
  */
-export type InputGenerateTransactionPayloadData =
-  | InputEntryFunctionData
-  | InputScriptData
-  | InputMultiSigData
-  | InputMultiSigScriptData;
+export type InputGenerateTransactionPayloadData = InputEntryFunctionData | InputScriptData | InputMultiSigData;
 
 /**
  * The payload for generating a transaction, which can be either script data, entry function data with remote ABI, or
@@ -214,7 +193,6 @@ export type InputGenerateTransactionPayloadData =
  */
 export type InputGenerateTransactionPayloadDataWithRemoteABI =
   | InputScriptData
-  | InputMultiSigScriptData
   | InputEntryFunctionDataWithRemoteABI
   | InputMultiSigDataWithRemoteABI;
 
@@ -244,7 +222,6 @@ export type InputGenerateTransactionPayloadDataWithABI = InputEntryFunctionDataW
  */
 export type InputEntryFunctionDataWithABI = Omit<InputEntryFunctionData, "abi"> & {
   abi: EntryFunctionABI;
-  aptosConfig?: AptosConfig;
 };
 
 /**
@@ -292,15 +269,6 @@ export type InputScriptData = {
 };
 
 /**
- * The data needed to generate a Multi Sig payload with a Script.
- * @group Implementation
- * @category Transactions
- */
-export type InputMultiSigScriptData = {
-  multisigAddress: AccountAddressInput;
-} & InputScriptData;
-
-/**
  * The data needed to generate a View Function payload.
  * @group Implementation
  * @category Transactions
@@ -346,10 +314,7 @@ export type InputViewFunctionDataWithRemoteABI = InputViewFunctionData & { aptos
  * @group Implementation
  * @category Transactions
  */
-export type InputViewFunctionDataWithABI = InputViewFunctionData & {
-  abi: ViewFunctionABI;
-  aptosConfig?: AptosConfig;
-};
+export type InputViewFunctionDataWithABI = InputViewFunctionData & { abi: ViewFunctionABI };
 
 /**
  * Data needed for a generic function ABI, applicable to both view and entry functions.

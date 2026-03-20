@@ -1,9 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Deserializer } from "../../bcs/deserializer.js";
-import { Serializable, Serializer } from "../../bcs/serializer.js";
-import { EntryFunctionBytes } from "../../bcs/serializable/entryFunctionBytes.js";
+import { Deserializer } from "../../bcs/deserializer";
+import { Serializable, Serializer } from "../../bcs/serializer";
+import { EntryFunctionBytes } from "../../bcs/serializable/entryFunctionBytes";
 import {
   Bool,
   U128,
@@ -18,23 +18,22 @@ import {
   I64,
   I128,
   I256,
-} from "../../bcs/serializable/movePrimitives.js";
-import { MoveVector, Serialized } from "../../bcs/serializable/moveStructs.js";
-import { AccountAddress } from "../../core/index.js";
-import { Identifier } from "./identifier.js";
-import { ModuleId } from "./moduleId.js";
-import type { EntryFunctionArgument, ScriptFunctionArgument, TransactionArgument } from "./transactionArgument.js";
+} from "../../bcs/serializable/movePrimitives";
+import { MoveVector, Serialized } from "../../bcs/serializable/moveStructs";
+import { AccountAddress } from "../../core";
+import { Identifier } from "./identifier";
+import { ModuleId } from "./moduleId";
+import type { EntryFunctionArgument, ScriptFunctionArgument, TransactionArgument } from "./transactionArgument";
 import {
   AnyNumber,
   MoveModuleId,
-  MultiSigTransactionPayloadVariants,
   ScriptTransactionArgumentVariants,
   TransactionExecutableVariants,
   TransactionExtraConfigVariants,
   TransactionInnerPayloadVariants,
   TransactionPayloadVariants,
-} from "../../types/index.js";
-import { TypeTag } from "../typeTag/index.js";
+} from "../../types";
+import { TypeTag } from "../typeTag";
 
 /**
  * Deserialize a Script Transaction Argument.
@@ -511,42 +510,39 @@ export class MultiSig {
  * @category Transactions
  */
 export class MultiSigTransactionPayload extends Serializable {
-  public readonly transaction_payload: EntryFunction | Script;
+  public readonly transaction_payload: EntryFunction;
 
   /**
    * Contains the payload to run a multi-sig account transaction.
    *
    * @param transaction_payload The payload of the multi-sig transaction.
-   * This can be an EntryFunction or a Script.
+   * This can only be EntryFunction for now but,
+   * Script might be supported in the future.
    * @group Implementation
    * @category Transactions
    */
-  constructor(transaction_payload: EntryFunction | Script) {
+  constructor(transaction_payload: EntryFunction) {
     super();
     this.transaction_payload = transaction_payload;
   }
 
   serialize(serializer: Serializer): void {
-    if (this.transaction_payload instanceof EntryFunction) {
-      serializer.serializeU32AsUleb128(MultiSigTransactionPayloadVariants.EntryFunction);
-    } else if (this.transaction_payload instanceof Script) {
-      serializer.serializeU32AsUleb128(MultiSigTransactionPayloadVariants.Script);
-    } else {
-      throw new Error("Unsupported multisig transaction payload type");
-    }
+    /**
+     * We can support multiple types of inner transaction payload in the future.
+     * For now, it's only EntryFunction but if we support more types,
+     * we need to serialize with the right enum values here
+     * @group Implementation
+     * @category Transactions
+     */
+    serializer.serializeU32AsUleb128(0);
     this.transaction_payload.serialize(serializer);
   }
 
   static deserialize(deserializer: Deserializer): MultiSigTransactionPayload {
-    const variant = deserializer.deserializeUleb128AsU32();
-    switch (variant) {
-      case MultiSigTransactionPayloadVariants.EntryFunction:
-        return new MultiSigTransactionPayload(EntryFunction.deserialize(deserializer));
-      case MultiSigTransactionPayloadVariants.Script:
-        return new MultiSigTransactionPayload(Script.deserialize(deserializer));
-      default:
-        throw new Error(`Unknown MultisigTransactionPayload variant: ${variant}`);
-    }
+    // TODO: Support other types of payload beside EntryFunction.
+    // This is the enum value indicating which type of payload the multisig tx contains.
+    deserializer.deserializeUleb128AsU32();
+    return new MultiSigTransactionPayload(EntryFunction.deserialize(deserializer));
   }
 }
 

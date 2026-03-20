@@ -1,13 +1,13 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-export * from "./chainId.js";
-export * from "./identifier.js";
-export * from "./moduleId.js";
-export * from "./rawTransaction.js";
-export * from "./rotationProofChallenge.js";
-export * from "./signedTransaction.js";
-export * from "./transactionArgument.js";
-export * from "./transactionPayload.js";
-export * from "./simpleTransaction.js";
-export * from "./multiAgentTransaction.js";
+export * from "./chainId";
+export * from "./identifier";
+export * from "./moduleId";
+export * from "./rawTransaction";
+export * from "./rotationProofChallenge";
+export * from "./signedTransaction";
+export * from "./transactionArgument";
+export * from "./transactionPayload";
+export * from "./simpleTransaction";
+export * from "./multiAgentTransaction";

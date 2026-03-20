@@ -1,11 +1,11 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Serializer, Serializable } from "../../bcs/serializer.js";
-import { AccountAddress } from "../../core/accountAddress.js";
-import { AnyNumber } from "../../types/index.js";
-import { PublicKey } from "../../core/crypto/index.js";
-import { MoveString, MoveVector, U64, U8 } from "../../bcs/index.js";
+import { Serializer, Serializable } from "../../bcs/serializer";
+import { AccountAddress } from "../../core/accountAddress";
+import { AnyNumber } from "../../types";
+import { PublicKey } from "../../core/crypto";
+import { MoveString, MoveVector, U64, U8 } from "../../bcs";
 
 /**
  * Represents a challenge required for the account owner to sign in order to rotate the authentication key.

@@ -22,6 +22,9 @@ import {
   NetworkToNetworkName,
 } from "@aptos-labs/ts-sdk";
 import { MultiEd25519Account } from "@aptos-labs/ts-sdk";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
 const MULTI_ED25519_INITIAL_BALANCE = 1_000_000_000;
@@ -42,7 +45,9 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress): Pro
 };
 
 const example = async () => {
-  console.log("This example will create a 2-of-3 MultiEd25519 account, fund it, and transfer from it.");
+  console.log(
+    "This example will create a 2-of-3 MultiEd25519 account, fund it, and transfer from it.",
+  );
 
   const config = new AptosConfig({ network: APTOS_NETWORK });
   const aptos = new Aptos(config);

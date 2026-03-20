@@ -6,24 +6,26 @@
  * It holds different operations to generate a transaction payload, a raw transaction,
  * and a signed transaction that can be simulated, signed and submitted to chain.
  */
-import { sha3_256 as sha3Hash } from "@noble/hashes/sha3.js";
-import { AptosConfig } from "../../api/aptosConfig.js";
-import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core/index.js";
+import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
+import { AptosConfig } from "../../api/aptosConfig";
+import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
 import {
   AnyPublicKey,
   AnySignature,
+  KeylessPublicKey,
+  KeylessSignature,
   Secp256k1PublicKey,
+  FederatedKeylessPublicKey,
   MultiKey,
   MultiKeySignature,
-} from "../../core/crypto/index.js";
-import { AnyPublicKeyVariant } from "../../types/index.js";
-import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519.js";
-import { getInfo } from "../../internal/utils/index.js";
-import { getLedgerInfo } from "../../internal/general.js";
-import { getGasPriceEstimation } from "../../internal/transaction.js";
-import { NetworkToChainId } from "../../utils/apiEndpoints.js";
-import { MIN_MAX_GAS_AMOUNT, TEXT_ENCODER } from "../../utils/const.js";
-import { normalizeBundle } from "../../utils/normalizeBundle.js";
+} from "../../core/crypto";
+import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
+import { getInfo } from "../../internal/utils";
+import { getLedgerInfo } from "../../internal/general";
+import { getGasPriceEstimation } from "../../internal/transaction";
+import { NetworkToChainId } from "../../utils/apiEndpoints";
+import { MIN_MAX_GAS_AMOUNT } from "../../utils/const";
+import { normalizeBundle } from "../../utils/normalizeBundle";
 import {
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
@@ -31,7 +33,7 @@ import {
   AccountAuthenticatorMultiKey,
   AccountAuthenticatorNoAccountAuthenticator,
   AccountAuthenticatorSingleKey,
-} from "../authenticator/account.js";
+} from "../authenticator/account";
 import {
   TransactionAuthenticator,
   TransactionAuthenticatorEd25519,
@@ -39,7 +41,7 @@ import {
   TransactionAuthenticatorMultiAgent,
   TransactionAuthenticatorMultiEd25519,
   TransactionAuthenticatorSingleSender,
-} from "../authenticator/transaction.js";
+} from "../authenticator/transaction";
 import {
   ChainId,
   EntryFunction,
@@ -53,8 +55,8 @@ import {
   TransactionPayloadEntryFunction,
   TransactionPayloadMultiSig,
   TransactionPayloadScript,
-} from "../instances/index.js";
-import { SignedTransaction } from "../instances/signedTransaction.js";
+} from "../instances";
+import { SignedTransaction } from "../instances/signedTransaction";
 import {
   AnyRawTransaction,
   AnyTransactionPayloadInstance,
@@ -75,13 +77,13 @@ import {
   InputViewFunctionDataWithRemoteABI,
   InputViewFunctionDataWithABI,
   FunctionABI,
-} from "../types.js";
-import { convertArgument, fetchEntryFunctionAbi, fetchViewFunctionAbi, standardizeTypeTags } from "./remoteAbi.js";
-import { memoizeAsync } from "../../utils/memoize.js";
-import { isScriptDataInput } from "./helpers.js";
-import { SimpleTransaction } from "../instances/simpleTransaction.js";
-import { MultiAgentTransaction } from "../instances/multiAgentTransaction.js";
-import { getFunctionParts } from "../../utils/helpers.js";
+} from "../types";
+import { convertArgument, fetchEntryFunctionAbi, fetchViewFunctionAbi, standardizeTypeTags } from "./remoteAbi";
+import { memoizeAsync } from "../../utils/memoize";
+import { isScriptDataInput } from "./helpers";
+import { SimpleTransaction } from "../instances/simpleTransaction";
+import { MultiAgentTransaction } from "../instances/multiAgentTransaction";
+import { getFunctionParts } from "../../utils/helpers";
 import {
   TransactionExecutable,
   TransactionExecutableEmpty,
@@ -89,7 +91,7 @@ import {
   TransactionExecutableScript,
   TransactionExtraConfigV1,
   TransactionInnerPayloadV1,
-} from "../instances/transactionPayload.js";
+} from "../instances/transactionPayload";
 
 /**
  * Builds a transaction payload based on the provided arguments and returns a transaction payload.
@@ -140,15 +142,7 @@ export async function generateTransactionPayload(
   args: InputGenerateTransactionPayloadDataWithRemoteABI,
 ): Promise<AnyTransactionPayloadInstance> {
   if (isScriptDataInput(args)) {
-    const scriptPayload = generateTransactionPayloadScript(args);
-    // If multisigAddress is present, wrap the script in a multisig payload
-    if ("multisigAddress" in args) {
-      const multisigAddress = AccountAddress.from(args.multisigAddress);
-      return new TransactionPayloadMultiSig(
-        new MultiSig(multisigAddress, new MultiSigTransactionPayload(scriptPayload.script)),
-      );
-    }
-    return scriptPayload;
+    return generateTransactionPayloadScript(args);
   }
   const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
 
@@ -486,10 +480,9 @@ export function convertPayloadToInnerPayload(
       executable = new TransactionExecutableEmpty();
     } else if (innerPayload.transaction_payload instanceof EntryFunction) {
       executable = new TransactionExecutableEntryFunction(innerPayload.transaction_payload);
-    } else if (innerPayload.transaction_payload instanceof Script) {
-      executable = new TransactionExecutableScript(innerPayload.transaction_payload);
     } else {
-      throw new Error("Unsupported multisig transaction payload type");
+      // TODO For now, scripts are not supported in multi-sig transactions, so it's always entry function
+      throw new Error("Scripts are not supported in multi-sig transactions.");
     }
 
     return new TransactionInnerPayloadV1(
@@ -587,10 +580,10 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
  * @group Implementation
  * @category Transactions
  */
-export async function generateSignedTransactionForSimulation(args: InputSimulateTransactionData): Promise<Uint8Array> {
+export function generateSignedTransactionForSimulation(args: InputSimulateTransactionData): Uint8Array {
   const { signerPublicKey, transaction, secondarySignersPublicKeys, feePayerPublicKey } = args;
 
-  const accountAuthenticator = await getAuthenticatorForSimulation(signerPublicKey);
+  const accountAuthenticator = getAuthenticatorForSimulation(signerPublicKey);
 
   // fee payer transaction
   if (transaction.feePayerAddress) {
@@ -602,18 +595,16 @@ export async function generateSignedTransactionForSimulation(args: InputSimulate
     let secondaryAccountAuthenticators: Array<AccountAuthenticator> = [];
     if (transaction.secondarySignerAddresses) {
       if (secondarySignersPublicKeys) {
-        secondaryAccountAuthenticators = await Promise.all(
-          secondarySignersPublicKeys.map((publicKey) => getAuthenticatorForSimulation(publicKey)),
+        secondaryAccountAuthenticators = secondarySignersPublicKeys.map((publicKey) =>
+          getAuthenticatorForSimulation(publicKey),
         );
       } else {
-        secondaryAccountAuthenticators = await Promise.all(
-          Array.from({ length: transaction.secondarySignerAddresses.length }, () =>
-            getAuthenticatorForSimulation(undefined),
-          ),
+        secondaryAccountAuthenticators = Array.from({ length: transaction.secondarySignerAddresses.length }, () =>
+          getAuthenticatorForSimulation(undefined),
         );
       }
     }
-    const feePayerAuthenticator = await getAuthenticatorForSimulation(feePayerPublicKey);
+    const feePayerAuthenticator = getAuthenticatorForSimulation(feePayerPublicKey);
 
     const transactionAuthenticator = new TransactionAuthenticatorFeePayer(
       accountAuthenticator,
@@ -637,14 +628,12 @@ export async function generateSignedTransactionForSimulation(args: InputSimulate
     let secondaryAccountAuthenticators: Array<AccountAuthenticator> = [];
 
     if (secondarySignersPublicKeys) {
-      secondaryAccountAuthenticators = await Promise.all(
-        secondarySignersPublicKeys.map((publicKey) => getAuthenticatorForSimulation(publicKey)),
+      secondaryAccountAuthenticators = secondarySignersPublicKeys.map((publicKey) =>
+        getAuthenticatorForSimulation(publicKey),
       );
     } else {
-      secondaryAccountAuthenticators = await Promise.all(
-        Array.from({ length: transaction.secondarySignerAddresses.length }, () =>
-          getAuthenticatorForSimulation(undefined),
-        ),
+      secondaryAccountAuthenticators = Array.from({ length: transaction.secondarySignerAddresses.length }, () =>
+        getAuthenticatorForSimulation(undefined),
       );
     }
 
@@ -681,23 +670,18 @@ export async function generateSignedTransactionForSimulation(args: InputSimulate
  * @group Implementation
  * @category Transactions
  */
-export async function getAuthenticatorForSimulation(publicKey?: PublicKey) {
+export function getAuthenticatorForSimulation(publicKey?: PublicKey) {
   if (!publicKey) {
     return new AccountAuthenticatorNoAccountAuthenticator();
   }
 
   // Wrap the public key types below with AnyPublicKey as they are only support through single sender.
   // Learn more about AnyPublicKey here - https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-55.md
-  // Detect keyless public keys by duck-typing to avoid importing poseidon-heavy modules
-  const detectKeylessVariant = (key: PublicKey): AnyPublicKeyVariant | undefined => {
-    if ("jwkAddress" in key && "keylessPublicKey" in key) return AnyPublicKeyVariant.FederatedKeyless;
-    if ("iss" in key && typeof key.iss === "string" && "idCommitment" in key) return AnyPublicKeyVariant.Keyless;
-    return undefined;
-  };
-  const keylessVariant = detectKeylessVariant(publicKey);
-  const convertToAnyPublicKey = keylessVariant !== undefined || Secp256k1PublicKey.isInstance(publicKey);
-  // Pass variant explicitly for keyless keys to avoid instanceof-based registry detection
-  const accountPublicKey = convertToAnyPublicKey ? new AnyPublicKey(publicKey, keylessVariant) : publicKey;
+  const convertToAnyPublicKey =
+    KeylessPublicKey.isInstance(publicKey) ||
+    FederatedKeylessPublicKey.isInstance(publicKey) ||
+    Secp256k1PublicKey.isInstance(publicKey);
+  const accountPublicKey = convertToAnyPublicKey ? new AnyPublicKey(publicKey) : publicKey;
 
   // No need to for the signature to be matching in scheme. All that matters for simulations is that it's not valid
   const invalidSignature = new Ed25519Signature(new Uint8Array(64));
@@ -707,12 +691,7 @@ export async function getAuthenticatorForSimulation(publicKey?: PublicKey) {
   }
 
   if (AnyPublicKey.isInstance(accountPublicKey)) {
-    if (
-      accountPublicKey.variant === AnyPublicKeyVariant.Keyless ||
-      accountPublicKey.variant === AnyPublicKeyVariant.FederatedKeyless
-    ) {
-      // Dynamic import to avoid pulling poseidon-lite into the main bundle
-      const { KeylessSignature } = await import("../../core/crypto/keyless.js");
+    if (KeylessPublicKey.isInstance(accountPublicKey.publicKey)) {
       return new AccountAuthenticatorSingleKey(
         accountPublicKey,
         new AnySignature(KeylessSignature.getSimulationSignature()),
@@ -722,22 +701,15 @@ export async function getAuthenticatorForSimulation(publicKey?: PublicKey) {
   }
 
   if (MultiKey.isInstance(accountPublicKey)) {
-    let keylessSignatureModule: typeof import("../../core/crypto/keyless.js") | undefined;
     return new AccountAuthenticatorMultiKey(
       accountPublicKey,
       new MultiKeySignature({
-        signatures: await Promise.all(
-          accountPublicKey.publicKeys.map(async (pubKey) => {
-            if (
-              pubKey.variant === AnyPublicKeyVariant.Keyless ||
-              pubKey.variant === AnyPublicKeyVariant.FederatedKeyless
-            ) {
-              keylessSignatureModule ??= await import("../../core/crypto/keyless.js");
-              return new AnySignature(keylessSignatureModule.KeylessSignature.getSimulationSignature());
-            }
-            return new AnySignature(invalidSignature);
-          }),
-        ),
+        signatures: accountPublicKey.publicKeys.map((pubKey) => {
+          if (KeylessPublicKey.isInstance(pubKey.publicKey) || FederatedKeylessPublicKey.isInstance(pubKey.publicKey)) {
+            return new AnySignature(KeylessSignature.getSimulationSignature());
+          }
+          return new AnySignature(invalidSignature);
+        }),
         bitmap: accountPublicKey.createBitmap({
           bits: new Array(accountPublicKey.publicKeys.length).fill(0).map((_, i) => i),
         }),
@@ -820,7 +792,7 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
 export function hashValues(input: (Uint8Array | string)[]): Uint8Array {
   const hash = sha3Hash.create();
   for (const item of input) {
-    hash.update(typeof item === "string" ? TEXT_ENCODER.encode(item) : item);
+    hash.update(item);
   }
   return hash.digest();
 }

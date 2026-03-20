@@ -1,7 +1,7 @@
-import { waitForIndexer } from "../internal/transaction.js";
-import { ProcessorType } from "../utils/index.js";
-import { AptosConfig } from "./aptosConfig.js";
-import { AnyNumber } from "../types/index.js";
+import { waitForIndexer } from "../internal/transaction";
+import { ProcessorType } from "../utils";
+import { AptosConfig } from "./aptosConfig";
+import { AnyNumber } from "../types";
 
 /**
  * Waits for the indexer to reach a specified ledger version, allowing for synchronization with the blockchain.

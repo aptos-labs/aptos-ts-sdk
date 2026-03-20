@@ -35,7 +35,7 @@ import {
   GetTableItemsDataQuery,
   GetTableItemsMetadataQuery,
   GetAccountAddressesForAuthKeyQuery,
-} from "./generated/operations.js";
+} from "./generated/operations";
 
 /**
  * CUSTOM RESPONSE TYPES FOR THE END USER

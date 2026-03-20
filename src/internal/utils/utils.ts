@@ -1,8 +1,8 @@
-import { AccountAddress, AccountAddressInput } from "../../core/accountAddress.js";
-import { MoveModuleBytecode, LedgerVersionArg, AccountData } from "../../types/types.js";
-import { AptosConfig } from "../../api/aptosConfig.js";
-import { getAptosFullNode } from "../../client/index.js";
-import { memoizeAsync } from "../../utils/memoize.js";
+import { AccountAddress, AccountAddressInput } from "../../core/accountAddress";
+import { MoveModuleBytecode, LedgerVersionArg, AccountData } from "../../types/types";
+import { AptosConfig } from "../../api/aptosConfig";
+import { getAptosFullNode } from "../../client";
+import { memoizeAsync } from "../../utils/memoize";
 
 /**
  * Retrieves account information for a specified account address.

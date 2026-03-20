@@ -1,9 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account } from "../../../src/index.js";
-import { FUND_AMOUNT } from "../../unit/helper.js";
-import { getAptosClient } from "../helper.js";
+import { Account } from "../../../src";
+import { FUND_AMOUNT } from "../../unit/helper";
+import { getAptosClient } from "../helper";
 
 // use it here since all tests use the same configuration
 const { aptos } = getAptosClient();

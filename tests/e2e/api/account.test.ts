@@ -15,9 +15,9 @@ import {
   MultiEd25519Account,
   MultiEd25519PublicKey,
   CommittedTransactionResponse,
-} from "../../../src/index.js";
-import { getAptosClient } from "../helper.js";
-import { simpleCoinTransactionHeler } from "../transaction/helper.js";
+} from "../../../src";
+import { getAptosClient } from "../helper";
+import { simpleCoinTransactionHeler } from "../transaction/helper";
 
 describe("account api", () => {
   const FUND_AMOUNT = 1_000_000_000;
@@ -441,7 +441,7 @@ describe("account api", () => {
       test("fails when account not created/funded and throwIfNoAccountFound is true", async () => {
         const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
 
-        await expect(async () => {
+        expect(async () => {
           await aptos.deriveAccountFromPrivateKey({
             privateKey: account.privateKey,
             options: { throwIfNoAccountFound: true },

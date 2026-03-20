@@ -1,8 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, APTOS_COIN, APTOS_FA } from "../../../src/index.js";
-import { getAptosClient } from "../helper.js";
+import { Account, APTOS_COIN, APTOS_FA } from "../../../src";
+import { getAptosClient } from "../helper";
 
 const { aptos } = getAptosClient();
 

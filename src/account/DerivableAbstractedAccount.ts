@@ -1,11 +1,10 @@
-import { sha3_256 } from "@noble/hashes/sha3.js";
-import { Serializer } from "../bcs/serializer.js";
-import { AccountAddress } from "../core/accountAddress.js";
-import { Hex } from "../core/hex.js";
-import { AccountAuthenticatorAbstraction } from "../transactions/authenticator/account.js";
-import { HexInput, MoveFunctionId } from "../types/index.js";
-import { isValidFunctionInfo } from "../utils/helpers.js";
-import { AbstractedAccount } from "./AbstractedAccount.js";
+import { sha3_256 } from "@noble/hashes/sha3";
+import { Serializer } from "../bcs/serializer";
+import { AccountAddress } from "../core/accountAddress";
+import { AccountAuthenticatorAbstraction } from "../transactions/authenticator/account";
+import { HexInput } from "../types";
+import { isValidFunctionInfo } from "../utils/helpers";
+import { AbstractedAccount } from "./AbstractedAccount";
 
 type DerivableAbstractedAccountArgs = {
   /**
@@ -24,7 +23,7 @@ type DerivableAbstractedAccountArgs = {
    * const authenticationFunction = `${accountAddress}::permissioned_delegation::authenticate`;
    * ```
    */
-  authenticationFunction: MoveFunctionId;
+  authenticationFunction: string;
 
   /**
    * The abstract public key that is used to identify the account.
@@ -92,11 +91,10 @@ export class DerivableAbstractedAccount extends AbstractedAccount {
   }
 
   signWithAuthenticator(message: HexInput): AccountAuthenticatorAbstraction {
-    const messageBytes = Hex.fromHexInput(message).toUint8Array();
     return new AccountAuthenticatorAbstraction(
       this.authenticationFunction,
-      sha3_256(messageBytes),
-      this.sign(sha3_256(messageBytes)).value,
+      sha3_256(message),
+      this.sign(sha3_256(message)).value,
       this.abstractPublicKey,
     );
   }

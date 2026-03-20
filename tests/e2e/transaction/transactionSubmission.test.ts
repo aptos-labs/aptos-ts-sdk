@@ -21,22 +21,22 @@ import {
   AccountAuthenticatorSingleKey,
   generateSigningMessageForTransaction,
   Hex,
-  base64UrlEncode,
-} from "../../../src/index.js";
-import { p256 } from "@noble/curves/nist.js";
-import { sha256 } from "@noble/hashes/sha2.js";
-import { sha3_256 } from "@noble/hashes/sha3.js";
-import { MAX_U64_BIG_INT } from "../../../src/bcs/consts.js";
-import { longTestTimeout } from "../../unit/helper.js";
-import { getAptosClient } from "../helper.js";
+} from "../../../src";
+import { p256 } from "@noble/curves/nist";
+import { sha256 } from "@noble/hashes/sha2";
+import { sha3_256 } from "@noble/hashes/sha3";
+import { MAX_U64_BIG_INT } from "../../../src/bcs/consts";
+import { longTestTimeout } from "../../unit/helper";
+import { getAptosClient } from "../helper";
 import {
+  b64urlEncode,
   fundAccounts,
   multiSignerScriptBytecode,
   publishTransferPackage,
   singleSignerScriptBytecode,
-} from "./helper.js";
-import { AccountAuthenticatorNoAccountAuthenticator } from "../../../src/transactions/index.js";
-import { MultiEd25519Account } from "../../../src/account/MultiEd25519Account.js";
+} from "./helper";
+import { AccountAuthenticatorNoAccountAuthenticator } from "../../../src/transactions";
+import { MultiEd25519Account } from "../../../src/account/MultiEd25519Account";
 import { fail } from "node:assert";
 
 const { aptos } = getAptosClient();
@@ -1065,7 +1065,7 @@ describe("transaction submission", () => {
       const challenge = sha3_256(message);
       const clientDataObj = {
         type: "webauthn.get",
-        challenge: base64UrlEncode(challenge),
+        challenge: b64urlEncode(challenge),
         origin: "http://localhost:5173",
         crossOrigin: false,
       } as const;
@@ -1082,7 +1082,8 @@ describe("transaction submission", () => {
       toBeSigned.set(clientHash, authenticatorData.length);
       const webauthnDigest = sha256(toBeSigned);
       const privBytes = Hex.fromHexInput(privateKey.toHexString()).toUint8Array();
-      const signatureBytes = p256.sign(webauthnDigest, privBytes, { prehash: false });
+      const sig = p256.sign(webauthnDigest, privBytes).normalizeS();
+      const signatureBytes = sig.toCompactRawBytes();
       const webAuthnSignature = new WebAuthnSignature(signatureBytes, authenticatorData, clientDataJSON);
 
       // Create account authenticator
@@ -1125,7 +1126,7 @@ describe("transaction submission", () => {
       const challenge = sha3_256(message);
       const clientDataObj = {
         type: "webauthn.get",
-        challenge: base64UrlEncode(challenge),
+        challenge: b64urlEncode(challenge),
         origin: "http://localhost:5173",
         crossOrigin: false,
       } as const;
@@ -1141,7 +1142,8 @@ describe("transaction submission", () => {
       toBeSigned.set(clientHash, authenticatorData.length);
       const webauthnDigest = sha256(toBeSigned);
       const privBytes = Hex.fromHexInput(privateKey.toHexString()).toUint8Array();
-      const signatureBytes = p256.sign(webauthnDigest, privBytes, { prehash: false });
+      const sig = p256.sign(webauthnDigest, privBytes).normalizeS();
+      const signatureBytes = sig.toCompactRawBytes();
       const webAuthnSignature = new WebAuthnSignature(signatureBytes, authenticatorData, clientDataJSON);
 
       const anySignature = new AnySignature(webAuthnSignature);

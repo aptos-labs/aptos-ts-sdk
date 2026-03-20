@@ -1,10 +1,10 @@
-import { AccountAddress, TEXT_ENCODER } from "../../src/index.js";
+import { AccountAddress, TEXT_ENCODER } from "../../src";
 import {
   createTokenAddress,
   createObjectAddress,
   createResourceAddress,
   createUserDerivedObjectAddress,
-} from "../../src/core/account/utils/address.js";
+} from "../../src/core/account/utils/address";
 
 describe("address", () => {
   /**
