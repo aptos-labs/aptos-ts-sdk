@@ -31,7 +31,7 @@ dotenv.config();
 
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
 const MULTIKEY_INITIAL_BALANCE = 1_000_000_000;
-const RECEIVER_INITIAL_BALANCE = 0;
+const RECEIVER_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 100;
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
