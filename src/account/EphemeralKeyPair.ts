@@ -6,7 +6,7 @@ import { randomBytes } from "@noble/hashes/utils";
 import {
   bytesToBigIntLE,
   padAndPackBytesWithLen,
-  poseidonHash,
+  poseidonHashSync,
   ensurePoseidonLoaded,
   Ed25519PrivateKey,
   EphemeralPublicKey,
@@ -102,7 +102,7 @@ export class EphemeralKeyPair extends Serializable {
     const fields = padAndPackBytesWithLen(this.publicKey.bcsToBytes(), 93);
     fields.push(BigInt(this.expiryDateSecs));
     fields.push(bytesToBigIntLE(this.blinder));
-    const nonceHash = poseidonHash(fields);
+    const nonceHash = poseidonHashSync(fields);
     this.nonce = nonceHash.toString();
   }
 

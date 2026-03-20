@@ -21,9 +21,10 @@ import {
   bigIntToBytesLE,
   bytesToBigIntLE,
   hashStrToField,
+  hashStrToFieldSync,
   padAndPackBytesWithLen,
   poseidonHash,
-  ensurePoseidonLoaded,
+  poseidonHashSync,
 } from "./poseidon";
 import { AuthenticationKey } from "../authenticationKey";
 import { Proof } from "./proof";
@@ -181,15 +182,10 @@ export class KeylessPublicKey extends AccountPublicKey {
     jwk: MoveJWK;
     keylessConfig: KeylessConfiguration;
   }): boolean {
-    try {
-      verifyKeylessSignatureWithJwkAndConfig({ ...args, publicKey: this });
-      return true;
-    } catch (error) {
-      if (error instanceof KeylessError) {
-        return false;
-      }
-      throw error;
-    }
+    throw new Error(
+      "KeylessPublicKey.verifySignature is no longer synchronous. Use verifySignatureAsync() instead, " +
+        "or call verifyKeylessSignatureWithJwkAndConfig() directly (which is now async).",
+    );
   }
 
   /**
@@ -288,15 +284,30 @@ export class KeylessPublicKey extends AccountPublicKey {
    * @group Implementation
    * @category Serialization
    */
-  static create(args: {
+  static async create(args: {
+    iss: string;
+    uidKey: string;
+    uidVal: string;
+    aud: string;
+    pepper: HexInput;
+  }): Promise<KeylessPublicKey> {
+    return new KeylessPublicKey(args.iss, await computeIdCommitment(args));
+  }
+
+  /**
+   * Synchronous version of `create` for use in constructors and deserialization.
+   * Requires that poseidon-lite has been loaded (via `ensurePoseidonLoaded()` or any async poseidon call).
+   * @group Implementation
+   * @category Serialization
+   */
+  static createSync(args: {
     iss: string;
     uidKey: string;
     uidVal: string;
     aud: string;
     pepper: HexInput;
   }): KeylessPublicKey {
-    computeIdCommitment(args);
-    return new KeylessPublicKey(args.iss, computeIdCommitment(args));
+    return new KeylessPublicKey(args.iss, computeIdCommitmentSync(args));
   }
 
   /**
@@ -311,7 +322,7 @@ export class KeylessPublicKey extends AccountPublicKey {
    * @group Implementation
    * @category Serialization
    */
-  static fromJwtAndPepper(args: { jwt: string; pepper: HexInput; uidKey?: string }): KeylessPublicKey {
+  static async fromJwtAndPepper(args: { jwt: string; pepper: HexInput; uidKey?: string }): Promise<KeylessPublicKey> {
     const { jwt, pepper, uidKey = "sub" } = args;
     const jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
     if (typeof jwtPayload.iss !== "string") {
@@ -351,7 +362,6 @@ export async function verifyKeylessSignature(args: {
   jwk?: MoveJWK;
   options?: { throwErrorWithReason?: boolean };
 }): Promise<boolean> {
-  await ensurePoseidonLoaded();
   const {
     aptosConfig,
     publicKey,
@@ -368,7 +378,7 @@ export async function verifyKeylessSignature(args: {
         details: "Not a keyless signature",
       });
     }
-    verifyKeylessSignatureWithJwkAndConfig({
+    await verifyKeylessSignatureWithJwkAndConfig({
       message,
       publicKey,
       signature,
@@ -385,8 +395,8 @@ export async function verifyKeylessSignature(args: {
 }
 
 /**
- * Syncronously verifies a keyless signature for a given message.  You need to provide the keyless configuration and the
- * JWK to use for verification.
+ * Verifies a keyless signature for a given message. You need to provide the keyless configuration and the
+ * JWK to use for verification. Automatically loads poseidon-lite if not already loaded.
  *
  * @param args.message The message to verify the signature against.
  * @param args.signature The signature to verify.
@@ -395,13 +405,13 @@ export async function verifyKeylessSignature(args: {
  * @returns true if the signature is valid
  * @throws KeylessError if the signature is invalid
  */
-export function verifyKeylessSignatureWithJwkAndConfig(args: {
+export async function verifyKeylessSignatureWithJwkAndConfig(args: {
   publicKey: KeylessPublicKey | FederatedKeylessPublicKey;
   message: HexInput;
   signature: Signature;
   keylessConfig: KeylessConfiguration;
   jwk: MoveJWK;
-}): void {
+}): Promise<void> {
   const { publicKey, message, signature, keylessConfig, jwk } = args;
   const { verificationKey, maxExpHorizonSecs, trainingWheelsPubkey } = keylessConfig;
   if (!(signature instanceof KeylessSignature)) {
@@ -440,7 +450,7 @@ export function verifyKeylessSignatureWithJwkAndConfig(args: {
       type: KeylessErrorType.EPHEMERAL_SIGNATURE_VERIFICATION_FAILED,
     });
   }
-  const publicInputsHash = getPublicInputsHash({ publicKey, signature, jwk, keylessConfig });
+  const publicInputsHash = await getPublicInputsHash({ publicKey, signature, jwk, keylessConfig });
   if (!verificationKey.verifyProof({ publicInputsHash, groth16Proof })) {
     throw KeylessError.fromErrorType({
       type: KeylessErrorType.PROOF_VERIFICATION_FAILED,
@@ -474,40 +484,40 @@ export function verifyKeylessSignatureWithJwkAndConfig(args: {
  * @param args.keylessConfig The keyless configuration which defines the byte lengths to use when hashing fields.
  * @returns The public inputs hash
  */
-function getPublicInputsHash(args: {
+async function getPublicInputsHash(args: {
   publicKey: KeylessPublicKey | FederatedKeylessPublicKey;
   signature: KeylessSignature;
   jwk: MoveJWK;
   keylessConfig: KeylessConfiguration;
-}): bigint {
+}): Promise<bigint> {
   const { publicKey, signature, jwk, keylessConfig } = args;
   const innerKeylessPublicKey = publicKey instanceof KeylessPublicKey ? publicKey : publicKey.keylessPublicKey;
   if (!(signature.ephemeralCertificate.signature instanceof ZeroKnowledgeSig)) {
     throw new Error("Signature is not a ZeroKnowledgeSig");
   }
   const proof = signature.ephemeralCertificate.signature;
-  const fields = [];
+  const fields: (number | bigint | string)[] = [];
   fields.push(
     ...padAndPackBytesWithLen(signature.ephemeralPublicKey.toUint8Array(), keylessConfig.maxCommitedEpkBytes),
   );
   fields.push(bytesToBigIntLE(innerKeylessPublicKey.idCommitment));
   fields.push(signature.expiryDateSecs);
   fields.push(proof.expHorizonSecs);
-  fields.push(hashStrToField(innerKeylessPublicKey.iss, keylessConfig.maxIssValBytes));
+  fields.push(await hashStrToField(innerKeylessPublicKey.iss, keylessConfig.maxIssValBytes));
   if (!proof.extraField) {
     fields.push(0n);
-    fields.push(hashStrToField(" ", keylessConfig.maxExtraFieldBytes));
+    fields.push(await hashStrToField(" ", keylessConfig.maxExtraFieldBytes));
   } else {
     fields.push(1n);
-    fields.push(hashStrToField(proof.extraField, keylessConfig.maxExtraFieldBytes));
+    fields.push(await hashStrToField(proof.extraField, keylessConfig.maxExtraFieldBytes));
   }
-  fields.push(hashStrToField(`${encode(signature.jwtHeader, true)}.`, keylessConfig.maxJwtHeaderB64Bytes));
-  fields.push(jwk.toScalar());
+  fields.push(await hashStrToField(`${encode(signature.jwtHeader, true)}.`, keylessConfig.maxJwtHeaderB64Bytes));
+  fields.push(await jwk.toScalar());
   if (!proof.overrideAudVal) {
-    fields.push(hashStrToField("", MAX_AUD_VAL_BYTES));
+    fields.push(await hashStrToField("", MAX_AUD_VAL_BYTES));
     fields.push(0n);
   } else {
-    fields.push(hashStrToField(proof.overrideAudVal, MAX_AUD_VAL_BYTES));
+    fields.push(await hashStrToField(proof.overrideAudVal, MAX_AUD_VAL_BYTES));
     fields.push(1n);
   }
   return poseidonHash(fields);
@@ -565,17 +575,39 @@ export async function fetchJWK(args: {
   return jwk;
 }
 
-function computeIdCommitment(args: { uidKey: string; uidVal: string; aud: string; pepper: HexInput }): Uint8Array {
+async function computeIdCommitment(args: {
+  uidKey: string;
+  uidVal: string;
+  aud: string;
+  pepper: HexInput;
+}): Promise<Uint8Array> {
   const { uidKey, uidVal, aud, pepper } = args;
 
   const fields = [
     bytesToBigIntLE(Hex.fromHexInput(pepper).toUint8Array()),
-    hashStrToField(aud, MAX_AUD_VAL_BYTES),
-    hashStrToField(uidVal, MAX_UID_VAL_BYTES),
-    hashStrToField(uidKey, MAX_UID_KEY_BYTES),
+    await hashStrToField(aud, MAX_AUD_VAL_BYTES),
+    await hashStrToField(uidVal, MAX_UID_VAL_BYTES),
+    await hashStrToField(uidKey, MAX_UID_KEY_BYTES),
   ];
 
-  return bigIntToBytesLE(poseidonHash(fields), KeylessPublicKey.ID_COMMITMENT_LENGTH);
+  return bigIntToBytesLE(await poseidonHash(fields), KeylessPublicKey.ID_COMMITMENT_LENGTH);
+}
+
+/**
+ * Sync version of computeIdCommitment for constructors and deserialization.
+ * Requires poseidon-lite to already be loaded.
+ */
+function computeIdCommitmentSync(args: { uidKey: string; uidVal: string; aud: string; pepper: HexInput }): Uint8Array {
+  const { uidKey, uidVal, aud, pepper } = args;
+
+  const fields = [
+    bytesToBigIntLE(Hex.fromHexInput(pepper).toUint8Array()),
+    hashStrToFieldSync(aud, MAX_AUD_VAL_BYTES),
+    hashStrToFieldSync(uidVal, MAX_UID_VAL_BYTES),
+    hashStrToFieldSync(uidKey, MAX_UID_KEY_BYTES),
+  ];
+
+  return bigIntToBytesLE(poseidonHashSync(fields), KeylessPublicKey.ID_COMMITMENT_LENGTH);
 }
 
 /**
@@ -1685,7 +1717,7 @@ export class MoveJWK extends Serializable {
     return MoveJWK.deserialize(deserializer);
   }
 
-  toScalar(): bigint {
+  async toScalar(): Promise<bigint> {
     if (this.alg !== "RS256") {
       throw KeylessError.fromErrorType({
         type: KeylessErrorType.PROOF_VERIFICATION_FAILED,

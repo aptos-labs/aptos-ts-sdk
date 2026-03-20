@@ -62,7 +62,7 @@ export class FederatedKeylessAccount extends AbstractKeylessAccount {
     verificationKeyHash?: HexInput;
     audless?: boolean;
   }) {
-    const publicKey = FederatedKeylessPublicKey.create(args);
+    const publicKey = FederatedKeylessPublicKey.createSync(args);
     super({ publicKey, ...args });
     this.publicKey = publicKey;
     this.audless = args.audless ?? false;

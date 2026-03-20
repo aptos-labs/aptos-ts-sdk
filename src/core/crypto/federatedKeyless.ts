@@ -6,14 +6,7 @@ import { Deserializer, Serializer } from "../../bcs";
 import { HexInput, AnyPublicKeyVariant, SigningScheme } from "../../types";
 import { AuthenticationKey } from "../authenticationKey";
 import { AccountAddress, AccountAddressInput } from "../accountAddress";
-import {
-  KeylessConfiguration,
-  KeylessPublicKey,
-  KeylessSignature,
-  MoveJWK,
-  verifyKeylessSignature,
-  verifyKeylessSignatureWithJwkAndConfig,
-} from "./keyless";
+import { KeylessConfiguration, KeylessPublicKey, KeylessSignature, MoveJWK, verifyKeylessSignature } from "./keyless";
 import { AptosConfig } from "../../api";
 import { Signature } from "..";
 
@@ -81,12 +74,10 @@ export class FederatedKeylessPublicKey extends AccountPublicKey {
     jwk: MoveJWK;
     keylessConfig: KeylessConfiguration;
   }): boolean {
-    try {
-      verifyKeylessSignatureWithJwkAndConfig({ ...args, publicKey: this });
-      return true;
-    } catch {
-      return false;
-    }
+    throw new Error(
+      "KeylessPublicKey.verifySignature is no longer synchronous. Use verifySignatureAsync() instead, " +
+        "or call verifyKeylessSignatureWithJwkAndConfig() directly (which is now async).",
+    );
   }
 
   serialize(serializer: Serializer): void {
@@ -138,7 +129,18 @@ export class FederatedKeylessPublicKey extends AccountPublicKey {
    * @group Implementation
    * @category Serialization
    */
-  static create(args: {
+  static async create(args: {
+    iss: string;
+    uidKey: string;
+    uidVal: string;
+    aud: string;
+    pepper: HexInput;
+    jwkAddress: AccountAddressInput;
+  }): Promise<FederatedKeylessPublicKey> {
+    return new FederatedKeylessPublicKey(args.jwkAddress, await KeylessPublicKey.create(args));
+  }
+
+  static createSync(args: {
     iss: string;
     uidKey: string;
     uidVal: string;
@@ -146,16 +148,16 @@ export class FederatedKeylessPublicKey extends AccountPublicKey {
     pepper: HexInput;
     jwkAddress: AccountAddressInput;
   }): FederatedKeylessPublicKey {
-    return new FederatedKeylessPublicKey(args.jwkAddress, KeylessPublicKey.create(args));
+    return new FederatedKeylessPublicKey(args.jwkAddress, KeylessPublicKey.createSync(args));
   }
 
-  static fromJwtAndPepper(args: {
+  static async fromJwtAndPepper(args: {
     jwt: string;
     pepper: HexInput;
     jwkAddress: AccountAddressInput;
     uidKey?: string;
-  }): FederatedKeylessPublicKey {
-    return new FederatedKeylessPublicKey(args.jwkAddress, KeylessPublicKey.fromJwtAndPepper(args));
+  }): Promise<FederatedKeylessPublicKey> {
+    return new FederatedKeylessPublicKey(args.jwkAddress, await KeylessPublicKey.fromJwtAndPepper(args));
   }
 
   static isInstance(publicKey: PublicKey) {

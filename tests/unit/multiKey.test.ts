@@ -118,8 +118,11 @@ describe("MultiKey", () => {
     expect(bitmap).toEqual(new Uint8Array(multiKeyTestObject.bitmap));
   });
 
-  const keylessPublicKey = KeylessPublicKey.fromJwtAndPepper({
-    jwt: keylessTestObject.JWT,
+  const keylessPublicKey = KeylessPublicKey.createSync({
+    iss: "test.oidc.provider",
+    uidKey: "sub",
+    uidVal: "test-user-0",
+    aud: "test-keyless-dapp",
     pepper: keylessTestObject.pepper,
   });
 

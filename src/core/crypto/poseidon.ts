@@ -47,7 +47,27 @@ const MAX_NUM_INPUT_BYTES = (MAX_NUM_INPUT_SCALARS - 1) * BYTES_PACKED_PER_SCALA
 
 /**
  * Hashes a string to a field element via Poseidon hashing.
- * This function is useful for converting a string into a fixed-size hash that can be used in cryptographic applications.
+ * Automatically loads poseidon-lite on first call.
+ *
+ * @param str - The string to be hashed.
+ * @param maxSizeBytes - The maximum size in bytes for the resulting hash.
+ * @returns Promise<bigint> - The result of the hash.
+ * @group Implementation
+ * @category Serialization
+ */
+export async function hashStrToField(str: string, maxSizeBytes: number): Promise<bigint> {
+  const textEncoder = new TextEncoder();
+  const strBytes = textEncoder.encode(str);
+  if (strBytes.length > maxSizeBytes) {
+    throw new Error(`Inputted bytes of length ${strBytes} is longer than ${maxSizeBytes}`);
+  }
+  const packed = padAndPackBytesWithLen(strBytes, maxSizeBytes);
+  return poseidonHash(packed);
+}
+
+/**
+ * Synchronous version of `hashStrToField` for use in contexts that cannot be async
+ * (e.g. constructors, deserialization). Requires that poseidon-lite has been loaded first.
  *
  * @param str - The string to be hashed.
  * @param maxSizeBytes - The maximum size in bytes for the resulting hash.
@@ -55,28 +75,14 @@ const MAX_NUM_INPUT_BYTES = (MAX_NUM_INPUT_SCALARS - 1) * BYTES_PACKED_PER_SCALA
  * @group Implementation
  * @category Serialization
  */
-export function hashStrToField(str: string, maxSizeBytes: number): bigint {
+export function hashStrToFieldSync(str: string, maxSizeBytes: number): bigint {
   const textEncoder = new TextEncoder();
   const strBytes = textEncoder.encode(str);
-  return hashBytesWithLen(strBytes, maxSizeBytes);
-}
-
-/**
- * Computes a Poseidon hash of the provided byte array, ensuring that the byte array does not exceed the specified maximum size.
- * This function is useful for generating a hash from a byte array while enforcing size constraints.
- *
- * @param bytes - The byte array to be hashed.
- * @param maxSizeBytes - The maximum allowed size for the byte array.
- * @throws Error if the length of the inputted bytes exceeds the specified maximum size.
- * @group Implementation
- * @category Serialization
- */
-function hashBytesWithLen(bytes: Uint8Array, maxSizeBytes: number): bigint {
-  if (bytes.length > maxSizeBytes) {
-    throw new Error(`Inputted bytes of length ${bytes} is longer than ${maxSizeBytes}`);
+  if (strBytes.length > maxSizeBytes) {
+    throw new Error(`Inputted bytes of length ${strBytes} is longer than ${maxSizeBytes}`);
   }
-  const packed = padAndPackBytesWithLen(bytes, maxSizeBytes);
-  return poseidonHash(packed);
+  const packed = padAndPackBytesWithLen(strBytes, maxSizeBytes);
+  return poseidonHashSync(packed);
 }
 
 /**
@@ -219,9 +225,24 @@ function padUint8ArrayWithZeros(inputArray: Uint8Array, paddedSize: number): Uin
  * Hashes up to 16 scalar elements via the Poseidon hashing algorithm.
  * Each element must be scalar fields of the BN254 elliptic curve group.
  *
- * Before calling this function, `ensurePoseidonLoaded()` must have been awaited.
- * The SDK's async entry points (e.g. `deriveKeylessAccount`, `EphemeralKeyPair.generate`)
- * handle this automatically.
+ * Automatically loads poseidon-lite on first call. Bundlers will code-split this
+ * into a separate chunk (~421KB), so it's only fetched when Keyless features are used.
+ *
+ * @param inputs - An array of elements to be hashed, which can be of type number, bigint, or string.
+ * @returns Promise<bigint> - The result of the hash.
+ * @throws Error - Throws an error if the input length exceeds the maximum allowed.
+ * @group Implementation
+ * @category Serialization
+ */
+export async function poseidonHash(inputs: (number | bigint | string)[]): Promise<bigint> {
+  await ensurePoseidonLoaded();
+  return poseidonHashSync(inputs);
+}
+
+/**
+ * Synchronous version of `poseidonHash` for use in contexts that cannot be async
+ * (e.g. constructors, deserialization). Requires that `ensurePoseidonLoaded()` or any
+ * async poseidon function has been called first.
  *
  * @param inputs - An array of elements to be hashed, which can be of type number, bigint, or string.
  * @returns bigint - The result of the hash.
@@ -229,7 +250,7 @@ function padUint8ArrayWithZeros(inputArray: Uint8Array, paddedSize: number): Uin
  * @group Implementation
  * @category Serialization
  */
-export function poseidonHash(inputs: (number | bigint | string)[]): bigint {
+export function poseidonHashSync(inputs: (number | bigint | string)[]): bigint {
   if (numInputsToPoseidonFunc === undefined) {
     throw new Error(
       "poseidon-lite has not been loaded yet. Call `await ensurePoseidonLoaded()` before using Keyless features, " +

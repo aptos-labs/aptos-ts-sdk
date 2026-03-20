@@ -27,9 +27,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - **BREAKING**: Dynamically load `poseidon-lite` to reduce initial bundle size by ~421KB (minified+gzipped) for applications that don't use Keyless accounts
   - `poseidon-lite` is now loaded on-demand via dynamic `import()`, enabling bundlers to code-split it into a separate chunk
-  - Added `ensurePoseidonLoaded()` async function to pre-load the poseidon module; called automatically by `deriveKeylessAccount()`, `EphemeralKeyPair.generate()`, and `verifyKeylessSignature()`
+  - `poseidonHash()`, `hashStrToField()`, `KeylessPublicKey.create()`, `KeylessPublicKey.fromJwtAndPepper()`, `FederatedKeylessPublicKey.create()`, `FederatedKeylessPublicKey.fromJwtAndPepper()`, `verifyKeylessSignatureWithJwkAndConfig()`, `KeylessPublicKey.verifySignature()`, `FederatedKeylessPublicKey.verifySignature()`, and `MoveJWK.toScalar()` are now async and auto-load poseidon on first call
+  - Sync variants (`poseidonHashSync`, `hashStrToFieldSync`, `KeylessPublicKey.createSync`, `FederatedKeylessPublicKey.createSync`) are available for constructors/deserialization after poseidon has been loaded
   - `EphemeralKeyPair.generate()` is now async (returns `Promise<EphemeralKeyPair>`)
-  - Direct use of `new EphemeralKeyPair(...)` or `poseidonHash()` requires calling `await ensurePoseidonLoaded()` first
+  - `ensurePoseidonLoaded()` is exported for explicit pre-loading if needed
 
 # 6.2.0 (2026-03-22)
 

@@ -432,7 +432,7 @@ describe("transaction builder", () => {
         "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0Lm9pZGMucHJvdmlkZXIiLCJhdWQiOiJ0ZXN0LWtleWxlc3MtZGFwcCIsInN1YiI6InRlc3QtdXNlci0xMDAwIiwiZW1haWwiOiJ0ZXN0QGFwdG9zbGFicy5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaWF0Ijo5ODc2NTQzMjA5LCJleHAiOjk4NzY1NDMyMTAsIm5vbmNlIjoiMTk2NDM2OTg4NjEyNjU1Njc4MDQ5MDk5MTMxMzA1MDcyNDc4MTQ1MjY5MTM1NzAyMjgzMTY0MTczNzc5NjUxMDU2ODE3OTYxNzMwOTgifQ.SpD0esGrw23ytFOMtp5Z23ysyh5QWeTfvsxgyQyUCa6L0hVgGiQ53n3AfdqrJntJ2vpHz8ixnvcOewa-eIWeSrnb6mGszoFnGnpS8R4dl0ZFsRzBSiO0jDeyZtRzKKdTO4uGiTHIHHDOWLjwHDOevpyXHmADjYuXnT8IdKyUk6f2ZmjRh0nMHsyo2bGtaTs4AekWP9yNxUqb1tv4-9OoA64YdKmmWQT5u_nTot-LbSzbief8hwXEtttKGMHJPzBhqYvrnMZiQmys-p1jmHkYfPHouqPZNdkGeIfDZXY88C8LVNASrCo_l9jIj78RM06CRmxJ3oo8hTABpIEkQmnQqA";
       const ephemeralKeyPair = EPHEMERAL_KEY_PAIR;
       const pepper = await aptos.getPepper({ jwt, ephemeralKeyPair });
-      const publicKey = KeylessPublicKey.fromJwtAndPepper({ jwt, pepper });
+      const publicKey = await KeylessPublicKey.fromJwtAndPepper({ jwt, pepper });
       const accountAddress = publicKey.authKey().derivedAddress();
       await aptos.fundAccount({ accountAddress, amount: FUND_AMOUNT });
       const payload = await generateTransactionPayload({

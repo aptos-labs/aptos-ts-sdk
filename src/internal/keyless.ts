@@ -21,7 +21,6 @@ import {
   ZeroKnowledgeSig,
   ZkProof,
   getKeylessConfig,
-  ensurePoseidonLoaded,
 } from "../core";
 import { HexInput, ZkpVariant } from "../types";
 import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
@@ -198,7 +197,6 @@ export async function deriveKeylessAccount(args: {
   pepper?: HexInput;
   proofFetchCallback?: ProofFetchCallback;
 }): Promise<KeylessAccount | FederatedKeylessAccount> {
-  await ensurePoseidonLoaded();
   const { aptosConfig, jwt, jwkAddress, uidKey, proofFetchCallback, pepper = await getPepper(args) } = args;
   const { verificationKey, maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
 
@@ -212,7 +210,7 @@ export async function deriveKeylessAccount(args: {
 
   // Look up the original address to handle key rotations and then instantiate the account.
   if (jwkAddress !== undefined) {
-    const publicKey = FederatedKeylessPublicKey.fromJwtAndPepper({ jwt, pepper, jwkAddress, uidKey });
+    const publicKey = await FederatedKeylessPublicKey.fromJwtAndPepper({ jwt, pepper, jwkAddress, uidKey });
     const address = await lookupOriginalAccountAddress({
       aptosConfig,
       authenticationKey: publicKey.authKey().derivedAddress(),
@@ -229,7 +227,7 @@ export async function deriveKeylessAccount(args: {
     });
   }
 
-  const publicKey = KeylessPublicKey.fromJwtAndPepper({ jwt, pepper, uidKey });
+  const publicKey = await KeylessPublicKey.fromJwtAndPepper({ jwt, pepper, uidKey });
   const address = await lookupOriginalAccountAddress({
     aptosConfig,
     authenticationKey: publicKey.authKey().derivedAddress(),

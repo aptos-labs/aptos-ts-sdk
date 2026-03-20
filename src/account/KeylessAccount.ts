@@ -64,7 +64,7 @@ export class KeylessAccount extends AbstractKeylessAccount {
     jwt: string;
     verificationKeyHash?: HexInput;
   }) {
-    const publicKey = KeylessPublicKey.create(args);
+    const publicKey = KeylessPublicKey.createSync(args);
     super({ publicKey, ...args });
     this.publicKey = publicKey;
   }
