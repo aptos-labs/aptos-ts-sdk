@@ -12,7 +12,7 @@ const example = async () => {
   const aptos = new Aptos(config);
 
   // Generate the ephemeral (temporary) key pair that will be used to sign transactions.
-  const ephemeralKeyPair = EphemeralKeyPair.generate();
+  const ephemeralKeyPair = await EphemeralKeyPair.generate();
 
   console.log("\n=== Federated Keyless JWK Installation ===\n");
 
