@@ -10,6 +10,9 @@
     "url": "https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose"
   },
   "homepage": "https://aptos-labs.github.io/aptos-ts-sdk/",
+  "bin": {
+    "generate-abi-json": "dist/common/cli/generate-abi-json.js"
+  },
   "main": "dist/common/index.js",
   "module": "dist/esm/index.mjs",
   "exports": {
@@ -47,6 +50,7 @@
     "doc": "scripts/generateDocs.sh",
     "check-version": "scripts/checkVersion.sh",
     "update-version": "scripts/updateVersion.sh && pnpm doc",
+    "generate-abi-json": "node dist/common/cli/generate-abi-json.js",
     "spec": "pnpm build && pnpm _spec",
     "_spec": "cucumber-js -p default"
   },
