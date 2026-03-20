@@ -9,6 +9,9 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Resolve moderate security advisories in `confidential-assets` dev tooling by pinning transitive `file-type` and `yauzl` (via `@swc/cli` → `@xhmikosr/downloader`) to patched releases
 - Remove hardcoded `maxGasAmount: 2000` from e2e tests (Account Derivation APIs, WebAuthn submission) that caused `MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS` failures after the on-chain minimum gas increase
 - Add troubleshooting section to CONTRIBUTING.md for `ERR_WORKER_OUT_OF_MEMORY` build failures on low-RAM systems
+- Fix quickstart and example code that used deprecated `getAccountResource` with `CoinStore` to check balances; replaced with `getAccountAPTAmount` which works after the FungibleAsset migration
+- Update `simple_transfer` examples (TypeScript, TypeScript ESM, JavaScript) and `multi_agent_transfer` to use `getAccountAPTAmount` instead of `0x1::coin::balance` view function
+- Update `simple_transfer` and JavaScript examples to use `0x1::aptos_account::transfer` instead of `0x1::coin::transfer`
 
 ## Added
 

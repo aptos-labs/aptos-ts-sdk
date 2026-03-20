@@ -12,13 +12,11 @@ import {
   parseTypeTag,
   Network,
   NetworkToNetworkName,
-  InputViewFunctionJsonData,
 } from "@aptos-labs/ts-sdk";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-// TODO: There currently isn't a way to use the APTOS_COIN in the COIN_STORE due to a regex
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
 const ALICE_INITIAL_BALANCE = 1_000_000_000;
 const BOB_INITIAL_BALANCE = 1_000_000_000;
@@ -26,24 +24,18 @@ const TRANSFER_AMOUNT = 10;
 // Default to devnet, but allow for overriding
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 
-/**
- * Prints the balance of an account
- * @param aptos
- * @param name
- * @param address
- * @returns {Promise<*>}
- *
- */
-const balance = async (aptos: Aptos, name: string, address: AccountAddress): Promise<any> => {
-  const payload: InputViewFunctionJsonData = {
-    function: "0x1::coin::balance",
-    typeArguments: ["0x1::aptos_coin::AptosCoin"],
-    functionArguments: [address.toString()],
-  };
-  const [balance] = await aptos.viewJson<[number]>({ payload });
-
-  console.log(`${name}'s balance is: ${balance}`);
-  return Number(balance);
+const balance = async (
+  aptos: Aptos,
+  name: string,
+  address: AccountAddress,
+  versionToWaitFor?: bigint,
+): Promise<number> => {
+  const amount = await aptos.getAccountAPTAmount({
+    accountAddress: address,
+    minimumLedgerVersion: versionToWaitFor,
+  });
+  console.log(`${name}'s balance is: ${amount}`);
+  return amount;
 };
 
 const CREATE_OBJECT_SCRIPT =

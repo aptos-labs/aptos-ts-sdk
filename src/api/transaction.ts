@@ -56,8 +56,6 @@ import { rotateAuthKey, rotateAuthKeyUnverified } from "../internal/account";
  * ```typescript
  * import { Account, Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
  *
- * const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
- * const COIN_STORE = `0x1::coin::CoinStore<${APTOS_COIN}>`;
  * const ALICE_INITIAL_BALANCE = 100_000_000;
  * const TRANSFER_AMOUNT = 100;
  *
@@ -87,13 +85,20 @@ import { rotateAuthKey, rotateAuthKeyUnverified } from "../internal/account";
  *     amount: ALICE_INITIAL_BALANCE,
  *   });
  *
+ *   // Check initial balance
+ *   console.log("\n=== Initial Balance ===\n");
+ *   const aliceBalance = await aptos.getAccountAPTAmount({
+ *     accountAddress: alice.accountAddress,
+ *   });
+ *   console.log(`Alice's balance is: ${aliceBalance}`);
+ *
  *   // Send a transaction from Alice's account to Bob's account
  *   const txn = await aptos.transaction.build.simple({
  *     sender: alice.accountAddress,
  *     data: {
  *       // All transactions on Aptos are implemented via smart contracts.
  *       function: "0x1::aptos_account::transfer",
- *       functionArguments: [bob.accountAddress, 100],
+ *       functionArguments: [bob.accountAddress, TRANSFER_AMOUNT],
  *     },
  *   });
  *
@@ -102,27 +107,23 @@ import { rotateAuthKey, rotateAuthKeyUnverified } from "../internal/account";
  *   const committedTxn = await aptos.signAndSubmitTransaction({
  *     signer: alice,
  *     transaction: txn,
- *  });
+ *   });
  *   // Waits for Aptos to verify and execute the transaction
  *   const executedTransaction = await aptos.waitForTransaction({
  *     transactionHash: committedTxn.hash,
  *   });
  *   console.log("Transaction hash:", executedTransaction.hash);
  *
- *  console.log("\n=== Balances after transfer ===\n");
- *  const newAliceAccountBalance = await aptos.getAccountResource({
- *    accountAddress: alice.accountAddress,
- *    resourceType: COIN_STORE,
- *  });
- *  const newAliceBalance = Number(newAliceAccountBalance.coin.value);
- *  console.log(`Alice's balance is: ${newAliceBalance}`);
+ *   console.log("\n=== Balances after transfer ===\n");
+ *   const newAliceBalance = await aptos.getAccountAPTAmount({
+ *     accountAddress: alice.accountAddress,
+ *   });
+ *   console.log(`Alice's balance is: ${newAliceBalance}`);
  *
- *  const newBobAccountBalance = await aptos.getAccountResource({
- *    accountAddress: bob.accountAddress,
- *    resourceType: COIN_STORE,
- *  });
- *  const newBobBalance = Number(newBobAccountBalance.coin.value);
- *  console.log(`Bob's balance is: ${newBobBalance}`);
+ *   const newBobBalance = await aptos.getAccountAPTAmount({
+ *     accountAddress: bob.accountAddress,
+ *   });
+ *   console.log(`Bob's balance is: ${newBobBalance}`);
  * }
  *
  * example();
