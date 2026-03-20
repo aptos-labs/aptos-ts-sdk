@@ -8,7 +8,7 @@
  * adapted for Aptos key types. Supports encrypting Ed25519, Secp256k1, and Secp256r1
  * private keys with a password or key file using modern cryptography:
  *
- * - KDF: scrypt (default), Argon2id (requires optional `hash-wasm` peer dependency), or PBKDF2-HMAC-SHA256
+ * - KDF: Argon2id (default when `hash-wasm` is installed), scrypt (fallback), or PBKDF2-HMAC-SHA256
  * - Cipher: AES-256-GCM (authenticated encryption)
  *
  * AES-256-GCM provides both confidentiality and integrity in a single operation,
@@ -105,8 +105,8 @@ export type KeystoreKdfParams = Argon2idKdfParams | ScryptKdfParams | Pbkdf2KdfP
  *     "cipher": "aes-256-gcm",
  *     "cipherparams": { "iv": "...", "tag": "..." },
  *     "ciphertext": "...",
- *     "kdf": "scrypt",
- *     "kdfparams": { "n": 131072, "r": 8, "p": 1, "dklen": 32, "salt": "..." }
+ *     "kdf": "argon2id",
+ *     "kdfparams": { "iterations": 3, "parallelism": 4, "memorySize": 65536, "dklen": 32, "salt": "..." }
  *   }
  * }
  * ```
@@ -144,7 +144,7 @@ export interface AptosKeyStore {
  * Options for customizing keystore encryption.
  */
 export interface KeystoreEncryptOptions {
-  /** KDF to use. Defaults to "scrypt". Use "argon2id" for stronger protection (requires `hash-wasm` peer dependency). */
+  /** KDF to use. Defaults to "argon2id" if `hash-wasm` is installed, otherwise "scrypt". */
   kdf?: KeystoreKdf;
   /** Argon2id iterations (time cost). Defaults to 3. */
   argon2Iterations?: number;
@@ -180,13 +180,26 @@ function passwordToBytes(password: string | Uint8Array): Uint8Array {
   return password;
 }
 
-async function loadArgon2id(): Promise<typeof import("hash-wasm").argon2id> {
+async function tryLoadArgon2id(): Promise<typeof import("hash-wasm")["argon2id"] | null> {
   try {
     const mod = await import("hash-wasm");
     return mod.argon2id;
   } catch {
+    return null;
+  }
+}
+
+async function loadArgon2id(): Promise<typeof import("hash-wasm")["argon2id"]> {
+  const fn = await tryLoadArgon2id();
+  if (!fn) {
     throw new Error('Argon2id KDF requires the "hash-wasm" package. Install it with: npm install hash-wasm');
   }
+  return fn;
+}
+
+async function resolveDefaultKdf(): Promise<KeystoreKdf> {
+  const argon2 = await tryLoadArgon2id();
+  return argon2 ? "argon2id" : "scrypt";
 }
 
 async function deriveKey(password: Uint8Array, kdf: KeystoreKdf, kdfparams: KeystoreKdfParams): Promise<Uint8Array> {
@@ -299,9 +312,9 @@ function createPrivateKey(bytes: Uint8Array, keyType: PrivateKeyVariants): Keyst
  * Supports all Aptos private key types (Ed25519, Secp256k1, Secp256r1).
  * The password can be a string (passphrase) or raw bytes (e.g., contents of a key file).
  *
- * Uses AES-256-GCM authenticated encryption with scrypt key derivation by default.
- * For stronger password protection, use `kdf: "argon2id"` (requires the optional
- * `hash-wasm` peer dependency: `npm install hash-wasm`).
+ * Uses AES-256-GCM authenticated encryption. The default KDF is Argon2id when the
+ * optional `hash-wasm` peer dependency is installed (`npm install hash-wasm`),
+ * falling back to scrypt otherwise.
  *
  * @param args.privateKey - The private key to encrypt.
  * @param args.password - Password string or key-file bytes used to derive the encryption key.
@@ -312,18 +325,18 @@ function createPrivateKey(bytes: Uint8Array, keyType: PrivateKeyVariants): Keyst
  * ```typescript
  * import { Ed25519PrivateKey, encryptKeystore } from "@aptos-labs/ts-sdk";
  *
- * // Default (scrypt) — no extra dependencies
+ * // Uses argon2id if hash-wasm is installed, scrypt otherwise
  * const privateKey = Ed25519PrivateKey.generate();
  * const keystore = await encryptKeystore({
  *   privateKey,
  *   password: "my-secure-password",
  * });
  *
- * // Argon2id — requires: npm install hash-wasm
- * const keystoreArgon2 = await encryptKeystore({
+ * // Explicitly request a KDF
+ * const keystoreScrypt = await encryptKeystore({
  *   privateKey,
  *   password: "my-secure-password",
- *   options: { kdf: "argon2id" },
+ *   options: { kdf: "scrypt" },
  * });
  * ```
  */
@@ -333,8 +346,9 @@ export async function encryptKeystore(args: {
   options?: KeystoreEncryptOptions;
 }): Promise<AptosKeyStore> {
   const { privateKey, password, options = {} } = args;
+  const defaultKdf = options.kdf ?? (await resolveDefaultKdf());
   const {
-    kdf = "scrypt",
+    kdf = defaultKdf,
     argon2Iterations = 3,
     argon2Parallelism = 4,
     argon2MemorySize = 65536,
