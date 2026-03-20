@@ -43,6 +43,25 @@ To test your code:
 3. Build the code using `pnpm build`
 4. Run tests using `pnpm test`
 
+## Troubleshooting
+
+### Build fails with `ERR_WORKER_OUT_OF_MEMORY`
+
+On systems with limited RAM (6–8 GB), the build process may fail during the DTS (TypeScript Declaration) generation phase with an error like:
+
+```
+Error [ERR_WORKER_OUT_OF_MEMORY]: Worker terminated due to reaching memory limit: JS heap out of memory
+```
+
+This happens because the default Node.js V8 heap limit is too low for the declaration bundling step. To fix this, increase the memory limit before building:
+
+```bash
+export NODE_OPTIONS="--max-old-space-size=4096"
+pnpm build
+```
+
+You can also add this to your shell profile (e.g. `~/.bashrc` or `~/.zshrc`) to make it persistent.
+
 ## Authoring Clean Commits
 
 ### Logically Separate Commits
