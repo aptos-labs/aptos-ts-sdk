@@ -37,6 +37,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Fixed
 
+- Increase `waitForIndexer` default timeout from 3 seconds to 10 seconds to prevent spurious `waitForLastSuccessIndexerVersionSync timeout` errors during temporary indexer lag on devnet/testnet
+- Improve `waitForIndexer` timeout error message to include current indexer version, target version, and a suggestion to use `{ waitForIndexer: false }` as a workaround
 - Fix `aptos.transaction.getBlockByHeight({ options: { withTransactions: true } })` / `getBlockByVersion` crashing with `TypeError: Cannot use 'in' operator to search for 'version' in undefined` on blocks whose `transactions` array is empty. `fillBlockTransactions` now guards `lastTxn` before the `in` check.
 - Fix `aptos.account.accountExists` (`doesAccountExistAtAddress`) on accounts with many resources: the old path fetched the full resource list and scanned it for `0x1::account::Account`, which is slow and can fail for large or sparse accounts. Replaced with a single fallible resource fetch (new internal `getResourceFallible` helper) that treats 404 as "not found". Only affects internal callers; the public API is unchanged.
 - `aptos.ans.*` queries no longer throw on indexer rows with missing fields. `sanitizeANSName` drops its non-null assertions and passes nullable indexer fields through as `undefined` instead of crashing. See the `Breaking` section for the `AnsName` type change.
