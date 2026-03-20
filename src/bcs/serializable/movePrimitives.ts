@@ -82,7 +82,7 @@ export class Bool extends Serializable implements TransactionArgument {
   /**
    * Serializes the current instance for use in an entry function by converting it to a byte sequence.
    * This allows the instance to be properly formatted for serialization in transactions.
-   * Uses the optimized serializeAsBytes method to reduce allocations.
+   * Uses serializeAsBytes when available, with a fallback for older Serializer versions.
    *
    * @param serializer - The serializer instance used to serialize the byte sequence.
    * @group Implementation

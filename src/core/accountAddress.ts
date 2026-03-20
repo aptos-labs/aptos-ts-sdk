@@ -240,7 +240,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   /**
    * Serializes the current instance into a byte sequence suitable for entry functions.
    * This allows for the proper encoding of data when interacting with entry functions in the blockchain.
-   * Uses the optimized serializeAsBytes method to reduce allocations.
+   * Uses serializeAsBytes when available, with a fallback for older Serializer versions.
    *
    * @param serializer - The serializer instance used to convert the data into bytes.
    * @group Implementation

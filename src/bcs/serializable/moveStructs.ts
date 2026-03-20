@@ -69,7 +69,7 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
   /**
    * Serializes the current instance into a byte sequence suitable for entry functions.
    * This allows the data to be properly formatted for transmission or storage.
-   * Uses the optimized serializeAsBytes method to reduce allocations.
+   * Uses serializeAsBytes when available, with a fallback for older Serializer versions.
    *
    * @param serializer - The serializer instance used to serialize the byte sequence.
    * @group Implementation
