@@ -15,6 +15,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Added
 
+- Add standalone `verifySignature` and `verifySignatureAsync` utility functions that verify a signature against any supported public key type (Ed25519, Secp256k1, MultiEd25519, MultiKey, Keyless) without requiring callers to know the key type in advance
 - Add MultiKey (K-of-N mixed key types) transfer example (`examples/typescript/multikey_transfer.ts`)
 - Add MultiEd25519 (K-of-N Ed25519) transfer example (`examples/typescript/multi_ed25519_transfer.ts`)
 
