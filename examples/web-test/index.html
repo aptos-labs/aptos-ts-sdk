@@ -3,11 +3,98 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Aptos SDK Browser Test</title>
+    <title>Aptos SDK — browser lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
-    <h1>Aptos SDK Browser Test</h1>
-    <div id="results"></div>
+    <div class="app">
+      <header class="top-bar">
+        <a class="brand" href="https://aptosfoundation.org" target="_blank" rel="noopener noreferrer">
+          <svg
+            class="brand-mark"
+            width="36"
+            height="36"
+            viewBox="0 0 36 36"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <rect width="36" height="36" rx="8" fill="#171612" stroke="#2F2D28" stroke-width="1" />
+            <path d="M10 24L18 10L26 24H10Z" fill="#266798" />
+            <path d="M14 24L18 16L22 24H14Z" fill="#FE805C" opacity="0.9" />
+          </svg>
+          <span class="brand-text">
+            <span class="brand-name">Aptos</span>
+            <span class="brand-sub">SDK browser lab</span>
+          </span>
+        </a>
+        <span class="network-pill" id="network-pill" title="Set via ?network=devnet|testnet|mainnet|local">Network</span>
+      </header>
+
+      <main>
+        <h1 class="page-title">Chain snapshot</h1>
+        <p class="page-lede">
+          This page loads the TypeScript SDK in the browser for Playwright tests. Layout and colors follow the Aptos
+          Explorer palette (warm neutrals, ink blue, coral accent).
+        </p>
+
+        <div class="grid">
+          <article class="card" aria-labelledby="ledger-heading">
+            <div class="card-header">
+              <h2 class="card-title" id="ledger-heading">Ledger</h2>
+              <span class="card-badge">Live</span>
+            </div>
+            <div class="stat-list" id="ledger-stats">
+              <div class="stat">
+                <span class="stat-label">Chain ID</span>
+                <span class="stat-value stat-value--loading" id="stat-chain-id">Loading…</span>
+              </div>
+              <div class="stat">
+                <span class="stat-label">Epoch</span>
+                <span class="stat-value stat-value--loading" id="stat-epoch">—</span>
+              </div>
+              <div class="stat">
+                <span class="stat-label">Ledger version</span>
+                <span class="stat-value stat-value--loading" id="stat-version">—</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="card" aria-labelledby="sdk-heading">
+            <div class="card-header">
+              <h2 class="card-title" id="sdk-heading">SDK</h2>
+              <span class="card-badge">window.aptosSDK</span>
+            </div>
+            <p class="sdk-status sdk-status--ok" id="results">Initializing…</p>
+            <p class="hint">
+              Public explorer:
+              <a id="explorer-link" href="https://explorer.aptoslabs.com/?network=devnet" target="_blank" rel="noopener"
+                >explorer.aptoslabs.com</a
+              >
+              — brand reference:
+              <a
+                href="https://www.figma.com/design/URQJsxxMNGwoeocBWvzscH/Aptos-Brand-Guidelines"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Aptos Brand Guidelines (Figma)</a
+              >.
+            </p>
+          </article>
+        </div>
+      </main>
+
+      <footer class="site-footer">
+        <a href="https://github.com/aptos-labs/aptos-ts-sdk" target="_blank" rel="noopener noreferrer"
+          >aptos-ts-sdk</a
+        >
+        · Browser test harness
+      </footer>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

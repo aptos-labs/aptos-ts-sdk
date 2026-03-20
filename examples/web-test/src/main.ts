@@ -2,6 +2,7 @@
  * This file runs in the browser and exposes SDK functionality for Playwright tests
  */
 
+import "./styles.css";
 import {
   Account,
   Aptos,
@@ -177,6 +178,62 @@ window.aptosSDK = {
   },
 };
 
-// Signal that SDK is loaded
+function explorerNetworkParam(raw: string): string {
+  if (raw === "local") {
+    return "devnet";
+  }
+  return raw;
+}
+
+function hydrateChrome(): void {
+  const networkPill = document.getElementById("network-pill");
+  if (networkPill) {
+    networkPill.textContent = networkParam;
+  }
+
+  const explorerLink = document.getElementById("explorer-link") as HTMLAnchorElement | null;
+  if (explorerLink) {
+    const n = explorerNetworkParam(networkParam);
+    explorerLink.href = `https://explorer.aptoslabs.com/?network=${encodeURIComponent(n)}`;
+  }
+}
+
+async function hydrateLedger(): Promise<void> {
+  const chainEl = document.getElementById("stat-chain-id");
+  const epochEl = document.getElementById("stat-epoch");
+  const versionEl = document.getElementById("stat-version");
+
+  const setError = (message: string) => {
+    for (const el of [chainEl, epochEl, versionEl]) {
+      if (el) {
+        el.textContent = message;
+        el.classList.add("stat-value--loading");
+      }
+    }
+  };
+
+  try {
+    const info = await aptos.getLedgerInfo();
+    if (chainEl) {
+      chainEl.textContent = String(info.chain_id);
+      chainEl.classList.remove("stat-value--loading");
+    }
+    if (epochEl) {
+      epochEl.textContent = info.epoch;
+      epochEl.classList.remove("stat-value--loading");
+    }
+    if (versionEl) {
+      versionEl.textContent = info.ledger_version;
+      versionEl.classList.remove("stat-value--loading");
+    }
+  } catch {
+    setError("Unavailable (check network / RPC)");
+  }
+}
+
+hydrateChrome();
+void hydrateLedger();
+
+// Signal that SDK is loaded (Playwright waits on window.aptosSDK, not this copy)
 document.getElementById("results")!.textContent = "SDK loaded successfully!";
 console.log("Aptos SDK loaded and exposed to window.aptosSDK");

@@ -1,0 +1,279 @@
+/**
+ * Visual tokens aligned with Aptos Explorer / brand palette
+ * (warm dark surfaces, cream type, blue + coral accents).
+ */
+
+:root {
+  /* Surfaces — from explorer.aptoslabs.com inline theme */
+  --aptos-bg-deep: #0a0a0a;
+  --aptos-bg-base: #0f0e0b;
+  --aptos-bg-raised: #171612;
+  --aptos-bg-card: #21201c;
+  --aptos-border: #2f2d28;
+  --aptos-border-strong: #333333;
+
+  /* Content */
+  --aptos-text: #f9f9f0;
+  --aptos-text-soft: #efecca;
+  --aptos-text-muted: #badbee;
+  --aptos-accent-blue: #266798;
+  --aptos-accent-coral: #fe805c;
+
+  --aptos-radius-sm: 6px;
+  --aptos-radius-md: 10px;
+  --aptos-radius-lg: 14px;
+  --aptos-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+
+  font-family:
+    "Plus Jakarta Sans",
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--aptos-bg-deep);
+  color: var(--aptos-text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(38, 103, 152, 0.18), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 50%, rgba(254, 128, 92, 0.06), transparent 50%),
+    linear-gradient(180deg, var(--aptos-bg-base) 0%, var(--aptos-bg-deep) 100%);
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--aptos-border);
+  background: rgba(15, 14, 11, 0.85);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand-mark {
+  flex-shrink: 0;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.brand-name {
+  font-weight: 700;
+  font-size: 1.125rem;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.brand-sub {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--aptos-text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.network-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: var(--aptos-bg-card);
+  border: 1px solid var(--aptos-border);
+  color: var(--aptos-text-soft);
+}
+
+.network-pill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--aptos-accent-coral);
+  box-shadow: 0 0 10px var(--aptos-accent-coral);
+}
+
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+}
+
+.page-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--aptos-text);
+}
+
+.page-lede {
+  margin: 0 0 2rem;
+  max-width: 42rem;
+  font-size: 1rem;
+  color: var(--aptos-text-muted);
+}
+
+.grid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.card {
+  background: var(--aptos-bg-card);
+  border: 1px solid var(--aptos-border);
+  border-radius: var(--aptos-radius-lg);
+  padding: 1.25rem 1.35rem;
+  box-shadow: var(--aptos-shadow);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--aptos-text-muted);
+}
+
+.card-badge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--aptos-radius-sm);
+  background: rgba(38, 103, 152, 0.25);
+  color: #badbee;
+  border: 1px solid rgba(38, 103, 152, 0.35);
+}
+
+.stat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--aptos-text-muted);
+}
+
+.stat-value {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--aptos-text-soft);
+  word-break: break-all;
+}
+
+.stat-value--loading {
+  color: var(--aptos-text-muted);
+  font-style: italic;
+}
+
+.sdk-status {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--aptos-accent-coral);
+  margin: 0;
+}
+
+.sdk-status--ok {
+  color: #b8e0c8;
+}
+
+.hint {
+  margin: 1rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--aptos-text-muted);
+  line-height: 1.55;
+}
+
+.hint a {
+  color: var(--aptos-accent-blue);
+  text-decoration: none;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(38, 103, 152, 0.5);
+}
+
+.hint a:hover {
+  color: #badbee;
+  border-bottom-color: #badbee;
+}
+
+.site-footer {
+  margin-top: auto;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--aptos-border);
+  font-size: 0.75rem;
+  color: var(--aptos-text-muted);
+  text-align: center;
+}
+
+.site-footer a {
+  color: var(--aptos-text-soft);
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: var(--aptos-accent-coral);
+}

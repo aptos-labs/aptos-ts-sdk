@@ -14,6 +14,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add MultiKey (K-of-N mixed key types) transfer example (`examples/typescript/multikey_transfer.ts`)
 - Add MultiEd25519 (K-of-N Ed25519) transfer example (`examples/typescript/multi_ed25519_transfer.ts`)
 
+## Changed
+
+- Restyle `examples/web-test` browser harness with Aptos Explorer–aligned colors, typography, and layout (plus live ledger snapshot)
+
 # 6.2.0 (2026-03-22)
 
 ## Fixed
