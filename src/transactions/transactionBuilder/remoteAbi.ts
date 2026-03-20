@@ -347,23 +347,19 @@ export function checkOrConvertArgument(
   genericTypeParams: Array<TypeTag>,
   moduleAbi?: MoveModule,
   options?: { allowUnknownStructs?: boolean },
-) {
+): EntryFunctionArgumentTypes {
   // If the argument is bcs encoded, we can just use it directly
   if (isEncodedEntryFunctionArgument(arg)) {
-    // Ensure the type matches the ABI
+    // If the expected type is Option but the arg is not already a MoveOption,
+    // wrap it after validating it matches the Option's inner type.
+    // This handles cases like Vector<Option<address>> where elements may be
+    // passed as AccountAddress instead of MoveOption<AccountAddress>.
+    if (param.isStruct() && param.isOption() && !(arg instanceof MoveOption)) {
+      return new MoveOption(
+        checkOrConvertArgument(arg, param.value.typeArgs[0], position, genericTypeParams, moduleAbi, options),
+      );
+    }
 
-    /**
-     * Checks the type of the provided argument against the expected type.
-     * This function helps validate that the argument conforms to the specified type requirements.
-     *
-     * @param typeArgs - The expected type arguments.
-     * @param arg - The argument to be checked.
-     * @param position - The position of the argument in the context of the check.
-     * @param moduleAbi - The ABI of the module containing the function, used for type checking.
-     *                    This will typically have information about structs, enums, and other types.
-     * @group Implementation
-     * @category Transactions
-     */
     checkType(param, arg, position);
     return arg;
   }
