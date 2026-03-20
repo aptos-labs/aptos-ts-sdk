@@ -7,6 +7,8 @@ settings:
 overrides:
   glob@^10: ^10.5.0
   minimatch@^9: ^9.0.7
+  file-type: 21.3.3
+  yauzl: 3.2.1
 
 importers:
 
@@ -649,8 +651,8 @@ packages:
     resolution: {integrity: sha512-+PmQX0PiAYPMeVYe237LJAYvOMYW1j2rH5YROyS3b4CTVJum34HfRvKvAzozHAQG0TnHNdUfY9nCeUyRAs//cw==}
     engines: {node: '>=14.16'}
 
-  '@tokenizer/inflate@0.2.7':
-    resolution: {integrity: sha512-MADQgmZT1eKjp06jpI2yozxaU9uVs4GzzgSL+uEq7bVcJ9V1ZXQkeGNql1fsSI0gMy1vhvNTNbUqrx+pZfJVmg==}
+  '@tokenizer/inflate@0.4.1':
+    resolution: {integrity: sha512-2mAv+8pkG6GIZiF1kNg1jAjh27IDxEPKwdGul3snfztFerfPGI1LjDezZp3i7BElXompqEtPmoPx6c2wgtWsOA==}
     engines: {node: '>=18'}
 
   '@tokenizer/token@0.3.0':
@@ -994,12 +996,9 @@ packages:
       picomatch:
         optional: true
 
-  fflate@0.8.2:
-    resolution: {integrity: sha512-cPJU47OaAoCbg0pBvzsgpTPhmhqI5eJjh/JIu8tPj5q+T7iLvW/JAYUqmE7KOB4R1ZyEhzBaIQpQpardBF5z8A==}
-
-  file-type@20.5.0:
-    resolution: {integrity: sha512-BfHZtG/l9iMm4Ecianu7P8HRD2tBHLtjXinm4X62XBOYzi7CYA7jyqfJzOvXHqzVrVPYqBo2/GvbARMaaJkKVg==}
-    engines: {node: '>=18'}
+  file-type@21.3.3:
+    resolution: {integrity: sha512-pNwbwz8c3aZ+GvbJnIsCnDjKvgCZLHxkFWLEFxU3RMa+Ey++ZSEfisvsWQMcdys6PpxQjWUOIDi1fifXsW3YRg==}
+    engines: {node: '>=20'}
 
   filename-reserved-regex@3.0.0:
     resolution: {integrity: sha512-hn4cQfU6GOT/7cFHXBqeBg2TbrMBgdD0kcjLhvSQYYwm3s4B6cjvBfb7nBALJLAXqmU5xajSa7X2NnUud/VCdw==}
@@ -1621,8 +1620,8 @@ packages:
     engines: {node: '>=8'}
     hasBin: true
 
-  yauzl@3.2.0:
-    resolution: {integrity: sha512-Ow9nuGZE+qp1u4JIPvg+uCiUr7xGQWdff7JQSk5VGYTAZMDe2q8lxJ10ygv10qmSj031Ty/6FNJpLO4o1Sgc+w==}
+  yauzl@3.2.1:
+    resolution: {integrity: sha512-k1isifdbpNSFEHFJ1ZY4YDewv0IH9FR61lDetaRMD3j2ae3bIXGV+7c+LHCqtQGofSd8PIyV4X6+dHMAnSr60A==}
     engines: {node: '>=12'}
 
 snapshots:
@@ -2017,10 +2016,9 @@ snapshots:
     dependencies:
       defer-to-connect: 2.0.1
 
-  '@tokenizer/inflate@0.2.7':
+  '@tokenizer/inflate@0.4.1':
     dependencies:
       debug: 4.4.3
-      fflate: 0.8.2
       token-types: 6.1.2
     transitivePeerDependencies:
       - supports-color
@@ -2097,7 +2095,7 @@ snapshots:
 
   '@xhmikosr/archive-type@7.1.0':
     dependencies:
-      file-type: 20.5.0
+      file-type: 21.3.3
     transitivePeerDependencies:
       - supports-color
 
@@ -2120,7 +2118,7 @@ snapshots:
 
   '@xhmikosr/decompress-tar@8.1.0':
     dependencies:
-      file-type: 20.5.0
+      file-type: 21.3.3
       is-stream: 2.0.1
       tar-stream: 3.1.8
     transitivePeerDependencies:
@@ -2132,7 +2130,7 @@ snapshots:
   '@xhmikosr/decompress-tarbz2@8.1.0':
     dependencies:
       '@xhmikosr/decompress-tar': 8.1.0
-      file-type: 20.5.0
+      file-type: 21.3.3
       is-stream: 2.0.1
       seek-bzip: 2.0.0
       unbzip2-stream: 1.4.3
@@ -2145,7 +2143,7 @@ snapshots:
   '@xhmikosr/decompress-targz@8.1.0':
     dependencies:
       '@xhmikosr/decompress-tar': 8.1.0
-      file-type: 20.5.0
+      file-type: 21.3.3
       is-stream: 2.0.1
     transitivePeerDependencies:
       - bare-abort-controller
@@ -2155,9 +2153,9 @@ snapshots:
 
   '@xhmikosr/decompress-unzip@7.1.0':
     dependencies:
-      file-type: 20.5.0
+      file-type: 21.3.3
       get-stream: 6.0.1
-      yauzl: 3.2.0
+      yauzl: 3.2.1
     transitivePeerDependencies:
       - supports-color
 
@@ -2182,7 +2180,7 @@ snapshots:
       content-disposition: 0.5.4
       defaults: 2.0.2
       ext-name: 5.0.0
-      file-type: 20.5.0
+      file-type: 21.3.3
       filenamify: 6.0.0
       get-stream: 6.0.1
       got: 13.0.0
@@ -2445,11 +2443,9 @@ snapshots:
     optionalDependencies:
       picomatch: 4.0.3
 
-  fflate@0.8.2: {}
-
-  file-type@20.5.0:
+  file-type@21.3.3:
     dependencies:
-      '@tokenizer/inflate': 0.2.7
+      '@tokenizer/inflate': 0.4.1
       strtok3: 10.3.4
       token-types: 6.1.2
       uint8array-extras: 1.5.0
@@ -3025,7 +3021,7 @@ snapshots:
       siginfo: 2.0.0
       stackback: 0.0.2
 
-  yauzl@3.2.0:
+  yauzl@3.2.1:
     dependencies:
       buffer-crc32: 0.2.13
       pend: 1.2.0

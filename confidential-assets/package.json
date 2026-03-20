@@ -65,7 +65,9 @@
   "pnpm": {
     "overrides": {
       "glob@^10": "^10.5.0",
-      "minimatch@^9": "^9.0.7"
+      "minimatch@^9": "^9.0.7",
+      "file-type": "21.3.3",
+      "yauzl": "3.2.1"
     }
   }
 }
