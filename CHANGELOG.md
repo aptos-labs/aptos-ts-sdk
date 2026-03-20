@@ -6,6 +6,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Fixed
 
+- Increase `waitForIndexer` default timeout from 3 seconds to 10 seconds to prevent spurious `waitForLastSuccessIndexerVersionSync timeout` errors during temporary indexer lag on devnet/testnet
+- Improve `waitForIndexer` timeout error message to include current indexer version, target version, and a suggestion to use `{ waitForIndexer: false }` as a workaround
 - Resolve moderate security advisories in `confidential-assets` dev tooling by pinning transitive `file-type` and `yauzl` (via `@swc/cli` → `@xhmikosr/downloader`) to patched releases
 - Remove hardcoded `maxGasAmount: 2000` from e2e tests (Account Derivation APIs, WebAuthn submission) that caused `MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS` failures after the on-chain minimum gas increase
 - Add troubleshooting section to CONTRIBUTING.md for `ERR_WORKER_OUT_OF_MEMORY` build failures on low-RAM systems
