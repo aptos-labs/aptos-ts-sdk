@@ -611,7 +611,7 @@ describe("account api", () => {
     beforeAll(async () => {
       await aptos.fundAccount({
         accountAddress: minterAccount.accountAddress,
-        amount: FUND_AMOUNT,
+        amount: FUND_AMOUNT * 100,
       });
     }, 10000);
 
@@ -629,7 +629,7 @@ describe("account api", () => {
       const transaction = await aptos.transferCoinTransaction({
         sender: minterAccount.accountAddress,
         recipient: recipient.accountAddress,
-        amount: FUND_AMOUNT / 100,
+        amount: FUND_AMOUNT,
       });
       const pendingTxn = await aptos.signAndSubmitTransaction({ signer: minterAccount, transaction });
       return await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
