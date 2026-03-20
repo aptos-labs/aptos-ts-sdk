@@ -3,41 +3,18 @@
  */
 const dotenv = require("dotenv");
 dotenv.config();
-const {
-  Account,
-  Aptos,
-  AptosConfig,
-  parseTypeTag,
-  NetworkToNetworkName,
-  Network,
-  AccountAddress,
-  U64,
-} = require("@aptos-labs/ts-sdk");
+const { Account, Aptos, AptosConfig, NetworkToNetworkName, Network } = require("@aptos-labs/ts-sdk");
 
-const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
 const ALICE_INITIAL_BALANCE = 1_000_000_000;
 const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 100;
 const APTOS_NETWORK = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 
-/**
- * Prints the balance of an account
- * @param sdk
- * @param name
- * @param address
- * @returns {Promise<*>}
- *
- */
-const balance = async (sdk, name, address) => {
-  const payload = {
-    function: "0x1::coin::balance",
-    typeArguments: ["0x1::aptos_coin::AptosCoin"],
-    functionArguments: [address.toString()],
-  };
-  const [balance] = await sdk.viewJson({ payload: payload });
-
-  let amount = Number(balance);
-
+const balance = async (sdk, name, address, versionToWaitFor) => {
+  const amount = await sdk.getAccountAPTAmount({
+    accountAddress: address,
+    minimumLedgerVersion: versionToWaitFor,
+  });
   console.log(`${name}'s balance is: ${amount}`);
   return amount;
 };
@@ -84,9 +61,8 @@ const example = async () => {
   const txn = await sdk.transaction.build.simple({
     sender: alice.accountAddress,
     data: {
-      function: "0x1::coin::transfer",
-      typeArguments: [parseTypeTag(APTOS_COIN)],
-      functionArguments: [AccountAddress.from(bob.accountAddress), new U64(TRANSFER_AMOUNT)],
+      function: "0x1::aptos_account::transfer",
+      functionArguments: [bob.accountAddress, TRANSFER_AMOUNT],
     },
   });
 
