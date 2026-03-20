@@ -625,15 +625,11 @@ describe("account api", () => {
       });
     };
 
-    const DEFAULT_MAX_GAS_AMOUNT = 2000;
     async function createAccount(recipient: Account): Promise<CommittedTransactionResponse> {
       const transaction = await aptos.transferCoinTransaction({
         sender: minterAccount.accountAddress,
         recipient: recipient.accountAddress,
         amount: FUND_AMOUNT / 100,
-        options: {
-          maxGasAmount: DEFAULT_MAX_GAS_AMOUNT,
-        },
       });
       const pendingTxn = await aptos.signAndSubmitTransaction({ signer: minterAccount, transaction });
       return await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
@@ -644,9 +640,6 @@ describe("account api", () => {
         sender: sender.accountAddress,
         recipient: sender.accountAddress,
         amount: 0,
-        options: {
-          maxGasAmount: DEFAULT_MAX_GAS_AMOUNT,
-        },
       });
       const pendingTxn = await aptos.signAndSubmitTransaction({ signer: sender, transaction });
       return await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
@@ -682,9 +675,6 @@ describe("account api", () => {
       const rotateTxn = await aptos.rotateAuthKeyUnverified({
         fromAccount: account2,
         toNewPublicKey: account1.publicKey,
-        options: {
-          maxGasAmount: DEFAULT_MAX_GAS_AMOUNT,
-        },
       });
       const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account2, transaction: rotateTxn });
       await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
@@ -748,9 +738,6 @@ describe("account api", () => {
       const rotateTxn = await aptos.rotateAuthKey({
         fromAccount: account2,
         toNewPrivateKey: account1.privateKey,
-        options: {
-          maxGasAmount: DEFAULT_MAX_GAS_AMOUNT,
-        },
       });
       const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account2, transaction: rotateTxn });
       const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
@@ -803,9 +790,6 @@ describe("account api", () => {
       const rotateTxn = await aptos.rotateAuthKey({
         fromAccount: account1,
         toNewPrivateKey: Ed25519PrivateKey.generate(),
-        options: {
-          maxGasAmount: DEFAULT_MAX_GAS_AMOUNT,
-        },
       });
       const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account1, transaction: rotateTxn });
       const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
@@ -840,9 +824,6 @@ describe("account api", () => {
       const rotateTxn = await aptos.rotateAuthKeyUnverified({
         fromAccount: account2,
         toNewPublicKey: account1.publicKey,
-        options: {
-          maxGasAmount: DEFAULT_MAX_GAS_AMOUNT,
-        },
       });
       const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account2, transaction: rotateTxn });
       await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
