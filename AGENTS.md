@@ -22,7 +22,8 @@ This repository uses **Turborepo** for monorepo orchestration with **pnpm worksp
 - **`packages/`** — Shared libraries and internal packages (add new packages here)
 - **`apps/`** — Applications (add new apps here)
 - **`confidential-assets/`** — Confidential assets SDK (workspace member)
-- **`examples/`** — Example projects (`typescript`, `typescript-esm`, `javascript`) using a linked SDK (`link:../..`)
+- **`examples/`** — Example projects (workspace members, use `workspace:*` for SDK dependency)
+- **`projects/`** — Demo projects like gas-station (workspace members)
 - **`docs/`** — Versioned TypeDoc output (large; generated)
 - **`turbo.json`** — Turborepo task pipeline configuration
 - **`pnpm-workspace.yaml`** — pnpm workspace package definitions
@@ -210,7 +211,7 @@ Docker is pre-installed and the daemon is running. The Docker socket at `/var/ru
 
 ### Build Before Testing Examples
 
-Examples under `examples/` link to the root SDK via `link:../..`. Always run `pnpm build` in the repo root before working with examples.
+Examples under `examples/` are workspace members using `workspace:*` for the SDK dependency. Always run `pnpm build` in the repo root before working with examples.
 
 ### Known Flaky Test
 

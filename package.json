@@ -49,11 +49,11 @@
     "update-version": "scripts/updateVersion.sh && pnpm doc",
     "spec": "pnpm build && pnpm _spec",
     "_spec": "cucumber-js -p default",
-    "build:all": "turbo run build",
-    "test:all": "turbo run test",
-    "lint:all": "turbo run lint",
-    "check:all": "turbo run check",
-    "fmt:all": "turbo run fmt"
+    "build:all": "turbo run build --filter='./packages/*' --filter='./confidential-assets' --filter='{.}'",
+    "test:all": "turbo run test --filter='./packages/*' --filter='./confidential-assets' --filter='{.}'",
+    "lint:all": "turbo run lint --filter='./packages/*' --filter='./confidential-assets' --filter='{.}'",
+    "check:all": "turbo run check --filter='./packages/*' --filter='./confidential-assets' --filter='{.}'",
+    "fmt:all": "turbo run fmt --filter='./packages/*' --filter='./confidential-assets' --filter='{.}'"
   },
   "dependencies": {
     "@aptos-labs/aptos-cli": "^1.1.1",
@@ -100,7 +100,9 @@
       "glob@^10": "^10.5.0",
       "minimatch@^9": "^9.0.7",
       "file-type": "21.3.3",
-      "yauzl": "3.2.1"
+      "yauzl": "3.2.1",
+      "qs@^6": "^6.14.1",
+      "rollup@^4": "^4.59.0"
     },
     "onlyBuiltDependencies": [
       "@swc/core",

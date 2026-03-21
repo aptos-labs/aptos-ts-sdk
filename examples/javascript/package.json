@@ -16,7 +16,7 @@
   "keywords": [],
   "author": "",
   "dependencies": {
-    "@aptos-labs/ts-sdk": "link:../..",
+    "@aptos-labs/ts-sdk": "workspace:*",
     "npm-run-all2": "8.0.4"
   }
 }

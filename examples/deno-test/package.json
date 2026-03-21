@@ -12,6 +12,6 @@
     "test:all": "deno run simple_transfer.ts && bun run simple_sponsored_transaction.ts"
   },
   "dependencies": {
-    "@aptos-labs/ts-sdk": "file:../.."
+    "@aptos-labs/ts-sdk": "workspace:*"
   }
 }

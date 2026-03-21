@@ -20,6 +20,7 @@
     "express": "^5.2.1"
   },
   "devDependencies": {
+    "@aptos-labs/ts-sdk": "workspace:*",
     "@types/express": "^5.0.6",
     "@types/node": "^22.19.13",
     "tsx": "^4.21.0",
@@ -28,13 +29,5 @@
   },
   "peerDependencies": {
     "@aptos-labs/ts-sdk": "^5.2.1 || ^6.1.0"
-  },
-  "pnpm": {
-    "overrides": {
-      "minimatch@^9": "^9.0.7",
-      "qs@^6": "^6.14.1",
-      "glob@^10": "^10.5.0",
-      "rollup@^4": "^4.59.0"
-    }
   }
 }

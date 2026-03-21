@@ -96,7 +96,7 @@ const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
 - `packages/` - Shared libraries and internal packages (add new packages here)
 - `apps/` - Applications (add new apps here)
 - `confidential-assets/` - Confidential assets SDK (workspace member)
-- `examples/` - TypeScript/JS examples using linked SDK (`link:../..`)
+- `examples/` - TypeScript/JS examples (workspace members, use `workspace:*` for SDK dependency)
 - `projects/` - Demo projects (gas station)
 
 ## Version Management
