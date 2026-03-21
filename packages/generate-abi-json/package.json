@@ -1,0 +1,27 @@
+{
+  "name": "@aptos-labs/generate-abi-json",
+  "version": "0.1.0",
+  "description": "CLI tool to generate JSON-serializable entry/view function ABIs from on-chain Aptos Move modules",
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@10.30.3",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "bin": {
+    "generate-abi-json": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build:clean": "rm -rf dist",
+    "build": "pnpm build:clean && tsup"
+  },
+  "dependencies": {
+    "@aptos-labs/ts-sdk": ">=6.2.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  }
+}

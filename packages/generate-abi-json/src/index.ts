@@ -1,18 +1,16 @@
-#!/usr/bin/env node
-
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { parseArgs } from "node:util";
 import { writeFileSync } from "node:fs";
 
-import { AptosConfig } from "../api/aptosConfig";
-import { Network } from "../utils/apiEndpoints";
 import {
+  AptosConfig,
+  Network,
   generateModuleAbiJSON,
   generateEntryFunctionAbiJSON,
   generateViewFunctionAbiJSON,
-} from "../transactions/transactionBuilder/abiJson";
+} from "@aptos-labs/ts-sdk";
 
 const USAGE = `
 Usage: generate-abi-json [options]
@@ -23,7 +21,7 @@ function ABI definitions that can be embedded in application source code.
 Options:
   --network <network>   Network to connect to: mainnet, testnet, devnet, local
                         (default: mainnet)
-  --node-url <url>      Custom fullnode URL (overrides --network)
+  --node-url <url>      Custom fullnode URL (overrides --network; include /v1)
   --address <address>   Account address of the module (required)
   --module <name>       Module name (required)
   --function <name>     Specific function name (omit to output all functions)
@@ -33,13 +31,13 @@ Options:
 
 Examples:
   # All entry/view ABIs for the coin module on mainnet
-  generate-abi-json --address 0x1 --module coin --pretty
+  npx @aptos-labs/generate-abi-json --address 0x1 --module coin --pretty
 
   # Single entry function, written to a file
-  generate-abi-json --address 0x1 --module coin --function transfer --output coin_transfer.json
+  npx @aptos-labs/generate-abi-json --address 0x1 --module coin --function transfer --output coin_transfer.json
 
-  # Use a custom node URL (include /v1 path)
-  generate-abi-json --node-url http://localhost:8080/v1 --address 0x1 --module coin
+  # Use a custom node URL
+  npx @aptos-labs/generate-abi-json --node-url http://localhost:8080/v1 --address 0x1 --module coin
 `.trim();
 
 const NETWORK_MAP: Record<string, Network> = {
@@ -83,7 +81,9 @@ async function main() {
   const networkKey = values.network!.toLowerCase();
   const network = NETWORK_MAP[networkKey];
   if (!network && !values["node-url"]) {
-    console.error(`Error: unknown network '${values.network}'. Use one of: mainnet, testnet, devnet, local\n`);
+    console.error(
+      `Error: unknown network '${values.network}'. Use one of: mainnet, testnet, devnet, local\n`,
+    );
     console.error("Or provide --node-url for a custom endpoint.");
     process.exit(1);
   }
@@ -96,7 +96,6 @@ async function main() {
     let result: unknown;
 
     if (values.function) {
-      // Try entry function first, then view function
       try {
         result = await generateEntryFunctionAbiJSON({
           aptosConfig,
@@ -120,7 +119,9 @@ async function main() {
       });
     }
 
-    const jsonStr = values.pretty ? JSON.stringify(result, null, 2) : JSON.stringify(result);
+    const jsonStr = values.pretty
+      ? JSON.stringify(result, null, 2)
+      : JSON.stringify(result);
 
     if (values.output) {
       writeFileSync(values.output, `${jsonStr}\n`, "utf-8");

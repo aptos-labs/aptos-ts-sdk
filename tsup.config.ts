@@ -31,7 +31,7 @@ const DEFAULT_CONFIG: Options = {
 // Common.js config
 const COMMON_CONFIG: MandatoryOptions = {
   ...DEFAULT_CONFIG,
-  entry: ["src/index.ts", "src/cli/index.ts", "src/cli/generate-abi-json.ts"],
+  entry: ["src/index.ts", "src/cli/index.ts"],
   format: "cjs",
   outDir: "dist/common",
 };
