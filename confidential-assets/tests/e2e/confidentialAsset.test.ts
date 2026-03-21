@@ -91,15 +91,15 @@ describe("Confidential Asset Sender API", () => {
   beforeAll(async () => {
     await aptos.fundAccount({
       accountAddress: alice.accountAddress,
-      amount: 100000000,
+      amount: 1_000_000_000,
     });
     await aptos.fundAccount({
       accountAddress: bob.accountAddress,
-      amount: 100000000,
+      amount: 1_000_000_000,
     });
     await aptos.fundAccount({
       accountAddress: feePayerAccount.accountAddress,
-      amount: 100000000,
+      amount: 1_000_000_000,
     });
 
     console.log("Funded accounts");
