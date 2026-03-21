@@ -26,8 +26,5 @@
     "tsx": "^4.21.0",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3"
-  },
-  "peerDependencies": {
-    "@aptos-labs/ts-sdk": "^5.2.1 || ^6.1.0"
   }
 }
