@@ -23,6 +23,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Added
 
+- Add Turborepo monorepo configuration with `turbo.json` and `pnpm-workspace.yaml` for orchestrating builds, tests, and linting across multiple packages
+- Add `packages/` and `apps/` directories for organizing new workspace packages and applications
+- Add turbo-powered workspace scripts: `build:all`, `test:all`, `lint:all`, `check:all`, `fmt:all`
+- Wire up `confidential-assets` as a pnpm workspace member with `workspace:*` protocol for the `@aptos-labs/ts-sdk` dependency
 - Add e2e tests for external signer flow (build → getSigningMessage → sign externally → submit) to verify the flow works correctly with the latest SDK version
 - Add MultiKey (K-of-N mixed key types) transfer example (`examples/typescript/multikey_transfer.ts`)
 - Add MultiEd25519 (K-of-N Ed25519) transfer example (`examples/typescript/multi_ed25519_transfer.ts`)

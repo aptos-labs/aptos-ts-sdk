@@ -6,11 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is the **Aptos TypeScript SDK** (`@aptos-labs/ts-sdk`), a comprehensive SDK for interacting with the Aptos blockchain. It provides account management, transaction building/submission, data querying, digital assets, keyless authentication, and more.
 
+## Monorepo Structure
+
+This repository uses **Turborepo** with **pnpm workspaces**. The main SDK lives at the root; additional packages go in `packages/` and apps in `apps/`.
+
 ## Common Commands
 
+### SDK-specific (root package)
+
 ```bash
-pnpm install              # Install dependencies (CI uses --frozen-lockfile)
-pnpm build                # Build CJS + ESM output to dist/
+pnpm install              # Install all workspace dependencies
+pnpm build                # Build the SDK (CJS + ESM output to dist/)
 pnpm fmt                  # Format code with Biome
 pnpm _fmt                 # Check formatting without writing (what CI runs)
 pnpm lint                 # Run Biome linter
@@ -21,6 +27,16 @@ pnpm doc                  # Generate TypeDoc documentation
 pnpm check-version        # Verify version consistency across files
 pnpm update-version       # Bump version everywhere + regenerate docs
 pnpm indexer-codegen      # Generate GraphQL types from indexer schema
+```
+
+### Turborepo workspace-wide commands
+
+```bash
+pnpm build:all            # Build all workspace packages via Turborepo
+pnpm test:all             # Test all workspace packages via Turborepo
+pnpm lint:all             # Lint all workspace packages via Turborepo
+pnpm check:all            # Check all workspace packages via Turborepo
+pnpm fmt:all              # Format all workspace packages via Turborepo
 ```
 
 ## Commit Guidelines
@@ -77,8 +93,10 @@ const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
 
 ## Related Packages
 
+- `packages/` - Shared libraries and internal packages (add new packages here)
+- `apps/` - Applications (add new apps here)
+- `confidential-assets/` - Confidential assets SDK (workspace member)
 - `examples/` - TypeScript/JS examples using linked SDK (`link:../..`)
-- `confidential-assets/` - Separate confidential assets SDK package
 - `projects/` - Demo projects (gas station)
 
 ## Version Management

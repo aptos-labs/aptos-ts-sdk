@@ -11,32 +11,49 @@ This is the **Aptos TypeScript SDK** (`@aptos-labs/ts-sdk`), a comprehensive SDK
 - **Node**: use the version in `.node-version` (currently `v22.12.0`). `package.json` requires `node >= 20`.
 - **pnpm**: repo uses `pnpm` (see `.tool-versions`, `package.json#packageManager`).
 
-## Repo Layout
+## Repo Layout (Turborepo Monorepo)
 
-- **SDK source**: `src/`
-- **SDK tests**: `tests/`
-  - Vitest uses `tests/preTest.ts` (globalSetup with setup/teardown) to start/stop a local Aptos node.
-- **Examples**: `examples/`
-  - `examples/typescript`, `examples/typescript-esm`, `examples/javascript` use a **linked** SDK (`link:../..`).
-- **Confidential assets SDK**: `confidential-assets/` (separate package + tests)
-- **Docs output**: `docs/` (large; includes versioned typedoc output)
-- **Utility scripts**: `scripts/` (`checkVersion.sh`, `updateVersion.sh`, `generateDocs.sh`)
+This repository uses **Turborepo** for monorepo orchestration with **pnpm workspaces**.
+
+- **Root package** (`@aptos-labs/ts-sdk`): The main SDK lives at the repository root
+  - `src/` — SDK source
+  - `tests/` — SDK tests (Vitest uses `tests/preTest.ts` globalSetup to start/stop a local Aptos node)
+  - `scripts/` — Utility scripts (`checkVersion.sh`, `updateVersion.sh`, `generateDocs.sh`)
+- **`packages/`** — Shared libraries and internal packages (add new packages here)
+- **`apps/`** — Applications (add new apps here)
+- **`confidential-assets/`** — Confidential assets SDK (workspace member)
+- **`examples/`** — Example projects (`typescript`, `typescript-esm`, `javascript`) using a linked SDK (`link:../..`)
+- **`docs/`** — Versioned TypeDoc output (large; generated)
+- **`turbo.json`** — Turborepo task pipeline configuration
+- **`pnpm-workspace.yaml`** — pnpm workspace package definitions
 
 ## Common Commands
 
+### SDK-specific (root package)
+
 ```bash
-pnpm install              # Install dependencies (CI uses --frozen-lockfile)
-pnpm build                # Build CJS + ESM output to dist/
-pnpm fmt                  # Format code with Biome
+pnpm install              # Install all workspace dependencies
+pnpm build                # Build the SDK (CJS + ESM output to dist/)
+pnpm fmt                  # Format SDK code with Biome
 pnpm _fmt                 # Check formatting without writing (what CI runs)
-pnpm lint                 # Run Biome linter
-pnpm check                # Run Biome check (lint + format)
-pnpm test                 # Run all tests (unit + e2e)
+pnpm lint                 # Run Biome linter on SDK
+pnpm check                # Run Biome check (lint + format) on SDK
+pnpm test                 # Run all SDK tests (unit + e2e)
 vitest run <file>         # Run a specific test file (e.g., vitest run keyless.test.ts)
 pnpm doc                  # Generate TypeDoc documentation
 pnpm check-version        # Verify version consistency across files
 pnpm update-version       # Bump version everywhere + regenerate docs
 pnpm indexer-codegen      # Generate GraphQL types from indexer schema
+```
+
+### Turborepo workspace-wide commands
+
+```bash
+pnpm build:all            # Build all workspace packages via Turborepo
+pnpm test:all             # Test all workspace packages via Turborepo
+pnpm lint:all             # Lint all workspace packages via Turborepo
+pnpm check:all            # Check all workspace packages via Turborepo
+pnpm fmt:all              # Format all workspace packages via Turborepo
 ```
 
 ## Commit Guidelines
@@ -91,10 +108,18 @@ pnpm test
 
 ### Confidential Assets Package
 
+The confidential-assets package is a pnpm workspace member. Its dependencies are installed with the root `pnpm install` — no separate install step is needed.
+
 ```bash
-pnpm install --frozen-lockfile
-cd confidential-assets && pnpm install --frozen-lockfile
+pnpm install              # Installs deps for all workspace members
 cd confidential-assets && pnpm test
+```
+
+Or build/test everything via Turborepo:
+
+```bash
+pnpm build:all            # Builds SDK first, then confidential-assets
+pnpm test:all             # Tests all workspace packages
 ```
 
 When changing shared infra (vitest config, root tooling), ensure confidential-assets still works.
@@ -164,8 +189,10 @@ const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET, clientConfig
 ## Guardrails
 
 - **Prefer the repo scripts** (`pnpm build`, `pnpm test`, `pnpm check`, `pnpm fmt`) over ad-hoc commands.
+- **Use turbo scripts** (`pnpm build:all`, `pnpm test:all`) when changes span multiple workspace packages.
 - **Avoid massive diffs in `docs/`** unless the change is intentionally about docs generation/version bumps.
 - Keep changes tight and CI-aligned; if you touch build/lint/test infra, run the corresponding commands locally.
+- **Adding new packages**: Create a new directory under `packages/` (for libraries) or `apps/` (for applications) with its own `package.json`. It will automatically be picked up by pnpm workspaces and Turborepo.
 
 ## Cursor Cloud specific instructions
 
