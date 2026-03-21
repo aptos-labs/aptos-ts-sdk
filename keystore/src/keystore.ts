@@ -24,10 +24,7 @@ import { sha256 } from "@noble/hashes/sha256";
 import { scrypt as nobleScrypt } from "@noble/hashes/scrypt";
 import { pbkdf2 as noblePbkdf2 } from "@noble/hashes/pbkdf2";
 import { randomBytes, bytesToHex, hexToBytes } from "@noble/hashes/utils";
-import { Ed25519PrivateKey } from "./ed25519";
-import { Secp256k1PrivateKey } from "./secp256k1";
-import { Secp256r1PrivateKey } from "./secp256r1";
-import { PrivateKeyVariants } from "../../types";
+import { Ed25519PrivateKey, Secp256k1PrivateKey, Secp256r1PrivateKey, PrivateKeyVariants } from "@aptos-labs/ts-sdk";
 
 /**
  * Union type of all private key types supported by the Aptos Keystore.
@@ -323,7 +320,8 @@ function createPrivateKey(bytes: Uint8Array, keyType: PrivateKeyVariants): Keyst
  *
  * @example
  * ```typescript
- * import { Ed25519PrivateKey, encryptKeystore } from "@aptos-labs/ts-sdk";
+ * import { Ed25519PrivateKey } from "@aptos-labs/ts-sdk";
+ * import { encryptKeystore } from "@aptos-labs/aptos-keystore";
  *
  * // Uses argon2id if hash-wasm is installed, scrypt otherwise
  * const privateKey = Ed25519PrivateKey.generate();
@@ -432,7 +430,7 @@ export async function encryptKeystore(args: {
  *
  * @example
  * ```typescript
- * import { decryptKeystore } from "@aptos-labs/ts-sdk";
+ * import { decryptKeystore } from "@aptos-labs/aptos-keystore";
  *
  * const privateKey = await decryptKeystore({
  *   keystore: keystoreJson,

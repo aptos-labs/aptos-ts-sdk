@@ -36,9 +36,6 @@ importers:
       eventemitter3:
         specifier: ^5.0.4
         version: 5.0.4
-      hash-wasm:
-        specifier: ^4.12.0
-        version: 4.12.0
       js-base64:
         specifier: ^3.7.7
         version: 3.7.8
@@ -2004,9 +2001,6 @@ packages:
   has-flag@4.0.0:
     resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
     engines: {node: '>=8'}
-
-  hash-wasm@4.12.0:
-    resolution: {integrity: sha512-+/2B2rYLb48I/evdOIhP+K/DD2ca2fgBjp6O+GBEnCDk2e4rpeXIK8GvIyRPjTezgmWn9gmKwkQjjx6BtqDHVQ==}
 
   header-case@2.0.4:
     resolution: {integrity: sha512-H/vuk5TEEVZwrR0lp2zed9OCo1uAILMlx0JEMgC26rzyJJ3N1v6XkwHHXJQdR2doSjcGPM6OKPYoJgf0plJ11Q==}
@@ -5291,8 +5285,6 @@ snapshots:
       ansi-regex: 4.1.1
 
   has-flag@4.0.0: {}
-
-  hash-wasm@4.12.0: {}
 
   header-case@2.0.4:
     dependencies:

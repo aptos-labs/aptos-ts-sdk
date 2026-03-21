@@ -1,15 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-  Ed25519PrivateKey,
-  Secp256k1PrivateKey,
-  Secp256r1PrivateKey,
-  encryptKeystore,
-  decryptKeystore,
-  PrivateKeyVariants,
-} from "../../src";
-import type { AptosKeyStore } from "../../src";
+import { Ed25519PrivateKey, Secp256k1PrivateKey, Secp256r1PrivateKey, PrivateKeyVariants } from "@aptos-labs/ts-sdk";
+import { encryptKeystore, decryptKeystore } from "../src";
+import type { AptosKeyStore } from "../src";
 
 describe("AptosKeystore", () => {
   const TEST_PASSWORD = "test-password-123";
