@@ -266,18 +266,81 @@ describe("Remote ABI", () => {
         new MoveString("Hello"),
       );
 
-      // You cannot provide `new U8(0)` without MoveOption
+      // BCS-encoded values are auto-wrapped in MoveOption when the expected type is Option
       expect(
         checkOrConvertArgument(new MoveOption(new U8(255)), parseTypeTag("0x1::option::Option<u8>"), 0, []),
       ).toEqual(new MoveOption(new U8(255)));
       expect(checkOrConvertArgument(new MoveOption<U8>(), parseTypeTag("0x1::option::Option<u8>"), 0, [])).toEqual(
         new MoveOption<U8>(),
       );
+      expect(checkOrConvertArgument(new U8(255), parseTypeTag("0x1::option::Option<u8>"), 0, [])).toEqual(
+        new MoveOption(new U8(255)),
+      );
+      expect(checkOrConvertArgument(AccountAddress.ONE, parseTypeTag("0x1::option::Option<address>"), 0, [])).toEqual(
+        new MoveOption(AccountAddress.ONE),
+      );
 
       // Objects are account addresses, and it doesn't matter about the type used
       expect(
         checkOrConvertArgument(AccountAddress.ONE, parseTypeTag("0x1::object::Object<0x1::string::String>"), 0, []),
       ).toEqual(AccountAddress.ONE);
+    });
+
+    it("should parse vector<Option<T>> arguments", () => {
+      // vector<Option<address>> with BCS-encoded AccountAddress elements
+      expect(
+        checkOrConvertArgument([AccountAddress.ONE], parseTypeTag("vector<0x1::option::Option<address>>"), 0, []),
+      ).toEqual(new MoveVector([new MoveOption(AccountAddress.ONE)]));
+
+      // vector<Option<address>> with string elements
+      expect(checkOrConvertArgument(["0x1"], parseTypeTag("vector<0x1::option::Option<address>>"), 0, [])).toEqual(
+        new MoveVector([new MoveOption(AccountAddress.ONE)]),
+      );
+
+      // vector<Option<address>> with null elements (empty options)
+      expect(checkOrConvertArgument([null], parseTypeTag("vector<0x1::option::Option<address>>"), 0, [])).toEqual(
+        new MoveVector([new MoveOption<AccountAddress>(null)]),
+      );
+
+      expect(checkOrConvertArgument([undefined], parseTypeTag("vector<0x1::option::Option<address>>"), 0, [])).toEqual(
+        new MoveVector([new MoveOption<AccountAddress>(null)]),
+      );
+
+      // vector<Option<address>> with mixed present and null values
+      expect(
+        checkOrConvertArgument(
+          [AccountAddress.ONE, null, "0x2"],
+          parseTypeTag("vector<0x1::option::Option<address>>"),
+          0,
+          [],
+        ),
+      ).toEqual(
+        new MoveVector([
+          new MoveOption(AccountAddress.ONE),
+          new MoveOption<AccountAddress>(null),
+          new MoveOption(AccountAddress.TWO),
+        ]),
+      );
+
+      // vector<Option<u8>> with number elements
+      expect(checkOrConvertArgument([1, 2, 3], parseTypeTag("vector<0x1::option::Option<u8>>"), 0, [])).toEqual(
+        new MoveVector([new MoveOption(new U8(1)), new MoveOption(new U8(2)), new MoveOption(new U8(3))]),
+      );
+
+      // vector<Option<u64>> with mixed values
+      expect(checkOrConvertArgument([100n, null], parseTypeTag("vector<0x1::option::Option<u64>>"), 0, [])).toEqual(
+        new MoveVector([new MoveOption(new U64(100n)), new MoveOption<U64>(null)]),
+      );
+
+      // vector<Option<u8>> with BCS-encoded elements
+      expect(checkOrConvertArgument([new U8(42)], parseTypeTag("vector<0x1::option::Option<u8>>"), 0, [])).toEqual(
+        new MoveVector([new MoveOption(new U8(42))]),
+      );
+
+      // vector<Option<u8>> with already-wrapped MoveOption elements
+      expect(
+        checkOrConvertArgument([new MoveOption(new U8(42))], parseTypeTag("vector<0x1::option::Option<u8>>"), 0, []),
+      ).toEqual(new MoveVector([new MoveOption(new U8(42))]));
     });
 
     it("should allow mixed arguments", () => {
