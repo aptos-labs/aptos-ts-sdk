@@ -15,12 +15,12 @@ runs:
         registry-url: "https://registry.npmjs.org"
     - uses: pnpm/action-setup@v4
 
-    # Run package install at root. This sets up the parent vitest config.
+    # Run package install for all workspace members.
     - run: pnpm install --frozen-lockfile
       shell: bash
 
-    # Install the dependencies for the Confidential Assets tests
-    - run: cd confidential-assets && pnpm install --frozen-lockfile
+    # Build the root SDK so confidential-assets can resolve @aptos-labs/ts-sdk.
+    - run: pnpm build
       shell: bash
 
     # Run the Confidential Assets tests.
