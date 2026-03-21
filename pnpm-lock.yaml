@@ -261,6 +261,9 @@ importers:
 
   projects/gas-station:
     dependencies:
+      '@aptos-labs/ts-sdk':
+        specifier: workspace:*
+        version: link:../..
       dotenv:
         specifier: ^17.3.1
         version: 17.3.1
@@ -268,9 +271,6 @@ importers:
         specifier: ^5.2.1
         version: 5.2.1
     devDependencies:
-      '@aptos-labs/ts-sdk':
-        specifier: workspace:*
-        version: link:../..
       '@types/express':
         specifier: ^5.0.6
         version: 5.0.6

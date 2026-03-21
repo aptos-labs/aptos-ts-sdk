@@ -16,11 +16,11 @@
     "node": "^22"
   },
   "dependencies": {
+    "@aptos-labs/ts-sdk": "workspace:*",
     "dotenv": "^17.3.1",
     "express": "^5.2.1"
   },
   "devDependencies": {
-    "@aptos-labs/ts-sdk": "workspace:*",
     "@types/express": "^5.0.6",
     "@types/node": "^22.19.13",
     "tsx": "^4.21.0",
