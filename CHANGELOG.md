@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 6.3.0 (2026-03-22)
+
 ## Fixed
 
 - Fix simple function arguments for `Vector<Option<T>>` types: BCS-encoded values (e.g. `AccountAddress.ONE`) passed as elements of `vector<Option<address>>` are now automatically wrapped in `MoveOption` instead of throwing a type mismatch error
