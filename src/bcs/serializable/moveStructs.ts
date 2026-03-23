@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Bool, U128, U16, U256, U32, U64, U8, I8, I16, I32, I64, I128, I256 } from "./movePrimitives";
-import { Serializable, Serializer } from "../serializer";
+import { Serializable, Serializer, serializeEntryFunctionBytesCompat } from "../serializer";
 import { Deserializable, Deserializer } from "../deserializer";
 import { AnyNumber, HexInput, ScriptTransactionArgumentVariants } from "../../types";
 import { Hex } from "../../core/hex";
@@ -69,14 +69,14 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
   /**
    * Serializes the current instance into a byte sequence suitable for entry functions.
    * This allows the data to be properly formatted for transmission or storage.
-   * Uses the optimized serializeAsBytes method to reduce allocations.
+   * Uses serializeAsBytes when available, with a fallback for older Serializer versions.
    *
    * @param serializer - The serializer instance used to serialize the byte sequence.
    * @group Implementation
    * @category BCS
    */
   serializeForEntryFunction(serializer: Serializer): void {
-    serializer.serializeAsBytes(this);
+    serializeEntryFunctionBytesCompat(serializer, this);
   }
 
   /**
@@ -493,7 +493,7 @@ export class MoveString extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    serializer.serializeAsBytes(this);
+    serializeEntryFunctionBytesCompat(serializer, this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -530,7 +530,7 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    serializer.serializeAsBytes(this);
+    serializeEntryFunctionBytesCompat(serializer, this);
   }
 
   /**

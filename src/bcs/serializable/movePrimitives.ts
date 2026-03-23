@@ -21,7 +21,13 @@ import {
   MAX_I256_BIG_INT,
 } from "../consts";
 import { Deserializer } from "../deserializer";
-import { Serializable, Serializer, ensureBoolean, validateNumberInRange } from "../serializer";
+import {
+  Serializable,
+  Serializer,
+  ensureBoolean,
+  serializeEntryFunctionBytesCompat,
+  validateNumberInRange,
+} from "../serializer";
 import { TransactionArgument } from "../../transactions/instances/transactionArgument";
 import { AnyNumber, Uint16, Uint32, Uint8, Int8, Int16, Int32, ScriptTransactionArgumentVariants } from "../../types";
 
@@ -76,14 +82,14 @@ export class Bool extends Serializable implements TransactionArgument {
   /**
    * Serializes the current instance for use in an entry function by converting it to a byte sequence.
    * This allows the instance to be properly formatted for serialization in transactions.
-   * Uses the optimized serializeAsBytes method to reduce allocations.
+   * Uses serializeAsBytes when available, with a fallback for older Serializer versions.
    *
    * @param serializer - The serializer instance used to serialize the byte sequence.
    * @group Implementation
    * @category BCS
    */
   serializeForEntryFunction(serializer: Serializer): void {
-    serializer.serializeAsBytes(this);
+    serializeEntryFunctionBytesCompat(serializer, this);
   }
 
   /**
@@ -138,7 +144,7 @@ export class U8 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    serializer.serializeAsBytes(this);
+    serializeEntryFunctionBytesCompat(serializer, this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -174,7 +180,7 @@ export class U16 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    serializer.serializeAsBytes(this);
+    serializeEntryFunctionBytesCompat(serializer, this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -209,7 +215,7 @@ export class U32 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    serializer.serializeAsBytes(this);
+    serializeEntryFunctionBytesCompat(serializer, this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -247,7 +253,7 @@ export class U64 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    serializer.serializeAsBytes(this);
+    serializeEntryFunctionBytesCompat(serializer, this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -283,7 +289,7 @@ export class U128 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    serializer.serializeAsBytes(this);
+    serializeEntryFunctionBytesCompat(serializer, this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -319,7 +325,7 @@ export class U256 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    serializer.serializeAsBytes(this);
+    serializeEntryFunctionBytesCompat(serializer, this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -354,7 +360,7 @@ export class I8 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    serializer.serializeAsBytes(this);
+    serializeEntryFunctionBytesCompat(serializer, this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -390,7 +396,7 @@ export class I16 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    serializer.serializeAsBytes(this);
+    serializeEntryFunctionBytesCompat(serializer, this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -425,7 +431,7 @@ export class I32 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    serializer.serializeAsBytes(this);
+    serializeEntryFunctionBytesCompat(serializer, this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -463,7 +469,7 @@ export class I64 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    serializer.serializeAsBytes(this);
+    serializeEntryFunctionBytesCompat(serializer, this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -499,7 +505,7 @@ export class I128 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    serializer.serializeAsBytes(this);
+    serializeEntryFunctionBytesCompat(serializer, this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
@@ -535,7 +541,7 @@ export class I256 extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    serializer.serializeAsBytes(this);
+    serializeEntryFunctionBytesCompat(serializer, this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
