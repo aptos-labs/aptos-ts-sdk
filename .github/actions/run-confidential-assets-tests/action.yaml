@@ -16,7 +16,8 @@ runs:
     - uses: pnpm/action-setup@v4
 
     # Run package install for all workspace members.
-    - run: pnpm install --frozen-lockfile
+    # Skip Playwright browser download since this job only runs confidential-assets tests.
+    - run: PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 pnpm install --frozen-lockfile
       shell: bash
 
     # Build the root SDK so confidential-assets can resolve @aptos-labs/ts-sdk.

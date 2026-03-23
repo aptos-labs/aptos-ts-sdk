@@ -51,9 +51,9 @@
     "_spec": "cucumber-js -p default",
     "build:all": "turbo run build --filter='./packages/*' --filter='./confidential-assets' --filter='{.}'",
     "test:all": "turbo run test --filter='./packages/*' --filter='./confidential-assets' --filter='{.}'",
-    "lint:all": "turbo run lint --filter='./packages/*' --filter='./confidential-assets' --filter='{.}'",
-    "check:all": "turbo run check --filter='./packages/*' --filter='./confidential-assets' --filter='{.}'",
-    "fmt:all": "turbo run fmt --filter='./packages/*' --filter='./confidential-assets' --filter='{.}'"
+    "lint:all": "turbo run lint --filter='./packages/*' --filter='{.}'",
+    "check:all": "turbo run check --filter='./packages/*' --filter='{.}'",
+    "fmt:all": "turbo run fmt --filter='./packages/*' --filter='{.}'"
   },
   "dependencies": {
     "@aptos-labs/aptos-cli": "^1.1.1",
