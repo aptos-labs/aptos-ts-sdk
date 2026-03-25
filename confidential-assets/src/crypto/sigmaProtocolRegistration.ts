@@ -24,7 +24,7 @@ import type { RistPoint } from ".";
 import {
   sigmaProtocolProve,
   sigmaProtocolVerify,
-  APTOS_EXPERIMENTAL_ADDRESS,
+  APTOS_FRAMEWORK_ADDRESS,
   type DomainSeparator,
   type SigmaProtocolStatement,
   type SigmaProtocolProof,
@@ -37,7 +37,7 @@ import { Serializer, FixedBytes } from "@aptos-labs/ts-sdk";
 const PROTOCOL_ID = "AptosConfidentialAsset/RegistrationV1";
 
 /** Fully-qualified Move type name for the phantom marker type, matching `type_info::type_name<Registration>()` */
-const TYPE_NAME = "0x7::sigma_protocol_registration::Registration";
+const TYPE_NAME = "0x1::sigma_protocol_registration::Registration";
 
 /** Statement point indices */
 const IDX_H = 0;
@@ -109,7 +109,7 @@ export function proveRegistration(args: {
 
   const sessionId = bcsSerializeRegistrationSession(senderAddress, tokenAddress);
   const dst: DomainSeparator = {
-    contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
+    contractAddress: APTOS_FRAMEWORK_ADDRESS,
     chainId,
     protocolId: utf8ToBytes(PROTOCOL_ID),
     sessionId,
@@ -140,7 +140,7 @@ export function verifyRegistration(args: {
 
   const sessionId = bcsSerializeRegistrationSession(senderAddress, tokenAddress);
   const dst: DomainSeparator = {
-    contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
+    contractAddress: APTOS_FRAMEWORK_ADDRESS,
     chainId,
     protocolId: utf8ToBytes(PROTOCOL_ID),
     sessionId,

@@ -314,10 +314,11 @@ export class ConfidentialAssetTransactionBuilder {
     amount: AnyNumber;
     senderDecryptionKey: TwistedEd25519PrivateKey;
     additionalAuditorEncryptionKeys?: TwistedEd25519PublicKey[];
+    memo?: Uint8Array;
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    const { sender, senderDecryptionKey, recipient, tokenAddress, amount, additionalAuditorEncryptionKeys = [] } = args;
+    const { sender, senderDecryptionKey, recipient, tokenAddress, amount, additionalAuditorEncryptionKeys = [], memo = new Uint8Array() } = args;
     validateAmount({ amount });
 
     // Resolve addresses to 32-byte arrays
@@ -435,6 +436,7 @@ export class ConfidentialAssetTransactionBuilder {
           rangeProofAmount,
           sigmaProof.commitment,
           sigmaProof.response,
+          memo,
         ],
       },
     });

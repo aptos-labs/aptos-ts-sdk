@@ -286,6 +286,7 @@ export class ConfidentialAsset {
       amount: AnyNumber;
       senderDecryptionKey: TwistedEd25519PrivateKey;
       additionalAuditorEncryptionKeys?: TwistedEd25519PublicKey[];
+      memo?: Uint8Array;
     },
   ): Promise<CommittedTransactionResponse> {
     const { signer, withFeePayer = this.withFeePayer !== undefined, ...rest } = args;
@@ -305,6 +306,7 @@ export class ConfidentialAsset {
       amount: AnyNumber;
       senderDecryptionKey: TwistedEd25519PrivateKey;
       additionalAuditorEncryptionKeys?: TwistedEd25519PublicKey[];
+      memo?: Uint8Array;
     },
   ): Promise<CommittedTransactionResponse[]> {
     const { signer, withFeePayer = this.withFeePayer !== undefined, ...rest } = args;

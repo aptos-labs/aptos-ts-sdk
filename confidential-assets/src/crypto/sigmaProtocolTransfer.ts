@@ -26,7 +26,7 @@ import { ed25519modN } from "../utils";
 import {
   sigmaProtocolProve,
   sigmaProtocolVerify,
-  APTOS_EXPERIMENTAL_ADDRESS,
+  APTOS_FRAMEWORK_ADDRESS,
   type DomainSeparator,
   type SigmaProtocolStatement,
   type SigmaProtocolProof,
@@ -38,7 +38,7 @@ import { Serializer, FixedBytes, U64 } from "@aptos-labs/ts-sdk";
 const PROTOCOL_ID = "AptosConfidentialAsset/TransferV1";
 
 /** Fully-qualified Move type name for the phantom marker type, matching `type_info::type_name<Transfer>()` */
-const TYPE_NAME = "0x7::sigma_protocol_transfer::Transfer";
+const TYPE_NAME = "0x1::sigma_protocol_transfer::Transfer";
 
 /**
  * BCS-serialize a TransferSession matching the Move struct:
@@ -284,7 +284,7 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
     senderAddress, recipientAddress, tokenAddress, ell, n, hasEffectiveAuditor, numVolun,
   );
   const dst: DomainSeparator = {
-    contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
+    contractAddress: APTOS_FRAMEWORK_ADDRESS,
     chainId,
     protocolId: utf8ToBytes(PROTOCOL_ID),
     sessionId,
@@ -570,7 +570,7 @@ export function verifyTransfer(args: {
     senderAddress, recipientAddress, tokenAddress, ell, n, hasEffectiveAuditor, numVolun,
   );
   const dst: DomainSeparator = {
-    contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
+    contractAddress: APTOS_FRAMEWORK_ADDRESS,
     chainId,
     protocolId: utf8ToBytes(PROTOCOL_ID),
     sessionId,

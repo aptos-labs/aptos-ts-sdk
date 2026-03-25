@@ -21,12 +21,12 @@ import type { RistPoint } from ".";
 // =============================================================================
 
 /**
- * The `@aptos_experimental` contract address (0x7) as 32 raw bytes.
+ * The `@aptos_framework` contract address (0x1) as 32 raw bytes.
  * Used in domain separators for defense-in-depth binding to the deployed contract.
  */
-export const APTOS_EXPERIMENTAL_ADDRESS = (() => {
+export const APTOS_FRAMEWORK_ADDRESS = (() => {
   const addr = new Uint8Array(32);
-  addr[31] = 0x07;
+  addr[31] = 0x01;
   return addr;
 })();
 
@@ -164,7 +164,7 @@ function scalarFromUniform64Bytes(hash: Uint8Array): bigint {
  * Compute the Fiat-Shamir challenge matching Move's `sigma_protocol_fiat_shamir::fiat_shamir`.
  *
  * @param typeName - The fully-qualified Move type name of the phantom marker type `P` in `Statement<P>`.
- *   E.g., `"0x7::sigma_protocol_registration::Registration"`. Must match `type_info::type_name<P>()` on-chain.
+ *   E.g., `"0x1::sigma_protocol_registration::Registration"`. Must match `type_info::type_name<P>()` on-chain.
  *
  * Returns `{ e, betas }` where `e` is the challenge scalar and `betas = [1, beta, beta^2, ...]`.
  */

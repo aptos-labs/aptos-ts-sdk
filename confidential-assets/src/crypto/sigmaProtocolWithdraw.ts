@@ -30,7 +30,7 @@ import { ed25519modN } from "../utils";
 import {
   sigmaProtocolProve,
   sigmaProtocolVerify,
-  APTOS_EXPERIMENTAL_ADDRESS,
+  APTOS_FRAMEWORK_ADDRESS,
   type DomainSeparator,
   type SigmaProtocolStatement,
   type SigmaProtocolProof,
@@ -42,7 +42,7 @@ import { Serializer, FixedBytes, U64 } from "@aptos-labs/ts-sdk";
 const PROTOCOL_ID_WITHDRAWAL = "AptosConfidentialAsset/WithdrawalV1";
 
 /** Fully-qualified Move type name for the phantom marker type, matching `type_info::type_name<Withdrawal>()` */
-const TYPE_NAME = "0x7::sigma_protocol_withdraw::Withdrawal";
+const TYPE_NAME = "0x1::sigma_protocol_withdraw::Withdrawal";
 
 /**
  * BCS-serialize a WithdrawSession matching the Move struct:
@@ -340,7 +340,7 @@ function proveWithdrawInternal(
   // Build domain separator
   const sessionId = bcsSerializeWithdrawSession(senderAddress, tokenAddress, ell, hasAuditor);
   const dst: DomainSeparator = {
-    contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
+    contractAddress: APTOS_FRAMEWORK_ADDRESS,
     chainId,
     protocolId: utf8ToBytes(protocolId),
     sessionId,
@@ -485,7 +485,7 @@ function verifyWithdrawInternal(
 
   const sessionId = bcsSerializeWithdrawSession(senderAddress, tokenAddress, ell, hasAuditor);
   const dst: DomainSeparator = {
-    contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
+    contractAddress: APTOS_FRAMEWORK_ADDRESS,
     chainId,
     protocolId: utf8ToBytes(protocolId),
     sessionId,

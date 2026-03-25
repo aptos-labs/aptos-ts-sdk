@@ -38,7 +38,7 @@ import {
   sigmaProtocolProve,
   sigmaProtocolVerify,
   bcsSerializeKeyRotationSession,
-  APTOS_EXPERIMENTAL_ADDRESS,
+  APTOS_FRAMEWORK_ADDRESS,
   type DomainSeparator,
   type SigmaProtocolStatement,
   type SigmaProtocolProof,
@@ -50,7 +50,7 @@ import {
 const PROTOCOL_ID = "AptosConfidentialAsset/KeyRotationV1";
 
 /** Fully-qualified Move type name for the phantom marker type, matching `type_info::type_name<KeyRotation>()` */
-const TYPE_NAME = "0x7::sigma_protocol_key_rotation::KeyRotation";
+const TYPE_NAME = "0x1::sigma_protocol_key_rotation::KeyRotation";
 
 /** Statement point indices (matching Move constants) */
 const IDX_H = 0;
@@ -227,7 +227,7 @@ export class ConfidentialKeyRotation {
     // Build domain separator
     const sessionId = bcsSerializeKeyRotationSession(this.senderAddress, this.tokenAddress, numChunks);
     const dst: DomainSeparator = {
-      contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
+      contractAddress: APTOS_FRAMEWORK_ADDRESS,
       chainId: this.chainId,
       protocolId: utf8ToBytes(PROTOCOL_ID),
       sessionId,
@@ -297,7 +297,7 @@ export class ConfidentialKeyRotation {
     // Build domain separator
     const sessionId = bcsSerializeKeyRotationSession(senderAddress, tokenAddress, numChunks);
     const dst: DomainSeparator = {
-      contractAddress: APTOS_EXPERIMENTAL_ADDRESS,
+      contractAddress: APTOS_FRAMEWORK_ADDRESS,
       chainId,
       protocolId: utf8ToBytes(PROTOCOL_ID),
       sessionId,
