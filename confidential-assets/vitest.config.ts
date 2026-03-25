@@ -23,7 +23,7 @@ export default defineConfig({
       },
     },
     pool: "forks",
-    maxWorkers: 4,
+    fileParallelism: false, // e2e tests share a localnet and modify global on-chain state
     testTimeout: 30000,
     hookTimeout: 120000,
   },

@@ -1,12 +1,16 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, AccountAddressInput, AnyNumber } from "@aptos-labs/ts-sdk";
+import { Account, AccountAddress, AccountAddressInput, AnyNumber, Bool, MoveVector } from "@aptos-labs/ts-sdk";
 import { TwistedEd25519PrivateKey } from "../../src";
 import {
   getTestAccount,
   getTestConfidentialAccount,
+  getCoreResourcesAccount,
+  compileGovernanceScripts,
+  submitGovernanceScript,
   aptos,
+  plainAptos,
   TOKEN_ADDRESS,
   longTestTimeout,
   confidentialAsset,
@@ -616,6 +620,230 @@ describe("Confidential Asset Sender API", () => {
     longTestTimeout,
   );
 
+  // =========================================================================
+  // Governance tests (must run BEFORE key rotation, which changes Alice's key)
+  // =========================================================================
+
+  const coreResourcesAccount = getCoreResourcesAccount();
+  let bytecodeDir: string;
+
+  async function govScript(scriptName: string, args: any[]) {
+    const result = await submitGovernanceScript({
+      coreResourcesAccount,
+      bytecodeDir,
+      scriptName,
+      functionArguments: args,
+    });
+    if (!result.success) {
+      throw new Error(`Governance script '${scriptName}' failed: ${result.vm_status}`);
+    }
+    return result;
+  }
+
+  async function govScriptExpectFailure(scriptName: string, args: any[], expectedError: string) {
+    const result = await submitGovernanceScript({
+      coreResourcesAccount,
+      bytecodeDir,
+      scriptName,
+      functionArguments: args,
+    });
+    expect(result.success).toBeFalsy();
+    expect(result.vm_status).toContain(expectedError);
+    return result;
+  }
+
+  async function tryTransfer(): Promise<{ success: boolean; vm_status?: string }> {
+    try {
+      const tx = await confidentialAsset.transfer({
+        senderDecryptionKey: aliceConfidential,
+        amount: 1n,
+        signer: alice,
+        tokenAddress: TOKEN_ADDRESS,
+        recipient: bob.accountAddress,
+      });
+      return { success: tx.success, vm_status: tx.vm_status };
+    } catch (e: any) {
+      return { success: false, vm_status: e.message || String(e) };
+    }
+  }
+
+  describe("Allow listing", () => {
+    beforeAll(async () => {
+      bytecodeDir = compileGovernanceScripts();
+      await plainAptos.fundAccount({
+        accountAddress: coreResourcesAccount.accountAddress,
+        amount: 100_000_000,
+      });
+    }, longTestTimeout);
+
+    test(
+      "allow-listing APT should fail when allow listing is disabled",
+      async () => {
+        await govScriptExpectFailure(
+          "set_confidentiality_for_apt",
+          [new Bool(true)],
+          "E_ALLOW_LISTING_IS_DISABLED",
+        );
+      },
+      longTestTimeout,
+    );
+
+    test(
+      "enabling allow listing should block APT transfers (APT not yet allow-listed)",
+      async () => {
+        const [beforeEnabled] = await plainAptos.view<[boolean]>({
+          payload: { function: "0x1::confidential_asset::is_allow_listing_required", functionArguments: [] },
+        });
+        expect(beforeEnabled).toBeFalsy();
+
+        await govScript("set_allow_listing", [new Bool(true)]);
+
+        const [afterEnabled] = await plainAptos.view<[boolean]>({
+          payload: { function: "0x1::confidential_asset::is_allow_listing_required", functionArguments: [] },
+        });
+        expect(afterEnabled).toBeTruthy();
+
+        const result = await tryTransfer();
+        expect(result.success).toBeFalsy();
+        expect(result.vm_status).toContain("E_ASSET_TYPE_DISALLOWED");
+      },
+      longTestTimeout,
+    );
+
+    test(
+      "allow-listing APT should enable transfers",
+      async () => {
+        await govScript("set_confidentiality_for_apt", [new Bool(true)]);
+
+        const result = await tryTransfer();
+        expect(result.success).toBeTruthy();
+      },
+      longTestTimeout,
+    );
+
+    test(
+      "disabling allow listing should allow all transfers (even if APT was previously allow-listed)",
+      async () => {
+        await govScript("set_allow_listing", [new Bool(false)]);
+
+        const result = await tryTransfer();
+        expect(result.success).toBeTruthy();
+      },
+      longTestTimeout,
+    );
+  });
+
+  const AUDITOR_KEY_1 = TwistedEd25519PrivateKey.generate();
+  const AUDITOR_KEY_2 = TwistedEd25519PrivateKey.generate();
+  const AUDITOR_KEY_3 = TwistedEd25519PrivateKey.generate();
+
+  describe("Auditing", () => {
+    test(
+      "set global auditor (EK_1) and transfer should succeed",
+      async () => {
+        const ek1Bytes = Array.from(AUDITOR_KEY_1.publicKey().toUint8Array());
+        await govScript("set_global_auditor", [MoveVector.U8(ek1Bytes)]);
+
+        // The allow-listing tests created an AssetConfig for APT, so
+        // get_effective_auditor_config returns the asset-specific config (no EK),
+        // not the global one. The global auditor IS set, but it's shadowed.
+        const auditorEk = await confidentialAsset.getAssetAuditorEncryptionKey({
+          tokenAddress: TOKEN_ADDRESS,
+        });
+        expect(auditorEk).toBeUndefined();
+
+        const result = await tryTransfer();
+        expect(result.success).toBeTruthy();
+      },
+      longTestTimeout,
+    );
+
+    test(
+      "set asset-specific auditor (EK_2) and transfer should succeed with EK_2",
+      async () => {
+        const ek2Bytes = Array.from(AUDITOR_KEY_2.publicKey().toUint8Array());
+        await govScript("set_asset_specific_auditor", [
+          AccountAddress.fromString(TOKEN_ADDRESS),
+          MoveVector.U8(ek2Bytes),
+        ]);
+
+        const auditorEk = await confidentialAsset.getAssetAuditorEncryptionKey({
+          tokenAddress: TOKEN_ADDRESS,
+        });
+        expect(auditorEk).toBeDefined();
+        expect(auditorEk!.toUint8Array()).toEqual(AUDITOR_KEY_2.publicKey().toUint8Array());
+
+        const result = await tryTransfer();
+        expect(result.success).toBeTruthy();
+      },
+      longTestTimeout,
+    );
+
+    test(
+      "remove asset-specific auditor EK — effective auditor becomes None (asset-specific overrides global)",
+      async () => {
+        await govScript("set_asset_specific_auditor", [
+          AccountAddress.fromString(TOKEN_ADDRESS),
+          MoveVector.U8([]),
+        ]);
+
+        const auditorEk = await confidentialAsset.getAssetAuditorEncryptionKey({
+          tokenAddress: TOKEN_ADDRESS,
+        });
+        expect(auditorEk).toBeUndefined();
+
+        const result = await tryTransfer();
+        expect(result.success).toBeTruthy();
+      },
+      longTestTimeout,
+    );
+
+    test(
+      "set asset-specific auditor back to EK_2, then update global to EK_3 — effective auditor stays EK_2",
+      async () => {
+        const ek2Bytes = Array.from(AUDITOR_KEY_2.publicKey().toUint8Array());
+        await govScript("set_asset_specific_auditor", [
+          AccountAddress.fromString(TOKEN_ADDRESS),
+          MoveVector.U8(ek2Bytes),
+        ]);
+
+        const ek3Bytes = Array.from(AUDITOR_KEY_3.publicKey().toUint8Array());
+        await govScript("set_global_auditor", [MoveVector.U8(ek3Bytes)]);
+
+        const auditorEk = await confidentialAsset.getAssetAuditorEncryptionKey({
+          tokenAddress: TOKEN_ADDRESS,
+        });
+        expect(auditorEk).toBeDefined();
+        expect(auditorEk!.toUint8Array()).toEqual(AUDITOR_KEY_2.publicKey().toUint8Array());
+
+        const result = await tryTransfer();
+        expect(result.success).toBeTruthy();
+      },
+      longTestTimeout,
+    );
+
+    test(
+      "remove global auditor and transfer should succeed (asset-specific EK_2 still active)",
+      async () => {
+        await govScript("set_global_auditor", [MoveVector.U8([])]);
+
+        const auditorEk = await confidentialAsset.getAssetAuditorEncryptionKey({
+          tokenAddress: TOKEN_ADDRESS,
+        });
+        expect(auditorEk).toBeDefined();
+        expect(auditorEk!.toUint8Array()).toEqual(AUDITOR_KEY_2.publicKey().toUint8Array());
+
+        const result = await tryTransfer();
+        expect(result.success).toBeTruthy();
+      },
+      longTestTimeout,
+    );
+  });
+
+  // =========================================================================
+  // Key rotation (must be LAST — changes Alice's decryption key)
+  // =========================================================================
+
   const ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY = TwistedEd25519PrivateKey.generate();
   test(
     "it should rotate Alice's confidential balance key",
@@ -627,14 +855,12 @@ describe("Confidential Asset Sender API", () => {
       });
       expect(depositTx.success).toBeTruthy();
 
-      // Get the current balance before rotation
       const confidentialBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         decryptionKey: aliceConfidential,
       });
 
-      // This will unpause incoming transfers after rotation (unpause defaults to true).
       const keyRotationAndUnpauseTx = await confidentialAsset.rotateEncryptionKey({
         signer: alice,
         senderDecryptionKey: aliceConfidential,
@@ -645,10 +871,8 @@ describe("Confidential Asset Sender API", () => {
         expect(tx.success).toBeTruthy();
       }
 
-      // Check that incoming transfers are unpaused
       await checkAliceIncomingTransfersPausedStatus(false);
 
-      // If this decrypts correctly, then the key rotation worked.
       await checkAliceDecryptedBalance(
         confidentialBalance.availableBalance() + confidentialBalance.pendingBalance(),
         0,
