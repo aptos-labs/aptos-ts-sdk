@@ -80,10 +80,11 @@ Now tests will use your locally-built WASM.
 
 To test against a modified `aptos-core` repo:
 
-First, run a local node from your modified `aptos-core` branch:
+First, run a local node from your modified `aptos-core` branch.
+(You may need to delete `~/.aptos/testnet` or else it will error. Proceed with caution; not sure what sensitive stuff you may have there.)
 ```
 ulimit -n unlimited
-cargo run -p aptos -- node run-localnet --with-indexer-api --assume-yes --force-restart
+cargo run -p aptos -- node run-localnet --with-indexer-api --test-dir=~/.aptos/testnet --assume-yes --force-restart
 ```
 
 Second, run the SDK test of your choosing; e.g.:

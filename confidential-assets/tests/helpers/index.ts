@@ -133,15 +133,22 @@ export const sendAndWaitBatchTxs = async (
 
 /**
  * Returns the localnet core resources account (0xA550C18) by reading the BCS-encoded
- * private key from ~/.aptos/testnet/mint.key. During test genesis, the root_key's auth key
- * is set on this account. It has mint capability and can call
- * `aptos_governance::get_signer_testnet_only` to obtain the 0x1 framework signer.
+ * private key from mint.key. During test genesis, the root_key's auth key is set on this
+ * account. It has mint capability and can call `aptos_governance::get_signer_testnet_only`
+ * to obtain the 0x1 framework signer.
+ *
+ * Returns undefined if mint.key is not found (e.g., governance scripts not available).
  */
-export const getCoreResourcesAccount = (): Ed25519Account => {
-  // The mint.key is written inside aptos-core/.aptos/ by run-localnet.
-  // It contains the BCS-encoded root_key whose auth key is set on 0xA550C18 during genesis.
-  const aptosCorePath = path.resolve(__dirname, "../../../../aptos-core");
-  const keyPath = path.join(aptosCorePath, ".aptos/testnet/mint.key");
+export const getCoreResourcesAccount = (): Ed25519Account | undefined => {
+  // The localnet must write mint.key to ~/.aptos/testnet/. This happens automatically
+  // with the npm CLI package. When running from source, pass --test-dir ~/.aptos/testnet.
+  const candidates = [
+    path.join(process.env.HOME || "~", ".aptos/testnet/mint.key"),
+  ];
+
+  const keyPath = candidates.find((p) => fs.existsSync(p));
+  if (!keyPath) return undefined;
+
   const keyBytes = fs.readFileSync(keyPath);
   const rawKey = keyBytes.slice(1); // strip BCS length prefix
   const privateKey = new Ed25519PrivateKey(rawKey);
@@ -189,13 +196,17 @@ const GOVERNANCE_SCRIPTS_DIR = path.resolve(__dirname, "../e2e/scripts/governanc
 
 /**
  * Compiles the governance Move scripts (if not already compiled) and returns the
- * bytecode directory path. This ensures tests work regardless of whether the build
- * artifacts are checked in.
+ * bytecode directory path. Returns undefined if compilation fails (e.g., Move
+ * framework source not available in CI).
  */
-export function compileGovernanceScripts(): string {
+export function compileGovernanceScripts(): string | undefined {
   const bytecodeDir = path.join(GOVERNANCE_SCRIPTS_DIR, "build/governance/bytecode_scripts");
   if (!fs.existsSync(bytecodeDir)) {
-    execSync("aptos move compile", { cwd: GOVERNANCE_SCRIPTS_DIR, stdio: "pipe" });
+    try {
+      execSync("aptos move compile", { cwd: GOVERNANCE_SCRIPTS_DIR, stdio: "pipe" });
+    } catch {
+      return undefined;
+    }
   }
   return bytecodeDir;
 }

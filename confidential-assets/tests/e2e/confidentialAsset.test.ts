@@ -622,15 +622,22 @@ describe("Confidential Asset Sender API", () => {
 
   // =========================================================================
   // Governance tests (must run BEFORE key rotation, which changes Alice's key)
+  //
+  // These tests require:
+  // 1. A localnet started from aptos-core source (for the mint.key)
+  // 2. The aptos-core Move framework source (for compiling governance scripts)
+  // They are automatically skipped in CI where only the npm CLI package is available.
   // =========================================================================
 
-  const coreResourcesAccount = getCoreResourcesAccount();
-  let bytecodeDir: string;
+  // Lazy-initialized governance infrastructure
+  let coreResourcesAccount: Ed25519Account | undefined;
+  let bytecodeDir: string | undefined;
+  let governanceAvailable = false;
 
   async function govScript(scriptName: string, args: any[]) {
     const result = await submitGovernanceScript({
-      coreResourcesAccount,
-      bytecodeDir,
+      coreResourcesAccount: coreResourcesAccount!,
+      bytecodeDir: bytecodeDir!,
       scriptName,
       functionArguments: args,
     });
@@ -642,8 +649,8 @@ describe("Confidential Asset Sender API", () => {
 
   async function govScriptExpectFailure(scriptName: string, args: any[], expectedError: string) {
     const result = await submitGovernanceScript({
-      coreResourcesAccount,
-      bytecodeDir,
+      coreResourcesAccount: coreResourcesAccount!,
+      bytecodeDir: bytecodeDir!,
       scriptName,
       functionArguments: args,
     });
@@ -669,9 +676,15 @@ describe("Confidential Asset Sender API", () => {
 
   describe("Allow listing", () => {
     beforeAll(async () => {
+      coreResourcesAccount = getCoreResourcesAccount();
       bytecodeDir = compileGovernanceScripts();
+      governanceAvailable = !!coreResourcesAccount && !!bytecodeDir;
+      if (!governanceAvailable) {
+        console.log("Skipping governance tests: mint.key or Move framework source not available");
+        return;
+      }
       await plainAptos.fundAccount({
-        accountAddress: coreResourcesAccount.accountAddress,
+        accountAddress: coreResourcesAccount!.accountAddress,
         amount: 100_000_000,
       });
     }, longTestTimeout);
@@ -679,6 +692,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "allow-listing APT should fail when allow listing is disabled",
       async () => {
+        if (!governanceAvailable) return;
         await govScriptExpectFailure(
           "set_confidentiality_for_apt",
           [new Bool(true)],
@@ -691,6 +705,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "enabling allow listing should block APT transfers (APT not yet allow-listed)",
       async () => {
+        if (!governanceAvailable) return;
         const [beforeEnabled] = await plainAptos.view<[boolean]>({
           payload: { function: "0x1::confidential_asset::is_allow_listing_required", functionArguments: [] },
         });
@@ -713,6 +728,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "allow-listing APT should enable transfers",
       async () => {
+        if (!governanceAvailable) return;
         await govScript("set_confidentiality_for_apt", [new Bool(true)]);
 
         const result = await tryTransfer();
@@ -724,6 +740,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "disabling allow listing should allow all transfers (even if APT was previously allow-listed)",
       async () => {
+        if (!governanceAvailable) return;
         await govScript("set_allow_listing", [new Bool(false)]);
 
         const result = await tryTransfer();
@@ -741,6 +758,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "set global auditor (EK_1) and transfer should succeed",
       async () => {
+        if (!governanceAvailable) return;
         const ek1Bytes = Array.from(AUDITOR_KEY_1.publicKey().toUint8Array());
         await govScript("set_global_auditor", [MoveVector.U8(ek1Bytes)]);
 
@@ -761,6 +779,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "set asset-specific auditor (EK_2) and transfer should succeed with EK_2",
       async () => {
+        if (!governanceAvailable) return;
         const ek2Bytes = Array.from(AUDITOR_KEY_2.publicKey().toUint8Array());
         await govScript("set_asset_specific_auditor", [
           AccountAddress.fromString(TOKEN_ADDRESS),
@@ -782,6 +801,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "remove asset-specific auditor EK — effective auditor becomes None (asset-specific overrides global)",
       async () => {
+        if (!governanceAvailable) return;
         await govScript("set_asset_specific_auditor", [
           AccountAddress.fromString(TOKEN_ADDRESS),
           MoveVector.U8([]),
@@ -801,6 +821,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "set asset-specific auditor back to EK_2, then update global to EK_3 — effective auditor stays EK_2",
       async () => {
+        if (!governanceAvailable) return;
         const ek2Bytes = Array.from(AUDITOR_KEY_2.publicKey().toUint8Array());
         await govScript("set_asset_specific_auditor", [
           AccountAddress.fromString(TOKEN_ADDRESS),
@@ -825,6 +846,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "remove global auditor and transfer should succeed (asset-specific EK_2 still active)",
       async () => {
+        if (!governanceAvailable) return;
         await govScript("set_global_auditor", [MoveVector.U8([])]);
 
         const auditorEk = await confidentialAsset.getAssetAuditorEncryptionKey({
