@@ -108,7 +108,7 @@ pnpm test
 ### Discrete log / decryption benchmarks
 
 ```bash
-pnpm test tests/units/discrete-log.test.ts
+SKIP_SETUP=1 pnpm test discrete
 ```
 
 ### Range proof tests

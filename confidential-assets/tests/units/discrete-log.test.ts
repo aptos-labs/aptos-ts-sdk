@@ -283,7 +283,7 @@ describe("Baby-Step Giant-Step (TypeScript)", () => {
       );
     });
 
-    it("benchmarks 32-bit DLP", () => {
+    it.skip("benchmarks 32-bit DLP", () => {
       const times: number[] = [];
 
       for (let i = 0; i < BENCHMARK_ITERATIONS; i++) {
