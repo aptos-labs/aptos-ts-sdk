@@ -5,7 +5,6 @@ export * from "./crypto/confidentialTransfer";
 export * from "./crypto/confidentialWithdraw";
 export * from "./consts";
 export * from "./crypto/encryptedAmount";
-export * from "./helpers";
 export * from "./api/confidentialAsset";
 export * from "./crypto";
 export * from "./utils";

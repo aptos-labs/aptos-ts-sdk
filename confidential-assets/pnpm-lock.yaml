@@ -15,8 +15,8 @@ importers:
   .:
     dependencies:
       '@aptos-labs/confidential-asset-wasm-bindings':
-        specifier: ^0.0.2
-        version: 0.0.2
+        specifier: ^0.0.3
+        version: 0.0.3
       '@aptos-labs/ts-sdk':
         specifier: ^5.2.1 || ^6.1.0
         version: 6.1.0(got@13.0.0)
@@ -70,8 +70,8 @@ packages:
     peerDependencies:
       got: ^11.8.6
 
-  '@aptos-labs/confidential-asset-wasm-bindings@0.0.2':
-    resolution: {integrity: sha512-xfgRVc4WX4N7hjSHP91a3o686gC4307PGa9eDT7eWhp2VN9YgYhDIKRFRITpKT5JC7IXbuh6pGq1MqrqTjBokA==}
+  '@aptos-labs/confidential-asset-wasm-bindings@0.0.3':
+    resolution: {integrity: sha512-vU1C+IHl3gZbVZhJodyyr1sJt5+hUdUn5H2qGVFxmUWgW8z3+VUN12wBWmgQ9swIQwioThxssB05l3AywEtiCQ==}
 
   '@aptos-labs/ts-sdk@6.1.0':
     resolution: {integrity: sha512-YjtEXivGj0xuf3eKzrnKOfjZcYIWUR1E2zNJ4JempgMgoM+VVPbp7b1Ubu24UcOYxRYLb8/kKavOUg62o8zElw==}
@@ -1634,7 +1634,7 @@ snapshots:
     dependencies:
       got: 13.0.0
 
-  '@aptos-labs/confidential-asset-wasm-bindings@0.0.2': {}
+  '@aptos-labs/confidential-asset-wasm-bindings@0.0.3': {}
 
   '@aptos-labs/ts-sdk@6.1.0(got@13.0.0)':
     dependencies:

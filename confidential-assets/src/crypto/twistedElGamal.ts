@@ -6,17 +6,7 @@ import { bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { H_RISTRETTO, RistPoint, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
 import { ed25519GenRandom, ed25519modN } from "../utils";
 import { HexInput } from "@aptos-labs/ts-sdk";
-import { create_kangaroo, WASMKangaroo } from "@aptos-labs/confidential-asset-wasm-bindings/pollard-kangaroo";
-import initWasm from "@aptos-labs/confidential-asset-wasm-bindings/pollard-kangaroo";
-
-const POLLARD_KANGAROO_WASM_URL =
-  "https://unpkg.com/@aptos-labs/confidential-asset-wasm-bindings@0.0.2/pollard-kangaroo/aptos_pollard_kangaroo_wasm_bg.wasm";
-
-export async function createKangaroo(secret_size: number) {
-  await initWasm({ module_or_path: POLLARD_KANGAROO_WASM_URL });
-
-  return create_kangaroo(secret_size);
-}
+import { DiscreteLogSolver, ensureWasmInitialized, initializeWasm, isWasmInitialized } from "./wasmLoader";
 
 class AsyncLock {
   private locks: Map<string, Promise<void>> = new Map();
@@ -125,86 +115,49 @@ export class TwistedElGamal {
     return new TwistedElGamalCiphertext(C.toRawBytes(), RistrettoPoint.ZERO.toRawBytes());
   }
 
-  static tablePreloadPromise: Promise<void> | undefined;
-  static tablesPreloaded = false;
+  static initPromise: Promise<void> | undefined;
+  static initialized = false;
   private static initializationLock = new AsyncLock();
 
-  static kangaroo16: WASMKangaroo;
-  static kangaroo32: WASMKangaroo;
-  static kangaroo48: WASMKangaroo;
+  static solver: DiscreteLogSolver;
 
-  static decryptionFn: ((pk: Uint8Array) => Promise<bigint>) | undefined;
-
-  static async initializeKangaroos() {
-    return this.initializationLock.acquire("kangaroo-init", async () => {
+  /**
+   * Initialize the discrete log solver with precomputed tables.
+   * Supports 16-bit (O(1) lookup) and 32-bit (~12ms with TBSGS-k32) secrets.
+   *
+   * @param wasmSource - Optional WASM source: URL string, or Buffer/ArrayBuffer for Node.js
+   */
+  static async initializeSolver(wasmSource?: string | BufferSource) {
+    return this.initializationLock.acquire("solver-init", async () => {
       try {
-        if (TwistedElGamal.tablesPreloaded && TwistedElGamal.decryptionFn !== undefined) {
+        if (TwistedElGamal.initialized) {
           return;
         }
 
-        if (!TwistedElGamal.tablePreloadPromise) {
-          const createKangaroos = async () => {
+        if (!TwistedElGamal.initPromise) {
+          const createSolver = async () => {
             try {
-              TwistedElGamal.kangaroo16 = await createKangaroo(16);
-              TwistedElGamal.kangaroo32 = await createKangaroo(32);
-              TwistedElGamal.kangaroo48 = await createKangaroo(48);
+              await initializeWasm(wasmSource);
+              TwistedElGamal.solver = new DiscreteLogSolver();
             } catch (error) {
               // Reset state on failure
-              TwistedElGamal.tablePreloadPromise = undefined;
-              TwistedElGamal.tablesPreloaded = false;
+              TwistedElGamal.initPromise = undefined;
+              TwistedElGamal.initialized = false;
               throw error;
             }
           };
-          TwistedElGamal.tablePreloadPromise = createKangaroos();
+          TwistedElGamal.initPromise = createSolver();
         }
 
-        await TwistedElGamal.tablePreloadPromise;
-
-        if (!TwistedElGamal.decryptionFn) {
-          TwistedElGamal.setDecryptionFn(async (pk) => {
-            if (bytesToNumberLE(pk) === 0n) return 0n;
-            try {
-              let result = TwistedElGamal.kangaroo16.solve_dlp(pk, 30n);
-              if (!result) {
-                result = TwistedElGamal.kangaroo32.solve_dlp(pk, 120n);
-              }
-              if (!result) {
-                // Exponential backoff
-                const maxRetries = 3;
-                const baseTimeout = 2000n;
-
-                for (let attempt = 0; attempt < maxRetries; attempt++) {
-                  const timeout = baseTimeout * 2n ** BigInt(attempt); // 2000, 4000, 8000
-                  result = TwistedElGamal.kangaroo48.solve_dlp(pk, timeout);
-                  if (result) return result;
-
-                  if (attempt < maxRetries - 1) {
-                    console.warn(`decryption attempt ${attempt + 1} failed, retrying with timeout ${timeout}...`);
-                  }
-                }
-              }
-              if (!result) throw new TypeError("Decryption failed. Timed out.");
-              return result;
-            } catch (e) {
-              console.error("Decryption failed:", e);
-              throw e;
-            }
-          });
-        }
-
-        TwistedElGamal.tablesPreloaded = true;
+        await TwistedElGamal.initPromise;
+        TwistedElGamal.initialized = true;
       } catch (error) {
         // Reset state on any initialization failure
-        TwistedElGamal.tablePreloadPromise = undefined;
-        TwistedElGamal.tablesPreloaded = false;
-        TwistedElGamal.decryptionFn = undefined;
+        TwistedElGamal.initPromise = undefined;
+        TwistedElGamal.initialized = false;
         throw error;
       }
     });
-  }
-
-  static setDecryptionFn(fn: (pk: Uint8Array) => Promise<bigint>) {
-    this.decryptionFn = fn;
   }
 
   static calculateCiphertextMG(ciphertext: TwistedElGamalCiphertext, privateKey: TwistedEd25519PrivateKey): RistPoint {
@@ -217,10 +170,32 @@ export class TwistedElGamal {
   }
 
   /**
+   * Solves the discrete log problem to recover the encrypted amount.
+   * Tries 16-bit first (O(1) lookup), then falls back to 32-bit.
+   */
+  private static async decryptAmount(pk: Uint8Array): Promise<bigint> {
+    if (bytesToNumberLE(pk) === 0n) return 0n;
+    try {
+      // Try 16-bit first (O(1) lookup)
+      try {
+        return TwistedElGamal.solver.solve(pk, 16);
+      } catch {
+        // Fall through to 32-bit
+      }
+      // Try 32-bit (~12ms with TBSGS-k32)
+      return TwistedElGamal.solver.solve(pk, 32);
+    } catch (e) {
+      console.error("Decryption failed:", e);
+      throw new TypeError("Decryption failed. Value may be out of 32-bit range.");
+    }
+  }
+
+  /**
    * Decrypts the amount with Twisted ElGamal
    * @param ciphertext сiphertext points encrypted by Twisted ElGamal
    * @param privateKey Twisted ElGamal Ed25519 private key.
-   * @param decryptionRange The range of amounts to be used in decryption
+   *
+   * TODO: rename WithPK to WithDK?
    */
   static async decryptWithPK(
     ciphertext: TwistedElGamalCiphertext,
@@ -229,7 +204,7 @@ export class TwistedElGamal {
     await TwistedElGamal.ensureInitialized();
     const mG = TwistedElGamal.calculateCiphertextMG(ciphertext, privateKey);
 
-    return TwistedElGamal.decryptionFn!(mG.toRawBytes());
+    return TwistedElGamal.decryptAmount(mG.toRawBytes());
   }
 
   /**
@@ -275,32 +250,30 @@ export class TwistedElGamal {
   }
 
   static async cleanup() {
-    return this.initializationLock.acquire("kangaroo-cleanup", async () => {
+    return this.initializationLock.acquire("solver-cleanup", async () => {
       try {
-        if (TwistedElGamal.kangaroo16) TwistedElGamal.kangaroo16.free();
-        if (TwistedElGamal.kangaroo32) TwistedElGamal.kangaroo32.free();
-        if (TwistedElGamal.kangaroo48) TwistedElGamal.kangaroo48.free();
+        if (TwistedElGamal.solver) TwistedElGamal.solver.free();
       } finally {
-        TwistedElGamal.tablePreloadPromise = undefined;
-        TwistedElGamal.tablesPreloaded = false;
-        TwistedElGamal.decryptionFn = undefined;
+        TwistedElGamal.initPromise = undefined;
+        TwistedElGamal.initialized = false;
       }
     });
   }
 
   static isInitialized(): boolean {
-    return (
-      TwistedElGamal.tablesPreloaded &&
-      TwistedElGamal.decryptionFn !== undefined &&
-      TwistedElGamal.kangaroo16 !== undefined &&
-      TwistedElGamal.kangaroo32 !== undefined &&
-      TwistedElGamal.kangaroo48 !== undefined
-    );
+    return TwistedElGamal.initialized && TwistedElGamal.solver !== undefined && isWasmInitialized();
+  }
+
+  /**
+   * Returns the algorithm name used by the discrete log solver.
+   */
+  static getAlgorithmName(): string {
+    return TwistedElGamal.solver?.algorithm() ?? "not initialized";
   }
 
   private static async ensureInitialized() {
     if (!this.isInitialized()) {
-      await this.initializeKangaroos();
+      await this.initializeSolver();
     }
   }
 }

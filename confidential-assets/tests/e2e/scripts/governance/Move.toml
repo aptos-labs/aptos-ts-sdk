@@ -1,0 +1,12 @@
+[package]
+name = "governance"
+version = "0.0.0"
+
+[dependencies]
+AptosFramework = { local = "/Users/alinush/repos/aptos-core/aptos-move/framework/aptos-framework" }
+
+[addresses]
+aptos_framework = "0x1"
+aptos_std = "0x1"
+aptos_fungible_asset = "0xa"
+std = "0x1"

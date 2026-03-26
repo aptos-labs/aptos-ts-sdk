@@ -1,7 +1,8 @@
-// Copyright © Aptos Foundation
+// Copyright (c) Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import {
+  AccountAddress,
   AccountAddressInput,
   AnyNumber,
   Aptos,
@@ -10,7 +11,6 @@ import {
   LedgerVersionArg,
   SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
-import { concatBytes } from "@noble/hashes/utils";
 import {
   TwistedElGamal,
   ConfidentialNormalization,
@@ -20,8 +20,9 @@ import {
   TwistedEd25519PublicKey,
   TwistedEd25519PrivateKey,
 } from "../crypto";
+import { proveRegistration } from "../crypto/sigmaProtocolRegistration";
 import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS, MODULE_NAME } from "../consts";
-import { getBalance, getEncryptionKey, isBalanceNormalized, isPendingBalanceFrozen } from "./viewFunctions";
+import { getBalance, getEncryptionKey, isBalanceNormalized, isIncomingTransfersPaused } from "./viewFunctions";
 
 /**
  * A class to handle creating transactions for confidential asset operations
@@ -30,10 +31,19 @@ export class ConfidentialAssetTransactionBuilder {
   readonly client: Aptos;
   readonly confidentialAssetModuleAddress: string;
 
+  private _chainId?: number;
+
+  async getChainId(): Promise<number> {
+    if (!this._chainId) {
+      this._chainId = await this.client.getChainId();
+    }
+    return this._chainId;
+  }
+
   constructor(config: AptosConfig, confidentialAssetModuleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS) {
     this.client = new Aptos(config);
     this.confidentialAssetModuleAddress = confidentialAssetModuleAddress;
-    TwistedElGamal.initializeKangaroos();
+    TwistedElGamal.initializeSolver();
   }
 
   /**
@@ -53,25 +63,45 @@ export class ConfidentialAssetTransactionBuilder {
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    const { tokenAddress, decryptionKey } = args;
+    const { sender, tokenAddress, decryptionKey } = args;
+
+    // Resolve addresses to 32-byte arrays
+    const senderAddr = AccountAddress.from(sender);
+    const tokenAddr = AccountAddress.from(tokenAddress);
+
+    // Get chain ID for domain separation
+    const chainId = await this.getChainId();
+
+    // Generate the registration sigma proof
+    const sigmaProof = proveRegistration({
+      dk: decryptionKey,
+      senderAddress: senderAddr.toUint8Array(),
+      tokenAddress: tokenAddr.toUint8Array(),
+      chainId,
+    });
+
     return this.client.transaction.build.simple({
       ...args,
       data: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::register`,
-        functionArguments: [tokenAddress, decryptionKey.publicKey().toUint8Array()],
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::register_raw`,
+        functionArguments: [
+          tokenAddress,
+          decryptionKey.publicKey().toUint8Array(),
+          sigmaProof.commitment,
+          sigmaProof.response,
+        ],
       },
     });
   }
 
   /**
-   * Deposit an amount from a non-confidential asset balance into a confidential asset balance.
+   * Deposit an amount from a non-confidential asset balance into the sender's own confidential asset balance.
    *
    * This can be used by an account to convert their own non-confidential asset balance into a confidential asset balance if they have
    * already registered a balance for the token.
    *
    * @param args.tokenAddress - The token address of the asset to deposit to
    * @param args.amount - The amount to deposit
-   * @param args.recipient - The account address to deposit to. This is the senders address if not set.
    * @param args.withFeePayer - Whether to use the fee payer for the transaction
    * @param args.options - Optional transaction options
    * @returns A SimpleTransaction to deposit the amount
@@ -80,12 +110,10 @@ export class ConfidentialAssetTransactionBuilder {
     sender: AccountAddressInput;
     tokenAddress: AccountAddressInput;
     amount: AnyNumber;
-    /** If not set we will use the sender's address. */
-    recipient?: AccountAddressInput;
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    const { tokenAddress, amount, recipient = args.sender } = args;
+    const { tokenAddress, amount } = args;
     validateAmount({ amount });
 
     const amountString = String(amount);
@@ -93,8 +121,8 @@ export class ConfidentialAssetTransactionBuilder {
     return this.client.transaction.build.simple({
       ...args,
       data: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::deposit_to`,
-        functionArguments: [tokenAddress, recipient, amountString],
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::deposit`,
+        functionArguments: [tokenAddress, amountString],
       },
     });
   }
@@ -126,6 +154,16 @@ export class ConfidentialAssetTransactionBuilder {
     const { sender, tokenAddress, amount, senderDecryptionKey, recipient = args.sender, options } = args;
     validateAmount({ amount });
 
+    // Resolve addresses to 32-byte arrays
+    const senderAddr = AccountAddress.from(sender);
+    const tokenAddr = AccountAddress.from(tokenAddress);
+
+    // Get chain ID for domain separation
+    const chainId = await this.getChainId();
+
+    // Get the auditor public key for the token
+    const effectiveAuditorPubKey = await this.getAssetAuditorEncryptionKey({ tokenAddress });
+
     // Get the sender's available balance from the chain
     const { available: senderEncryptedAvailableBalance } = await getBalance({
       client: this.client,
@@ -139,21 +177,34 @@ export class ConfidentialAssetTransactionBuilder {
       decryptionKey: senderDecryptionKey,
       senderAvailableBalanceCipherText: senderEncryptedAvailableBalance.getCipherText(),
       amount: BigInt(amount),
+      senderAddress: senderAddr.toUint8Array(),
+      tokenAddress: tokenAddr.toUint8Array(),
+      chainId,
+      auditorEncryptionKey: effectiveAuditorPubKey,
     });
 
-    const [{ sigmaProof, rangeProof }, encryptedAmountAfterWithdraw] = await confidentialWithdraw.authorizeWithdrawal();
+    const [{ sigmaProof, rangeProof }, encryptedAmountAfterWithdraw, auditorEncryptedBalance] =
+      await confidentialWithdraw.authorizeWithdrawal();
+
+    // Build auditor A components (D points encrypted under auditor key)
+    const newBalanceA = auditorEncryptedBalance
+      ? auditorEncryptedBalance.getCipherText().map((ct) => ct.D.toRawBytes())
+      : ([] as Uint8Array[]);
 
     return this.client.transaction.build.simple({
       ...args,
       data: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::withdraw_to`,
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::withdraw_to_raw`,
         functionArguments: [
           tokenAddress,
           recipient,
           String(amount),
-          encryptedAmountAfterWithdraw.getCipherTextBytes(),
+          encryptedAmountAfterWithdraw.getCipherText().map((ct) => ct.C.toRawBytes()), // new_balance_C
+          encryptedAmountAfterWithdraw.getCipherText().map((ct) => ct.D.toRawBytes()), // new_balance_D
+          newBalanceA, // new_balance_A
           rangeProof,
-          ConfidentialWithdraw.serializeSigmaProof(sigmaProof),
+          sigmaProof.commitment,
+          sigmaProof.response,
         ],
       },
       options,
@@ -165,7 +216,7 @@ export class ConfidentialAssetTransactionBuilder {
    *
    * @param args.sender - The address of the sender of the transaction
    * @param args.tokenAddress - The token address of the asset to roll over
-   * @param args.withFreezeBalance - Whether to freeze the balance after rolling over. Default is false.
+   * @param args.withPauseIncoming - Whether to pause incoming transfers after rolling over. Default is false.
    * @param args.checkNormalized - Whether to check if the balance is normalized before rolling over. Default is true.
    * @param args.withFeePayer - Whether to use the fee payer for the transaction
    * @returns A SimpleTransaction to roll over the balance
@@ -174,12 +225,12 @@ export class ConfidentialAssetTransactionBuilder {
   async rolloverPendingBalance(args: {
     sender: AccountAddressInput;
     tokenAddress: AccountAddressInput;
-    withFreezeBalance?: boolean;
+    withPauseIncoming?: boolean;
     withFeePayer?: boolean;
     checkNormalized?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    const { checkNormalized = true, withFreezeBalance = false } = args;
+    const { checkNormalized = true, withPauseIncoming = false } = args;
     if (checkNormalized) {
       const isNormalized = await isBalanceNormalized({
         client: this.client,
@@ -192,7 +243,7 @@ export class ConfidentialAssetTransactionBuilder {
       }
     }
 
-    const functionName = withFreezeBalance ? "rollover_pending_balance_and_freeze" : "rollover_pending_balance";
+    const functionName = withPauseIncoming ? "rollover_pending_balance_and_pause" : "rollover_pending_balance";
 
     return this.client.transaction.build.simple({
       ...args,
@@ -217,17 +268,25 @@ export class ConfidentialAssetTransactionBuilder {
     tokenAddress: AccountAddressInput;
     options?: LedgerVersionArg;
   }): Promise<TwistedEd25519PublicKey | undefined> {
-    const [{ vec: globalAuditorPubKey }] = await this.client.view<[{ vec: Uint8Array }]>({
+    // EffectiveAuditorConfig::V1 { is_global: bool, config: AuditorConfig::V1 { ek: Option<CompressedRistretto>, epoch: u64 } }
+    type EffectiveAuditorConfigResponse = {
+      is_global: boolean;
+      config: {
+        ek: { vec: { data: string }[] };
+        epoch: string;
+      };
+    };
+    const [{ config }] = await this.client.view<[EffectiveAuditorConfigResponse]>({
       options: args.options,
       payload: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::get_auditor`,
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::get_effective_auditor_config`,
         functionArguments: [args.tokenAddress],
       },
     });
-    if (globalAuditorPubKey.length === 0) {
+    if (config.ek.vec.length === 0) {
       return undefined;
     }
-    return new TwistedEd25519PublicKey(globalAuditorPubKey);
+    return new TwistedEd25519PublicKey(config.ek.vec[0].data);
   }
 
   /**
@@ -255,14 +314,23 @@ export class ConfidentialAssetTransactionBuilder {
     amount: AnyNumber;
     senderDecryptionKey: TwistedEd25519PrivateKey;
     additionalAuditorEncryptionKeys?: TwistedEd25519PublicKey[];
+    memo?: Uint8Array;
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    const { senderDecryptionKey, recipient, tokenAddress, amount, additionalAuditorEncryptionKeys = [] } = args;
+    const { sender, senderDecryptionKey, recipient, tokenAddress, amount, additionalAuditorEncryptionKeys = [], memo = new Uint8Array() } = args;
     validateAmount({ amount });
 
+    // Resolve addresses to 32-byte arrays
+    const senderAddr = AccountAddress.from(sender);
+    const recipientAddr = AccountAddress.from(recipient);
+    const tokenAddr = AccountAddress.from(tokenAddress);
+
+    // Get chain ID for domain separation
+    const chainId = await this.getChainId();
+
     // Get the auditor public key for the token
-    const globalAuditorPubKey = await this.getAssetAuditorEncryptionKey({
+    const effectiveAuditorPubKey = await this.getAssetAuditorEncryptionKey({
       tokenAddress,
     });
 
@@ -277,14 +345,14 @@ export class ConfidentialAssetTransactionBuilder {
     } catch (e) {
       throw new Error(`Failed to get encryption key for recipient - ${e}`);
     }
-    const isFrozen = await isPendingBalanceFrozen({
+    const isPaused = await isIncomingTransfersPaused({
       client: this.client,
       moduleAddress: this.confidentialAssetModuleAddress,
       accountAddress: recipient,
       tokenAddress,
     });
-    if (isFrozen) {
-      throw new Error("Recipient balance is frozen");
+    if (isPaused) {
+      throw new Error("Recipient's incoming transfers are paused");
     }
     // Get the sender's available balance from the chain
     const { available: senderEncryptedAvailableBalance } = await getBalance({
@@ -295,16 +363,25 @@ export class ConfidentialAssetTransactionBuilder {
       decryptionKey: senderDecryptionKey,
     });
 
+    // Build the full auditor list for proof generation: [...voluntary, global (if set)]
+    // The contract will append the global auditor itself, so we only send voluntary auditor EKs on-chain.
+    const allAuditorEncryptionKeys = [
+      ...additionalAuditorEncryptionKeys,
+      ...(effectiveAuditorPubKey ? [effectiveAuditorPubKey] : []),
+    ];
+
     // Create the confidential transfer object
     const confidentialTransfer = await ConfidentialTransfer.create({
       senderDecryptionKey,
       senderAvailableBalanceCipherText: senderEncryptedAvailableBalance.getCipherText(),
       amount,
       recipientEncryptionKey,
-      auditorEncryptionKeys: [
-        ...(globalAuditorPubKey ? [globalAuditorPubKey] : []),
-        ...additionalAuditorEncryptionKeys,
-      ],
+      hasEffectiveAuditor: !!effectiveAuditorPubKey,
+      auditorEncryptionKeys: allAuditorEncryptionKeys,
+      senderAddress: senderAddr.toUint8Array(),
+      recipientAddress: recipientAddr.toUint8Array(),
+      tokenAddress: tokenAddr.toUint8Array(),
+      chainId,
     });
 
     const [
@@ -314,28 +391,52 @@ export class ConfidentialAssetTransactionBuilder {
       },
       encryptedAmountAfterTransfer,
       encryptedAmountByRecipient,
-      auditorsCBList,
+      allAuditorAmountCiphertexts,
+      auditorNewBalanceList,
     ] = await confidentialTransfer.authorizeTransfer();
 
-    const auditorEncryptionKeys = confidentialTransfer.auditorEncryptionKeys.map((pk) => pk.toUint8Array());
-    const auditorBalances = auditorsCBList.map((el) => el.getCipherTextBytes());
+    // Only send voluntary auditor EKs on-chain (not the global auditor, which the contract fetches itself)
+    const volunAuditorEncryptionKeys = additionalAuditorEncryptionKeys.map((pk) => pk.toUint8Array());
+
+    // Only send D components for recipient and auditors (C components are shared with sender_amount)
+    const recipientDPoints = encryptedAmountByRecipient.getCipherText().map((ct) => ct.D.toRawBytes());
+    // Split auditor D points into effective (last, if present) and voluntary (remaining)
+    const effectiveAuditorDPoints = effectiveAuditorPubKey
+      ? allAuditorAmountCiphertexts[allAuditorAmountCiphertexts.length - 1].getCipherText().map((ct) => ct.D.toRawBytes())
+      : [];
+    const volunAuditorDPoints = (effectiveAuditorPubKey
+      ? allAuditorAmountCiphertexts.slice(0, -1)
+      : allAuditorAmountCiphertexts
+    ).map((cb) => cb.getCipherText().map((ct) => ct.D.toRawBytes()));
+
+    // Build R_aud components for new balance (D points encrypted under the effective auditor key, i.e., the last one)
+    // Only populated when there IS an effective auditor — voluntary auditors don't get new balance R components.
+    const newBalanceA = effectiveAuditorPubKey
+      ? auditorNewBalanceList[auditorNewBalanceList.length - 1].getCipherText().map((ct) => ct.D.toRawBytes())
+      : [];
 
     return this.client.transaction.build.simple({
       ...args,
       withFeePayer: args.withFeePayer,
       data: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::confidential_transfer`,
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::confidential_transfer_raw`,
         functionArguments: [
           tokenAddress,
           recipient,
-          encryptedAmountAfterTransfer.getCipherTextBytes(),
-          confidentialTransfer.transferAmountEncryptedBySender.getCipherTextBytes(),
-          encryptedAmountByRecipient.getCipherTextBytes(),
-          concatBytes(...auditorEncryptionKeys),
-          concatBytes(...auditorBalances),
+          encryptedAmountAfterTransfer.getCipherText().map((ct) => ct.C.toRawBytes()), // new_balance_C
+          encryptedAmountAfterTransfer.getCipherText().map((ct) => ct.D.toRawBytes()), // new_balance_D
+          newBalanceA, // new_balance_A
+          confidentialTransfer.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.C.toRawBytes()), // sender_amount_C
+          confidentialTransfer.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.D.toRawBytes()), // sender_amount_D
+          recipientDPoints,
+          effectiveAuditorDPoints,
+          volunAuditorEncryptionKeys,
+          volunAuditorDPoints,
           rangeProofNewBalance,
           rangeProofAmount,
-          ConfidentialTransfer.serializeSigmaProof(sigmaProof),
+          sigmaProof.commitment,
+          sigmaProof.response,
+          memo,
         ],
       },
     });
@@ -344,18 +445,15 @@ export class ConfidentialAssetTransactionBuilder {
   /**
    * Rotate the encryption key for a confidential asset balance.
    *
-   * This will by default check if the pending balance is empty and throw an error if it is not. It also checks if the balance is frozen and
-   * will unfreeze it if it is.
-   *
-   * TODO: Parallelize the view calls
+   * This will by default check if the pending balance is empty and throw an error if it is not.
+   * The new entry function uses the Sigma protocol for key rotation proofs and supports an `unpause` flag.
    *
    * @param args.sender - The address of the sender of the transaction who's encryption key is being rotated
    * @param args.senderDecryptionKey - The decryption key of the sender
-   * @param args.newDecryptionKey - The new decryption key
+   * @param args.newSenderDecryptionKey - The new decryption key
    * @param args.tokenAddress - The token address of the asset to rotate the encryption key for
-   * @param args.checkPendingBalanceEmpty - Whether to check if the pending balance is empty before rotating the encryption key. Default is true.
-   * @param args.withUnfreezeBalance - Whether to unfreeze the balance after rotating the encryption key. By default it will check the chain to
-   * see if the balance is frozen and if so, will unfreeze it.
+   * @param args.checkPendingBalanceEmpty - Whether to check if the pending balance is empty before rotating. Default is true.
+   * @param args.unpause - Whether to unpause incoming transfers after rotation. Default is true.
    * @param args.withFeePayer - Whether to use the fee payer for the transaction
    * @returns A SimpleTransaction to rotate the encryption key
    * @throws {Error} If the pending balance is not 0 before rotating the encryption key, unless checkPendingBalanceEmpty is false.
@@ -366,7 +464,7 @@ export class ConfidentialAssetTransactionBuilder {
     newSenderDecryptionKey: TwistedEd25519PrivateKey;
     tokenAddress: AccountAddressInput;
     checkPendingBalanceEmpty?: boolean;
-    withUnfreezePendingBalance?: boolean;
+    unpause?: boolean;
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
@@ -376,12 +474,7 @@ export class ConfidentialAssetTransactionBuilder {
       newSenderDecryptionKey,
       checkPendingBalanceEmpty = true,
       tokenAddress,
-      withUnfreezePendingBalance = await isPendingBalanceFrozen({
-        client: this.client,
-        moduleAddress: this.confidentialAssetModuleAddress,
-        accountAddress: sender,
-        tokenAddress,
-      }),
+      unpause = true,
     } = args;
 
     // Get the sender's balance from the chain
@@ -399,33 +492,38 @@ export class ConfidentialAssetTransactionBuilder {
       }
     }
 
-    // Create the confidential key rotation object
-    const confidentialKeyRotation = await ConfidentialKeyRotation.create({
+    // Resolve the sender and token addresses to 32-byte arrays
+    const senderAddr = AccountAddress.from(sender);
+    const tokenAddr = AccountAddress.from(tokenAddress);
+
+    // Get chain ID for domain separation
+    const chainId = await this.getChainId();
+
+    // Create the confidential key rotation object and generate the proof
+    const confidentialKeyRotation = ConfidentialKeyRotation.create({
       senderDecryptionKey,
       newSenderDecryptionKey,
       currentEncryptedAvailableBalance,
+      senderAddress: senderAddr.toUint8Array(),
+      tokenAddress: tokenAddr.toUint8Array(),
+      chainId,
     });
 
-    // Create the sigma proof and range proof
-    const [{ sigmaProof, rangeProof }, newEncryptedAvailableBalance] =
-      await confidentialKeyRotation.authorizeKeyRotation();
-
-    const newPublicKeyBytes = args.newSenderDecryptionKey.publicKey().toUint8Array();
-
-    const method = withUnfreezePendingBalance ? "rotate_encryption_key_and_unfreeze" : "rotate_encryption_key";
+    const { newEkBytes, newDBytes, proof } = confidentialKeyRotation.authorizeKeyRotation();
 
     return this.client.transaction.build.simple({
       ...args,
       withFeePayer: args.withFeePayer,
       sender: args.sender,
       data: {
-        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::${method}`,
+        function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::rotate_encryption_key_raw`,
         functionArguments: [
           args.tokenAddress,
-          newPublicKeyBytes,
-          newEncryptedAvailableBalance.getCipherTextBytes(),
-          rangeProof,
-          ConfidentialKeyRotation.serializeSigmaProof(sigmaProof),
+          newEkBytes,
+          unpause,
+          newDBytes,
+          proof.commitment,
+          proof.response,
         ],
       },
       options: args.options,
@@ -451,6 +549,17 @@ export class ConfidentialAssetTransactionBuilder {
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     const { sender, senderDecryptionKey, tokenAddress, withFeePayer, options } = args;
+
+    // Resolve addresses to 32-byte arrays
+    const senderAddr = AccountAddress.from(sender);
+    const tokenAddr = AccountAddress.from(tokenAddress);
+
+    // Get chain ID for domain separation
+    const chainId = await this.getChainId();
+
+    // Get the auditor public key for the token
+    const effectiveAuditorPubKey = await this.getAssetAuditorEncryptionKey({ tokenAddress });
+
     const { available } = await getBalance({
       client: this.client,
       moduleAddress: this.confidentialAssetModuleAddress,
@@ -462,6 +571,10 @@ export class ConfidentialAssetTransactionBuilder {
     const confidentialNormalization = await ConfidentialNormalization.create({
       decryptionKey: senderDecryptionKey,
       unnormalizedAvailableBalance: available,
+      senderAddress: senderAddr.toUint8Array(),
+      tokenAddress: tokenAddr.toUint8Array(),
+      chainId,
+      auditorEncryptionKey: effectiveAuditorPubKey,
     });
 
     return confidentialNormalization.createTransaction({
