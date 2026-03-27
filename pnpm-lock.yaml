@@ -116,8 +116,8 @@ importers:
   confidential-assets:
     dependencies:
       '@aptos-labs/confidential-asset-wasm-bindings':
-        specifier: ^0.0.2
-        version: 0.0.2
+        specifier: ^0.0.3
+        version: 0.0.3
       '@noble/curves':
         specifier: ^1.6.0
         version: 1.9.7
@@ -299,8 +299,8 @@ packages:
     peerDependencies:
       got: ^11.8.6
 
-  '@aptos-labs/confidential-asset-wasm-bindings@0.0.2':
-    resolution: {integrity: sha512-xfgRVc4WX4N7hjSHP91a3o686gC4307PGa9eDT7eWhp2VN9YgYhDIKRFRITpKT5JC7IXbuh6pGq1MqrqTjBokA==}
+  '@aptos-labs/confidential-asset-wasm-bindings@0.0.3':
+    resolution: {integrity: sha512-vU1C+IHl3gZbVZhJodyyr1sJt5+hUdUn5H2qGVFxmUWgW8z3+VUN12wBWmgQ9swIQwioThxssB05l3AywEtiCQ==}
 
   '@ardatan/relay-compiler@12.0.0':
     resolution: {integrity: sha512-9anThAaj1dQr6IGmzBMcfzOQKTa5artjuPmw8NYK/fiGEMjADbSguBY2FMDykt+QhilR3wc9VA/3yVju7JHg7Q==}
@@ -4345,7 +4345,7 @@ snapshots:
     dependencies:
       got: 13.0.0
 
-  '@aptos-labs/confidential-asset-wasm-bindings@0.0.2': {}
+  '@aptos-labs/confidential-asset-wasm-bindings@0.0.3': {}
 
   '@ardatan/relay-compiler@12.0.0(graphql@16.13.1)':
     dependencies:
