@@ -20,6 +20,25 @@ import initWasm, {
 const UNIFIED_WASM_URL =
   "https://unpkg.com/@aptos-labs/confidential-asset-wasm-bindings@0.0.3/aptos_confidential_asset_wasm_bg.wasm";
 
+const MIN_NODE_MAJOR = 22;
+
+/**
+ * In Node.js < 20 the Web Crypto API is not fully exposed on
+ * `globalThis.crypto`, which causes the WASM bindings (via getrandom /
+ * wasm-bindgen) to panic. Fail fast with a helpful message instead.
+ */
+function assertNodeVersion(): void {
+  if (typeof process !== "undefined" && process.versions?.node) {
+    const major = parseInt(process.versions.node.split(".")[0], 10);
+    if (major < MIN_NODE_MAJOR) {
+      throw new Error(
+        `@aptos-labs/confidential-assets requires Node.js >= ${MIN_NODE_MAJOR}. ` +
+          `Detected Node.js ${process.versions.node}. Please upgrade your Node.js version.`,
+      );
+    }
+  }
+}
+
 let initPromise: Promise<void> | undefined;
 let initialized = false;
 
@@ -70,6 +89,7 @@ export async function initializeWasm(wasmSource?: string | BufferSource): Promis
   if (!initPromise) {
     initPromise = (async () => {
       try {
+        assertNodeVersion();
         const source = wasmSource ?? (await getWasmSource());
         await initWasm({ module_or_path: source });
         initialized = true;
