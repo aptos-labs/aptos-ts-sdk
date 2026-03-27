@@ -4,6 +4,18 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Added
+
+- New `@aptos-labs/aptos-keystore` package: encrypted private key storage standard based on Ethereum's Web3 Secret Storage Definition
+  - Separate package in `keystore/` — install with `npm install @aptos-labs/aptos-keystore`
+  - Supports all Aptos key types: Ed25519, Secp256k1, Secp256r1
+  - AES-256-GCM authenticated encryption (no separate MAC needed)
+  - Argon2id KDF by default (when `hash-wasm` is installed), falls back to scrypt
+  - PBKDF2-HMAC-SHA256 also supported as an alternative KDF
+  - Password-based or key-file-based encryption
+  - Portable JSON format designed for cross-SDK compatibility (TypeScript, Rust, Python, Go, etc.)
+  - Exports: `encryptKeystore`, `decryptKeystore`, `AptosKeyStore`, `KeystorePrivateKey`, `KeystoreEncryptOptions`
+
 # 6.3.0 (2026-03-22)
 
 ## Fixed
