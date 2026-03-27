@@ -10,7 +10,7 @@
     "url": "https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose"
   },
   "homepage": "https://aptos-labs.github.io/aptos-ts-sdk/",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "sideEffects": false,
   "main": "dist/common/index.js",
   "module": "dist/esm/index.mjs",
@@ -40,6 +40,7 @@
     "build:types": "tsc -p tsconfig.build.json --outDir ./dist/types --declaration --emitDeclarationOnly",
     "test": "vitest run",
     "e2e-test": "vitest run tests/e2e",
+    "indexer-codegen": "graphql-codegen --config ./src/indexer/codegen.yaml",
     "publish-zeta": "pnpm build && npm publish --tag zeta"
   },
   "peerDependencies": {

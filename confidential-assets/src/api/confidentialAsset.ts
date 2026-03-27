@@ -28,6 +28,13 @@ import {
 // Constants
 import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS } from "../consts";
 
+// Indexer
+import {
+  getConfidentialAssetActivities,
+  type GetConfidentialAssetActivitiesArgs,
+  type ConfidentialAssetActivity,
+} from "../indexer";
+
 // Base param types
 type ConfidentialAssetSubmissionParams = {
   signer: Account;
@@ -581,6 +588,22 @@ export class ConfidentialAsset {
       },
     });
     return committedTx;
+  }
+
+  /**
+   * Query confidential asset activities from the indexer.
+   *
+   * @example
+   * ```ts
+   * const activities = await ca.getActivities({
+   *   where: { owner_address: { _eq: alice.accountAddress.toStringLong() } },
+   *   orderBy: [{ transaction_version: "desc" }],
+   *   limit: 20,
+   * });
+   * ```
+   */
+  async getActivities(args?: GetConfidentialAssetActivitiesArgs): Promise<ConfidentialAssetActivity[]> {
+    return getConfidentialAssetActivities(this.client(), args);
   }
 
   private async checkSufficientBalanceAndRolloverIfNeeded(
