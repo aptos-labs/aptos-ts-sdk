@@ -7,4 +7,5 @@ export * from "./consts";
 export * from "./crypto/encryptedAmount";
 export * from "./api/confidentialAsset";
 export * from "./crypto";
+export * from "./indexer";
 export * from "./utils";
