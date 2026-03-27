@@ -93,7 +93,6 @@ export interface ActivityBase {
   is_transaction_success: boolean;
   entry_function_id_str: string | null;
   transaction_timestamp: string;
-  inserted_at: string;
 }
 
 /** Events scoped to a specific fungible asset. */

@@ -1,0 +1,27 @@
+query getConfidentialAssetActivities(
+  $where_condition: confidential_asset_activities_bool_exp
+  $offset: Int
+  $limit: Int
+  $order_by: [confidential_asset_activities_order_by!]
+) {
+  confidential_asset_activities(
+    where: $where_condition
+    offset: $offset
+    limit: $limit
+    order_by: $order_by
+  ) {
+    transaction_version
+    event_index
+    event_type
+    owner_address
+    asset_type
+    counterparty_address
+    amount
+    event_data
+    event_data_version
+    block_height
+    is_transaction_success
+    entry_function_id_str
+    transaction_timestamp
+  }
+}
