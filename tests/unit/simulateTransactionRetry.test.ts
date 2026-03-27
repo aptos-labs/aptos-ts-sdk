@@ -52,8 +52,8 @@ async function setupMocks() {
   const { postAptosFullNode } = await import("../../src/client");
   const { simulateTransaction } = await import("../../src/internal/transactionSubmission");
   return {
-    mockPost: postAptosFullNode as MockedFunction<typeof PostType>,
-    simulateTransaction: simulateTransaction as typeof SimType,
+    mockPost: postAptosFullNode as MockedFunction<PostType>,
+    simulateTransaction: simulateTransaction as SimType,
   };
 }
 

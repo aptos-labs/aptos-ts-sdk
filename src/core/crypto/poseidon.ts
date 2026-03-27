@@ -27,26 +27,32 @@ export function ensurePoseidonLoaded(): Promise<void> {
     return Promise.resolve();
   }
   if (loadPromise === undefined) {
-    loadPromise = import("poseidon-lite").then((mod) => {
-      numInputsToPoseidonFunc = [
-        mod.poseidon1,
-        mod.poseidon2,
-        mod.poseidon3,
-        mod.poseidon4,
-        mod.poseidon5,
-        mod.poseidon6,
-        mod.poseidon7,
-        mod.poseidon8,
-        mod.poseidon9,
-        mod.poseidon10,
-        mod.poseidon11,
-        mod.poseidon12,
-        mod.poseidon13,
-        mod.poseidon14,
-        mod.poseidon15,
-        mod.poseidon16,
-      ];
-    });
+    loadPromise = import("poseidon-lite")
+      .then((mod) => {
+        numInputsToPoseidonFunc = [
+          mod.poseidon1,
+          mod.poseidon2,
+          mod.poseidon3,
+          mod.poseidon4,
+          mod.poseidon5,
+          mod.poseidon6,
+          mod.poseidon7,
+          mod.poseidon8,
+          mod.poseidon9,
+          mod.poseidon10,
+          mod.poseidon11,
+          mod.poseidon12,
+          mod.poseidon13,
+          mod.poseidon14,
+          mod.poseidon15,
+          mod.poseidon16,
+        ];
+      })
+      .catch((error) => {
+        loadPromise = undefined;
+        numInputsToPoseidonFunc = undefined;
+        throw error;
+      });
   }
   return loadPromise;
 }
