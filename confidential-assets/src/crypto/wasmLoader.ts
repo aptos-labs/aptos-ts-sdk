@@ -20,7 +20,7 @@ import initWasm, {
 const UNIFIED_WASM_URL =
   "https://unpkg.com/@aptos-labs/confidential-asset-wasm-bindings@0.0.3/aptos_confidential_asset_wasm_bg.wasm";
 
-const MIN_NODE_MAJOR = 20;
+const MIN_NODE_MAJOR = 22;
 
 /**
  * In Node.js < 20 the Web Crypto API is not fully exposed on
