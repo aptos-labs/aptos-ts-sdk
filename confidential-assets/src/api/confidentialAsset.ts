@@ -137,7 +137,7 @@ export class ConfidentialAsset {
    * @returns A SimpleTransaction to deposit the amount
    */
   async deposit(args: DepositParams): Promise<CommittedTransactionResponse> {
-    const { signer, withFeePayer = this.withFeePayer !== undefined, ...rest } = args;
+    const { signer, withFeePayer = this.withFeePayer, ...rest } = args;
     const tx = await this.transaction.deposit({ ...rest, sender: signer.accountAddress, withFeePayer });
     const result = await this.submitTxn({ signer, transaction: tx });
     clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
@@ -166,7 +166,7 @@ export class ConfidentialAsset {
       recipient?: AccountAddressInput;
     },
   ): Promise<CommittedTransactionResponse> {
-    const { signer, withFeePayer = this.withFeePayer !== undefined, ...rest } = args;
+    const { signer, withFeePayer = this.withFeePayer, ...rest } = args;
 
     const transaction = await this.transaction.withdraw({ ...rest, sender: signer.accountAddress, withFeePayer });
     const result = await this.submitTxn({
@@ -184,7 +184,7 @@ export class ConfidentialAsset {
       recipient?: AccountAddressInput;
     },
   ): Promise<CommittedTransactionResponse[]> {
-    const { signer, withFeePayer = this.withFeePayer !== undefined, ...rest } = args;
+    const { signer, withFeePayer = this.withFeePayer, ...rest } = args;
 
     const results: CommittedTransactionResponse[] = [];
 
@@ -216,7 +216,7 @@ export class ConfidentialAsset {
    * @throws {Error} If the balance is not normalized before rolling over, unless checkNormalized is false.
    */
   async rolloverPendingBalance(args: RolloverParams): Promise<CommittedTransactionResponse[]> {
-    const { signer, withFeePayer = this.withFeePayer !== undefined, ...rest } = args;
+    const { signer, withFeePayer = this.withFeePayer, ...rest } = args;
     const results: CommittedTransactionResponse[] = [];
     const isNormalized = await this.isBalanceNormalized({
       accountAddress: signer.accountAddress,
@@ -289,7 +289,7 @@ export class ConfidentialAsset {
       memo?: Uint8Array;
     },
   ): Promise<CommittedTransactionResponse> {
-    const { signer, withFeePayer = this.withFeePayer !== undefined, ...rest } = args;
+    const { signer, withFeePayer = this.withFeePayer, ...rest } = args;
 
     const transaction = await this.transaction.transfer({ ...rest, sender: signer.accountAddress, withFeePayer });
     const result = await this.submitTxn({
@@ -309,7 +309,7 @@ export class ConfidentialAsset {
       memo?: Uint8Array;
     },
   ): Promise<CommittedTransactionResponse[]> {
-    const { signer, withFeePayer = this.withFeePayer !== undefined, ...rest } = args;
+    const { signer, withFeePayer = this.withFeePayer, ...rest } = args;
     const results: CommittedTransactionResponse[] = [];
 
     const committedRolloverTxs = await this.checkSufficientBalanceAndRolloverIfNeeded({
@@ -374,7 +374,7 @@ export class ConfidentialAsset {
       senderDecryptionKey,
       newSenderDecryptionKey,
       tokenAddress,
-      withFeePayer = this.withFeePayer !== undefined,
+      withFeePayer = this.withFeePayer,
       options,
     } = args;
     const results: CommittedTransactionResponse[] = [];
@@ -516,7 +516,7 @@ export class ConfidentialAsset {
    * @throws {Error} If normalization fails
    */
   async normalizeBalance(args: NormalizeBalanceParams): Promise<CommittedTransactionResponse> {
-    const { signer, senderDecryptionKey, tokenAddress, withFeePayer = this.withFeePayer !== undefined, options } = args;
+    const { signer, senderDecryptionKey, tokenAddress, withFeePayer = this.withFeePayer, options } = args;
     const { available, pending } = await this.getBalance({
       accountAddress: signer.accountAddress,
       tokenAddress,
