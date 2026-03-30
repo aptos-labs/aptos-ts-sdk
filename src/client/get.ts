@@ -166,8 +166,7 @@ export async function paginateWithCursor<Req extends Record<string, any>, Res ex
   let cursor: string | undefined;
   const requestParams = options.params as { start?: string; limit?: number };
   do {
-    const response = await get<Req, Res>({
-      type: AptosApiType.FULLNODE,
+    const response = await getAptosFullNode<Req, Res>({
       aptosConfig: options.aptosConfig,
       originMethod: options.originMethod,
       path: options.path,
@@ -241,8 +240,7 @@ export async function getPageWithObfuscatedCursor<Req extends Record<string, any
     requestParams.limit = options.params.limit;
   }
 
-  const response = await get<Req, Res>({
-    type: AptosApiType.FULLNODE,
+  const response = await getAptosFullNode<Req, Res>({
     aptosConfig: options.aptosConfig,
     originMethod: options.originMethod,
     path: options.path,

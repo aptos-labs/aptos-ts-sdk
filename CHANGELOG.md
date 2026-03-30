@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Fixed
+
+- Fix `fullnodeConfig.HEADERS` not being forwarded in paginated fullnode requests (`getAccountModules`, `getAccountResources`). Pagination helpers now route through `getAptosFullNode` so custom headers (e.g. `Authorization`) are included consistently. (#872)
+
 # 6.3.0 (2026-03-22)
 
 ## Fixed
