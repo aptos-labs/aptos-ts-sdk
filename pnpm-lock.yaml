@@ -20,7 +20,7 @@ importers:
         version: 2.0.0
       '@aptos-labs/aptos-client':
         specifier: ^3.0.1
-        version: 3.0.1
+        version: 3.0.1(undici@7.24.7)
       '@noble/curves':
         specifier: ^1.9.0
         version: 1.9.7
@@ -103,6 +103,10 @@ importers:
       vitest:
         specifier: ^4.0.18
         version: 4.0.18(@types/node@24.11.0)(jiti@2.6.1)(yaml@2.8.2)
+    optionalDependencies:
+      undici:
+        specifier: ^7.24.7
+        version: 7.24.7
 
 packages:
 
@@ -2818,6 +2822,10 @@ packages:
   undici-types@7.16.0:
     resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
 
+  undici@7.24.7:
+    resolution: {integrity: sha512-H/nlJ/h0ggGC+uRL3ovD+G0i4bqhvsDOpbDv7At5eFLlj2b41L8QliGbnl2H7SnDiYhENphh1tQFJZf+MyfLsQ==}
+    engines: {node: '>=20.18.1'}
+
   unicorn-magic@0.4.0:
     resolution: {integrity: sha512-wH590V9VNgYH9g3lH9wWjTrUoKsjLF6sGLjhR4sH1LWpLmCOH0Zf7PukhDA8BiS7KHe4oPNkcTHqYkj7SOGUOw==}
     engines: {node: '>=20'}
@@ -3022,7 +3030,9 @@ snapshots:
     dependencies:
       commander: 14.0.3
 
-  '@aptos-labs/aptos-client@3.0.1': {}
+  '@aptos-labs/aptos-client@3.0.1(undici@7.24.7)':
+    optionalDependencies:
+      undici: 7.24.7
 
   '@ardatan/relay-compiler@12.0.0(graphql@16.13.1)':
     dependencies:
@@ -5915,6 +5925,9 @@ snapshots:
   unc-path-regex@0.1.2: {}
 
   undici-types@7.16.0: {}
+
+  undici@7.24.7:
+    optional: true
 
   unicorn-magic@0.4.0: {}
 

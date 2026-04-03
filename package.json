@@ -62,6 +62,9 @@
     "jwt-decode": "^4.0.0",
     "poseidon-lite": "^0.2.0"
   },
+  "optionalDependencies": {
+    "undici": "^7.24.7"
+  },
   "devDependencies": {
     "@babel/traverse": "^7.28.6",
     "@biomejs/biome": "^2.4.6",
