@@ -6,29 +6,7 @@ import { bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { H_RISTRETTO, RistPoint, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
 import { ed25519GenRandom, ed25519modN } from "../utils";
 import { HexInput } from "@aptos-labs/ts-sdk";
-import { DiscreteLogSolver, ensureWasmInitialized, initializeWasm, isWasmInitialized } from "./wasmLoader";
-
-class AsyncLock {
-  private locks: Map<string, Promise<void>> = new Map();
-
-  async acquire<T>(key: string, fn: () => Promise<T>): Promise<T> {
-    while (this.locks.has(key)) {
-      await this.locks.get(key);
-    }
-
-    let resolve: () => void;
-    const promise = new Promise<void>((r) => (resolve = r));
-    this.locks.set(key, promise);
-
-    try {
-      const result = await fn();
-      return result;
-    } finally {
-      this.locks.delete(key);
-      resolve!();
-    }
-  }
-}
+import { solveDiscreteLog } from "@aptos-labs/confidential-asset-bindings";
 
 export interface DecryptionRange {
   start?: bigint;
@@ -115,50 +93,7 @@ export class TwistedElGamal {
     return new TwistedElGamalCiphertext(C.toRawBytes(), RistrettoPoint.ZERO.toRawBytes());
   }
 
-  static initPromise: Promise<void> | undefined;
   static initialized = false;
-  private static initializationLock = new AsyncLock();
-
-  static solver: DiscreteLogSolver;
-
-  /**
-   * Initialize the discrete log solver with precomputed tables.
-   * Supports 16-bit (O(1) lookup) and 32-bit (~12ms with TBSGS-k32) secrets.
-   *
-   * @param wasmSource - Optional WASM source: URL string, or Buffer/ArrayBuffer for Node.js
-   */
-  static async initializeSolver(wasmSource?: string | BufferSource) {
-    return this.initializationLock.acquire("solver-init", async () => {
-      try {
-        if (TwistedElGamal.initialized) {
-          return;
-        }
-
-        if (!TwistedElGamal.initPromise) {
-          const createSolver = async () => {
-            try {
-              await initializeWasm(wasmSource);
-              TwistedElGamal.solver = new DiscreteLogSolver();
-            } catch (error) {
-              // Reset state on failure
-              TwistedElGamal.initPromise = undefined;
-              TwistedElGamal.initialized = false;
-              throw error;
-            }
-          };
-          TwistedElGamal.initPromise = createSolver();
-        }
-
-        await TwistedElGamal.initPromise;
-        TwistedElGamal.initialized = true;
-      } catch (error) {
-        // Reset state on any initialization failure
-        TwistedElGamal.initPromise = undefined;
-        TwistedElGamal.initialized = false;
-        throw error;
-      }
-    });
-  }
 
   static calculateCiphertextMG(ciphertext: TwistedElGamalCiphertext, privateKey: TwistedEd25519PrivateKey): RistPoint {
     const { C, D } = ciphertext;
@@ -178,12 +113,12 @@ export class TwistedElGamal {
     try {
       // Try 16-bit first (O(1) lookup)
       try {
-        return TwistedElGamal.solver.solve(pk, 16);
+        return await solveDiscreteLog(pk, 16);
       } catch {
         // Fall through to 32-bit
       }
       // Try 32-bit (~12ms with TBSGS-k32)
-      return TwistedElGamal.solver.solve(pk, 32);
+      return await solveDiscreteLog(pk, 32);
     } catch (e) {
       console.error("Decryption failed:", e);
       throw new TypeError("Decryption failed. Value may be out of 32-bit range.");
@@ -201,7 +136,6 @@ export class TwistedElGamal {
     ciphertext: TwistedElGamalCiphertext,
     privateKey: TwistedEd25519PrivateKey,
   ): Promise<bigint> {
-    await TwistedElGamal.ensureInitialized();
     const mG = TwistedElGamal.calculateCiphertextMG(ciphertext, privateKey);
 
     return TwistedElGamal.decryptAmount(mG.toRawBytes());
@@ -246,34 +180,6 @@ export class TwistedElGamal {
         return operand1.subtractCiphertext(operand2);
       default:
         throw new Error("Unsupported operation");
-    }
-  }
-
-  static async cleanup() {
-    return this.initializationLock.acquire("solver-cleanup", async () => {
-      try {
-        if (TwistedElGamal.solver) TwistedElGamal.solver.free();
-      } finally {
-        TwistedElGamal.initPromise = undefined;
-        TwistedElGamal.initialized = false;
-      }
-    });
-  }
-
-  static isInitialized(): boolean {
-    return TwistedElGamal.initialized && TwistedElGamal.solver !== undefined && isWasmInitialized();
-  }
-
-  /**
-   * Returns the algorithm name used by the discrete log solver.
-   */
-  static getAlgorithmName(): string {
-    return TwistedElGamal.solver?.algorithm() ?? "not initialized";
-  }
-
-  private static async ensureInitialized() {
-    if (!this.isInitialized()) {
-      await this.initializeSolver();
     }
   }
 }

@@ -123,12 +123,6 @@ function formatResult(r: BenchmarkResult): string {
 // ============================================================================
 
 describe("Discrete Log Solver (WASM)", () => {
-  beforeAll(async () => {
-    // WASM auto-loads from node_modules in Node.js environment
-    await TwistedElGamal.initializeSolver();
-    console.log(`WASM algorithm: ${TwistedElGamal.getAlgorithmName()}`);
-  }, 30000);
-
   describe("correctness", () => {
     it("decrypts 16-bit values correctly", async () => {
       for (let i = 0; i < BENCHMARK_ITERATIONS; i++) {
@@ -153,8 +147,6 @@ describe("Discrete Log Solver (WASM)", () => {
 
   describe("benchmark", () => {
     const benchmarkWasm = async (bitWidth: number): Promise<BenchmarkResult> => {
-      expect(TwistedElGamal.isInitialized()).toBe(true);
-
       const times: number[] = [];
       const alice = TwistedEd25519PrivateKey.generate();
 
