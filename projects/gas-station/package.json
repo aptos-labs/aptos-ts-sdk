@@ -32,9 +32,11 @@
   "pnpm": {
     "overrides": {
       "minimatch@^9": "^9.0.7",
+      "picomatch@^4": "^4.0.4",
       "qs@^6": "^6.14.1",
       "glob@^10": "^10.5.0",
-      "rollup@^4": "^4.59.0"
+      "rollup@^4": "^4.59.0",
+      "path-to-regexp@^8": "^8.4.0"
     }
   }
 }
