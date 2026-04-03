@@ -317,9 +317,9 @@ describe("Remote ABI", () => {
       ).toEqual(new MoveVector([new MoveOption(AccountAddress.ONE)]));
 
       // vector<Option<address>> with null elements (empty options)
-      expect(
-        await checkOrConvertArgument([null], parseTypeTag("vector<0x1::option::Option<address>>"), 0, []),
-      ).toEqual(new MoveVector([new MoveOption<AccountAddress>(null)]));
+      expect(await checkOrConvertArgument([null], parseTypeTag("vector<0x1::option::Option<address>>"), 0, [])).toEqual(
+        new MoveVector([new MoveOption<AccountAddress>(null)]),
+      );
 
       expect(
         await checkOrConvertArgument([undefined], parseTypeTag("vector<0x1::option::Option<address>>"), 0, []),
@@ -342,9 +342,7 @@ describe("Remote ABI", () => {
       );
 
       // vector<Option<u8>> with number elements
-      expect(
-        await checkOrConvertArgument([1, 2, 3], parseTypeTag("vector<0x1::option::Option<u8>>"), 0, []),
-      ).toEqual(
+      expect(await checkOrConvertArgument([1, 2, 3], parseTypeTag("vector<0x1::option::Option<u8>>"), 0, [])).toEqual(
         new MoveVector([new MoveOption(new U8(1)), new MoveOption(new U8(2)), new MoveOption(new U8(3))]),
       );
 
