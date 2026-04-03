@@ -13,9 +13,9 @@ import * as accountModule from "../../src/internal/account";
 import { Serializer } from "../../src/bcs/serializer";
 
 // Mock the getModule function
-jest.mock("../../src/internal/account");
+vi.mock("../../src/internal/account");
 
-const getModule = accountModule.getModule as jest.MockedFunction<typeof accountModule.getModule>;
+const getModule = vi.mocked(accountModule.getModule);
 
 describe("StructEnumArgumentParser", () => {
   let config: AptosConfig;
@@ -24,7 +24,7 @@ describe("StructEnumArgumentParser", () => {
   beforeEach(() => {
     config = new AptosConfig({ network: Network.DEVNET });
     parser = new StructEnumArgumentParser(config);
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe("Struct Encoding", () => {
