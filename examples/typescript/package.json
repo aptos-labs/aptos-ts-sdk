@@ -6,7 +6,7 @@
   "packageManager": "pnpm@10.30.3",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=20.0.0"
+    "node": "^22 || ^23 || ^24 || ^25"
   },
   "scripts": {
     "build": "tsc",
