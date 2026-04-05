@@ -9,8 +9,6 @@
 import { RistrettoPoint } from "@noble/curves/ed25519";
 import { TwistedElGamal, TwistedEd25519PrivateKey } from "../../src";
 import { createBsgsTable, BsgsSolver } from "../../src/crypto/bsgs";
-import crypto from "crypto";
-
 // ============================================================================
 // Helpers
 // ============================================================================
@@ -21,7 +19,7 @@ function generateRandomInteger(bits: number): bigint {
   if (bits <= 0) return 0n;
 
   const bytes = Math.ceil(bits / 8);
-  const randomBytes = crypto.getRandomValues(new Uint8Array(bytes));
+  const randomBytes = globalThis.crypto.getRandomValues(new Uint8Array(bytes));
 
   let result = 0n;
   for (let i = 0; i < bytes; i++) {

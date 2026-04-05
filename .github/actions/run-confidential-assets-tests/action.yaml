@@ -32,6 +32,18 @@ runs:
         # This runs all the tests, both unit and e2e.
         command: cd confidential-assets && pnpm test
 
+    # Install Playwright browser for browser tests
+    - run: cd confidential-assets && pnpm exec playwright install --with-deps chromium
+      shell: bash
+
+    # Run the Confidential Assets browser tests (unit tests only, no localnet needed).
+    - uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # pin@v3
+      name: confidential-assets-browser-test
+      with:
+        max_attempts: 3
+        timeout_minutes: 15
+        command: cd confidential-assets && pnpm test:browser
+
     - name: Print local testnet logs on failure
       shell: bash
       if: failure()
