@@ -8,12 +8,7 @@ description: |
 runs:
   using: composite
   steps:
-    # Install node and pnpm.
-    - uses: actions/setup-node@v6
-      with:
-        node-version-file: .node-version
-        registry-url: "https://registry.npmjs.org"
-    - uses: pnpm/action-setup@v4
+    - uses: ./.github/actions/setup-node-pnpm
 
     # Run package install at root. This sets up the parent vitest config.
     - run: pnpm install --frozen-lockfile

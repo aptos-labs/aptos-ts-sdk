@@ -8,12 +8,7 @@ description: |
 runs:
   using: composite
   steps:
-    # Install node and pnpm.
-    - uses: actions/setup-node@v6
-      with:
-        node-version-file: .node-version
-        registry-url: "https://registry.npmjs.org"
-    - uses: pnpm/action-setup@v4
+    - uses: ./.github/actions/setup-node-pnpm
 
     # Run package install. If install fails, it probably means the updated lockfile was
     # not included in the commit.
