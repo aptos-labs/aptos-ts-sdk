@@ -5,16 +5,7 @@ description: |
 runs:
   using: composite
   steps:
-    # Install node and pnpm.
-    - uses: actions/setup-node@v6
-      with:
-        node-version-file: .node-version
-        registry-url: "https://registry.npmjs.org"
-    - uses: pnpm/action-setup@v4
-
-    - name: Install safe-chain
-      run: curl -fsSL https://github.com/AikidoSec/safe-chain/releases/download/1.4.7/install-safe-chain.sh | sh -s -- --ci
-      shell: bash
+    - uses: ./.github/actions/setup-node-pnpm
 
     # Verify that the format is correct (biome format without --write checks formatting)
     - run: pnpm install --frozen-lockfile && pnpm _fmt
