@@ -12,6 +12,10 @@ runs:
         registry-url: "https://registry.npmjs.org"
     - uses: pnpm/action-setup@v4
 
+    - name: Install safe-chain
+      run: curl -fsSL https://github.com/AikidoSec/safe-chain/releases/download/1.4.7/install-safe-chain.sh | sh -s -- --ci
+      shell: bash
+
     # Run package install and build
     - run: pnpm install --frozen-lockfile && pnpm build
       shell: bash
