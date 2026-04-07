@@ -17,7 +17,6 @@
   "author": "",
   "dependencies": {
     "@aptos-labs/ts-sdk": "link:../..",
-    "npm-run-all2": "8.0.4",
-    "undici": "^7.24.7"
+    "npm-run-all2": "8.0.4"
   }
 }

@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@aptos-labs/aptos-cli": "^2.0.0",
-    "@aptos-labs/aptos-client": "^3.0.1",
+    "@aptos-labs/aptos-client": "^3.0.2",
     "@noble/curves": "^1.9.0",
     "@noble/hashes": "^1.5.0",
     "@scure/bip32": "^1.4.0",
@@ -61,9 +61,6 @@
     "js-base64": "^3.7.7",
     "jwt-decode": "^4.0.0",
     "poseidon-lite": "^0.2.0"
-  },
-  "optionalDependencies": {
-    "undici": "^7.24.7"
   },
   "devDependencies": {
     "@babel/traverse": "^7.28.6",
