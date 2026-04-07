@@ -441,7 +441,7 @@ describe("account api", () => {
       test("fails when account not created/funded and throwIfNoAccountFound is true", async () => {
         const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
 
-        expect(async () => {
+        await expect(async () => {
           await aptos.deriveAccountFromPrivateKey({
             privateKey: account.privateKey,
             options: { throwIfNoAccountFound: true },
