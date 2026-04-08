@@ -103,6 +103,7 @@
     "test": "vitest run",
     "unit-test": "vitest run --config vitest.config.unit.ts",
     "e2e-test": "vitest run tests/e2e",
+    "e2e-encrypted": "vitest run tests/e2e/transaction/encryptedTransaction.test.ts --config vitest.config.e2e-devnet.ts",
     "indexer-codegen": "graphql-codegen --config ./src/types/codegen.yaml && pnpm fmt",
     "doc": "scripts/generateDocs.sh",
     "check-version": "scripts/checkVersion.sh",
@@ -113,6 +114,7 @@
   "dependencies": {
     "@aptos-labs/aptos-cli": "^3.0.0",
     "@aptos-labs/aptos-client": "^4.0.0",
+    "@noble/ciphers": "2.2.0",
     "@noble/curves": "2.2.0",
     "@noble/hashes": "2.2.0",
     "@scure/bip32": "^2.0.1",

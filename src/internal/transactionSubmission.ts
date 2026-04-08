@@ -42,6 +42,7 @@ import {
 import { SignedTransaction, TypeTagVector, generateSigningMessageForTransaction } from "../transactions/index.js";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction.js";
 import { MultiAgentTransaction } from "../transactions/instances/multiAgentTransaction.js";
+import { TransactionPayloadEncryptedPayload } from "../transactions/instances/transactionPayload.js";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -267,11 +268,31 @@ export function signAsFeePayer(args: { signer: Account; transaction: AnyRawTrans
 }
 
 /**
+ * Error thrown when {@link simulateTransaction} is called with an encrypted payload.
+ * Simulation is not supported for encrypted transactions; build the same entry function without
+ * `encrypted: true`, simulate that transaction, then build with encryption for submit.
+ * @group Implementation
+ */
+export const ENCRYPTED_TRANSACTION_SIMULATION_NOT_SUPPORTED_MESSAGE =
+  "Transaction simulation is not supported for encrypted payloads. Build a plaintext transaction with the same entry function and simulate it, then build with options.encrypted true for submission.";
+
+/**
+ * Throws if the transaction cannot be simulated because its payload is encrypted.
+ * @group Implementation
+ */
+export function assertSimulatableTransaction(transaction: AnyRawTransaction): void {
+  if (transaction.rawTransaction.payload instanceof TransactionPayloadEncryptedPayload) {
+    throw new Error(ENCRYPTED_TRANSACTION_SIMULATION_NOT_SUPPORTED_MESSAGE);
+  }
+}
+
+/**
  * Simulates a transaction before signing it to evaluate its potential outcome.
  *
  * @param args The arguments for simulating the transaction.
  * @param args.aptosConfig The configuration for the Aptos network.
- * @param args.transaction The raw transaction to simulate.
+ * @param args.transaction The raw transaction to simulate. Must not use an encrypted payload
+ *   (`options.encrypted` when building); otherwise this function throws before contacting the node.
  * @param args.signerPublicKey Optional. The signer public key.
  * @param args.secondarySignersPublicKeys Optional. For when the transaction involves multiple signers.
  * @param args.feePayerPublicKey Optional. For when the transaction is sponsored by a fee payer.
@@ -279,12 +300,16 @@ export function signAsFeePayer(args: { signer: Account; transaction: AnyRawTrans
  * @param args.options.estimateGasUnitPrice Optional. Indicates whether to estimate the gas unit price.
  * @param args.options.estimateMaxGasAmount Optional. Indicates whether to estimate the maximum gas amount.
  * @param args.options.estimatePrioritizedGasUnitPrice Optional. Indicates whether to estimate the prioritized gas unit price.
+ *
+ * @throws Error if `transaction` has an encrypted payload (see {@link assertSimulatableTransaction}).
  * @group Implementation
  */
 export async function simulateTransaction(
   args: { aptosConfig: AptosConfig } & InputSimulateTransactionData,
 ): Promise<Array<UserTransactionResponse>> {
   const { aptosConfig, transaction, signerPublicKey, secondarySignersPublicKeys, feePayerPublicKey, options } = args;
+
+  assertSimulatableTransaction(transaction);
 
   const signedTransaction = await generateSignedTransactionForSimulation({
     transaction,

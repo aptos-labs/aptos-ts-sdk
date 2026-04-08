@@ -59,7 +59,7 @@ describe("AuthenticationKey", () => {
     const serializer = new Serializer();
     authKey.serialize(serializer);
     const expected = new Uint8Array([
-      151, 140, 33, 57, 144, 196, 131, 61, 247, 21, 72, 223, 124, 228, 157, 84, 199, 89, 214, 182, 217, 50, 222, 34,
+      32, 151, 140, 33, 57, 144, 196, 131, 61, 247, 21, 72, 223, 124, 228, 157, 84, 199, 89, 214, 182, 217, 50, 222, 34,
       178, 77, 86, 6, 11, 122, 242, 170,
     ]);
     expect(serializer.toUint8Array()).toEqual(expected);
@@ -67,7 +67,7 @@ describe("AuthenticationKey", () => {
 
   it("should deserialize correctly", () => {
     const serializedAuthKey = new Uint8Array([
-      151, 140, 33, 57, 144, 196, 131, 61, 247, 21, 72, 223, 124, 228, 157, 84, 199, 89, 214, 182, 217, 50, 222, 34,
+      32, 151, 140, 33, 57, 144, 196, 131, 61, 247, 21, 72, 223, 124, 228, 157, 84, 199, 89, 214, 182, 217, 50, 222, 34,
       178, 77, 86, 6, 11, 122, 242, 170,
     ]);
     const deserializer = new Deserializer(serializedAuthKey);

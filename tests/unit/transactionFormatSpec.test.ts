@@ -132,6 +132,8 @@ describe("Transaction Format Specification Compliance", () => {
       expect(deserialized.gas_unit_price).toEqual(gasUnitPrice);
       expect(deserialized.expiration_timestamp_secs).toEqual(expirationTimestampSecs);
       expect(deserialized.chain_id.chainId).toEqual(chainId.chainId);
+
+      expect(deserialized.asEncryptedVariantForSigning()).toBe(deserialized);
     });
 
     it("should serialize chain_id as a single byte (u8)", () => {
