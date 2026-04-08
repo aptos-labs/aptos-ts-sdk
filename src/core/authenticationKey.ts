@@ -59,14 +59,15 @@ export class AuthenticationKey extends Serializable {
   }
 
   /**
-   * Serializes the fixed bytes data into a format suitable for transmission or storage.
+   * BCS-serialize like Rust `AuthenticationKey` (`SerializeKey` / `serde_bytes`): ULEB128 length
+   * then exactly 32 bytes (length is always 32 on the wire).
    *
    * @param serializer - The serializer instance used to perform the serialization.
    * @group Implementation
    * @category Serialization
    */
   serialize(serializer: Serializer): void {
-    serializer.serializeFixedBytes(this.data.toUint8Array());
+    serializer.serializeBytes(this.data.toUint8Array());
   }
 
   /**
@@ -77,7 +78,10 @@ export class AuthenticationKey extends Serializable {
    * @category Serialization
    */
   static deserialize(deserializer: Deserializer): AuthenticationKey {
-    const bytes = deserializer.deserializeFixedBytes(AuthenticationKey.LENGTH);
+    const bytes = deserializer.deserializeBytes();
+    if (bytes.length !== AuthenticationKey.LENGTH) {
+      throw new Error(`AuthenticationKey BCS must be ${AuthenticationKey.LENGTH} bytes, got ${bytes.length}`);
+    }
     return new AuthenticationKey({ data: bytes });
   }
 
