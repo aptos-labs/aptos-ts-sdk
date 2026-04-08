@@ -20,11 +20,7 @@ import { fetchAndCacheEncryptionKey } from "../../../src/internal/encryptionKey"
 import { getLedgerInfo } from "../../../src/internal/general";
 import { RawTransaction } from "../../../src/transactions/instances/rawTransaction";
 import { TransactionExtraConfigV1 } from "../../../src/transactions/instances/transactionPayload";
-import {
-  FUND_AMOUNT,
-  TRANSFER_AMOUNT,
-  longTestTimeout,
-} from "../../unit/helper";
+import { FUND_AMOUNT, TRANSFER_AMOUNT, longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 
 const { aptos, config } = getAptosClient();
@@ -32,9 +28,7 @@ const { aptos, config } = getAptosClient();
 /** Devnet-only: lower max gas for multisig setup so accounts need less balance than default 2M. */
 const ENCRYPTED_E2E_MULTISIG_SETUP_MAX_GAS = 1_000_000;
 
-async function createAndFundMultisigAccountForEncryptedE2e(
-  owner: Account,
-): Promise<string> {
+async function createAndFundMultisigAccountForEncryptedE2e(owner: Account): Promise<string> {
   const payload: InputViewFunctionData = {
     function: "0x1::multisig_account::get_next_multisig_account_address",
     functionArguments: [owner.accountAddress.toString()],
@@ -79,10 +73,7 @@ async function createMultisigTransactionForEncryptedE2e(
     sender: owner.accountAddress,
     data: {
       function: "0x1::multisig_account::create_transaction",
-      functionArguments: [
-        multisigAddress,
-        transactionPayload.multiSig.transaction_payload!.bcsToBytes(),
-      ],
+      functionArguments: [multisigAddress, transactionPayload.multiSig.transaction_payload!.bcsToBytes()],
     },
     options: { maxGasAmount: ENCRYPTED_E2E_MULTISIG_SETUP_MAX_GAS },
   });
@@ -148,8 +139,7 @@ const SKIP_ENCRYPTED_NON_LEGACY_AUTHENTICATOR_E2E = true;
  *   APTOS_NETWORK=devnet vitest run tests/e2e/transaction/encryptedTransaction.test.ts --config vitest.config.e2e-devnet.ts
  */
 const networkEnv = process.env.APTOS_NETWORK;
-const isEncryptionCapableNetwork =
-  networkEnv !== undefined && networkEnv !== "" && networkEnv !== "local";
+const isEncryptionCapableNetwork = networkEnv !== undefined && networkEnv !== "" && networkEnv !== "local";
 
 describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
   const sender = Account.generate();
@@ -190,11 +180,9 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
       },
       options: { encrypted: true },
     });
-    const maxFeeReserve =
-      probe.rawTransaction.max_gas_amount * probe.rawTransaction.gas_unit_price;
+    const maxFeeReserve = probe.rawTransaction.max_gas_amount * probe.rawTransaction.gas_unit_price;
     // Multiple submits: encrypted transfer, plain orderless, encrypted orderless.
-    const targetOctas =
-      maxFeeReserve * 10n + BigInt(TRANSFER_AMOUNT) * 3n + 500_000_000n;
+    const targetOctas = maxFeeReserve * 10n + BigInt(TRANSFER_AMOUNT) * 3n + 500_000_000n;
 
     let bal = BigInt(
       await aptos.getBalance({
@@ -265,9 +253,7 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
         },
         options: { encrypted: true },
       });
-      expect(transaction.rawTransaction.payload).toBeInstanceOf(
-        TransactionPayloadEncryptedPayload,
-      );
+      expect(transaction.rawTransaction.payload).toBeInstanceOf(TransactionPayloadEncryptedPayload);
     },
     longTestTimeout,
   );
@@ -336,9 +322,7 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
         accountAddress: receiver.accountAddress,
         asset: APT_COIN_ASSET,
       });
-      expect(recipientNewBalance - recipientOldBalance).toEqual(
-        TRANSFER_AMOUNT,
-      );
+      expect(recipientNewBalance - recipientOldBalance).toEqual(TRANSFER_AMOUNT);
     },
     longTestTimeout,
   );
@@ -393,14 +377,10 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
           accountAddress: receiver.accountAddress,
           asset: APT_COIN_ASSET,
         });
-        expect(recipientNewBalance - recipientOldBalance).toEqual(
-          TRANSFER_AMOUNT,
-        );
+        expect(recipientNewBalance - recipientOldBalance).toEqual(TRANSFER_AMOUNT);
       } catch (error) {
         if (isFeatureUnderGatingError(error)) {
-          console.warn(
-            "SingleSender encrypted submit skipped: FEATURE_UNDER_GATING on this network.",
-          );
+          console.warn("SingleSender encrypted submit skipped: FEATURE_UNDER_GATING on this network.");
           return;
         }
         if (isInvalidSignatureError(error)) {
@@ -473,14 +453,12 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
       const roundTrip = RawTransaction.deserialize(new Deserializer(bytes));
 
       expect(roundTrip.sequence_number).toBe(MAX_U64_BIG_INT);
-      expect(roundTrip.payload).toBeInstanceOf(
-        TransactionPayloadEncryptedPayload,
-      );
+      expect(roundTrip.payload).toBeInstanceOf(TransactionPayloadEncryptedPayload);
       const enc = roundTrip.payload as TransactionPayloadEncryptedPayload;
       expect(enc.extraConfig).toBeInstanceOf(TransactionExtraConfigV1);
-      expect(
-        (enc.extraConfig as TransactionExtraConfigV1).replayProtectionNonce,
-      ).toBe(ENCRYPTED_ORDERLESS_REPLAY_NONCE);
+      expect((enc.extraConfig as TransactionExtraConfigV1).replayProtectionNonce).toBe(
+        ENCRYPTED_ORDERLESS_REPLAY_NONCE,
+      );
     },
     longTestTimeout,
   );
@@ -510,17 +488,14 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
         },
       });
 
-      expect(transaction.rawTransaction.payload).toBeInstanceOf(
-        TransactionPayloadEncryptedPayload,
-      );
+      expect(transaction.rawTransaction.payload).toBeInstanceOf(TransactionPayloadEncryptedPayload);
       expect(transaction.rawTransaction.sequence_number).toBe(MAX_U64_BIG_INT);
 
-      const enc = transaction.rawTransaction
-        .payload as TransactionPayloadEncryptedPayload;
+      const enc = transaction.rawTransaction.payload as TransactionPayloadEncryptedPayload;
       expect(enc.extraConfig).toBeInstanceOf(TransactionExtraConfigV1);
-      expect(
-        (enc.extraConfig as TransactionExtraConfigV1).replayProtectionNonce,
-      ).toBe(ENCRYPTED_ORDERLESS_REPLAY_NONCE);
+      expect((enc.extraConfig as TransactionExtraConfigV1).replayProtectionNonce).toBe(
+        ENCRYPTED_ORDERLESS_REPLAY_NONCE,
+      );
 
       const pendingTxn = await aptos.signAndSubmitTransaction({
         signer: sender,
@@ -538,134 +513,109 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
         accountAddress: receiver.accountAddress,
         asset: APT_COIN_ASSET,
       });
-      expect(recipientNewBalance - recipientOldBalance).toEqual(
-        TRANSFER_AMOUNT,
-      );
+      expect(recipientNewBalance - recipientOldBalance).toEqual(TRANSFER_AMOUNT);
     },
     longTestTimeout,
   );
 
-  describe.skipIf(SKIP_ENCRYPTED_NON_LEGACY_AUTHENTICATOR_E2E)(
-    "encrypted multisig execute (Ed25519 owner)",
-    () => {
-      const multisigOwner = Account.generate();
-      const multisigReceiver = Account.generate();
-      let multisigAddress: string;
+  describe.skipIf(SKIP_ENCRYPTED_NON_LEGACY_AUTHENTICATOR_E2E)("encrypted multisig execute (Ed25519 owner)", () => {
+    const multisigOwner = Account.generate();
+    const multisigReceiver = Account.generate();
+    let multisigAddress: string;
 
-      beforeAll(async () => {
+    beforeAll(async () => {
+      if (!encryptionKeyAvailable) {
+        return;
+      }
+      await aptos.fundAccount({
+        accountAddress: multisigOwner.accountAddress,
+        amount: FUND_AMOUNT,
+        options: { waitForIndexer: false },
+      });
+      await aptos.fundAccount({
+        accountAddress: multisigOwner.accountAddress,
+        amount: FUND_AMOUNT,
+        options: { waitForIndexer: false },
+      });
+      await aptos.fundAccount({
+        accountAddress: multisigReceiver.accountAddress,
+        amount: FUND_AMOUNT,
+        options: { waitForIndexer: false },
+      });
+      multisigAddress = await createAndFundMultisigAccountForEncryptedE2e(multisigOwner);
+      await createMultisigTransactionForEncryptedE2e(multisigOwner, multisigAddress, {
+        function: "0x1::aptos_account::transfer",
+        functionArguments: [multisigReceiver.accountAddress, TRANSFER_AMOUNT],
+      });
+      // Owner balance after `create` + `create_transaction` can be below default max_fee reserve for the
+      // next submit (2M gas × devnet gas price ≈ 1 APT). Top up before the encrypted execute test.
+      await aptos.fundAccount({
+        accountAddress: multisigOwner.accountAddress,
+        amount: FUND_AMOUNT,
+        options: { waitForIndexer: false },
+      });
+    }, longTestTimeout);
+
+    test(
+      "build and submit encrypted multisig payload (submit skipped if FEATURE_UNDER_GATING)",
+      async () => {
         if (!encryptionKeyAvailable) {
+          console.log("Skipped: encryption key not available on this network");
           return;
         }
-        await aptos.fundAccount({
-          accountAddress: multisigOwner.accountAddress,
-          amount: FUND_AMOUNT,
-          options: { waitForIndexer: false },
-        });
-        await aptos.fundAccount({
-          accountAddress: multisigOwner.accountAddress,
-          amount: FUND_AMOUNT,
-          options: { waitForIndexer: false },
-        });
-        await aptos.fundAccount({
-          accountAddress: multisigReceiver.accountAddress,
-          amount: FUND_AMOUNT,
-          options: { waitForIndexer: false },
-        });
-        multisigAddress =
-          await createAndFundMultisigAccountForEncryptedE2e(multisigOwner);
-        await createMultisigTransactionForEncryptedE2e(
-          multisigOwner,
-          multisigAddress,
-          {
+
+        const transaction = await aptos.transaction.build.simple({
+          sender: multisigOwner.accountAddress,
+          data: {
+            multisigAddress,
             function: "0x1::aptos_account::transfer",
-            functionArguments: [
-              multisigReceiver.accountAddress,
-              TRANSFER_AMOUNT,
-            ],
+            functionArguments: [multisigReceiver.accountAddress, TRANSFER_AMOUNT],
           },
-        );
-        // Owner balance after `create` + `create_transaction` can be below default max_fee reserve for the
-        // next submit (2M gas × devnet gas price ≈ 1 APT). Top up before the encrypted execute test.
-        await aptos.fundAccount({
-          accountAddress: multisigOwner.accountAddress,
-          amount: FUND_AMOUNT,
-          options: { waitForIndexer: false },
+          options: { encrypted: true, maxGasAmount: 1_500_000 },
         });
-      }, longTestTimeout);
 
-      test(
-        "build and submit encrypted multisig payload (submit skipped if FEATURE_UNDER_GATING)",
-        async () => {
-          if (!encryptionKeyAvailable) {
-            console.log(
-              "Skipped: encryption key not available on this network",
-            );
-            return;
-          }
+        expect(transaction.rawTransaction.payload).toBeInstanceOf(TransactionPayloadEncryptedPayload);
+        const enc = transaction.rawTransaction.payload as TransactionPayloadEncryptedPayload;
+        expect(enc.claimedEntryFun).toBeDefined();
+        expect(enc.extraConfig).toBeInstanceOf(TransactionExtraConfigV1);
+        expect(
+          (enc.extraConfig as TransactionExtraConfigV1).multisigAddress?.equals(AccountAddress.from(multisigAddress)),
+        ).toBe(true);
 
-          const transaction = await aptos.transaction.build.simple({
-            sender: multisigOwner.accountAddress,
-            data: {
-              multisigAddress,
-              function: "0x1::aptos_account::transfer",
-              functionArguments: [
-                multisigReceiver.accountAddress,
-                TRANSFER_AMOUNT,
-              ],
-            },
-            options: { encrypted: true, maxGasAmount: 1_500_000 },
+        const recipientOldBalance = await aptos.getBalance({
+          accountAddress: multisigReceiver.accountAddress,
+          asset: APT_COIN_ASSET,
+        });
+
+        try {
+          const pendingTxn = await aptos.signAndSubmitTransaction({
+            signer: multisigOwner,
+            transaction,
+          });
+          const committedTxn = await aptos.waitForTransaction({
+            transactionHash: pendingTxn.hash,
           });
 
-          expect(transaction.rawTransaction.payload).toBeInstanceOf(
-            TransactionPayloadEncryptedPayload,
-          );
-          const enc = transaction.rawTransaction
-            .payload as TransactionPayloadEncryptedPayload;
-          expect(enc.claimedEntryFun).toBeDefined();
-          expect(enc.extraConfig).toBeInstanceOf(TransactionExtraConfigV1);
-          expect(
-            (
-              enc.extraConfig as TransactionExtraConfigV1
-            ).multisigAddress?.equals(AccountAddress.from(multisigAddress)),
-          ).toBe(true);
+          expect(isUserTransactionResponse(committedTxn)).toBe(true);
+          expect(committedTxn.success).toBe(true);
 
-          const recipientOldBalance = await aptos.getBalance({
+          const recipientNewBalance = await aptos.getBalance({
             accountAddress: multisigReceiver.accountAddress,
             asset: APT_COIN_ASSET,
           });
-
-          try {
-            const pendingTxn = await aptos.signAndSubmitTransaction({
-              signer: multisigOwner,
-              transaction,
-            });
-            const committedTxn = await aptos.waitForTransaction({
-              transactionHash: pendingTxn.hash,
-            });
-
-            expect(isUserTransactionResponse(committedTxn)).toBe(true);
-            expect(committedTxn.success).toBe(true);
-
-            const recipientNewBalance = await aptos.getBalance({
-              accountAddress: multisigReceiver.accountAddress,
-              asset: APT_COIN_ASSET,
-            });
-            expect(recipientNewBalance - recipientOldBalance).toEqual(
-              TRANSFER_AMOUNT,
+          expect(recipientNewBalance - recipientOldBalance).toEqual(TRANSFER_AMOUNT);
+        } catch (error) {
+          if (isFeatureUnderGatingError(error)) {
+            console.warn(
+              "Encrypted multisig execution is feature-gated on this network (FEATURE_UNDER_GATING). " +
+                "Build assertions above still ran; submit/execute is skipped until the gate is lifted.",
             );
-          } catch (error) {
-            if (isFeatureUnderGatingError(error)) {
-              console.warn(
-                "Encrypted multisig execution is feature-gated on this network (FEATURE_UNDER_GATING). " +
-                  "Build assertions above still ran; submit/execute is skipped until the gate is lifted.",
-              );
-              return;
-            }
-            throw error;
+            return;
           }
-        },
-        longTestTimeout,
-      );
-    },
-  );
+          throw error;
+        }
+      },
+      longTestTimeout,
+    );
+  });
 });
