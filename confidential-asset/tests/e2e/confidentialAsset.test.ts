@@ -762,13 +762,13 @@ describe("Confidential Asset Sender API", () => {
         const ek1Bytes = Array.from(AUDITOR_KEY_1.publicKey().toUint8Array());
         await govScript("set_global_auditor", [MoveVector.U8(ek1Bytes)]);
 
-        // The allow-listing tests created an AssetConfig for APT, so
-        // get_effective_auditor_config returns the asset-specific config (no EK),
-        // not the global one. The global auditor IS set, but it's shadowed.
+        // Even though allow-listing tests created an AssetConfig for APT (with no asset-specific
+        // auditor EK), the global auditor should be returned as the effective auditor.
         const auditorEk = await confidentialAsset.getAssetAuditorEncryptionKey({
           tokenAddress: TOKEN_ADDRESS,
         });
-        expect(auditorEk).toBeUndefined();
+        expect(auditorEk).toBeDefined();
+        expect(auditorEk!.toUint8Array()).toEqual(AUDITOR_KEY_1.publicKey().toUint8Array());
 
         const result = await tryTransfer();
         expect(result.success).toBeTruthy();
@@ -799,7 +799,7 @@ describe("Confidential Asset Sender API", () => {
     );
 
     test(
-      "remove asset-specific auditor EK — effective auditor becomes None (asset-specific overrides global)",
+      "remove asset-specific auditor EK — effective auditor falls back to global (EK_1)",
       async () => {
         if (!governanceAvailable) return;
         await govScript("set_asset_specific_auditor", [
@@ -807,10 +807,13 @@ describe("Confidential Asset Sender API", () => {
           MoveVector.U8([]),
         ]);
 
+        // With the asset-specific EK removed, the effective auditor should fall back to
+        // the global auditor (EK_1), not become None.
         const auditorEk = await confidentialAsset.getAssetAuditorEncryptionKey({
           tokenAddress: TOKEN_ADDRESS,
         });
-        expect(auditorEk).toBeUndefined();
+        expect(auditorEk).toBeDefined();
+        expect(auditorEk!.toUint8Array()).toEqual(AUDITOR_KEY_1.publicKey().toUint8Array());
 
         const result = await tryTransfer();
         expect(result.success).toBeTruthy();
