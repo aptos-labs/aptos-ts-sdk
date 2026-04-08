@@ -208,6 +208,9 @@ export function compileGovernanceScripts(): string | undefined {
       return undefined;
     }
   }
+  if (!fs.existsSync(bytecodeDir) || fs.readdirSync(bytecodeDir).length === 0) {
+    return undefined;
+  }
   return bytecodeDir;
 }
 

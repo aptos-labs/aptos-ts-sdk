@@ -20,9 +20,14 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Fix quickstart and example code that used deprecated `getAccountResource` with `CoinStore` to check balances; replaced with `getAccountAPTAmount` which works after the FungibleAsset migration
 - Update `simple_transfer` examples (TypeScript, TypeScript ESM, JavaScript) and `multi_agent_transfer` to use `getAccountAPTAmount` instead of `0x1::coin::balance` view function
 - Update `simple_transfer` and JavaScript examples to use `0x1::aptos_account::transfer` instead of `0x1::coin::transfer`
+- Increase `confidential-assets` test funding from 1 APT to 10 APT to prevent `INSUFFICIENT_BALANCE_FOR_TRANSACTION_FEE` failures after the default `maxGasAmount` increase to 2,000,000
 
 ## Added
 
+- Add Turborepo monorepo configuration with `turbo.json` and `pnpm-workspace.yaml` for orchestrating builds, tests, and linting across multiple packages
+- Add `packages/` and `apps/` directories for organizing new workspace packages and applications
+- Add turbo-powered workspace scripts: `build:all`, `test:all`, `lint:all`, `check:all`, `fmt:all`
+- Wire up `confidential-assets` as a pnpm workspace member with `workspace:*` protocol for the `@aptos-labs/ts-sdk` dependency
 - Add e2e tests for external signer flow (build → getSigningMessage → sign externally → submit) to verify the flow works correctly with the latest SDK version
 - Add MultiKey (K-of-N mixed key types) transfer example (`examples/typescript/multikey_transfer.ts`)
 - Add MultiEd25519 (K-of-N Ed25519) transfer example (`examples/typescript/multi_ed25519_transfer.ts`)
