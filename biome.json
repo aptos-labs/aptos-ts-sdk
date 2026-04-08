@@ -14,7 +14,7 @@
       "!node_modules/**",
       "!**/dist/**",
       "!**/node_modules/**",
-      "!confidential-assets/**",
+      "!confidential-asset/**",
       "!projects/**",
       "!examples/**",
       "!docs/**"
