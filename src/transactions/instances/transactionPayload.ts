@@ -510,39 +510,42 @@ export class MultiSig {
  * @category Transactions
  */
 export class MultiSigTransactionPayload extends Serializable {
-  public readonly transaction_payload: EntryFunction;
+  public readonly transaction_payload: EntryFunction | Script;
 
   /**
    * Contains the payload to run a multi-sig account transaction.
    *
    * @param transaction_payload The payload of the multi-sig transaction.
-   * This can only be EntryFunction for now but,
-   * Script might be supported in the future.
+   * This can be an EntryFunction or a Script.
    * @group Implementation
    * @category Transactions
    */
-  constructor(transaction_payload: EntryFunction) {
+  constructor(transaction_payload: EntryFunction | Script) {
     super();
     this.transaction_payload = transaction_payload;
   }
 
   serialize(serializer: Serializer): void {
-    /**
-     * We can support multiple types of inner transaction payload in the future.
-     * For now, it's only EntryFunction but if we support more types,
-     * we need to serialize with the right enum values here
-     * @group Implementation
-     * @category Transactions
-     */
-    serializer.serializeU32AsUleb128(0);
+    if (this.transaction_payload instanceof EntryFunction) {
+      serializer.serializeU32AsUleb128(0);
+    } else if (this.transaction_payload instanceof Script) {
+      serializer.serializeU32AsUleb128(1);
+    } else {
+      throw new Error("Unsupported multisig transaction payload type");
+    }
     this.transaction_payload.serialize(serializer);
   }
 
   static deserialize(deserializer: Deserializer): MultiSigTransactionPayload {
-    // TODO: Support other types of payload beside EntryFunction.
-    // This is the enum value indicating which type of payload the multisig tx contains.
-    deserializer.deserializeUleb128AsU32();
-    return new MultiSigTransactionPayload(EntryFunction.deserialize(deserializer));
+    const variant = deserializer.deserializeUleb128AsU32();
+    switch (variant) {
+      case 0:
+        return new MultiSigTransactionPayload(EntryFunction.deserialize(deserializer));
+      case 1:
+        return new MultiSigTransactionPayload(Script.deserialize(deserializer));
+      default:
+        throw new Error(`Unknown MultisigTransactionPayload variant: ${variant}`);
+    }
   }
 }
 
