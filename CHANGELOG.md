@@ -53,6 +53,18 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Prevent `@types/node` type leak in emitted `.d.ts`: `TEXT_ENCODER` now has an explicit structural type (`{ encode(input: string): Uint8Array }`) so consumers without `@types/node` (browsers, Deno, React Native) don't hit `Cannot find name 'util'` when compiling against the SDK.
 - Fix `examples/typescript` build: split `EphemeralKeyPair` imports to `@aptos-labs/ts-sdk/keyless`, update `@noble/hashes/sha3` to `@noble/hashes/sha3.js` (noble v2 exports), add explicit `"types": ["node"]` to the example `tsconfig.json`, and use `??` (instead of `||`) when reading `process.env.APTOS_NETWORK` so it type-checks under strict null checks.
 
+## Added
+
+- Encrypted transaction payloads: `options: { encrypted: true }` with the node's per-epoch key (BLS12-381 batch IBE + AES-128-GCM). Adds crypto/BCS types (`EncryptionKey`, `Ciphertext`, `BIBECiphertext`, symmetric helpers, `TransactionPayloadEncryptedPayload`, `DecryptedPayload`, `PayloadAssociatedData`, `ClaimedEntryFunction`), `fetchAndCacheEncryptionKey`, orderless + encrypted via `TransactionExtraConfigV1`, `RawTransaction.asEncryptedVariantForSigning()`, ledger `encryption_key` and `TransactionPayloadResponse` typings, `claimed_entry_fun` (auto or `options.claimedEntryFunction`), and client-side `assertSimulatableTransaction` when simulating encrypted builds.
+- Tests: batch-encryption constants, encrypted payload BCS, simulate guard unit test, devnet e2e (`APTOS_NETWORK=devnet vitest run tests/e2e/transaction/encryptedTransaction.test.ts --config vitest.config.e2e-devnet.ts`).
+
+## Changed
+
+- **Compatibility note:** Older aptos-core could fail signature verification for some encrypted authenticator shapes; current core uses `RawTransaction::as_encrypted_variant` in all verify paths.
+- **Breaking / behavior:** `simulateTransaction` / `aptos.transaction.simulate.*` reject encrypted payloads; simulate plaintext then rebuild with `encrypted: true` for submit.
+- Orderless transactions use `sequence_number = u64::MAX` with replay nonce in `TransactionExtraConfigV1` (aptos-core `RawTransaction::replay_protector`); `replayProtectionNonce` `0` is preserved when building.
+- `generateSignedTransactionForSimulation` uses `asEncryptedVariantForSigning()` for fee payer and multi-agent paths.
+
 # 6.3.0 (2026-03-22)
 
 ## Fixed

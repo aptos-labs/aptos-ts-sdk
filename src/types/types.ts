@@ -89,6 +89,7 @@ export enum TransactionPayloadVariants {
   EntryFunction = 2,
   Multisig = 3,
   Payload = 4,
+  EncryptedPayload = 5,
 }
 
 /**
@@ -118,6 +119,7 @@ export enum TransactionExecutableVariants {
   Script = 0,
   EntryFunction = 1,
   Empty = 2,
+  Encrypted = 3,
 }
 
 /**
@@ -1104,9 +1106,42 @@ export type DeletedTableData = {
 };
 
 /**
- * The payload for a transaction response, which can be an entry function, script, or multisig payload.
+ * Claimed entry function metadata on encrypted transaction payloads (REST API uses `name` for the optional function identifier).
  */
-export type TransactionPayloadResponse = EntryFunctionPayloadResponse | ScriptPayloadResponse | MultisigPayloadResponse;
+export type ClaimedEntryFunctionResponse = {
+  module: string;
+  name?: string;
+};
+
+/**
+ * Encrypted transaction payload as returned by the API (`encrypted_state` discriminator).
+ */
+export type EncryptedTransactionPayloadResponse =
+  | {
+      type: string;
+      encrypted_state: "encrypted" | "failed_decryption";
+      payload_hash: string;
+      ciphertext: string;
+      claimed_entry_fun: ClaimedEntryFunctionResponse | null;
+    }
+  | {
+      type: string;
+      encrypted_state: "decrypted";
+      payload_hash: string;
+      ciphertext: string;
+      claimed_entry_fun: ClaimedEntryFunctionResponse | null;
+      decrypted_payload: EntryFunctionPayloadResponse | ScriptPayloadResponse | MultisigPayloadResponse;
+      decryption_nonce: string;
+    };
+
+/**
+ * The payload for a transaction response, which can be an entry function, script, multisig, or encrypted payload.
+ */
+export type TransactionPayloadResponse =
+  | EntryFunctionPayloadResponse
+  | ScriptPayloadResponse
+  | MultisigPayloadResponse
+  | EncryptedTransactionPayloadResponse;
 
 /**
  * The response payload for an entry function, containing the type of the entry.
@@ -1683,6 +1718,11 @@ export type LedgerInfo = {
    * software version used by the API endpoint.
    */
   git_hash?: string;
+  /**
+   * Hex-encoded encryption key for encrypted transactions.
+   * Present when the node supports encrypted transaction submission.
+   */
+  encryption_key?: string;
 };
 
 /**

@@ -1,6 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { sha3_256 as sha3Hash } from "@noble/hashes/sha3.js";
 import { Deserializer } from "../../bcs/deserializer.js";
 import { Serializable, Serializer } from "../../bcs/serializer.js";
 import { EntryFunctionBytes } from "../../bcs/serializable/entryFunctionBytes.js";
@@ -21,6 +22,7 @@ import {
 } from "../../bcs/serializable/movePrimitives.js";
 import { MoveVector, Serialized } from "../../bcs/serializable/moveStructs.js";
 import { AccountAddress } from "../../core/index.js";
+import { Ciphertext } from "../../core/crypto/encryption/index.js";
 import { Identifier } from "./identifier.js";
 import { ModuleId } from "./moduleId.js";
 import type { EntryFunctionArgument, ScriptFunctionArgument, TransactionArgument } from "./transactionArgument.js";
@@ -130,6 +132,8 @@ export abstract class TransactionPayload extends Serializable {
         return TransactionPayloadMultiSig.load(deserializer);
       case TransactionPayloadVariants.Payload:
         return TransactionInnerPayload.deserialize(deserializer);
+      case TransactionPayloadVariants.EncryptedPayload:
+        return TransactionPayloadEncryptedPayload.load(deserializer);
       default:
         throw new Error(`Unknown variant index for TransactionPayload: ${index}`);
     }
@@ -372,6 +376,107 @@ export class EntryFunction {
 }
 
 /**
+ * Optional claim about the entry function inside an encrypted payload (`claimed_entry_fun` in aptos-core).
+ * Lets fee payers and multisig co-signers see module and optionally function name without decrypting.
+ *
+ * BCS matches `aptos_types::transaction::encrypted_payload::ClaimedEntryFunction`: `module` (ModuleId) then
+ * `function` as `Option<Identifier>`. On the REST API the same optional field is JSON-serialized as `name`, not `function`.
+ */
+export class ClaimedEntryFunction extends Serializable {
+  public readonly moduleId: ModuleId;
+
+  /** BCS/Rust `function`; JSON API field is `name`. */
+  public readonly functionName?: Identifier;
+
+  constructor(moduleId: ModuleId, functionName?: Identifier) {
+    super();
+    this.moduleId = moduleId;
+    this.functionName = functionName;
+  }
+
+  serialize(serializer: Serializer): void {
+    this.moduleId.serialize(serializer);
+    serializer.serializeOption(this.functionName);
+  }
+
+  static deserialize(deserializer: Deserializer): ClaimedEntryFunction {
+    const moduleId = ModuleId.deserialize(deserializer);
+    const functionName = deserializer.deserializeOption(Identifier);
+    return new ClaimedEntryFunction(moduleId, functionName);
+  }
+
+  /**
+   * Build a claim from a plaintext entry function (module + function name).
+   * @param includeFunctionName - When false, only the module is claimed (`Option::None` for function on wire).
+   */
+  static fromEntryFunction(entry: EntryFunction, opts?: { includeFunctionName?: boolean }): ClaimedEntryFunction {
+    const includeFunctionName = opts?.includeFunctionName !== false;
+    return new ClaimedEntryFunction(entry.module_name, includeFunctionName ? entry.function_name : undefined);
+  }
+}
+
+/**
+ * Encrypted payload variant indices matching Rust `EncryptedPayload` enum.
+ */
+export enum EncryptedPayloadVariants {
+  Encrypted = 0,
+  FailedDecryption = 1,
+  Decrypted = 2,
+}
+
+/**
+ * Represents the `EncryptedPayload::Encrypted` variant as a `TransactionPayload`.
+ * BCS layout: variant tag (5) | EncryptedPayload tag (0) | Ciphertext | TransactionExtraConfig |
+ * payload_hash (32 bytes) | optional ClaimedEntryFunction (BCS Option).
+ */
+export class TransactionPayloadEncryptedPayload extends TransactionPayload {
+  public readonly ciphertext: Ciphertext;
+
+  public readonly extraConfig: TransactionExtraConfig;
+
+  public readonly payloadHash: Uint8Array;
+
+  public readonly claimedEntryFun?: ClaimedEntryFunction;
+
+  constructor(
+    ciphertext: Ciphertext,
+    extraConfig: TransactionExtraConfig,
+    payloadHash: Uint8Array,
+    claimedEntryFun?: ClaimedEntryFunction,
+  ) {
+    super();
+    if (payloadHash.length !== 32) {
+      throw new Error("payloadHash must be 32 bytes");
+    }
+    this.ciphertext = ciphertext;
+    this.extraConfig = extraConfig;
+    this.payloadHash = payloadHash;
+    this.claimedEntryFun = claimedEntryFun;
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(TransactionPayloadVariants.EncryptedPayload);
+    serializer.serializeU32AsUleb128(EncryptedPayloadVariants.Encrypted);
+    this.ciphertext.serialize(serializer);
+    this.extraConfig.serialize(serializer);
+    serializer.serializeFixedBytes(this.payloadHash);
+    serializer.serializeOption(this.claimedEntryFun);
+  }
+
+  static load(deserializer: Deserializer): TransactionPayloadEncryptedPayload {
+    const variant = deserializer.deserializeUleb128AsU32();
+    if (variant !== EncryptedPayloadVariants.Encrypted) {
+      throw new Error(`Only EncryptedPayload::Encrypted (variant 0) is supported on the client, got ${variant}`);
+    }
+    const ciphertext = Ciphertext.deserialize(deserializer);
+    const extraConfig = TransactionExtraConfig.deserialize(deserializer);
+    const payloadHash = deserializer.deserializeFixedBytes(32);
+    const claimedEntryFun = deserializer.deserializeOption(ClaimedEntryFunction);
+    return new TransactionPayloadEncryptedPayload(ciphertext, extraConfig, payloadHash, claimedEntryFun);
+  }
+}
+
+/**
  * Represents a Script that can be serialized and deserialized.
  * Scripts contain the Move bytecode payload that can be submitted to the Aptos chain for execution.
  * @group Implementation
@@ -609,6 +714,8 @@ export abstract class TransactionExecutable {
         return TransactionExecutableEntryFunction.load(deserializer);
       case TransactionExecutableVariants.Empty:
         return TransactionExecutableEmpty.load(deserializer);
+      case TransactionExecutableVariants.Encrypted:
+        return TransactionExecutableEncrypted.load(deserializer);
       default:
         throw new Error(`Unknown variant index for TransactionExecutable: ${index}`);
     }
@@ -660,6 +767,84 @@ export class TransactionExecutableEmpty extends TransactionExecutable {
 
   static load(_: Deserializer): TransactionExecutableEmpty {
     return new TransactionExecutableEmpty();
+  }
+}
+
+export class TransactionExecutableEncrypted extends TransactionExecutable {
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(TransactionExecutableVariants.Encrypted);
+  }
+
+  static load(_: Deserializer): TransactionExecutableEncrypted {
+    return new TransactionExecutableEncrypted();
+  }
+}
+
+/**
+ * BCS-serializable `DecryptedPayload`.
+ * Built client-side before encrypting; its BCS hash becomes `payload_hash`.
+ *
+ * Matches Rust: `DecryptedPayload { executable: TransactionExecutable, decryption_nonce: u64 }`
+ */
+export class DecryptedPayload extends Serializable {
+  executable: TransactionExecutable;
+
+  decryptionNonce: bigint;
+
+  constructor(executable: TransactionExecutable, decryptionNonce: bigint) {
+    super();
+    this.executable = executable;
+    this.decryptionNonce = decryptionNonce;
+  }
+
+  serialize(serializer: Serializer): void {
+    this.executable.serialize(serializer);
+    serializer.serializeU64(this.decryptionNonce);
+  }
+
+  static deserialize(deserializer: Deserializer): DecryptedPayload {
+    const executable = TransactionExecutable.deserialize(deserializer);
+    const decryptionNonce = deserializer.deserializeU64();
+    return new DecryptedPayload(executable, decryptionNonce);
+  }
+
+  /**
+   * Compute the domain-separated BCS crypto hash of this DecryptedPayload.
+   * Matches Rust's `CryptoHash::hash(&decrypted_payload)` via the `BCSCryptoHash` derive macro.
+   *
+   * Hash = SHA3-256( SHA3-256("APTOS::DecryptedPayload") || BCS(self) )
+   */
+  hash(): Uint8Array {
+    const salt = "APTOS::DecryptedPayload";
+    const saltHash = sha3Hash(new TextEncoder().encode(salt));
+    const bcsBytes = this.bcsToBytes();
+    const h = sha3Hash.create();
+    h.update(saltHash);
+    h.update(bcsBytes);
+    return h.digest();
+  }
+}
+
+/**
+ * BCS-serializable associated data used as AAD for encryption.
+ * Must match on decrypt; contains the sender address.
+ *
+ * Matches Rust: `PayloadAssociatedData { sender: AccountAddress }`
+ */
+export class PayloadAssociatedData extends Serializable {
+  sender: AccountAddress;
+
+  constructor(sender: AccountAddress) {
+    super();
+    this.sender = sender;
+  }
+
+  serialize(serializer: Serializer): void {
+    this.sender.serialize(serializer);
+  }
+
+  static deserialize(deserializer: Deserializer): PayloadAssociatedData {
+    return new PayloadAssociatedData(AccountAddress.deserialize(deserializer));
   }
 }
 
