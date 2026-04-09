@@ -335,7 +335,8 @@ async function runWorker() {
     confidentialAssetModuleAddress: config.moduleAddress,
   });
 
-  const txOptions = { maxGasAmount: config.maxGasAmount };
+  const { gas_estimate: gasUnitPrice } = await confidentialAsset.transaction.client.getGasPriceEstimation();
+  const txOptions = { maxGasAmount: config.maxGasAmount, gasUnitPrice };
   let availableBalance = initialAvailableBalance;
   let pendingBalance = 0n;
 
@@ -380,10 +381,11 @@ async function runWorker() {
     const tokenAddr = AccountAddress.from(config.tokenAddress);
     const chainId = await confidentialAsset.transaction.getChainId();
 
-    // Recipient encryption key is memoized by the SDK for 1 hour.
+    // Use the cached recipient encryption key — it never changes for an account.
     const recipientEK = await confidentialAsset.getEncryptionKey({
       accountAddress: recipientAddr,
       tokenAddress: config.tokenAddress,
+      useCachedValue: true,
     });
 
     const allAuditorKeys = cachedAuditorKey ? [cachedAuditorKey] : [];
