@@ -15,8 +15,8 @@ importers:
   .:
     dependencies:
       '@aptos-labs/confidential-asset-bindings':
-        specifier: ^0.1.1
-        version: 0.1.1(expo@55.0.11)(react-native@0.84.1(@babel/core@7.29.0)(react@19.2.4))(react@19.2.4)
+        specifier: ^1.1.1
+        version: 1.1.1(expo@55.0.11)(react-native@0.84.1(@babel/core@7.29.0)(react@19.2.4))(react@19.2.4)
       '@aptos-labs/ts-sdk':
         specifier: ^5.2.1 || ^6.1.0
         version: 6.1.0(got@13.0.0)
@@ -79,8 +79,8 @@ packages:
     peerDependencies:
       got: ^11.8.6
 
-  '@aptos-labs/confidential-asset-bindings@0.1.1':
-    resolution: {integrity: sha512-5sLC7NVFoRPiea6RjGdM0iDlPfW2/ogVkNG/wygmLTSroSm6UlDi+FgUwrHO9YLqHeCNRNUBzL9EARHbk48mHA==}
+  '@aptos-labs/confidential-asset-bindings@1.1.1':
+    resolution: {integrity: sha512-vIqdsNYDVAgZBjdxGbDE5OHMAvbiqy26udMmkJfrrVWmzDqhoy9ESCKU/FmfnyGzcuapxigVrlmhFd4kQODlsw==}
     peerDependencies:
       expo: '*'
       react: '*'
@@ -3847,7 +3847,7 @@ snapshots:
     dependencies:
       got: 13.0.0
 
-  '@aptos-labs/confidential-asset-bindings@0.1.1(expo@55.0.11)(react-native@0.84.1(@babel/core@7.29.0)(react@19.2.4))(react@19.2.4)':
+  '@aptos-labs/confidential-asset-bindings@1.1.1(expo@55.0.11)(react-native@0.84.1(@babel/core@7.29.0)(react@19.2.4))(react@19.2.4)':
     dependencies:
       expo: 55.0.11(@babel/core@7.29.0)(@expo/dom-webview@55.0.5)(react-native@0.84.1(@babel/core@7.29.0)(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
       react: 19.2.4
