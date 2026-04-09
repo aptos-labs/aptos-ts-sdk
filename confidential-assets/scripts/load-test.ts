@@ -54,7 +54,14 @@ import {
   type CommittedTransactionResponse,
   type InputGenerateTransactionPayloadData,
 } from "@aptos-labs/ts-sdk";
-import { ConfidentialAsset, TwistedEd25519PrivateKey, initializeWasm } from "../src/index.ts";
+import {
+  ConfidentialAsset,
+  ConfidentialTransfer,
+  TwistedEd25519PrivateKey,
+  TwistedEd25519PublicKey,
+  type TwistedElGamalCiphertext,
+  initializeWasm,
+} from "../src/index.ts";
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -332,6 +339,131 @@ async function runWorker() {
   let availableBalance = initialAvailableBalance;
   let pendingBalance = 0n;
 
+  // Caches to skip simulation (preflight view calls) for repeated transfers.
+  // Populated lazily on first transfer and updated after each successful one.
+  let cachedSenderCipherText: TwistedElGamalCiphertext[] | null = null;
+  let cachedAuditorKey: TwistedEd25519PublicKey | undefined = undefined;
+  let auditorKeyFetched = false;
+
+  /**
+   * Build and submit a confidential transfer directly, skipping the three view
+   * calls that `confidentialAsset.transfer()` issues as preflight simulation:
+   *   - getAssetAuditorEncryptionKey  (cached after first call)
+   *   - isIncomingTransfersPaused     (always false in load-test accounts)
+   *   - getBalance × 2               (cached ciphertext reused across transfers)
+   */
+  async function transferDirect(recipient: string): Promise<CommittedTransactionResponse> {
+    const aptos = confidentialAsset.transaction.client;
+    const moduleAddr = confidentialAsset.transaction.confidentialAssetModuleAddress;
+
+    // Fetch auditor key once per worker lifetime.
+    if (!auditorKeyFetched) {
+      cachedAuditorKey = await confidentialAsset.getAssetAuditorEncryptionKey({
+        tokenAddress: config.tokenAddress,
+      });
+      auditorKeyFetched = true;
+    }
+
+    // Fetch sender's encrypted balance from chain only when the cache is cold
+    // (first transfer, or after a rollover invalidated it).
+    if (!cachedSenderCipherText) {
+      const bal = await confidentialAsset.getBalance({
+        accountAddress: account.accountAddress,
+        tokenAddress: config.tokenAddress,
+        decryptionKey,
+      });
+      cachedSenderCipherText = bal.available.getCipherText();
+    }
+
+    const senderAddr = AccountAddress.from(account.accountAddress);
+    const recipientAddr = AccountAddress.fromString(recipient);
+    const tokenAddr = AccountAddress.from(config.tokenAddress);
+    const chainId = await confidentialAsset.transaction.getChainId();
+
+    // Recipient encryption key is memoized by the SDK for 1 hour.
+    const recipientEK = await confidentialAsset.getEncryptionKey({
+      accountAddress: recipientAddr,
+      tokenAddress: config.tokenAddress,
+    });
+
+    const allAuditorKeys = cachedAuditorKey ? [cachedAuditorKey] : [];
+
+    const ct = await ConfidentialTransfer.create({
+      senderDecryptionKey: decryptionKey,
+      senderAvailableBalanceCipherText: cachedSenderCipherText,
+      amount: config.transferAmount,
+      recipientEncryptionKey: recipientEK,
+      hasEffectiveAuditor: !!cachedAuditorKey,
+      auditorEncryptionKeys: allAuditorKeys,
+      senderAddress: senderAddr.toUint8Array(),
+      recipientAddress: recipientAddr.toUint8Array(),
+      tokenAddress: tokenAddr.toUint8Array(),
+      chainId,
+    });
+
+    const [
+      { sigmaProof, rangeProof: { rangeProofAmount, rangeProofNewBalance } },
+      encryptedBalanceAfterTransfer,
+      encryptedAmountByRecipient,
+      allAuditorAmountCiphertexts,
+      auditorNewBalanceList,
+    ] = await ct.authorizeTransfer();
+
+    const recipientDPoints = encryptedAmountByRecipient.getCipherText().map((c) => c.D.toRawBytes());
+    const effectiveAuditorDPoints = cachedAuditorKey
+      ? allAuditorAmountCiphertexts[allAuditorAmountCiphertexts.length - 1]
+          .getCipherText()
+          .map((c) => c.D.toRawBytes())
+      : ([] as Uint8Array[]);
+    const newBalanceA = cachedAuditorKey
+      ? auditorNewBalanceList[auditorNewBalanceList.length - 1]
+          .getCipherText()
+          .map((c) => c.D.toRawBytes())
+      : ([] as Uint8Array[]);
+
+    const transaction = await aptos.transaction.build.simple({
+      sender: account.accountAddress,
+      data: {
+        function:
+          `${moduleAddr}::confidential_asset::confidential_transfer_raw` as `${string}::${string}::${string}`,
+        functionArguments: [
+          config.tokenAddress,
+          recipient,
+          encryptedBalanceAfterTransfer.getCipherText().map((c) => c.C.toRawBytes()),
+          encryptedBalanceAfterTransfer.getCipherText().map((c) => c.D.toRawBytes()),
+          newBalanceA,
+          ct.transferAmountEncryptedBySender.getCipherText().map((c) => c.C.toRawBytes()),
+          ct.transferAmountEncryptedBySender.getCipherText().map((c) => c.D.toRawBytes()),
+          recipientDPoints,
+          effectiveAuditorDPoints,
+          [] as Uint8Array[],   // volunAuditorEncryptionKeys (none in load test)
+          [] as Uint8Array[][], // volunAuditorDPoints
+          rangeProofNewBalance,
+          rangeProofAmount,
+          sigmaProof.commitment,
+          sigmaProof.response,
+          new Uint8Array(),     // memo
+        ],
+      },
+      options: txOptions,
+    });
+
+    const senderAuth = account.signTransactionWithAuthenticator(transaction);
+    const pending = await aptos.transaction.submit.simple({
+      transaction,
+      senderAuthenticator: senderAuth,
+    });
+    const committed = await aptos.waitForTransaction({
+      transactionHash: pending.hash,
+      options: { checkSuccess: true },
+    });
+
+    // Advance the cache so the next transfer skips the getBalance view calls.
+    cachedSenderCipherText = encryptedBalanceAfterTransfer.getCipherText();
+
+    return committed as CommittedTransactionResponse;
+  }
+
   while (Date.now() - startTime < durationMs) {
     // Pick operation based on local balance state
     let op: OpType;
@@ -372,19 +504,13 @@ async function runWorker() {
             senderDecryptionKey: decryptionKey,
             options: txOptions,
           });
+          // Rollover moves pending→available, so the on-chain ciphertext changes.
+          // Invalidate the cache so the next transfer re-fetches from chain.
+          cachedSenderCipherText = null;
           break;
 
         case "transfer":
-          txs = [
-            await confidentialAsset.transfer({
-              signer: account,
-              tokenAddress: config.tokenAddress,
-              senderDecryptionKey: decryptionKey,
-              recipient: AccountAddress.fromString(recipient),
-              amount: config.transferAmount,
-              options: txOptions,
-            }),
-          ];
+          txs = [await transferDirect(recipient)];
           break;
 
         default:
