@@ -340,11 +340,14 @@ async function runWorker() {
   let availableBalance = initialAvailableBalance;
   let pendingBalance = 0n;
 
-  // Caches to skip simulation (preflight view calls) for repeated transfers.
-  // Populated lazily on first transfer and updated after each successful one.
+  // Caches to skip view calls for repeated transfers.
+  // Sender ciphertext is populated lazily and updated after each successful transfer.
+  // Auditor key is fetched once per worker lifetime.
+  // Recipient EKs are fetched once per recipient address and stored in a Map.
   let cachedSenderCipherText: TwistedElGamalCiphertext[] | null = null;
   let cachedAuditorKey: TwistedEd25519PublicKey | undefined = undefined;
   let auditorKeyFetched = false;
+  const recipientEKCache = new Map<string, TwistedEd25519PublicKey>();
 
   /**
    * Build and submit a confidential transfer directly, skipping the three view
@@ -381,12 +384,15 @@ async function runWorker() {
     const tokenAddr = AccountAddress.from(config.tokenAddress);
     const chainId = await confidentialAsset.transaction.getChainId();
 
-    // Use the cached recipient encryption key — it never changes for an account.
-    const recipientEK = await confidentialAsset.getEncryptionKey({
-      accountAddress: recipientAddr,
-      tokenAddress: config.tokenAddress,
-      useCachedValue: true,
-    });
+    // Fetch the recipient's encryption key once; it never changes for an account.
+    let recipientEK = recipientEKCache.get(recipient);
+    if (!recipientEK) {
+      recipientEK = await confidentialAsset.getEncryptionKey({
+        accountAddress: recipientAddr,
+        tokenAddress: config.tokenAddress,
+      });
+      recipientEKCache.set(recipient, recipientEK);
+    }
 
     const allAuditorKeys = cachedAuditorKey ? [cachedAuditorKey] : [];
 
@@ -499,17 +505,32 @@ async function runWorker() {
           ];
           break;
 
-        case "rollover":
-          txs = await confidentialAsset.rolloverPendingBalance({
-            signer: account,
+        case "rollover": {
+          // Call the builder directly to skip the redundant isBalanceNormalized
+          // view calls that the high-level API wrapper adds. Load test accounts
+          // are always normalized after the initial setup rollover.
+          const aptos = confidentialAsset.transaction.client;
+          const rolloverTx = await confidentialAsset.transaction.rolloverPendingBalance({
+            sender: account.accountAddress,
             tokenAddress: config.tokenAddress,
-            senderDecryptionKey: decryptionKey,
+            checkNormalized: false,
             options: txOptions,
           });
-          // Rollover moves pending→available, so the on-chain ciphertext changes.
+          const rolloverAuth = account.signTransactionWithAuthenticator(rolloverTx);
+          const rolloverPending = await aptos.transaction.submit.simple({
+            transaction: rolloverTx,
+            senderAuthenticator: rolloverAuth,
+          });
+          const rolloverCommitted = await aptos.waitForTransaction({
+            transactionHash: rolloverPending.hash,
+            options: { checkSuccess: true },
+          });
+          txs = [rolloverCommitted as CommittedTransactionResponse];
+          // Rollover moves pending→available; the on-chain ciphertext changes.
           // Invalidate the cache so the next transfer re-fetches from chain.
           cachedSenderCipherText = null;
           break;
+        }
 
         case "transfer":
           txs = [await transferDirect(recipient)];
