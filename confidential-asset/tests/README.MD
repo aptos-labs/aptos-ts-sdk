@@ -25,7 +25,7 @@ The tests use environment variables to determine which accounts to use:
 
 To use specific accounts for testing:
 
-1. Create a file named `.env.development` in the confidential-assets directory
+1. Create a file named `.env.development` in the confidential-asset directory
 2. Add the following variables to the file:
 ```
 TESTNET_PK=your_private_key_here

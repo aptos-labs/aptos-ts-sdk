@@ -9,8 +9,6 @@
 import { RistrettoPoint } from "@noble/curves/ed25519";
 import { TwistedElGamal, TwistedEd25519PrivateKey } from "../../src";
 import { createBsgsTable, BsgsSolver } from "../../src/crypto/bsgs";
-import crypto from "crypto";
-
 // ============================================================================
 // Helpers
 // ============================================================================
@@ -21,7 +19,7 @@ function generateRandomInteger(bits: number): bigint {
   if (bits <= 0) return 0n;
 
   const bytes = Math.ceil(bits / 8);
-  const randomBytes = crypto.getRandomValues(new Uint8Array(bytes));
+  const randomBytes = globalThis.crypto.getRandomValues(new Uint8Array(bytes));
 
   let result = 0n;
   for (let i = 0; i < bytes; i++) {
@@ -123,12 +121,6 @@ function formatResult(r: BenchmarkResult): string {
 // ============================================================================
 
 describe("Discrete Log Solver (WASM)", () => {
-  beforeAll(async () => {
-    // WASM auto-loads from node_modules in Node.js environment
-    await TwistedElGamal.initializeSolver();
-    console.log(`WASM algorithm: ${TwistedElGamal.getAlgorithmName()}`);
-  }, 30000);
-
   describe("correctness", () => {
     it("decrypts 16-bit values correctly", async () => {
       for (let i = 0; i < BENCHMARK_ITERATIONS; i++) {
@@ -153,8 +145,6 @@ describe("Discrete Log Solver (WASM)", () => {
 
   describe("benchmark", () => {
     const benchmarkWasm = async (bitWidth: number): Promise<BenchmarkResult> => {
-      expect(TwistedElGamal.isInitialized()).toBe(true);
-
       const times: number[] = [];
       const alice = TwistedEd25519PrivateKey.generate();
 

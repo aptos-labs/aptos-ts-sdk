@@ -40,7 +40,7 @@ export interface GetConfidentialAssetActivitiesArgs {
  * @example
  * ```ts
  * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
- * import { getConfidentialAssetActivities } from "@aptos-labs/confidential-assets";
+ * import { getConfidentialAssetActivities } from "@aptos-labs/confidential-asset";
  *
  * const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
  * const activities = await getConfidentialAssetActivities(aptos, {
