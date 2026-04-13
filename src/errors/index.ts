@@ -391,12 +391,17 @@ export class AptosApiError extends Error {
     this.status = aptosResponse.status;
     this.statusText = aptosResponse.statusText;
     this.data = aptosResponse.data;
-    // Merge SDK request fields with the HTTP client's `request` metadata (e.g. from aptos-client v3)
-    // so callers still see `overrides`, `path`, `body`, etc. on failed responses.
-    this.request = {
-      ...(typeof aptosResponse.request === "object" && aptosResponse.request !== null ? aptosResponse.request : {}),
-      ...aptosRequest,
-    } as AptosRequest;
+    // Merge HTTP client metadata (e.g. aptos-client v3's `{ url, method }`) without clobbering the SDK
+    // `AptosRequest` shape — e2e tests assert `error.request` equals the original request options.
+    const base: Record<string, unknown> = { ...aptosRequest };
+    if (typeof aptosResponse.request === "object" && aptosResponse.request !== null) {
+      for (const [key, value] of Object.entries(aptosResponse.request as Record<string, unknown>)) {
+        if (base[key] === undefined && value !== undefined) {
+          base[key] = value;
+        }
+      }
+    }
+    this.request = base as AptosRequest;
   }
 }
 

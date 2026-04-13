@@ -7,7 +7,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 ## Fixed
 
 - Fix `fullnodeConfig.HEADERS` not being forwarded in paginated fullnode requests (`getAccountModules`, `getAccountResources`). Pagination helpers now route through `getAptosFullNode` so custom headers (e.g. `Authorization`) are included consistently. (#872)
-- Compatibility with `@aptos-labs/aptos-client` v3: normalize Fetch `Headers` to plain lower-case objects on `AptosResponse`; merge HTTP client `request` metadata into `AptosApiError.request`; wrap provider throws (e.g. JSON parse) in `AptosApiError` so `overrides` remain on `error.request`.
+- Compatibility with `@aptos-labs/aptos-client` v3: normalize Fetch `Headers` to plain lower-case objects on `AptosResponse`; merge HTTP client `request` metadata into `AptosApiError.request` without overwriting SDK fields (preserves `url`/`path` split and strict e2e assertions); wrap provider throws (e.g. JSON parse) in `AptosApiError` so `overrides` remain on `error.request`.
 - **confidential-asset:** Optional `feePayerAccount` on `ConfidentialAsset` plus explicit `feePayerAuthenticator` on submit (and bypass nested `TRANSACTION_SUBMITTER` when set); e2e tests fund accounts enough for default sponsored max-gas reserves.
 
 ## Breaking Changes
