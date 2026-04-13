@@ -27,6 +27,7 @@ import type { EntryFunctionArgument, ScriptFunctionArgument, TransactionArgument
 import {
   AnyNumber,
   MoveModuleId,
+  MultiSigTransactionPayloadVariants,
   ScriptTransactionArgumentVariants,
   TransactionExecutableVariants,
   TransactionExtraConfigVariants,
@@ -527,9 +528,9 @@ export class MultiSigTransactionPayload extends Serializable {
 
   serialize(serializer: Serializer): void {
     if (this.transaction_payload instanceof EntryFunction) {
-      serializer.serializeU32AsUleb128(0);
+      serializer.serializeU32AsUleb128(MultiSigTransactionPayloadVariants.EntryFunction);
     } else if (this.transaction_payload instanceof Script) {
-      serializer.serializeU32AsUleb128(1);
+      serializer.serializeU32AsUleb128(MultiSigTransactionPayloadVariants.Script);
     } else {
       throw new Error("Unsupported multisig transaction payload type");
     }
@@ -539,9 +540,9 @@ export class MultiSigTransactionPayload extends Serializable {
   static deserialize(deserializer: Deserializer): MultiSigTransactionPayload {
     const variant = deserializer.deserializeUleb128AsU32();
     switch (variant) {
-      case 0:
+      case MultiSigTransactionPayloadVariants.EntryFunction:
         return new MultiSigTransactionPayload(EntryFunction.deserialize(deserializer));
-      case 1:
+      case MultiSigTransactionPayloadVariants.Script:
         return new MultiSigTransactionPayload(Script.deserialize(deserializer));
       default:
         throw new Error(`Unknown MultisigTransactionPayload variant: ${variant}`);

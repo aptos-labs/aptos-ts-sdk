@@ -117,10 +117,7 @@ export async function buildTransactionPayload(
   let generateTransactionPayloadData: InputGenerateTransactionPayloadDataWithRemoteABI;
   let payload: AnyTransactionPayloadInstance;
 
-  if ("bytecode" in data && "multisigAddress" in data) {
-    // Multisig script payload — no ABI fetching needed
-    payload = await generateTransactionPayload(data);
-  } else if ("bytecode" in data) {
+  if ("bytecode" in data) {
     // TODO: Add ABI checking later
     payload = await generateTransactionPayload(data);
   } else if ("multisigAddress" in data) {
