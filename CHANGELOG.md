@@ -8,6 +8,12 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Add support for script payloads in multisig transactions. `MultiSigTransactionPayload` now accepts both `EntryFunction` and `Script` payloads, and the new `InputMultiSigScriptData` type allows building multisig transactions with script bytecode. This aligns with the upstream `MultisigTransactionPayload::Script` variant added in aptos-core.
 
+## Breaking
+
+- ESM-only output; removed CommonJS `"require"` exports. Node.js 22+ required.
+  - Migration: Update imports from `require()` to `import` syntax
+  - See: `upgrade-guides/UPGRADE_GUIDE_7.0.0.md`
+
 ## Changed
 
 - Introduce `MultiSigTransactionPayloadVariants` for multisig inner payload BCS tags and consolidate bytecode handling in `buildTransactionPayload`.
