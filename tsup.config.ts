@@ -1,14 +1,7 @@
 import { defineConfig } from "tsup";
-import type { Options, Format } from "tsup";
-
-// Ensure that these option fields are not undefined
-type MandatoryOptions = Options & {
-  outDir: string;
-  format: Format | Format[];
-};
 
 // Default config, used as a base template
-const DEFAULT_CONFIG: Options = {
+const DEFAULT_CONFIG = {
   bundle: true,
   clean: true, // clean up the dist folder
   dts: true, // generate dts files
@@ -28,20 +21,12 @@ const DEFAULT_CONFIG: Options = {
   },
 };
 
-// Common.js config
-const COMMON_CONFIG: MandatoryOptions = {
+// Single ESM config
+const ESM_CONFIG = {
   ...DEFAULT_CONFIG,
   entry: ["src/index.ts", "src/cli/index.ts"],
-  format: "cjs",
-  outDir: "dist/common",
+  format: "esm" as const,
+  outDir: "dist",
 };
 
-// ESM config
-const ESM_CONFIG: MandatoryOptions = {
-  ...DEFAULT_CONFIG,
-  entry: ["src/**/*.ts"],
-  format: "esm",
-  outDir: "dist/esm",
-};
-
-export default defineConfig([COMMON_CONFIG, ESM_CONFIG]);
+export default defineConfig(ESM_CONFIG);

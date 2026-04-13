@@ -4,28 +4,22 @@
   "packageManager": "pnpm@10.30.3",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
   "bugs": {
     "url": "https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose"
   },
   "homepage": "https://aptos-labs.github.io/aptos-ts-sdk/",
-  "main": "dist/common/index.js",
-  "module": "dist/esm/index.mjs",
+  "type": "module",
   "exports": {
     ".": {
-      "source": "./src/index.ts",
-      "require": {
-        "types": "./dist/common/index.d.ts",
-        "default": "./dist/common/index.js"
-      },
-      "import": {
-        "types": "./dist/esm/index.d.mts",
-        "default": "./dist/esm/index.mjs"
-      }
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
-    "./dist/common/cli/index.js": "./dist/common/cli/index.js",
-    "./dist/esm/cli/index.mjs": "./dist/esm/cli/index.mjs",
+    "./cli": {
+      "types": "./dist/cli/index.d.ts",
+      "default": "./dist/cli/index.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [

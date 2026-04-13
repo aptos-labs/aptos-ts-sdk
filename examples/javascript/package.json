@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "simple_transfer.js",
+  "type": "module",
   "packageManager": "pnpm@10.30.3",
   "license": "Apache-2.0",
   "engines": {

@@ -1,9 +1,10 @@
 /**
  * This example shows how to use the Aptos client to create accounts, fund them, and transfer between them.
  */
-const dotenv = require("dotenv");
+import dotenv from "dotenv";
+import { Account, Aptos, AptosConfig, NetworkToNetworkName, Network } from "@aptos-labs/ts-sdk";
+
 dotenv.config();
-const { Account, Aptos, AptosConfig, NetworkToNetworkName, Network } = require("@aptos-labs/ts-sdk");
 
 const ALICE_INITIAL_BALANCE = 1_000_000_000;
 const BOB_INITIAL_BALANCE = 100;
