@@ -3,6 +3,9 @@ import { defineConfig } from "vitest/config";
 import { playwright } from "@vitest/browser-playwright";
 
 const repoRoot = path.resolve(import.meta.dirname, "..");
+// Browser runs must not load SDK `src/` (e.g. `ans.ts` uses `process.env` at module
+// scope). Use the built ESM entry; run `pnpm build` at the repo root first (CI does).
+const tsSdkBrowserEntry = path.join(repoRoot, "dist/esm/index.mjs");
 
 /**
  * Real-browser test configuration using @vitest/browser + Playwright (Chromium).
@@ -20,7 +23,7 @@ const repoRoot = path.resolve(import.meta.dirname, "..");
 export default defineConfig({
   resolve: {
     alias: {
-      "@aptos-labs/ts-sdk": path.join(repoRoot, "src/index.ts"),
+      "@aptos-labs/ts-sdk": tsSdkBrowserEntry,
     },
   },
   server: {

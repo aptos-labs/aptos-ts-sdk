@@ -17,7 +17,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - **CI:** Run `pnpm build` at the repo root before confidential-asset tests so the linked SDK’s `dist/` output exists.
 - **CI (pnpm 10):** Declare `pnpm.onlyBuiltDependencies` for `esbuild` and `@swc/core` so install postinstall scripts run in CI (default pnpm v10 skips them, breaking `tsup`/Vitest).
 - Pin `undici` to **7.24.7** (exact) for the optional dependency so Aptos Safe-chain’s minimum package age check does not block installs of **7.25.0** in CI.
-- **confidential-asset (Vitest):** Resolve `@aptos-labs/ts-sdk` to the monorepo `src/index.ts` during tests and allow Vite to read the repo root, so `file:..` installs do not fail package entry resolution when `dist/` is absent or not yet built.
+- **confidential-asset (Vitest):** Resolve `@aptos-labs/ts-sdk` to the monorepo `src/index.ts` during **Node** tests and allow Vite to read the repo root, so `file:..` installs do not fail package entry resolution when `dist/` is absent or not yet built. **Browser** Vitest aliases the SDK to **`dist/esm/index.mjs`** so Chromium does not execute Node-only `process` in SDK source (e.g. `ans.ts`).
 
 ## Breaking Changes
 
