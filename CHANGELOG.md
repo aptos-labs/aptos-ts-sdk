@@ -11,6 +11,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 ## Changed
 
 - Introduce `MultiSigTransactionPayloadVariants` for multisig inner payload BCS tags and consolidate bytecode handling in `buildTransactionPayload`.
+- Pin `@noble/curves` and `@noble/hashes` to the latest 1.x releases without semver ranges (CJS-compatible; noble v2 is ESM-only).
 
 ## Fixed
 

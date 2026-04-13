@@ -78,7 +78,7 @@ const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
 ## Related Packages
 
 - `examples/` - TypeScript/JS examples using linked SDK (`link:../..`)
-- `confidential-assets/` - Separate confidential assets SDK package
+- `confidential-asset/` - Separate confidential asset SDK package
 - `projects/` - Demo projects (gas station)
 
 ## Version Management

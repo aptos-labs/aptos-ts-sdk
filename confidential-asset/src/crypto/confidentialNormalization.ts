@@ -1,7 +1,7 @@
 import { RistrettoPoint } from "@noble/curves/ed25519";
 import { numberToBytesLE } from "@noble/curves/abstract/utils";
 import { MODULE_NAME } from "../consts";
-import { RangeProofExecutor } from "./rangeProof";
+import { batchRangeProof, batchVerifyProof } from "@aptos-labs/confidential-asset-bindings";
 import { TwistedEd25519PrivateKey, H_RISTRETTO, TwistedEd25519PublicKey } from ".";
 import { ed25519GenListOfRandom } from "../utils";
 import { EncryptedAmount } from "./encryptedAmount";
@@ -147,12 +147,12 @@ export class ConfidentialNormalization {
   }
 
   async genRangeProof(): Promise<Uint8Array> {
-    const rangeProof = await RangeProofExecutor.genBatchRangeZKP({
+    const rangeProof = await batchRangeProof({
       v: this.normalizedEncryptedAvailableBalance.getAmountChunks(),
       rs: this.randomness.map((el) => numberToBytesLE(el, 32)),
-      val_base: RistrettoPoint.BASE.toRawBytes(),
-      rand_base: H_RISTRETTO.toRawBytes(),
-      num_bits: CHUNK_BITS,
+      valBase: RistrettoPoint.BASE.toRawBytes(),
+      randBase: H_RISTRETTO.toRawBytes(),
+      numBits: CHUNK_BITS,
     });
 
     return rangeProof.proof;
@@ -162,12 +162,12 @@ export class ConfidentialNormalization {
     rangeProof: Uint8Array;
     normalizedEncryptedBalance: EncryptedAmount;
   }): Promise<boolean> {
-    return RangeProofExecutor.verifyBatchRangeZKP({
+    return batchVerifyProof({
       proof: opts.rangeProof,
-      comm: opts.normalizedEncryptedBalance.getCipherText().map((el) => el.C.toRawBytes()),
-      val_base: RistrettoPoint.BASE.toRawBytes(),
-      rand_base: H_RISTRETTO.toRawBytes(),
-      num_bits: CHUNK_BITS,
+      comms: opts.normalizedEncryptedBalance.getCipherText().map((el) => el.C.toRawBytes()),
+      valBase: RistrettoPoint.BASE.toRawBytes(),
+      randBase: H_RISTRETTO.toRawBytes(),
+      numBits: CHUNK_BITS,
     });
   }
 

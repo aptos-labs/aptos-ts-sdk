@@ -36,7 +36,7 @@ In **Node.js environments** (e.g., running tests), the code automatically detect
 The SDK provides unified WASM initialization:
 
 ```typescript
-import { initializeWasm, isWasmInitialized } from "@aptos-labs/confidential-assets";
+import { initializeWasm, isWasmInitialized } from "@aptos-labs/confidential-asset";
 
 // Initialize once - shared between discrete log and range proofs
 await initializeWasm();
