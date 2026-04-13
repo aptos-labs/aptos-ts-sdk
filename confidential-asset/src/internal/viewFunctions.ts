@@ -295,6 +295,30 @@ export async function getEffectiveAuditorHint(
   return { isGlobal: hint.vec[0].is_global, epoch: BigInt(hint.vec[0].epoch) };
 }
 
+/**
+ * Check if the confidential asset module is emergency-paused by governance.
+ *
+ * @param args.client - The Aptos client instance
+ * @param args.options - Optional ledger version for the view call
+ * @param args.moduleAddress - Optional module address
+ * @returns A boolean indicating if all user operations are paused
+ */
+export async function isEmergencyPaused(args: {
+  client: Aptos;
+  options?: LedgerVersionArg;
+  moduleAddress?: string;
+}): Promise<boolean> {
+  const moduleAddress = args.moduleAddress ?? DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS;
+  const [paused] = await args.client.view<[boolean]>({
+    payload: {
+      function: `${moduleAddress}::${MODULE_NAME}::is_emergency_paused`,
+      functionArguments: [],
+    },
+    options: args.options,
+  });
+  return paused;
+}
+
 export async function getEncryptionKey(
   args: ViewFunctionParams & {
     useCachedValue?: boolean;

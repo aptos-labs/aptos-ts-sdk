@@ -692,7 +692,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "allow-listing APT should fail when allow listing is disabled",
       async () => {
-        if (!governanceAvailable) return;
+        expect(governanceAvailable).toBe(true);
         await govScriptExpectFailure(
           "set_confidentiality_for_apt",
           [new Bool(true)],
@@ -705,7 +705,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "enabling allow listing should block APT transfers (APT not yet allow-listed)",
       async () => {
-        if (!governanceAvailable) return;
+        expect(governanceAvailable).toBe(true);
         const [beforeEnabled] = await plainAptos.view<[boolean]>({
           payload: { function: "0x1::confidential_asset::is_allow_listing_required", functionArguments: [] },
         });
@@ -728,7 +728,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "allow-listing APT should enable transfers",
       async () => {
-        if (!governanceAvailable) return;
+        expect(governanceAvailable).toBe(true);
         await govScript("set_confidentiality_for_apt", [new Bool(true)]);
 
         const result = await tryTransfer();
@@ -740,7 +740,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "disabling allow listing should allow all transfers (even if APT was previously allow-listed)",
       async () => {
-        if (!governanceAvailable) return;
+        expect(governanceAvailable).toBe(true);
         await govScript("set_allow_listing", [new Bool(false)]);
 
         const result = await tryTransfer();
@@ -758,7 +758,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "set global auditor (EK_1) and transfer should succeed",
       async () => {
-        if (!governanceAvailable) return;
+        expect(governanceAvailable).toBe(true);
         const ek1Bytes = Array.from(AUDITOR_KEY_1.publicKey().toUint8Array());
         await govScript("set_global_auditor", [MoveVector.U8(ek1Bytes)]);
 
@@ -779,7 +779,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "set asset-specific auditor (EK_2) and transfer should succeed with EK_2",
       async () => {
-        if (!governanceAvailable) return;
+        expect(governanceAvailable).toBe(true);
         const ek2Bytes = Array.from(AUDITOR_KEY_2.publicKey().toUint8Array());
         await govScript("set_asset_specific_auditor", [
           AccountAddress.fromString(TOKEN_ADDRESS),
@@ -801,7 +801,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "remove asset-specific auditor EK — effective auditor falls back to global (EK_1)",
       async () => {
-        if (!governanceAvailable) return;
+        expect(governanceAvailable).toBe(true);
         await govScript("set_asset_specific_auditor", [
           AccountAddress.fromString(TOKEN_ADDRESS),
           MoveVector.U8([]),
@@ -824,7 +824,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "set asset-specific auditor back to EK_2, then update global to EK_3 — effective auditor stays EK_2",
       async () => {
-        if (!governanceAvailable) return;
+        expect(governanceAvailable).toBe(true);
         const ek2Bytes = Array.from(AUDITOR_KEY_2.publicKey().toUint8Array());
         await govScript("set_asset_specific_auditor", [
           AccountAddress.fromString(TOKEN_ADDRESS),
@@ -849,7 +849,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "remove global auditor and transfer should succeed (asset-specific EK_2 still active)",
       async () => {
-        if (!governanceAvailable) return;
+        expect(governanceAvailable).toBe(true);
         await govScript("set_global_auditor", [MoveVector.U8([])]);
 
         const auditorEk = await confidentialAsset.getAssetAuditorEncryptionKey({
@@ -861,6 +861,135 @@ describe("Confidential Asset Sender API", () => {
         const result = await tryTransfer();
         expect(result.success).toBeTruthy();
       },
+      longTestTimeout,
+    );
+  });
+
+  // =========================================================================
+  // Emergency pause
+  // =========================================================================
+
+  describe("Emergency pause", () => {
+    async function testAllOperations(paused: boolean) {
+      expect(governanceAvailable).toBe(true);
+
+      const EXPECTED_ABORT = "E_EMERGENCY_PAUSED";
+
+      // Helper: run an async op; if paused, expect it to throw with the pause abort code; if not, expect it to succeed.
+      async function expectOutcome(label: string, op: () => Promise<any>) {
+        if (paused) {
+          try {
+            await op();
+            expect(`${label} should have failed`).toBe("but it succeeded");
+          } catch (e: any) {
+            const msg = e.message || String(e);
+            expect(msg).toContain(EXPECTED_ABORT);
+          }
+        } else {
+          await op(); // should not throw
+        }
+      }
+
+      // Helper: build + submit raw txn; if paused, expect on-chain failure with the pause abort code; if not, expect success.
+      async function expectRawTxnOutcome(label: string, signer: any, tx: any) {
+        const pending = await plainAptos.signAndSubmitTransaction({ signer, transaction: tx });
+        const result = await plainAptos.waitForTransaction({ transactionHash: pending.hash, options: { checkSuccess: false } });
+        if (paused) {
+          expect(result.success).toBeFalsy();
+          expect(result.vm_status).toContain(EXPECTED_ABORT);
+        } else {
+          expect(result.success).toBeTruthy();
+        }
+      }
+
+      if (paused) {
+        await govScript("set_emergency_paused", [new Bool(true)]);
+        expect(await confidentialAsset.isEmergencyPaused()).toBe(true);
+      } else {
+        expect(await confidentialAsset.isEmergencyPaused()).toBe(false);
+      }
+
+      // register
+      const newAccount = Account.generate();
+      await aptos.fundAccount({ accountAddress: newAccount.accountAddress, amount: 100000000 });
+      const newKey = TwistedEd25519PrivateKey.generate();
+      await expectOutcome("register", () =>
+        confidentialAsset.registerBalance({
+          signer: newAccount,
+          tokenAddress: TOKEN_ADDRESS,
+          decryptionKey: newKey,
+        }),
+      );
+
+      // deposit (gives Alice pending balance for rollover below)
+      await expectOutcome("deposit", () =>
+        confidentialAsset.deposit({
+          signer: alice,
+          tokenAddress: TOKEN_ADDRESS,
+          amount: 1,
+        }),
+      );
+
+      // rollover (raw txn to bypass SDK precondition checks; needs pending balance from deposit above)
+      const rolloverTx = await confidentialAsset.transaction.rolloverPendingBalance({
+        sender: alice.accountAddress,
+        tokenAddress: TOKEN_ADDRESS,
+      });
+      await expectRawTxnOutcome("rollover", alice, rolloverTx);
+
+      // normalize (after rollover, Alice is not normalized)
+      await expectOutcome("normalize", () =>
+        confidentialAsset.normalizeBalance({
+          signer: alice,
+          senderDecryptionKey: aliceConfidential,
+          tokenAddress: TOKEN_ADDRESS,
+        }),
+      );
+
+      // withdraw
+      await expectOutcome("withdraw", () =>
+        confidentialAsset.withdraw({
+          signer: alice,
+          senderDecryptionKey: aliceConfidential,
+          tokenAddress: TOKEN_ADDRESS,
+          amount: 1n,
+          recipient: alice.accountAddress,
+        }),
+      );
+
+      // transfer
+      await expectOutcome("transfer", async () => {
+        const result = await tryTransfer();
+        if (!result.success) throw new Error(result.vm_status);
+      });
+
+      // key rotation (only test when paused — when unpaused, it would change Alice's key and break later tests)
+      if (paused) {
+        await expectOutcome("key rotation", () =>
+          confidentialAsset.rotateEncryptionKey({
+            signer: alice,
+            senderDecryptionKey: aliceConfidential,
+            newDecryptionKey: TwistedEd25519PrivateKey.generate(),
+            tokenAddress: TOKEN_ADDRESS,
+          }),
+        );
+      }
+
+      if (paused) {
+        await govScript("set_emergency_paused", [new Bool(false)]);
+        expect(await confidentialAsset.isEmergencyPaused()).toBe(false);
+      }
+    }
+
+    test(
+      "all operations should succeed when not paused",
+      async () => testAllOperations(false),
+      longTestTimeout,
+    );
+
+    test(
+      "all operations should fail when paused",
+      async () => testAllOperations(true),
       longTestTimeout,
     );
   });
