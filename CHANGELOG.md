@@ -21,7 +21,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 ## Changed
 
 - Upgrade to aptos-cli 3.x.x
-- Upgrade to aptos-client ^3.0.2 (removes `undici` optional dependency — HTTP compatibility fix is now client-side)
+- Upgrade to aptos-client ^3.0.2; declare `undici` as an `optionalDependency` so Node installs satisfy the client’s optional peer and the Node entry’s `undici` import (CI / strict installs).
 
 # 6.3.0 (2026-03-22)
 
