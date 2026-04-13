@@ -14,6 +14,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Compatibility with `@aptos-labs/aptos-client` v3: normalize Fetch `Headers` to plain lower-case objects on `AptosResponse`; merge HTTP client `request` metadata into `AptosApiError.request` without overwriting SDK fields (preserves `url`/`path` split and strict e2e assertions); wrap provider throws (e.g. JSON parse) in `AptosApiError` so `overrides` remain on `error.request`.
 - **confidential-asset:** Optional `feePayerAccount` on `ConfidentialAsset` plus explicit `feePayerAuthenticator` on submit (and bypass nested `TRANSACTION_SUBMITTER` when set); e2e tests fund accounts enough for default sponsored max-gas reserves.
 - **confidential-asset:** Dev-depend on the monorepo SDK via `file:..` so CI `--frozen-lockfile` installs match the workspace `@aptos-labs/ts-sdk` (aptos-client v3) instead of a stale registry snapshot.
+- **CI:** Run `pnpm build` at the repo root before confidential-asset tests so the linked SDK’s `dist/` output exists.
 
 ## Breaking Changes
 
