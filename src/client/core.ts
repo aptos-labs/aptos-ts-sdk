@@ -8,6 +8,63 @@ import { AptosApiType } from "../utils";
 import { AptosApiError } from "../errors";
 
 /**
+ * `@aptos-labs/aptos-client` v3 uses the Fetch `Headers` API for request/response headers.
+ * The SDK historically exposed plain objects with lower-case keys (matching axios-style tests
+ * and bracket access like `headers["x-aptos-cursor"]`). Normalize here for a stable surface.
+ */
+function headersToPlainObject(headers: unknown): Record<string, string> {
+  if (headers == null) {
+    return {};
+  }
+  if (typeof Headers !== "undefined" && headers instanceof Headers) {
+    const out: Record<string, string> = {};
+    headers.forEach((value, key) => {
+      out[key.toLowerCase()] = value;
+    });
+    return out;
+  }
+  if (typeof headers === "object" && !Array.isArray(headers)) {
+    const out: Record<string, string> = {};
+    for (const [key, value] of Object.entries(headers as Record<string, unknown>)) {
+      if (value !== undefined && value !== null) {
+        out[key.toLowerCase()] = String(value);
+      }
+    }
+    return out;
+  }
+  return {};
+}
+
+function normalizeClientResponseConfig(config: unknown): unknown {
+  if (config == null || typeof config !== "object") {
+    return config;
+  }
+  const c = config as { headers?: unknown };
+  return { ...c, headers: headersToPlainObject(c.headers) };
+}
+
+/**
+ * aptos-client can throw before returning (e.g. JSON parse failure on a non-JSON body).
+ * Surface those as AptosApiError so `error.request` still carries SDK fields like `overrides`.
+ */
+function throwProviderErrorAsAptosApiError(
+  apiType: AptosApiType,
+  aptosRequest: AptosRequest,
+  fullUrl: string,
+  err: unknown,
+): never {
+  const message = err instanceof Error ? err.message : String(err);
+  const aptosResponse = {
+    status: 0,
+    statusText: "Client error",
+    data: { message, error_code: "client_error", vm_error_code: null },
+    headers: {},
+    url: fullUrl,
+  };
+  throw new AptosApiError({ apiType, aptosRequest, aptosResponse });
+}
+
+/**
  * Sends a request using the specified options and returns the response.
  *
  * @param options - The options for the request.
@@ -76,14 +133,22 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
 ): Promise<AptosResponse<Req, Res>> {
   const { url, path } = aptosRequestOpts;
   const fullUrl = path ? `${url}/${path}` : url;
-  const clientResponse = await request<Req, Res>({ ...aptosRequestOpts, url: fullUrl }, aptosConfig.client);
+  let clientResponse: ClientResponse<Res>;
+  try {
+    clientResponse = await request<Req, Res>({ ...aptosRequestOpts, url: fullUrl }, aptosConfig.client);
+  } catch (err) {
+    if (err instanceof AptosApiError) {
+      throw err;
+    }
+    throwProviderErrorAsAptosApiError(apiType, aptosRequestOpts, fullUrl, err);
+  }
 
   const aptosResponse: AptosResponse<Req, Res> = {
     status: clientResponse.status,
     statusText: clientResponse.statusText ?? "No status text provided",
     data: clientResponse.data,
-    headers: clientResponse.headers,
-    config: clientResponse.config,
+    headers: headersToPlainObject(clientResponse.headers),
+    config: normalizeClientResponseConfig(clientResponse.config),
     request: clientResponse.request,
     url: fullUrl,
   };

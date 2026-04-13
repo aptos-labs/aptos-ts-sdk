@@ -29,6 +29,9 @@ function getCachedBalance(accountAddress: AccountAddressInput, tokenAddress: Acc
 }
 
 describe("Confidential Asset Sender API", () => {
+  // Default SDK max gas × local gas price can reserve ~200M octas per sponsored tx.
+  const FUND_AMOUNT_OCTAS = 500_000_000;
+
   const alice = getTestAccount();
   const aliceConfidential = getTestConfidentialAccount(alice);
 
@@ -91,15 +94,15 @@ describe("Confidential Asset Sender API", () => {
   beforeAll(async () => {
     await aptos.fundAccount({
       accountAddress: alice.accountAddress,
-      amount: 100000000,
+      amount: FUND_AMOUNT_OCTAS,
     });
     await aptos.fundAccount({
       accountAddress: bob.accountAddress,
-      amount: 100000000,
+      amount: FUND_AMOUNT_OCTAS,
     });
     await aptos.fundAccount({
       accountAddress: feePayerAccount.accountAddress,
-      amount: 100000000,
+      amount: FUND_AMOUNT_OCTAS,
     });
 
     console.log("Funded accounts");

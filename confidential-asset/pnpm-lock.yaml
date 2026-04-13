@@ -18,8 +18,8 @@ importers:
         specifier: ^1.1.1
         version: 1.1.1(expo@55.0.11)(react-native@0.84.1(@babel/core@7.29.0)(react@19.2.4))(react@19.2.4)
       '@aptos-labs/ts-sdk':
-        specifier: ^5.2.1 || ^6.1.0
-        version: 6.1.0(got@13.0.0)
+        specifier: ^5.2.1 || ^6.3.1
+        version: 6.3.1(got@13.0.0)
       '@noble/curves':
         specifier: ^1.6.0
         version: 1.9.7
@@ -86,8 +86,8 @@ packages:
       react: '*'
       react-native: '*'
 
-  '@aptos-labs/ts-sdk@6.1.0':
-    resolution: {integrity: sha512-YjtEXivGj0xuf3eKzrnKOfjZcYIWUR1E2zNJ4JempgMgoM+VVPbp7b1Ubu24UcOYxRYLb8/kKavOUg62o8zElw==}
+  '@aptos-labs/ts-sdk@6.3.1':
+    resolution: {integrity: sha512-1C13IaHgNIo6MHMTQEcDzeuqTNv++evdY+Ph3IAGLnHlG7Yevdxw50W0nyAJRf4bLzQDI20wfJ66wD2qMg7Rew==}
     engines: {node: '>=20.0.0'}
 
   '@babel/code-frame@7.29.0':
@@ -3853,7 +3853,7 @@ snapshots:
       react: 19.2.4
       react-native: 0.84.1(@babel/core@7.29.0)(react@19.2.4)
 
-  '@aptos-labs/ts-sdk@6.1.0(got@13.0.0)':
+  '@aptos-labs/ts-sdk@6.3.1(got@13.0.0)':
     dependencies:
       '@aptos-labs/aptos-cli': 1.1.1
       '@aptos-labs/aptos-client': 2.1.0(got@13.0.0)

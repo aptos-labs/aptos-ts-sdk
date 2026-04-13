@@ -5,6 +5,7 @@ import {
   Account,
   AccountAddress,
   AccountAddressInput,
+  AccountAuthenticator,
   AnyNumber,
   AptosConfig,
   CommittedTransactionResponse,
@@ -84,11 +85,20 @@ type NormalizeBalanceParams = ConfidentialAssetSubmissionParams & {
 export class ConfidentialAsset {
   transaction: ConfidentialAssetTransactionBuilder;
   withFeePayer: boolean;
-  constructor(args: { config: AptosConfig; confidentialAssetModuleAddress?: string; withFeePayer?: boolean }) {
+  /** When `withFeePayer` is true, this account pays gas; set alongside tests that use a fee payer. */
+  feePayerAccount?: Account;
+
+  constructor(args: {
+    config: AptosConfig;
+    confidentialAssetModuleAddress?: string;
+    withFeePayer?: boolean;
+    feePayerAccount?: Account;
+  }) {
     const { confidentialAssetModuleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS } = args;
     let config = args.config;
     this.transaction = new ConfidentialAssetTransactionBuilder(config, confidentialAssetModuleAddress);
     this.withFeePayer = args.withFeePayer ?? false;
+    this.feePayerAccount = args.feePayerAccount;
   }
 
   private client() {
@@ -574,11 +584,20 @@ export class ConfidentialAsset {
         "Fee payer is enabled but transaction has no fee payer address. Please set the fee payer address.",
       );
     }
+    let feePayerAuthenticator: AccountAuthenticator | undefined;
+    if (this.withFeePayer && transaction.feePayerAddress && this.feePayerAccount) {
+      feePayerAuthenticator = this.client().transaction.signAsFeePayer({
+        signer: this.feePayerAccount,
+        transaction,
+      });
+    }
     const senderAuthenticator = signer.signTransactionWithAuthenticator(transaction);
 
     const pendingTxResponse = await this.client().transaction.submit.simple({
       transaction,
       senderAuthenticator,
+      feePayerAuthenticator,
+      ...(feePayerAuthenticator !== undefined ? { transactionSubmitter: null } : {}),
     });
     const transactionHash = pendingTxResponse.hash;
     const committedTx = await this.client().waitForTransaction({

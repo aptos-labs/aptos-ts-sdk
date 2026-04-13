@@ -71,6 +71,7 @@ export const confidentialAsset = new ConfidentialAsset({
   config,
   confidentialAssetModuleAddress: "0x1",
   withFeePayer: true,
+  feePayerAccount,
 });
 export const aptos = new Aptos(config);
 
