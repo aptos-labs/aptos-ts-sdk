@@ -3,11 +3,12 @@
 
 import EventEmitter from "eventemitter3";
 import { jwtDecode } from "jwt-decode";
+// Register keyless variants with AnyPublicKey/AnySignature registry
+import "../core/crypto/keylessRegistration";
 import { EphemeralCertificateVariant, HexInput, SigningScheme } from "../types";
 import { AccountAddress } from "../core/accountAddress";
+import { AnyPublicKey, AnySignature } from "../core/crypto/singleKey";
 import {
-  AnyPublicKey,
-  AnySignature,
   KeylessPublicKey,
   KeylessSignature,
   EphemeralCertificate,
@@ -17,7 +18,7 @@ import {
   getKeylessConfig,
   fetchJWK,
   KeylessConfiguration,
-} from "../core/crypto";
+} from "../core/crypto/keyless";
 
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
 import { Hex } from "../core/hex";
@@ -32,16 +33,10 @@ import { AptosConfig } from "../api/aptosConfig";
 import { KeylessError, KeylessErrorType } from "../errors";
 import type { SingleKeySigner } from "./SingleKeyAccount";
 
-/**
- * An interface which defines if an Account utilizes Keyless signing.
- */
-export interface KeylessSigner extends Account {
-  checkKeylessAccountValidity(aptosConfig: AptosConfig): Promise<void>;
-}
+// Import and re-export from lightweight module for backward compatibility
+import { isKeylessSigner, type KeylessSigner } from "./keylessSigner";
 
-export function isKeylessSigner(obj: any): obj is KeylessSigner {
-  return obj !== null && obj !== undefined && typeof obj.checkKeylessAccountValidity === "function";
-}
+export { isKeylessSigner, type KeylessSigner };
 
 /**
  * Account implementation for the Keyless authentication scheme.  This abstract class is used for standard Keyless Accounts

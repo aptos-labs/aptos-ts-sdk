@@ -9,9 +9,9 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { Deserializer, MoveVector } from "../bcs";
 import { postAptosFullNode } from "../client";
-import { Account, AbstractKeylessAccount, isKeylessSigner } from "../account";
+import { Account } from "../account";
+import { isKeylessSigner } from "../account/keylessSigner";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { FederatedKeylessPublicKey, KeylessPublicKey, KeylessSignature } from "../core/crypto";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
 import {
   buildTransaction,
@@ -32,7 +32,7 @@ import {
   EntryFunctionABI,
   InputTransactionPluginData,
 } from "../transactions/types";
-import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput } from "../types";
+import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput, AnyPublicKeyVariant } from "../types";
 import { SignedTransaction, TypeTagVector, generateSigningMessageForTransaction } from "../transactions";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 import { MultiAgentTransaction } from "../transactions/instances/multiAgentTransaction";
@@ -280,7 +280,7 @@ export async function simulateTransaction(
 ): Promise<Array<UserTransactionResponse>> {
   const { aptosConfig, transaction, signerPublicKey, secondarySignersPublicKeys, feePayerPublicKey, options } = args;
 
-  const signedTransaction = generateSignedTransactionForSimulation({
+  const signedTransaction = await generateSignedTransactionForSimulation({
     transaction,
     signerPublicKey,
     secondarySignersPublicKeys,
@@ -363,15 +363,24 @@ export async function submitTransaction(
     const signedTxn = SignedTransaction.deserialize(new Deserializer(signedTransaction));
     if (
       signedTxn.authenticator.isSingleSender() &&
-      signedTxn.authenticator.sender.isSingleKey() &&
-      (signedTxn.authenticator.sender.public_key.publicKey instanceof KeylessPublicKey ||
-        signedTxn.authenticator.sender.public_key.publicKey instanceof FederatedKeylessPublicKey)
+      signedTxn.authenticator.sender.isSingleKey()
     ) {
-      await AbstractKeylessAccount.fetchJWK({
-        aptosConfig,
-        publicKey: signedTxn.authenticator.sender.public_key.publicKey,
-        kid: (signedTxn.authenticator.sender.signature.signature as KeylessSignature).getJwkKid(),
-      });
+      const { variant } = signedTxn.authenticator.sender.public_key;
+      if (
+        variant === AnyPublicKeyVariant.Keyless ||
+        variant === AnyPublicKeyVariant.FederatedKeyless
+      ) {
+        // Dynamic import to avoid pulling poseidon-lite into the main bundle
+        const { AbstractKeylessAccount } = await import("../account/AbstractKeylessAccount");
+        const { KeylessSignature } = await import("../core/crypto/keyless");
+        type KP = import("../core/crypto/keyless").KeylessPublicKey;
+        type KS = import("../core/crypto/keyless").KeylessSignature;
+        await AbstractKeylessAccount.fetchJWK({
+          aptosConfig,
+          publicKey: signedTxn.authenticator.sender.public_key.publicKey as KP,
+          kid: (signedTxn.authenticator.sender.signature.signature as KS).getJwkKid(),
+        });
+      }
     }
     throw e;
   }

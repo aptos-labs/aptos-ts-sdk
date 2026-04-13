@@ -3,7 +3,7 @@
 
 import { HexInput } from "../types";
 import { AccountAddress } from "../core/accountAddress";
-import { getIssAudAndUidVal, Groth16VerificationKey, KeylessPublicKey, ZeroKnowledgeSig } from "../core/crypto";
+import { getIssAudAndUidVal, Groth16VerificationKey, KeylessPublicKey, ZeroKnowledgeSig } from "../core/crypto/keyless";
 
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
 import { Deserializer, Serializer } from "../bcs";
