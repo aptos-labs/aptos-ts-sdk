@@ -38,22 +38,18 @@ import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import {
   Account,
   Ed25519Account,
-  FederatedKeylessAccount,
-  KeylessAccount,
   MultiEd25519Account,
   MultiKeyAccount,
   SingleKeyAccount,
 } from "../account";
-import {
-  AbstractMultiKey,
-  AccountPublicKey,
-  AnyPublicKey,
-  BaseAccountPublicKey,
-  Ed25519PublicKey,
-  MultiEd25519PublicKey,
-  MultiKey,
-  PrivateKeyInput,
-} from "../core/crypto";
+import { KeylessAccount } from "../account/KeylessAccount";
+import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
+import { AccountPublicKey } from "../core/crypto/publicKey";
+import { AnyPublicKey, PrivateKeyInput } from "../core/crypto/singleKey";
+import { Ed25519PublicKey } from "../core/crypto/ed25519";
+import { MultiEd25519PublicKey } from "../core/crypto/multiEd25519";
+import { AbstractMultiKey, MultiKey } from "../core/crypto/multiKey";
+import { BaseAccountPublicKey } from "../core/crypto/types";
 import { queryIndexer } from "./general";
 import { getModule as getModuleUtil, getInfo as getInfoUtil } from "./utils";
 import {
@@ -80,7 +76,11 @@ import {
   GetAuthKeysForPublicKey,
   GetAccountAddressesForAuthKey,
 } from "../types/generated/queries";
-import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey, createObjectAddress, Hex } from "../core";
+import { Secp256k1PrivateKey } from "../core/crypto/secp256k1";
+import { Ed25519PrivateKey } from "../core/crypto/ed25519";
+import { AuthenticationKey } from "../core/authenticationKey";
+import { createObjectAddress } from "../core/account/utils/address";
+import { Hex } from "../core/hex";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 import { getTableItem } from "./table";
 import { APTOS_COIN } from "../utils";

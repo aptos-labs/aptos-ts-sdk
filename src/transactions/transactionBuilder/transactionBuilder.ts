@@ -12,13 +12,11 @@ import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core"
 import {
   AnyPublicKey,
   AnySignature,
-  KeylessPublicKey,
-  KeylessSignature,
   Secp256k1PublicKey,
-  FederatedKeylessPublicKey,
   MultiKey,
   MultiKeySignature,
 } from "../../core/crypto";
+import { AnyPublicKeyVariant } from "../../types";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { getInfo } from "../../internal/utils";
 import { getLedgerInfo } from "../../internal/general";
@@ -586,10 +584,10 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
  * @group Implementation
  * @category Transactions
  */
-export function generateSignedTransactionForSimulation(args: InputSimulateTransactionData): Uint8Array {
+export async function generateSignedTransactionForSimulation(args: InputSimulateTransactionData): Promise<Uint8Array> {
   const { signerPublicKey, transaction, secondarySignersPublicKeys, feePayerPublicKey } = args;
 
-  const accountAuthenticator = getAuthenticatorForSimulation(signerPublicKey);
+  const accountAuthenticator = await getAuthenticatorForSimulation(signerPublicKey);
 
   // fee payer transaction
   if (transaction.feePayerAddress) {
@@ -601,16 +599,18 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
     let secondaryAccountAuthenticators: Array<AccountAuthenticator> = [];
     if (transaction.secondarySignerAddresses) {
       if (secondarySignersPublicKeys) {
-        secondaryAccountAuthenticators = secondarySignersPublicKeys.map((publicKey) =>
-          getAuthenticatorForSimulation(publicKey),
+        secondaryAccountAuthenticators = await Promise.all(
+          secondarySignersPublicKeys.map((publicKey) => getAuthenticatorForSimulation(publicKey)),
         );
       } else {
-        secondaryAccountAuthenticators = Array.from({ length: transaction.secondarySignerAddresses.length }, () =>
-          getAuthenticatorForSimulation(undefined),
+        secondaryAccountAuthenticators = await Promise.all(
+          Array.from({ length: transaction.secondarySignerAddresses.length }, () =>
+            getAuthenticatorForSimulation(undefined),
+          ),
         );
       }
     }
-    const feePayerAuthenticator = getAuthenticatorForSimulation(feePayerPublicKey);
+    const feePayerAuthenticator = await getAuthenticatorForSimulation(feePayerPublicKey);
 
     const transactionAuthenticator = new TransactionAuthenticatorFeePayer(
       accountAuthenticator,
@@ -634,12 +634,14 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
     let secondaryAccountAuthenticators: Array<AccountAuthenticator> = [];
 
     if (secondarySignersPublicKeys) {
-      secondaryAccountAuthenticators = secondarySignersPublicKeys.map((publicKey) =>
-        getAuthenticatorForSimulation(publicKey),
+      secondaryAccountAuthenticators = await Promise.all(
+        secondarySignersPublicKeys.map((publicKey) => getAuthenticatorForSimulation(publicKey)),
       );
     } else {
-      secondaryAccountAuthenticators = Array.from({ length: transaction.secondarySignerAddresses.length }, () =>
-        getAuthenticatorForSimulation(undefined),
+      secondaryAccountAuthenticators = await Promise.all(
+        Array.from({ length: transaction.secondarySignerAddresses.length }, () =>
+          getAuthenticatorForSimulation(undefined),
+        ),
       );
     }
 
@@ -676,16 +678,17 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
  * @group Implementation
  * @category Transactions
  */
-export function getAuthenticatorForSimulation(publicKey?: PublicKey) {
+export async function getAuthenticatorForSimulation(publicKey?: PublicKey) {
   if (!publicKey) {
     return new AccountAuthenticatorNoAccountAuthenticator();
   }
 
   // Wrap the public key types below with AnyPublicKey as they are only support through single sender.
   // Learn more about AnyPublicKey here - https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-55.md
+  const isKeylessInstance = (key: PublicKey): boolean =>
+    "iss" in key && typeof (key as any).iss === "string" && "idCommitment" in key;
   const convertToAnyPublicKey =
-    KeylessPublicKey.isInstance(publicKey) ||
-    FederatedKeylessPublicKey.isInstance(publicKey) ||
+    isKeylessInstance(publicKey) ||
     Secp256k1PublicKey.isInstance(publicKey);
   const accountPublicKey = convertToAnyPublicKey ? new AnyPublicKey(publicKey) : publicKey;
 
@@ -697,7 +700,12 @@ export function getAuthenticatorForSimulation(publicKey?: PublicKey) {
   }
 
   if (AnyPublicKey.isInstance(accountPublicKey)) {
-    if (KeylessPublicKey.isInstance(accountPublicKey.publicKey)) {
+    if (
+      accountPublicKey.variant === AnyPublicKeyVariant.Keyless ||
+      accountPublicKey.variant === AnyPublicKeyVariant.FederatedKeyless
+    ) {
+      // Dynamic import to avoid pulling poseidon-lite into the main bundle
+      const { KeylessSignature } = await import("../../core/crypto/keyless");
       return new AccountAuthenticatorSingleKey(
         accountPublicKey,
         new AnySignature(KeylessSignature.getSimulationSignature()),
@@ -707,15 +715,20 @@ export function getAuthenticatorForSimulation(publicKey?: PublicKey) {
   }
 
   if (MultiKey.isInstance(accountPublicKey)) {
+    let keylessSignatureModule: typeof import("../../core/crypto/keyless") | undefined;
     return new AccountAuthenticatorMultiKey(
       accountPublicKey,
       new MultiKeySignature({
-        signatures: accountPublicKey.publicKeys.map((pubKey) => {
-          if (KeylessPublicKey.isInstance(pubKey.publicKey) || FederatedKeylessPublicKey.isInstance(pubKey.publicKey)) {
-            return new AnySignature(KeylessSignature.getSimulationSignature());
+        signatures: await Promise.all(accountPublicKey.publicKeys.map(async (pubKey) => {
+          if (
+            pubKey.variant === AnyPublicKeyVariant.Keyless ||
+            pubKey.variant === AnyPublicKeyVariant.FederatedKeyless
+          ) {
+            keylessSignatureModule ??= await import("../../core/crypto/keyless");
+            return new AnySignature(keylessSignatureModule.KeylessSignature.getSimulationSignature());
           }
           return new AnySignature(invalidSignature);
-        }),
+        })),
         bitmap: accountPublicKey.createBitmap({
           bits: new Array(accountPublicKey.publicKeys.length).fill(0).map((_, i) => i),
         }),

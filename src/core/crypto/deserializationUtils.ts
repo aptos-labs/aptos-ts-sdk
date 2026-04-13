@@ -1,20 +1,12 @@
-import {
-  AnyPublicKey,
-  Ed25519PublicKey,
-  MultiKey,
-  KeylessPublicKey,
-  MultiEd25519PublicKey,
-  FederatedKeylessPublicKey,
-  Secp256k1PublicKey,
-  Signature,
-  PublicKey,
-  Ed25519Signature,
-  Secp256k1Signature,
-  KeylessSignature,
-  AnySignature,
-  MultiEd25519Signature,
-  MultiKeySignature,
-} from "..";
+import { AnyPublicKey, AnySignature } from "./singleKey";
+import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
+import { MultiKey, MultiKeySignature } from "./multiKey";
+import { KeylessPublicKey, KeylessSignature } from "./keyless";
+import { MultiEd25519PublicKey, MultiEd25519Signature } from "./multiEd25519";
+import { FederatedKeylessPublicKey } from "./federatedKeyless";
+import { Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1";
+import { PublicKey } from "./publicKey";
+import { Signature } from "./signature";
 import { Deserializer } from "../../bcs/deserializer";
 import { HexInput } from "../../types";
 

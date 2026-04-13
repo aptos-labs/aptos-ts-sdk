@@ -11,19 +11,22 @@
 import { jwtDecode, JwtPayload } from "jwt-decode";
 import { AptosConfig } from "../api/aptosConfig";
 import { postAptosPepperService, postAptosProvingService } from "../client";
+import { AccountAddressInput } from "../core/accountAddress";
+import { Hex } from "../core/hex";
+import { EphemeralSignature } from "../core/crypto/ephemeral";
 import {
-  AccountAddressInput,
-  EphemeralSignature,
   Groth16Zkp,
-  Hex,
   KeylessPublicKey,
   MoveJWK,
   ZeroKnowledgeSig,
   ZkProof,
   getKeylessConfig,
-} from "../core";
+} from "../core/crypto/keyless";
 import { HexInput, ZkpVariant } from "../types";
-import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
+import { Account } from "../account";
+import { EphemeralKeyPair } from "../account/EphemeralKeyPair";
+import { KeylessAccount } from "../account/KeylessAccount";
+import { ProofFetchCallback } from "../account/AbstractKeylessAccount";
 import { PepperFetchRequest, PepperFetchResponse, ProverRequest, ProverResponse } from "../types/keyless";
 import { lookupOriginalAccountAddress } from "./account";
 import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";

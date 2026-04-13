@@ -1,9 +1,13 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
+import { Account } from "../account";
+import { EphemeralKeyPair } from "../account/EphemeralKeyPair";
+import { KeylessAccount } from "../account/KeylessAccount";
+import { ProofFetchCallback } from "../account/AbstractKeylessAccount";
 import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
-import { AccountAddressInput, ZeroKnowledgeSig } from "../core";
+import { AccountAddressInput } from "../core/accountAddress";
+import { ZeroKnowledgeSig } from "../core/crypto/keyless";
 import {
   deriveKeylessAccount,
   getPepper,
