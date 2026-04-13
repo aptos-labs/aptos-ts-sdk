@@ -53,6 +53,7 @@
     "@noble/hashes": "1.8.0"
   },
   "devDependencies": {
+    "@aptos-labs/ts-sdk": "file:..",
     "@swc/cli": "^0.8.0",
     "@swc/core": "^1.15.18",
     "@types/node": "^22.19.13",

@@ -17,9 +17,6 @@ importers:
       '@aptos-labs/confidential-asset-bindings':
         specifier: ^1.1.1
         version: 1.1.1(expo@55.0.11)(react-native@0.84.1(@babel/core@7.29.0)(react@19.2.4))(react@19.2.4)
-      '@aptos-labs/ts-sdk':
-        specifier: ^5.2.1 || ^6.3.1
-        version: 6.3.1(got@13.0.0)
       '@noble/curves':
         specifier: 1.9.7
         version: 1.9.7
@@ -27,6 +24,9 @@ importers:
         specifier: 1.8.0
         version: 1.8.0
     devDependencies:
+      '@aptos-labs/ts-sdk':
+        specifier: file:..
+        version: file:..
       '@swc/cli':
         specifier: ^0.8.0
         version: 0.8.0(@swc/core@1.15.18)
@@ -69,15 +69,19 @@ importers:
 
 packages:
 
-  '@aptos-labs/aptos-cli@1.1.1':
-    resolution: {integrity: sha512-sB7CokCM6s76SLJmccysbnFR+MDik6udKfj2+9ZsmTLV0/t73veIeCDKbvWJmbW267ibx4HiGbPI7L+1+yjEbQ==}
+  '@aptos-labs/aptos-cli@2.0.0':
+    resolution: {integrity: sha512-b5xcV4/Aia7GpCRRswmXUr/icE02vY0C+4McwlNGo6dbJQwPh/TpL1ewGvk7vbSJAMKa9l85yJY6JFZdpfDwVQ==}
+    engines: {node: '>=22'}
     hasBin: true
 
-  '@aptos-labs/aptos-client@2.1.0':
-    resolution: {integrity: sha512-ttdY0qclRvbYAAwzijkFeipuqTfLFJnoXlNIm58tIw3DKhIlfYdR6iLqTeCpI23oOPghnO99FZecej/0MTrtuA==}
-    engines: {node: '>=20.0.0'}
+  '@aptos-labs/aptos-client@3.0.2':
+    resolution: {integrity: sha512-DH3Zh7k3mQCzqCHtDX7yVCMHCKWAF4n0ii38Jm85EUUbpYIzJG07a1q7AvMUqktsIsEYpZaaLQK9mLcKQgtJTA==}
+    engines: {node: '>=22.0.0'}
     peerDependencies:
-      got: ^11.8.6
+      undici: ^7.24.1
+    peerDependenciesMeta:
+      undici:
+        optional: true
 
   '@aptos-labs/confidential-asset-bindings@1.1.1':
     resolution: {integrity: sha512-vIqdsNYDVAgZBjdxGbDE5OHMAvbiqy26udMmkJfrrVWmzDqhoy9ESCKU/FmfnyGzcuapxigVrlmhFd4kQODlsw==}
@@ -86,9 +90,9 @@ packages:
       react: '*'
       react-native: '*'
 
-  '@aptos-labs/ts-sdk@6.3.1':
-    resolution: {integrity: sha512-1C13IaHgNIo6MHMTQEcDzeuqTNv++evdY+Ph3IAGLnHlG7Yevdxw50W0nyAJRf4bLzQDI20wfJ66wD2qMg7Rew==}
-    engines: {node: '>=20.0.0'}
+  '@aptos-labs/ts-sdk@file:..':
+    resolution: {directory: .., type: directory}
+    engines: {node: ^22 || ^23 || ^24 || ^25}
 
   '@babel/code-frame@7.29.0':
     resolution: {integrity: sha512-9NhCeYjq9+3uxgdtp20LSiJXJvN0FeCtNGpJxuMFZ1Kv3cWUNb6DOhJwUvcVCzKGR66cw4njwM6hrJLqgOwbcw==}
@@ -1961,6 +1965,10 @@ packages:
     resolution: {integrity: sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==}
     engines: {node: '>=18'}
 
+  commander@14.0.3:
+    resolution: {integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==}
+    engines: {node: '>=20'}
+
   commander@2.20.3:
     resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
 
@@ -3611,6 +3619,10 @@ packages:
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
+  undici@7.25.0:
+    resolution: {integrity: sha512-xXnp4kTyor2Zq+J1FfPI6Eq3ew5h6Vl0F/8d9XU5zZQf1tX9s2Su1/3PiMmUANFULpmksxkClamIZcaUqryHsQ==}
+    engines: {node: '>=20.18.1'}
+
   unicode-canonical-property-names-ecmascript@2.0.1:
     resolution: {integrity: sha512-dA8WbNeb2a6oQzAQ55YlT5vQAWGV9WXOsi3SskE3bcCdM0P4SDd+24zS/OCacdRq5BkdsRj9q3Pg6YyQoxIGqg==}
     engines: {node: '>=4'}
@@ -3839,13 +3851,13 @@ packages:
 
 snapshots:
 
-  '@aptos-labs/aptos-cli@1.1.1':
+  '@aptos-labs/aptos-cli@2.0.0':
     dependencies:
-      commander: 12.1.0
+      commander: 14.0.3
 
-  '@aptos-labs/aptos-client@2.1.0(got@13.0.0)':
-    dependencies:
-      got: 13.0.0
+  '@aptos-labs/aptos-client@3.0.2(undici@7.25.0)':
+    optionalDependencies:
+      undici: 7.25.0
 
   '@aptos-labs/confidential-asset-bindings@1.1.1(expo@55.0.11)(react-native@0.84.1(@babel/core@7.29.0)(react@19.2.4))(react@19.2.4)':
     dependencies:
@@ -3853,10 +3865,10 @@ snapshots:
       react: 19.2.4
       react-native: 0.84.1(@babel/core@7.29.0)(react@19.2.4)
 
-  '@aptos-labs/ts-sdk@6.3.1(got@13.0.0)':
+  '@aptos-labs/ts-sdk@file:..':
     dependencies:
-      '@aptos-labs/aptos-cli': 1.1.1
-      '@aptos-labs/aptos-client': 2.1.0(got@13.0.0)
+      '@aptos-labs/aptos-cli': 2.0.0
+      '@aptos-labs/aptos-client': 3.0.2(undici@7.25.0)
       '@noble/curves': 1.9.7
       '@noble/hashes': 1.8.0
       '@scure/bip32': 1.7.0
@@ -3865,8 +3877,8 @@ snapshots:
       js-base64: 3.7.8
       jwt-decode: 4.0.0
       poseidon-lite: 0.2.1
-    transitivePeerDependencies:
-      - got
+    optionalDependencies:
+      undici: 7.25.0
 
   '@babel/code-frame@7.29.0':
     dependencies:
@@ -6068,6 +6080,8 @@ snapshots:
 
   commander@12.1.0: {}
 
+  commander@14.0.3: {}
+
   commander@2.20.3: {}
 
   commander@4.1.1: {}
@@ -7824,6 +7838,9 @@ snapshots:
       through: 2.3.8
 
   undici-types@6.21.0: {}
+
+  undici@7.25.0:
+    optional: true
 
   unicode-canonical-property-names-ecmascript@2.0.1: {}
 
