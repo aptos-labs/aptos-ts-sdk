@@ -92,6 +92,15 @@ export enum TransactionPayloadVariants {
 }
 
 /**
+ * Variants for the inner payload of a multisig account transaction.
+ * {@link https://github.com/aptos-labs/aptos-core/blob/main/aptos-move/framework/aptos-framework/sources/multisig_account.move}
+ */
+export enum MultiSigTransactionPayloadVariants {
+  EntryFunction = 0,
+  Script = 1,
+}
+
+/**
  * The inner payload type to support orderless transactions and all future transaction types.
  * {@link https://github.com/aptos-labs/aptos-core/blob/main/types/src/transaction/mod.rs#L478}
  */

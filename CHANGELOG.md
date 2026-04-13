@@ -4,8 +4,13 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Added
+
+- Add support for script payloads in multisig transactions. `MultiSigTransactionPayload` now accepts both `EntryFunction` and `Script` payloads, and the new `InputMultiSigScriptData` type allows building multisig transactions with script bytecode. This aligns with the upstream `MultisigTransactionPayload::Script` variant added in aptos-core.
+
 ## Changed
 
+- Introduce `MultiSigTransactionPayloadVariants` for multisig inner payload BCS tags and consolidate bytecode handling in `buildTransactionPayload`.
 - Pin `@noble/curves` and `@noble/hashes` to the latest 1.x releases without semver ranges (CJS-compatible; noble v2 is ESM-only).
 
 ## Fixed

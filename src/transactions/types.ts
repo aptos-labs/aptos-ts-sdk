@@ -183,7 +183,11 @@ export type AnyTransactionPayloadInstance =
  * @group Implementation
  * @category Transactions
  */
-export type InputGenerateTransactionPayloadData = InputEntryFunctionData | InputScriptData | InputMultiSigData;
+export type InputGenerateTransactionPayloadData =
+  | InputEntryFunctionData
+  | InputScriptData
+  | InputMultiSigData
+  | InputMultiSigScriptData;
 
 /**
  * The payload for generating a transaction, which can be either script data, entry function data with remote ABI, or
@@ -193,6 +197,7 @@ export type InputGenerateTransactionPayloadData = InputEntryFunctionData | Input
  */
 export type InputGenerateTransactionPayloadDataWithRemoteABI =
   | InputScriptData
+  | InputMultiSigScriptData
   | InputEntryFunctionDataWithRemoteABI
   | InputMultiSigDataWithRemoteABI;
 
@@ -267,6 +272,15 @@ export type InputScriptData = {
   typeArguments?: Array<TypeArgument>;
   functionArguments: Array<ScriptFunctionArgumentTypes>;
 };
+
+/**
+ * The data needed to generate a Multi Sig payload with a Script.
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputMultiSigScriptData = {
+  multisigAddress: AccountAddressInput;
+} & InputScriptData;
 
 /**
  * The data needed to generate a View Function payload.
