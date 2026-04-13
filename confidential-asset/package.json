@@ -52,6 +52,9 @@
     "@noble/curves": "1.9.7",
     "@noble/hashes": "1.8.0"
   },
+  "optionalDependencies": {
+    "undici": "7.24.7"
+  },
   "devDependencies": {
     "@aptos-labs/ts-sdk": "file:..",
     "@swc/cli": "^0.8.0",

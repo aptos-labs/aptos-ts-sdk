@@ -16,6 +16,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - **confidential-asset:** Dev-depend on the monorepo SDK via `file:..` so CI `--frozen-lockfile` installs match the workspace `@aptos-labs/ts-sdk` (aptos-client v3) instead of a stale registry snapshot.
 - **CI:** Run `pnpm build` at the repo root before confidential-asset tests so the linked SDK’s `dist/` output exists.
 - **CI (pnpm 10):** Declare `pnpm.onlyBuiltDependencies` for `esbuild` and `@swc/core` so install postinstall scripts run in CI (default pnpm v10 skips them, breaking `tsup`/Vitest).
+- Pin `undici` to **7.24.7** (exact) for the optional dependency so Aptos Safe-chain’s minimum package age check does not block installs of **7.25.0** in CI.
 
 ## Breaking Changes
 
@@ -24,7 +25,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 ## Changed
 
 - Upgrade to aptos-cli 3.x.x
-- Upgrade to aptos-client ^3.0.2; declare `undici` as an `optionalDependency` so Node installs satisfy the client’s optional peer and the Node entry’s `undici` import (CI / strict installs).
+- Upgrade to aptos-client ^3.0.2; declare `undici` as an `optionalDependency` (pinned to 7.24.7) so Node installs satisfy the client’s optional peer and the Node entry’s `undici` import without tripping CI supply-chain minimum-age rules on the latest patch.
 
 # 6.3.0 (2026-03-22)
 

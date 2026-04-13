@@ -63,7 +63,7 @@
     "poseidon-lite": "^0.2.0"
   },
   "optionalDependencies": {
-    "undici": "^7.24.7"
+    "undici": "7.24.7"
   },
   "devDependencies": {
     "@babel/traverse": "^7.28.6",
