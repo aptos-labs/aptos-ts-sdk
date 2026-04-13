@@ -21,10 +21,10 @@ importers:
         specifier: ^5.2.1 || ^6.1.0
         version: 6.1.0(got@13.0.0)
       '@noble/curves':
-        specifier: ^1.9.7
+        specifier: 1.9.7
         version: 1.9.7
       '@noble/hashes':
-        specifier: ^1.8.0
+        specifier: 1.8.0
         version: 1.8.0
     devDependencies:
       '@swc/cli':

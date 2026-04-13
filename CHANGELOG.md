@@ -6,7 +6,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Changed
 
-- Bump `@noble/curves` and `@noble/hashes` to the latest 1.x releases (CJS-compatible; noble v2 is ESM-only).
+- Pin `@noble/curves` and `@noble/hashes` to the latest 1.x releases without semver ranges (CJS-compatible; noble v2 is ESM-only).
 
 ## Fixed
 
