@@ -94,6 +94,10 @@
       "js-yaml": "4.1.1",
       "diff": "4.0.4",
       "immutable": "^4.3.8"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "@swc/core"
+    ]
   }
 }

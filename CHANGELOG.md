@@ -15,6 +15,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - **confidential-asset:** Optional `feePayerAccount` on `ConfidentialAsset` plus explicit `feePayerAuthenticator` on submit (and bypass nested `TRANSACTION_SUBMITTER` when set); e2e tests fund accounts enough for default sponsored max-gas reserves.
 - **confidential-asset:** Dev-depend on the monorepo SDK via `file:..` so CI `--frozen-lockfile` installs match the workspace `@aptos-labs/ts-sdk` (aptos-client v3) instead of a stale registry snapshot.
 - **CI:** Run `pnpm build` at the repo root before confidential-asset tests so the linked SDK’s `dist/` output exists.
+- **CI (pnpm 10):** Declare `pnpm.onlyBuiltDependencies` for `esbuild` and `@swc/core` so install postinstall scripts run in CI (default pnpm v10 skips them, breaking `tsup`/Vitest).
 
 ## Breaking Changes
 
