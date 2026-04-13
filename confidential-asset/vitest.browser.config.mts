@@ -1,5 +1,8 @@
+import path from "node:path";
 import { defineConfig } from "vitest/config";
 import { playwright } from "@vitest/browser-playwright";
+
+const repoRoot = path.resolve(import.meta.dirname, "..");
 
 /**
  * Real-browser test configuration using @vitest/browser + Playwright (Chromium).
@@ -15,6 +18,16 @@ import { playwright } from "@vitest/browser-playwright";
  *   pnpm test:browser
  */
 export default defineConfig({
+  resolve: {
+    alias: {
+      "@aptos-labs/ts-sdk": path.join(repoRoot, "src/index.ts"),
+    },
+  },
+  server: {
+    fs: {
+      allow: [repoRoot, import.meta.dirname],
+    },
+  },
   test: {
     globals: true,
     browser: {

@@ -1,7 +1,22 @@
-import { defineConfig } from "vitest/config";
 import path from "path";
+import { defineConfig } from "vitest/config";
+
+// Monorepo checkout: `@aptos-labs/ts-sdk` is linked via `file:..`. Vite resolves
+// `package.json#exports` and expects `dist/*`; CI can run tests before `dist/`
+// exists or after a clean. Point Vitest at the SDK source so suites always load.
+const repoRoot = path.resolve(__dirname, "..");
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      "@aptos-labs/ts-sdk": path.join(repoRoot, "src/index.ts"),
+    },
+  },
+  server: {
+    fs: {
+      allow: [repoRoot, __dirname],
+    },
+  },
   test: {
     globals: true,
     environment: "node",
