@@ -11,10 +11,75 @@
   },
   "homepage": "https://aptos-labs.github.io/aptos-ts-sdk/",
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./account": {
+      "types": "./dist/account.d.ts",
+      "default": "./dist/account.js"
+    },
+    "./abstraction": {
+      "types": "./dist/abstraction.d.ts",
+      "default": "./dist/abstraction.js"
+    },
+    "./ans": {
+      "types": "./dist/ans.d.ts",
+      "default": "./dist/ans.js"
+    },
+    "./coin": {
+      "types": "./dist/coin.d.ts",
+      "default": "./dist/coin.js"
+    },
+    "./digitalAsset": {
+      "types": "./dist/digitalAsset.d.ts",
+      "default": "./dist/digitalAsset.js"
+    },
+    "./faucet": {
+      "types": "./dist/faucet.d.ts",
+      "default": "./dist/faucet.js"
+    },
+    "./fungibleAsset": {
+      "types": "./dist/fungibleAsset.d.ts",
+      "default": "./dist/fungibleAsset.js"
+    },
+    "./general": {
+      "types": "./dist/general.d.ts",
+      "default": "./dist/general.js"
+    },
+    "./keyless": {
+      "types": "./dist/keyless.d.ts",
+      "default": "./dist/keyless.js"
+    },
+    "./object": {
+      "types": "./dist/object.d.ts",
+      "default": "./dist/object.js"
+    },
+    "./staking": {
+      "types": "./dist/staking.d.ts",
+      "default": "./dist/staking.js"
+    },
+    "./table": {
+      "types": "./dist/table.d.ts",
+      "default": "./dist/table.js"
+    },
+    "./transaction": {
+      "types": "./dist/transaction.d.ts",
+      "default": "./dist/transaction.js"
+    },
+    "./view": {
+      "types": "./dist/view.d.ts",
+      "default": "./dist/view.js"
+    },
+    "./crypto": {
+      "types": "./dist/crypto.d.ts",
+      "default": "./dist/crypto.js"
+    },
+    "./bcs": {
+      "types": "./dist/bcs.d.ts",
+      "default": "./dist/bcs.js"
     },
     "./cli": {
       "types": "./dist/cli/index.d.ts",
