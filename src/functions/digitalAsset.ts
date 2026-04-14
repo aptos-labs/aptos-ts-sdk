@@ -27,3 +27,6 @@ export {
   addDigitalAssetTypedPropertyTransaction,
   updateDigitalAssetTypedPropertyTransaction,
 } from "../internal/digitalAsset.js";
+
+export { DigitalAsset } from "../api/digitalAsset.js";
+export { AptosConfig } from "../api/aptosConfig.js";

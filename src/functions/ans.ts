@@ -21,3 +21,6 @@ export {
   getANSGracePeriod,
   renewDomain,
 } from "../internal/ans.js";
+
+export { ANS } from "../api/ans.js";
+export { AptosConfig } from "../api/aptosConfig.js";
