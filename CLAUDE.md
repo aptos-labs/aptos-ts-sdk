@@ -22,7 +22,7 @@ This SDK must work in **all** of the following runtimes:
 - No `process.env` without guards
 - `src/cli/` is the only exception (Node-only by design)
 
-Runtime-specific tests exist in `examples/web-test/` (Playwright), `examples/bun-test/`, and `examples/deno-test/`, with corresponding CI workflows.
+Runtime-specific tests exist in `examples/web-test/` (Playwright), `examples/bun-test/`, and `examples/deno-test/`, with corresponding CI workflows. React Native is supported but not CI-tested — browser tests cover the same API surface (requires RN 0.74+ for Hermes `TextEncoder`/`crypto.getRandomValues` support).
 
 ## Common Commands
 
