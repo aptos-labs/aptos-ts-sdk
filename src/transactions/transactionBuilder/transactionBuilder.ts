@@ -9,13 +9,7 @@
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { AptosConfig } from "../../api/aptosConfig";
 import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
-import {
-  AnyPublicKey,
-  AnySignature,
-  Secp256k1PublicKey,
-  MultiKey,
-  MultiKeySignature,
-} from "../../core/crypto";
+import { AnyPublicKey, AnySignature, Secp256k1PublicKey, MultiKey, MultiKeySignature } from "../../core/crypto";
 import { AnyPublicKeyVariant } from "../../types";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { getInfo } from "../../internal/utils";
@@ -687,9 +681,7 @@ export async function getAuthenticatorForSimulation(publicKey?: PublicKey) {
   // Learn more about AnyPublicKey here - https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-55.md
   const isKeylessInstance = (key: PublicKey): boolean =>
     "iss" in key && typeof (key as any).iss === "string" && "idCommitment" in key;
-  const convertToAnyPublicKey =
-    isKeylessInstance(publicKey) ||
-    Secp256k1PublicKey.isInstance(publicKey);
+  const convertToAnyPublicKey = isKeylessInstance(publicKey) || Secp256k1PublicKey.isInstance(publicKey);
   const accountPublicKey = convertToAnyPublicKey ? new AnyPublicKey(publicKey) : publicKey;
 
   // No need to for the signature to be matching in scheme. All that matters for simulations is that it's not valid
@@ -719,16 +711,18 @@ export async function getAuthenticatorForSimulation(publicKey?: PublicKey) {
     return new AccountAuthenticatorMultiKey(
       accountPublicKey,
       new MultiKeySignature({
-        signatures: await Promise.all(accountPublicKey.publicKeys.map(async (pubKey) => {
-          if (
-            pubKey.variant === AnyPublicKeyVariant.Keyless ||
-            pubKey.variant === AnyPublicKeyVariant.FederatedKeyless
-          ) {
-            keylessSignatureModule ??= await import("../../core/crypto/keyless");
-            return new AnySignature(keylessSignatureModule.KeylessSignature.getSimulationSignature());
-          }
-          return new AnySignature(invalidSignature);
-        })),
+        signatures: await Promise.all(
+          accountPublicKey.publicKeys.map(async (pubKey) => {
+            if (
+              pubKey.variant === AnyPublicKeyVariant.Keyless ||
+              pubKey.variant === AnyPublicKeyVariant.FederatedKeyless
+            ) {
+              keylessSignatureModule ??= await import("../../core/crypto/keyless");
+              return new AnySignature(keylessSignatureModule.KeylessSignature.getSimulationSignature());
+            }
+            return new AnySignature(invalidSignature);
+          }),
+        ),
         bitmap: accountPublicKey.createBitmap({
           bits: new Array(accountPublicKey.publicKeys.length).fill(0).map((_, i) => i),
         }),
