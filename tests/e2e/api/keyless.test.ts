@@ -1,16 +1,10 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-  Account,
-  FederatedKeylessAccount,
-  Groth16Zkp,
-  KeylessAccount,
-  ProofFetchStatus,
-  ZeroKnowledgeSig,
-  ZkProof,
-  ZkpVariant,
-} from "../../../src";
+import { Account, ProofFetchStatus, ZkpVariant } from "../../../src";
+import { KeylessAccount } from "../../../src/account/KeylessAccount";
+import { FederatedKeylessAccount } from "../../../src/account/FederatedKeylessAccount";
+import { Groth16Zkp, ZeroKnowledgeSig, ZkProof } from "../../../src/core/crypto/keyless";
 import { clearMemoizeCache } from "../../../src/utils/memoize";
 
 import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper";

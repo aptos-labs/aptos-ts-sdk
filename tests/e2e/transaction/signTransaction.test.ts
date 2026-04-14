@@ -13,15 +13,19 @@ import {
   generateSigningMessageForTransaction,
   Hex,
 } from "../../../src";
-import { p256 } from "@noble/curves/nist";
-import { sha256 } from "@noble/hashes/sha2";
-import { sha3_256 } from "@noble/hashes/sha3";
+import { p256 } from "@noble/curves/nist.js";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { sha3_256 } from "@noble/hashes/sha3.js";
 import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import { fundAccounts, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
-import { Base64 } from "js-base64";
-
 const { aptos } = getAptosClient();
+
+const b64urlEncode = (u8: Uint8Array) =>
+  btoa(String.fromCharCode(...u8))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 
 describe("sign transaction", () => {
   const contractPublisherAccount = Account.generate();
@@ -252,7 +256,7 @@ describe("sign transaction", () => {
       const challenge = sha3_256(message);
       const clientDataObj = {
         type: "webauthn.get",
-        challenge: Base64.fromUint8Array(challenge, true),
+        challenge: b64urlEncode(challenge),
         origin: "http://localhost:5173",
         crossOrigin: false,
       } as const;
@@ -271,8 +275,7 @@ describe("sign transaction", () => {
       toBeSigned.set(clientHash, authenticatorData.length);
       const webauthnDigest = sha256(toBeSigned);
       const privBytes = Hex.fromHexInput(privateKey.toHexString()).toUint8Array();
-      const sig = p256.sign(webauthnDigest, privBytes);
-      const signatureBytes = sig.toCompactRawBytes();
+      const signatureBytes = p256.sign(webauthnDigest, privBytes, { prehash: false });
 
       // Create WebAuthn signature
       const webAuthnSignature = new WebAuthnSignature(signatureBytes, authenticatorData, clientDataJSON);
@@ -304,7 +307,7 @@ describe("sign transaction", () => {
       const challenge = sha3_256(message);
       const clientDataObj = {
         type: "webauthn.get",
-        challenge: Base64.fromUint8Array(challenge, true),
+        challenge: b64urlEncode(challenge),
         origin: "http://localhost:5173",
         crossOrigin: false,
       } as const;
@@ -320,8 +323,7 @@ describe("sign transaction", () => {
       toBeSigned.set(clientHash, authenticatorData.length);
       const webauthnDigest = sha256(toBeSigned);
       const privBytes = Hex.fromHexInput(privateKey.toHexString()).toUint8Array();
-      const sig = p256.sign(webauthnDigest, privBytes);
-      const signatureBytes = sig.toCompactRawBytes();
+      const signatureBytes = p256.sign(webauthnDigest, privBytes, { prehash: false });
 
       const webAuthnSignature = new WebAuthnSignature(signatureBytes, authenticatorData, clientDataJSON);
 
