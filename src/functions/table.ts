@@ -6,3 +6,6 @@ export {
   getTableItemsData,
   getTableItemsMetadata,
 } from "../internal/table.js";
+
+export { Table } from "../api/table.js";
+export { AptosConfig } from "../api/aptosConfig.js";

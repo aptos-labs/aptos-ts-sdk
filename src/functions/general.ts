@@ -9,3 +9,6 @@ export {
   getIndexerLastSuccessVersion,
   getProcessorStatus,
 } from "../internal/general.js";
+
+export { General } from "../api/general.js";
+export { AptosConfig } from "../api/aptosConfig.js";

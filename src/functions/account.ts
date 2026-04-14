@@ -33,3 +33,6 @@ export {
   getAccountsForPublicKey,
   deriveOwnedAccountsFromSigner,
 } from "../internal/account.js";
+
+export { Account } from "../api/account.js";
+export { AptosConfig } from "../api/aptosConfig.js";

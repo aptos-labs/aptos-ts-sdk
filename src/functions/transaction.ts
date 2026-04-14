@@ -27,3 +27,6 @@ export {
   signAndSubmitAsFeePayer,
   publicPackageTransaction,
 } from "../internal/transactionSubmission.js";
+
+export { Transaction } from "../api/transaction.js";
+export { AptosConfig } from "../api/aptosConfig.js";

@@ -6,3 +6,6 @@ export {
   getNumberOfDelegatorsForAllPools,
   getDelegatedStakingActivities,
 } from "../internal/staking.js";
+
+export { Staking } from "../api/staking.js";
+export { AptosConfig } from "../api/aptosConfig.js";

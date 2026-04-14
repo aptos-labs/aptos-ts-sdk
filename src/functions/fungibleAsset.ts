@@ -8,3 +8,6 @@ export {
   transferFungibleAsset,
   transferFungibleAssetBetweenStores,
 } from "../internal/fungibleAsset.js";
+
+export { FungibleAsset } from "../api/fungibleAsset.js";
+export { AptosConfig } from "../api/aptosConfig.js";

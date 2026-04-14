@@ -12,3 +12,6 @@ export {
   deriveKeylessAccount,
   updateFederatedKeylessJwkSetTransaction,
 } from "../internal/keyless.js";
+
+export { Keyless } from "../api/keyless.js";
+export { AptosConfig } from "../api/aptosConfig.js";
