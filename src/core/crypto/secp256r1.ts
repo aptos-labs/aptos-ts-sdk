@@ -301,7 +301,7 @@ export class Secp256r1PrivateKey extends PrivateKey {
     const msgHex = Hex.fromHexInput(message);
     const sha3Message = sha3_256(msgHex.toUint8Array());
     const signature = p256.sign(sha3Message, this.key.toUint8Array(), { prehash: false });
-    return new Secp256r1Signature(signature);
+    return new Secp256r1Signature(signature.toCompactRawBytes());
   }
 
   /**

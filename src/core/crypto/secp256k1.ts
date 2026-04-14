@@ -353,7 +353,7 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
     const messageBytes = Hex.fromHexInput(messageToSign);
     const messageHashBytes = sha3_256(messageBytes.toUint8Array());
     const signature = secp256k1.sign(messageHashBytes, this.key.toUint8Array(), { lowS: true, prehash: false });
-    return new Secp256k1Signature(signature);
+    return new Secp256k1Signature(signature.toCompactRawBytes());
   }
 
   /**

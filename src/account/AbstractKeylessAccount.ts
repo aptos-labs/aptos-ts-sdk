@@ -28,7 +28,6 @@ import { deriveTransactionType, generateSigningMessage } from "../transactions/t
 import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types";
 import { base64UrlDecode, warnIfDevelopment } from "../utils/helpers";
 import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
-import { Account } from "./Account";
 import { AptosConfig } from "../api/aptosConfig";
 import { KeylessError, KeylessErrorType } from "../errors";
 import type { SingleKeySigner } from "./SingleKeyAccount";

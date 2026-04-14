@@ -17,10 +17,10 @@ import {
   MultiKey,
   MultiKeyAccount,
   MultiEd25519PublicKey,
-  KeylessAccount,
   AuthenticationKey,
   AccountPublicKey,
 } from "../../src";
+import { KeylessAccount } from "../../src/account/KeylessAccount";
 import { MultiEd25519Account } from "../../src/account/MultiEd25519Account";
 
 import {

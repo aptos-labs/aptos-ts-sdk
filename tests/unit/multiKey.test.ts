@@ -1,7 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Deserializer, Ed25519PublicKey, Secp256k1PublicKey, MultiKey, KeylessPublicKey } from "../../src";
+import { Deserializer, Ed25519PublicKey, Secp256k1PublicKey, MultiKey } from "../../src";
+import { KeylessPublicKey } from "../../src/core/crypto/keyless";
 import { keylessTestObject, multiKeyTestObject } from "./helper";
 
 describe("MultiKey", () => {
