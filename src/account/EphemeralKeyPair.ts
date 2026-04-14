@@ -3,14 +3,14 @@
 
 import { randomBytes } from "@noble/hashes/utils.js";
 
-import { bytesToBigIntLE, padAndPackBytesWithLen, poseidonHash } from "../core/crypto/poseidon";
-import { EphemeralPublicKey, EphemeralSignature } from "../core/crypto/ephemeral";
-import { Ed25519PrivateKey } from "../core/crypto/ed25519";
-import { PrivateKey } from "../core/crypto/privateKey";
-import { Hex } from "../core/hex";
-import { EphemeralPublicKeyVariant, HexInput } from "../types";
-import { Deserializer, Serializable, Serializer } from "../bcs";
-import { floorToWholeHour, nowInSeconds } from "../utils/helpers";
+import { bytesToBigIntLE, padAndPackBytesWithLen, poseidonHash } from "../core/crypto/poseidon.js";
+import { EphemeralPublicKey, EphemeralSignature } from "../core/crypto/ephemeral.js";
+import { Ed25519PrivateKey } from "../core/crypto/ed25519.js";
+import { PrivateKey } from "../core/crypto/privateKey.js";
+import { Hex } from "../core/hex.js";
+import { EphemeralPublicKeyVariant, HexInput } from "../types/index.js";
+import { Deserializer, Serializable, Serializer } from "../bcs/index.js";
+import { floorToWholeHour, nowInSeconds } from "../utils/helpers.js";
 
 const TWO_WEEKS_IN_SECONDS = 1_209_600;
 

@@ -1,6 +1,6 @@
-import { SigningScheme } from "../types";
-import { AccountAddress } from "../core";
-import { Deserializer } from "../bcs/deserializer";
+import { SigningScheme } from "../types/index.js";
+import { AccountAddress } from "../core/index.js";
+import { Deserializer } from "../bcs/deserializer.js";
 
 export function deserializeSchemeAndAddress(deserializer: Deserializer): {
   address: AccountAddress;

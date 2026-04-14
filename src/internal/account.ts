@@ -8,13 +8,13 @@
  * account namespace and without having a dependency cycle error.
  * @group Implementation
  */
-import { AptosConfig } from "../api/aptosConfig";
+import { AptosConfig } from "../api/aptosConfig.js";
 import {
   getAptosFullNode,
   getPageWithObfuscatedCursor,
   paginateWithCursor,
   paginateWithObfuscatedCursor,
-} from "../client";
+} from "../client/index.js";
 import {
   AccountData,
   anyPublicKeyVariantToString,
@@ -33,19 +33,19 @@ import {
   PaginationArgs,
   TokenStandardArg,
   WhereArg,
-} from "../types";
-import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { Account, Ed25519Account, MultiEd25519Account, MultiKeyAccount, SingleKeyAccount } from "../account";
-import { KeylessAccount } from "../account/KeylessAccount";
-import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
-import { AccountPublicKey } from "../core/crypto/publicKey";
-import { AnyPublicKey, PrivateKeyInput } from "../core/crypto/singleKey";
-import { Ed25519PublicKey } from "../core/crypto/ed25519";
-import { MultiEd25519PublicKey } from "../core/crypto/multiEd25519";
-import { AbstractMultiKey, MultiKey } from "../core/crypto/multiKey";
-import { BaseAccountPublicKey } from "../core/crypto/types";
-import { queryIndexer } from "./general";
-import { getModule as getModuleUtil, getInfo as getInfoUtil } from "./utils";
+} from "../types/index.js";
+import { AccountAddress, AccountAddressInput } from "../core/accountAddress.js";
+import { Account, Ed25519Account, MultiEd25519Account, MultiKeyAccount, SingleKeyAccount } from "../account/index.js";
+import { KeylessAccount } from "../account/KeylessAccount.js";
+import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount.js";
+import { AccountPublicKey } from "../core/crypto/publicKey.js";
+import { AnyPublicKey, PrivateKeyInput } from "../core/crypto/singleKey.js";
+import { Ed25519PublicKey } from "../core/crypto/ed25519.js";
+import { MultiEd25519PublicKey } from "../core/crypto/multiEd25519.js";
+import { AbstractMultiKey, MultiKey } from "../core/crypto/multiKey.js";
+import { BaseAccountPublicKey } from "../core/crypto/types.js";
+import { queryIndexer } from "./general.js";
+import { getModule as getModuleUtil, getInfo as getInfoUtil } from "./utils/index.js";
 import {
   GetAccountCoinsCountQuery,
   GetAccountCoinsDataQuery,
@@ -57,7 +57,7 @@ import {
   GetAccountTransactionsCountQuery,
   GetAuthKeysForPublicKeyQuery,
   GetAccountAddressesForAuthKeyQuery,
-} from "../types/generated/operations";
+} from "../types/generated/operations.js";
 import {
   GetAccountCoinsCount,
   GetAccountCoinsData,
@@ -69,18 +69,18 @@ import {
   GetAccountTransactionsCount,
   GetAuthKeysForPublicKey,
   GetAccountAddressesForAuthKey,
-} from "../types/generated/queries";
-import { Secp256k1PrivateKey } from "../core/crypto/secp256k1";
-import { Ed25519PrivateKey } from "../core/crypto/ed25519";
-import { AuthenticationKey } from "../core/authenticationKey";
-import { createObjectAddress } from "../core/account/utils/address";
-import { Hex } from "../core/hex";
-import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
-import { getTableItem } from "./table";
-import { APTOS_COIN } from "../utils";
-import { AptosApiError } from "../errors";
-import { Deserializer, U8, MoveVector } from "../bcs";
-import { generateTransaction } from "./transactionSubmission";
+} from "../types/generated/queries.js";
+import { Secp256k1PrivateKey } from "../core/crypto/secp256k1.js";
+import { Ed25519PrivateKey } from "../core/crypto/ed25519.js";
+import { AuthenticationKey } from "../core/authenticationKey.js";
+import { createObjectAddress } from "../core/account/utils/address.js";
+import { Hex } from "../core/hex.js";
+import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types.js";
+import { getTableItem } from "./table.js";
+import { APTOS_COIN } from "../utils/index.js";
+import { AptosApiError } from "../errors/index.js";
+import { Deserializer, U8, MoveVector } from "../bcs/index.js";
+import { generateTransaction } from "./transactionSubmission.js";
 import {
   EntryFunctionABI,
   InputGenerateTransactionOptions,
@@ -88,8 +88,8 @@ import {
   SimpleTransaction,
   TypeTagU8,
   TypeTagVector,
-} from "../transactions";
-import { accountPublicKeyToBaseAccountPublicKey, accountPublicKeyToSigningScheme } from "../core/crypto/utils";
+} from "../transactions/index.js";
+import { accountPublicKeyToBaseAccountPublicKey, accountPublicKeyToSigningScheme } from "../core/crypto/utils.js";
 
 /**
  * Retrieves account information for a specified account address.

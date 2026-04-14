@@ -1,15 +1,15 @@
-import type { AccountAuthenticator } from "../transactions/authenticator/account";
-import { HexInput, SigningScheme, SigningSchemeInput } from "../types";
-import type { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { AuthenticationKey } from "../core/authenticationKey";
-import { AccountPublicKey, VerifySignatureArgs } from "../core/crypto/publicKey";
-import { Ed25519PrivateKey } from "../core/crypto/ed25519";
-import { PrivateKeyInput } from "../core/crypto/singleKey";
-import { Signature } from "../core/crypto/signature";
-import { Ed25519Account } from "./Ed25519Account";
-import { SingleKeyAccount } from "./SingleKeyAccount";
-import { AnyRawTransaction } from "../transactions/types";
-import { AptosConfig } from "../api/aptosConfig";
+import type { AccountAuthenticator } from "../transactions/authenticator/account.js";
+import { HexInput, SigningScheme, SigningSchemeInput } from "../types/index.js";
+import type { AccountAddress, AccountAddressInput } from "../core/accountAddress.js";
+import { AuthenticationKey } from "../core/authenticationKey.js";
+import { AccountPublicKey, VerifySignatureArgs } from "../core/crypto/publicKey.js";
+import { Ed25519PrivateKey } from "../core/crypto/ed25519.js";
+import { PrivateKeyInput } from "../core/crypto/singleKey.js";
+import { Signature } from "../core/crypto/signature.js";
+import { Ed25519Account } from "./Ed25519Account.js";
+import { SingleKeyAccount } from "./SingleKeyAccount.js";
+import { AnyRawTransaction } from "../transactions/types.js";
+import { AptosConfig } from "../api/aptosConfig.js";
 
 /**
  * Arguments for creating an `Ed25519Account` from an `Ed25519PrivateKey`.

@@ -5,4 +5,4 @@ export {
   getNumberOfDelegators,
   getNumberOfDelegatorsForAllPools,
   getDelegatedStakingActivities,
-} from "../internal/staking";
+} from "../internal/staking.js";

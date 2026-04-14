@@ -5,4 +5,4 @@ export {
   addAuthenticationFunctionTransaction,
   removeAuthenticationFunctionTransaction,
   removeDispatchableAuthenticatorTransaction,
-} from "../internal/abstraction";
+} from "../internal/abstraction.js";

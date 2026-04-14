@@ -9,11 +9,11 @@
  * @group Implementation
  */
 import { jwtDecode, JwtPayload } from "jwt-decode";
-import { AptosConfig } from "../api/aptosConfig";
-import { postAptosPepperService, postAptosProvingService } from "../client";
-import { AccountAddressInput } from "../core/accountAddress";
-import { Hex } from "../core/hex";
-import { EphemeralSignature } from "../core/crypto/ephemeral";
+import { AptosConfig } from "../api/aptosConfig.js";
+import { postAptosPepperService, postAptosProvingService } from "../client/index.js";
+import { AccountAddressInput } from "../core/accountAddress.js";
+import { Hex } from "../core/hex.js";
+import { EphemeralSignature } from "../core/crypto/ephemeral.js";
 import {
   Groth16Zkp,
   KeylessPublicKey,
@@ -21,21 +21,21 @@ import {
   ZeroKnowledgeSig,
   ZkProof,
   getKeylessConfig,
-} from "../core/crypto/keyless";
-import { HexInput, ZkpVariant } from "../types";
-import { Account } from "../account";
-import { EphemeralKeyPair } from "../account/EphemeralKeyPair";
-import { KeylessAccount } from "../account/KeylessAccount";
-import { ProofFetchCallback } from "../account/AbstractKeylessAccount";
-import { PepperFetchRequest, PepperFetchResponse, ProverRequest, ProverResponse } from "../types/keyless";
-import { lookupOriginalAccountAddress } from "./account";
-import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
-import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
-import { MoveVector } from "../bcs";
-import { generateTransaction } from "./transactionSubmission";
-import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions";
-import { KeylessError, KeylessErrorType } from "../errors";
-import { FIREBASE_AUTH_ISS_PATTERN } from "../utils/const";
+} from "../core/crypto/keyless.js";
+import { HexInput, ZkpVariant } from "../types/index.js";
+import { Account } from "../account/index.js";
+import { EphemeralKeyPair } from "../account/EphemeralKeyPair.js";
+import { KeylessAccount } from "../account/KeylessAccount.js";
+import { ProofFetchCallback } from "../account/AbstractKeylessAccount.js";
+import { PepperFetchRequest, PepperFetchResponse, ProverRequest, ProverResponse } from "../types/keyless.js";
+import { lookupOriginalAccountAddress } from "./account.js";
+import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless.js";
+import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount.js";
+import { MoveVector } from "../bcs/index.js";
+import { generateTransaction } from "./transactionSubmission.js";
+import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions/index.js";
+import { KeylessError, KeylessErrorType } from "../errors/index.js";
+import { FIREBASE_AUTH_ISS_PATTERN } from "../utils/const.js";
 
 /**
  * Retrieves a pepper value based on the provided configuration and authentication details.
@@ -281,7 +281,7 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
     });
   }
 
-  const jwks: JWKS = await response.json();
+  const jwks = (await response.json()) as JWKS;
   return generateTransaction({
     aptosConfig,
     sender: sender.accountAddress,

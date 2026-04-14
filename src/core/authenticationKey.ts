@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3.js";
-import { AccountAddress } from "./accountAddress";
-import type { AccountPublicKey } from "./crypto";
-import { Hex } from "./hex";
-import { AuthenticationKeyScheme, HexInput } from "../types";
-import { Serializable, Serializer } from "../bcs/serializer";
-import { Deserializer } from "../bcs/deserializer";
+import { AccountAddress } from "./accountAddress.js";
+import type { AccountPublicKey } from "./crypto/index.js";
+import { Hex } from "./hex.js";
+import { AuthenticationKeyScheme, HexInput } from "../types/index.js";
+import { Serializable, Serializer } from "../bcs/serializer.js";
+import { Deserializer } from "../bcs/deserializer.js";
 
 /**
  * Represents an authentication key used for account management. Each account stores an authentication key that enables account

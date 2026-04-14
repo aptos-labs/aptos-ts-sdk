@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
-import { Serializable, Serializer, serializeEntryFunctionBytesCompat } from "../bcs/serializer";
-import { Deserializer } from "../bcs/deserializer";
-import { ParsingError, ParsingResult } from "./common";
-import { TransactionArgument } from "../transactions/instances/transactionArgument";
-import { HexInput, ScriptTransactionArgumentVariants } from "../types";
+import { Serializable, Serializer, serializeEntryFunctionBytesCompat } from "../bcs/serializer.js";
+import { Deserializer } from "../bcs/deserializer.js";
+import { ParsingError, ParsingResult } from "./common.js";
+import { TransactionArgument } from "../transactions/instances/transactionArgument.js";
+import { HexInput, ScriptTransactionArgumentVariants } from "../types/index.js";
 
 /**
  * Provides reasons for an address was invalid.

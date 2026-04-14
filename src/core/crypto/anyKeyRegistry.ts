@@ -11,9 +11,9 @@
  * and deserialization will throw a clear error.
  */
 
-import type { Deserializer } from "../../bcs/deserializer";
-import type { PublicKey } from "./publicKey";
-import type { Signature } from "./signature";
+import type { Deserializer } from "../../bcs/deserializer.js";
+import type { PublicKey } from "./publicKey.js";
+import type { Signature } from "./signature.js";
 
 export type PublicKeyDeserializer = (deserializer: Deserializer) => PublicKey;
 export type SignatureDeserializer = (deserializer: Deserializer) => Signature;

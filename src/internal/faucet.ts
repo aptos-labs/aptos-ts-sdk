@@ -9,12 +9,12 @@
  * @group Implementation
  */
 
-import { AptosConfig } from "../api/aptosConfig";
-import { postAptosFaucet } from "../client";
-import { AccountAddress, AccountAddressInput } from "../core";
-import { TransactionResponseType, UserTransactionResponse, WaitForTransactionOptions } from "../types";
-import { DEFAULT_TXN_TIMEOUT_SEC } from "../utils/const";
-import { waitForTransaction } from "./transaction";
+import { AptosConfig } from "../api/aptosConfig.js";
+import { postAptosFaucet } from "../client/index.js";
+import { AccountAddress, AccountAddressInput } from "../core/index.js";
+import { TransactionResponseType, UserTransactionResponse, WaitForTransactionOptions } from "../types/index.js";
+import { DEFAULT_TXN_TIMEOUT_SEC } from "../utils/const.js";
+import { waitForTransaction } from "./transaction.js";
 
 /**
  * Funds an account with a specified amount of tokens from the Aptos faucet.

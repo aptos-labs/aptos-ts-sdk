@@ -11,4 +11,4 @@ export {
   getProof,
   deriveKeylessAccount,
   updateFederatedKeylessJwkSetTransaction,
-} from "../internal/keyless";
+} from "../internal/keyless.js";

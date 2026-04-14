@@ -1,4 +1,4 @@
-import { type GetANSNameResponse } from "./indexer";
+import { type GetANSNameResponse } from "./indexer.js";
 
 export type RawANSName = GetANSNameResponse[0];
 

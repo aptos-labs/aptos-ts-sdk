@@ -1,19 +1,19 @@
 import { sha3_256 } from "@noble/hashes/sha3.js";
-import { AccountAddress } from "../core";
-import { Hex } from "../core/hex";
-import { AbstractPublicKey, AbstractSignature } from "../core/crypto/abstraction";
-import { SigningScheme, HexInput } from "../types";
-import { Account } from "./Account";
-import { AnyRawTransaction } from "../transactions/types";
+import { AccountAddress } from "../core/index.js";
+import { Hex } from "../core/hex.js";
+import { AbstractPublicKey, AbstractSignature } from "../core/crypto/abstraction.js";
+import { SigningScheme, HexInput } from "../types/index.js";
+import { Account } from "./Account.js";
+import { AnyRawTransaction } from "../transactions/types.js";
 import {
   generateSigningMessage,
   generateSigningMessageForTransaction,
-} from "../transactions/transactionBuilder/signingMessage";
-import { AccountAbstractionMessage, AccountAuthenticatorAbstraction } from "../transactions/authenticator/account";
-import { Ed25519Account } from "./Ed25519Account";
-import { Serializer } from "../bcs/serializer";
-import { isValidFunctionInfo } from "../utils/helpers";
-import { ACCOUNT_ABSTRACTION_SIGNING_DATA_SALT } from "../utils/const";
+} from "../transactions/transactionBuilder/signingMessage.js";
+import { AccountAbstractionMessage, AccountAuthenticatorAbstraction } from "../transactions/authenticator/account.js";
+import { Ed25519Account } from "./Ed25519Account.js";
+import { Serializer } from "../bcs/serializer.js";
+import { isValidFunctionInfo } from "../utils/helpers.js";
+import { ACCOUNT_ABSTRACTION_SIGNING_DATA_SALT } from "../utils/const.js";
 
 type AbstractedAccountConstructorArgs = {
   /**

@@ -9,12 +9,12 @@
  * @group Implementation
  */
 
-import { AptosConfig } from "../api/aptosConfig";
-import { AccountAddress, AccountAddressInput } from "../core";
-import { GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, OrderByArg } from "../types";
-import { GetDelegatedStakingActivitiesQuery, GetNumberOfDelegatorsQuery } from "../types/generated/operations";
-import { GetDelegatedStakingActivities, GetNumberOfDelegators } from "../types/generated/queries";
-import { queryIndexer } from "./general";
+import { AptosConfig } from "../api/aptosConfig.js";
+import { AccountAddress, AccountAddressInput } from "../core/index.js";
+import { GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, OrderByArg } from "../types/index.js";
+import { GetDelegatedStakingActivitiesQuery, GetNumberOfDelegatorsQuery } from "../types/generated/operations.js";
+import { GetDelegatedStakingActivities, GetNumberOfDelegators } from "../types/generated/queries.js";
+import { queryIndexer } from "./general.js";
 
 /**
  * Retrieves the number of active delegators for a specified pool address.

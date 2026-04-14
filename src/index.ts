@@ -5,32 +5,32 @@
 // dependency issues. Import from '@aptos-labs/ts-sdk/functions' or sub-path exports.
 
 // ---- Configuration ----
-export * from "./api/aptosConfig";
+export * from "./api/aptosConfig.js";
 
 // ---- Deprecated Aptos class (compat layer) ----
-export { Aptos } from "./api/aptos";
+export { Aptos } from "./api/aptos.js";
 
 // ---- Account classes (without keyless — import keyless from sub-paths) ----
-export * from "./account";
+export * from "./account/index.js";
 
 // ---- Core primitives (without keyless/poseidon/hdKey) ----
-export * from "./core";
+export * from "./core/index.js";
 
 // ---- BCS serialization ----
-export * from "./bcs";
+export * from "./bcs/index.js";
 
 // ---- HTTP client ----
-export * from "./client";
+export * from "./client/index.js";
 
 // ---- Errors ----
-export * from "./errors";
+export * from "./errors/index.js";
 
 // ---- Transactions ----
-export * from "./transactions";
-export * from "./transactions/management";
+export * from "./transactions/index.js";
+export * from "./transactions/management/index.js";
 
 // ---- Types ----
-export * from "./types";
+export * from "./types/index.js";
 
 // ---- Utils ----
-export * from "./utils";
+export * from "./utils/index.js";

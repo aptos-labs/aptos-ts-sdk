@@ -20,10 +20,10 @@ import {
   MAX_I128_BIG_INT,
   MIN_I256_BIG_INT,
   MAX_I256_BIG_INT,
-} from "./consts";
-import { Hex } from "../core/hex";
-import { AnyNumber, Uint16, Uint32, Uint8 } from "../types";
-import { TEXT_ENCODER } from "../utils/const";
+} from "./consts.js";
+import { Hex } from "../core/hex.js";
+import { AnyNumber, Uint16, Uint32, Uint8 } from "../types/index.js";
+import { TEXT_ENCODER } from "../utils/const.js";
 
 /**
  * This class serves as a base class for all serializable types. It facilitates

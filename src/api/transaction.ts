@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "./aptosConfig";
+import { AptosConfig } from "./aptosConfig.js";
 import {
   getGasPriceEstimation,
   getTransactionByHash,
@@ -9,7 +9,7 @@ import {
   getTransactions,
   isTransactionPending,
   waitForTransaction,
-} from "../internal/transaction";
+} from "../internal/transaction.js";
 import {
   AnyNumber,
   CommittedTransactionResponse,
@@ -19,7 +19,7 @@ import {
   PendingTransactionResponse,
   TransactionResponse,
   WaitForTransactionOptions,
-} from "../types";
+} from "../types/index.js";
 import {
   FeePayerOrFeePayerAuthenticatorOrNeither,
   getSigningMessage,
@@ -28,22 +28,22 @@ import {
   signAndSubmitTransaction,
   signAsFeePayer,
   signTransaction,
-} from "../internal/transactionSubmission";
+} from "../internal/transactionSubmission.js";
 import {
   AccountAuthenticator,
   AnyRawTransaction,
   InputGenerateTransactionOptions,
   InputGenerateTransactionPayloadData,
   InputTransactionPluginData,
-} from "../transactions";
-import { AccountAddressInput, AccountPublicKey, Ed25519PrivateKey } from "../core";
-import { Account, Ed25519Account, MultiEd25519Account } from "../account";
-import { Build } from "./transactionSubmission/build";
-import { Simulate } from "./transactionSubmission/simulate";
-import { Submit } from "./transactionSubmission/submit";
-import { TransactionManagement } from "./transactionSubmission/management";
-import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
-import { rotateAuthKey, rotateAuthKeyUnverified } from "../internal/account";
+} from "../transactions/index.js";
+import { AccountAddressInput, AccountPublicKey, Ed25519PrivateKey } from "../core/index.js";
+import { Account, Ed25519Account, MultiEd25519Account } from "../account/index.js";
+import { Build } from "./transactionSubmission/build.js";
+import { Simulate } from "./transactionSubmission/simulate.js";
+import { Submit } from "./transactionSubmission/submit.js";
+import { TransactionManagement } from "./transactionSubmission/management.js";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction.js";
+import { rotateAuthKey, rotateAuthKeyUnverified } from "../internal/account.js";
 
 /**
  * Represents a transaction in the Aptos blockchain,

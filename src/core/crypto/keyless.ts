@@ -3,10 +3,10 @@
 
 import { JwtPayload, jwtDecode } from "jwt-decode";
 import { sha3_256 } from "@noble/hashes/sha3.js";
-import { AccountPublicKey, PublicKey } from "./publicKey";
-import { Signature } from "./signature";
-import { Deserializer, Serializable, Serializer } from "../../bcs";
-import { Hex, hexToAsciiString } from "../hex";
+import { AccountPublicKey, PublicKey } from "./publicKey.js";
+import { Signature } from "./signature.js";
+import { Deserializer, Serializable, Serializer } from "../../bcs/index.js";
+import { Hex, hexToAsciiString } from "../hex.js";
 import {
   HexInput,
   EphemeralCertificateVariant,
@@ -15,29 +15,29 @@ import {
   ZkpVariant,
   LedgerVersionArg,
   MoveResource,
-} from "../../types";
-import { EphemeralPublicKey, EphemeralSignature } from "./ephemeral";
-import { bigIntToBytesLE, bytesToBigIntLE, hashStrToField, padAndPackBytesWithLen, poseidonHash } from "./poseidon";
-import { AuthenticationKey } from "../authenticationKey";
-import { Proof } from "./proof";
-import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
+} from "../../types/index.js";
+import { EphemeralPublicKey, EphemeralSignature } from "./ephemeral.js";
+import { bigIntToBytesLE, bytesToBigIntLE, hashStrToField, padAndPackBytesWithLen, poseidonHash } from "./poseidon.js";
+import { AuthenticationKey } from "../authenticationKey.js";
+import { Proof } from "./proof.js";
+import { Ed25519PublicKey, Ed25519Signature } from "./ed25519.js";
 import {
   Groth16VerificationKeyResponse,
   KeylessConfigurationResponse,
   MoveAnyStruct,
   PatchedJWKsResponse,
-} from "../../types/keyless";
-import { AptosConfig } from "../../api/aptosConfig";
-import { getAptosFullNode } from "../../client";
-import { memoizeAsync } from "../../utils/memoize";
-import { AccountAddress, AccountAddressInput } from "../accountAddress";
-import { base64UrlToBytes, nowInSeconds } from "../../utils";
-import { KeylessError, KeylessErrorType } from "../../errors";
+} from "../../types/keyless.js";
+import { AptosConfig } from "../../api/aptosConfig.js";
+import { getAptosFullNode } from "../../client/index.js";
+import { memoizeAsync } from "../../utils/memoize.js";
+import { AccountAddress, AccountAddressInput } from "../accountAddress.js";
+import { base64UrlToBytes, nowInSeconds } from "../../utils/index.js";
+import { KeylessError, KeylessErrorType } from "../../errors/index.js";
 import { bn254 } from "@noble/curves/bn254.js";
 import { bytesToNumberBE } from "@noble/curves/utils.js";
-import { FederatedKeylessPublicKey } from "./federatedKeyless";
+import { FederatedKeylessPublicKey } from "./federatedKeyless.js";
 import { encode } from "js-base64";
-import { generateSigningMessage } from "../../transactions/transactionBuilder/signingMessage";
+import { generateSigningMessage } from "../../transactions/transactionBuilder/signingMessage.js";
 import { WeierstrassPoint } from "@noble/curves/abstract/weierstrass.js";
 import { Fp2 } from "@noble/curves/abstract/tower.js";
 

@@ -1,11 +1,11 @@
 import { sha3_256 } from "@noble/hashes/sha3.js";
-import { Serializer } from "../bcs/serializer";
-import { AccountAddress } from "../core/accountAddress";
-import { Hex } from "../core/hex";
-import { AccountAuthenticatorAbstraction } from "../transactions/authenticator/account";
-import { HexInput } from "../types";
-import { isValidFunctionInfo } from "../utils/helpers";
-import { AbstractedAccount } from "./AbstractedAccount";
+import { Serializer } from "../bcs/serializer.js";
+import { AccountAddress } from "../core/accountAddress.js";
+import { Hex } from "../core/hex.js";
+import { AccountAuthenticatorAbstraction } from "../transactions/authenticator/account.js";
+import { HexInput } from "../types/index.js";
+import { isValidFunctionInfo } from "../utils/helpers.js";
+import { AbstractedAccount } from "./AbstractedAccount.js";
 
 type DerivableAbstractedAccountArgs = {
   /**

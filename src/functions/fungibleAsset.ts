@@ -7,4 +7,4 @@ export {
   getCurrentFungibleAssetBalances,
   transferFungibleAsset,
   transferFungibleAssetBetweenStores,
-} from "../internal/fungibleAsset";
+} from "../internal/fungibleAsset.js";

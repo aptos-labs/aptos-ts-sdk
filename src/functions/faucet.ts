@@ -1,4 +1,4 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-export { fundAccount } from "../internal/faucet";
+export { fundAccount } from "../internal/faucet.js";

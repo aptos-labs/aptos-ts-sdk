@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Base64, decode } from "js-base64";
-import { MoveFunctionId, MoveStructId } from "../types";
-import { AccountAddress } from "../core/accountAddress";
-import { createObjectAddress } from "../core/account/utils/address";
+import { MoveFunctionId, MoveStructId } from "../types/index.js";
+import { AccountAddress } from "../core/accountAddress.js";
+import { createObjectAddress } from "../core/account/utils/address.js";
 
 /**
  * Checks if the current runtime environment is Bun.
@@ -55,7 +55,7 @@ export function warnIfDevelopment(message: string): void {
  * @group Implementation
  * @category Utils
  */
-export async function sleep(timeMs: number): Promise<null> {
+export async function sleep(timeMs: number): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(resolve, timeMs);
   });

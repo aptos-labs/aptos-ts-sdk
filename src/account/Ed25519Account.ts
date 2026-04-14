@@ -1,11 +1,11 @@
-import { AccountAuthenticatorEd25519 } from "../transactions/authenticator/account";
-import { HexInput, SigningScheme } from "../types";
-import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature, Signature } from "../core/crypto";
-import type { Account } from "./Account";
-import { AnyRawTransaction } from "../transactions/types";
-import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
-import { AptosConfig } from "../api/aptosConfig";
+import { AccountAuthenticatorEd25519 } from "../transactions/authenticator/account.js";
+import { HexInput, SigningScheme } from "../types/index.js";
+import { AccountAddress, AccountAddressInput } from "../core/accountAddress.js";
+import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature, Signature } from "../core/crypto/index.js";
+import type { Account } from "./Account.js";
+import { AnyRawTransaction } from "../transactions/types.js";
+import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage.js";
+import { AptosConfig } from "../api/aptosConfig.js";
 
 /**
  * Arguments required to create an instance of an Ed25519 signer.

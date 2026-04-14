@@ -1,6 +1,6 @@
-import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account";
-import { type HexInput, SigningScheme, SigningSchemeInput } from "../types";
-import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
+import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account.js";
+import { type HexInput, SigningScheme, SigningSchemeInput } from "../types/index.js";
+import { AccountAddress, AccountAddressInput } from "../core/accountAddress.js";
 import {
   AnyPublicKey,
   AnySignature,
@@ -8,12 +8,12 @@ import {
   PrivateKeyInput,
   Secp256k1PrivateKey,
   Signature,
-} from "../core/crypto";
-import type { Account } from "./Account";
-import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
-import { AnyRawTransaction } from "../transactions/types";
-import { Ed25519Account } from "./Ed25519Account";
-import { AptosConfig } from "../api/aptosConfig";
+} from "../core/crypto/index.js";
+import type { Account } from "./Account.js";
+import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage.js";
+import { AnyRawTransaction } from "../transactions/types.js";
+import { Ed25519Account } from "./Ed25519Account.js";
+import { AptosConfig } from "../api/aptosConfig.js";
 
 /**
  * An interface which defines if an Account utilizes SingleKey signing.

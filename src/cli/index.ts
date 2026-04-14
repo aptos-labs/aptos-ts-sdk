@@ -1,2 +1,2 @@
-export * from "./localNode";
-export * from "./move";
+export * from "./localNode.js";
+export * from "./move.js";

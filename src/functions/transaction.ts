@@ -12,7 +12,7 @@ export {
   waitForIndexer,
   getBlockByVersion,
   getBlockByHeight,
-} from "../internal/transaction";
+} from "../internal/transaction.js";
 
 export {
   generateTransaction,
@@ -26,4 +26,4 @@ export {
   signAndSubmitTransaction,
   signAndSubmitAsFeePayer,
   publicPackageTransaction,
-} from "../internal/transactionSubmission";
+} from "../internal/transactionSubmission.js";

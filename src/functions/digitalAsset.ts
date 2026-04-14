@@ -26,4 +26,4 @@ export {
   updateDigitalAssetPropertyTransaction,
   addDigitalAssetTypedPropertyTransaction,
   updateDigitalAssetTypedPropertyTransaction,
-} from "../internal/digitalAsset";
+} from "../internal/digitalAsset.js";

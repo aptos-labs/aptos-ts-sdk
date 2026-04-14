@@ -1,14 +1,14 @@
-import { AccountAddress, AccountAddressInput } from "../../core";
+import { AccountAddress, AccountAddressInput } from "../../core/index.js";
 import {
   addAuthenticationFunctionTransaction,
   removeAuthenticationFunctionTransaction,
   removeDispatchableAuthenticatorTransaction,
-} from "../../internal/abstraction";
-import { view } from "../../internal/view";
-import { InputGenerateTransactionOptions, TypeTagAddress } from "../../transactions";
-import { MoveFunctionId } from "../../types";
-import { getFunctionParts } from "../../utils/helpers";
-import { AptosConfig } from "../aptosConfig";
+} from "../../internal/abstraction.js";
+import { view } from "../../internal/view.js";
+import { InputGenerateTransactionOptions, TypeTagAddress } from "../../transactions/index.js";
+import { MoveFunctionId } from "../../types/index.js";
+import { getFunctionParts } from "../../utils/helpers.js";
+import { AptosConfig } from "../aptosConfig.js";
 
 export class AccountAbstraction {
   constructor(readonly config: AptosConfig) {}

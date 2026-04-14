@@ -1,21 +1,22 @@
 {
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "allowJs": true,
-    "declaration": true,
-    "declarationDir": "types",
-    "declarationMap": true,
-    "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "module": "esnext",
-    "moduleDetection": "force",
-    "moduleResolution": "node",
-    "noImplicitAny": true,
-    "outDir": "./dist",
-    "sourceMap": true,
     "strict": true,
-    "target": "es2020",
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "moduleDetection": "force",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "noImplicitAny": true,
+    "skipLibCheck": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
     "types": ["node", "vitest/globals"]
   },
-  "include": ["src", "tests", "tsup.config.ts", "vitest.config.ts"]
+  "include": ["src", "tests", "vitest.config.ts"]
 }

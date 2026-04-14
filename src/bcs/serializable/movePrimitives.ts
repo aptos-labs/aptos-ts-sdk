@@ -19,17 +19,26 @@ import {
   MAX_I128_BIG_INT,
   MIN_I256_BIG_INT,
   MAX_I256_BIG_INT,
-} from "../consts";
-import { Deserializer } from "../deserializer";
+} from "../consts.js";
+import { Deserializer } from "../deserializer.js";
 import {
   Serializable,
   Serializer,
   ensureBoolean,
   serializeEntryFunctionBytesCompat,
   validateNumberInRange,
-} from "../serializer";
-import { TransactionArgument } from "../../transactions/instances/transactionArgument";
-import { AnyNumber, Uint16, Uint32, Uint8, Int8, Int16, Int32, ScriptTransactionArgumentVariants } from "../../types";
+} from "../serializer.js";
+import { TransactionArgument } from "../../transactions/instances/transactionArgument.js";
+import {
+  AnyNumber,
+  Uint16,
+  Uint32,
+  Uint8,
+  Int8,
+  Int16,
+  Int32,
+  ScriptTransactionArgumentVariants,
+} from "../../types/index.js";
 
 /**
  * Represents a boolean value that can be serialized and deserialized.

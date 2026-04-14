@@ -1,13 +1,13 @@
-import EventEmitter from "eventemitter3";
-import { AptosConfig } from "../../api/aptosConfig";
-import { Account } from "../../account";
-import { waitForTransaction } from "../../internal/transaction";
-import { generateTransaction, signAndSubmitTransaction } from "../../internal/transactionSubmission";
-import { PendingTransactionResponse, TransactionResponse } from "../../types";
-import { InputGenerateTransactionOptions, InputGenerateTransactionPayloadData } from "../types";
-import { AccountSequenceNumber } from "./accountSequenceNumber";
-import { AsyncQueue, AsyncQueueCancelledError } from "./asyncQueue";
-import { SimpleTransaction } from "../instances/simpleTransaction";
+import { EventEmitter } from "eventemitter3";
+import { AptosConfig } from "../../api/aptosConfig.js";
+import { Account } from "../../account/index.js";
+import { waitForTransaction } from "../../internal/transaction.js";
+import { generateTransaction, signAndSubmitTransaction } from "../../internal/transactionSubmission.js";
+import { PendingTransactionResponse, TransactionResponse } from "../../types/index.js";
+import { InputGenerateTransactionOptions, InputGenerateTransactionPayloadData } from "../types.js";
+import { AccountSequenceNumber } from "./accountSequenceNumber.js";
+import { AsyncQueue, AsyncQueueCancelledError } from "./asyncQueue.js";
+import { SimpleTransaction } from "../instances/simpleTransaction.js";
 
 /**
  * Maximum number of transactions to keep in the history arrays to prevent unbounded memory growth.

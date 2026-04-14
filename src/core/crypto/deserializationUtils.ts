@@ -1,14 +1,14 @@
-import { AnyPublicKey, AnySignature } from "./singleKey";
-import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
-import { MultiKey, MultiKeySignature } from "./multiKey";
-import { KeylessPublicKey, KeylessSignature } from "./keyless";
-import { MultiEd25519PublicKey, MultiEd25519Signature } from "./multiEd25519";
-import { FederatedKeylessPublicKey } from "./federatedKeyless";
-import { Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1";
-import { PublicKey } from "./publicKey";
-import { Signature } from "./signature";
-import { Deserializer } from "../../bcs/deserializer";
-import { HexInput } from "../../types";
+import { AnyPublicKey, AnySignature } from "./singleKey.js";
+import { Ed25519PublicKey, Ed25519Signature } from "./ed25519.js";
+import { MultiKey, MultiKeySignature } from "./multiKey.js";
+import { KeylessPublicKey, KeylessSignature } from "./keyless.js";
+import { MultiEd25519PublicKey, MultiEd25519Signature } from "./multiEd25519.js";
+import { FederatedKeylessPublicKey } from "./federatedKeyless.js";
+import { Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1.js";
+import { PublicKey } from "./publicKey.js";
+import { Signature } from "./signature.js";
+import { Deserializer } from "../../bcs/deserializer.js";
+import { HexInput } from "../../types/index.js";
 
 const MULTIPLE_DESERIALIZATIONS_ERROR_MSG = "Multiple possible deserializations found";
 

@@ -8,12 +8,12 @@
  * to have a compile-time dependency on keyless/poseidon.
  */
 
-import { AnyPublicKeyVariant, AnySignatureVariant } from "../../types";
-import { registerPublicKeyVariant, registerSignatureVariant } from "./anyKeyRegistry";
-import { KeylessPublicKey, KeylessSignature } from "./keyless";
-import { FederatedKeylessPublicKey } from "./federatedKeyless";
-import type { PublicKey } from "./publicKey";
-import type { Signature } from "./signature";
+import { AnyPublicKeyVariant, AnySignatureVariant } from "../../types/index.js";
+import { registerPublicKeyVariant, registerSignatureVariant } from "./anyKeyRegistry.js";
+import { KeylessPublicKey, KeylessSignature } from "./keyless.js";
+import { FederatedKeylessPublicKey } from "./federatedKeyless.js";
+import type { PublicKey } from "./publicKey.js";
+import type { Signature } from "./signature.js";
 
 registerPublicKeyVariant(
   AnyPublicKeyVariant.Keyless,
