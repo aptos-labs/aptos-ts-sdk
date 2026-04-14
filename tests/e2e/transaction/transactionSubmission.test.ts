@@ -22,9 +22,9 @@ import {
   generateSigningMessageForTransaction,
   Hex,
 } from "../../../src";
-import { p256 } from "@noble/curves/nist";
-import { sha256 } from "@noble/hashes/sha2";
-import { sha3_256 } from "@noble/hashes/sha3";
+import { p256 } from "@noble/curves/nist.js";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { sha3_256 } from "@noble/hashes/sha3.js";
 import { MAX_U64_BIG_INT } from "../../../src/bcs/consts";
 import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
@@ -1082,8 +1082,7 @@ describe("transaction submission", () => {
       toBeSigned.set(clientHash, authenticatorData.length);
       const webauthnDigest = sha256(toBeSigned);
       const privBytes = Hex.fromHexInput(privateKey.toHexString()).toUint8Array();
-      const sig = p256.sign(webauthnDigest, privBytes).normalizeS();
-      const signatureBytes = sig.toCompactRawBytes();
+      const signatureBytes = p256.sign(webauthnDigest, privBytes, { prehash: false });
       const webAuthnSignature = new WebAuthnSignature(signatureBytes, authenticatorData, clientDataJSON);
 
       // Create account authenticator
@@ -1142,8 +1141,7 @@ describe("transaction submission", () => {
       toBeSigned.set(clientHash, authenticatorData.length);
       const webauthnDigest = sha256(toBeSigned);
       const privBytes = Hex.fromHexInput(privateKey.toHexString()).toUint8Array();
-      const sig = p256.sign(webauthnDigest, privBytes).normalizeS();
-      const signatureBytes = sig.toCompactRawBytes();
+      const signatureBytes = p256.sign(webauthnDigest, privBytes, { prehash: false });
       const webAuthnSignature = new WebAuthnSignature(signatureBytes, authenticatorData, clientDataJSON);
 
       const anySignature = new AnySignature(webAuthnSignature);

@@ -686,7 +686,11 @@ export async function getAuthenticatorForSimulation(publicKey?: PublicKey) {
   // Wrap the public key types below with AnyPublicKey as they are only support through single sender.
   // Learn more about AnyPublicKey here - https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-55.md
   const isKeylessInstance = (key: PublicKey): boolean =>
-    "iss" in key && typeof (key as any).iss === "string" && "idCommitment" in key;
+    "iss" in key && typeof (key as any).iss === "string" && ("idCommitment" in key || "jwkAddress" in key);
+  // Ensure keyless variants are registered before wrapping in AnyPublicKey
+  if (isKeylessInstance(publicKey)) {
+    await import("../../core/crypto/keylessRegistration.js");
+  }
   const convertToAnyPublicKey = isKeylessInstance(publicKey) || Secp256k1PublicKey.isInstance(publicKey);
   const accountPublicKey = convertToAnyPublicKey ? new AnyPublicKey(publicKey) : publicKey;
 

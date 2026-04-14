@@ -25,8 +25,8 @@ import {
   generateTransactionPayloadWithABI,
   SignedTransaction,
   generateUserTransactionHash,
-  KeylessPublicKey,
 } from "../../../src";
+import { KeylessPublicKey } from "../../../src/core/crypto/keyless";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import {

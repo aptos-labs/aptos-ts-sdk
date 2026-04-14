@@ -11,12 +11,10 @@ import {
   MultiKeyAccount,
   MultiEd25519Account,
   MultiEd25519PublicKey,
-  KeylessAccount,
-  ZkProof,
-  Groth16Zkp,
   ZkpVariant,
-  ZeroKnowledgeSig,
 } from "../../../src";
+import { KeylessAccount } from "../../../src/account/KeylessAccount";
+import { Groth16Zkp, ZeroKnowledgeSig, ZkProof } from "../../../src/core/crypto/keyless";
 
 import {
   ed25519,

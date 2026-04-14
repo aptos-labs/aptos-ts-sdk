@@ -6,8 +6,8 @@ import {
   InputEntryFunctionData,
   MultiKeyAccount,
   MultiKey,
-  KeylessPublicKey,
 } from "../../../src";
+import { KeylessPublicKey } from "../../../src/core/crypto/keyless";
 import { ed25519, longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import {
