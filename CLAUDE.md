@@ -6,11 +6,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is the **Aptos TypeScript SDK** (`@aptos-labs/ts-sdk`), a comprehensive SDK for interacting with the Aptos blockchain. It provides account management, transaction building/submission, data querying, digital assets, keyless authentication, and more.
 
+## Runtime Compatibility
+
+This SDK must work in **all** of the following runtimes:
+
+- **Browsers** (Chrome, Firefox, Safari — via bundlers like Vite/webpack)
+- **React Native**
+- **Node.js** (>= 22)
+- **Bun**
+- **Deno**
+
+**Do not use Node-only APIs in `src/`.** This means:
+- No `Buffer` — use `Uint8Array`, `atob`/`btoa`, or `TextEncoder`/`TextDecoder`
+- No `node:` protocol imports (e.g., `node:events`, `node:crypto`, `node:fs`)
+- No `process.env` without guards
+- `src/cli/` is the only exception (Node-only by design)
+
+Runtime-specific tests exist in `examples/web-test/` (Playwright), `examples/bun-test/`, and `examples/deno-test/`, with corresponding CI workflows.
+
 ## Common Commands
 
 ```bash
 pnpm install              # Install dependencies (CI uses --frozen-lockfile)
-pnpm build                # Build CJS + ESM output to dist/
+pnpm build                # Build ESM output to dist/
 pnpm fmt                  # Format code with Biome
 pnpm _fmt                 # Check formatting without writing (what CI runs)
 pnpm lint                 # Run Biome linter
@@ -95,7 +113,7 @@ When releasing a new version with breaking changes:
 
 ## Bun Compatibility
 
-When using with Bun, disable HTTP/2:
+When using with Bun, users must disable HTTP/2:
 ```typescript
 const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET, clientConfig: { http2: false } }));
 ```
