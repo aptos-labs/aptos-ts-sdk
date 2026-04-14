@@ -1,4 +1,4 @@
-import { AptosConfig } from "../api";
+import { AptosConfig } from "../api/aptosConfig";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { Ed25519PrivateKey, Signature } from "../core/crypto";
 import { MultiEd25519PublicKey, MultiEd25519Signature } from "../core/crypto/multiEd25519";

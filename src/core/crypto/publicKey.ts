@@ -1,4 +1,4 @@
-import { AptosConfig } from "../../api";
+import { AptosConfig } from "../../api/aptosConfig";
 import { Serializable } from "../../bcs";
 import { HexInput } from "../../types";
 import { AuthenticationKey } from "../authenticationKey";

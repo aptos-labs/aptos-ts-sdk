@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import type { AptosConfig } from "../api";
+import type { AptosConfig } from "../api/aptosConfig";
 import { InputSubmitTransactionData } from "../transactions";
 import { Network } from "../utils/apiEndpoints";
 import { OrderBy, TokenStandard } from "./indexer";

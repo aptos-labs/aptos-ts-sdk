@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "../../api";
+import { AptosConfig } from "../../api/aptosConfig";
 import { Deserializer, Serializer } from "../../bcs";
 import { SigningScheme as AuthenticationKeyScheme, HexInput } from "../../types";
 import { AuthenticationKey } from "../authenticationKey";

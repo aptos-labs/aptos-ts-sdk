@@ -12,7 +12,7 @@ import { PrivateKey } from "./privateKey";
 import { PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { convertSigningMessage } from "./utils";
-import { AptosConfig } from "../../api";
+import { AptosConfig } from "../../api/aptosConfig";
 
 /**
  * Represents a Secp256k1 ECDSA public key.

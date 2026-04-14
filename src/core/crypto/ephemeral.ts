@@ -4,7 +4,7 @@ import { PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
 import { Hex } from "../hex";
-import { AptosConfig } from "../../api";
+import { AptosConfig } from "../../api/aptosConfig";
 
 /**
  * Represents ephemeral public keys for Aptos Keyless accounts.
