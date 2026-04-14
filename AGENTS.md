@@ -6,9 +6,27 @@ This file provides guidance to AI agents when working with code in this reposito
 
 This is the **Aptos TypeScript SDK** (`@aptos-labs/ts-sdk`), a comprehensive SDK for interacting with the Aptos blockchain. It provides account management, transaction building/submission, data querying, digital assets, keyless authentication, and more.
 
+## Runtime Compatibility
+
+This SDK must work in **all** of the following runtimes:
+
+- **Browsers** (Chrome, Firefox, Safari — via bundlers like Vite/webpack)
+- **React Native**
+- **Node.js** (>= 22)
+- **Bun**
+- **Deno**
+
+**Do not use Node-only APIs in `src/`.** This means:
+- No `Buffer` — use `Uint8Array`, `atob`/`btoa`, or `TextEncoder`/`TextDecoder`
+- No `node:` protocol imports (e.g., `node:events`, `node:crypto`, `node:fs`)
+- No `process.env` without guards
+- `src/cli/` is the only exception (Node-only by design)
+
+Runtime-specific tests exist in `examples/web-test/` (Playwright), `examples/bun-test/`, and `examples/deno-test/`, with corresponding CI workflows in `.github/workflows/`.
+
 ## Requirements
 
-- **Node**: use the version in `.node-version` (currently `v22.12.0`). `package.json` requires `node >= 20`.
+- **Node**: use the version in `.node-version` (currently `v22.12.0`). `package.json` requires `node >= 22`.
 - **pnpm**: repo uses `pnpm` (see `.tool-versions`, `package.json#packageManager`).
 
 ## Repo Layout
@@ -26,7 +44,7 @@ This is the **Aptos TypeScript SDK** (`@aptos-labs/ts-sdk`), a comprehensive SDK
 
 ```bash
 pnpm install              # Install dependencies (CI uses --frozen-lockfile)
-pnpm build                # Build CJS + ESM output to dist/
+pnpm build                # Build ESM output to dist/
 pnpm fmt                  # Format code with Biome
 pnpm _fmt                 # Check formatting without writing (what CI runs)
 pnpm lint                 # Run Biome linter
