@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
+import { sha3_256 as sha3Hash } from "@noble/hashes/sha3.js";
 import { AccountAddress } from "./accountAddress";
 import type { AccountPublicKey } from "./crypto";
 import { Hex } from "./hex";

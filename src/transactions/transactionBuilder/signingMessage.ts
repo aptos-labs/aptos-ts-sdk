@@ -6,7 +6,7 @@
  * @group Implementation
  * @category Transactions
  */
-import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
+import { sha3_256 as sha3Hash } from "@noble/hashes/sha3.js";
 import { RAW_TRANSACTION_SALT, RAW_TRANSACTION_WITH_DATA_SALT } from "../../utils/const";
 import { FeePayerRawTransaction, MultiAgentRawTransaction } from "../instances";
 import { AnyRawTransaction, AnyRawTransactionInstance } from "../types";
@@ -59,7 +59,7 @@ export function generateSigningMessage(bytes: Uint8Array, domainSeparator: strin
     throw new Error(`Domain separator needs to start with 'APTOS::'.  Provided - ${domainSeparator}`);
   }
 
-  hash.update(domainSeparator);
+  hash.update(new TextEncoder().encode(domainSeparator));
 
   const prefix = hash.digest();
 

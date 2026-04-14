@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
+import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
 import { Serializable, Serializer, serializeEntryFunctionBytesCompat } from "../bcs/serializer";
 import { Deserializer } from "../bcs/deserializer";
 import { ParsingError, ParsingResult } from "./common";

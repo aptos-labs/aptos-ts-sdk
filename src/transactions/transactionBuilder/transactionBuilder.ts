@@ -6,7 +6,7 @@
  * It holds different operations to generate a transaction payload, a raw transaction,
  * and a signed transaction that can be simulated, signed and submitted to chain.
  */
-import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
+import { sha3_256 as sha3Hash } from "@noble/hashes/sha3.js";
 import { AptosConfig } from "../../api/aptosConfig";
 import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
 import { AnyPublicKey, AnySignature, Secp256k1PublicKey, MultiKey, MultiKeySignature } from "../../core/crypto";
@@ -802,10 +802,12 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
  * @group Implementation
  * @category Transactions
  */
+const textEncoder = new TextEncoder();
+
 export function hashValues(input: (Uint8Array | string)[]): Uint8Array {
   const hash = sha3Hash.create();
   for (const item of input) {
-    hash.update(item);
+    hash.update(typeof item === "string" ? textEncoder.encode(item) : item);
   }
   return hash.digest();
 }

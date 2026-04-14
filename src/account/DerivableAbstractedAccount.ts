@@ -1,6 +1,7 @@
-import { sha3_256 } from "@noble/hashes/sha3";
+import { sha3_256 } from "@noble/hashes/sha3.js";
 import { Serializer } from "../bcs/serializer";
 import { AccountAddress } from "../core/accountAddress";
+import { Hex } from "../core/hex";
 import { AccountAuthenticatorAbstraction } from "../transactions/authenticator/account";
 import { HexInput } from "../types";
 import { isValidFunctionInfo } from "../utils/helpers";
@@ -91,10 +92,11 @@ export class DerivableAbstractedAccount extends AbstractedAccount {
   }
 
   signWithAuthenticator(message: HexInput): AccountAuthenticatorAbstraction {
+    const messageBytes = Hex.fromHexInput(message).toUint8Array();
     return new AccountAuthenticatorAbstraction(
       this.authenticationFunction,
-      sha3_256(message),
-      this.sign(sha3_256(message)).value,
+      sha3_256(messageBytes),
+      this.sign(sha3_256(messageBytes)).value,
       this.abstractPublicKey,
     );
   }

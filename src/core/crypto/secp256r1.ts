@@ -1,8 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { sha3_256 } from "@noble/hashes/sha3";
-import { p256 } from "@noble/curves/nist";
+import { sha3_256 } from "@noble/hashes/sha3.js";
+import { p256 } from "@noble/curves/nist.js";
 import { Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
 import {
@@ -58,8 +58,8 @@ export class Secp256r1PublicKey extends PublicKey {
     }
 
     if (keyLength === Secp256r1PublicKey.COMPRESSED_LENGTH) {
-      const point = p256.ProjectivePoint.fromHex(hex.toUint8Array());
-      this.key = Hex.fromHexInput(point.toRawBytes(false));
+      const point = p256.Point.fromBytes(hex.toUint8Array());
+      this.key = Hex.fromHexInput(point.toBytes(false));
     } else {
       this.key = hex;
     }
@@ -119,7 +119,7 @@ export class Secp256r1PublicKey extends PublicKey {
     const sha3Message = sha3_256(msgHex);
     const rawSignature = signature.toUint8Array();
 
-    return p256.verify(rawSignature, sha3Message, this.toUint8Array());
+    return p256.verify(rawSignature, sha3Message, this.toUint8Array(), { prehash: false });
   }
 
   /**
@@ -300,8 +300,8 @@ export class Secp256r1PrivateKey extends PrivateKey {
   sign(message: HexInput): Secp256r1Signature {
     const msgHex = Hex.fromHexInput(message);
     const sha3Message = sha3_256(msgHex.toUint8Array());
-    const signature = p256.sign(sha3Message, this.key.toUint8Array());
-    return new Secp256r1Signature(signature.toCompactRawBytes());
+    const signature = p256.sign(sha3Message, this.key.toUint8Array(), { prehash: false });
+    return new Secp256r1Signature(signature);
   }
 
   /**
@@ -337,7 +337,7 @@ export class Secp256r1PrivateKey extends PrivateKey {
    * @category Serialization
    */
   static generate(): Secp256r1PrivateKey {
-    const hexInput = p256.utils.randomPrivateKey();
+    const hexInput = p256.utils.randomSecretKey();
     return new Secp256r1PrivateKey(hexInput);
   }
 
@@ -442,8 +442,8 @@ export class Secp256r1Signature extends Signature {
     if (signatureLength !== Secp256r1Signature.LENGTH) {
       throw new Error(`Signature length should be ${Secp256r1Signature.LENGTH}, received ${signatureLength}`);
     }
-    const signature = p256.Signature.fromCompact(hex.toUint8Array()).normalizeS().toCompactRawBytes();
-    this.data = Hex.fromHexInput(signature);
+    const signature = p256.Signature.fromBytes(hex.toUint8Array());
+    this.data = Hex.fromHexInput(signature.toBytes());
   }
 
   /**
