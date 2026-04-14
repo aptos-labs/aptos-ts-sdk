@@ -3,79 +3,97 @@
 /**
  * Tree-shaking verification tests for the built dist/ output.
  *
- * Checks that:
- * 1. Poseidon code is isolated to its own chunk (not inlined in entry points)
- * 2. The main index.js is significantly smaller than the pre-tree-shaking size
- * 3. Non-keyless entry points don't directly contain poseidon code
+ * With plain tsc (no bundler), tree-shaking happens at the consumer's bundler.
+ * These tests verify that:
+ * 1. Poseidon code is isolated to its own module (not re-exported from main barrel)
+ * 2. Non-keyless entry points don't directly import poseidon
+ * 3. The exports map entry points all exist
  *
  * Run after `pnpm build`:
  *   node tests/bundle-size/check-tree-shaking.mjs
  */
 
-import { readFileSync, readdirSync } from "fs";
-import { join } from "path";
+import { readFileSync, existsSync } from "node:fs";
+import { join } from "node:path";
 
 const distDir = join(import.meta.dirname, "../../dist");
-
-const allJsFiles = readdirSync(distDir).filter((f) => f.endsWith(".js") && !f.endsWith(".map"));
-const entryFiles = allJsFiles.filter((f) => !f.startsWith("chunk-"));
-const chunkFiles = allJsFiles.filter((f) => f.startsWith("chunk-"));
-
-// Find which chunks directly contain poseidon code
-const poseidonChunks = chunkFiles.filter((f) => {
-  const content = readFileSync(join(distDir, f), "utf-8");
-  return content.includes("poseidon") || content.includes("numInputsToPoseidonFunc");
-});
-
-console.log(`Dist entry files: ${entryFiles.length}`);
-console.log(`Dist chunk files: ${chunkFiles.length}`);
-console.log(`Chunks with poseidon: ${poseidonChunks.join(", ") || "none"}\n`);
-
 let allPassed = true;
 
-function check(name, file, expectPoseidon) {
-  const content = readFileSync(join(distDir, file), "utf-8");
-  // Check if the entry file DIRECTLY contains poseidon code (not just imports a chunk)
-  const hasPoseidonInline =
-    content.includes("poseidonHash") || content.includes("numInputsToPoseidonFunc") || content.includes("poseidon1");
-  const sizeKB = (Buffer.byteLength(content) / 1024).toFixed(1);
-
-  let passed = true;
-  const issues = [];
-
-  if (!expectPoseidon && hasPoseidonInline) {
-    passed = false;
-    issues.push("contains poseidon inline (should not)");
-  }
-
-  const status = passed ? "PASS" : "FAIL";
-  console.log(`${status}: ${name} — ${sizeKB}KB${issues.length ? ` [${issues.join(", ")}]` : ""}`);
-  if (!passed) allPassed = false;
+function check(name, condition, detail) {
+  const status = condition ? "PASS" : "FAIL";
+  console.log(`${status}: ${name}${detail ? ` — ${detail}` : ""}`);
+  if (!condition) allPassed = false;
 }
 
-// Entry points should NOT contain poseidon inline
-check("index.js (main entry)", "index.js", false);
-check("general.js", "general.js", false);
-check("account.js", "account.js", false);
-check("coin.js", "coin.js", false);
-check("transaction.js", "transaction.js", false);
-check("faucet.js", "faucet.js", false);
-check("staking.js", "staking.js", false);
-check("crypto.js", "crypto.js", false);
-check("bcs.js", "bcs.js", false);
-check("keyless.js", "keyless.js", false); // keyless entry is a tiny re-export
+function fileExists(relPath) {
+  return existsSync(join(distDir, relPath));
+}
 
-// Verify poseidon is only in chunk files
-const poseidonOnlyInChunks = poseidonChunks.length > 0 && poseidonChunks.every((f) => f.startsWith("chunk-"));
-console.log(`\n${poseidonOnlyInChunks ? "PASS" : "FAIL"}: Poseidon isolated to chunk files only`);
-if (!poseidonOnlyInChunks) allPassed = false;
+function fileContains(relPath, needle) {
+  if (!fileExists(relPath)) return false;
+  return readFileSync(join(distDir, relPath), "utf-8").includes(needle);
+}
 
-// Verify main index size is under 50KB (was 228KB)
-const indexSize = Buffer.byteLength(readFileSync(join(distDir, "index.js")));
-const indexSizeKB = (indexSize / 1024).toFixed(1);
-const indexUnder50KB = indexSize < 50 * 1024;
-console.log(`${indexUnder50KB ? "PASS" : "FAIL"}: index.js size ${indexSizeKB}KB (limit: 50KB)`);
-if (!indexUnder50KB) allPassed = false;
+// 1. Verify all export entry points exist
+const entryPoints = [
+  [".", "index.js"],
+  ["./account", "functions/account.js"],
+  ["./abstraction", "functions/abstraction.js"],
+  ["./ans", "functions/ans.js"],
+  ["./coin", "functions/coin.js"],
+  ["./digitalAsset", "functions/digitalAsset.js"],
+  ["./faucet", "functions/faucet.js"],
+  ["./fungibleAsset", "functions/fungibleAsset.js"],
+  ["./general", "functions/general.js"],
+  ["./keyless", "functions/keyless.js"],
+  ["./object", "functions/object.js"],
+  ["./staking", "functions/staking.js"],
+  ["./table", "functions/table.js"],
+  ["./transaction", "functions/transaction.js"],
+  ["./view", "functions/view.js"],
+  ["./crypto", "core/crypto/index.js"],
+  ["./bcs", "bcs/index.js"],
+  ["./cli", "cli/index.js"],
+];
+
+console.log("--- Entry point existence ---");
+for (const [exportPath, filePath] of entryPoints) {
+  check(`${exportPath} → ${filePath}`, fileExists(filePath));
+  // Also check .d.ts exists
+  const dtsPath = filePath.replace(".js", ".d.ts");
+  check(`${exportPath} → ${dtsPath}`, fileExists(dtsPath));
+}
+
+// 2. Poseidon isolation: poseidon code lives ONLY in its own module
+console.log("\n--- Poseidon isolation ---");
+check("poseidon.js exists", fileExists("core/crypto/poseidon.js"));
+
+// Main barrel should NOT contain poseidon function definitions
+check(
+  "index.js does not inline poseidon",
+  !fileContains("index.js", "poseidonHash") && !fileContains("index.js", "numInputsToPoseidonFunc"),
+);
+
+// Non-keyless function entry points should not import poseidon
+const nonKeylessEntries = [
+  "functions/account.js",
+  "functions/coin.js",
+  "functions/transaction.js",
+  "functions/faucet.js",
+  "functions/general.js",
+  "functions/staking.js",
+];
+for (const entry of nonKeylessEntries) {
+  check(`${entry} does not reference poseidon`, !fileContains(entry, "poseidon"));
+}
+
+// 3. Main barrel should not re-export functions (to avoid circular deps)
+console.log("\n--- Barrel structure ---");
+check(
+  "index.js does not re-export functions/",
+  !fileContains("index.js", "from \"./functions"),
+  "functions are sub-path only",
+);
 
 if (!allPassed) {
   console.log("\nSome checks FAILED!");
