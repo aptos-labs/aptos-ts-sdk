@@ -13,5 +13,8 @@
   },
   "dependencies": {
     "@aptos-labs/ts-sdk": "file:../.."
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2"
   }
 }
