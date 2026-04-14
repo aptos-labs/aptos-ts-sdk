@@ -5,7 +5,6 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  sucrase: 3.35.1
   lodash: 4.17.23
   js-yaml: 4.1.1
   diff: 4.0.4
