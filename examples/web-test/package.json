@@ -13,7 +13,8 @@
     "@aptos-labs/ts-sdk": "link:../.."
   },
   "devDependencies": {
-    "@playwright/test": "^1.58.2",
-    "vite": "^7.3.2"
+    "@playwright/test": "^1.59.1",
+    "vite": "^7.3.2",
+    "typescript": "^6.0.2"
   }
 }
