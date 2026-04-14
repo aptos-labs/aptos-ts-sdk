@@ -36,7 +36,6 @@ import { KeylessError, KeylessErrorType } from "../../errors/index.js";
 import { bn254 } from "@noble/curves/bn254.js";
 import { bytesToNumberBE } from "@noble/curves/utils.js";
 import { FederatedKeylessPublicKey } from "./federatedKeyless.js";
-import { encode } from "js-base64";
 import { generateSigningMessage } from "../../transactions/transactionBuilder/signingMessage.js";
 import { WeierstrassPoint } from "@noble/curves/abstract/weierstrass.js";
 import { Fp2 } from "@noble/curves/abstract/tower.js";
@@ -493,7 +492,7 @@ function getPublicInputsHash(args: {
     fields.push(1n);
     fields.push(hashStrToField(proof.extraField, keylessConfig.maxExtraFieldBytes));
   }
-  fields.push(hashStrToField(`${encode(signature.jwtHeader, true)}.`, keylessConfig.maxJwtHeaderB64Bytes));
+  fields.push(hashStrToField(`${Buffer.from(signature.jwtHeader).toString("base64url")}.`, keylessConfig.maxJwtHeaderB64Bytes));
   fields.push(jwk.toScalar());
   if (!proof.overrideAudVal) {
     fields.push(hashStrToField("", MAX_AUD_VAL_BYTES));
