@@ -685,14 +685,17 @@ export async function getAuthenticatorForSimulation(publicKey?: PublicKey) {
 
   // Wrap the public key types below with AnyPublicKey as they are only support through single sender.
   // Learn more about AnyPublicKey here - https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-55.md
-  const isKeylessInstance = (key: PublicKey): boolean =>
-    "iss" in key && typeof (key as any).iss === "string" && ("idCommitment" in key || "jwkAddress" in key);
-  // Ensure keyless variants are registered before wrapping in AnyPublicKey
-  if (isKeylessInstance(publicKey)) {
-    await import("../../core/crypto/keylessRegistration.js");
-  }
-  const convertToAnyPublicKey = isKeylessInstance(publicKey) || Secp256k1PublicKey.isInstance(publicKey);
-  const accountPublicKey = convertToAnyPublicKey ? new AnyPublicKey(publicKey) : publicKey;
+  // Detect keyless public keys by duck-typing to avoid importing poseidon-heavy modules
+  const detectKeylessVariant = (key: PublicKey): AnyPublicKeyVariant | undefined => {
+    if ("jwkAddress" in key && "keylessPublicKey" in key) return AnyPublicKeyVariant.FederatedKeyless;
+    if ("iss" in key && typeof (key as any).iss === "string" && "idCommitment" in key)
+      return AnyPublicKeyVariant.Keyless;
+    return undefined;
+  };
+  const keylessVariant = detectKeylessVariant(publicKey);
+  const convertToAnyPublicKey = keylessVariant !== undefined || Secp256k1PublicKey.isInstance(publicKey);
+  // Pass variant explicitly for keyless keys to avoid instanceof-based registry detection
+  const accountPublicKey = convertToAnyPublicKey ? new AnyPublicKey(publicKey, keylessVariant) : publicKey;
 
   // No need to for the signature to be matching in scheme. All that matters for simulations is that it's not valid
   const invalidSignature = new Ed25519Signature(new Uint8Array(64));

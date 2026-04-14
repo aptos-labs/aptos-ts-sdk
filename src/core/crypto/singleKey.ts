@@ -57,10 +57,12 @@ export class AnyPublicKey extends AccountPublicKey {
    * @group Implementation
    * @category Serialization
    */
-  constructor(publicKey: PublicKey) {
+  constructor(publicKey: PublicKey, variant?: AnyPublicKeyVariant) {
     super();
     this.publicKey = publicKey;
-    if (publicKey instanceof Ed25519PublicKey) {
+    if (variant !== undefined) {
+      this.variant = variant;
+    } else if (publicKey instanceof Ed25519PublicKey) {
       this.variant = AnyPublicKeyVariant.Ed25519;
     } else if (publicKey instanceof Secp256k1PublicKey) {
       this.variant = AnyPublicKeyVariant.Secp256k1;
