@@ -366,7 +366,6 @@ export async function submitTransaction(
       if (variant === AnyPublicKeyVariant.Keyless || variant === AnyPublicKeyVariant.FederatedKeyless) {
         // Dynamic import to avoid pulling poseidon-lite into the main bundle
         const { AbstractKeylessAccount } = await import("../account/AbstractKeylessAccount");
-        const { KeylessSignature } = await import("../core/crypto/keyless");
         type KP = import("../core/crypto/keyless").KeylessPublicKey;
         type KS = import("../core/crypto/keyless").KeylessSignature;
         await AbstractKeylessAccount.fetchJWK({
@@ -439,10 +438,17 @@ export async function signAndSubmitAsFeePayer(
   });
 }
 
-const packagePublishAbi: EntryFunctionABI = {
-  typeParameters: [],
-  parameters: [TypeTagVector.u8(), new TypeTagVector(TypeTagVector.u8())],
-};
+// Lazy-initialized to avoid circular dependency issues at module evaluation time.
+let _packagePublishAbi: EntryFunctionABI | undefined;
+function getPackagePublishAbi(): EntryFunctionABI {
+  if (!_packagePublishAbi) {
+    _packagePublishAbi = {
+      typeParameters: [],
+      parameters: [TypeTagVector.u8(), new TypeTagVector(TypeTagVector.u8())],
+    };
+  }
+  return _packagePublishAbi;
+}
 
 /**
  * Publishes a package transaction to the Aptos blockchain.
@@ -473,7 +479,7 @@ export async function publicPackageTransaction(args: {
     data: {
       function: "0x1::code::publish_package_txn",
       functionArguments: [MoveVector.U8(metadataBytes), new MoveVector(totalByteCode)],
-      abi: packagePublishAbi,
+      abi: getPackagePublishAbi(),
     },
     options,
   });

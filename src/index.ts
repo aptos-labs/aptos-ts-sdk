@@ -1,8 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-// ---- Standalone functions (tree-shakeable, no poseidon/keyless) ----
-export * from "./functions";
+// NOTE: Standalone functions are NOT re-exported from the barrel to avoid circular
+// dependency issues. Import from '@aptos-labs/ts-sdk/functions' or sub-path exports.
 
 // ---- Configuration ----
 export * from "./api/aptosConfig";

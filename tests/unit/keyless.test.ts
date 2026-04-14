@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { keylessTestConfig, keylessTestObject } from "./helper";
-import { Deserializer, Hex, KeylessAccount, KeylessPublicKey, KeylessSignature } from "../../src";
+import { Deserializer, Hex } from "../../src";
+import { KeylessPublicKey, KeylessSignature } from "../../src/core/crypto/keyless";
+import { KeylessAccount } from "../../src/account/KeylessAccount";
 
 describe("Keyless", () => {
   describe("keylessPublicKey", () => {
