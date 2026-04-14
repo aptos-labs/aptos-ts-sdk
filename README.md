@@ -33,37 +33,58 @@ The SDK is compatible with the [Bun](https://bun.sh/) runtime. Install the SDK u
 bun add @aptos-labs/ts-sdk
 ```
 
-### For use in a browser (<= version 1.9.1 only)
+### For use in a browser
 
-You can add the SDK to your web application using a script tag:
+The SDK is ESM-only and works with any modern bundler (Vite, webpack, etc.):
 
-```html
-<script src="https://unpkg.com/@aptos-labs/ts-sdk/dist/browser/index.global.js"></script>
+```ts
+import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 ```
-
-Then, the SDK can be accessed through `window.aptosSDK`.
 
 ## Usage
 
-Create an `Aptos` client in order to access the SDK's functionality.
+### Option 1: `Aptos` class (all-in-one)
 
-```ts
-import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk"
-
-// You can use AptosConfig to choose which network to connect to
-const config = new AptosConfig({ network: Network.TESTNET });
-// Aptos is the main entrypoint for all functions
-const aptos = new Aptos(config);
-```
-
-#### For Bun users
-
-Bun's HTTP/2 support is not fully mature yet. You need to disable HTTP/2 to ensure the SDK works properly:
+The simplest way to get started. Not tree-shakeable — pulls in all sub-modules.
 
 ```ts
 import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 
-const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET, clientConfig: { http2: false } }));
+const config = new AptosConfig({ network: Network.TESTNET });
+const aptos = new Aptos(config);
+```
+
+### Option 2: Namespace classes from sub-paths (tree-shakeable)
+
+Import only the namespaces you need for smaller bundles with full autocomplete:
+
+```ts
+import { General, AptosConfig } from "@aptos-labs/ts-sdk/general";
+import { Faucet } from "@aptos-labs/ts-sdk/faucet";
+
+const config = new AptosConfig({ network: Network.TESTNET });
+const general = new General(config);
+const faucet = new Faucet(config);
+```
+
+### Option 3: Standalone functions (maximum tree-shaking)
+
+For the smallest possible bundles (e.g., wallet adapters):
+
+```ts
+import { getLedgerInfo } from "@aptos-labs/ts-sdk/general";
+import { AptosConfig, Network } from "@aptos-labs/ts-sdk";
+
+const config = new AptosConfig({ network: Network.TESTNET });
+const ledger = await getLedgerInfo({ aptosConfig: config });
+```
+
+#### For Bun users
+
+Bun's HTTP/2 support is not fully mature yet. Disable HTTP/2:
+
+```ts
+const config = new AptosConfig({ network: Network.TESTNET, clientConfig: { http2: false } });
 ```
 
 ### Reading Data From Onchain ([Guide](https://aptos.dev/en/build/sdks/ts-sdk/fetch-data-via-sdk))
@@ -71,9 +92,9 @@ const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET, clientConfig
 ---
 
 ```ts
-const accountInfo = await aptos.getAccountInfo({ accountAddress: "0x123" });
-const modules = await aptos.getAccountModules({ accountAddress: "0x123" });
-const tokens = await aptos.getAccountOwnedTokens({ accountAddress: "0x123" });
+const accountInfo = await aptos.account.getAccountInfo({ accountAddress: "0x123" });
+const modules = await aptos.account.getAccountModules({ accountAddress: "0x123" });
+const tokens = await aptos.account.getAccountOwnedTokens({ accountAddress: "0x123" });
 ```
 
 ### Account management (default to Ed25519)
@@ -166,11 +187,11 @@ async function example() {
     console.log(`Bob's address is: ${bob.accountAddress}`);
  
     console.log("\n=== Funding accounts ===\n");
-    await aptos.fundAccount({
+    await aptos.faucet.fundAccount({
         accountAddress: alice.accountAddress,
         amount: 100_000_000,
     });  
-    await aptos.fundAccount({
+    await aptos.faucet.fundAccount({
         accountAddress: bob.accountAddress,
         amount: 100,
     });
@@ -215,7 +236,7 @@ async function example() {
  
     // 5. Wait for results
     console.log("\n=== 5. Waiting for result of transaction ===\n");
-    const executedTransaction = await aptos.waitForTransaction({ transactionHash: submittedTransaction.hash });
+    const executedTransaction = await aptos.transaction.waitForTransaction({ transactionHash: submittedTransaction.hash });
     console.log(executedTransaction)
 };
  
@@ -230,7 +251,7 @@ If you see an import error when you do this:
 import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 ```
 
-It could be that your `tsconfig.json` is not using `node`. Make sure your `moduleResolution` in the `tsconfig.json` is set to `node` instead of `bundler`.
+Make sure your `tsconfig.json` uses a compatible `moduleResolution` setting. The SDK is ESM-only and works with `"nodenext"`, `"node16"`, or `"bundler"` module resolution.
 
 ## Contributing
 
@@ -240,9 +261,10 @@ If neither of these describes what you would like to contribute, check out the [
 
 ## Running unit tests
 
-To run a unit test in this repo, for example, the keyless end-to-end unit test in `tests/e2e/api/keyless.test.ts`:
 ```
-pnpm jest keyless.test.ts
+pnpm test                        # Run all tests (unit + e2e)
+vitest run tests/unit            # Run unit tests only
+vitest run keyless.test.ts       # Run a specific test file
 ```
 
 [npm-image-version]: https://img.shields.io/npm/v/%40aptos-labs%2Fts-sdk.svg

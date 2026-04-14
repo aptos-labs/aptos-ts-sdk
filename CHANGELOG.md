@@ -17,8 +17,9 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - ESM-only output; removed CommonJS `"require"` exports. Node.js 22+ required.
   - Migration: Update imports from `require()` to `import` syntax
   - See: `upgrade-guides/UPGRADE_GUIDE_7.0.0.md`
-- **Flat mixin API removed** — `aptos.getAccountInfo()` no longer works. Use `aptos.account.getAccountInfo()` or the standalone `getAccountInfo()` function.
-- **`Aptos` class deprecated** — still works but logs a warning. Sub-modules are lazily instantiated. Use standalone functions instead.
+- **Namespace classes available from sub-paths** — `import { General, AptosConfig } from "@aptos-labs/ts-sdk/general"` for tree-shakeable usage with autocomplete. The `Aptos` class remains available but is not tree-shakeable.
+- **Plain `tsc` build** — replaced tsup bundler with plain TypeScript compiler. Output is unbundled, unminified ESM with 1:1 file mapping. `nodenext` module resolution.
+- **Removed `js-base64` dependency** — replaced with native `atob`/`btoa` (universal across all runtimes).
 - **Keyless imports moved** — `KeylessAccount`, `FederatedKeylessAccount`, `EphemeralKeyPair`, poseidon utilities, and keyless crypto types are no longer exported from the main entry. Import from sub-paths or direct file paths.
 - **HD Key and deserialization utils moved** — no longer in the crypto barrel. Import directly from their files.
 - **`generateSignedTransactionForSimulation` is now async** — callers must `await` it.
@@ -27,7 +28,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 ## Changed
 
 - Introduce `MultiSigTransactionPayloadVariants` for multisig inner payload BCS tags and consolidate bytecode handling in `buildTransactionPayload`.
-- Pin `@noble/curves` and `@noble/hashes` to the latest 1.x releases without semver ranges (CJS-compatible; noble v2 is ESM-only).
+- Upgraded `@noble/curves` and `@noble/hashes` to 2.x (ESM-only).
 
 ## Fixed
 

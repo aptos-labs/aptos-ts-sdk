@@ -2,43 +2,27 @@
 
 ## Overview
 
-v8.0.0 makes the SDK tree-shakeable, dramatically reducing bundle sizes for web and serverless consumers. The main bundle drops from ~228KB to ~44KB, and poseidon-lite (used only by Keyless) is fully isolated.
+v8.0.0 makes the SDK tree-shakeable and modernizes the build output. The SDK now uses plain `tsc` (no bundler), `nodenext` module resolution, and provides three tiers of usage for different bundle-size needs.
 
 ## Breaking Changes
 
-### 1. Flat mixin API removed on `Aptos` class
+### 1. ESM-only, Node.js 22+ required
 
-The `Aptos` class no longer copies sub-module methods onto its prototype. Use the namespaced API instead.
+CommonJS `require()` is no longer supported. All imports must use ESM `import` syntax.
 
 **Before:**
-```typescript
-const aptos = new Aptos(config);
-await aptos.getAccountInfo({ accountAddress: "0x1" });
-await aptos.fundAccount({ accountAddress: "0x1", amount: 100 });
+```javascript
+const { Aptos } = require("@aptos-labs/ts-sdk");
 ```
 
 **After:**
 ```typescript
-const aptos = new Aptos(config);
-await aptos.account.getAccountInfo({ accountAddress: "0x1" });
-await aptos.faucet.fundAccount({ accountAddress: "0x1", amount: 100 });
+import { Aptos } from "@aptos-labs/ts-sdk";
 ```
 
-### 2. `Aptos` class is deprecated
+### 2. Keyless imports moved
 
-The `Aptos` class still works but logs a deprecation warning on first use. Sub-modules are now lazily instantiated on first property access.
-
-**Recommended migration — use standalone functions:**
-```typescript
-import { AptosConfig, getAccountInfo, fundAccount } from "@aptos-labs/ts-sdk";
-
-const config = new AptosConfig({ network: Network.TESTNET });
-const info = await getAccountInfo({ aptosConfig: config, accountAddress: "0x1" });
-```
-
-### 3. Keyless imports moved
-
-`KeylessAccount`, `FederatedKeylessAccount`, `EphemeralKeyPair`, `AbstractKeylessAccount`, and all poseidon/keyless crypto utilities are **no longer exported from the main entry point**.
+`KeylessAccount`, `FederatedKeylessAccount`, `EphemeralKeyPair`, `AbstractKeylessAccount`, and all poseidon/keyless crypto utilities are **no longer exported from the main entry point** (to keep poseidon-lite out of the main bundle).
 
 **Before:**
 ```typescript
@@ -47,74 +31,100 @@ import { KeylessAccount, EphemeralKeyPair, poseidonHash } from "@aptos-labs/ts-s
 
 **After:**
 ```typescript
-// Import keyless functions from the keyless sub-path
+// Keyless functions from the keyless sub-path
 import { deriveKeylessAccount } from "@aptos-labs/ts-sdk/keyless";
 
-// Import keyless account classes directly
-import { KeylessAccount } from "@aptos-labs/ts-sdk/dist/account/KeylessAccount";
-import { EphemeralKeyPair } from "@aptos-labs/ts-sdk/dist/account/EphemeralKeyPair";
+// Keyless account classes directly
+import { KeylessAccount } from "@aptos-labs/ts-sdk/dist/account/KeylessAccount.js";
+import { EphemeralKeyPair } from "@aptos-labs/ts-sdk/dist/account/EphemeralKeyPair.js";
 
-// Import poseidon utilities directly
-import { poseidonHash } from "@aptos-labs/ts-sdk/dist/core/crypto/poseidon";
+// Poseidon utilities directly
+import { poseidonHash } from "@aptos-labs/ts-sdk/dist/core/crypto/poseidon.js";
 ```
 
-### 4. HD Key imports moved
+### 3. HD Key imports moved
 
 `isValidBIP44Path`, `isValidHardenedPath`, and other HD key utilities are no longer in the crypto barrel.
 
 **After:**
 ```typescript
-import { isValidBIP44Path } from "@aptos-labs/ts-sdk/dist/core/crypto/hdKey";
+import { isValidBIP44Path } from "@aptos-labs/ts-sdk/dist/core/crypto/hdKey.js";
 ```
 
-### 5. `deserializePublicKey` / `deserializeSignature` moved
+### 4. `generateSignedTransactionForSimulation` is now async
 
-These are no longer in the crypto barrel because they depend on keyless types.
+Callers must `await` it.
 
-**After:**
+### 5. Standalone functions not in barrel
+
+Standalone functions (e.g., `getLedgerInfo`, `transferCoinTransaction`) are **not** exported from the main `@aptos-labs/ts-sdk` entry point. Import them from sub-paths:
+
 ```typescript
-import { deserializePublicKey } from "@aptos-labs/ts-sdk/dist/core/crypto/deserializationUtils";
+import { getLedgerInfo } from "@aptos-labs/ts-sdk/general";
+import { transferCoinTransaction } from "@aptos-labs/ts-sdk/coin";
 ```
 
 ## New Features
 
-### Standalone Functions
+### Three tiers of usage
 
-All SDK operations are now available as standalone functions that accept `{ aptosConfig, ...args }`:
-
+**Tier 1: `Aptos` class (convenience, not tree-shakeable)**
 ```typescript
-import { AptosConfig, getLedgerInfo, getBalance, transferCoinTransaction } from "@aptos-labs/ts-sdk";
+import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+
+const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
+await aptos.getLedgerInfo();
+await aptos.account.getAccountInfo({ accountAddress: "0x1" });
+```
+
+**Tier 2: Namespace classes from sub-paths (tree-shakeable + autocomplete)**
+```typescript
+import { General, AptosConfig } from "@aptos-labs/ts-sdk/general";
+import { Account } from "@aptos-labs/ts-sdk/account";
 
 const config = new AptosConfig({ network: Network.TESTNET });
+const general = new General(config);
+const account = new Account(config);
 
-// Read-only queries
-const ledger = await getLedgerInfo({ aptosConfig: config });
-const balance = await getBalance({ aptosConfig: config, accountAddress: "0x1", asset: "0x1::aptos_coin::AptosCoin" });
-
-// Transaction building
-const txn = await transferCoinTransaction({
-  aptosConfig: config,
-  sender: "0x1",
-  recipient: "0x2",
-  amount: 100,
-});
+await general.getLedgerInfo();
+await account.getAccountInfo({ accountAddress: "0x1" });
 ```
 
-### Sub-path Imports
-
-Import only what you need for minimal bundle sizes:
-
+**Tier 3: Standalone functions (maximum tree-shaking)**
 ```typescript
-// Tiny import — only account query functions
-import { getAccountInfo, getBalance } from "@aptos-labs/ts-sdk/account";
+import { getLedgerInfo } from "@aptos-labs/ts-sdk/general";
+import { getAccountInfo } from "@aptos-labs/ts-sdk/account";
+import { AptosConfig, Network } from "@aptos-labs/ts-sdk";
 
-// Only transaction functions
-import { generateTransaction, submitTransaction } from "@aptos-labs/ts-sdk/transaction";
-
-// Only keyless (includes poseidon)
-import { deriveKeylessAccount } from "@aptos-labs/ts-sdk/keyless";
+const config = new AptosConfig({ network: Network.TESTNET });
+await getLedgerInfo({ aptosConfig: config });
+await getAccountInfo({ aptosConfig: config, accountAddress: "0x1" });
 ```
+
+### Sub-path exports
+
+Each sub-path exports both standalone functions and the namespace class:
+
+| Sub-path | Namespace Class | Functions |
+|----------|----------------|-----------|
+| `@aptos-labs/ts-sdk/account` | `Account` | `getAccountInfo`, `getBalance`, ... |
+| `@aptos-labs/ts-sdk/coin` | `Coin` | `transferCoinTransaction` |
+| `@aptos-labs/ts-sdk/general` | `General` | `getLedgerInfo`, `getChainId`, ... |
+| `@aptos-labs/ts-sdk/transaction` | `Transaction` | `generateTransaction`, `submitTransaction`, ... |
+| `@aptos-labs/ts-sdk/faucet` | `Faucet` | `fundAccount` |
+| `@aptos-labs/ts-sdk/keyless` | `Keyless` | `deriveKeylessAccount`, `getPepper`, ... |
+| `@aptos-labs/ts-sdk/digitalAsset` | `DigitalAsset` | `createCollectionTransaction`, ... |
+| `@aptos-labs/ts-sdk/fungibleAsset` | `FungibleAsset` | `transferFungibleAsset`, ... |
+| `@aptos-labs/ts-sdk/staking` | `Staking` | `getDelegatedStakingActivities`, ... |
+| `@aptos-labs/ts-sdk/ans` | `ANS` | `getName`, `registerName`, ... |
+| `@aptos-labs/ts-sdk/table` | `Table` | `getTableItem`, ... |
+| `@aptos-labs/ts-sdk/object` | `AptosObject` | `getObjectData`, ... |
+| `@aptos-labs/ts-sdk/view` | *(none)* | `view`, `viewJson` |
+| `@aptos-labs/ts-sdk/bcs` | *(core types)* | BCS serialization primitives |
+| `@aptos-labs/ts-sdk/crypto` | *(core types)* | Crypto primitives |
+
+All sub-paths also export `AptosConfig` for convenience.
 
 ### `sideEffects: false`
 
-The package now declares `"sideEffects": false`, enabling bundlers to tree-shake unused exports.
+The package declares `"sideEffects": false`, enabling bundlers to tree-shake unused exports.
