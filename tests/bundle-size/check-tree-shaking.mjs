@@ -91,7 +91,7 @@ for (const entry of nonKeylessEntries) {
 console.log("\n--- Barrel structure ---");
 check(
   "index.js does not re-export functions/",
-  !fileContains("index.js", "from \"./functions"),
+  !fileContains("index.js", 'from "./functions'),
   "functions are sub-path only",
 );
 

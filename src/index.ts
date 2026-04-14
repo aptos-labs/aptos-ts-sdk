@@ -7,7 +7,7 @@
 // ---- Configuration ----
 export * from "./api/aptosConfig.js";
 
-// ---- Deprecated Aptos class (compat layer) ----
+// ---- Aptos class (convenience, not tree-shakeable — see sub-path imports) ----
 export { Aptos } from "./api/aptos.js";
 
 // ---- Account classes (without keyless — import keyless from sub-paths) ----
