@@ -551,8 +551,10 @@ function payloadToExecutable(payload: AnyTransactionPayloadInstance): {
       executable = new TransactionExecutableEmpty();
     } else if (innerPayload.transaction_payload instanceof EntryFunction) {
       executable = new TransactionExecutableEntryFunction(innerPayload.transaction_payload);
+    } else if (innerPayload.transaction_payload instanceof Script) {
+      executable = new TransactionExecutableScript(innerPayload.transaction_payload);
     } else {
-      throw new Error("Scripts are not supported in multi-sig transactions.");
+      throw new Error("Unsupported multisig transaction payload type");
     }
     return {
       executable,

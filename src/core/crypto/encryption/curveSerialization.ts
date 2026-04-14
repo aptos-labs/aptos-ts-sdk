@@ -12,10 +12,29 @@ export function g2ToBytes(p: WeierstrassPoint<Fp2>): Uint8Array {
   return p.toBytes(true);
 }
 
+/**
+ * Deserialize a G2 point from compressed encoding. Matches aptos-core
+ * `ts-batch-encrypt`: reject points not in the prime-order subgroup.
+ */
 export function bytesToG2(bytes: Uint8Array): WeierstrassPoint<Fp2> {
-  return bls12_381.G2.Point.fromBytes(bytes);
+  const p = bls12_381.G2.Point.fromBytes(bytes);
+  if (!p.isTorsionFree()) {
+    throw new Error("Tried to deserialize invalid group element: not torsion free");
+  }
+  return p;
 }
 
 export function g1ToBytes(p: WeierstrassPoint<bigint>): Uint8Array {
   return p.toBytes(true);
+}
+
+/**
+ * Deserialize a G1 point from compressed encoding; subgroup check matches aptos-core `ts-batch-encrypt`.
+ */
+export function bytesToG1(bytes: Uint8Array): WeierstrassPoint<bigint> {
+  const p = bls12_381.G1.Point.fromBytes(bytes);
+  if (!p.isTorsionFree()) {
+    throw new Error("Tried to deserialize invalid group element: not torsion free");
+  }
+  return p;
 }

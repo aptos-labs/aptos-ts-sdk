@@ -34,6 +34,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Remove `dotenv` usage from all TypeScript/JavaScript examples. Node 22+ users can rely on the built-in `node --env-file=.env` flag (or `tsx --env-file=.env`) when a `.env` file is needed; the examples default to devnet and don't require one.
 - `AnsName` now reports nullable indexer fields honestly instead of fabricating placeholder values. `domain`, `token_standard`, and `is_primary` are typed as optional (`string | undefined` / `AnsTokenStandard | undefined` / `boolean | undefined`), and `sanitizeANSName` passes them through as `undefined` rather than defaulting to `"N/A"`, `"v2"`, `false`, or `""`. Consumers that previously relied on these fields always being present should handle the `undefined` case (or filter the row out as bad indexer data).
 - `AccountAbstraction.addAuthenticationFunctionTransaction`, `removeAuthenticationFunctionTransaction`, and `disableAccountAbstractionTransaction` now type their `authenticationFunction` parameter as `MoveFunctionId` instead of `string`. `MoveFunctionId` is a string alias, so string literals still compile; callers passing a typed `string` variable may need to retype it (or cast) to satisfy the tightened signature. Updated the `hello_world_authenticator_account_abstraction.ts` and `public_key_authenticator_account_abstraction.ts` examples accordingly — they now annotate `authenticationFunction` as `MoveFunctionId` and call `.toString()` on the account address so the template literal type resolves correctly.
+- Batch-encryption curve deserialization: `bytesToG1` / `bytesToG2` require prime-order subgroup points (`isTorsionFree` after `fromBytes`), matching aptos-core `ts-batch-encrypt`.
 
 ## Fixed
 
@@ -52,6 +53,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Regenerate `examples/typescript/pnpm-lock.yaml` to include the recently added `@noble/hashes` dependency so `pnpm install --frozen-lockfile` succeeds in CI.
 - Prevent `@types/node` type leak in emitted `.d.ts`: `TEXT_ENCODER` now has an explicit structural type (`{ encode(input: string): Uint8Array }`) so consumers without `@types/node` (browsers, Deno, React Native) don't hit `Cannot find name 'util'` when compiling against the SDK.
 - Fix `examples/typescript` build: split `EphemeralKeyPair` imports to `@aptos-labs/ts-sdk/keyless`, update `@noble/hashes/sha3` to `@noble/hashes/sha3.js` (noble v2 exports), add explicit `"types": ["node"]` to the example `tsconfig.json`, and use `??` (instead of `||`) when reading `process.env.APTOS_NETWORK` so it type-checks under strict null checks.
+- Encrypted transaction builds with multisig inner **script** payload: `payloadToExecutable` now maps `Script` to `TransactionExecutableScript`, consistent with the orderless `convertPayloadToInnerPayload` path.
 
 ## Added
 

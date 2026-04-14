@@ -7,8 +7,8 @@
  * Reference implementation: aptos-core/crates/aptos-batch-encryption/ts-batch-encrypt/src/
  * Rust types:               aptos-core/crates/aptos-batch-encryption/src/shared/
  *
- * This module is encrypt-only; decrypt-side helpers (hash_to_fq, bytesToG1, leBytesToFp*)
- * are intentionally omitted since SDK clients never decrypt.
+ * This module is encrypt-only; full decrypt helpers are omitted. `curveSerialization.bytesToG1/G2`
+ * include subgroup checks when deserializing keys/ciphertexts from the node (aptos-core parity).
  *
  * @module
  */
