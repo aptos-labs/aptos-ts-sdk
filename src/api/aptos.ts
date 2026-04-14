@@ -17,36 +17,37 @@ import { AptosObject } from "./object.js";
 import { AccountAbstraction } from "./account/abstraction.js";
 
 /**
- * @deprecated The Aptos class is deprecated and will be removed in a future version.
- * Use standalone functions instead for better tree-shaking and smaller bundle sizes.
- *
  * The main entry point for interacting with the Aptos APIs,
  * providing access to various functionalities organized into
  * distinct namespaces.
  *
- * To utilize the SDK, instantiate a new Aptos object to gain
- * access to the complete range of SDK features.
+ * Note: Importing `Aptos` pulls in all sub-modules and is not tree-shakeable.
+ * For smaller bundles, import namespace classes from sub-paths instead:
+ *
+ * ```typescript
+ * import { General, AptosConfig } from "@aptos-labs/ts-sdk/general";
+ * const general = new General(new AptosConfig({ network: Network.TESTNET }));
+ * await general.getLedgerInfo();
+ * ```
+ *
+ * Or for maximum tree-shaking, import individual functions:
+ *
+ * ```typescript
+ * import { getLedgerInfo } from "@aptos-labs/ts-sdk/general";
+ * await getLedgerInfo({ aptosConfig: config });
+ * ```
  *
  * @example
  * ```typescript
  * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
  *
- * async function runExample() {
- *     // Create a configuration for connecting to the Aptos testnet
- *     const config = new AptosConfig({ network: Network.TESTNET });
- *
- *     // Initialize the Aptos client with the configuration
- *     const aptos = new Aptos(config);
- *
- *     console.log("Aptos client initialized:", aptos);
- * }
- * runExample().catch(console.error);
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * const ledgerInfo = await aptos.getLedgerInfo();
  * ```
  * @group Client
  */
 export class Aptos {
-  private static _warned = false;
-
   readonly config: AptosConfig;
 
   // Lazy-initialized sub-module backing fields
@@ -65,23 +66,12 @@ export class Aptos {
   #object?: AptosObject;
 
   /**
-   * @deprecated Use standalone functions instead for better tree-shaking.
-   *
    * Initializes a new instance of the Aptos client with the provided configuration settings.
-   * This allows you to interact with various Aptos functionalities such as accounts, transactions, and events.
    *
    * @param config - Configuration settings for the Aptos client.
    * @group Client
    */
   constructor(config?: AptosConfig) {
-    if (!Aptos._warned) {
-      console.warn(
-        "[@aptos-labs/ts-sdk] The Aptos class is deprecated. " +
-          "Use standalone functions for better tree-shaking and smaller bundle sizes. " +
-          "See the migration guide for details.",
-      );
-      Aptos._warned = true;
-    }
     this.config = config ?? new AptosConfig();
   }
 
