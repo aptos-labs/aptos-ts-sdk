@@ -492,9 +492,8 @@ function getPublicInputsHash(args: {
     fields.push(1n);
     fields.push(hashStrToField(proof.extraField, keylessConfig.maxExtraFieldBytes));
   }
-  fields.push(
-    hashStrToField(`${Buffer.from(signature.jwtHeader).toString("base64url")}.`, keylessConfig.maxJwtHeaderB64Bytes),
-  );
+  const jwtHeaderB64Url = btoa(signature.jwtHeader).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  fields.push(hashStrToField(`${jwtHeaderB64Url}.`, keylessConfig.maxJwtHeaderB64Bytes));
   fields.push(jwk.toScalar());
   if (!proof.overrideAudVal) {
     fields.push(hashStrToField("", MAX_AUD_VAL_BYTES));

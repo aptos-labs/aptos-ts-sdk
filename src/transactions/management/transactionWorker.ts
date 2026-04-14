@@ -1,4 +1,4 @@
-import { EventEmitter } from "node:events";
+import { EventEmitter } from "eventemitter3";
 import { AptosConfig } from "../../api/aptosConfig.js";
 import { Account } from "../../account/index.js";
 import { waitForTransaction } from "../../internal/transaction.js";
@@ -45,11 +45,11 @@ export enum TransactionWorkerEventsEnum {
  * @category Transactions
  */
 export interface TransactionWorkerEvents {
-  transactionSent: [data: SuccessEventData];
-  transactionSendFailed: [data: FailureEventData];
-  transactionExecuted: [data: SuccessEventData];
-  transactionExecutionFailed: [data: FailureEventData];
-  executionFinish: [data: ExecutionFinishEventData];
+  transactionSent: (data: SuccessEventData) => void;
+  transactionSendFailed: (data: FailureEventData) => void;
+  transactionExecuted: (data: SuccessEventData) => void;
+  transactionExecutionFailed: (data: FailureEventData) => void;
+  executionFinish: (data: ExecutionFinishEventData) => void;
 }
 
 /**
