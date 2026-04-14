@@ -1,5 +1,5 @@
 import { execSync } from "node:child_process";
-import "dotenv";
+import "../../setupDotenv.js";
 import { AccountAddress, Aptos, AptosApiType, Ed25519PrivateKey, PrivateKey, PrivateKeyVariants } from "../../../src";
 import { LOCAL_ANS_ACCOUNT_PK, LOCAL_ANS_ACCOUNT_ADDRESS } from "../../../src/internal/ans";
 
