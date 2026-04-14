@@ -15,7 +15,6 @@
  * - fetch multi sig account info
  *
  */
-import dotenv from "dotenv";
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import {
   Account,
@@ -34,7 +33,6 @@ import {
   InputViewFunctionJsonData,
 } from "@aptos-labs/ts-sdk";
 
-dotenv.config();
 
 // Default to devnet, but allow for overriding
 const aptosNetworkEnv = process.env.APTOS_NETWORK;

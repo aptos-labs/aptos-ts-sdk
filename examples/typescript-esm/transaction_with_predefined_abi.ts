@@ -3,7 +3,6 @@
 /**
  * This example shows how to use the Aptos client to create accounts, fund them, and transfer between them.
  */
-import dotenv from "dotenv";
 import {
   Account,
   AccountAddress,
@@ -21,7 +20,6 @@ import {
   U64,
 } from "@aptos-labs/ts-sdk";
 
-dotenv.config();
 
 const APTOS_COIN_TYPE = parseTypeTag(APTOS_COIN);
 const ALICE_INITIAL_BALANCE = 1_000_000_000;
