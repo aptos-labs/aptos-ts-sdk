@@ -117,7 +117,6 @@
     "@scure/bip32": "^2.0.1",
     "@scure/bip39": "^2.0.1",
     "eventemitter3": "^5.0.4",
-    "js-base64": "^3.7.7",
     "jwt-decode": "^4.0.0",
     "poseidon-lite": "^0.2.0"
   },

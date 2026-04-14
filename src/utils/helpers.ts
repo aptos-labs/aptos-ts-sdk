@@ -1,7 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Base64, decode } from "js-base64";
 import { MoveFunctionId, MoveStructId } from "../types/index.js";
 import { AccountAddress } from "../core/accountAddress.js";
 import { createObjectAddress } from "../core/account/utils/address.js";
@@ -106,23 +105,11 @@ export function floorToWholeHour(timestampInSeconds: number): number {
  * @category Utils
  */
 export function base64UrlDecode(base64Url: string): string {
-  // Replace base64url-specific characters
-  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-  // Pad the string with '=' characters if needed
-  const paddedBase64 = base64 + "==".substring(0, (3 - (base64.length % 3)) % 3);
-  const decodedString = decode(paddedBase64);
-  return decodedString;
+  return Buffer.from(base64Url, "base64url").toString();
 }
 
 export function base64UrlToBytes(base64Url: string): Uint8Array {
-  // Convert Base64Url to Base64
-  let base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-  // Add padding if needed
-  while (base64.length % 4 !== 0) {
-    base64 += "=";
-  }
-  // Use js-base64 to convert base64 to Uint8Array
-  return Base64.toUint8Array(base64);
+  return new Uint8Array(Buffer.from(base64Url, "base64url"));
 }
 
 /**
