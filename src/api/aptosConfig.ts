@@ -12,7 +12,7 @@ import {
   TransactionGenerationConfig,
   PluginConfig,
   TransactionSubmitter,
-} from "../types";
+} from "../types/index.js";
 import {
   NetworkToNodeAPI,
   NetworkToFaucetAPI,
@@ -20,9 +20,9 @@ import {
   Network,
   NetworkToPepperAPI,
   NetworkToProverAPI,
-} from "../utils/apiEndpoints";
-import { AptosApiType, DEFAULT_MAX_GAS_AMOUNT, DEFAULT_TXN_EXP_SEC_FROM_NOW } from "../utils/const";
-import { isBun } from "../utils/helpers";
+} from "../utils/apiEndpoints.js";
+import { AptosApiType, DEFAULT_MAX_GAS_AMOUNT, DEFAULT_TXN_EXP_SEC_FROM_NOW } from "../utils/const.js";
+import { isBun } from "../utils/helpers.js";
 
 /**
  * Represents the configuration settings for an Aptos SDK client instance.
@@ -182,7 +182,9 @@ export class AptosConfig {
     this.pepper = settings?.pepper;
     this.prover = settings?.prover;
     this.indexer = settings?.indexer;
-    this.client = settings?.client ?? { provider: aptosClient };
+    // Type assertion needed: @aptos-labs/aptos-client's types don't resolve
+    // correctly under nodenext module resolution
+    this.client = settings?.client ?? { provider: aptosClient as unknown as Client["provider"] };
     this.clientConfig = settings?.clientConfig ?? {};
     this.fullnodeConfig = settings?.fullnodeConfig ?? {};
     this.indexerConfig = settings?.indexerConfig ?? {};

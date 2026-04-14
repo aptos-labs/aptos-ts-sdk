@@ -2,19 +2,19 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Side-effect-free crypto exports (no poseidon-lite dependency)
-export * from "./abstraction";
-export * from "./ed25519";
-export * from "./multiEd25519";
-export * from "./multiKey";
-export * from "./privateKey";
-export * from "./publicKey";
-export * from "./secp256k1";
-export * from "./secp256r1";
-export * from "./signature";
-export * from "./singleKey";
-export * from "./types";
+export * from "./abstraction.js";
+export * from "./ed25519.js";
+export * from "./multiEd25519.js";
+export * from "./multiKey.js";
+export * from "./privateKey.js";
+export * from "./publicKey.js";
+export * from "./secp256k1.js";
+export * from "./secp256r1.js";
+export * from "./signature.js";
+export * from "./singleKey.js";
+export * from "./types.js";
 // NOTE: deserializationUtils is NOT re-exported here because it imports keyless types.
-// Import it directly from "./deserializationUtils" when needed.
+// Import it directly from "./deserializationUtils.js" when needed.
 
 // NOTE: The following are intentionally NOT re-exported from this barrel
 // to keep the main import path free of poseidon-lite side effects.

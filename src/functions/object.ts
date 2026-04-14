@@ -4,4 +4,4 @@
 export {
   getObjectData,
   getObjectDataByObjectAddress,
-} from "../internal/object";
+} from "../internal/object.js";

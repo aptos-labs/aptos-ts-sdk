@@ -8,4 +8,4 @@ export {
   getProcessorStatuses,
   getIndexerLastSuccessVersion,
   getProcessorStatus,
-} from "../internal/general";
+} from "../internal/general.js";

@@ -4,12 +4,12 @@ import {
   TypeTagAddress,
   TypeTagStruct,
   stringStructTag,
-} from "../transactions";
-import { AccountAddressInput } from "../core";
-import { generateTransaction } from "./transactionSubmission";
-import { MoveFunctionId } from "../types";
-import { AptosConfig } from "../api/aptosConfig";
-import { getFunctionParts } from "../utils/helpers";
+} from "../transactions/index.js";
+import { AccountAddressInput } from "../core/index.js";
+import { generateTransaction } from "./transactionSubmission.js";
+import { MoveFunctionId } from "../types/index.js";
+import { AptosConfig } from "../api/aptosConfig.js";
+import { getFunctionParts } from "../utils/helpers.js";
 
 export async function addAuthenticationFunctionTransaction(args: {
   aptosConfig: AptosConfig;

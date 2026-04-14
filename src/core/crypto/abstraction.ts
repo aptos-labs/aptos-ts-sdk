@@ -1,10 +1,10 @@
-import { Deserializer, Serializer } from "../../bcs";
-import { HexInput } from "../../types";
-import { AccountAddress } from "../accountAddress";
-import { AuthenticationKey } from "../authenticationKey";
-import { Hex } from "../hex";
-import { AccountPublicKey, VerifySignatureArgs, VerifySignatureAsyncArgs } from "./publicKey";
-import { Signature } from "./signature";
+import { Deserializer, Serializer } from "../../bcs/index.js";
+import { HexInput } from "../../types/index.js";
+import { AccountAddress } from "../accountAddress.js";
+import { AuthenticationKey } from "../authenticationKey.js";
+import { Hex } from "../hex.js";
+import { AccountPublicKey, VerifySignatureArgs, VerifySignatureAsyncArgs } from "./publicKey.js";
+import { Signature } from "./signature.js";
 
 export class AbstractSignature extends Signature {
   readonly value: Uint8Array;

@@ -1,20 +1,20 @@
-import { Deserializer, Serializer } from "../bcs";
-import { AnyPublicKeyVariant, HexInput, SigningScheme } from "../types";
-import { MultiKeyAccount } from "./MultiKeyAccount";
-import { Account } from "./Account";
-import { Ed25519Account } from "./Ed25519Account";
-import { isSingleKeySigner, SingleKeyAccount, SingleKeySignerOrLegacyEd25519Account } from "./SingleKeyAccount";
-import { KeylessAccount } from "./KeylessAccount";
-import { FederatedKeylessAccount } from "./FederatedKeylessAccount";
-import { AbstractKeylessAccount } from "./AbstractKeylessAccount";
-import { AccountAddress } from "../core/accountAddress";
-import { Hex } from "../core/hex";
-import { Ed25519PrivateKey } from "../core/crypto/ed25519";
-import { Secp256k1PrivateKey } from "../core/crypto/secp256k1";
-import { MultiKey } from "../core/crypto/multiKey";
-import { getIssAudAndUidVal, ZeroKnowledgeSig } from "../core/crypto/keyless";
-import { deserializeSchemeAndAddress } from "./utils";
-import { EphemeralKeyPair } from "./EphemeralKeyPair";
+import { Deserializer, Serializer } from "../bcs/index.js";
+import { AnyPublicKeyVariant, HexInput, SigningScheme } from "../types/index.js";
+import { MultiKeyAccount } from "./MultiKeyAccount.js";
+import { Account } from "./Account.js";
+import { Ed25519Account } from "./Ed25519Account.js";
+import { isSingleKeySigner, SingleKeyAccount, SingleKeySignerOrLegacyEd25519Account } from "./SingleKeyAccount.js";
+import { KeylessAccount } from "./KeylessAccount.js";
+import { FederatedKeylessAccount } from "./FederatedKeylessAccount.js";
+import { AbstractKeylessAccount } from "./AbstractKeylessAccount.js";
+import { AccountAddress } from "../core/accountAddress.js";
+import { Hex } from "../core/hex.js";
+import { Ed25519PrivateKey } from "../core/crypto/ed25519.js";
+import { Secp256k1PrivateKey } from "../core/crypto/secp256k1.js";
+import { MultiKey } from "../core/crypto/multiKey.js";
+import { getIssAudAndUidVal, ZeroKnowledgeSig } from "../core/crypto/keyless.js";
+import { deserializeSchemeAndAddress } from "./utils.js";
+import { EphemeralKeyPair } from "./EphemeralKeyPair.js";
 
 function serializeKeylessAccountCommon(account: AbstractKeylessAccount, serializer: Serializer): void {
   serializer.serializeStr(account.jwt);

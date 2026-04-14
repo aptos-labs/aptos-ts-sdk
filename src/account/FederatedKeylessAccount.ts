@@ -1,14 +1,14 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { HexInput } from "../types";
-import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { getIssAudAndUidVal, Groth16VerificationKey, ZeroKnowledgeSig } from "../core/crypto/keyless";
+import { HexInput } from "../types/index.js";
+import { AccountAddress, AccountAddressInput } from "../core/accountAddress.js";
+import { getIssAudAndUidVal, Groth16VerificationKey, ZeroKnowledgeSig } from "../core/crypto/keyless.js";
 
-import { EphemeralKeyPair } from "./EphemeralKeyPair";
-import { Deserializer, Serializer } from "../bcs";
-import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
-import { AbstractKeylessAccount, ProofFetchCallback } from "./AbstractKeylessAccount";
+import { EphemeralKeyPair } from "./EphemeralKeyPair.js";
+import { Deserializer, Serializer } from "../bcs/index.js";
+import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless.js";
+import { AbstractKeylessAccount, ProofFetchCallback } from "./AbstractKeylessAccount.js";
 
 /**
  * Account implementation for the FederatedKeyless authentication scheme.

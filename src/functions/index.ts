@@ -6,16 +6,16 @@
  * Keyless functions are intentionally excluded — import from '@aptos-labs/ts-sdk/keyless'.
  */
 
-export * from "./account";
-export * from "./abstraction";
-export * from "./ans";
-export * from "./coin";
-export * from "./digitalAsset";
-export * from "./faucet";
-export * from "./fungibleAsset";
-export * from "./general";
-export * from "./object";
-export * from "./staking";
-export * from "./table";
-export * from "./transaction";
-export * from "./view";
+export * from "./account.js";
+export * from "./abstraction.js";
+export * from "./ans.js";
+export * from "./coin.js";
+export * from "./digitalAsset.js";
+export * from "./faucet.js";
+export * from "./fungibleAsset.js";
+export * from "./general.js";
+export * from "./object.js";
+export * from "./staking.js";
+export * from "./table.js";
+export * from "./transaction.js";
+export * from "./view.js";

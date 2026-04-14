@@ -7,8 +7,8 @@
  * making it safe to import from any module.
  */
 
-import type { AptosConfig } from "../api/aptosConfig";
-import type { Account } from "./Account";
+import type { AptosConfig } from "../api/aptosConfig.js";
+import type { Account } from "./Account.js";
 
 /**
  * An interface which defines if an Account utilizes Keyless signing.

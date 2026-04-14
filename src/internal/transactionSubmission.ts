@@ -6,19 +6,19 @@
  * @group Implementation
  */
 
-import { AptosConfig } from "../api/aptosConfig";
-import { Deserializer, MoveVector } from "../bcs";
-import { postAptosFullNode } from "../client";
-import { Account } from "../account";
-import { isKeylessSigner } from "../account/keylessSigner";
-import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { AccountAuthenticator } from "../transactions/authenticator/account";
+import { AptosConfig } from "../api/aptosConfig.js";
+import { Deserializer, MoveVector } from "../bcs/index.js";
+import { postAptosFullNode } from "../client/index.js";
+import { Account } from "../account/index.js";
+import { isKeylessSigner } from "../account/keylessSigner.js";
+import { AccountAddress, AccountAddressInput } from "../core/accountAddress.js";
+import { AccountAuthenticator } from "../transactions/authenticator/account.js";
 import {
   buildTransaction,
   generateTransactionPayload,
   generateSignedTransactionForSimulation,
   generateSignedTransaction,
-} from "../transactions/transactionBuilder/transactionBuilder";
+} from "../transactions/transactionBuilder/transactionBuilder.js";
 import {
   InputGenerateTransactionData,
   AnyRawTransaction,
@@ -31,11 +31,17 @@ import {
   AnyTransactionPayloadInstance,
   EntryFunctionABI,
   InputTransactionPluginData,
-} from "../transactions/types";
-import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput, AnyPublicKeyVariant } from "../types";
-import { SignedTransaction, TypeTagVector, generateSigningMessageForTransaction } from "../transactions";
-import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
-import { MultiAgentTransaction } from "../transactions/instances/multiAgentTransaction";
+} from "../transactions/types.js";
+import {
+  UserTransactionResponse,
+  PendingTransactionResponse,
+  MimeType,
+  HexInput,
+  AnyPublicKeyVariant,
+} from "../types/index.js";
+import { SignedTransaction, TypeTagVector, generateSigningMessageForTransaction } from "../transactions/index.js";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction.js";
+import { MultiAgentTransaction } from "../transactions/instances/multiAgentTransaction.js";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -365,9 +371,9 @@ export async function submitTransaction(
       const { variant } = signedTxn.authenticator.sender.public_key;
       if (variant === AnyPublicKeyVariant.Keyless || variant === AnyPublicKeyVariant.FederatedKeyless) {
         // Dynamic import to avoid pulling poseidon-lite into the main bundle
-        const { AbstractKeylessAccount } = await import("../account/AbstractKeylessAccount");
-        type KP = import("../core/crypto/keyless").KeylessPublicKey;
-        type KS = import("../core/crypto/keyless").KeylessSignature;
+        const { AbstractKeylessAccount } = await import("../account/AbstractKeylessAccount.js");
+        type KP = import("../core/crypto/keyless.js").KeylessPublicKey;
+        type KS = import("../core/crypto/keyless.js").KeylessSignature;
         await AbstractKeylessAccount.fetchJWK({
           aptosConfig,
           publicKey: signedTxn.authenticator.sender.public_key.publicKey as KP,

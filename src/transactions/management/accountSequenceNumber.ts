@@ -25,10 +25,10 @@
  * @category Transactions
  */
 
-import { AptosConfig } from "../../api/aptosConfig";
-import { Account } from "../../account";
-import { getInfo } from "../../internal/account";
-import { nowInSeconds, sleep } from "../../utils/helpers";
+import { AptosConfig } from "../../api/aptosConfig.js";
+import { Account } from "../../account/index.js";
+import { getInfo } from "../../internal/account.js";
+import { nowInSeconds, sleep } from "../../utils/helpers.js";
 
 /**
  * Represents an account's sequence number management for transaction handling on the Aptos blockchain.

@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { secp256k1 } from "@noble/curves/secp256k1";
+import { secp256k1 } from "@noble/curves/secp256k1.js";
 import { secp256k1TestObject, secp256k1WalletTestObject } from "./helper";
 import {
   Deserializer,
@@ -22,7 +22,7 @@ describe("Secp256k1PublicKey", () => {
     expect(publicKey.toString()).toEqual(secp256k1TestObject.publicKey);
 
     // // Create from Uint8Array
-    const hexUint8Array = secp256k1.getPublicKey(secp256k1.utils.randomPrivateKey(), false);
+    const hexUint8Array = secp256k1.getPublicKey(secp256k1.utils.randomSecretKey(), false);
     const publicKey2 = new Secp256k1PublicKey(hexUint8Array);
     expect(publicKey2).toBeInstanceOf(Secp256k1PublicKey);
     expect(publicKey2.toUint8Array()).toEqual(hexUint8Array);
@@ -33,8 +33,8 @@ describe("Secp256k1PublicKey", () => {
     const uncompressedPublicKey = Hex.fromHexInput(secp256k1TestObject.publicKey);
     expect(uncompressedPublicKey.toUint8Array().length).toEqual(65);
 
-    const point = secp256k1.ProjectivePoint.fromHex(uncompressedPublicKey.toUint8Array());
-    const compressedPublicKey = point.toRawBytes(true);
+    const point = secp256k1.Point.fromHex(uncompressedPublicKey.toString().replace("0x", ""));
+    const compressedPublicKey = point.toBytes(true);
     const compressedPublicKeyHex = Hex.fromHexInput(compressedPublicKey);
     expect(compressedPublicKey.length).toEqual(33);
 

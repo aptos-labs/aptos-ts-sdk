@@ -32,4 +32,4 @@ export {
   rotateAuthKeyUnverified,
   getAccountsForPublicKey,
   deriveOwnedAccountsFromSigner,
-} from "../internal/account";
+} from "../internal/account.js";

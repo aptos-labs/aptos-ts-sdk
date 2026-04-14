@@ -7,17 +7,23 @@
  * and a signed transaction that can be simulated, signed and submitted to chain.
  */
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3.js";
-import { AptosConfig } from "../../api/aptosConfig";
-import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
-import { AnyPublicKey, AnySignature, Secp256k1PublicKey, MultiKey, MultiKeySignature } from "../../core/crypto";
-import { AnyPublicKeyVariant } from "../../types";
-import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
-import { getInfo } from "../../internal/utils";
-import { getLedgerInfo } from "../../internal/general";
-import { getGasPriceEstimation } from "../../internal/transaction";
-import { NetworkToChainId } from "../../utils/apiEndpoints";
-import { MIN_MAX_GAS_AMOUNT } from "../../utils/const";
-import { normalizeBundle } from "../../utils/normalizeBundle";
+import { AptosConfig } from "../../api/aptosConfig.js";
+import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core/index.js";
+import {
+  AnyPublicKey,
+  AnySignature,
+  Secp256k1PublicKey,
+  MultiKey,
+  MultiKeySignature,
+} from "../../core/crypto/index.js";
+import { AnyPublicKeyVariant } from "../../types/index.js";
+import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519.js";
+import { getInfo } from "../../internal/utils/index.js";
+import { getLedgerInfo } from "../../internal/general.js";
+import { getGasPriceEstimation } from "../../internal/transaction.js";
+import { NetworkToChainId } from "../../utils/apiEndpoints.js";
+import { MIN_MAX_GAS_AMOUNT } from "../../utils/const.js";
+import { normalizeBundle } from "../../utils/normalizeBundle.js";
 import {
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
@@ -25,7 +31,7 @@ import {
   AccountAuthenticatorMultiKey,
   AccountAuthenticatorNoAccountAuthenticator,
   AccountAuthenticatorSingleKey,
-} from "../authenticator/account";
+} from "../authenticator/account.js";
 import {
   TransactionAuthenticator,
   TransactionAuthenticatorEd25519,
@@ -33,7 +39,7 @@ import {
   TransactionAuthenticatorMultiAgent,
   TransactionAuthenticatorMultiEd25519,
   TransactionAuthenticatorSingleSender,
-} from "../authenticator/transaction";
+} from "../authenticator/transaction.js";
 import {
   ChainId,
   EntryFunction,
@@ -47,8 +53,8 @@ import {
   TransactionPayloadEntryFunction,
   TransactionPayloadMultiSig,
   TransactionPayloadScript,
-} from "../instances";
-import { SignedTransaction } from "../instances/signedTransaction";
+} from "../instances/index.js";
+import { SignedTransaction } from "../instances/signedTransaction.js";
 import {
   AnyRawTransaction,
   AnyTransactionPayloadInstance,
@@ -69,13 +75,13 @@ import {
   InputViewFunctionDataWithRemoteABI,
   InputViewFunctionDataWithABI,
   FunctionABI,
-} from "../types";
-import { convertArgument, fetchEntryFunctionAbi, fetchViewFunctionAbi, standardizeTypeTags } from "./remoteAbi";
-import { memoizeAsync } from "../../utils/memoize";
-import { isScriptDataInput } from "./helpers";
-import { SimpleTransaction } from "../instances/simpleTransaction";
-import { MultiAgentTransaction } from "../instances/multiAgentTransaction";
-import { getFunctionParts } from "../../utils/helpers";
+} from "../types.js";
+import { convertArgument, fetchEntryFunctionAbi, fetchViewFunctionAbi, standardizeTypeTags } from "./remoteAbi.js";
+import { memoizeAsync } from "../../utils/memoize.js";
+import { isScriptDataInput } from "./helpers.js";
+import { SimpleTransaction } from "../instances/simpleTransaction.js";
+import { MultiAgentTransaction } from "../instances/multiAgentTransaction.js";
+import { getFunctionParts } from "../../utils/helpers.js";
 import {
   TransactionExecutable,
   TransactionExecutableEmpty,
@@ -83,7 +89,7 @@ import {
   TransactionExecutableScript,
   TransactionExtraConfigV1,
   TransactionInnerPayloadV1,
-} from "../instances/transactionPayload";
+} from "../instances/transactionPayload.js";
 
 /**
  * Builds a transaction payload based on the provided arguments and returns a transaction payload.
@@ -697,7 +703,7 @@ export async function getAuthenticatorForSimulation(publicKey?: PublicKey) {
       accountPublicKey.variant === AnyPublicKeyVariant.FederatedKeyless
     ) {
       // Dynamic import to avoid pulling poseidon-lite into the main bundle
-      const { KeylessSignature } = await import("../../core/crypto/keyless");
+      const { KeylessSignature } = await import("../../core/crypto/keyless.js");
       return new AccountAuthenticatorSingleKey(
         accountPublicKey,
         new AnySignature(KeylessSignature.getSimulationSignature()),
@@ -707,7 +713,7 @@ export async function getAuthenticatorForSimulation(publicKey?: PublicKey) {
   }
 
   if (MultiKey.isInstance(accountPublicKey)) {
-    let keylessSignatureModule: typeof import("../../core/crypto/keyless") | undefined;
+    let keylessSignatureModule: typeof import("../../core/crypto/keyless.js") | undefined;
     return new AccountAuthenticatorMultiKey(
       accountPublicKey,
       new MultiKeySignature({
@@ -717,7 +723,7 @@ export async function getAuthenticatorForSimulation(publicKey?: PublicKey) {
               pubKey.variant === AnyPublicKeyVariant.Keyless ||
               pubKey.variant === AnyPublicKeyVariant.FederatedKeyless
             ) {
-              keylessSignatureModule ??= await import("../../core/crypto/keyless");
+              keylessSignatureModule ??= await import("../../core/crypto/keyless.js");
               return new AnySignature(keylessSignatureModule.KeylessSignature.getSimulationSignature());
             }
             return new AnySignature(invalidSignature);

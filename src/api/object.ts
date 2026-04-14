@@ -1,12 +1,12 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AnyNumber, GetObjectDataQueryResponse, OrderByArg, PaginationArgs } from "../types";
-import { AccountAddressInput } from "../core";
-import { AptosConfig } from "./aptosConfig";
-import { ProcessorType } from "../utils";
-import { waitForIndexerOnVersion } from "./utils";
-import { getObjectDataByObjectAddress } from "../internal/object";
+import { AnyNumber, GetObjectDataQueryResponse, OrderByArg, PaginationArgs } from "../types/index.js";
+import { AccountAddressInput } from "../core/index.js";
+import { AptosConfig } from "./aptosConfig.js";
+import { ProcessorType } from "../utils/index.js";
+import { waitForIndexerOnVersion } from "./utils.js";
+import { getObjectDataByObjectAddress } from "../internal/object.js";
 
 /**
  * A class to query all `Object` related queries on Aptos.

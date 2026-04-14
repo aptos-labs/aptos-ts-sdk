@@ -7,10 +7,10 @@
  * @category Transactions
  */
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3.js";
-import { RAW_TRANSACTION_SALT, RAW_TRANSACTION_WITH_DATA_SALT } from "../../utils/const";
-import { FeePayerRawTransaction, MultiAgentRawTransaction } from "../instances";
-import { AnyRawTransaction, AnyRawTransactionInstance } from "../types";
-import { Serializable } from "../../bcs";
+import { RAW_TRANSACTION_SALT, RAW_TRANSACTION_WITH_DATA_SALT } from "../../utils/const.js";
+import { FeePayerRawTransaction, MultiAgentRawTransaction } from "../instances/index.js";
+import { AnyRawTransaction, AnyRawTransactionInstance } from "../types.js";
+import { Serializable } from "../../bcs/index.js";
 
 /**
  * Derives the appropriate raw transaction type based on the provided transaction details.

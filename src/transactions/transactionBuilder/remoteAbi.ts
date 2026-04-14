@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { parseTypeTag } from "../typeTag/parser";
+import { parseTypeTag } from "../typeTag/parser.js";
 import {
   TypeTag,
   TypeTagAddress,
@@ -19,8 +19,8 @@ import {
   TypeTagU32,
   TypeTagU64,
   TypeTagU8,
-} from "../typeTag";
-import { AptosConfig } from "../../api/aptosConfig";
+} from "../typeTag/index.js";
+import { AptosConfig } from "../../api/aptosConfig.js";
 import {
   EntryFunctionArgumentTypes,
   SimpleEntryFunctionArgumentTypes,
@@ -28,7 +28,7 @@ import {
   ViewFunctionABI,
   FunctionABI,
   TypeArgument,
-} from "../types";
+} from "../types.js";
 import {
   Bool,
   FixedBytes,
@@ -47,9 +47,9 @@ import {
   U32,
   U64,
   U8,
-} from "../../bcs";
-import { AccountAddress } from "../../core";
-import { getModule } from "../../internal/account";
+} from "../../bcs/index.js";
+import { AccountAddress } from "../../core/index.js";
+import { getModule } from "../../internal/account.js";
 import {
   findFirstNonSignerArg,
   isBcsAddress,
@@ -74,11 +74,11 @@ import {
   isBcsI64,
   isBcsI128,
   isBcsI256,
-} from "./helpers";
-import { MoveFunction, MoveModule } from "../../types";
-import { warnIfDevelopment } from "../../utils/helpers";
-import { memoizeAsync } from "../../utils/memoize";
-import { TEXT_ENCODER } from "../../utils";
+} from "./helpers.js";
+import { MoveFunction, MoveModule } from "../../types/index.js";
+import { warnIfDevelopment } from "../../utils/helpers.js";
+import { memoizeAsync } from "../../utils/memoize.js";
+import { TEXT_ENCODER } from "../../utils/index.js";
 
 /**
  * Convert type arguments to only type tags, allowing for string representations of type tags.

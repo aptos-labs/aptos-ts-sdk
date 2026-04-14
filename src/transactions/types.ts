@@ -1,12 +1,26 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "../api/aptosConfig";
-import { MoveOption, MoveString, MoveVector } from "../bcs/serializable/moveStructs";
-import { Bool, I128, I16, I256, I32, I64, I8, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/movePrimitives";
-import { FixedBytes } from "../bcs/serializable/fixedBytes";
-import { AccountAddress, AccountAddressInput } from "../core";
-import { PublicKey } from "../core/crypto";
+import { AptosConfig } from "../api/aptosConfig.js";
+import { MoveOption, MoveString, MoveVector } from "../bcs/serializable/moveStructs.js";
+import {
+  Bool,
+  I128,
+  I16,
+  I256,
+  I32,
+  I64,
+  I8,
+  U128,
+  U16,
+  U256,
+  U32,
+  U64,
+  U8,
+} from "../bcs/serializable/movePrimitives.js";
+import { FixedBytes } from "../bcs/serializable/fixedBytes.js";
+import { AccountAddress, AccountAddressInput } from "../core/index.js";
+import { PublicKey } from "../core/crypto/index.js";
 import {
   MultiAgentRawTransaction,
   FeePayerRawTransaction,
@@ -15,7 +29,7 @@ import {
   TransactionPayloadMultiSig,
   TransactionPayloadScript,
   TransactionInnerPayload,
-} from "./instances";
+} from "./instances/index.js";
 import {
   AnyNumber,
   HexInput,
@@ -24,12 +38,12 @@ import {
   MoveStructId,
   MoveValue,
   TransactionSubmitter,
-} from "../types";
-import { TypeTag } from "./typeTag";
-import { AccountAuthenticator } from "./authenticator/account";
-import { SimpleTransaction } from "./instances/simpleTransaction";
-import { MultiAgentTransaction } from "./instances/multiAgentTransaction";
-import { Serialized } from "../bcs";
+} from "../types/index.js";
+import { TypeTag } from "./typeTag/index.js";
+import { AccountAuthenticator } from "./authenticator/account.js";
+import { SimpleTransaction } from "./instances/simpleTransaction.js";
+import { MultiAgentTransaction } from "./instances/multiAgentTransaction.js";
+import { Serialized } from "../bcs/index.js";
 
 /**
  * Entry function arguments for building a raw transaction using remote ABI, supporting various data types including primitives and arrays.

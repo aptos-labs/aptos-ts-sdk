@@ -1,22 +1,22 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account } from "../account";
-import { EphemeralKeyPair } from "../account/EphemeralKeyPair";
-import { KeylessAccount } from "../account/KeylessAccount";
-import { ProofFetchCallback } from "../account/AbstractKeylessAccount";
-import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
-import { AccountAddressInput } from "../core/accountAddress";
-import { ZeroKnowledgeSig } from "../core/crypto/keyless";
+import { Account } from "../account/index.js";
+import { EphemeralKeyPair } from "../account/EphemeralKeyPair.js";
+import { KeylessAccount } from "../account/KeylessAccount.js";
+import { ProofFetchCallback } from "../account/AbstractKeylessAccount.js";
+import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount.js";
+import { AccountAddressInput } from "../core/accountAddress.js";
+import { ZeroKnowledgeSig } from "../core/crypto/keyless.js";
 import {
   deriveKeylessAccount,
   getPepper,
   getProof,
   updateFederatedKeylessJwkSetTransaction,
-} from "../internal/keyless";
-import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions";
-import { HexInput } from "../types";
-import { AptosConfig } from "./aptosConfig";
+} from "../internal/keyless.js";
+import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions/index.js";
+import { HexInput } from "../types/index.js";
+import { AptosConfig } from "./aptosConfig.js";
 
 /**
  * A class to query all `Keyless` related queries on Aptos.

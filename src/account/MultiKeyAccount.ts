@@ -1,16 +1,16 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import type { Account } from "./Account";
-import { MultiKey, MultiKeySignature, PublicKey } from "../core/crypto";
-import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { HexInput, SigningScheme } from "../types";
-import { AccountAuthenticatorMultiKey } from "../transactions/authenticator/account";
-import { AnyRawTransaction } from "../transactions/types";
-import { AbstractKeylessAccount, KeylessSigner } from "./AbstractKeylessAccount";
-import { AptosConfig } from "../api/aptosConfig";
-import { SingleKeyAccount, SingleKeySigner, SingleKeySignerOrLegacyEd25519Account } from "./SingleKeyAccount";
-import { Ed25519Account } from "./Ed25519Account";
+import type { Account } from "./Account.js";
+import { MultiKey, MultiKeySignature, PublicKey } from "../core/crypto/index.js";
+import { AccountAddress, AccountAddressInput } from "../core/accountAddress.js";
+import { HexInput, SigningScheme } from "../types/index.js";
+import { AccountAuthenticatorMultiKey } from "../transactions/authenticator/account.js";
+import { AnyRawTransaction } from "../transactions/types.js";
+import { AbstractKeylessAccount, KeylessSigner } from "./AbstractKeylessAccount.js";
+import { AptosConfig } from "../api/aptosConfig.js";
+import { SingleKeyAccount, SingleKeySigner, SingleKeySignerOrLegacyEd25519Account } from "./SingleKeyAccount.js";
+import { Ed25519Account } from "./Ed25519Account.js";
 
 /**
  * Arguments required to verify a multi-key signature against a given message.

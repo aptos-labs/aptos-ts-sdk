@@ -1,13 +1,13 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import EventEmitter from "eventemitter3";
+import { EventEmitter } from "eventemitter3";
 import { jwtDecode } from "jwt-decode";
 // Register keyless variants with AnyPublicKey/AnySignature registry
-import "../core/crypto/keylessRegistration";
-import { EphemeralCertificateVariant, HexInput, SigningScheme } from "../types";
-import { AccountAddress } from "../core/accountAddress";
-import { AnyPublicKey, AnySignature } from "../core/crypto/singleKey";
+import "../core/crypto/keylessRegistration.js";
+import { EphemeralCertificateVariant, HexInput, SigningScheme } from "../types/index.js";
+import { AccountAddress } from "../core/accountAddress.js";
+import { AnyPublicKey, AnySignature } from "../core/crypto/singleKey.js";
 import {
   KeylessPublicKey,
   KeylessSignature,
@@ -18,22 +18,22 @@ import {
   getKeylessConfig,
   fetchJWK,
   KeylessConfiguration,
-} from "../core/crypto/keyless";
+} from "../core/crypto/keyless.js";
 
-import { EphemeralKeyPair } from "./EphemeralKeyPair";
-import { Hex } from "../core/hex";
-import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account";
-import { Deserializer, Serializable, Serializer } from "../bcs";
-import { deriveTransactionType, generateSigningMessage } from "../transactions/transactionBuilder/signingMessage";
-import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types";
-import { base64UrlDecode, warnIfDevelopment } from "../utils/helpers";
-import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
-import { AptosConfig } from "../api/aptosConfig";
-import { KeylessError, KeylessErrorType } from "../errors";
-import type { SingleKeySigner } from "./SingleKeyAccount";
+import { EphemeralKeyPair } from "./EphemeralKeyPair.js";
+import { Hex } from "../core/hex.js";
+import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account.js";
+import { Deserializer, Serializable, Serializer } from "../bcs/index.js";
+import { deriveTransactionType, generateSigningMessage } from "../transactions/transactionBuilder/signingMessage.js";
+import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types.js";
+import { base64UrlDecode, warnIfDevelopment } from "../utils/helpers.js";
+import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless.js";
+import { AptosConfig } from "../api/aptosConfig.js";
+import { KeylessError, KeylessErrorType } from "../errors/index.js";
+import type { SingleKeySigner } from "./SingleKeyAccount.js";
 
 // Import and re-export from lightweight module for backward compatibility
-import { isKeylessSigner, type KeylessSigner } from "./keylessSigner";
+import { isKeylessSigner, type KeylessSigner } from "./keylessSigner.js";
 
 export { isKeylessSigner, type KeylessSigner };
 

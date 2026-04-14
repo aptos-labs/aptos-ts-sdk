@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { p256 } from "@noble/curves/nist";
+import { p256 } from "@noble/curves/nist.js";
 import { singleSignerSecp256r1 } from "./helper";
 import {
   Deserializer,
@@ -22,7 +22,7 @@ describe("Secp256r1PublicKey", () => {
     expect(publicKey.toString()).toEqual(`0x${singleSignerSecp256r1.publicKey.replace("0x", "")}`);
 
     // Create from Uint8Array
-    const hexUint8Array = p256.getPublicKey(p256.utils.randomPrivateKey(), false);
+    const hexUint8Array = p256.getPublicKey(p256.utils.randomSecretKey(), false);
     const publicKey2 = new Secp256r1PublicKey(hexUint8Array);
     expect(publicKey2).toBeInstanceOf(Secp256r1PublicKey);
     expect(publicKey2.toUint8Array()).toEqual(hexUint8Array);
@@ -32,8 +32,8 @@ describe("Secp256r1PublicKey", () => {
     const uncompressedPublicKey = Hex.fromHexInput(singleSignerSecp256r1.publicKey);
     expect(uncompressedPublicKey.toUint8Array().length).toEqual(65);
 
-    const point = p256.ProjectivePoint.fromHex(uncompressedPublicKey.toUint8Array());
-    const compressedPublicKey = point.toRawBytes(true);
+    const point = p256.Point.fromHex(uncompressedPublicKey.toString().replace("0x", ""));
+    const compressedPublicKey = point.toBytes(true);
     const compressedPublicKeyHex = Hex.fromHexInput(compressedPublicKey);
     expect(compressedPublicKey.length).toEqual(33);
 

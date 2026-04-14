@@ -20,4 +20,4 @@ export {
   getDomainSubdomains,
   getANSGracePeriod,
   renewDomain,
-} from "../internal/ans";
+} from "../internal/ans.js";

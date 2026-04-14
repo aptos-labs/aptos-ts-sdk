@@ -18,68 +18,68 @@
       "default": "./dist/index.js"
     },
     "./account": {
-      "types": "./dist/account.d.ts",
-      "default": "./dist/account.js"
+      "types": "./dist/functions/account.d.ts",
+      "default": "./dist/functions/account.js"
     },
     "./abstraction": {
-      "types": "./dist/abstraction.d.ts",
-      "default": "./dist/abstraction.js"
+      "types": "./dist/functions/abstraction.d.ts",
+      "default": "./dist/functions/abstraction.js"
     },
     "./ans": {
-      "types": "./dist/ans.d.ts",
-      "default": "./dist/ans.js"
+      "types": "./dist/functions/ans.d.ts",
+      "default": "./dist/functions/ans.js"
     },
     "./coin": {
-      "types": "./dist/coin.d.ts",
-      "default": "./dist/coin.js"
+      "types": "./dist/functions/coin.d.ts",
+      "default": "./dist/functions/coin.js"
     },
     "./digitalAsset": {
-      "types": "./dist/digitalAsset.d.ts",
-      "default": "./dist/digitalAsset.js"
+      "types": "./dist/functions/digitalAsset.d.ts",
+      "default": "./dist/functions/digitalAsset.js"
     },
     "./faucet": {
-      "types": "./dist/faucet.d.ts",
-      "default": "./dist/faucet.js"
+      "types": "./dist/functions/faucet.d.ts",
+      "default": "./dist/functions/faucet.js"
     },
     "./fungibleAsset": {
-      "types": "./dist/fungibleAsset.d.ts",
-      "default": "./dist/fungibleAsset.js"
+      "types": "./dist/functions/fungibleAsset.d.ts",
+      "default": "./dist/functions/fungibleAsset.js"
     },
     "./general": {
-      "types": "./dist/general.d.ts",
-      "default": "./dist/general.js"
+      "types": "./dist/functions/general.d.ts",
+      "default": "./dist/functions/general.js"
     },
     "./keyless": {
-      "types": "./dist/keyless.d.ts",
-      "default": "./dist/keyless.js"
+      "types": "./dist/functions/keyless.d.ts",
+      "default": "./dist/functions/keyless.js"
     },
     "./object": {
-      "types": "./dist/object.d.ts",
-      "default": "./dist/object.js"
+      "types": "./dist/functions/object.d.ts",
+      "default": "./dist/functions/object.js"
     },
     "./staking": {
-      "types": "./dist/staking.d.ts",
-      "default": "./dist/staking.js"
+      "types": "./dist/functions/staking.d.ts",
+      "default": "./dist/functions/staking.js"
     },
     "./table": {
-      "types": "./dist/table.d.ts",
-      "default": "./dist/table.js"
+      "types": "./dist/functions/table.d.ts",
+      "default": "./dist/functions/table.js"
     },
     "./transaction": {
-      "types": "./dist/transaction.d.ts",
-      "default": "./dist/transaction.js"
+      "types": "./dist/functions/transaction.d.ts",
+      "default": "./dist/functions/transaction.js"
     },
     "./view": {
-      "types": "./dist/view.d.ts",
-      "default": "./dist/view.js"
+      "types": "./dist/functions/view.d.ts",
+      "default": "./dist/functions/view.js"
     },
     "./crypto": {
-      "types": "./dist/crypto.d.ts",
-      "default": "./dist/crypto.js"
+      "types": "./dist/core/crypto/index.d.ts",
+      "default": "./dist/core/crypto/index.js"
     },
     "./bcs": {
-      "types": "./dist/bcs.d.ts",
-      "default": "./dist/bcs.js"
+      "types": "./dist/bcs/index.d.ts",
+      "default": "./dist/bcs/index.js"
     },
     "./cli": {
       "types": "./dist/cli/index.d.ts",
@@ -93,7 +93,7 @@
   ],
   "scripts": {
     "build:clean": "rm -rf dist",
-    "build": "pnpm build:clean && tsup",
+    "build": "pnpm build:clean && tsc -p tsconfig.build.json",
     "prepublishOnly": "pnpm run build",
     "_fmt": "biome format 'src/' 'tests/'",
     "fmt": "biome format --write 'src/' 'tests/'",
@@ -133,15 +133,13 @@
     "@types/node": "^24.3.1",
     "@vitest/coverage-v8": "^4.0.18",
     "dotenv": "^16.6.1",
-    "esbuild": "^0.28.0",
     "graphql": "^16.12.0",
     "graphql-request": "^7.4.0",
     "tree-kill": "^1.2.2",
-    "tsup": "^8.5.1",
-    "typedoc": "^0.28.16",
-    "typedoc-plugin-missing-exports": "^4.1.2",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.18"
+    "typedoc": "^0.28.19",
+    "typedoc-plugin-missing-exports": "^4.1.3",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.4"
   },
   "version": "6.3.1",
   "pnpm": {

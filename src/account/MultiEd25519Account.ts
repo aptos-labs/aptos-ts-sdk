@@ -1,12 +1,12 @@
-import { AptosConfig } from "../api/aptosConfig";
-import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { Ed25519PrivateKey, Signature } from "../core/crypto";
-import { MultiEd25519PublicKey, MultiEd25519Signature } from "../core/crypto/multiEd25519";
-import { AccountAuthenticatorMultiEd25519 } from "../transactions/authenticator/account";
-import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
-import { AnyRawTransaction } from "../transactions/types";
-import { HexInput, SigningScheme } from "../types";
-import type { Account } from "./Account";
+import { AptosConfig } from "../api/aptosConfig.js";
+import { AccountAddress, AccountAddressInput } from "../core/accountAddress.js";
+import { Ed25519PrivateKey, Signature } from "../core/crypto/index.js";
+import { MultiEd25519PublicKey, MultiEd25519Signature } from "../core/crypto/multiEd25519.js";
+import { AccountAuthenticatorMultiEd25519 } from "../transactions/authenticator/account.js";
+import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage.js";
+import { AnyRawTransaction } from "../transactions/types.js";
+import { HexInput, SigningScheme } from "../types/index.js";
+import type { Account } from "./Account.js";
 
 export interface MultiEd25519SignerConstructorArgs {
   publicKey: MultiEd25519PublicKey;

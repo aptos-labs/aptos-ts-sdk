@@ -3,18 +3,18 @@
 
 import { sha3_256 } from "@noble/hashes/sha3.js";
 import { p256 } from "@noble/curves/nist.js";
-import { Deserializer, Serializer } from "../../bcs";
-import { Hex } from "../hex";
+import { Deserializer, Serializer } from "../../bcs/index.js";
+import { Hex } from "../hex.js";
 import {
   HexInput,
   PrivateKeyVariants,
   SigningScheme as AuthenticationKeyScheme,
   AnyPublicKeyVariant,
-} from "../../types";
-import { PublicKey, VerifySignatureAsyncArgs } from "./publicKey";
-import { PrivateKey } from "./privateKey";
-import { Signature } from "./signature";
-import { AuthenticationKey } from "../authenticationKey";
+} from "../../types/index.js";
+import { PublicKey, VerifySignatureAsyncArgs } from "./publicKey.js";
+import { PrivateKey } from "./privateKey.js";
+import { Signature } from "./signature.js";
+import { AuthenticationKey } from "../authenticationKey.js";
 
 /**
  * Represents a Secp256r1 ECDSA public key.
@@ -301,7 +301,7 @@ export class Secp256r1PrivateKey extends PrivateKey {
     const msgHex = Hex.fromHexInput(message);
     const sha3Message = sha3_256(msgHex.toUint8Array());
     const signature = p256.sign(sha3Message, this.key.toUint8Array(), { prehash: false });
-    return new Secp256r1Signature(signature.toCompactRawBytes());
+    return new Secp256r1Signature(signature);
   }
 
   /**

@@ -1,12 +1,12 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Deserializer } from "../../bcs/deserializer";
-import { Serializable, Serializer } from "../../bcs/serializer";
-import { ChainId } from "./chainId";
-import { AccountAddress } from "../../core";
-import { TransactionPayload } from "./transactionPayload";
-import { TransactionVariants } from "../../types";
+import { Deserializer } from "../../bcs/deserializer.js";
+import { Serializable, Serializer } from "../../bcs/serializer.js";
+import { ChainId } from "./chainId.js";
+import { AccountAddress } from "../../core/index.js";
+import { TransactionPayload } from "./transactionPayload.js";
+import { TransactionVariants } from "../../types/index.js";
 
 /**
  * Represents a raw transaction that can be serialized and deserialized.

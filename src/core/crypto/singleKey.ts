@@ -1,23 +1,23 @@
-import { Deserializer, Serializer } from "../../bcs";
+import { Deserializer, Serializer } from "../../bcs/index.js";
 import {
   AnyPublicKeyVariant,
   AnySignatureVariant,
   SigningScheme as AuthenticationKeyScheme,
   HexInput,
-} from "../../types";
-import { AuthenticationKey } from "../authenticationKey";
-import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "./ed25519";
-import { AccountPublicKey, PublicKey } from "./publicKey";
-import { Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1";
-import { Signature } from "./signature";
-import { AptosConfig } from "../../api/aptosConfig";
-import { Secp256r1PublicKey, WebAuthnSignature } from "./secp256r1";
+} from "../../types/index.js";
+import { AuthenticationKey } from "../authenticationKey.js";
+import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "./ed25519.js";
+import { AccountPublicKey, PublicKey } from "./publicKey.js";
+import { Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1.js";
+import { Signature } from "./signature.js";
+import { AptosConfig } from "../../api/aptosConfig.js";
+import { Secp256r1PublicKey, WebAuthnSignature } from "./secp256r1.js";
 import {
   detectPublicKeyVariant,
   detectSignatureVariant,
   getPublicKeyDeserializer,
   getSignatureDeserializer,
-} from "./anyKeyRegistry";
+} from "./anyKeyRegistry.js";
 
 export type PrivateKeyInput = Ed25519PrivateKey | Secp256k1PrivateKey;
 

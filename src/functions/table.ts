@@ -5,4 +5,4 @@ export {
   getTableItem,
   getTableItemsData,
   getTableItemsMetadata,
-} from "../internal/table";
+} from "../internal/table.js";

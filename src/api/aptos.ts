@@ -1,20 +1,20 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account } from "./account";
-import { AptosConfig } from "./aptosConfig";
-import { Coin } from "./coin";
-import { DigitalAsset } from "./digitalAsset";
-import { Faucet } from "./faucet";
-import { FungibleAsset } from "./fungibleAsset";
-import { General } from "./general";
-import { ANS } from "./ans";
-import { Staking } from "./staking";
-import { Transaction } from "./transaction";
-import { Table } from "./table";
-import { Keyless } from "./keyless";
-import { AptosObject } from "./object";
-import { AccountAbstraction } from "./account/abstraction";
+import { Account } from "./account.js";
+import { AptosConfig } from "./aptosConfig.js";
+import { Coin } from "./coin.js";
+import { DigitalAsset } from "./digitalAsset.js";
+import { Faucet } from "./faucet.js";
+import { FungibleAsset } from "./fungibleAsset.js";
+import { General } from "./general.js";
+import { ANS } from "./ans.js";
+import { Staking } from "./staking.js";
+import { Transaction } from "./transaction.js";
+import { Table } from "./table.js";
+import { Keyless } from "./keyless.js";
+import { AptosObject } from "./object.js";
+import { AccountAbstraction } from "./account/abstraction.js";
 
 /**
  * @deprecated The Aptos class is deprecated and will be removed in a future version.
