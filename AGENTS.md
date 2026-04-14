@@ -35,7 +35,7 @@ Runtime-specific tests exist in `examples/web-test/` (Playwright), `examples/bun
 - **SDK tests**: `tests/`
   - Vitest uses `tests/preTest.ts` (globalSetup with setup/teardown) to start/stop a local Aptos node.
 - **Examples**: `examples/`
-  - `examples/typescript`, `examples/typescript-esm`, `examples/javascript` use a **linked** SDK (`link:../..`).
+  - `examples/typescript`, `examples/javascript` use a **linked** SDK (`link:../..`).
 - **Confidential asset SDK**: `confidential-asset/` (separate package + tests)
 - **Docs output**: `docs/` (large; includes versioned typedoc output)
 - **Utility scripts**: `scripts/` (`checkVersion.sh`, `updateVersion.sh`, `generateDocs.sh`)
