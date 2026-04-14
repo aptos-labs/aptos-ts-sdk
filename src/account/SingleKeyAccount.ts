@@ -13,7 +13,7 @@ import type { Account } from "./Account";
 import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction } from "../transactions/types";
 import { Ed25519Account } from "./Ed25519Account";
-import { AptosConfig } from "../api";
+import { AptosConfig } from "../api/aptosConfig";
 
 /**
  * An interface which defines if an Account utilizes SingleKey signing.

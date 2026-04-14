@@ -5,7 +5,7 @@ import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature, Signature } from
 import type { Account } from "./Account";
 import { AnyRawTransaction } from "../transactions/types";
 import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
-import { AptosConfig } from "../api";
+import { AptosConfig } from "../api/aptosConfig";
 
 /**
  * Arguments required to create an instance of an Ed25519 signer.

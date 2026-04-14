@@ -5,7 +5,7 @@ import { AuthenticationKey } from "../authenticationKey";
 import { AccountPublicKey, PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { AnyPublicKey, AnySignature } from "./singleKey";
-import { AptosConfig } from "../../api";
+import { AptosConfig } from "../../api/aptosConfig";
 
 /**
  * Counts the number of set bits (1s) in a byte.

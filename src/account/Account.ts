@@ -9,7 +9,7 @@ import { Signature } from "../core/crypto/signature";
 import { Ed25519Account } from "./Ed25519Account";
 import { SingleKeyAccount } from "./SingleKeyAccount";
 import { AnyRawTransaction } from "../transactions/types";
-import { AptosConfig } from "../api";
+import { AptosConfig } from "../api/aptosConfig";
 
 /**
  * Arguments for creating an `Ed25519Account` from an `Ed25519PrivateKey`.

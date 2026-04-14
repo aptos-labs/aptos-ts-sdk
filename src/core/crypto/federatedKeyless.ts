@@ -14,7 +14,7 @@ import {
   verifyKeylessSignature,
   verifyKeylessSignatureWithJwkAndConfig,
 } from "./keyless";
-import { AptosConfig } from "../../api";
+import { AptosConfig } from "../../api/aptosConfig";
 import { Signature } from "..";
 
 /**
