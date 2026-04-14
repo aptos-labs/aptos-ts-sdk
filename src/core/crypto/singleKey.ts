@@ -94,10 +94,7 @@ export class AnyPublicKey extends AccountPublicKey {
    */
   verifySignature(args: { message: HexInput; signature: AnySignature }): boolean {
     const { message, signature } = args;
-    if (
-      this.variant === AnyPublicKeyVariant.Keyless ||
-      this.variant === AnyPublicKeyVariant.FederatedKeyless
-    ) {
+    if (this.variant === AnyPublicKeyVariant.Keyless || this.variant === AnyPublicKeyVariant.FederatedKeyless) {
       throw new Error("Use verifySignatureAsync to verify Keyless signatures");
     }
     return this.publicKey.verifySignature({

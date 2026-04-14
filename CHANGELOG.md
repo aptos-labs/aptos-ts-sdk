@@ -7,12 +7,22 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 ## Added
 
 - Add support for script payloads in multisig transactions. `MultiSigTransactionPayload` now accepts both `EntryFunction` and `Script` payloads, and the new `InputMultiSigScriptData` type allows building multisig transactions with script bytecode. This aligns with the upstream `MultisigTransactionPayload::Script` variant added in aptos-core.
+- **Tree-shakeable standalone function API** — all SDK operations available as standalone functions (`getLedgerInfo`, `getBalance`, `transferCoinTransaction`, etc.) that accept `{ aptosConfig, ...args }`.
+- **Sub-path exports** — import from `@aptos-labs/ts-sdk/account`, `@aptos-labs/ts-sdk/transaction`, `@aptos-labs/ts-sdk/keyless`, etc. for minimal bundle sizes.
+- **`sideEffects: false`** in package.json for bundler tree-shaking.
+- **Variant registry pattern** for `AnyPublicKey`/`AnySignature` — keyless variants register at runtime, removing compile-time poseidon dependency from core crypto.
 
 ## Breaking
 
 - ESM-only output; removed CommonJS `"require"` exports. Node.js 22+ required.
   - Migration: Update imports from `require()` to `import` syntax
   - See: `upgrade-guides/UPGRADE_GUIDE_7.0.0.md`
+- **Flat mixin API removed** — `aptos.getAccountInfo()` no longer works. Use `aptos.account.getAccountInfo()` or the standalone `getAccountInfo()` function.
+- **`Aptos` class deprecated** — still works but logs a warning. Sub-modules are lazily instantiated. Use standalone functions instead.
+- **Keyless imports moved** — `KeylessAccount`, `FederatedKeylessAccount`, `EphemeralKeyPair`, poseidon utilities, and keyless crypto types are no longer exported from the main entry. Import from sub-paths or direct file paths.
+- **HD Key and deserialization utils moved** — no longer in the crypto barrel. Import directly from their files.
+- **`generateSignedTransactionForSimulation` is now async** — callers must `await` it.
+  - See: `upgrade-guides/UPGRADE_GUIDE_8.0.0.md`
 
 ## Changed
 

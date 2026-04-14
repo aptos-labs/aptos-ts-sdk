@@ -35,13 +35,7 @@ import {
   WhereArg,
 } from "../types";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import {
-  Account,
-  Ed25519Account,
-  MultiEd25519Account,
-  MultiKeyAccount,
-  SingleKeyAccount,
-} from "../account";
+import { Account, Ed25519Account, MultiEd25519Account, MultiKeyAccount, SingleKeyAccount } from "../account";
 import { KeylessAccount } from "../account/KeylessAccount";
 import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
 import { AccountPublicKey } from "../core/crypto/publicKey";

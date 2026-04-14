@@ -361,15 +361,9 @@ export async function submitTransaction(
     return data;
   } catch (e) {
     const signedTxn = SignedTransaction.deserialize(new Deserializer(signedTransaction));
-    if (
-      signedTxn.authenticator.isSingleSender() &&
-      signedTxn.authenticator.sender.isSingleKey()
-    ) {
+    if (signedTxn.authenticator.isSingleSender() && signedTxn.authenticator.sender.isSingleKey()) {
       const { variant } = signedTxn.authenticator.sender.public_key;
-      if (
-        variant === AnyPublicKeyVariant.Keyless ||
-        variant === AnyPublicKeyVariant.FederatedKeyless
-      ) {
+      if (variant === AnyPublicKeyVariant.Keyless || variant === AnyPublicKeyVariant.FederatedKeyless) {
         // Dynamic import to avoid pulling poseidon-lite into the main bundle
         const { AbstractKeylessAccount } = await import("../account/AbstractKeylessAccount");
         const { KeylessSignature } = await import("../core/crypto/keyless");
