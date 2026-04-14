@@ -492,7 +492,9 @@ function getPublicInputsHash(args: {
     fields.push(1n);
     fields.push(hashStrToField(proof.extraField, keylessConfig.maxExtraFieldBytes));
   }
-  fields.push(hashStrToField(`${Buffer.from(signature.jwtHeader).toString("base64url")}.`, keylessConfig.maxJwtHeaderB64Bytes));
+  fields.push(
+    hashStrToField(`${Buffer.from(signature.jwtHeader).toString("base64url")}.`, keylessConfig.maxJwtHeaderB64Bytes),
+  );
   fields.push(jwk.toScalar());
   if (!proof.overrideAudVal) {
     fields.push(hashStrToField("", MAX_AUD_VAL_BYTES));
