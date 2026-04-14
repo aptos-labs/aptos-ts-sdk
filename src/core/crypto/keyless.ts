@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { JwtPayload, jwtDecode } from "jwt-decode";
-import { sha3_256 } from "@noble/hashes/sha3";
+import { sha3_256 } from "@noble/hashes/sha3.js";
 import { AccountPublicKey, PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { Deserializer, Serializable, Serializer } from "../../bcs";
@@ -33,13 +33,13 @@ import { memoizeAsync } from "../../utils/memoize";
 import { AccountAddress, AccountAddressInput } from "../accountAddress";
 import { base64UrlToBytes, nowInSeconds } from "../../utils";
 import { KeylessError, KeylessErrorType } from "../../errors";
-import { bn254 } from "@noble/curves/bn254";
-import { bytesToNumberBE } from "@noble/curves/abstract/utils";
+import { bn254 } from "@noble/curves/bn254.js";
+import { bytesToNumberBE } from "@noble/curves/utils.js";
 import { FederatedKeylessPublicKey } from "./federatedKeyless";
 import { encode } from "js-base64";
 import { generateSigningMessage } from "../../transactions/transactionBuilder/signingMessage";
-import { ProjPointType } from "@noble/curves/abstract/weierstrass";
-import { Fp2 } from "@noble/curves/abstract/tower";
+import { WeierstrassPoint } from "@noble/curves/abstract/weierstrass.js";
+import { Fp2 } from "@noble/curves/abstract/tower.js";
 
 /**
  * @group Implementation
@@ -767,14 +767,14 @@ class G1Bytes extends Serializable {
   // Convert the projective coordinates to strings
   toArray(): string[] {
     const point = this.toProjectivePoint();
-    return [point.x.toString(), point.y.toString(), point.pz.toString()];
+    return [point.x.toString(), point.y.toString(), point.Z.toString()];
   }
 
   /**
    * Converts the G1 bytes to a projective point.
    * @returns The projective point.
    */
-  toProjectivePoint(): ProjPointType<bigint> {
+  toProjectivePoint(): WeierstrassPoint<bigint> {
     const bytes = new Uint8Array(this.data);
     // Reverse the bytes to convert from little-endian to big-endian.
     bytes.reverse();
@@ -785,7 +785,7 @@ class G1Bytes extends Serializable {
     const y = Fp.sqrt(Fp.add(Fp.pow(x, 3n), G1Bytes.B));
     const negY = Fp.neg(y);
     const yToUse = y > negY === (yFlag === 1) ? y : negY;
-    return bn254.G1.ProjectivePoint.fromAffine({
+    return bn254.G1.Point.fromAffine({
       x,
       y: yToUse,
     });
@@ -851,13 +851,13 @@ class G2Bytes extends Serializable {
         point.y.c1.toString(),
       ], // y imaginary part
       [
-        point.pz.c0.toString(), // z real part
-        point.pz.c1.toString(),
+        point.Z.c0.toString(), // z real part
+        point.Z.c1.toString(),
       ], // z imaginary part
     ];
   }
 
-  toProjectivePoint(): ProjPointType<Fp2> {
+  toProjectivePoint(): WeierstrassPoint<Fp2> {
     const bytes = new Uint8Array(this.data);
     // Reverse the bytes to convert from little-endian to big-endian for each part of x.
     const x0 = bytes.slice(0, 32).reverse();
@@ -870,7 +870,7 @@ class G2Bytes extends Serializable {
     const negY = Fp2.neg(y);
     const isYGreaterThanNegY = y.c1 > negY.c1 || (y.c1 === negY.c1 && y.c0 > negY.c0);
     const yToUse = isYGreaterThanNegY === (yFlag === 1) ? y : negY;
-    return bn254.G2.ProjectivePoint.fromAffine({
+    return bn254.G2.Point.fromAffine({
       x,
       y: yToUse,
     });

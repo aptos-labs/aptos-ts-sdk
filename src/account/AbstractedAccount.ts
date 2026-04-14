@@ -1,5 +1,6 @@
-import { sha3_256 } from "@noble/hashes/sha3";
+import { sha3_256 } from "@noble/hashes/sha3.js";
 import { AccountAddress } from "../core";
+import { Hex } from "../core/hex";
 import { AbstractPublicKey, AbstractSignature } from "../core/crypto/abstraction";
 import { SigningScheme, HexInput } from "../types";
 import { Account } from "./Account";
@@ -91,10 +92,11 @@ export class AbstractedAccount extends Account {
   }
 
   signWithAuthenticator(message: HexInput): AccountAuthenticatorAbstraction {
+    const messageBytes = Hex.fromHexInput(message).toUint8Array();
     return new AccountAuthenticatorAbstraction(
       this.authenticationFunction,
-      sha3_256(message),
-      this.sign(sha3_256(message)).toUint8Array(),
+      sha3_256(messageBytes),
+      this.sign(sha3_256(messageBytes)).toUint8Array(),
     );
   }
 

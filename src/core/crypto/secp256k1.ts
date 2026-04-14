@@ -1,8 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { sha3_256 } from "@noble/hashes/sha3";
-import { secp256k1 } from "@noble/curves/secp256k1";
+import { sha3_256 } from "@noble/hashes/sha3.js";
+import { secp256k1 } from "@noble/curves/secp256k1.js";
 import { HDKey } from "@scure/bip32";
 import { Serializable, Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
@@ -52,8 +52,8 @@ export class Secp256k1PublicKey extends PublicKey {
     if (length === Secp256k1PublicKey.LENGTH) {
       this.key = hex;
     } else if (length === Secp256k1PublicKey.COMPRESSED_LENGTH) {
-      const point = secp256k1.ProjectivePoint.fromHex(hex.toUint8Array());
-      this.key = Hex.fromHexInput(point.toRawBytes(false));
+      const point = secp256k1.Point.fromBytes(hex.toUint8Array());
+      this.key = Hex.fromHexInput(point.toBytes(false));
     } else {
       throw new Error(
         `PublicKey length should be ${Secp256k1PublicKey.LENGTH} or ${Secp256k1PublicKey.COMPRESSED_LENGTH}, received ${length}`,
@@ -79,7 +79,7 @@ export class Secp256k1PublicKey extends PublicKey {
     const messageBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
     const messageSha3Bytes = sha3_256(messageBytes);
     const signatureBytes = signature.toUint8Array();
-    return secp256k1.verify(signatureBytes, messageSha3Bytes, this.key.toUint8Array(), { lowS: true });
+    return secp256k1.verify(signatureBytes, messageSha3Bytes, this.key.toUint8Array(), { lowS: true, prehash: false });
   }
 
   /**
@@ -242,7 +242,7 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    * @category Serialization
    */
   static generate(): Secp256k1PrivateKey {
-    const hexInput = secp256k1.utils.randomPrivateKey();
+    const hexInput = secp256k1.utils.randomSecretKey();
     return new Secp256k1PrivateKey(hexInput, false);
   }
 
@@ -352,8 +352,8 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
     const messageToSign = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToSign);
     const messageHashBytes = sha3_256(messageBytes.toUint8Array());
-    const signature = secp256k1.sign(messageHashBytes, this.key.toUint8Array(), { lowS: true });
-    return new Secp256k1Signature(signature.toCompactRawBytes());
+    const signature = secp256k1.sign(messageHashBytes, this.key.toUint8Array(), { lowS: true, prehash: false });
+    return new Secp256k1Signature(signature);
   }
 
   /**

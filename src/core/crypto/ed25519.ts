@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { ed25519 } from "@noble/curves/ed25519";
+import { ed25519 } from "@noble/curves/ed25519.js";
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializable, Serializer } from "../../bcs/serializer";
 import { AuthenticationKey } from "../authenticationKey";
@@ -290,7 +290,7 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    * @category Serialization
    */
   static generate(): Ed25519PrivateKey {
-    const keyPair = ed25519.utils.randomPrivateKey();
+    const keyPair = ed25519.utils.randomSecretKey();
     return new Ed25519PrivateKey(keyPair, false);
   }
 
