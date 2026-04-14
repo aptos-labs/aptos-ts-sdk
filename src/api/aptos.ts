@@ -154,3 +154,53 @@ export class Aptos {
     this.config.setIgnoreTransactionSubmitter(ignore);
   }
 }
+
+// TypeScript interface merging: declares that Aptos instances also have
+// all methods from each sub-module class, applied via mixins below.
+export interface Aptos
+  extends Account,
+    ANS,
+    Coin,
+    DigitalAsset,
+    Faucet,
+    FungibleAsset,
+    General,
+    Keyless,
+    Staking,
+    Table,
+    AptosObject,
+    Omit<Transaction, "build" | "simulate" | "submit" | "batch"> {}
+
+/**
+ * Mixin helper: copies prototype methods from a sub-module class onto the
+ * Aptos class, delegating calls to the lazily-initialized sub-module instance.
+ * {@link https://www.typescriptlang.org/docs/handbook/mixins.html#alternative-pattern}
+ */
+function applyMixin(targetClass: any, baseClass: any, baseClassProp: string) {
+  Object.getOwnPropertyNames(baseClass.prototype).forEach((propertyName) => {
+    const propertyDescriptor = Object.getOwnPropertyDescriptor(baseClass.prototype, propertyName);
+    if (!propertyDescriptor) return;
+    Object.defineProperty(targetClass.prototype, propertyName, {
+      value(...args: any[]) {
+        return (this as any)[baseClassProp][propertyName](...args);
+      },
+      writable: propertyDescriptor.writable,
+      configurable: propertyDescriptor.configurable,
+      enumerable: propertyDescriptor.enumerable,
+    });
+  });
+}
+
+applyMixin(Aptos, Account, "account");
+applyMixin(Aptos, AccountAbstraction, "abstraction");
+applyMixin(Aptos, ANS, "ans");
+applyMixin(Aptos, Coin, "coin");
+applyMixin(Aptos, DigitalAsset, "digitalAsset");
+applyMixin(Aptos, Faucet, "faucet");
+applyMixin(Aptos, FungibleAsset, "fungibleAsset");
+applyMixin(Aptos, General, "general");
+applyMixin(Aptos, Staking, "staking");
+applyMixin(Aptos, Transaction, "transaction");
+applyMixin(Aptos, Table, "table");
+applyMixin(Aptos, Keyless, "keyless");
+applyMixin(Aptos, AptosObject, "object");
