@@ -116,6 +116,7 @@
     "@noble/hashes": "2.2.0",
     "@scure/bip32": "^2.0.1",
     "@scure/bip39": "^2.0.1",
+    "eventemitter3": "^5.0.4",
     "jwt-decode": "^4.0.0",
     "poseidon-lite": "^0.2.0"
   },

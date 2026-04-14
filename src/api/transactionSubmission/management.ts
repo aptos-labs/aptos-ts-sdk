@@ -1,4 +1,4 @@
-import { EventEmitter } from "node:events";
+import { EventEmitter } from "eventemitter3";
 import {
   TransactionWorkerEvents,
   TransactionWorker,

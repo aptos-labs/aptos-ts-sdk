@@ -105,11 +105,19 @@ export function floorToWholeHour(timestampInSeconds: number): number {
  * @category Utils
  */
 export function base64UrlDecode(base64Url: string): string {
-  return Buffer.from(base64Url, "base64url").toString();
+  // Convert base64url to standard base64, then decode with universal atob
+  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64 + "==".substring(0, (3 - (base64.length % 3)) % 3);
+  return atob(padded);
 }
 
 export function base64UrlToBytes(base64Url: string): Uint8Array {
-  return new Uint8Array(Buffer.from(base64Url, "base64url"));
+  const str = base64UrlDecode(base64Url);
+  const bytes = new Uint8Array(str.length);
+  for (let i = 0; i < str.length; i++) {
+    bytes[i] = str.charCodeAt(i);
+  }
+  return bytes;
 }
 
 /**

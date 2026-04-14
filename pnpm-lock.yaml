@@ -32,6 +32,9 @@ importers:
       '@scure/bip39':
         specifier: ^2.0.1
         version: 2.0.1
+      eventemitter3:
+        specifier: ^5.0.4
+        version: 5.0.4
       jwt-decode:
         specifier: ^4.0.0
         version: 4.0.0

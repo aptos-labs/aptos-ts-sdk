@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { EventEmitter } from "node:events";
+import { EventEmitter } from "eventemitter3";
 import { jwtDecode } from "jwt-decode";
 // Register keyless variants with AnyPublicKey/AnySignature registry
 import "../core/crypto/keylessRegistration.js";
@@ -568,5 +568,5 @@ export type ProofFetchCallback = (status: ProofFetchStatus) => Promise<void>;
  * @category Account (On-Chain Model)
  */
 export interface ProofFetchEvents {
-  proofFetchFinish: [status: ProofFetchStatus];
+  proofFetchFinish: (status: ProofFetchStatus) => void;
 }
