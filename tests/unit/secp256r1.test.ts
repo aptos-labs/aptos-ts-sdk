@@ -32,7 +32,7 @@ describe("Secp256r1PublicKey", () => {
     const uncompressedPublicKey = Hex.fromHexInput(singleSignerSecp256r1.publicKey);
     expect(uncompressedPublicKey.toUint8Array().length).toEqual(65);
 
-    const point = p256.Point.fromHex(uncompressedPublicKey.toString().replace("0x", ""));
+    const point = p256.Point.fromHex(uncompressedPublicKey.toStringWithoutPrefix());
     const compressedPublicKey = point.toBytes(true);
     const compressedPublicKeyHex = Hex.fromHexInput(compressedPublicKey);
     expect(compressedPublicKey.length).toEqual(33);
