@@ -23,7 +23,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - **Keyless imports moved** — `KeylessAccount`, `FederatedKeylessAccount`, `EphemeralKeyPair`, poseidon utilities, and keyless crypto types are no longer exported from the main entry. Import from sub-paths or direct file paths.
 - **HD Key and deserialization utils moved** — no longer in the crypto barrel. Import directly from their files.
 - **`generateSignedTransactionForSimulation` is now async** — callers must `await` it.
-  - See: `upgrade-guides/UPGRADE_GUIDE_8.0.0.md`
+  - See: `upgrade-guides/UPGRADE_GUIDE_7.0.0.md`
 
 ## Changed
 
