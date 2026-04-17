@@ -2,10 +2,7 @@
  * Example to submit a simple sponsored transaction where Alice transfers APT coin to Bob
  * with a sponsor account to pay for the gas fee
  */
-import dotenv from "dotenv";
 import { Account, Aptos, AptosConfig, NetworkToNetworkName, Network } from "@aptos-labs/ts-sdk";
-
-dotenv.config();
 
 const ALICE_INITIAL_BALANCE = 1_000_000_000;
 const SPONSOR_INITIAL_BALANCE = 1_000_000_000;

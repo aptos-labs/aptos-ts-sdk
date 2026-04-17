@@ -5,9 +5,6 @@
  * with a sponsor account to pay for the gas fee
  */
 import { Account, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 const ALICE_INITIAL_BALANCE = 1_000_000_000;
 const SPONSOR_INITIAL_BALANCE = 1_000_000_000;

@@ -1,5 +1,4 @@
 /* eslint-disable no-console */
-import dotenv from "dotenv";
 import {
   Account,
   AbstractedAccount,
@@ -11,8 +10,6 @@ import {
   NetworkToNetworkName,
 } from "@aptos-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils";
-
-dotenv.config();
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 const aptos = new Aptos(new AptosConfig({ network: APTOS_NETWORK }));
