@@ -1,4 +1,5 @@
 import { HexInput, SigningScheme } from "../../types/index.js";
+import { TEXT_ENCODER } from "../../utils/const.js";
 import { Hex } from "../hex.js";
 import { Ed25519PublicKey } from "./ed25519.js";
 import { FederatedKeylessPublicKey } from "./federatedKeyless.js";
@@ -24,7 +25,7 @@ export const convertSigningMessage = (message: HexInput): HexInput => {
     const isValid = Hex.isValid(message);
     // If message is not a valid Hex string, convert it
     if (!isValid.valid) {
-      return new TextEncoder().encode(message);
+      return TEXT_ENCODER.encode(message);
     }
     // If message is a valid Hex string, return it
     return message;

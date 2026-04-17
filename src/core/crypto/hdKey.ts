@@ -4,6 +4,7 @@
 import { hmac } from "@noble/hashes/hmac.js";
 import { sha512 } from "@noble/hashes/sha2.js";
 import * as bip39 from "@scure/bip39";
+import { TEXT_ENCODER } from "../../utils/const.js";
 
 /**
  * Contains the derived cryptographic key as a Uint8Array.
@@ -85,9 +86,8 @@ export function isValidHardenedPath(path: string): boolean {
  * @group Implementation
  * @category Serialization
  */
-const textEncoder = new TextEncoder();
 const toBytes = (input: Uint8Array | string): Uint8Array =>
-  typeof input === "string" ? textEncoder.encode(input) : input;
+  typeof input === "string" ? TEXT_ENCODER.encode(input) : input;
 
 export const deriveKey = (hashSeed: Uint8Array | string, data: Uint8Array | string): DerivedKeys => {
   const digest = hmac.create(sha512, toBytes(hashSeed)).update(toBytes(data)).digest();
