@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // NOTE: Standalone functions are NOT re-exported from the barrel to avoid circular
-// dependency issues. Import from '@aptos-labs/ts-sdk/functions' or sub-path exports.
+// dependency issues. Import them from sub-path exports instead — e.g.
+// `@aptos-labs/ts-sdk/general`, `@aptos-labs/ts-sdk/account`, `@aptos-labs/ts-sdk/keyless`.
 
 // ---- Configuration ----
 export * from "./api/aptosConfig.js";
