@@ -392,9 +392,3 @@ export async function publishHelloWorldAAPackage(aptos: Aptos, senderAccount: Ac
     ],
   );
 }
-
-export const b64urlEncode = (u8: Uint8Array) =>
-  btoa(String.fromCharCode(...u8))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");

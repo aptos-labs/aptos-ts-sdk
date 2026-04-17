@@ -12,6 +12,7 @@ import {
   AnyPublicKey,
   generateSigningMessageForTransaction,
   Hex,
+  base64UrlEncode,
 } from "../../../src";
 import { p256 } from "@noble/curves/nist.js";
 import { sha256 } from "@noble/hashes/sha2.js";
@@ -20,12 +21,6 @@ import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import { fundAccounts, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
 const { aptos } = getAptosClient();
-
-const b64urlEncode = (u8: Uint8Array) =>
-  btoa(String.fromCharCode(...u8))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
 
 describe("sign transaction", () => {
   const contractPublisherAccount = Account.generate();
@@ -256,7 +251,7 @@ describe("sign transaction", () => {
       const challenge = sha3_256(message);
       const clientDataObj = {
         type: "webauthn.get",
-        challenge: b64urlEncode(challenge),
+        challenge: base64UrlEncode(challenge),
         origin: "http://localhost:5173",
         crossOrigin: false,
       } as const;
@@ -307,7 +302,7 @@ describe("sign transaction", () => {
       const challenge = sha3_256(message);
       const clientDataObj = {
         type: "webauthn.get",
-        challenge: b64urlEncode(challenge),
+        challenge: base64UrlEncode(challenge),
         origin: "http://localhost:5173",
         crossOrigin: false,
       } as const;

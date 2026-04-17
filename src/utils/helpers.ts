@@ -4,6 +4,7 @@
 import { MoveFunctionId, MoveStructId } from "../types/index.js";
 import { AccountAddress } from "../core/accountAddress.js";
 import { createObjectAddress } from "../core/account/utils/address.js";
+import { TEXT_ENCODER } from "./const.js";
 
 /**
  * Checks if the current runtime environment is Bun.
@@ -20,6 +21,17 @@ export function isBun(): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Read an environment variable in a runtime-agnostic way. Returns `undefined` when
+ * `process.env` is not available (browsers, some bundlers) or the variable is unset.
+ *
+ * @group Implementation
+ * @category Utils
+ */
+export function getEnvVar(name: string): string | undefined {
+  return typeof process !== "undefined" ? process.env?.[name] : undefined;
 }
 
 /**
@@ -105,17 +117,37 @@ export function floorToWholeHour(timestampInSeconds: number): number {
  * @category Utils
  */
 export function base64UrlDecode(base64Url: string): string {
-  // Convert base64url to standard base64, then decode with universal atob
-  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = base64 + "==".substring(0, (3 - (base64.length % 3)) % 3);
-  return atob(padded);
+  // Decode the bytes, then interpret as UTF-8. `atob` alone returns a Latin-1 binary
+  // string which corrupts any non-ASCII characters in JWT headers/payloads.
+  return new TextDecoder("utf-8").decode(base64UrlToBytes(base64Url));
+}
+
+/**
+ * Encode a string or byte array as a base64url string (RFC 4648 §5) with no padding.
+ *
+ * @param input - The data to encode. Strings are interpreted as UTF-8.
+ * @returns The base64url-encoded string.
+ * @group Implementation
+ * @category Utils
+ */
+export function base64UrlEncode(input: string | Uint8Array): string {
+  const bytes = typeof input === "string" ? TEXT_ENCODER.encode(input) : input;
+  // btoa requires a Latin-1 string — map each byte to a char code.
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 export function base64UrlToBytes(base64Url: string): Uint8Array {
-  const str = base64UrlDecode(base64Url);
-  const bytes = new Uint8Array(str.length);
-  for (let i = 0; i < str.length; i++) {
-    bytes[i] = str.charCodeAt(i);
+  // Convert base64url to standard base64, then decode with universal atob
+  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64 + "==".substring(0, (3 - (base64.length % 3)) % 3);
+  const binary = atob(padded);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
   }
   return bytes;
 }

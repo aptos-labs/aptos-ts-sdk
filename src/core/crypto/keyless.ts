@@ -31,7 +31,7 @@ import { AptosConfig } from "../../api/aptosConfig.js";
 import { getAptosFullNode } from "../../client/index.js";
 import { memoizeAsync } from "../../utils/memoize.js";
 import { AccountAddress, AccountAddressInput } from "../accountAddress.js";
-import { base64UrlToBytes, nowInSeconds } from "../../utils/index.js";
+import { base64UrlEncode, base64UrlToBytes, nowInSeconds } from "../../utils/index.js";
 import { KeylessError, KeylessErrorType } from "../../errors/index.js";
 import { bn254 } from "@noble/curves/bn254.js";
 import { bytesToNumberBE } from "@noble/curves/utils.js";
@@ -492,7 +492,7 @@ function getPublicInputsHash(args: {
     fields.push(1n);
     fields.push(hashStrToField(proof.extraField, keylessConfig.maxExtraFieldBytes));
   }
-  const jwtHeaderB64Url = btoa(signature.jwtHeader).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const jwtHeaderB64Url = base64UrlEncode(signature.jwtHeader);
   fields.push(hashStrToField(`${jwtHeaderB64Url}.`, keylessConfig.maxJwtHeaderB64Bytes));
   fields.push(jwk.toScalar());
   if (!proof.overrideAudVal) {
