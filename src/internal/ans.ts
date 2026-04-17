@@ -27,6 +27,7 @@ import { GetNamesQuery } from "../types/generated/operations.js";
 import { GetNames } from "../types/generated/queries.js";
 import { CurrentAptosNamesBoolExp } from "../types/generated/types.js";
 import { Network } from "../utils/apiEndpoints.js";
+import { getEnvVar } from "../utils/helpers.js";
 import { queryIndexer } from "./general.js";
 import { view } from "./view.js";
 import { generateTransaction } from "./transactionSubmission.js";
@@ -135,11 +136,10 @@ export function getANSExpirationStatus({
 }
 
 export const LOCAL_ANS_ACCOUNT_PK =
-  (typeof process !== "undefined" && process.env?.ANS_TEST_ACCOUNT_PRIVATE_KEY) ||
+  getEnvVar("ANS_TEST_ACCOUNT_PRIVATE_KEY") ??
   "ed25519-priv-0x37368b46ce665362562c6d1d4ec01a08c8644c488690df5a17e13ba163e20221";
 export const LOCAL_ANS_ACCOUNT_ADDRESS =
-  (typeof process !== "undefined" && process.env?.ANS_TEST_ACCOUNT_ADDRESS) ||
-  "0x585fc9f0f0c54183b039ffc770ca282ebd87307916c215a3e692f2f8e4305e82";
+  getEnvVar("ANS_TEST_ACCOUNT_ADDRESS") ?? "0x585fc9f0f0c54183b039ffc770ca282ebd87307916c215a3e692f2f8e4305e82";
 
 const NetworkToAnsContract: Record<Network, string | null> = {
   [Network.TESTNET]: "0x5f8fd2347449685cf41d4db97926ec3a096eaf381332be4f1318ad4d16a8497c",
