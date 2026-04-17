@@ -22,9 +22,6 @@ import {
   NetworkToNetworkName,
 } from "@aptos-labs/ts-sdk";
 import { MultiEd25519Account } from "@aptos-labs/ts-sdk";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
 const MULTI_ED25519_INITIAL_BALANCE = 1_000_000_000;

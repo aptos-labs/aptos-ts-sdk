@@ -13,9 +13,6 @@ import {
   Network,
   NetworkToNetworkName,
 } from "@aptos-labs/ts-sdk";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
 const ALICE_INITIAL_BALANCE = 1_000_000_000;

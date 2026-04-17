@@ -11,7 +11,6 @@
  * 5. Create a liquidity pool with Alice's FA and Bob's FA
  * 6. Swap between Alice's FA and Bob's FA
  */
-import "dotenv";
 import {
   Account,
   AccountAddress,
