@@ -59,6 +59,7 @@ const aptos = new Aptos(config);
 Import only the namespaces you need for smaller bundles with full autocomplete:
 
 ```ts
+import { Network } from "@aptos-labs/ts-sdk";
 import { General, AptosConfig } from "@aptos-labs/ts-sdk/general";
 import { Faucet } from "@aptos-labs/ts-sdk/faucet";
 
@@ -77,14 +78,6 @@ import { AptosConfig, Network } from "@aptos-labs/ts-sdk";
 
 const config = new AptosConfig({ network: Network.TESTNET });
 const ledger = await getLedgerInfo({ aptosConfig: config });
-```
-
-#### For Bun users
-
-Bun's HTTP/2 support is not fully mature yet. Disable HTTP/2:
-
-```ts
-const config = new AptosConfig({ network: Network.TESTNET, clientConfig: { http2: false } });
 ```
 
 ### Reading Data From Onchain ([Guide](https://aptos.dev/en/build/sdks/ts-sdk/fetch-data-via-sdk))
