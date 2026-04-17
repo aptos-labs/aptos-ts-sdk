@@ -22,7 +22,7 @@ import { getInfo } from "../../internal/utils/index.js";
 import { getLedgerInfo } from "../../internal/general.js";
 import { getGasPriceEstimation } from "../../internal/transaction.js";
 import { NetworkToChainId } from "../../utils/apiEndpoints.js";
-import { MIN_MAX_GAS_AMOUNT } from "../../utils/const.js";
+import { MIN_MAX_GAS_AMOUNT, TEXT_ENCODER } from "../../utils/const.js";
 import { normalizeBundle } from "../../utils/normalizeBundle.js";
 import {
   AccountAuthenticator,
@@ -815,12 +815,10 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
  * @group Implementation
  * @category Transactions
  */
-const textEncoder = new TextEncoder();
-
 export function hashValues(input: (Uint8Array | string)[]): Uint8Array {
   const hash = sha3Hash.create();
   for (const item of input) {
-    hash.update(typeof item === "string" ? textEncoder.encode(item) : item);
+    hash.update(typeof item === "string" ? TEXT_ENCODER.encode(item) : item);
   }
   return hash.digest();
 }

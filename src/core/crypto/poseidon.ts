@@ -16,6 +16,7 @@ import {
   poseidon15,
   poseidon16,
 } from "poseidon-lite";
+import { TEXT_ENCODER } from "../../utils/const.js";
 
 const numInputsToPoseidonFunc = [
   poseidon1,
@@ -51,8 +52,7 @@ const MAX_NUM_INPUT_BYTES = (MAX_NUM_INPUT_SCALARS - 1) * BYTES_PACKED_PER_SCALA
  * @category Serialization
  */
 export function hashStrToField(str: string, maxSizeBytes: number): bigint {
-  const textEncoder = new TextEncoder();
-  const strBytes = textEncoder.encode(str);
+  const strBytes = TEXT_ENCODER.encode(str);
   return hashBytesWithLen(strBytes, maxSizeBytes);
 }
 
