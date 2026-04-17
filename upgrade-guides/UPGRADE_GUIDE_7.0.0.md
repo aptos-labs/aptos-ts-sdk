@@ -1,130 +1,160 @@
-# UPGRADE_GUIDE_7.0.0.md
+# Upgrade Guide: v6.x → v7.0.0
 
 ## Overview
 
-Version 7.0.0 converts the Aptos TypeScript SDK to **ESM-only** output. CommonJS `require()` syntax is no longer supported.
+v7.0.0 converts the Aptos TypeScript SDK to **ESM-only** output and makes it **tree-shakeable**. The SDK now uses plain `tsc` (no bundler), `nodenext` module resolution, and provides three tiers of usage for different bundle-size needs.
 
-## Node.js Version Requirement
+## Breaking Changes
 
-**Node.js 22+ is now required** (was Node.js 20.0.0+).
+### 1. ESM-only, Node.js 22+ required
 
----
+CommonJS `require()` is no longer supported. All imports must use ESM `import` syntax, and **Node.js 22+** is now required (was 20.0.0+).
 
-## Migration Steps
-
-### 1. Update Import Syntax
-
-#### Before (CommonJS):
+**Before:**
 
 ```javascript
 const { Aptos, AptosConfig, Network } = require("@aptos-labs/ts-sdk");
-
-const config = new AptosConfig({ network: Network.DEVNET });
-const aptos = new Aptos(config);
 ```
 
-#### After (ESM):
+**After:**
 
-```javascript
+```typescript
+import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+```
+
+If your project uses `.js` extension files, add `"type": "module"` to your `package.json`, or rename your files to `.mjs`.
+
+### 2. Keyless imports moved
+
+`KeylessAccount`, `FederatedKeylessAccount`, `EphemeralKeyPair`, `AbstractKeylessAccount`, and all poseidon/keyless crypto utilities are **no longer exported from the main entry point** (to keep `poseidon-lite` out of the main bundle).
+
+**Before:**
+
+```typescript
+import { KeylessAccount, EphemeralKeyPair, poseidonHash } from "@aptos-labs/ts-sdk";
+```
+
+**After:**
+
+```typescript
+import {
+  KeylessAccount,
+  FederatedKeylessAccount,
+  AbstractKeylessAccount,
+  EphemeralKeyPair,
+  deriveKeylessAccount,
+  getPepper,
+  getProof,
+  poseidonHash,
+  hashStrToField,
+} from "@aptos-labs/ts-sdk/keyless";
+```
+
+### 3. HD Key utilities are no longer publicly exported
+
+`isValidBIP44Path`, `isValidHardenedPath`, `deriveKey`, and other HD key utilities are no longer re-exported from the main barrel or any sub-path. They are considered internal.
+
+**Recommended replacement** — use the account factory which handles derivation internally:
+
+```typescript
+import { Account } from "@aptos-labs/ts-sdk";
+
+const account = Account.fromDerivationPath({
+  path: "m/44'/637'/0'/0'/0'",
+  mnemonic: "...",
+});
+```
+
+### 4. `generateSignedTransactionForSimulation` is now async
+
+Callers must `await` it.
+
+### 5. Standalone functions not in main barrel
+
+Standalone functions (e.g., `getLedgerInfo`, `transferCoinTransaction`) are **not** exported from the main `@aptos-labs/ts-sdk` entry point. Import them from sub-paths:
+
+```typescript
+import { getLedgerInfo } from "@aptos-labs/ts-sdk/general";
+import { transferCoinTransaction } from "@aptos-labs/ts-sdk/coin";
+```
+
+## New Features
+
+### Three tiers of usage
+
+**Tier 1: `Aptos` class (convenience, not tree-shakeable)**
+
+```typescript
 import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 
-const config = new AptosConfig({ network: Network.DEVNET });
-const aptos = new Aptos(config);
+const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
+await aptos.getLedgerInfo();
+await aptos.account.getAccountInfo({ accountAddress: "0x1" });
 ```
 
-### 2. Add "type": "module" to Your Project
+**Tier 2: Namespace classes from sub-paths (tree-shakeable + autocomplete)**
 
-If your project uses `.js` extension files, add this to your `package.json`:
+```typescript
+import { General, AptosConfig } from "@aptos-labs/ts-sdk/general";
+import { Account } from "@aptos-labs/ts-sdk/account";
 
-```json
-{
-  "name": "your-project",
-  "type": "module"
-}
+const config = new AptosConfig({ network: Network.TESTNET });
+const general = new General(config);
+const account = new Account(config);
+
+await general.getLedgerInfo();
+await account.getAccountInfo({ accountAddress: "0x1" });
 ```
 
-Alternatively, rename your JavaScript files to `.mjs` extension.
+**Tier 3: Standalone functions (maximum tree-shaking)**
 
-### 3. Update `require()` to `import`
+```typescript
+import { getLedgerInfo } from "@aptos-labs/ts-sdk/general";
+import { getAccountInfo } from "@aptos-labs/ts-sdk/account";
+import { AptosConfig, Network } from "@aptos-labs/ts-sdk";
 
-Search your codebase for patterns like:
-
-```javascript
-require("@aptos-labs/ts-sdk")
-require("@aptos-labs/ts-sdk/dist/...")
+const config = new AptosConfig({ network: Network.TESTNET });
+await getLedgerInfo({ aptosConfig: config });
+await getAccountInfo({ aptosConfig: config, accountAddress: "0x1" });
 ```
 
-Replace with:
+### Sub-path exports
 
-```javascript
-import ... from "@aptos-labs/ts-sdk"
-```
+Each sub-path exports both standalone functions and the namespace class:
 
----
+| Sub-path | Namespace Class | Functions |
+|----------|----------------|-----------|
+| `@aptos-labs/ts-sdk/account` | `Account` | `getAccountInfo`, `getBalance`, ... |
+| `@aptos-labs/ts-sdk/coin` | `Coin` | `transferCoinTransaction` |
+| `@aptos-labs/ts-sdk/general` | `General` | `getLedgerInfo`, `getChainId`, ... |
+| `@aptos-labs/ts-sdk/transaction` | `Transaction` | `generateTransaction`, `submitTransaction`, ... |
+| `@aptos-labs/ts-sdk/faucet` | `Faucet` | `fundAccount` |
+| `@aptos-labs/ts-sdk/keyless` | `Keyless` | `deriveKeylessAccount`, `getPepper`, ... |
+| `@aptos-labs/ts-sdk/digitalAsset` | `DigitalAsset` | `createCollectionTransaction`, ... |
+| `@aptos-labs/ts-sdk/fungibleAsset` | `FungibleAsset` | `transferFungibleAsset`, ... |
+| `@aptos-labs/ts-sdk/staking` | `Staking` | `getDelegatedStakingActivities`, ... |
+| `@aptos-labs/ts-sdk/ans` | `ANS` | `getName`, `registerName`, ... |
+| `@aptos-labs/ts-sdk/table` | `Table` | `getTableItem`, ... |
+| `@aptos-labs/ts-sdk/object` | `AptosObject` | `getObjectData`, ... |
+| `@aptos-labs/ts-sdk/view` | *(none)* | `view`, `viewJson` |
+| `@aptos-labs/ts-sdk/bcs` | *(core types)* | BCS serialization primitives |
+| `@aptos-labs/ts-sdk/crypto` | *(core types)* | Crypto primitives |
 
-## Examples
+All sub-paths also export `AptosConfig` for convenience.
 
-### Before (JavaScript with CommonJS):
+### `sideEffects: false`
 
-```javascript
-// old-example.js
-const dotenv = require("dotenv");
-dotenv.config();
-const { Account, Aptos, AptosConfig, Network } = require("@aptos-labs/ts-sdk");
-
-async function main() {
-  const aptos = new Aptos(new AptosConfig({ network: Network.DEVNET }));
-  const account = Account.generate();
-  console.log(account.accountAddress);
-}
-
-main();
-```
-
-### After (JavaScript with ESM):
-
-```javascript
-// new-example.js
-import dotenv from "dotenv";
-import { Account, Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-
-dotenv.config();
-
-async function main() {
-  const aptos = new Aptos(new AptosConfig({ network: Network.DEVNET }));
-  const account = Account.generate();
-  console.log(account.accountAddress);
-}
-
-main();
-```
-
----
+The package declares `"sideEffects": false`, enabling bundlers to tree-shake unused exports.
 
 ## Troubleshooting
 
 ### Error: `require() of ES Module ... not supported`
 
-This error occurs when trying to use `require()` with the new ESM-only SDK.
-
-**Solution**: Replace `require()` with `import` syntax as shown above.
+Replace `require()` with `import` syntax.
 
 ### Error: `Cannot use import statement outside a module`
 
-This error occurs when running ESM code without proper configuration.
-
-**Solution**: Either:
-1. Add `"type": "module"` to your `package.json`, OR
-2. Rename your file to `.mjs` extension
-
----
-
-## Additional Resources
-
-- [Node.js ESM Documentation](https://nodejs.org/api/esm.html)
-- [MDN Web Docs - ES Modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)
-
----
+Either add `"type": "module"` to your `package.json`, or rename your file to `.mjs`.
 
 ## Questions?
 
