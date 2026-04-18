@@ -70,7 +70,7 @@ export abstract class Serializable {
 
   /**
    * Returns the hex string representation of the `Serializable` value with the 0x prefix.
-   * @returns the hex formatas a string prefixed by `0x`.
+   * @returns the hex format as a string prefixed by `0x`.
    */
   toString(): string {
     return `0x${this.toStringWithoutPrefix()}`;
