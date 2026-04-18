@@ -78,6 +78,18 @@ import { getLedgerInfo } from "@aptos-labs/ts-sdk/general";
 import { transferCoinTransaction } from "@aptos-labs/ts-sdk/coin";
 ```
 
+### 6. `AccountSequenceNumber.lastUncommintedNumber` renamed
+
+The typo has been fixed. If you access this field directly, rename it:
+
+```typescript
+// Before
+accountSequenceNumber.lastUncommintedNumber;
+
+// After
+accountSequenceNumber.lastUncommittedNumber;
+```
+
 ## New Features
 
 ### Three tiers of usage
