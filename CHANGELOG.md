@@ -24,6 +24,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - **HD Key and deserialization utils moved** — no longer in the crypto barrel. Import directly from their files.
 - **`generateSignedTransactionForSimulation` is now async** — callers must `await` it.
   - See: `upgrade-guides/UPGRADE_GUIDE_7.0.0.md`
+- Rename `AccountSequenceNumber.lastUncommintedNumber` → `lastUncommittedNumber` (typo fix).
 
 ## Changed
 
@@ -38,6 +39,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add `base64UrlEncode` helper and consolidate duplicated base64url encoders in `keyless.ts` and e2e tests.
 - Add `getEnvVar` helper for runtime-agnostic `process.env` access; simplifies `LOCAL_ANS_ACCOUNT_*` guards.
 - Consolidate `TextEncoder` instantiation to a shared `TEXT_ENCODER` constant across BCS, poseidon, signing, transaction builder, and HD key paths.
+- Fix "hex formatas a string" typo in `Serializable.toString()` JSDoc.
 
 # 6.3.0 (2026-03-22)
 
