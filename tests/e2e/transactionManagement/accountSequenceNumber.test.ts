@@ -32,7 +32,7 @@ describe("account sequence number", () => {
     async () => {
       await accountSequenceNumber.initialize();
       expect(accountSequenceNumber.currentNumber).toEqual(BigInt(0));
-      expect(accountSequenceNumber.lastUncommintedNumber).toEqual(BigInt(0));
+      expect(accountSequenceNumber.lastUncommittedNumber).toEqual(BigInt(0));
     },
     longTestTimeout,
   );
@@ -44,7 +44,7 @@ describe("account sequence number", () => {
       authentication_key: account.accountAddress.toString(),
     });
     await accountSequenceNumber.update();
-    expect(accountSequenceNumber.lastUncommintedNumber).toEqual(BigInt(parseInt(seqNum, 10)));
+    expect(accountSequenceNumber.lastUncommittedNumber).toEqual(BigInt(parseInt(seqNum, 10)));
   });
 
   it(

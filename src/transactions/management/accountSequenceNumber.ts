@@ -49,8 +49,7 @@ export class AccountSequenceNumber {
   readonly account: Account;
 
   // sequence number on chain
-  // TODO: Change to Uncommitted
-  lastUncommintedNumber: bigint | null = null;
+  lastUncommittedNumber: bigint | null = null;
 
   // local sequence number
   currentNumber: bigint | null = null;
@@ -118,15 +117,15 @@ export class AccountSequenceNumber {
     this.lock = true;
     let nextNumber = BigInt(0);
     try {
-      if (this.lastUncommintedNumber === null || this.currentNumber === null) {
+      if (this.lastUncommittedNumber === null || this.currentNumber === null) {
         await this.initialize();
       }
 
-      if (this.currentNumber! - this.lastUncommintedNumber! >= this.maximumInFlight) {
+      if (this.currentNumber! - this.lastUncommittedNumber! >= this.maximumInFlight) {
         await this.update();
 
         const startTime = nowInSeconds();
-        while (this.currentNumber! - this.lastUncommintedNumber! >= this.maximumInFlight) {
+        while (this.currentNumber! - this.lastUncommittedNumber! >= this.maximumInFlight) {
           await sleep(this.sleepTime);
           if (nowInSeconds() - startTime > this.maxWaitTime) {
             console.warn(
@@ -163,7 +162,7 @@ export class AccountSequenceNumber {
       accountAddress: this.account.accountAddress,
     });
     this.currentNumber = BigInt(sequenceNumber);
-    this.lastUncommintedNumber = BigInt(sequenceNumber);
+    this.lastUncommittedNumber = BigInt(sequenceNumber);
   }
 
   /**
@@ -178,8 +177,8 @@ export class AccountSequenceNumber {
       aptosConfig: this.aptosConfig,
       accountAddress: this.account.accountAddress,
     });
-    this.lastUncommintedNumber = BigInt(sequenceNumber);
-    return this.lastUncommintedNumber;
+    this.lastUncommittedNumber = BigInt(sequenceNumber);
+    return this.lastUncommittedNumber;
   }
 
   /**
@@ -191,7 +190,7 @@ export class AccountSequenceNumber {
    * @category Transactions
    */
   async synchronize(): Promise<void> {
-    if (this.lastUncommintedNumber === this.currentNumber) return;
+    if (this.lastUncommittedNumber === this.currentNumber) return;
 
     while (this.lock) {
       await sleep(this.sleepTime);
@@ -202,7 +201,7 @@ export class AccountSequenceNumber {
     try {
       await this.update();
       const startTime = nowInSeconds();
-      while (this.lastUncommintedNumber !== this.currentNumber) {
+      while (this.lastUncommittedNumber !== this.currentNumber) {
         if (nowInSeconds() - startTime > this.maxWaitTime) {
           console.warn(
             `Waited over 30 seconds for a transaction to commit, re-syncing ${this.account.accountAddress.toString()}`,
