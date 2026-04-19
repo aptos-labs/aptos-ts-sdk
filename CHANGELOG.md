@@ -40,6 +40,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add `getEnvVar` helper for runtime-agnostic `process.env` access; simplifies `LOCAL_ANS_ACCOUNT_*` guards.
 - Consolidate `TextEncoder` instantiation to a shared `TEXT_ENCODER` constant across BCS, poseidon, signing, transaction builder, and HD key paths.
 - Fix "hex formatas a string" typo in `Serializable.toString()` JSDoc.
+- Regenerate `examples/typescript/pnpm-lock.yaml` to include the recently added `@noble/hashes` dependency so `pnpm install --frozen-lockfile` succeeds in CI.
 
 # 6.3.0 (2026-03-22)
 
