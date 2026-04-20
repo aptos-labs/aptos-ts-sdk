@@ -63,6 +63,4 @@ async function main() {
   console.log("Modules onchain check passed");
 }
 
-if (require.main === module) {
-  main();
-}
+main();
