@@ -1123,6 +1123,10 @@ export type EncryptedTransactionPayloadResponse =
       payload_hash: string;
       ciphertext: string;
       claimed_entry_fun: ClaimedEntryFunctionResponse | null;
+      /** Ledger epoch hint for the encryption key used on the wire (aptos-core `EncryptedInner.encryption_epoch`). */
+      encryption_epoch?: string;
+      /** Present when `encrypted_state` is `failed_decryption` (snake_case per REST, e.g. `payload_hash_mismatch`, `epoch_mismatch`). */
+      decryption_failure_reason?: string;
     }
   | {
       type: string;
@@ -1132,6 +1136,7 @@ export type EncryptedTransactionPayloadResponse =
       claimed_entry_fun: ClaimedEntryFunctionResponse | null;
       decrypted_payload: EntryFunctionPayloadResponse | ScriptPayloadResponse | MultisigPayloadResponse;
       decryption_nonce: string;
+      encryption_epoch?: string;
     };
 
 /**

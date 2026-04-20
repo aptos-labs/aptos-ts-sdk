@@ -4,12 +4,12 @@
 import { describe, expect, test } from "vitest";
 import { Deserializer } from "../../../../../src/bcs/deserializer";
 import { Serializer } from "../../../../../src/bcs/serializer";
-import { AccountAddress } from "../../../../../src/core";
+import { AccountAddress, AuthenticationKey } from "../../../../../src/core";
 import { Identifier } from "../../../../../src/transactions/instances/identifier";
 import { ModuleId } from "../../../../../src/transactions/instances/moduleId";
 import {
   ClaimedEntryFunction,
-  DecryptedPayload,
+  DecryptedPlaintext,
   EntryFunction,
   PayloadAssociatedData,
   TransactionExecutableEntryFunction,
@@ -40,23 +40,26 @@ function makeStubCiphertext(): Ciphertext {
 }
 
 describe("encrypted payload BCS round-trip (unit)", () => {
-  test("DecryptedPayload serialize/deserialize", () => {
+  test("DecryptedPlaintext serialize/deserialize", () => {
     const entryFn = EntryFunction.build("0x1::aptos_account", "transfer", [], []);
     const executable = new TransactionExecutableEntryFunction(entryFn);
-    const nonce = 0xdeadbeefcafe0001n;
-    const payload = new DecryptedPayload(executable, nonce);
+    const nonce = new Uint8Array(16);
+    nonce.set([0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]);
+    const payload = new DecryptedPlaintext(executable, nonce);
 
     const bytes = payload.bcsToBytes();
-    const restored = DecryptedPayload.deserialize(new Deserializer(bytes));
+    const restored = DecryptedPlaintext.deserialize(new Deserializer(bytes));
 
-    expect(restored.decryptionNonce).toBe(nonce);
+    expect(restored.decryptionNonce).toEqual(nonce);
     expect(restored.bcsToBytes()).toEqual(bytes);
   });
 
-  test("DecryptedPayload hash is deterministic", () => {
+  test("DecryptedPlaintext hash is deterministic", () => {
     const entryFn = EntryFunction.build("0x1::aptos_account", "transfer", [], []);
     const executable = new TransactionExecutableEntryFunction(entryFn);
-    const payload = new DecryptedPayload(executable, 123n);
+    const nonce = new Uint8Array(16);
+    nonce.fill(0x7b);
+    const payload = new DecryptedPlaintext(executable, nonce);
 
     const h1 = payload.hash();
     const h2 = payload.hash();
@@ -66,12 +69,14 @@ describe("encrypted payload BCS round-trip (unit)", () => {
 
   test("PayloadAssociatedData serialize/deserialize", () => {
     const sender = AccountAddress.ONE;
-    const ad = new PayloadAssociatedData(sender);
+    const authKey = new AuthenticationKey({ data: new Uint8Array(32).fill(0xab) });
+    const ad = new PayloadAssociatedData(sender, authKey);
 
     const bytes = ad.bcsToBytes();
     const restored = PayloadAssociatedData.deserialize(new Deserializer(bytes));
 
     expect(restored.sender.equals(sender)).toBe(true);
+    expect(restored.authKey.toUint8Array()).toEqual(authKey.toUint8Array());
     expect(restored.bcsToBytes()).toEqual(bytes);
   });
 
@@ -108,7 +113,7 @@ describe("encrypted payload BCS round-trip (unit)", () => {
   test("TransactionPayloadEncryptedPayload rejects non-32-byte hash", () => {
     const ct = makeStubCiphertext();
     const config = new TransactionExtraConfigV1();
-    expect(() => new TransactionPayloadEncryptedPayload(ct, config, new Uint8Array(31))).toThrow("32 bytes");
+    expect(() => new TransactionPayloadEncryptedPayload(ct, config, new Uint8Array(31), 0n)).toThrow("32 bytes");
   });
 
   test("TransactionPayloadEncryptedPayload serialize/deserialize round-trip", () => {
@@ -116,7 +121,8 @@ describe("encrypted payload BCS round-trip (unit)", () => {
     const payloadHash = new Uint8Array(32);
     payloadHash.fill(0xab);
     const config = new TransactionExtraConfigV1(undefined, 99n);
-    const payload = new TransactionPayloadEncryptedPayload(ct, config, payloadHash);
+    const encryptionEpoch = 42n;
+    const payload = new TransactionPayloadEncryptedPayload(ct, config, payloadHash, encryptionEpoch);
 
     const bytes = payload.bcsToBytes();
     expect(bytes.length).toBeGreaterThan(32);
@@ -133,6 +139,7 @@ describe("encrypted payload BCS round-trip (unit)", () => {
     expect(restoredConfig.replayProtectionNonce).toBe(99n);
 
     expect(restored.payloadHash).toEqual(payloadHash);
+    expect(restored.encryptionEpoch).toBe(encryptionEpoch);
     expect(restored.claimedEntryFun).toBeUndefined();
   });
 
@@ -143,7 +150,7 @@ describe("encrypted payload BCS round-trip (unit)", () => {
     const config = new TransactionExtraConfigV1();
     const entryFn = EntryFunction.build("0x1::aptos_account", "transfer", [], []);
     const claim = ClaimedEntryFunction.fromEntryFunction(entryFn);
-    const payload = new TransactionPayloadEncryptedPayload(ct, config, payloadHash, claim);
+    const payload = new TransactionPayloadEncryptedPayload(ct, config, payloadHash, 1n, claim);
 
     const bytes = payload.bcsToBytes();
     const restoredPayload = TransactionPayload.deserialize(new Deserializer(bytes));
@@ -154,6 +161,7 @@ describe("encrypted payload BCS round-trip (unit)", () => {
     expect(restored.claimedEntryFun!.moduleId.address.equals(claim.moduleId.address)).toBe(true);
     expect(restored.claimedEntryFun!.moduleId.name.identifier).toBe(claim.moduleId.name.identifier);
     expect(restored.claimedEntryFun!.functionName?.identifier).toBe("transfer");
+    expect(restored.encryptionEpoch).toBe(1n);
   });
 
   test("TransactionPayloadEncryptedPayload round-trip with module-only claim", () => {
@@ -162,7 +170,7 @@ describe("encrypted payload BCS round-trip (unit)", () => {
     const config = new TransactionExtraConfigV1();
     const entryFn = EntryFunction.build("0x1::aptos_account", "transfer", [], []);
     const claim = ClaimedEntryFunction.fromEntryFunction(entryFn, { includeFunctionName: false });
-    const payload = new TransactionPayloadEncryptedPayload(ct, config, payloadHash, claim);
+    const payload = new TransactionPayloadEncryptedPayload(ct, config, payloadHash, 99n, claim);
 
     const restoredPayload = TransactionPayload.deserialize(new Deserializer(payload.bcsToBytes()));
     expect(restoredPayload).toBeInstanceOf(TransactionPayloadEncryptedPayload);
@@ -170,6 +178,7 @@ describe("encrypted payload BCS round-trip (unit)", () => {
 
     expect(restored.claimedEntryFun?.functionName).toBeUndefined();
     expect(restored.claimedEntryFun?.moduleId.name.identifier).toBe("aptos_account");
+    expect(restored.encryptionEpoch).toBe(99n);
   });
 
   test("ClaimedEntryFunction BCS round-trip via explicit ModuleId / Identifier", () => {

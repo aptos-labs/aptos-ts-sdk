@@ -22,6 +22,7 @@ import {
 } from "../../bcs/serializable/movePrimitives.js";
 import { MoveVector, Serialized } from "../../bcs/serializable/moveStructs.js";
 import { AccountAddress } from "../../core/index.js";
+import { AuthenticationKey } from "../../core/authenticationKey.js";
 import { Ciphertext } from "../../core/crypto/encryption/index.js";
 import { Identifier } from "./identifier.js";
 import { ModuleId } from "./moduleId.js";
@@ -436,12 +437,16 @@ export class TransactionPayloadEncryptedPayload extends TransactionPayload {
 
   public readonly payloadHash: Uint8Array;
 
+  /** Epoch hint matching the node's per-epoch encryption key (see aptos-core `EncryptedInner`). */
+  public readonly encryptionEpoch: bigint;
+
   public readonly claimedEntryFun?: ClaimedEntryFunction;
 
   constructor(
     ciphertext: Ciphertext,
     extraConfig: TransactionExtraConfig,
     payloadHash: Uint8Array,
+    encryptionEpoch: bigint,
     claimedEntryFun?: ClaimedEntryFunction,
   ) {
     super();
@@ -451,6 +456,7 @@ export class TransactionPayloadEncryptedPayload extends TransactionPayload {
     this.ciphertext = ciphertext;
     this.extraConfig = extraConfig;
     this.payloadHash = payloadHash;
+    this.encryptionEpoch = encryptionEpoch;
     this.claimedEntryFun = claimedEntryFun;
   }
 
@@ -460,6 +466,7 @@ export class TransactionPayloadEncryptedPayload extends TransactionPayload {
     this.ciphertext.serialize(serializer);
     this.extraConfig.serialize(serializer);
     serializer.serializeFixedBytes(this.payloadHash);
+    serializer.serializeU64(this.encryptionEpoch);
     serializer.serializeOption(this.claimedEntryFun);
   }
 
@@ -471,8 +478,15 @@ export class TransactionPayloadEncryptedPayload extends TransactionPayload {
     const ciphertext = Ciphertext.deserialize(deserializer);
     const extraConfig = TransactionExtraConfig.deserialize(deserializer);
     const payloadHash = deserializer.deserializeFixedBytes(32);
+    const encryptionEpoch = deserializer.deserializeU64();
     const claimedEntryFun = deserializer.deserializeOption(ClaimedEntryFunction);
-    return new TransactionPayloadEncryptedPayload(ciphertext, extraConfig, payloadHash, claimedEntryFun);
+    return new TransactionPayloadEncryptedPayload(
+      ciphertext,
+      extraConfig,
+      payloadHash,
+      encryptionEpoch,
+      claimedEntryFun,
+    );
   }
 }
 
@@ -780,42 +794,47 @@ export class TransactionExecutableEncrypted extends TransactionExecutable {
   }
 }
 
+/** 16-byte decryption nonce for encrypted payloads (aptos-core `DecryptionNonce`). */
+export const DECRYPTION_NONCE_LENGTH = 16;
+
 /**
- * BCS-serializable `DecryptedPayload`.
+ * BCS-serializable `DecryptedPlaintext`.
  * Built client-side before encrypting; its BCS hash becomes `payload_hash`.
  *
- * Matches Rust: `DecryptedPayload { executable: TransactionExecutable, decryption_nonce: u64 }`
+ * Matches Rust: `DecryptedPlaintext { executable, decryption_nonce: [u8; 16] }`
  */
-export class DecryptedPayload extends Serializable {
+export class DecryptedPlaintext extends Serializable {
   executable: TransactionExecutable;
 
-  decryptionNonce: bigint;
+  decryptionNonce: Uint8Array;
 
-  constructor(executable: TransactionExecutable, decryptionNonce: bigint) {
+  constructor(executable: TransactionExecutable, decryptionNonce: Uint8Array) {
     super();
+    if (decryptionNonce.length !== DECRYPTION_NONCE_LENGTH) {
+      throw new Error(`decryptionNonce must be ${DECRYPTION_NONCE_LENGTH} bytes`);
+    }
     this.executable = executable;
     this.decryptionNonce = decryptionNonce;
   }
 
   serialize(serializer: Serializer): void {
     this.executable.serialize(serializer);
-    serializer.serializeU64(this.decryptionNonce);
+    serializer.serializeFixedBytes(this.decryptionNonce);
   }
 
-  static deserialize(deserializer: Deserializer): DecryptedPayload {
+  static deserialize(deserializer: Deserializer): DecryptedPlaintext {
     const executable = TransactionExecutable.deserialize(deserializer);
-    const decryptionNonce = deserializer.deserializeU64();
-    return new DecryptedPayload(executable, decryptionNonce);
+    const decryptionNonce = deserializer.deserializeFixedBytes(DECRYPTION_NONCE_LENGTH);
+    return new DecryptedPlaintext(executable, decryptionNonce);
   }
 
   /**
-   * Compute the domain-separated BCS crypto hash of this DecryptedPayload.
-   * Matches Rust's `CryptoHash::hash(&decrypted_payload)` via the `BCSCryptoHash` derive macro.
+   * Domain-separated BCS crypto hash (`BCSCryptoHash` / `CryptoHash` in aptos-core).
    *
-   * Hash = SHA3-256( SHA3-256("APTOS::DecryptedPayload") || BCS(self) )
+   * Hash = SHA3-256( SHA3-256("APTOS::DecryptedPlaintext") || BCS(self) )
    */
   hash(): Uint8Array {
-    const salt = "APTOS::DecryptedPayload";
+    const salt = "APTOS::DecryptedPlaintext";
     const saltHash = sha3Hash(new TextEncoder().encode(salt));
     const bcsBytes = this.bcsToBytes();
     const h = sha3Hash.create();
@@ -825,26 +844,34 @@ export class DecryptedPayload extends Serializable {
   }
 }
 
+/** @deprecated Use {@link DecryptedPlaintext} (aptos-core rename). */
+export const DecryptedPayload = DecryptedPlaintext;
+
 /**
- * BCS-serializable associated data used as AAD for encryption.
- * Must match on decrypt; contains the sender address.
+ * BCS-serializable AAD for batch encryption of user transaction payloads.
  *
- * Matches Rust: `PayloadAssociatedData { sender: AccountAddress }`
+ * Matches Rust: `PayloadAssociatedData { sender, auth_key }` (aptos-core #19460).
  */
 export class PayloadAssociatedData extends Serializable {
   sender: AccountAddress;
 
-  constructor(sender: AccountAddress) {
+  authKey: AuthenticationKey;
+
+  constructor(sender: AccountAddress, authKey: AuthenticationKey) {
     super();
     this.sender = sender;
+    this.authKey = authKey;
   }
 
   serialize(serializer: Serializer): void {
     this.sender.serialize(serializer);
+    this.authKey.serialize(serializer);
   }
 
   static deserialize(deserializer: Deserializer): PayloadAssociatedData {
-    return new PayloadAssociatedData(AccountAddress.deserialize(deserializer));
+    const sender = AccountAddress.deserialize(deserializer);
+    const authKey = AuthenticationKey.deserialize(deserializer);
+    return new PayloadAssociatedData(sender, authKey);
   }
 }
 

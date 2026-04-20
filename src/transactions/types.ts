@@ -179,6 +179,11 @@ export type InputEncryptedTransactionBuildOptions = {
    */
   encrypted?: boolean;
   /**
+   * 32-byte authentication key (hex) that will sign this transaction. Required when `encrypted` is true.
+   * Must match the on-chain authenticator identity (aptos-core `PayloadAssociatedData` / #19460).
+   */
+  authenticationKey?: HexInput;
+  /**
    * Overrides `claimed_entry_fun` for encrypted transactions when a fee payer is set, the payload is multisig, or the
    * payload is `TransactionInnerPayload` with a multisig address in `TransactionExtraConfigV1`.
    * Ignored for plain encrypted single-signer transactions (none of the above).

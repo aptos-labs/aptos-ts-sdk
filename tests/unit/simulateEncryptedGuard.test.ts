@@ -37,6 +37,7 @@ describe("assertSimulatableTransaction", () => {
       makeStubCiphertext(),
       new TransactionExtraConfigV1(undefined, undefined),
       payloadHash,
+      0n,
     );
     const rawTxn = new RawTransaction(AccountAddress.ZERO, 0n, encPayload, 1000n, 1n, 9999999999n, new ChainId(1));
     const transaction = new SimpleTransaction(rawTxn);

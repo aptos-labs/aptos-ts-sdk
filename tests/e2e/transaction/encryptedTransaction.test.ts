@@ -20,10 +20,26 @@ import { fetchAndCacheEncryptionKey } from "../../../src/internal/encryptionKey"
 import { getLedgerInfo } from "../../../src/internal/general";
 import { RawTransaction } from "../../../src/transactions/instances/rawTransaction";
 import { TransactionExtraConfigV1 } from "../../../src/transactions/instances/transactionPayload";
+import { describe, expect, test, type TestContext } from "vitest";
 import { FUND_AMOUNT, TRANSFER_AMOUNT, longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 
 const { aptos, config } = getAptosClient();
+
+/** Shown in Vitest output when encrypted tests are skipped (public devnet often has no `encryption_key`). */
+const SKIP_ENCRYPTED_TESTS_REASON =
+  "Fullnode ledger has no encryption_key — encrypted transaction e2e did not run. " +
+  "Use a network with encrypted transactions enabled, or set APTOS_NODE_API_URL to a node that exposes encryption_key. " +
+  "Set REQUIRE_ENCRYPTION_E2E=1 to fail instead of skip when the key is missing.";
+
+/** Required for `options.encrypted` builds: must match the authenticator that will sign the transaction. */
+function encryptedBuildOptions(account: Account, extra: Record<string, unknown> = {}) {
+  return {
+    ...extra,
+    encrypted: true as const,
+    authenticationKey: Account.authKey({ publicKey: account.publicKey }).data.toString(),
+  };
+}
 
 /** Devnet-only: lower max gas for multisig setup so accounts need less balance than default 2M. */
 const ENCRYPTED_E2E_MULTISIG_SETUP_MAX_GAS = 1_000_000;
@@ -131,12 +147,21 @@ const SKIP_ENCRYPTED_NON_LEGACY_AUTHENTICATOR_E2E = true;
 /**
  * Encrypted transaction E2E tests.
  *
- * These tests require a network with encrypted transactions enabled (e.g. devnet).
- * The default localnet does NOT support encryption (needs multi-validator DKG + feature 108).
- * Skipped automatically when APTOS_NETWORK is unset or "local".
+ * These tests require a fullnode whose **ledger** response includes a non-empty **`encryption_key`**
+ * (per-epoch batch-encryption key). Public **devnet** often returns `encryption_key: null`, in which case
+ * encrypted cases are reported as **skipped** (not vacuously "passed").
  *
- * Run against devnet (or any network with encrypted transactions enabled), without localnet globalSetup:
- *   APTOS_NETWORK=devnet vitest run tests/e2e/transaction/encryptedTransaction.test.ts --config vitest.config.e2e-devnet.ts
+ * The default localnet started by the main Vitest config does NOT support encryption (needs DKG + gating).
+ * This file is usually run with **`vitest.config.e2e-devnet.ts`** (no Docker globalSetup).
+ *
+ * ```bash
+ * APTOS_NETWORK=devnet pnpm exec vitest run tests/e2e/transaction/encryptedTransaction.test.ts --config vitest.config.e2e-devnet.ts
+ * ```
+ *
+ * Fail the run if the key must be present (CI against an encryption-capable endpoint):
+ * ```bash
+ * REQUIRE_ENCRYPTION_E2E=1 APTOS_NETWORK=devnet ...same vitest command...
+ * ```
  */
 const networkEnv = process.env.APTOS_NETWORK;
 const isEncryptionCapableNetwork = networkEnv !== undefined && networkEnv !== "" && networkEnv !== "local";
@@ -147,43 +172,12 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
 
   let encryptionKeyAvailable = false;
 
-  beforeAll(async () => {
-    // Skip default indexer wait: balances in this suite use fullnode (`getBalance` / builds), and
-    // indexer polling adds traffic. Devnet anonymous-IP limits are on fullnode; fewer total calls helps.
-    await aptos.fundAccount({
-      accountAddress: sender.accountAddress,
-      amount: FUND_AMOUNT,
-      options: { waitForIndexer: false },
-    });
-    await aptos.fundAccount({
-      accountAddress: receiver.accountAddress,
-      amount: FUND_AMOUNT,
-      options: { waitForIndexer: false },
-    });
+  function skipUnlessEncryptionKeyAvailable(c: Pick<TestContext, "skip">): void {
+    c.skip(!encryptionKeyAvailable, SKIP_ENCRYPTED_TESTS_REASON);
+  }
 
-    const key = await fetchAndCacheEncryptionKey({ aptosConfig: config });
-    encryptionKeyAvailable = key !== null;
-    if (!encryptionKeyAvailable) {
-      console.warn(
-        "Encryption key not available on the connected network. Tests requiring encryption will be skipped.",
-      );
-      return;
-    }
-
-    // Fee validation uses on-chain balance vs max_gas_amount × gas_unit_price on the raw txn.
-    // `estimate_gas_price` can disagree with the values `build.simple` embeds; probe the real product.
-    const probe = await aptos.transaction.build.simple({
-      sender: sender.accountAddress,
-      data: {
-        function: "0x1::aptos_account::transfer",
-        functionArguments: [receiver.accountAddress, TRANSFER_AMOUNT],
-      },
-      options: { encrypted: true },
-    });
-    const maxFeeReserve = probe.rawTransaction.max_gas_amount * probe.rawTransaction.gas_unit_price;
-    // Multiple submits: encrypted transfer, plain orderless, encrypted orderless.
-    const targetOctas = maxFeeReserve * 10n + BigInt(TRANSFER_AMOUNT) * 3n + 500_000_000n;
-
+  /** Top up sender until balance covers on-chain fee checks (uses fullnode balance, not indexer). */
+  async function fundSenderUntilAtLeast(targetOctas: bigint, errDetail: string): Promise<void> {
     let bal = BigInt(
       await aptos.getBalance({
         accountAddress: sender.accountAddress,
@@ -208,10 +202,65 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
     }
     if (bal < targetOctas) {
       throw new Error(
-        `Could not fund sender for encrypted-tx fees: need ${targetOctas} octas ` +
-          `(probe max_gas×gas_price=${maxFeeReserve}), fullnode balance ${bal} after ${maxMintRounds} mints`,
+        `Could not fund sender: need ${targetOctas} octas (${errDetail}), fullnode balance ${bal} after ${maxMintRounds} mints`,
       );
     }
+  }
+
+  beforeAll(async () => {
+    // Skip default indexer wait: balances in this suite use fullnode (`getBalance` / builds), and
+    // indexer polling adds traffic. Devnet anonymous-IP limits are on fullnode; fewer total calls helps.
+    await aptos.fundAccount({
+      accountAddress: sender.accountAddress,
+      amount: FUND_AMOUNT,
+      options: { waitForIndexer: false },
+    });
+    await aptos.fundAccount({
+      accountAddress: receiver.accountAddress,
+      amount: FUND_AMOUNT,
+      options: { waitForIndexer: false },
+    });
+
+    const fetched = await fetchAndCacheEncryptionKey({ aptosConfig: config });
+    encryptionKeyAvailable = fetched !== null;
+    if (!encryptionKeyAvailable) {
+      if (process.env.REQUIRE_ENCRYPTION_E2E === "1") {
+        throw new Error(
+          `REQUIRE_ENCRYPTION_E2E=1 but fetchAndCacheEncryptionKey returned null. ${SKIP_ENCRYPTED_TESTS_REASON}`,
+        );
+      }
+      console.warn(SKIP_ENCRYPTED_TESTS_REASON);
+      // Still fund for `non-encrypted orderless …` (same shape as that test) when encryption is absent.
+      const probePlain = await aptos.transaction.build.simple({
+        sender: sender.accountAddress,
+        data: {
+          function: "0x1::aptos_account::transfer",
+          functionArguments: [receiver.accountAddress, 1],
+        },
+        options: { replayProtectionNonce: PLAIN_ORDERLESS_NONCE },
+      });
+      const maxFeeReserve = probePlain.rawTransaction.max_gas_amount * probePlain.rawTransaction.gas_unit_price;
+      await fundSenderUntilAtLeast(
+        maxFeeReserve * 5n + 100_000_000n,
+        `plain orderless probe max_gas×gas_price=${maxFeeReserve}`,
+      );
+      return;
+    }
+
+    // Fee validation uses on-chain balance vs max_gas_amount × gas_unit_price on the raw txn.
+    // `estimate_gas_price` can disagree with the values `build.simple` embeds; probe the real product.
+    const probe = await aptos.transaction.build.simple({
+      sender: sender.accountAddress,
+      data: {
+        function: "0x1::aptos_account::transfer",
+        functionArguments: [receiver.accountAddress, TRANSFER_AMOUNT],
+      },
+      options: encryptedBuildOptions(sender),
+    });
+    const maxFeeReserve = probe.rawTransaction.max_gas_amount * probe.rawTransaction.gas_unit_price;
+    // Multiple submits: encrypted transfer, plain orderless, encrypted orderless.
+    const targetOctas = maxFeeReserve * 10n + BigInt(TRANSFER_AMOUNT) * 3n + 500_000_000n;
+    await fundSenderUntilAtLeast(targetOctas, `encrypted probe max_gas×gas_price=${maxFeeReserve}`);
   }, longTestTimeout);
 
   test(
@@ -220,38 +269,36 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
       const ledgerInfo = await getLedgerInfo({ aptosConfig: config });
       // The field should be present in the response (even if null when not enabled).
       expect("encryption_key" in ledgerInfo).toBe(true);
+      if (process.env.REQUIRE_ENCRYPTION_E2E === "1") {
+        expect(ledgerInfo.encryption_key, "encryption_key must be set when REQUIRE_ENCRYPTION_E2E=1").toBeTruthy();
+      }
     },
     longTestTimeout,
   );
 
   test(
-    "fetchAndCacheEncryptionKey returns a valid EncryptionKey when available",
-    async () => {
-      if (!encryptionKeyAvailable) {
-        console.log("Skipped: encryption key not available on this network");
-        return;
-      }
-      const key = await fetchAndCacheEncryptionKey({ aptosConfig: config });
-      expect(key).not.toBeNull();
-      expect(key).toBeInstanceOf(EncryptionKey);
+    "fetchAndCacheEncryptionKey returns key and epoch when available",
+    async (c) => {
+      skipUnlessEncryptionKeyAvailable(c);
+      const fetched = await fetchAndCacheEncryptionKey({ aptosConfig: config });
+      expect(fetched).not.toBeNull();
+      expect(fetched!.key).toBeInstanceOf(EncryptionKey);
+      expect(typeof fetched!.epoch).toBe("bigint");
     },
     longTestTimeout,
   );
 
   test(
     "build encrypted entry function transaction",
-    async () => {
-      if (!encryptionKeyAvailable) {
-        console.log("Skipped: encryption key not available on this network");
-        return;
-      }
+    async (c) => {
+      skipUnlessEncryptionKeyAvailable(c);
       const transaction = await aptos.transaction.build.simple({
         sender: sender.accountAddress,
         data: {
           function: "0x1::aptos_account::transfer",
           functionArguments: [receiver.accountAddress, TRANSFER_AMOUNT],
         },
-        options: { encrypted: true },
+        options: encryptedBuildOptions(sender),
       });
       expect(transaction.rawTransaction.payload).toBeInstanceOf(TransactionPayloadEncryptedPayload);
     },
@@ -260,18 +307,15 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
 
   test(
     "simulate rejects encrypted transaction client-side",
-    async () => {
-      if (!encryptionKeyAvailable) {
-        console.log("Skipped: encryption key not available on this network");
-        return;
-      }
+    async (c) => {
+      skipUnlessEncryptionKeyAvailable(c);
       const transaction = await aptos.transaction.build.simple({
         sender: sender.accountAddress,
         data: {
           function: "0x1::aptos_account::transfer",
           functionArguments: [receiver.accountAddress, TRANSFER_AMOUNT],
         },
-        options: { encrypted: true },
+        options: encryptedBuildOptions(sender),
       });
 
       await expect(
@@ -286,11 +330,8 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
 
   test(
     "sign and submit encrypted transfer",
-    async () => {
-      if (!encryptionKeyAvailable) {
-        console.log("Skipped: encryption key not available on this network");
-        return;
-      }
+    async (c) => {
+      skipUnlessEncryptionKeyAvailable(c);
 
       const recipientOldBalance = await aptos.getBalance({
         accountAddress: receiver.accountAddress,
@@ -303,7 +344,7 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
           function: "0x1::aptos_account::transfer",
           functionArguments: [receiver.accountAddress, TRANSFER_AMOUNT],
         },
-        options: { encrypted: true },
+        options: encryptedBuildOptions(sender),
       });
 
       const pendingTxn = await aptos.signAndSubmitTransaction({
@@ -329,11 +370,8 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
 
   test.skipIf(SKIP_ENCRYPTED_NON_LEGACY_AUTHENTICATOR_E2E)(
     "sign and submit encrypted transfer (SingleSender / unified Ed25519)",
-    async () => {
-      if (!encryptionKeyAvailable) {
-        console.log("Skipped: encryption key not available on this network");
-        return;
-      }
+    async (c) => {
+      skipUnlessEncryptionKeyAvailable(c);
       const skSender = Account.generate({
         scheme: SigningSchemeInput.Ed25519,
         legacy: false,
@@ -360,7 +398,7 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
           function: "0x1::aptos_account::transfer",
           functionArguments: [receiver.accountAddress, TRANSFER_AMOUNT],
         },
-        options: { encrypted: true },
+        options: encryptedBuildOptions(skSender),
       });
 
       try {
@@ -399,11 +437,6 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
   test(
     "non-encrypted orderless transfer with replay protection nonce",
     async () => {
-      if (!encryptionKeyAvailable) {
-        console.log("Skipped: encryption key not available on this network");
-        return;
-      }
-
       const transaction = await aptos.transaction.build.simple({
         sender: sender.accountAddress,
         data: {
@@ -431,11 +464,8 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
 
   test(
     "encrypted orderless client wire: BCS round-trip preserves u64::MAX sequence and replay nonce",
-    async () => {
-      if (!encryptionKeyAvailable) {
-        console.log("Skipped: encryption key not available on this network");
-        return;
-      }
+    async (c) => {
+      skipUnlessEncryptionKeyAvailable(c);
 
       const transaction = await aptos.transaction.build.simple({
         sender: sender.accountAddress,
@@ -443,10 +473,9 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
           function: "0x1::aptos_account::transfer",
           functionArguments: [receiver.accountAddress, TRANSFER_AMOUNT],
         },
-        options: {
-          encrypted: true,
+        options: encryptedBuildOptions(sender, {
           replayProtectionNonce: ENCRYPTED_ORDERLESS_REPLAY_NONCE,
-        },
+        }),
       });
 
       const bytes = transaction.rawTransaction.bcsToBytes();
@@ -465,11 +494,8 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
 
   test(
     "sign and submit encrypted transfer with replay protection nonce (orderless)",
-    async () => {
-      if (!encryptionKeyAvailable) {
-        console.log("Skipped: encryption key not available on this network");
-        return;
-      }
+    async (c) => {
+      skipUnlessEncryptionKeyAvailable(c);
 
       const recipientOldBalance = await aptos.getBalance({
         accountAddress: receiver.accountAddress,
@@ -482,10 +508,9 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
           function: "0x1::aptos_account::transfer",
           functionArguments: [receiver.accountAddress, TRANSFER_AMOUNT],
         },
-        options: {
-          encrypted: true,
+        options: encryptedBuildOptions(sender, {
           replayProtectionNonce: ENCRYPTED_ORDERLESS_REPLAY_NONCE,
-        },
+        }),
       });
 
       expect(transaction.rawTransaction.payload).toBeInstanceOf(TransactionPayloadEncryptedPayload);
@@ -558,11 +583,8 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
 
     test(
       "build and submit encrypted multisig payload (submit skipped if FEATURE_UNDER_GATING)",
-      async () => {
-        if (!encryptionKeyAvailable) {
-          console.log("Skipped: encryption key not available on this network");
-          return;
-        }
+      async (c) => {
+        skipUnlessEncryptionKeyAvailable(c);
 
         const transaction = await aptos.transaction.build.simple({
           sender: multisigOwner.accountAddress,
@@ -571,7 +593,7 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
             function: "0x1::aptos_account::transfer",
             functionArguments: [multisigReceiver.accountAddress, TRANSFER_AMOUNT],
           },
-          options: { encrypted: true, maxGasAmount: 1_500_000 },
+          options: encryptedBuildOptions(multisigOwner, { maxGasAmount: 1_500_000 }),
         });
 
         expect(transaction.rawTransaction.payload).toBeInstanceOf(TransactionPayloadEncryptedPayload);

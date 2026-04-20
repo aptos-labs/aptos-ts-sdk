@@ -29,6 +29,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Changed
 
+- **Breaking (encrypted transactions):** Align encrypted payload wire format and client crypto with aptos-core **#19460** / **#19461**. `DecryptedPlaintext` replaces the old plaintext shape (**16-byte** `decryption_nonce`, `BCSCryptoHash` salt `APTOS::DecryptedPlaintext`). `PayloadAssociatedData` now BCS-serializes **sender + `AuthenticationKey`**. `TransactionPayloadEncryptedPayload` includes **`encryption_epoch`** after `payload_hash`. `fetchAndCacheEncryptionKey` returns **`{ key, epoch }`** (epoch matches the ledger key). **`options.authenticationKey`** (32-byte hex) is **required** when `options.encrypted` is true. REST `EncryptedTransactionPayloadResponse` includes optional **`encryption_epoch`** and optional **`decryption_failure_reason`** on failed decryption views.
 - Introduce `MultiSigTransactionPayloadVariants` for multisig inner payload BCS tags and consolidate bytecode handling in `buildTransactionPayload`.
 - Upgraded `@noble/curves` and `@noble/hashes` to 2.x (ESM-only).
 - Remove `dotenv` usage from all TypeScript/JavaScript examples. Node 22+ users can rely on the built-in `node --env-file=.env` flag (or `tsx --env-file=.env`) when a `.env` file is needed; the examples default to devnet and don't require one.
@@ -57,7 +58,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Added
 
-- Encrypted transaction payloads: `options: { encrypted: true }` with the node's per-epoch key (BLS12-381 batch IBE + AES-128-GCM). Adds crypto/BCS types (`EncryptionKey`, `Ciphertext`, `BIBECiphertext`, symmetric helpers, `TransactionPayloadEncryptedPayload`, `DecryptedPayload`, `PayloadAssociatedData`, `ClaimedEntryFunction`), `fetchAndCacheEncryptionKey`, orderless + encrypted via `TransactionExtraConfigV1`, `RawTransaction.asEncryptedVariantForSigning()`, ledger `encryption_key` and `TransactionPayloadResponse` typings, `claimed_entry_fun` (auto or `options.claimedEntryFunction`), and client-side `assertSimulatableTransaction` when simulating encrypted builds.
+- Encrypted transaction payloads: `options: { encrypted: true, authenticationKey }` with the node's per-epoch key (BLS12-381 batch IBE + AES-128-GCM). Adds crypto/BCS types (`EncryptionKey`, `Ciphertext`, `BIBECiphertext`, symmetric helpers, `TransactionPayloadEncryptedPayload`, `DecryptedPlaintext`, `PayloadAssociatedData`, `ClaimedEntryFunction`), `fetchAndCacheEncryptionKey` (returns `{ key, epoch }`), orderless + encrypted via `TransactionExtraConfigV1`, `RawTransaction.asEncryptedVariantForSigning()`, ledger `encryption_key` and `TransactionPayloadResponse` typings, `claimed_entry_fun` (auto or `options.claimedEntryFunction`), and client-side `assertSimulatableTransaction` when simulating encrypted builds.
 - Tests: batch-encryption constants, encrypted payload BCS, simulate guard unit test, devnet e2e (`APTOS_NETWORK=devnet vitest run tests/e2e/transaction/encryptedTransaction.test.ts --config vitest.config.e2e-devnet.ts`).
 
 ## Changed

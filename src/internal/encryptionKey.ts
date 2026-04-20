@@ -17,6 +17,12 @@ interface CachedEncryptionKey {
   key: EncryptionKey;
 }
 
+export type FetchedEncryptionKey = {
+  key: EncryptionKey;
+  /** Ledger epoch for the cached key (matches aptos-core `EncryptionKeyState.epoch` / `EncryptedInner.encryption_epoch`). */
+  epoch: bigint;
+};
+
 const encryptionKeyCache = new Map<string, CachedEncryptionKey>();
 
 /**
@@ -30,16 +36,17 @@ const encryptionKeyCache = new Map<string, CachedEncryptionKey>();
 export async function fetchAndCacheEncryptionKey(args: {
   aptosConfig: AptosConfig;
   forceRefresh?: boolean;
-}): Promise<EncryptionKey | null> {
+}): Promise<FetchedEncryptionKey | null> {
   const { aptosConfig, forceRefresh } = args;
   const cacheKey = `encryption-key-${aptosConfig.network}`;
 
   const ledgerInfo = await getLedgerInfo({ aptosConfig });
+  const epochBig = BigInt(ledgerInfo.epoch);
 
   if (!forceRefresh) {
     const cached = encryptionKeyCache.get(cacheKey);
     if (cached && cached.epoch === ledgerInfo.epoch) {
-      return cached.key;
+      return { key: cached.key, epoch: epochBig };
     }
   }
 
@@ -53,7 +60,7 @@ export async function fetchAndCacheEncryptionKey(args: {
   const key = EncryptionKey.deserialize(deserializer);
 
   encryptionKeyCache.set(cacheKey, { epoch: ledgerInfo.epoch, key });
-  return key;
+  return { key, epoch: epochBig };
 }
 
 /**

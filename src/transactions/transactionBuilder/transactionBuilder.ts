@@ -10,6 +10,7 @@ import { sha3_256 as sha3Hash } from "@noble/hashes/sha3.js";
 import { AptosConfig } from "../../api/aptosConfig.js";
 import { MAX_U64_BIG_INT } from "../../bcs/consts.js";
 import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core/index.js";
+import { AuthenticationKey } from "../../core/authenticationKey.js";
 import {
   AnyPublicKey,
   AnySignature,
@@ -89,7 +90,8 @@ import { SimpleTransaction } from "../instances/simpleTransaction.js";
 import { MultiAgentTransaction } from "../instances/multiAgentTransaction.js";
 import { getFunctionParts } from "../../utils/helpers.js";
 import {
-  DecryptedPayload,
+  DecryptedPlaintext,
+  DECRYPTION_NONCE_LENGTH,
   PayloadAssociatedData,
   TransactionExecutable,
   TransactionExecutableEmpty,
@@ -460,6 +462,12 @@ export async function generateRawTransaction(args: {
   // The encrypted payload carries its own extra_config with the replay nonce.
   let txnPayload: AnyTransactionPayloadInstance = payload;
   if (options?.encrypted) {
+    if (options.authenticationKey === undefined) {
+      throw new Error(
+        "options.authenticationKey is required when options.encrypted is true (32-byte auth key hex; must match the signing authenticator).",
+      );
+    }
+    const authenticationKey = new AuthenticationKey({ data: options.authenticationKey });
     const claimedEntryFun = resolveClaimedEntryFunForEncryptedTransaction({
       payload,
       feePayerAddress,
@@ -471,6 +479,7 @@ export async function generateRawTransaction(args: {
       payload,
       replayProtectionNonce,
       claimedEntryFun,
+      authenticationKey,
     });
   } else if (replayProtectionNonce !== undefined) {
     txnPayload = convertPayloadToInnerPayload(payload, replayProtectionNonce);
@@ -525,7 +534,7 @@ export function convertPayloadToInnerPayload(
 }
 
 /**
- * Converts a transaction payload to an executable for use inside a DecryptedPayload.
+ * Converts a transaction payload to an executable for use inside a DecryptedPlaintext.
  * Maps the various payload types to their corresponding TransactionExecutable variants.
  */
 function payloadToExecutable(payload: AnyTransactionPayloadInstance): {
@@ -637,11 +646,11 @@ function resolveClaimedEntryFunForEncryptedTransaction(args: {
  * Steps (matching Rust sdk/src/transaction_builder.rs encrypt_payload):
  * 1. Convert payload to TransactionExecutable + TransactionExtraConfig
  * 2. Generate random decryption nonce
- * 3. Build DecryptedPayload(executable, nonce)
- * 4. Build PayloadAssociatedData(sender)
- * 5. Encrypt DecryptedPayload with AAD using EncryptionKey
- * 6. Compute payload_hash = BCS crypto hash of DecryptedPayload
- * 7. Return EncryptedPayload::Encrypted { ciphertext, extra_config, payload_hash, claimed_entry_fun }
+ * 3. Build DecryptedPlaintext(executable, 16-byte nonce)
+ * 4. Build PayloadAssociatedData(sender, auth_key)
+ * 5. Encrypt with AAD using EncryptionKey
+ * 6. Compute payload_hash = CryptoHash(DecryptedPlaintext)
+ * 7. Return EncryptedInner on wire (epoch hint + optional claimed_entry_fun)
  */
 async function encryptTransactionPayload(args: {
   aptosConfig: AptosConfig;
@@ -649,16 +658,19 @@ async function encryptTransactionPayload(args: {
   payload: AnyTransactionPayloadInstance;
   replayProtectionNonce?: bigint;
   claimedEntryFun?: ClaimedEntryFunction;
+  authenticationKey: AuthenticationKey;
 }): Promise<TransactionPayloadEncryptedPayload> {
-  const { aptosConfig, sender, payload, replayProtectionNonce, claimedEntryFun } = args;
+  const { aptosConfig, sender, payload, replayProtectionNonce, claimedEntryFun, authenticationKey } = args;
 
-  const encryptionKey = await fetchAndCacheEncryptionKey({ aptosConfig });
-  if (!encryptionKey) {
+  const encryption = await fetchAndCacheEncryptionKey({ aptosConfig });
+  if (!encryption) {
     throw new Error(
       "Encrypted transactions requested but the node does not provide an encryption key. " +
         "Ensure the node supports encrypted transaction submission.",
     );
   }
+
+  const { key: encryptionKey, epoch: encryptionEpoch } = encryption;
 
   const { executable, extraConfig: baseExtraConfig } = payloadToExecutable(payload);
 
@@ -668,19 +680,17 @@ async function encryptTransactionPayload(args: {
     extraConfig = new TransactionExtraConfigV1(extraConfig.multisigAddress, replayProtectionNonce);
   }
 
-  // Generate random decryption nonce
-  const randomBytes = new Uint8Array(8);
-  crypto.getRandomValues(randomBytes);
-  const decryptionNonce = new DataView(randomBytes.buffer).getBigUint64(0, true);
+  const nonceBytes = new Uint8Array(DECRYPTION_NONCE_LENGTH);
+  crypto.getRandomValues(nonceBytes);
 
-  const decryptedPayload = new DecryptedPayload(executable, decryptionNonce);
-  const associatedData = new PayloadAssociatedData(sender);
+  const decryptedPayload = new DecryptedPlaintext(executable, nonceBytes);
+  const associatedData = new PayloadAssociatedData(sender, authenticationKey);
 
   const ciphertext = encryptionKey.encrypt(decryptedPayload, associatedData);
 
   const payloadHash = decryptedPayload.hash();
 
-  return new TransactionPayloadEncryptedPayload(ciphertext, extraConfig, payloadHash, claimedEntryFun);
+  return new TransactionPayloadEncryptedPayload(ciphertext, extraConfig, payloadHash, encryptionEpoch, claimedEntryFun);
 }
 
 /**
