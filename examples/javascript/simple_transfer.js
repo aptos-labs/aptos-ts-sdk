@@ -6,7 +6,7 @@ import { Account, Aptos, AptosConfig, NetworkToNetworkName, Network } from "@apt
 const ALICE_INITIAL_BALANCE = 1_000_000_000;
 const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 100;
-const APTOS_NETWORK = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
+const APTOS_NETWORK = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 
 const balance = async (sdk, name, address, versionToWaitFor) => {
   const amount = await sdk.getAccountAPTAmount({
