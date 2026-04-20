@@ -41,6 +41,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Consolidate `TextEncoder` instantiation to a shared `TEXT_ENCODER` constant across BCS, poseidon, signing, transaction builder, and HD key paths.
 - Fix "hex formatas a string" typo in `Serializable.toString()` JSDoc.
 - Regenerate `examples/typescript/pnpm-lock.yaml` to include the recently added `@noble/hashes` dependency so `pnpm install --frozen-lockfile` succeeds in CI.
+- Prevent `@types/node` type leak in emitted `.d.ts`: `TEXT_ENCODER` now has an explicit structural type (`{ encode(input: string): Uint8Array }`) so consumers without `@types/node` (browsers, Deno, React Native) don't hit `Cannot find name 'util'` when compiling against the SDK.
+- Fix `examples/typescript` build: split `EphemeralKeyPair` imports to `@aptos-labs/ts-sdk/keyless`, update `@noble/hashes/sha3` to `@noble/hashes/sha3.js` (noble v2 exports), add explicit `"types": ["node"]` to the example `tsconfig.json`, and use `??` (instead of `||`) when reading `process.env.APTOS_NETWORK` so it type-checks under strict null checks.
 
 # 6.3.0 (2026-03-22)
 
