@@ -15,7 +15,7 @@
  * - fetch multi sig account info
  *
  */
-import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
+import { sha3_256 as sha3Hash } from "@noble/hashes/sha3.js";
 import {
   Account,
   Aptos,
