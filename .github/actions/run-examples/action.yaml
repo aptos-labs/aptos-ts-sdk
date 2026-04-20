@@ -48,7 +48,10 @@ runs:
     - name: Print local testnet logs on failure
       shell: bash
       if: failure()
-      run: cat ${{ runner.temp }}/local-testnet-logs.txt
+      run: |
+        echo "::group::Local testnet logs TypeScript"
+        cat ${{ runner.temp }}/local-testnet-logs.txt
+        echo "::endgroup::"
 
     # Run the javascript examples
     - uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # pin@v3
@@ -67,4 +70,7 @@ runs:
     - name: Print local testnet logs on failure
       shell: bash
       if: failure()
-      run: cat ${{ runner.temp }}/local-testnet-logs.txt
+      run: |
+        echo "::group::Local testnet logs Javascript"
+        cat ${{ runner.temp }}/local-testnet-logs.txt
+        echo "::endgroup::"

@@ -51,4 +51,8 @@ runs:
     - name: Print local testnet logs on failure
       shell: bash
       if: failure()
-      run: cat ${{ runner.temp }}/local-testnet-logs.txt
+      run: |
+        echo "::group::Local testnet logs"
+        cat ${{ runner.temp }}/local-testnet-logs.txt
+        echo "::endgroup::"
+
