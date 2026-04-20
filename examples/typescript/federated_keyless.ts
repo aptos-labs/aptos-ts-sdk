@@ -4,7 +4,8 @@
  * This example shows how to use the Federated Keyless accounts on Aptos
  */
 
-import { Account, AccountAddress, Aptos, AptosConfig, EphemeralKeyPair, Network } from "@aptos-labs/ts-sdk";
+import { Account, AccountAddress, Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+import { EphemeralKeyPair } from "@aptos-labs/ts-sdk/keyless";
 import * as readlineSync from "readline-sync";
 
 const ALICE_INITIAL_BALANCE = 1_000_000_000;
