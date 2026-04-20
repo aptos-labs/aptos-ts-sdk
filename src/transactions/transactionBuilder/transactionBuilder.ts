@@ -99,6 +99,7 @@ import {
   TransactionExecutableScript,
   TransactionExtraConfig,
   TransactionExtraConfigV1,
+  TransactionExtraConfigV2,
   TransactionInnerPayloadV1,
   TransactionPayloadEncryptedPayload,
 } from "../instances/transactionPayload.js";
@@ -612,7 +613,10 @@ function payloadImpliesCoSignerClaimVisibility(payload: AnyTransactionPayloadIns
   }
   if (payload instanceof TransactionInnerPayloadV1) {
     const ec = payload.extra_config;
-    return ec instanceof TransactionExtraConfigV1 && ec.multisigAddress !== undefined;
+    return (
+      (ec instanceof TransactionExtraConfigV1 || ec instanceof TransactionExtraConfigV2) &&
+      ec.multisigAddress !== undefined
+    );
   }
   return false;
 }
@@ -675,9 +679,17 @@ async function encryptTransactionPayload(args: {
   const { executable, extraConfig: baseExtraConfig } = payloadToExecutable(payload);
 
   // Ensure replay protection nonce propagates to extraConfig
-  let extraConfig = baseExtraConfig;
-  if (replayProtectionNonce !== undefined && extraConfig instanceof TransactionExtraConfigV1) {
-    extraConfig = new TransactionExtraConfigV1(extraConfig.multisigAddress, replayProtectionNonce);
+  let extraConfig: TransactionExtraConfig = baseExtraConfig;
+  if (replayProtectionNonce !== undefined) {
+    if (extraConfig instanceof TransactionExtraConfigV1) {
+      extraConfig = new TransactionExtraConfigV1(extraConfig.multisigAddress, replayProtectionNonce);
+    } else if (extraConfig instanceof TransactionExtraConfigV2) {
+      extraConfig = new TransactionExtraConfigV2(
+        extraConfig.multisigAddress,
+        replayProtectionNonce,
+        extraConfig.txnLimitsRequest,
+      );
+    }
   }
 
   const nonceBytes = new Uint8Array(DECRYPTION_NONCE_LENGTH);

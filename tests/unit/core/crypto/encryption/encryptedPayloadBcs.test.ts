@@ -15,6 +15,7 @@ import {
   TransactionExecutableEntryFunction,
   TransactionExtraConfig,
   TransactionExtraConfigV1,
+  TransactionExtraConfigV2,
   TransactionPayload,
   TransactionPayloadEncryptedPayload,
 } from "../../../../../src/transactions/instances/transactionPayload";
@@ -198,6 +199,15 @@ describe("encrypted payload BCS round-trip (unit)", () => {
     expect(Buffer.from(claim.bcsToBytes()).toString("hex")).toBe(
       "00000000000000000000000000000000000000000000000000000000000000010d6170746f735f6163636f756e7401087472616e73666572",
     );
+  });
+
+  test("TransactionExtraConfigV2 round-trip (matches aptos-core TransactionExtraConfig::V2 wire)", () => {
+    const ec = new TransactionExtraConfigV2(undefined, 12345n, undefined);
+    const restored = TransactionExtraConfig.deserialize(new Deserializer(ec.bcsToBytes()));
+    expect(restored).toBeInstanceOf(TransactionExtraConfigV2);
+    const v2 = restored as TransactionExtraConfigV2;
+    expect(v2.replayProtectionNonce).toBe(12345n);
+    expect(v2.txnLimitsRequest).toBeUndefined();
   });
 
   test("BIBECiphertext serialize/deserialize preserves id", () => {

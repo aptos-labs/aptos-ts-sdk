@@ -12,6 +12,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - **Sub-path exports** — import from `@aptos-labs/ts-sdk/account`, `@aptos-labs/ts-sdk/transaction`, `@aptos-labs/ts-sdk/keyless`, etc. for minimal bundle sizes.
 - **`sideEffects: false`** in package.json for bundler tree-shaking.
 - **Variant registry pattern** for `AnyPublicKey`/`AnySignature` — keyless variants register at runtime, removing compile-time poseidon dependency from core crypto.
+- `TransactionExtraConfig::V2` BCS support: `TransactionExtraConfigV2`, `UserTxnLimitsRequest`, and `RequestedMultipliers` (deserialize + serialize for forward-compatible tooling). Encrypted transaction submission continues to use **V1** `extra_config` until the target fullnode accepts V2 on the wire.
 
 ## Breaking
 

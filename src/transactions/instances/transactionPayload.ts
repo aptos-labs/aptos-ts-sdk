@@ -875,7 +875,79 @@ export class PayloadAssociatedData extends Serializable {
   }
 }
 
-export abstract class TransactionExtraConfig {
+/**
+ * Matches `aptos_types::transaction::RequestedMultipliers` (BCS enum; variant 0 = V1).
+ */
+export class RequestedMultipliers extends Serializable {
+  constructor(public readonly executionBps: bigint, public readonly ioBps: bigint) {
+    super();
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(0);
+    serializer.serializeU64(this.executionBps);
+    serializer.serializeU64(this.ioBps);
+  }
+
+  static deserialize(deserializer: Deserializer): RequestedMultipliers {
+    const variant = deserializer.deserializeUleb128AsU32();
+    if (variant !== 0) {
+      throw new Error(`Unknown RequestedMultipliers variant: ${variant}`);
+    }
+    return new RequestedMultipliers(deserializer.deserializeU64(), deserializer.deserializeU64());
+  }
+}
+
+export enum UserTxnLimitsRequestVariant {
+  StakePoolOwner = 0,
+  DelegatedVoter = 1,
+  DelegationPoolDelegator = 2,
+}
+
+/**
+ * Matches `aptos_types::transaction::UserTxnLimitsRequest`.
+ */
+export class UserTxnLimitsRequest extends Serializable {
+  constructor(
+    public readonly variant: UserTxnLimitsRequestVariant,
+    public readonly poolAddress: AccountAddress | undefined,
+    public readonly multipliers: RequestedMultipliers,
+  ) {
+    super();
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(this.variant);
+    if (this.variant === UserTxnLimitsRequestVariant.StakePoolOwner) {
+      this.multipliers.serialize(serializer);
+    } else {
+      if (this.poolAddress === undefined) {
+        throw new Error("UserTxnLimitsRequest requires pool_address for voter/delegator variants");
+      }
+      this.poolAddress.serialize(serializer);
+      this.multipliers.serialize(serializer);
+    }
+  }
+
+  static deserialize(deserializer: Deserializer): UserTxnLimitsRequest {
+    const variant = deserializer.deserializeUleb128AsU32() as UserTxnLimitsRequestVariant;
+    if (variant === UserTxnLimitsRequestVariant.StakePoolOwner) {
+      const multipliers = RequestedMultipliers.deserialize(deserializer);
+      return new UserTxnLimitsRequest(variant, undefined, multipliers);
+    }
+    if (
+      variant === UserTxnLimitsRequestVariant.DelegatedVoter ||
+      variant === UserTxnLimitsRequestVariant.DelegationPoolDelegator
+    ) {
+      const poolAddress = AccountAddress.deserialize(deserializer);
+      const multipliers = RequestedMultipliers.deserialize(deserializer);
+      return new UserTxnLimitsRequest(variant, poolAddress, multipliers);
+    }
+    throw new Error(`Unknown UserTxnLimitsRequest variant: ${variant}`);
+  }
+}
+
+export abstract class TransactionExtraConfig extends Serializable {
   abstract serialize(serializer: Serializer): void;
 
   static deserialize(deserializer: Deserializer): TransactionExtraConfig {
@@ -884,6 +956,8 @@ export abstract class TransactionExtraConfig {
     switch (index) {
       case TransactionExtraConfigVariants.V1:
         return TransactionExtraConfigV1.load(deserializer);
+      case TransactionExtraConfigVariants.V2:
+        return TransactionExtraConfigV2.load(deserializer);
       default:
         throw new Error(`Unknown variant index for TransactionExtraConfig: ${index}`);
     }
@@ -912,5 +986,41 @@ export class TransactionExtraConfigV1 extends TransactionExtraConfig {
     const multisigAddress = deserializer.deserializeOption(AccountAddress);
     const replayProtectionNonce = deserializer.deserializeOption(U64);
     return new TransactionExtraConfigV1(multisigAddress, replayProtectionNonce?.value);
+  }
+}
+
+/**
+ * Matches `aptos_types::transaction::TransactionExtraConfig::V2` (replay/multisig + optional staking limits request).
+ */
+export class TransactionExtraConfigV2 extends TransactionExtraConfig {
+  multisigAddress?: AccountAddress;
+  replayProtectionNonce?: bigint;
+  txnLimitsRequest?: UserTxnLimitsRequest;
+
+  constructor(
+    multisigAddress?: AccountAddress,
+    replayProtectionNonce?: AnyNumber,
+    txnLimitsRequest?: UserTxnLimitsRequest,
+  ) {
+    super();
+    this.multisigAddress = multisigAddress;
+    this.replayProtectionNonce = replayProtectionNonce !== undefined ? BigInt(replayProtectionNonce) : undefined;
+    this.txnLimitsRequest = txnLimitsRequest;
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(TransactionExtraConfigVariants.V2);
+    serializer.serializeOption<AccountAddress>(this.multisigAddress);
+    serializer.serializeOption<U64>(
+      this.replayProtectionNonce !== undefined ? new U64(this.replayProtectionNonce) : undefined,
+    );
+    serializer.serializeOption<UserTxnLimitsRequest>(this.txnLimitsRequest);
+  }
+
+  static load(deserializer: Deserializer): TransactionExtraConfigV2 {
+    const multisigAddress = deserializer.deserializeOption(AccountAddress);
+    const replayProtectionNonce = deserializer.deserializeOption(U64);
+    const txnLimitsRequest = deserializer.deserializeOption(UserTxnLimitsRequest);
+    return new TransactionExtraConfigV2(multisigAddress, replayProtectionNonce?.value, txnLimitsRequest);
   }
 }

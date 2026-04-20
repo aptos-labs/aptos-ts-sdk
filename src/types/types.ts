@@ -128,6 +128,8 @@ export enum TransactionExecutableVariants {
  */
 export enum TransactionExtraConfigVariants {
   V1 = 0,
+  /** Staking-backed transaction limits request (aptos-core #19109); BCS must include `txn_limits_request` option. */
+  V2 = 1,
 }
 
 /**
