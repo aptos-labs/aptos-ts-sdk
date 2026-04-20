@@ -14,7 +14,7 @@ import {
   sleep,
   U64,
 } from "@aptos-labs/ts-sdk";
-import { compilePackage, getPackageBytesToPublish } from "./utils";
+import { compilePackage, getPackageBytesToPublish } from "./utils.js";
 
 const ALICE_INITIAL_BALANCE = 1_000_000_000;
 const BOB_INITIAL_BALANCE = 1_000_000_000;

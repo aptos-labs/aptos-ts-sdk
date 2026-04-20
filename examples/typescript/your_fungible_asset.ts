@@ -10,7 +10,7 @@ import {
   Network,
   NetworkToNetworkName,
 } from "@aptos-labs/ts-sdk";
-import { compilePackage, getPackageBytesToPublish } from "./utils";
+import { compilePackage, getPackageBytesToPublish } from "./utils.js";
 
 /**
  * This example demonstrate how one can compile, deploy, and mint its own fungible asset (FA)

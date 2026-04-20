@@ -21,7 +21,7 @@ const INITIAL_BALANCE = 1_000_000_000;
 const TRANSFER_AMOUNT = 100;
 
 // Default to devnet, but allow for overriding
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 // Set up the client
 const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
