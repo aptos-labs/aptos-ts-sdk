@@ -9,7 +9,7 @@ const SPONSOR_INITIAL_BALANCE = 1_000_000_000;
 const BOB_INITIAL_BALANCE = 0;
 const TRANSFER_AMOUNT = 10;
 // Default to devnet, but allow for overriding
-const APTOS_NETWORK = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
+const APTOS_NETWORK = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 
 const example = async () => {
   console.log(

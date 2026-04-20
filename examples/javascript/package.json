@@ -7,7 +7,7 @@
   "packageManager": "pnpm@10.30.3",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
   "scripts": {
     "simple_transfer": "node simple_transfer.js",
