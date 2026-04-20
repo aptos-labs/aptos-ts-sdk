@@ -36,6 +36,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Fix `fullnodeConfig.HEADERS` not being forwarded in paginated fullnode requests (`getAccountModules`, `getAccountResources`). Pagination helpers now route through `getAptosFullNode` so custom headers (e.g. `Authorization`) are included consistently. (#872)
 - Fix `base64UrlDecode` to decode bytes as UTF-8 via `TextDecoder`. Previously returned a Latin-1 binary string from `atob`, corrupting non-ASCII characters in JWT headers/payloads.
+- Fix `base64UrlToBytes` padding: base64 padding is based on `length % 4` (not `% 3`). The previous formula under-padded 2-byte-remainder inputs and corrupted inputs like RSA JWK moduli whose length `% 4 == 2` (common in keyless/JWKS flows). Added regression tests in `tests/unit/helpers.test.ts`.
 - Add `base64UrlEncode` helper and consolidate duplicated base64url encoders in `keyless.ts` and e2e tests.
 - Add `getEnvVar` helper for runtime-agnostic `process.env` access; simplifies `LOCAL_ANS_ACCOUNT_*` guards.
 - Consolidate `TextEncoder` instantiation to a shared `TEXT_ENCODER` constant across BCS, poseidon, signing, transaction builder, and HD key paths.

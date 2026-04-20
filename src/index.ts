@@ -1,9 +1,11 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-// NOTE: Standalone functions are NOT re-exported from the barrel to avoid circular
-// dependency issues. Import them from sub-path exports instead — e.g.
-// `@aptos-labs/ts-sdk/general`, `@aptos-labs/ts-sdk/account`, `@aptos-labs/ts-sdk/keyless`.
+// NOTE: Standalone functions are NOT re-exported from the barrel to avoid
+// circular dependency issues and to keep the main entry tree-shakeable. Import
+// them from their per-namespace sub-path exports instead — e.g.
+// `@aptos-labs/ts-sdk/general`, `@aptos-labs/ts-sdk/account`,
+// `@aptos-labs/ts-sdk/keyless` (see `package.json#exports` for the full list).
 
 // ---- Configuration ----
 export * from "./api/aptosConfig.js";

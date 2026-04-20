@@ -141,9 +141,11 @@ export function base64UrlEncode(input: string | Uint8Array): string {
 }
 
 export function base64UrlToBytes(base64Url: string): Uint8Array {
-  // Convert base64url to standard base64, then decode with universal atob
+  // Convert base64url to standard base64, then decode with universal atob.
+  // Standard base64 encodes 3 bytes as 4 chars, so the decoded input length
+  // must be a multiple of 4 — pad with `=` based on `length % 4`.
   const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = base64 + "==".substring(0, (3 - (base64.length % 3)) % 3);
+  const padded = base64 + "===".substring(0, (4 - (base64.length % 4)) % 4);
   const binary = atob(padded);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {

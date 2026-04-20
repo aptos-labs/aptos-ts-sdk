@@ -19,7 +19,9 @@ describe("Secp256r1PublicKey", () => {
     // Create from string
     const publicKey = new Secp256r1PublicKey(singleSignerSecp256r1.publicKey);
     expect(publicKey).toBeInstanceOf(Secp256r1PublicKey);
-    expect(publicKey.toString()).toEqual(`0x${singleSignerSecp256r1.publicKey.replace("0x", "")}`);
+    expect(publicKey.toString()).toEqual(
+      `0x${Hex.fromHexInput(singleSignerSecp256r1.publicKey).toStringWithoutPrefix()}`,
+    );
 
     // Create from Uint8Array
     const hexUint8Array = p256.getPublicKey(p256.utils.randomSecretKey(), false);
@@ -84,12 +86,12 @@ describe("Secp256r1PublicKey", () => {
     publicKey.serialize(serializer);
 
     const serialized = Hex.fromHexInput(serializer.toUint8Array()).toString();
-    const expected = `0x41${singleSignerSecp256r1.publicKey.replace("0x", "")}`;
+    const expected = `0x41${Hex.fromHexInput(singleSignerSecp256r1.publicKey).toStringWithoutPrefix()}`;
     expect(serialized).toEqual(expected);
   });
 
   it("should deserialize correctly", () => {
-    const serializedPublicKeyStr = `0x41${singleSignerSecp256r1.publicKey.replace("0x", "")}`;
+    const serializedPublicKeyStr = `0x41${Hex.fromHexInput(singleSignerSecp256r1.publicKey).toStringWithoutPrefix()}`;
     const serializedPublicKey = Hex.fromHexString(serializedPublicKeyStr).toUint8Array();
     const deserializer = new Deserializer(serializedPublicKey);
     const publicKey = Secp256r1PublicKey.deserialize(deserializer);
@@ -158,13 +160,13 @@ describe("Secp256r1PrivateKey", () => {
 
     const received = Hex.fromHexInput(serializer.toUint8Array()).toString();
     const expectedHex = singleSignerSecp256r1.privateKey.replace("secp256r1-priv-", "");
-    const expected = `0x20${expectedHex.replace("0x", "")}`;
+    const expected = `0x20${Hex.fromHexInput(expectedHex).toStringWithoutPrefix()}`;
     expect(received).toEqual(expected);
   });
 
   it("should deserialize correctly", () => {
     const privateKeyHex = singleSignerSecp256r1.privateKey.replace("secp256r1-priv-", "");
-    const serializedPrivateKeyStr = `0x20${privateKeyHex.replace("0x", "")}`;
+    const serializedPrivateKeyStr = `0x20${Hex.fromHexInput(privateKeyHex).toStringWithoutPrefix()}`;
     const serializedPrivateKey = Hex.fromHexString(serializedPrivateKeyStr).toUint8Array();
     const deserializer = new Deserializer(serializedPrivateKey);
     const privateKey = Secp256r1PrivateKey.deserialize(deserializer);
@@ -220,12 +222,12 @@ describe("Secp256r1Signature", () => {
     signature.serialize(serializer);
 
     const received = Hex.fromHexInput(serializer.toUint8Array()).toString();
-    const expected = `0x40${singleSignerSecp256r1.signatureHex.replace("0x", "")}`;
+    const expected = `0x40${Hex.fromHexInput(singleSignerSecp256r1.signatureHex).toStringWithoutPrefix()}`;
     expect(received).toEqual(expected);
   });
 
   it("should deserialize correctly", () => {
-    const serializedSignature = `0x40${singleSignerSecp256r1.signatureHex.replace("0x", "")}`;
+    const serializedSignature = `0x40${Hex.fromHexInput(singleSignerSecp256r1.signatureHex).toStringWithoutPrefix()}`;
     const serializedSignatureUint8Array = Hex.fromHexString(serializedSignature).toUint8Array();
     const deserializer = new Deserializer(serializedSignatureUint8Array);
     const signature = Secp256r1Signature.deserialize(deserializer);
