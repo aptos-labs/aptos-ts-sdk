@@ -1,4 +1,4 @@
-import { pairedFaMetadataAddress } from "../../src/utils/helpers";
+import { base64UrlDecode, base64UrlEncode, base64UrlToBytes, pairedFaMetadataAddress } from "../../src/utils/helpers";
 import { AccountAddress } from "../../src/core/accountAddress";
 
 describe("pairedFaMetadataAddress", () => {
@@ -66,6 +66,36 @@ describe("pairedFaMetadataAddress", () => {
       const result = pairedFaMetadataAddress(input as `0x${string}::${string}::${string}`);
       expect(result).toEqual(expected);
     }
+  });
+
+  test("decodes base64url strings of every padding length", () => {
+    const cases = [
+      { bytes: new Uint8Array([]), b64url: "" }, // len % 4 == 0
+      { bytes: new Uint8Array([0x66]), b64url: "Zg" }, // 1 byte -> 2 chars, needs "=="
+      { bytes: new Uint8Array([0x66, 0x6f]), b64url: "Zm8" }, // 2 bytes -> 3 chars, needs "="
+      { bytes: new Uint8Array([0x66, 0x6f, 0x6f]), b64url: "Zm9v" }, // 3 bytes -> 4 chars, no padding
+    ];
+    for (const { bytes, b64url } of cases) {
+      expect(Array.from(base64UrlToBytes(b64url))).toEqual(Array.from(bytes));
+      expect(base64UrlEncode(bytes)).toEqual(b64url);
+    }
+  });
+
+  test("round-trips a realistic JWT RSA modulus (base64url, len%4==2)", () => {
+    // Real RSA `n` from a Google JWK — length is 342 chars, `% 4 == 2`, which
+    // the old `% 3` padding formula decoded incorrectly.
+    const n =
+      "4GffaA1mCbuDpjxYrq1pz6s8XYRxjpz1cT6fEVhh3Q8yzu7clsvUDJCEE-3iFNCQXTd3bPobqcbKMlJBF1GIIj0HsGwOqh3y4WIbIyz5JqJAvC_LTZgJnfKAoyE2m4Wd7fA9SDI4EUEc7FZAV4LPdYb5YjQvTNzQGpCkdcuczCjbkxVZDxCYqIa4MKrjKsKj8TrhkYZWZK6jKfT_YEekSGx0U0SiqobSqjTjLHTAFXGyo1p4Jb1hXQ9ZTj5QbG0TDoqcJ1-ubobS4sRrZZslh-1yYxLu7X3ECx-hoTtbVXtBClc7DZH8x_bqdaEJJkAPPB_mNy9xwRRv_Rnx0f56nw";
+    const bytes = base64UrlToBytes(n);
+    expect(bytes.length).toEqual(256);
+    expect(base64UrlEncode(bytes)).toEqual(n);
+  });
+
+  test("base64UrlDecode decodes UTF-8 JWT-style JSON correctly", () => {
+    // "héllo" is multi-byte UTF-8, ensures we aren't returning Latin-1 from atob.
+    const json = JSON.stringify({ name: "héllo" });
+    const b64url = base64UrlEncode(json);
+    expect(base64UrlDecode(b64url)).toEqual(json);
   });
 
   test("normalizes addresses consistently in nested types", () => {

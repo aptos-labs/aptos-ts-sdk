@@ -70,11 +70,15 @@ const faucet = new Faucet(config);
 
 ### Option 3: Standalone functions (maximum tree-shaking)
 
-For the smallest possible bundles (e.g., wallet adapters):
+For the smallest possible bundles (e.g., wallet adapters), import the standalone
+functions from their sub-paths. `AptosConfig` / `Network` are also available
+from their sub-paths (`@aptos-labs/ts-sdk/general`), but importing them from the
+main barrel is fine — the package is marked `sideEffects: false`, so modern
+bundlers still tree-shake unused exports.
 
 ```ts
-import { getLedgerInfo } from "@aptos-labs/ts-sdk/general";
-import { AptosConfig, Network } from "@aptos-labs/ts-sdk";
+import { getLedgerInfo, AptosConfig } from "@aptos-labs/ts-sdk/general";
+import { Network } from "@aptos-labs/ts-sdk";
 
 const config = new AptosConfig({ network: Network.TESTNET });
 const ledger = await getLedgerInfo({ aptosConfig: config });
