@@ -1,22 +1,24 @@
-/* eslint-disable import/no-commonjs */
-/* eslint-disable import/extensions */
 /* eslint-disable no-console */
 
 /**
- * Example to show how one can require the CLI module and use it
+ * Example to show how one can import the CLI module and use it
  * to run cli commands
  */
 
-const cli = require("@aptos-labs/ts-sdk/dist/common/cli/index.js");
+import { AccountAddress, Network } from "@aptos-labs/ts-sdk";
+import { LocalNode, Move } from "@aptos-labs/ts-sdk/cli";
 
-let localNode: any;
-const move = new cli.Move();
+let localNode: LocalNode | undefined;
+const move = new Move();
+
+/** Example placeholder; replace with a real address when running against a network. */
+const MOON_COIN_ADDR = AccountAddress.from("0x123");
 
 // Run local node
 async function runLocalNode() {
   try {
     console.log("starting local node...");
-    localNode = new cli.LocalNode({ showStdout: false });
+    localNode = new LocalNode({ showStdout: false });
     await localNode.run();
     console.log("local node started");
   } catch (error) {
@@ -29,7 +31,7 @@ async function init() {
   try {
     console.log("initializing Aptos");
     await move.init({
-      network: "local",
+      network: Network.LOCAL,
       profile: "default",
     });
   } catch (error) {
@@ -44,7 +46,7 @@ async function compile() {
     await move.compile({
       packageDirectoryPath: "move/moonCoin",
       namedAddresses: {
-        MoonCoin: "0x123",
+        MoonCoin: MOON_COIN_ADDR,
       },
       showStdout: false,
     });
@@ -60,7 +62,7 @@ async function tests() {
     await move.test({
       packageDirectoryPath: "move/moonCoin",
       namedAddresses: {
-        MoonCoin: "0x123",
+        MoonCoin: MOON_COIN_ADDR,
       },
     });
   } catch (error) {
@@ -76,7 +78,7 @@ async function publish() {
       packageDirectoryPath: "move/moonCoin",
       namedAddresses: {
         // please replace the address with the actual address
-        MoonCoin: "0x123",
+        MoonCoin: MOON_COIN_ADDR,
       },
       extraArguments: ["--assume-yes"],
       showStdout: false,
@@ -95,7 +97,7 @@ async function createObjectAndPublishPackage() {
       addressName: "MoonCoin",
       namedAddresses: {
         // please replace the address with the actual address of publisher
-        MoonCoin: "0x123",
+        MoonCoin: MOON_COIN_ADDR,
       },
       extraArguments: ["--assume-yes"],
       showStdout: false,
@@ -115,7 +117,7 @@ async function upgradeObjectPackage() {
       objectAddress: "0x123",
       namedAddresses: {
         // please replace the address with the actual address of object that the package was published to
-        MoonCoin: "0x123",
+        MoonCoin: MOON_COIN_ADDR,
       },
       extraArguments: ["--assume-yes"],
       showStdout: false,
@@ -146,7 +148,7 @@ async function buildPublishPayload() {
       outputFile: "move/moonCoin/moonCoin.json",
       packageDirectoryPath: "move/moonCoin",
       namedAddresses: {
-        MoonCoin: "0x123",
+        MoonCoin: MOON_COIN_ADDR,
       },
       extraArguments: ["--assume-yes"],
       showStdout: false,
@@ -160,8 +162,10 @@ async function buildPublishPayload() {
 async function stopLocalNode() {
   try {
     console.log("stopping local node");
-    await localNode.stop();
-    console.log("local node stopped");
+    if (localNode) {
+      await localNode.stop();
+      console.log("local node stopped");
+    }
   } catch (err: any) {
     console.error("error stopping local node", err);
   }

@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
 import { Account, AccountAddress, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
-import { compilePackage, getPackageBytesToPublish } from "./utils";
+import { compilePackage, getPackageBytesToPublish } from "./utils.js";
 
 /**
  * This example demonstrate how one can publish a new custom coin to chain.

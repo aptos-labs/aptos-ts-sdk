@@ -8,7 +8,7 @@ import {
   UserTransactionResponse,
   NetworkToNetworkName,
 } from "@aptos-labs/ts-sdk";
-import { compilePackage, getPackageBytesToPublish } from "./utils";
+import { compilePackage, getPackageBytesToPublish } from "./utils.js";
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 const aptos = new Aptos(new AptosConfig({ network: APTOS_NETWORK }));

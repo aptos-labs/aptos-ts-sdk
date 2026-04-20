@@ -52,6 +52,7 @@
   },
   "devDependencies": {
     "@types/readline-sync": "1.4.8",
+    "@types/superagent": "^8.1.9",
     "@types/node": "^22.19.17",
     "typescript": "^6.0.2",
     "tsx": "^4.21.0"

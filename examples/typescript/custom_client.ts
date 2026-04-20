@@ -11,9 +11,8 @@
  *
  */
 import { Aptos, AptosConfig, ClientResponse, ClientRequest, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
-
-// eslint-disable-next-line import/no-commonjs
-const superagent = require("superagent");
+import { STATUS_CODES } from "node:http";
+import superagent from "superagent";
 
 // Default to devnet, but allow for overriding
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
@@ -23,7 +22,7 @@ export async function superagentCustomClient<Req, Res>(
 ): Promise<ClientResponse<Res>> {
   const { params, method, url, headers, body } = requestOptions;
 
-  const customHeaders: any = {
+  const customHeaders: Record<string, unknown> = {
     ...headers,
     customClient: true,
   };
@@ -34,16 +33,24 @@ export async function superagentCustomClient<Req, Res>(
     method,
   };
 
-  let path = url;
+  let pathWithQuery = url;
   if (params) {
-    path = `${url}?${params}`;
+    pathWithQuery = `${url}?${params}`;
   }
 
-  const response = await superagent.get(path, request);
+  let req = method === "POST" ? superagent.post(pathWithQuery) : superagent.get(pathWithQuery);
+  for (const [key, value] of Object.entries(customHeaders)) {
+    req = req.set(key, String(value));
+  }
+  if (method === "POST" && body !== undefined) {
+    req = req.type("application/json").send(JSON.stringify(body));
+  }
+
+  const response = await req;
   return {
     status: response.status,
-    statusText: response.statusText,
-    data: response.text,
+    statusText: STATUS_CODES[response.status] ?? "",
+    data: response.text as Res,
     headers: response.headers,
     config: response,
     request,
