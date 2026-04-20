@@ -10,7 +10,7 @@ import { Account, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@apt
 const INITIAL_BALANCE = 1_000_000_000;
 
 // Set up the client
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
 
