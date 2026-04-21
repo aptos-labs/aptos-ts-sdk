@@ -14,7 +14,6 @@ import { AccountAddress, AccountAddressInput } from "../core/index.js";
 import { InputGenerateTransactionOptions, InputEntryFunctionData } from "../transactions/types.js";
 import {
   AnsName,
-  AnsTokenStandard,
   ExpirationStatus,
   MoveAddressType,
   OrderByArg,
@@ -56,8 +55,7 @@ export function isValidANSSegment(fragment: string): boolean {
   if (fragment.length < 3) return false;
   if (fragment.length > 63) return false;
   // only lowercase a-z and 0-9 are allowed, along with -. a domain may not start or end with a hyphen
-  if (!/^[a-z\d][a-z\d-]{1,61}[a-z\d]$/.test(fragment)) return false;
-  return true;
+  return /^[a-z\d][a-z\d-]{1,61}[a-z\d]$/.test(fragment);
 }
 
 /**
@@ -91,6 +89,7 @@ export function isValidANSName(name: string): { domainName: string; subdomainNam
  * Determines the status of an ANS name's expiration.
  *
  * @param name - An ANS name returned from one of the functions of the SDK.
+ * @param gracePeriod - grace period after expiration
  * @returns An ExpirationStatus indicating whether the name is Active, InGracePeriod, or Expired.
  * @group Implementation
  */
@@ -970,6 +969,8 @@ export async function renewDomain(args: {
  * be extended.
  *
  * @param name - The ANS name response to sanitize.
+ * @param aptosConfig - config for the aptos client
+ * @param gracePeriod - grace period after expiration
  * @param name.expiration_timestamp - The expiration timestamp in ISO string format.
  * @group Implementation
  */
@@ -986,7 +987,7 @@ function sanitizeANSName({
   const domain_expiration_timestamp = `${name.domain_expiration_timestamp}Z`;
 
   const isSubdomain = !!name.subdomain;
-  const expirationPolicy = name.subdomain_expiration_policy as SubdomainExpirationPolicy;
+  const expirationPolicy = name.subdomain_expiration_policy;
   const expiration =
     isSubdomain && expirationPolicy === SubdomainExpirationPolicy.FollowsDomain
       ? domain_expiration_timestamp
@@ -1007,17 +1008,17 @@ function sanitizeANSName({
   }
 
   return {
-    domain: name.domain!,
+    domain: name.domain ?? "N/A",
     subdomain: name.subdomain || undefined,
     expiration_timestamp,
     expiration_status,
-    domain_expiration_timestamp: domain_expiration_timestamp!,
+    domain_expiration_timestamp: domain_expiration_timestamp,
     expiration: new Date(expiration),
-    token_standard: name.token_standard! as AnsTokenStandard,
-    is_primary: name.is_primary!,
+    token_standard: name.token_standard ?? "v2",
+    is_primary: name.is_primary ?? false,
     subdomain_expiration_policy: name.subdomain_expiration_policy ?? SubdomainExpirationPolicy.FollowsDomain,
     owner_address: name.owner_address ?? "",
-    registered_address: name.registered_address!,
+    registered_address: name.registered_address ?? undefined,
     isInRenewablePeriod,
   };
 }
