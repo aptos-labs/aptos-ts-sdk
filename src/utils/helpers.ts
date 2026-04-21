@@ -24,42 +24,6 @@ export function isBun(): boolean {
 }
 
 /**
- * Identifier for the JavaScript runtime the SDK is currently running in.
- * Used for telemetry (e.g. the `x-aptos-client` header) and runtime-specific behavior.
- *
- * @group Implementation
- * @category Utils
- */
-export type RuntimePlatform = "node" | "browser" | "bun" | "deno" | "react-native" | "unknown";
-
-/**
- * Detects the JavaScript runtime the SDK is currently running in.
- *
- * Detection precedence (most specific first): react-native, deno, bun, browser, node.
- * Falls back to "unknown" if detection fails or the environment is hostile.
- *
- * @returns The detected runtime platform.
- * @group Implementation
- * @category Utils
- */
-export function getRuntimePlatform(): RuntimePlatform {
-  try {
-    const g = globalThis as any;
-    // React Native sets navigator.product to "ReactNative".
-    if (typeof g.navigator !== "undefined" && g.navigator.product === "ReactNative") {
-      return "react-native";
-    }
-    if (typeof g.Deno !== "undefined") return "deno";
-    if (typeof g.Bun !== "undefined") return "bun";
-    if (typeof g.window !== "undefined" && typeof g.document !== "undefined") return "browser";
-    if (g.process?.versions?.node) return "node";
-  } catch {
-    // Fall through to "unknown" in hostile environments.
-  }
-  return "unknown";
-}
-
-/**
  * Read an environment variable in a runtime-agnostic way. Returns `undefined` when
  * `process.env` is not available (browsers, some bundlers) or the variable is unset.
  *

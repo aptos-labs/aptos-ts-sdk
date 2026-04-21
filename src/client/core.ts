@@ -12,7 +12,8 @@ import {
   ClientResponse,
   MimeType,
 } from "../types/index.js";
-import { AptosApiType, getRuntimePlatform } from "../utils/index.js";
+import { AptosApiType } from "../utils/index.js";
+import { getRuntimePlatformTag } from "../utils/runtime.js";
 import { AptosApiError } from "../errors/index.js";
 
 /**
@@ -40,7 +41,7 @@ export async function request<Req, Res>(options: ClientRequest<Req>, client: Cli
   const { url, method, body, contentType, params, overrides, originMethod } = options;
   const headers: Record<string, string | AnyNumber | boolean | undefined> = {
     ...overrides?.HEADERS,
-    "x-aptos-client": `aptos-typescript-sdk/${VERSION}; platform=${getRuntimePlatform()}`,
+    "x-aptos-client": `aptos-typescript-sdk/${VERSION}; platform=${getRuntimePlatformTag()}`,
     "content-type": contentType ?? MimeType.JSON,
     "x-aptos-typescript-sdk-origin-method": originMethod,
   };

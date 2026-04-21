@@ -1,10 +1,5 @@
-import {
-  base64UrlDecode,
-  base64UrlEncode,
-  base64UrlToBytes,
-  getRuntimePlatform,
-  pairedFaMetadataAddress,
-} from "../../src/utils/helpers";
+import { base64UrlDecode, base64UrlEncode, base64UrlToBytes, pairedFaMetadataAddress } from "../../src/utils/helpers";
+import { getRuntimePlatform, getRuntimePlatformTag } from "../../src/utils/runtime";
 import { AccountAddress } from "../../src/core/accountAddress";
 
 describe("pairedFaMetadataAddress", () => {
@@ -161,5 +156,54 @@ describe("getRuntimePlatform", () => {
     vi.stubGlobal("window", {});
     vi.stubGlobal("document", {});
     expect(getRuntimePlatform()).toEqual("react-native");
+  });
+});
+
+describe("getRuntimePlatformTag", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  test("includes the node version when running under node", () => {
+    expect(getRuntimePlatformTag()).toMatch(/^node\/\d+\.\d+\.\d+/);
+  });
+
+  test("includes the bun version when Bun.version is set", () => {
+    vi.stubGlobal("Bun", { version: "1.1.38" });
+    expect(getRuntimePlatformTag()).toEqual("bun/1.1.38");
+  });
+
+  test("falls back to process.versions.bun when Bun.version is missing", () => {
+    vi.stubGlobal("Bun", {});
+    vi.stubGlobal("process", { versions: { bun: "1.2.0", node: "22.0.0" } });
+    expect(getRuntimePlatformTag()).toEqual("bun/1.2.0");
+  });
+
+  test("emits bare 'bun' when no bun version is exposed", () => {
+    // Replace `process` with no `versions.bun` so the fallback also misses.
+    vi.stubGlobal("Bun", {});
+    vi.stubGlobal("process", { versions: {} });
+    expect(getRuntimePlatformTag()).toEqual("bun");
+  });
+
+  test("includes the deno version when Deno.version.deno is set", () => {
+    vi.stubGlobal("Deno", { version: { deno: "2.1.4" } });
+    expect(getRuntimePlatformTag()).toEqual("deno/2.1.4");
+  });
+
+  test("emits bare 'deno' when Deno is defined but no version is exposed", () => {
+    vi.stubGlobal("Deno", {});
+    expect(getRuntimePlatformTag()).toEqual("deno");
+  });
+
+  test("emits 'browser' with no version suffix", () => {
+    vi.stubGlobal("window", {});
+    vi.stubGlobal("document", {});
+    expect(getRuntimePlatformTag()).toEqual("browser");
+  });
+
+  test("emits 'react-native' with no version suffix", () => {
+    vi.stubGlobal("navigator", { product: "ReactNative" });
+    expect(getRuntimePlatformTag()).toEqual("react-native");
   });
 });
