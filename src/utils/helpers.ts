@@ -132,10 +132,21 @@ export function base64UrlDecode(base64Url: string): string {
  */
 export function base64UrlEncode(input: string | Uint8Array): string {
   const bytes = typeof input === "string" ? TEXT_ENCODER.encode(input) : input;
-  // btoa requires a Latin-1 string — map each byte to a char code.
+  // btoa requires a Latin-1 string. Build it in chunks of 8 KiB so we avoid
+  // `String.fromCharCode(...hugeArray)` call-stack overflows while still
+  // keeping conversion linear-time (concatenating per-byte is O(n^2) in many
+  // engines).
+  const CHUNK = 0x8000;
   let binary = "";
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
+  if (bytes.length <= CHUNK) {
+    binary = String.fromCharCode.apply(null, bytes as unknown as number[]);
+  } else {
+    const parts: string[] = [];
+    for (let i = 0; i < bytes.length; i += CHUNK) {
+      const chunk = bytes.subarray(i, i + CHUNK);
+      parts.push(String.fromCharCode.apply(null, chunk as unknown as number[]));
+    }
+    binary = parts.join("");
   }
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }

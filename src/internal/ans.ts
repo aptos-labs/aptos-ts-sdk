@@ -1007,17 +1007,22 @@ function sanitizeANSName({
     isInRenewablePeriod = expirationDate < renewalWindowDate;
   }
 
+  // Pass nullable indexer fields through as `undefined` rather than fabricating
+  // placeholder values ("N/A", "v2", false, ""). Consumers that need these
+  // fields should treat a missing value as a bad row from the indexer.
+  // `subdomain_expiration_policy` keeps a default of `FollowsDomain` because
+  // that is the contract's semantic fallback for subdomains, not a fabrication.
   return {
-    domain: name.domain ?? "N/A",
+    domain: name.domain ?? undefined,
     subdomain: name.subdomain || undefined,
     expiration_timestamp,
     expiration_status,
-    domain_expiration_timestamp: domain_expiration_timestamp,
+    domain_expiration_timestamp,
     expiration: new Date(expiration),
-    token_standard: name.token_standard ?? "v2",
-    is_primary: name.is_primary ?? false,
+    token_standard: name.token_standard ?? undefined,
+    is_primary: name.is_primary ?? undefined,
     subdomain_expiration_policy: name.subdomain_expiration_policy ?? SubdomainExpirationPolicy.FollowsDomain,
-    owner_address: name.owner_address ?? "",
+    owner_address: name.owner_address ?? undefined,
     registered_address: name.registered_address ?? undefined,
     isInRenewablePeriod,
   };

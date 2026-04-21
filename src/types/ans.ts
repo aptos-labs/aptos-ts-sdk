@@ -45,9 +45,13 @@ export enum ExpirationStatus {
 
 export interface AnsName extends RawANSName {
   /**
-   * The domain name. ie "aptos.apt" would have a domain of "aptos"
+   * The domain name. ie "aptos.apt" would have a domain of "aptos".
+   *
+   * The indexer schema marks this field as nullable, so it is surfaced as
+   * `string | undefined` here rather than fabricating a placeholder when the
+   * indexer returns null. Callers should treat a missing `domain` as a bad row.
    */
-  domain: string;
+  domain?: string;
   /**
    * The subdomain name, if the name is a subdomain. ie "name.aptos.apt" would have a subdomain of "name"
    */
@@ -87,13 +91,17 @@ export interface AnsName extends RawANSName {
   registered_address?: string;
   /**
    * The token standard for the name. See {@link AnsTokenStandard} for more details.
+   *
+   * Nullable upstream — surfaced as optional instead of fabricating `"v2"`.
    */
-  token_standard: AnsTokenStandard;
+  token_standard?: AnsTokenStandard;
   /**
    * If the name is registered as a primary name for _any_ account. It is
    * possible to have multiple primary names returned in a single query.
+   *
+   * Nullable upstream — surfaced as optional instead of defaulting to `false`.
    */
-  is_primary: boolean;
+  is_primary?: boolean;
   /**
    * The address of the wallet that owns the name.
    */
