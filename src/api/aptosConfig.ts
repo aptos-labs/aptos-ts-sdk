@@ -184,7 +184,7 @@ export class AptosConfig {
     this.indexer = settings?.indexer;
     // Type assertion needed: @aptos-labs/aptos-client's types don't resolve
     // correctly under nodenext module resolution
-    this.client = settings?.client ?? { provider: aptosClient as unknown as Client["provider"] };
+    this.client = settings?.client ?? { provider: aptosClient };
     this.clientConfig = settings?.clientConfig ?? {};
     this.fullnodeConfig = settings?.fullnodeConfig ?? {};
     this.indexerConfig = settings?.indexerConfig ?? {};

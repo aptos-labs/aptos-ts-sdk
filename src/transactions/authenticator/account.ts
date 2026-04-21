@@ -276,7 +276,7 @@ export class AccountAuthenticatorNoAccountAuthenticator extends AccountAuthentic
  * @category Transactions
  */
 export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
-  public readonly functionInfo: string;
+  public readonly functionInfo: MoveFunctionId;
 
   public readonly signingMessageDigest: Hex;
 
@@ -288,7 +288,7 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
   public readonly accountIdentity?: Uint8Array;
 
   constructor(
-    functionInfo: string,
+    functionInfo: MoveFunctionId,
     signingMessageDigest: HexInput,
     abstractionSignature: Uint8Array,
     accountIdentity?: Uint8Array,
@@ -305,7 +305,7 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
 
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(AccountAuthenticatorVariant.Abstraction);
-    const { moduleAddress, moduleName, functionName } = getFunctionParts(this.functionInfo as MoveFunctionId);
+    const { moduleAddress, moduleName, functionName } = getFunctionParts(this.functionInfo);
     AccountAddress.fromString(moduleAddress).serialize(serializer);
     serializer.serializeStr(moduleName);
     serializer.serializeStr(functionName);

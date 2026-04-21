@@ -12,7 +12,7 @@ import {
   ClientResponse,
   MimeType,
 } from "../types/index.js";
-import { AptosApiType } from "../utils/index.js";
+import { AptosApiType, getRuntimePlatform } from "../utils/index.js";
 import { AptosApiError } from "../errors/index.js";
 
 /**
@@ -40,7 +40,7 @@ export async function request<Req, Res>(options: ClientRequest<Req>, client: Cli
   const { url, method, body, contentType, params, overrides, originMethod } = options;
   const headers: Record<string, string | AnyNumber | boolean | undefined> = {
     ...overrides?.HEADERS,
-    "x-aptos-client": `aptos-typescript-sdk/${VERSION}`,
+    "x-aptos-client": `aptos-typescript-sdk/${VERSION}; platform=${getRuntimePlatform()}`,
     "content-type": contentType ?? MimeType.JSON,
     "x-aptos-typescript-sdk-origin-method": originMethod,
   };
@@ -104,16 +104,18 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
   // to support both fullnode and indexer responses,
   // check if it is an indexer query, and adjust response.data
   if (apiType === AptosApiType.INDEXER) {
-    const indexerResponse = aptosResponse.data as any;
+    const indexerResponse = aptosResponse.data;
     // Handle Indexer general errors
-    if (indexerResponse.errors) {
+    if ("errors" in indexerResponse && indexerResponse.errors) {
       throw new AptosApiError({
         apiType,
         aptosRequest: aptosRequestOpts,
         aptosResponse,
       });
     }
-    aptosResponse.data = indexerResponse.data as Res;
+    if ("data" in indexerResponse) {
+      aptosResponse.data = indexerResponse.data as Res;
+    }
   } else if (apiType === AptosApiType.PEPPER || apiType === AptosApiType.PROVER) {
     if (aptosResponse.status >= 400) {
       throw new AptosApiError({ apiType, aptosRequest: aptosRequestOpts, aptosResponse });

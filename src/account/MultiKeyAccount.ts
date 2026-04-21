@@ -7,7 +7,10 @@ import { AccountAddress, AccountAddressInput } from "../core/accountAddress.js";
 import { HexInput, SigningScheme } from "../types/index.js";
 import { AccountAuthenticatorMultiKey } from "../transactions/authenticator/account.js";
 import { AnyRawTransaction } from "../transactions/types.js";
-import { AbstractKeylessAccount, KeylessSigner } from "./AbstractKeylessAccount.js";
+// Import from the lightweight keylessSigner module (no poseidon-lite dep) so
+// MultiKeyAccount does not transitively drag the keyless crypto stack into the
+// `/account` sub-path bundle.
+import { isKeylessSigner, type KeylessSigner } from "./keylessSigner.js";
 import { AptosConfig } from "../api/aptosConfig.js";
 import { SingleKeyAccount, SingleKeySigner, SingleKeySignerOrLegacyEd25519Account } from "./SingleKeyAccount.js";
 import { Ed25519Account } from "./Ed25519Account.js";
@@ -200,9 +203,7 @@ export class MultiKeyAccount implements Account, KeylessSigner {
    * @category Account (On-Chain Model)
    */
   async waitForProofFetch(): Promise<void> {
-    const keylessSigners = this.signers.filter(
-      (signer) => signer instanceof AbstractKeylessAccount,
-    ) as AbstractKeylessAccount[];
+    const keylessSigners = this.signers.filter(isKeylessSigner);
     const promises = keylessSigners.map(async (signer) => signer.waitForProofFetch());
     await Promise.all(promises);
   }
@@ -214,9 +215,7 @@ export class MultiKeyAccount implements Account, KeylessSigner {
    * @category Account (On-Chain Model)
    */
   async checkKeylessAccountValidity(aptosConfig: AptosConfig): Promise<void> {
-    const keylessSigners = this.signers.filter(
-      (signer) => signer instanceof AbstractKeylessAccount,
-    ) as AbstractKeylessAccount[];
+    const keylessSigners = this.signers.filter(isKeylessSigner);
     const promises = keylessSigners.map((signer) => signer.checkKeylessAccountValidity(aptosConfig));
     await Promise.all(promises);
   }

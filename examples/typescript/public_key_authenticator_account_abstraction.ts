@@ -105,7 +105,10 @@ const main = async () => {
 
   const txn = (await aptos.getTransactionByHash({
     transactionHash: pendingTransferTxn.hash,
-  })) as UserTransactionResponse;
+  }));
+  if (!("signature" in txn)) {
+    throw new Error("Transaction signature not found");
+  }
   console.log(`Transaction Signature: ${JSON.stringify(txn.signature, null, 2)}`);
 };
 

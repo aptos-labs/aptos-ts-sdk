@@ -1,4 +1,10 @@
-import { base64UrlDecode, base64UrlEncode, base64UrlToBytes, pairedFaMetadataAddress } from "../../src/utils/helpers";
+import {
+  base64UrlDecode,
+  base64UrlEncode,
+  base64UrlToBytes,
+  getRuntimePlatform,
+  pairedFaMetadataAddress,
+} from "../../src/utils/helpers";
 import { AccountAddress } from "../../src/core/accountAddress";
 
 describe("pairedFaMetadataAddress", () => {
@@ -112,5 +118,48 @@ describe("pairedFaMetadataAddress", () => {
     for (let i = 1; i < results.length; i++) {
       expect(results[i]).toEqual(firstResult);
     }
+  });
+});
+
+describe("getRuntimePlatform", () => {
+  // Use Vitest's stub helpers so we can safely override non-writable globals
+  // like `navigator` (which Node exposes via a getter-only descriptor).
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  test("returns 'node' in the default Vitest node environment", () => {
+    // No stubs — Vitest's node pool provides `process.versions.node`.
+    expect(getRuntimePlatform()).toEqual("node");
+  });
+
+  test("returns 'react-native' when navigator.product is 'ReactNative'", () => {
+    vi.stubGlobal("navigator", { product: "ReactNative" });
+    expect(getRuntimePlatform()).toEqual("react-native");
+  });
+
+  test("returns 'deno' when globalThis.Deno is defined (takes precedence over node)", () => {
+    vi.stubGlobal("Deno", { version: { deno: "1.0.0" } });
+    expect(getRuntimePlatform()).toEqual("deno");
+  });
+
+  test("returns 'bun' when globalThis.Bun is defined (takes precedence over node)", () => {
+    vi.stubGlobal("Bun", { version: "1.0.0" });
+    expect(getRuntimePlatform()).toEqual("bun");
+  });
+
+  test("returns 'browser' when window and document are defined (and no bun/deno)", () => {
+    vi.stubGlobal("window", {});
+    vi.stubGlobal("document", {});
+    expect(getRuntimePlatform()).toEqual("browser");
+  });
+
+  test("react-native precedence beats deno/bun/browser", () => {
+    vi.stubGlobal("navigator", { product: "ReactNative" });
+    vi.stubGlobal("Deno", {});
+    vi.stubGlobal("Bun", {});
+    vi.stubGlobal("window", {});
+    vi.stubGlobal("document", {});
+    expect(getRuntimePlatform()).toEqual("react-native");
   });
 });

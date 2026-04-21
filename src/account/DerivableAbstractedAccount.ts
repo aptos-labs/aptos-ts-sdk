@@ -3,7 +3,7 @@ import { Serializer } from "../bcs/serializer.js";
 import { AccountAddress } from "../core/accountAddress.js";
 import { Hex } from "../core/hex.js";
 import { AccountAuthenticatorAbstraction } from "../transactions/authenticator/account.js";
-import { HexInput } from "../types/index.js";
+import { HexInput, MoveFunctionId } from "../types/index.js";
 import { isValidFunctionInfo } from "../utils/helpers.js";
 import { AbstractedAccount } from "./AbstractedAccount.js";
 
@@ -24,7 +24,7 @@ type DerivableAbstractedAccountArgs = {
    * const authenticationFunction = `${accountAddress}::permissioned_delegation::authenticate`;
    * ```
    */
-  authenticationFunction: string;
+  authenticationFunction: MoveFunctionId;
 
   /**
    * The abstract public key that is used to identify the account.

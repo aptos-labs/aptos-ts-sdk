@@ -206,7 +206,7 @@ export class ConfidentialAssetTransactionBuilder {
     // Build auditor A components (D points encrypted under auditor key)
     const newBalanceA = auditorEncryptedBalance
       ? auditorEncryptedBalance.getCipherText().map((ct) => ct.D.toRawBytes())
-      : ([] as Uint8Array[]);
+      : ([]);
 
     return this.client.transaction.build.simple({
       ...args,

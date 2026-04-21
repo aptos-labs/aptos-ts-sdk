@@ -188,9 +188,16 @@ export class Secp256r1PublicKey extends PublicKey {
   static isInstance(publicKey: PublicKey): publicKey is Secp256r1PublicKey {
     return (
       "key" in publicKey &&
-      (publicKey.key as any)?.data?.length === Secp256r1PublicKey.LENGTH &&
+      typeof publicKey.key === "object" &&
+      publicKey.key !== null &&
+      "data" in publicKey.key &&
+      typeof publicKey.key.data === "object" &&
+      publicKey.key.data !== null &&
+      "length" in publicKey.key.data &&
+      publicKey.key?.data?.length === Secp256r1PublicKey.LENGTH &&
       "keyType" in publicKey &&
-      (publicKey as any).keyType === "secp256r1"
+      typeof publicKey === "object" &&
+      publicKey.keyType === "secp256r1"
     );
   }
 
