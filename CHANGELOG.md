@@ -32,7 +32,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Introduce `MultiSigTransactionPayloadVariants` for multisig inner payload BCS tags and consolidate bytecode handling in `buildTransactionPayload`.
 - Upgraded `@noble/curves` and `@noble/hashes` to 2.x (ESM-only).
 - Remove `dotenv` usage from all TypeScript/JavaScript examples. Node 22+ users can rely on the built-in `node --env-file=.env` flag (or `tsx --env-file=.env`) when a `.env` file is needed; the examples default to devnet and don't require one.
-- `AccountAbstraction.addAuthenticationFunctionTransaction`, `removeAuthenticationFunctionTransaction`, and `disableAccountAbstractionTransaction` now type their `authenticationFunction` parameter as `MoveFunctionId` instead of `string`. `MoveFunctionId` is a string alias, so string literals still compile; callers passing a typed `string` variable may need to retype it (or cast) to satisfy the tightened signature.
+- `AccountAbstraction.addAuthenticationFunctionTransaction`, `removeAuthenticationFunctionTransaction`, and `disableAccountAbstractionTransaction` now type their `authenticationFunction` parameter as `MoveFunctionId` instead of `string`. `MoveFunctionId` is a string alias, so string literals still compile; callers passing a typed `string` variable may need to retype it (or cast) to satisfy the tightened signature. Updated the `hello_world_authenticator_account_abstraction.ts` and `public_key_authenticator_account_abstraction.ts` examples accordingly — they now annotate `authenticationFunction` as `MoveFunctionId` and call `.toString()` on the account address so the template literal type resolves correctly.
 
 ## Fixed
 

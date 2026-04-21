@@ -5,6 +5,7 @@ import {
   Aptos,
   Network,
   AptosConfig,
+  MoveFunctionId,
   UserTransactionResponse,
   NetworkToNetworkName,
 } from "@aptos-labs/ts-sdk";
@@ -42,7 +43,7 @@ const main = async () => {
 
   console.log("\n=== Dispatchable authentication function info ===");
 
-  const authenticationFunction = `${alice.accountAddress}::hello_world_authenticator::authenticate`;
+  const authenticationFunction: MoveFunctionId = `${alice.accountAddress.toString()}::hello_world_authenticator::authenticate`;
   const [moduleAddress, moduleName, functionName] = authenticationFunction.split("::");
 
   console.log(`Module address: ${moduleAddress}`);
