@@ -42,14 +42,18 @@ export class ConfidentialAssetTransactionBuilder {
   }
 
   async getMaxMemoBytes(): Promise<number> {
-    if (!this._maxMemoBytes) {
+    if (this._maxMemoBytes === undefined) {
       const [result] = await this.client.view<[string]>({
         payload: {
           function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::get_max_memo_bytes`,
           functionArguments: [],
         },
       });
-      this._maxMemoBytes = Number(result);
+      const maxMemoBytes = Number(result);
+      if (!Number.isFinite(maxMemoBytes) || !Number.isInteger(maxMemoBytes) || maxMemoBytes < 0) {
+        throw new Error(`Invalid max memo bytes returned from chain: ${result}`);
+      }
+      this._maxMemoBytes = maxMemoBytes;
     }
     return this._maxMemoBytes;
   }
