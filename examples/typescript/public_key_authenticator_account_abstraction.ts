@@ -5,6 +5,7 @@ import {
   Aptos,
   Network,
   AptosConfig,
+  MoveFunctionId,
   UserTransactionResponse,
   Serializer,
   NetworkToNetworkName,
@@ -44,7 +45,7 @@ const main = async () => {
 
   console.log("\n=== Dispatchable authentication function info ===");
 
-  const authenticationFunction = `${alice.accountAddress}::public_key_authenticator::authenticate`;
+  const authenticationFunction: MoveFunctionId = `${alice.accountAddress.toString()}::public_key_authenticator::authenticate`;
   const [moduleAddress, moduleName, functionName] = authenticationFunction.split("::");
 
   console.log(`Module address: ${moduleAddress}`);
