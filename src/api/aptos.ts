@@ -172,7 +172,7 @@ function applyMixin(targetClass: any, baseClass: any, baseClassProp: string) {
     if (!propertyDescriptor) return;
     Object.defineProperty(targetClass.prototype, propertyName, {
       value(...args: any[]) {
-        return (this as any)[baseClassProp][propertyName](...args);
+        return this[baseClassProp][propertyName](...args);
       },
       writable: propertyDescriptor.writable,
       configurable: propertyDescriptor.configurable,

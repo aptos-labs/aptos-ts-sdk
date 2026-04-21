@@ -26,10 +26,7 @@ export interface SingleKeySigner extends Account {
 
 export function isSingleKeySigner(obj: unknown): obj is SingleKeySigner {
   return (
-    typeof obj === "object" &&
-    obj !== null &&
-    "getAnyPublicKey" in obj &&
-    typeof (obj as any).getAnyPublicKey === "function"
+    typeof obj === "object" && obj !== null && "getAnyPublicKey" in obj && typeof obj.getAnyPublicKey === "function"
   );
 }
 

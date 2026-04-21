@@ -2,7 +2,7 @@ import { sha3_256 } from "@noble/hashes/sha3.js";
 import { AccountAddress } from "../core/index.js";
 import { Hex } from "../core/hex.js";
 import { AbstractPublicKey, AbstractSignature } from "../core/crypto/abstraction.js";
-import { SigningScheme, HexInput } from "../types/index.js";
+import { SigningScheme, HexInput, MoveFunctionId } from "../types/index.js";
 import { Account } from "./Account.js";
 import { AnyRawTransaction } from "../transactions/types.js";
 import {
@@ -35,7 +35,7 @@ type AbstractedAccountConstructorArgs = {
    * const authenticationFunction = `${accountAddress}::permissioned_delegation::authenticate`;
    * ```
    */
-  authenticationFunction: string;
+  authenticationFunction: MoveFunctionId;
 };
 
 export class AbstractedAccount extends Account {
@@ -43,7 +43,7 @@ export class AbstractedAccount extends Account {
 
   readonly accountAddress: AccountAddress;
 
-  readonly authenticationFunction: string;
+  readonly authenticationFunction: MoveFunctionId;
 
   readonly signingScheme = SigningScheme.SingleKey;
 

@@ -688,8 +688,7 @@ export async function getAuthenticatorForSimulation(publicKey?: PublicKey) {
   // Detect keyless public keys by duck-typing to avoid importing poseidon-heavy modules
   const detectKeylessVariant = (key: PublicKey): AnyPublicKeyVariant | undefined => {
     if ("jwkAddress" in key && "keylessPublicKey" in key) return AnyPublicKeyVariant.FederatedKeyless;
-    if ("iss" in key && typeof (key as any).iss === "string" && "idCommitment" in key)
-      return AnyPublicKeyVariant.Keyless;
+    if ("iss" in key && typeof key.iss === "string" && "idCommitment" in key) return AnyPublicKeyVariant.Keyless;
     return undefined;
   };
   const keylessVariant = detectKeylessVariant(publicKey);

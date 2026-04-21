@@ -200,8 +200,8 @@ export class ConfidentialNormalization {
 
     // Build auditor A components (D points encrypted under auditor key)
     const newBalanceA = auditorCB
-      ? auditorCB.getCipherText().map((ct) => ct.D.toRawBytes())
-      : ([] as Uint8Array[]);
+      ? auditorCB.getCipherText().map((ct) => ct.D.toBytes())
+      : ([]);
 
     return args.client.transaction.build.simple({
       ...args,
@@ -209,8 +209,8 @@ export class ConfidentialNormalization {
         function: `${args.confidentialAssetModuleAddress}::${MODULE_NAME}::normalize_raw`,
         functionArguments: [
           args.tokenAddress,
-          normalizedCB.getCipherText().map((ct) => ct.C.toRawBytes()), // new_balance_C
-          normalizedCB.getCipherText().map((ct) => ct.D.toRawBytes()), // new_balance_D
+          normalizedCB.getCipherText().map((ct) => ct.C.toBytes()), // new_balance_C
+          normalizedCB.getCipherText().map((ct) => ct.D.toBytes()), // new_balance_D
           newBalanceA, // new_balance_A
           rangeProof,
           sigmaProof.commitment,

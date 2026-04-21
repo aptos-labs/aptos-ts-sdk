@@ -55,7 +55,9 @@ describe("aptos request", () => {
             config,
             AptosApiType.FULLNODE,
           );
-          expect(response.config.headers).toHaveProperty("x-aptos-client", `aptos-typescript-sdk/${VERSION}`);
+          expect(response.config.headers["x-aptos-client"]).toMatch(
+            new RegExp(`^aptos-typescript-sdk/${VERSION.replace(/\./g, "\\.")}; platform=\\w+(-\\w+)?$`),
+          );
           expect(response.config.headers).toHaveProperty("my", "header");
           expect(response.config.headers).toHaveProperty("content-type", "application/x.aptos.signed_transaction+bcs");
           expect(response.config.headers).toHaveProperty(

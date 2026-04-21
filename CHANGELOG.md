@@ -7,6 +7,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 ## Added
 
 - Add support for script payloads in multisig transactions. `MultiSigTransactionPayload` now accepts both `EntryFunction` and `Script` payloads, and the new `InputMultiSigScriptData` type allows building multisig transactions with script bytecode. This aligns with the upstream `MultisigTransactionPayload::Script` variant added in aptos-core.
+- `x-aptos-client` request header now includes the runtime platform (e.g. `aptos-typescript-sdk/7.0.0; platform=node`) for telemetry. Supported platforms: `node`, `browser`, `bun`, `deno`, `react-native`, `unknown`. Exposed as `getRuntimePlatform()` in the utils barrel.
 - **Tree-shakeable standalone function API** — all SDK operations available as standalone functions (`getLedgerInfo`, `getBalance`, `transferCoinTransaction`, etc.) that accept `{ aptosConfig, ...args }`.
 - **Sub-path exports** — import from `@aptos-labs/ts-sdk/account`, `@aptos-labs/ts-sdk/transaction`, `@aptos-labs/ts-sdk/keyless`, etc. for minimal bundle sizes.
 - **`sideEffects: false`** in package.json for bundler tree-shaking.
@@ -34,6 +35,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Fixed
 
+- `@aptos-labs/ts-sdk/account` sub-path no longer transitively imports `poseidon-lite`. `src/internal/account.ts` now uses the lightweight `isKeylessSigner` duck-type check for detection and lazy-loads `KeylessAccount` / `FederatedKeylessAccount` via dynamic `import()` only when constructing derived keyless accounts. The `tests/bundle-size/check-tree-shaking.mjs` test was rewritten to walk the full transitive static-import graph (previously a shallow grep on a pure re-export file, which produced a false-pass).
+- Scope `tsconfig.build.json` `types` to `["node"]` only, dropping the inherited `vitest/globals`. Prevents Vitest test globals (`expect`, `describe`, `vi`, `beforeEach`, etc.) from leaking into published `.d.ts` files. Non-CLI source files that need Node-only globals (e.g. `process.env`) must continue to use explicit structural types — see `TEXT_ENCODER` in `src/utils/const.ts` for the pattern.
 - Fix `fullnodeConfig.HEADERS` not being forwarded in paginated fullnode requests (`getAccountModules`, `getAccountResources`). Pagination helpers now route through `getAptosFullNode` so custom headers (e.g. `Authorization`) are included consistently. (#872)
 - Fix `base64UrlDecode` to decode bytes as UTF-8 via `TextDecoder`. Previously returned a Latin-1 binary string from `atob`, corrupting non-ASCII characters in JWT headers/payloads.
 - Fix `base64UrlToBytes` padding: base64 padding is based on `length % 4` (not `% 3`). The previous formula under-padded 2-byte-remainder inputs and corrupted inputs like RSA JWK moduli whose length `% 4 == 2` (common in keyless/JWKS flows). Added regression tests in `tests/unit/helpers.test.ts`.

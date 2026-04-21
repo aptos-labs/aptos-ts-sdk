@@ -88,7 +88,7 @@ export abstract class Serializable {
  * @param value - The Serializable value to serialize as bytes.
  */
 export function serializeEntryFunctionBytesCompat(serializer: Serializer, value: Serializable): void {
-  if (typeof (serializer as { serializeAsBytes?: unknown }).serializeAsBytes === "function") {
+  if ("serializeAsBytes" in serializer && typeof serializer.serializeAsBytes === "function") {
     serializer.serializeAsBytes(value);
   } else {
     const bcsBytes = value.bcsToBytes();

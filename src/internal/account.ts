@@ -36,8 +36,13 @@ import {
 } from "../types/index.js";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress.js";
 import { Account, Ed25519Account, MultiEd25519Account, MultiKeyAccount, SingleKeyAccount } from "../account/index.js";
-import { KeylessAccount } from "../account/KeylessAccount.js";
-import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount.js";
+import { isKeylessSigner } from "../account/keylessSigner.js";
+// Type-only imports are erased at compile time, so they do not pull in the
+// poseidon-lite dependency that the concrete keyless account classes require.
+// The runtime `.create()` calls are behind dynamic `import()` in
+// `deriveOwnedAccountsFromKeylessSigner` below.
+import type { AbstractKeylessAccount } from "../account/AbstractKeylessAccount.js";
+import type { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless.js";
 import { AccountPublicKey } from "../core/crypto/publicKey.js";
 import { AnyPublicKey, PrivateKeyInput } from "../core/crypto/singleKey.js";
 import { Ed25519PublicKey } from "../core/crypto/ed25519.js";
@@ -309,9 +314,10 @@ export async function getResourceFallible<T extends {}>(args: {
   options?: LedgerVersionArg;
 }): Promise<T | null> {
   try {
-    return getResource<T>(args);
+    return await getResource<T>(args);
   } catch (error: any) {
-    if (error?.status === 404) {
+    // explicitly return null if there is no resource
+    if (error?.status === 404 && error?.data?.error_code === "resource_not_found") {
       return null;
     }
     throw error;
@@ -1213,8 +1219,12 @@ export async function deriveOwnedAccountsFromSigner(args: {
     return deriveOwnedAccountsFromPrivateKey({ aptosConfig, privateKey: signer.privateKey, options });
   }
 
-  if (signer instanceof KeylessAccount || signer instanceof FederatedKeylessAccount) {
-    return deriveOwnedAccountsFromKeylessSigner({ aptosConfig, keylessAccount: signer, options });
+  if (isKeylessSigner(signer)) {
+    return deriveOwnedAccountsFromKeylessSigner({
+      aptosConfig,
+      keylessAccount: signer as AbstractKeylessAccount,
+      options,
+    });
   }
 
   if (signer instanceof MultiKeyAccount) {
@@ -1234,7 +1244,7 @@ export async function deriveOwnedAccountsFromSigner(args: {
 
 async function deriveOwnedAccountsFromKeylessSigner(args: {
   aptosConfig: AptosConfig;
-  keylessAccount: KeylessAccount | FederatedKeylessAccount;
+  keylessAccount: AbstractKeylessAccount;
   options?: { includeUnverified?: boolean; noMultiKey?: boolean };
 }): Promise<Account[]> {
   const { aptosConfig, keylessAccount, options } = args;
@@ -1252,6 +1262,11 @@ async function deriveOwnedAccountsFromKeylessSigner(args: {
     verificationKeyHash: keylessAccount.verificationKeyHash,
   };
 
+  // Structural discriminator: `FederatedKeylessPublicKey` has a `jwkAddress`
+  // field; plain `KeylessPublicKey` does not. Avoids pulling the concrete
+  // keyless account classes (and poseidon-lite) into the static import graph.
+  const isFederated = "jwkAddress" in keylessAccount.publicKey;
+
   const accounts: Account[] = [];
   for (const { accountAddress, publicKey } of addressesAndPublicKeys) {
     if (publicKey instanceof AbstractMultiKey) {
@@ -1263,15 +1278,19 @@ async function deriveOwnedAccountsFromKeylessSigner(args: {
       } else if (publicKey instanceof MultiKey) {
         accounts.push(new MultiKeyAccount({ multiKey: publicKey, signers: [keylessAccount], address: accountAddress }));
       }
-    } else if (keylessAccount instanceof FederatedKeylessAccount) {
+    } else if (isFederated) {
+      // Dynamic import to avoid pulling poseidon-lite into the `/account` sub-path bundle.
+      const { FederatedKeylessAccount } = await import("../account/FederatedKeylessAccount.js");
       accounts.push(
         FederatedKeylessAccount.create({
           ...keylessAccountParams,
           address: accountAddress,
-          jwkAddress: keylessAccount.publicKey.jwkAddress,
+          jwkAddress: (keylessAccount.publicKey as FederatedKeylessPublicKey).jwkAddress,
         }),
       );
     } else {
+      // Dynamic import to avoid pulling poseidon-lite into the `/account` sub-path bundle.
+      const { KeylessAccount } = await import("../account/KeylessAccount.js");
       accounts.push(
         KeylessAccount.create({
           ...keylessAccountParams,
