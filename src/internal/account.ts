@@ -298,7 +298,24 @@ export async function getResource<T extends {}>(args: {
     path: `accounts/${AccountAddress.from(accountAddress).toString()}/resource/${resourceType}`,
     params: { ledger_version: options?.ledgerVersion },
   });
+  // TODO: Fix type checking, so cast is unnecessary
   return data.data as T;
+}
+
+export async function getResourceFallible<T extends {}>(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: AccountAddressInput;
+  resourceType: MoveStructId;
+  options?: LedgerVersionArg;
+}): Promise<T | null> {
+  try {
+    return getResource<T>(args);
+  } catch (error: any) {
+    if (error?.status === 404) {
+      return null;
+    }
+    throw error;
+  }
 }
 
 /**
@@ -890,10 +907,11 @@ async function doesAccountExistAtAddress(args: {
   try {
     // Get the account resources and the balance of the account.  We need to check both because
     // an account resource can exist with 0 balance and a balance can exist without an account resource (light accounts).
-    const [resources, ownedObjects] = await Promise.all([
-      getResources({
+    const [accountResource, ownedObjects] = await Promise.all([
+      getResourceFallible<{ authentication_key: string }>({
         aptosConfig,
         accountAddress,
+        resourceType: "0x1::account::Account",
       }),
       getAccountOwnedObjects({
         aptosConfig,
@@ -903,10 +921,6 @@ async function doesAccountExistAtAddress(args: {
         },
       }),
     ]);
-
-    const accountResource: MoveResource<{ authentication_key: string }> | undefined = resources.find(
-      (r) => r.type === "0x1::account::Account",
-    ) as MoveResource<{ authentication_key: string }> | undefined;
 
     // If the account resource is not found and the balance is 0, then the account does not exist.
     if (!accountResource && ownedObjects.length === 0) {
@@ -922,7 +936,7 @@ async function doesAccountExistAtAddress(args: {
     // then the auth key is the account address by default.
     let authKey;
     if (accountResource) {
-      authKey = accountResource.data.authentication_key;
+      authKey = accountResource.authentication_key;
     } else {
       authKey = accountAddress.toStringLong();
     }
@@ -1293,9 +1307,10 @@ async function deriveOwnedAccountsFromPrivateKey(args: {
       }
       // Construct the appropriate multi-key type.
       if (publicKey instanceof MultiEd25519PublicKey) {
-        accounts.push(
-          new MultiEd25519Account({ publicKey, signers: [privateKey as Ed25519PrivateKey], address: accountAddress }),
-        );
+        if (!(privateKey instanceof Ed25519PrivateKey)) {
+          throw new Error("Private key not Ed25519 for MultiEd25519 signature");
+        }
+        accounts.push(new MultiEd25519Account({ publicKey, signers: [privateKey], address: accountAddress }));
       } else if (publicKey instanceof MultiKey) {
         accounts.push(
           new MultiKeyAccount({ multiKey: publicKey, signers: [singleKeyAccount], address: accountAddress }),
