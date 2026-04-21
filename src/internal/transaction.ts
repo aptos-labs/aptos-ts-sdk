@@ -458,8 +458,9 @@ async function fillBlockTransactions(args: {
     const firstVersion = BigInt(block.first_version);
     const lastVersion = BigInt(block.last_version);
 
-    // Convert the transaction to the type
-    const curVersion: string | undefined = "version" in lastTxn ? lastTxn.version : undefined;
+    // Convert the transaction to the type. When the block has no transactions yet,
+    // `lastTxn` is `undefined` and `"version" in undefined` throws, so guard explicitly.
+    const curVersion: string | undefined = lastTxn && "version" in lastTxn ? lastTxn.version : undefined;
     let latestVersion;
 
     // This time, if we don't have any transactions, we will try once with the start of the block
