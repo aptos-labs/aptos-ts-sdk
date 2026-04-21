@@ -372,7 +372,11 @@ export async function submitTransaction(
       if (variant === AnyPublicKeyVariant.Keyless || variant === AnyPublicKeyVariant.FederatedKeyless) {
         // Dynamic import to avoid pulling poseidon-lite into the main bundle
         const { AbstractKeylessAccount } = await import("../account/AbstractKeylessAccount.js");
-        type KP = import("../core/crypto/keyless.js").KeylessPublicKey;
+        // Match `AbstractKeylessAccount.fetchJWK`'s `publicKey` type so the
+        // `FederatedKeyless` branch is not miscast to `KeylessPublicKey`.
+        type KP =
+          | import("../core/crypto/keyless.js").KeylessPublicKey
+          | import("../core/crypto/federatedKeyless.js").FederatedKeylessPublicKey;
         type KS = import("../core/crypto/keyless.js").KeylessSignature;
         await AbstractKeylessAccount.fetchJWK({
           aptosConfig,

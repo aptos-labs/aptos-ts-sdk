@@ -25,5 +25,10 @@ export interface KeylessSigner extends Account {
 }
 
 export function isKeylessSigner(obj: any): obj is KeylessSigner {
-  return obj !== null && obj !== undefined && typeof obj.checkKeylessAccountValidity === "function";
+  return (
+    obj !== null &&
+    obj !== undefined &&
+    typeof obj.checkKeylessAccountValidity === "function" &&
+    typeof obj.waitForProofFetch === "function"
+  );
 }

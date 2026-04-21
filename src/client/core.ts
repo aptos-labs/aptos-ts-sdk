@@ -106,16 +106,20 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
   // check if it is an indexer query, and adjust response.data
   if (apiType === AptosApiType.INDEXER) {
     const indexerResponse = aptosResponse.data;
-    // Handle Indexer general errors
-    if ("errors" in indexerResponse && indexerResponse.errors) {
-      throw new AptosApiError({
-        apiType,
-        aptosRequest: aptosRequestOpts,
-        aptosResponse,
-      });
-    }
-    if ("data" in indexerResponse) {
-      aptosResponse.data = indexerResponse.data as Res;
+    // Only probe for `errors`/`data` keys on actual objects; `in` throws a
+    // `TypeError` on primitives/null and would mask the underlying API error.
+    if (typeof indexerResponse === "object" && indexerResponse !== null) {
+      // Handle Indexer general errors
+      if ("errors" in indexerResponse && indexerResponse.errors) {
+        throw new AptosApiError({
+          apiType,
+          aptosRequest: aptosRequestOpts,
+          aptosResponse,
+        });
+      }
+      if ("data" in indexerResponse) {
+        aptosResponse.data = indexerResponse.data as Res;
+      }
     }
   } else if (apiType === AptosApiType.PEPPER || apiType === AptosApiType.PROVER) {
     if (aptosResponse.status >= 400) {
