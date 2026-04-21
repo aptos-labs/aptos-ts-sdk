@@ -15,7 +15,7 @@ const BOB_INITIAL_BALANCE = 1_000_000_000;
 const TRANSFER_AMOUNT = 10;
 
 // Default to devnet, but allow for overriding
-const APTOS_NETWORK: Network = NetworkToNetworkName[Bun.env.APTOS_NETWORK ?? Network.DEVNET];
+const APTOS_NETWORK: Network = NetworkToNetworkName[Bun.env.APTOS_NETWORK ?? Network.DEVNET] ?? Network.DEVNET;
 
 const example = async () => {
   console.log("Bun Runtime Test: Sponsored transaction example.");

@@ -55,9 +55,16 @@ describe("aptos request", () => {
             config,
             AptosApiType.FULLNODE,
           );
-          expect(response.config.headers["x-aptos-client"]).toMatch(
-            new RegExp(`^aptos-typescript-sdk/${VERSION.replace(/\./g, "\\.")}; platform=\\w+(-\\w+)?(/[\\d.]+)?$`),
-          );
+          // Assert shape without injecting `VERSION` into a dynamic RegExp
+          // (CodeQL flags unsanitized-template-into-RegExp even when the input
+          // is a trusted constant — and `VERSION` *is* trusted: it's the SDK's
+          // own `src/version.ts`).
+          const clientHeader = response.config.headers["x-aptos-client"];
+          const expectedPrefix = `aptos-typescript-sdk/${VERSION}; platform=`;
+          expect(clientHeader.startsWith(expectedPrefix)).toBe(true);
+          // Tail is one of: node/22.12.0, bun/1.1.38, deno/2.1.4, browser,
+          // react-native, unknown (the versioned forms add `/<digits>.<digits>...`).
+          expect(clientHeader.slice(expectedPrefix.length)).toMatch(/^\w+(-\w+)?(\/[\d.]+)?$/);
           expect(response.config.headers).toHaveProperty("my", "header");
           expect(response.config.headers).toHaveProperty("content-type", "application/x.aptos.signed_transaction+bcs");
           expect(response.config.headers).toHaveProperty(
