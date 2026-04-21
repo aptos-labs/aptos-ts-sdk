@@ -366,24 +366,32 @@ export async function submitTransaction(
     });
     return data;
   } catch (e) {
-    const signedTxn = SignedTransaction.deserialize(new Deserializer(signedTransaction));
-    if (signedTxn.authenticator.isSingleSender() && signedTxn.authenticator.sender.isSingleKey()) {
-      const { variant } = signedTxn.authenticator.sender.public_key;
-      if (variant === AnyPublicKeyVariant.Keyless || variant === AnyPublicKeyVariant.FederatedKeyless) {
-        // Dynamic import to avoid pulling poseidon-lite into the main bundle
-        const { AbstractKeylessAccount } = await import("../account/AbstractKeylessAccount.js");
-        // Match `AbstractKeylessAccount.fetchJWK`'s `publicKey` type so the
-        // `FederatedKeyless` branch is not miscast to `KeylessPublicKey`.
-        type KP =
-          | import("../core/crypto/keyless.js").KeylessPublicKey
-          | import("../core/crypto/federatedKeyless.js").FederatedKeylessPublicKey;
-        type KS = import("../core/crypto/keyless.js").KeylessSignature;
-        await AbstractKeylessAccount.fetchJWK({
-          aptosConfig,
-          publicKey: signedTxn.authenticator.sender.public_key.publicKey as KP,
-          kid: (signedTxn.authenticator.sender.signature.signature as KS).getJwkKid(),
-        });
+    // Best-effort diagnostic: if this was a keyless submission, refresh the
+    // JWK so the next attempt can succeed. Any failure here (deserialization,
+    // unregistered variant, network error while fetching JWKs, etc.) must
+    // NOT mask the original submission error `e`.
+    try {
+      const signedTxn = SignedTransaction.deserialize(new Deserializer(signedTransaction));
+      if (signedTxn.authenticator.isSingleSender() && signedTxn.authenticator.sender.isSingleKey()) {
+        const { variant } = signedTxn.authenticator.sender.public_key;
+        if (variant === AnyPublicKeyVariant.Keyless || variant === AnyPublicKeyVariant.FederatedKeyless) {
+          // Dynamic import to avoid pulling poseidon-lite into the main bundle
+          const { AbstractKeylessAccount } = await import("../account/AbstractKeylessAccount.js");
+          // Match `AbstractKeylessAccount.fetchJWK`'s `publicKey` type so the
+          // `FederatedKeyless` branch is not miscast to `KeylessPublicKey`.
+          type KP =
+            | import("../core/crypto/keyless.js").KeylessPublicKey
+            | import("../core/crypto/federatedKeyless.js").FederatedKeylessPublicKey;
+          type KS = import("../core/crypto/keyless.js").KeylessSignature;
+          await AbstractKeylessAccount.fetchJWK({
+            aptosConfig,
+            publicKey: signedTxn.authenticator.sender.public_key.publicKey as KP,
+            kid: (signedTxn.authenticator.sender.signature.signature as KS).getJwkKid(),
+          });
+        }
       }
+    } catch {
+      // Swallow diagnostic errors so we always rethrow the original submission error.
     }
     throw e;
   }
