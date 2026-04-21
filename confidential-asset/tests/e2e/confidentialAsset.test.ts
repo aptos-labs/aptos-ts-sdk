@@ -902,33 +902,36 @@ describe("Confidential Asset Sender API", () => {
         }
       }
 
+      let pauseEnabledByThisTest = false;
       if (paused) {
         await govScript("set_emergency_paused", [new Bool(true)]);
+        pauseEnabledByThisTest = true;
         expect(await confidentialAsset.isEmergencyPaused()).toBe(true);
       } else {
         expect(await confidentialAsset.isEmergencyPaused()).toBe(false);
       }
 
-      // register
-      const newAccount = Account.generate();
-      await aptos.fundAccount({ accountAddress: newAccount.accountAddress, amount: 100000000 });
-      const newKey = TwistedEd25519PrivateKey.generate();
-      await expectOutcome("register", () =>
-        confidentialAsset.registerBalance({
-          signer: newAccount,
-          tokenAddress: TOKEN_ADDRESS,
-          decryptionKey: newKey,
-        }),
-      );
+      try {
+        // register
+        const newAccount = Account.generate();
+        await aptos.fundAccount({ accountAddress: newAccount.accountAddress, amount: 100000000 });
+        const newKey = TwistedEd25519PrivateKey.generate();
+        await expectOutcome("register", () =>
+          confidentialAsset.registerBalance({
+            signer: newAccount,
+            tokenAddress: TOKEN_ADDRESS,
+            decryptionKey: newKey,
+          }),
+        );
 
-      // deposit (gives Alice pending balance for rollover below)
-      await expectOutcome("deposit", () =>
-        confidentialAsset.deposit({
-          signer: alice,
-          tokenAddress: TOKEN_ADDRESS,
-          amount: 1,
-        }),
-      );
+        // deposit (gives Alice pending balance for rollover below)
+        await expectOutcome("deposit", () =>
+          confidentialAsset.deposit({
+            signer: alice,
+            tokenAddress: TOKEN_ADDRESS,
+            amount: 1,
+          }),
+        );
 
       // rollover (raw txn to bypass SDK precondition checks; needs pending balance from deposit above)
       const rolloverTx = await confidentialAsset.transaction.rolloverPendingBalance({
