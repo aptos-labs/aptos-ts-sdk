@@ -1,4 +1,5 @@
 import * as Types from "./types.js";
+import { AnsTokenStandard, SubdomainExpirationPolicy } from "../ans.js";
 
 export type TokenActivitiesFieldsFragment = {
   after_value?: string | null;
@@ -528,10 +529,10 @@ export type GetNamesQuery = {
     expiration_timestamp?: any | null;
     registered_address?: string | null;
     subdomain?: string | null;
-    token_standard?: string | null;
+    token_standard?: AnsTokenStandard | null;
     is_primary?: boolean | null;
     owner_address?: string | null;
-    subdomain_expiration_policy?: any | null;
+    subdomain_expiration_policy?: SubdomainExpirationPolicy | null;
     domain_expiration_timestamp?: any | null;
   }>;
   current_aptos_names_aggregate: { aggregate?: { count: number } | null };
