@@ -29,11 +29,25 @@ import type {
 export type GraphqlActivityRow =
   GetConfidentialAssetActivitiesQuery["confidential_asset_activities"][number];
 
+/**
+ * Converts an array of Aptos name objects (as returned by the indexer) into a
+ * human-readable name string, or `null` if no valid entry exists.
+ *
+ * - With subdomain: `"subdomain.domain"` (no `.apt` suffix)
+ * - Domain only:    `"domain.apt"`
+ */
+export function parseAptosName(names: Array<{ domain?: string | null, subdomain?: string | null }>): string | null {
+  const name = names[0];
+  if (!name?.domain) return null;
+  return name.subdomain ? `${name.subdomain}.${name.domain}` : `${name.domain}.apt`;
+}
+
 function base(row: GraphqlActivityRow): ActivityBase {
   return {
     transaction_version: String(row.transaction_version),
     event_index: String(row.event_index),
     owner_address: row.owner_address,
+    owner_primary_aptos_name: parseAptosName(row.owner_primary_aptos_name),
     event_data_version: row.event_data_version,
     block_height: String(row.block_height),
     is_transaction_success: row.is_transaction_success,
@@ -59,6 +73,7 @@ export function convertActivity(row: GraphqlActivityRow): ConfidentialAssetActiv
         event_type: "Registered",
         asset_type: row.asset_type!,
         counterparty_address: null,
+        counterparty_primary_aptos_name: null,
         amount: null,
         event_data: row.event_data,
       } satisfies RegisteredActivity;
@@ -69,6 +84,7 @@ export function convertActivity(row: GraphqlActivityRow): ConfidentialAssetActiv
         event_type: "Deposited",
         asset_type: row.asset_type!,
         counterparty_address: null,
+        counterparty_primary_aptos_name: null,
         amount: String(row.amount),
         event_data: row.event_data,
       } satisfies DepositedActivity;
@@ -79,6 +95,7 @@ export function convertActivity(row: GraphqlActivityRow): ConfidentialAssetActiv
         event_type: "Withdrawn",
         asset_type: row.asset_type!,
         counterparty_address: row.counterparty_address!,
+        counterparty_primary_aptos_name: parseAptosName(row.counterparty_primary_aptos_name),
         amount: String(row.amount),
         event_data: row.event_data,
       } satisfies WithdrawnActivity;
@@ -89,6 +106,7 @@ export function convertActivity(row: GraphqlActivityRow): ConfidentialAssetActiv
         event_type: "Transferred",
         asset_type: row.asset_type!,
         counterparty_address: row.counterparty_address!,
+        counterparty_primary_aptos_name: parseAptosName(row.counterparty_primary_aptos_name),
         amount: null,
         event_data: row.event_data,
       } satisfies TransferredActivity;
@@ -99,6 +117,7 @@ export function convertActivity(row: GraphqlActivityRow): ConfidentialAssetActiv
         event_type: "Normalized",
         asset_type: row.asset_type!,
         counterparty_address: null,
+        counterparty_primary_aptos_name: null,
         amount: null,
         event_data: row.event_data,
       } satisfies NormalizedActivity;
@@ -109,6 +128,7 @@ export function convertActivity(row: GraphqlActivityRow): ConfidentialAssetActiv
         event_type: "RolledOver",
         asset_type: row.asset_type!,
         counterparty_address: null,
+        counterparty_primary_aptos_name: null,
         amount: null,
         event_data: row.event_data,
       } satisfies RolledOverActivity;
@@ -119,6 +139,7 @@ export function convertActivity(row: GraphqlActivityRow): ConfidentialAssetActiv
         event_type: "KeyRotated",
         asset_type: row.asset_type!,
         counterparty_address: null,
+        counterparty_primary_aptos_name: null,
         amount: null,
         event_data: row.event_data,
       } satisfies KeyRotatedActivity;
@@ -129,6 +150,7 @@ export function convertActivity(row: GraphqlActivityRow): ConfidentialAssetActiv
         event_type: "IncomingTransfersPauseChanged",
         asset_type: row.asset_type!,
         counterparty_address: null,
+        counterparty_primary_aptos_name: null,
         amount: null,
         event_data: row.event_data,
       } satisfies IncomingTransfersPauseChangedActivity;
@@ -139,6 +161,7 @@ export function convertActivity(row: GraphqlActivityRow): ConfidentialAssetActiv
         event_type: "AllowListingChanged",
         asset_type: null,
         counterparty_address: null,
+        counterparty_primary_aptos_name: null,
         amount: null,
         event_data: row.event_data,
       } satisfies AllowListingChangedActivity;
@@ -149,6 +172,7 @@ export function convertActivity(row: GraphqlActivityRow): ConfidentialAssetActiv
         event_type: "ConfidentialityForAssetTypeChanged",
         asset_type: row.asset_type!,
         counterparty_address: null,
+        counterparty_primary_aptos_name: null,
         amount: null,
         event_data: row.event_data,
       } satisfies ConfidentialityForAssetTypeChangedActivity;
@@ -159,6 +183,7 @@ export function convertActivity(row: GraphqlActivityRow): ConfidentialAssetActiv
         event_type: "GlobalAuditorChanged",
         asset_type: null,
         counterparty_address: null,
+        counterparty_primary_aptos_name: null,
         amount: null,
         event_data: row.event_data,
       } satisfies GlobalAuditorChangedActivity;
@@ -169,6 +194,7 @@ export function convertActivity(row: GraphqlActivityRow): ConfidentialAssetActiv
         event_type: "AssetSpecificAuditorChanged",
         asset_type: row.asset_type!,
         counterparty_address: null,
+        counterparty_primary_aptos_name: null,
         amount: null,
         event_data: row.event_data,
       } satisfies AssetSpecificAuditorChangedActivity;

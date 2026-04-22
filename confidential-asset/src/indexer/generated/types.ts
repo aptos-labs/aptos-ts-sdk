@@ -512,6 +512,10 @@ export type ConfidentialAssetActivities = {
   asset_type?: Maybe<Scalars['String']['output']>;
   block_height: Scalars['bigint']['output'];
   counterparty_address?: Maybe<Scalars['String']['output']>;
+  /** An array relationship */
+  counterparty_aptos_names: Array<CurrentAptosNames>;
+  /** An aggregate relationship */
+  counterparty_aptos_names_aggregate: CurrentAptosNamesAggregate;
   entry_function_id_str?: Maybe<Scalars['String']['output']>;
   event_data: Scalars['jsonb']['output'];
   event_data_version: Scalars['String']['output'];
@@ -521,14 +525,58 @@ export type ConfidentialAssetActivities = {
   /** An object relationship */
   metadata?: Maybe<FungibleAssetMetadata>;
   owner_address: Scalars['String']['output'];
+  /** An array relationship */
+  owner_aptos_names: Array<CurrentAptosNames>;
+  /** An aggregate relationship */
+  owner_aptos_names_aggregate: CurrentAptosNamesAggregate;
   transaction_timestamp: Scalars['timestamp']['output'];
   transaction_version: Scalars['bigint']['output'];
 };
 
 
 /** columns and relationships of "confidential_asset_activities" */
+export type ConfidentialAssetActivitiesCounterpartyAptosNamesArgs = {
+  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
+  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+};
+
+
+/** columns and relationships of "confidential_asset_activities" */
+export type ConfidentialAssetActivitiesCounterpartyAptosNamesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
+  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+};
+
+
+/** columns and relationships of "confidential_asset_activities" */
 export type ConfidentialAssetActivitiesEventDataArgs = {
   path?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+/** columns and relationships of "confidential_asset_activities" */
+export type ConfidentialAssetActivitiesOwnerAptosNamesArgs = {
+  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
+  where?: InputMaybe<CurrentAptosNamesBoolExp>;
+};
+
+
+/** columns and relationships of "confidential_asset_activities" */
+export type ConfidentialAssetActivitiesOwnerAptosNamesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
+  where?: InputMaybe<CurrentAptosNamesBoolExp>;
 };
 
 /** Boolean expression to filter rows from the table "confidential_asset_activities". All fields are combined with a logical 'AND'. */
@@ -540,6 +588,8 @@ export type ConfidentialAssetActivitiesBoolExp = {
   asset_type?: InputMaybe<StringComparisonExp>;
   block_height?: InputMaybe<BigintComparisonExp>;
   counterparty_address?: InputMaybe<StringComparisonExp>;
+  counterparty_aptos_names?: InputMaybe<CurrentAptosNamesBoolExp>;
+  counterparty_aptos_names_aggregate?: InputMaybe<CurrentAptosNamesAggregateBoolExp>;
   entry_function_id_str?: InputMaybe<StringComparisonExp>;
   event_data?: InputMaybe<JsonbComparisonExp>;
   event_data_version?: InputMaybe<StringComparisonExp>;
@@ -548,6 +598,8 @@ export type ConfidentialAssetActivitiesBoolExp = {
   is_transaction_success?: InputMaybe<BooleanComparisonExp>;
   metadata?: InputMaybe<FungibleAssetMetadataBoolExp>;
   owner_address?: InputMaybe<StringComparisonExp>;
+  owner_aptos_names?: InputMaybe<CurrentAptosNamesBoolExp>;
+  owner_aptos_names_aggregate?: InputMaybe<CurrentAptosNamesAggregateBoolExp>;
   transaction_timestamp?: InputMaybe<TimestampComparisonExp>;
   transaction_version?: InputMaybe<BigintComparisonExp>;
 };
@@ -558,6 +610,7 @@ export type ConfidentialAssetActivitiesOrderBy = {
   asset_type?: InputMaybe<OrderBy>;
   block_height?: InputMaybe<OrderBy>;
   counterparty_address?: InputMaybe<OrderBy>;
+  counterparty_aptos_names_aggregate?: InputMaybe<CurrentAptosNamesAggregateOrderBy>;
   entry_function_id_str?: InputMaybe<OrderBy>;
   event_data?: InputMaybe<OrderBy>;
   event_data_version?: InputMaybe<OrderBy>;
@@ -566,6 +619,7 @@ export type ConfidentialAssetActivitiesOrderBy = {
   is_transaction_success?: InputMaybe<OrderBy>;
   metadata?: InputMaybe<FungibleAssetMetadataOrderBy>;
   owner_address?: InputMaybe<OrderBy>;
+  owner_aptos_names_aggregate?: InputMaybe<CurrentAptosNamesAggregateOrderBy>;
   transaction_timestamp?: InputMaybe<OrderBy>;
   transaction_version?: InputMaybe<OrderBy>;
 };

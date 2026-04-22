@@ -8,4 +8,4 @@ export type GetConfidentialAssetActivitiesQueryVariables = Types.Exact<{
 }>;
 
 
-export type GetConfidentialAssetActivitiesQuery = { confidential_asset_activities: Array<{ transaction_version: any, event_index: any, event_type: string, owner_address: string, asset_type?: string | null, counterparty_address?: string | null, amount?: any | null, event_data: any, event_data_version: string, block_height: any, is_transaction_success: boolean, entry_function_id_str?: string | null, transaction_timestamp: any }> };
+export type GetConfidentialAssetActivitiesQuery = { confidential_asset_activities: Array<{ transaction_version: any, event_index: any, event_type: string, owner_address: string, asset_type?: string | null, counterparty_address?: string | null, amount?: any | null, event_data: any, event_data_version: string, block_height: any, is_transaction_success: boolean, entry_function_id_str?: string | null, transaction_timestamp: any, owner_primary_aptos_name: Array<{ domain?: string | null, subdomain?: string | null }>, counterparty_primary_aptos_name: Array<{ domain?: string | null, subdomain?: string | null }> }> };
