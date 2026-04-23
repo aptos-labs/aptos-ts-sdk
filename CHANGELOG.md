@@ -33,6 +33,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 ## Added
 
 - Add e2e tests for external signer flow (build → getSigningMessage → sign externally → submit) to verify the flow works correctly with the latest SDK version
+- Add ABI JSON generation tool: `generateModuleAbiJSON`, `generateEntryFunctionAbiJSON`, `generateViewFunctionAbiJSON` to fetch on-chain module ABIs and produce JSON-serializable output; `parseEntryFunctionAbiJSON` and `parseViewFunctionAbiJSON` to hydrate them back into SDK-native `EntryFunctionABI`/`ViewFunctionABI` types
+- Add `@aptos-labs/generate-abi-json` standalone CLI package (available via `npx @aptos-labs/generate-abi-json`) to generate ABI JSON from on-chain state without writing code
 - Add MultiKey (K-of-N mixed key types) transfer example (`examples/typescript/multikey_transfer.ts`)
 - Add MultiEd25519 (K-of-N Ed25519) transfer example (`examples/typescript/multi_ed25519_transfer.ts`)
 
