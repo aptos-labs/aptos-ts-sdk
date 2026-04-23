@@ -36,9 +36,9 @@ describe("Confidential Asset Sender API", () => {
   const bobConfidential = getTestConfidentialAccount(bob);
 
   async function getPublicTokenBalance(accountAddress: AccountAddressInput) {
-    return await aptos.getAccountCoinAmount({
+    return await aptos.getBalance({
       accountAddress,
-      faMetadataAddress: TOKEN_ADDRESS,
+      asset: TOKEN_ADDRESS,
     });
   }
   async function checkAliceDecryptedBalance(
@@ -166,9 +166,9 @@ describe("Confidential Asset Sender API", () => {
     "it should withdraw Alice's confidential balance and check the balance",
     async () => {
       // Get the current public token balance of Alice
-      const aliceTokenBalance = await aptos.getAccountCoinAmount({
+      const aliceTokenBalance = await aptos.getBalance({
         accountAddress: alice.accountAddress,
-        faMetadataAddress: TOKEN_ADDRESS,
+        asset: TOKEN_ADDRESS,
       });
 
       // Withdraw the amount from the confidential balance to the public balance
@@ -184,9 +184,9 @@ describe("Confidential Asset Sender API", () => {
       await checkAliceDecryptedBalance(DEPOSIT_AMOUNT - WITHDRAW_AMOUNT, 0);
 
       // Verify the public token balance has been updated correctly
-      const aliceNewTokenBalance = await aptos.getAccountCoinAmount({
+      const aliceNewTokenBalance = await aptos.getBalance({
         accountAddress: alice.accountAddress,
-        faMetadataAddress: TOKEN_ADDRESS,
+        asset: TOKEN_ADDRESS,
       });
 
       expect(aliceNewTokenBalance).toBe(aliceTokenBalance + WITHDRAW_AMOUNT);
