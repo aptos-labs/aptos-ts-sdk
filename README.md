@@ -222,6 +222,88 @@ async function example() {
 example();
 ```
 
+### Using Struct and Enum Arguments
+
+---
+
+The SDK supports passing public copy structs and enums as transaction arguments. You must encode them using the `StructEnumArgumentParser` before passing to transaction building functions:
+
+```ts
+import {
+  Aptos,
+  AptosConfig,
+  Network,
+  StructEnumArgumentParser,
+  parseTypeTag,
+  TypeTagStruct
+} from "@aptos-labs/ts-sdk";
+
+const config = new AptosConfig({ network: Network.TESTNET });
+const aptos = new Aptos(config);
+const parser = new StructEnumArgumentParser(config);
+
+// Example 1: Simple struct argument
+const pointType = parseTypeTag("0x1::shapes::Point") as TypeTagStruct;
+const pointArg = await parser.encodeStructArgument(pointType, { x: "10", y: "20" });
+
+const transaction = await aptos.transaction.build.simple({
+  sender: alice.accountAddress,
+  data: {
+    function: "0x1::shapes::draw_point",
+    functionArguments: [pointArg],
+  },
+});
+
+// Example 2: Nested structs
+const lineType = parseTypeTag("0x1::shapes::Line") as TypeTagStruct;
+const lineArg = await parser.encodeStructArgument(lineType, {
+  start: { x: "0", y: "0" },
+  end: { x: "10", y: "10" }
+});
+
+const transaction2 = await aptos.transaction.build.simple({
+  sender: alice.accountAddress,
+  data: {
+    function: "0x1::shapes::draw_line",
+    functionArguments: [lineArg],
+  },
+});
+
+// Example 3: Enum variants
+const colorType = parseTypeTag("0x1::game::Color") as TypeTagStruct;
+const colorArg = await parser.encodeEnumArgument(colorType, { Red: {} });
+
+const transaction3 = await aptos.transaction.build.simple({
+  sender: alice.accountAddress,
+  data: {
+    function: "0x1::game::set_color",
+    functionArguments: [colorArg],
+  },
+});
+
+// Example 4: Enum with fields
+const accountTypeTag = parseTypeTag("0x1::game::AccountType") as TypeTagStruct;
+const accountTypeArg = await parser.encodeEnumArgument(accountTypeTag, {
+  Premium: { "0": "100" }
+});
+
+const transaction4 = await aptos.transaction.build.simple({
+  sender: alice.accountAddress,
+  data: {
+    function: "0x1::game::create_player",
+    functionArguments: [accountTypeArg],
+  },
+});
+```
+
+**Features:**
+- Support for nested structs/enums (up to 7 levels deep)
+- Generic type parameter substitution (T0, T1, etc.)
+- All Move primitive types (bool, u8-u256, i8-i256, address)
+- Special framework types (String, Object<T>, Option<T>)
+- Option<T> dual format support (vector `[]`/`[value]` or enum `{None:{}}`/`{Some:{0:value}}`)
+- Module ABI caching for performance
+
 ## Troubleshooting
 
 If you see an import error when you do this:
