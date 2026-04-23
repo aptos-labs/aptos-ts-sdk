@@ -69,6 +69,22 @@ describe("transaction builder", () => {
       });
       expect(payload instanceof TransactionPayloadMultiSig).toBeTruthy();
     });
+    test("it generates a multi sig script transaction payload", async () => {
+      const payload = await generateTransactionPayload({
+        multisigAddress: Account.generate().accountAddress,
+        bytecode: multiSignerScriptBytecode,
+        functionArguments: [
+          new U64(100),
+          new U64(200),
+          Account.generate().accountAddress,
+          Account.generate().accountAddress,
+          new U64(50),
+        ],
+      });
+      expect(payload instanceof TransactionPayloadMultiSig).toBeTruthy();
+      const msPayload = payload as TransactionPayloadMultiSig;
+      expect(msPayload.multiSig.transaction_payload).toBeDefined();
+    });
     test("it generates an entry function transaction payload", async () => {
       const payload = await generateTransactionPayload({
         aptosConfig: config,

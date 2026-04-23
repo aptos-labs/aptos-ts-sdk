@@ -1,0 +1,19 @@
+name: "Setup Node, pnpm, and safe-chain"
+description: |
+  Install Node (from .node-version), pnpm, and safe-chain. Run this before
+  any pnpm install step.
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node
+      uses: actions/setup-node@v6
+      with:
+        node-version-file: .node-version
+        registry-url: "https://registry.npmjs.org"
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+    
+    - name: Setup AikidoSec Safe Chain
+      uses: aptos-labs/actions/aikidosec-safe-chain@main

@@ -4,13 +4,13 @@ import { ed25519GenListOfRandom } from "../utils";
 import {
   AVAILABLE_BALANCE_CHUNK_COUNT,
   CHUNK_BITS,
-  RangeProofExecutor,
   TwistedEd25519PrivateKey,
   TwistedEd25519PublicKey,
   H_RISTRETTO,
   TwistedElGamalCiphertext,
   EncryptedAmount,
 } from ".";
+import { batchRangeProof, batchVerifyProof } from "@aptos-labs/confidential-asset-bindings";
 import type { SigmaProtocolProof } from "./sigmaProtocol";
 import { proveWithdrawal } from "./sigmaProtocolWithdraw";
 
@@ -185,12 +185,12 @@ export class ConfidentialWithdraw {
   }
 
   async genRangeProof() {
-    const rangeProof = await RangeProofExecutor.genBatchRangeZKP({
+    const rangeProof = await batchRangeProof({
       v: this.senderEncryptedAvailableBalanceAfterWithdrawal.getAmountChunks(),
       rs: this.randomness.map((chunk) => numberToBytesLE(chunk, 32)),
-      val_base: RistrettoPoint.BASE.toRawBytes(),
-      rand_base: H_RISTRETTO.toRawBytes(),
-      num_bits: CHUNK_BITS,
+      valBase: RistrettoPoint.BASE.toRawBytes(),
+      randBase: H_RISTRETTO.toRawBytes(),
+      numBits: CHUNK_BITS,
     });
 
     return rangeProof.proof;
@@ -220,12 +220,12 @@ export class ConfidentialWithdraw {
     rangeProof: Uint8Array;
     senderEncryptedAvailableBalanceAfterWithdrawal: EncryptedAmount;
   }) {
-    return RangeProofExecutor.verifyBatchRangeZKP({
+    return batchVerifyProof({
       proof: opts.rangeProof,
-      comm: opts.senderEncryptedAvailableBalanceAfterWithdrawal.getCipherText().map((el) => el.C.toRawBytes()),
-      val_base: RistrettoPoint.BASE.toRawBytes(),
-      rand_base: H_RISTRETTO.toRawBytes(),
-      num_bits: CHUNK_BITS,
+      comms: opts.senderEncryptedAvailableBalanceAfterWithdrawal.getCipherText().map((el) => el.C.toRawBytes()),
+      valBase: RistrettoPoint.BASE.toRawBytes(),
+      randBase: H_RISTRETTO.toRawBytes(),
+      numBits: CHUNK_BITS,
     });
   }
 }

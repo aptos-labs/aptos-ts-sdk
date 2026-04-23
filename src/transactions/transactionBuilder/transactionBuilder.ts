@@ -142,7 +142,15 @@ export async function generateTransactionPayload(
   args: InputGenerateTransactionPayloadDataWithRemoteABI,
 ): Promise<AnyTransactionPayloadInstance> {
   if (isScriptDataInput(args)) {
-    return generateTransactionPayloadScript(args);
+    const scriptPayload = generateTransactionPayloadScript(args);
+    // If multisigAddress is present, wrap the script in a multisig payload
+    if ("multisigAddress" in args) {
+      const multisigAddress = AccountAddress.from(args.multisigAddress);
+      return new TransactionPayloadMultiSig(
+        new MultiSig(multisigAddress, new MultiSigTransactionPayload(scriptPayload.script)),
+      );
+    }
+    return scriptPayload;
   }
   const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
 
@@ -480,9 +488,10 @@ export function convertPayloadToInnerPayload(
       executable = new TransactionExecutableEmpty();
     } else if (innerPayload.transaction_payload instanceof EntryFunction) {
       executable = new TransactionExecutableEntryFunction(innerPayload.transaction_payload);
+    } else if (innerPayload.transaction_payload instanceof Script) {
+      executable = new TransactionExecutableScript(innerPayload.transaction_payload);
     } else {
-      // TODO For now, scripts are not supported in multi-sig transactions, so it's always entry function
-      throw new Error("Scripts are not supported in multi-sig transactions.");
+      throw new Error("Unsupported multisig transaction payload type");
     }
 
     return new TransactionInnerPayloadV1(

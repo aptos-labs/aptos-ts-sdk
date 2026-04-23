@@ -18,7 +18,7 @@ This is the **Aptos TypeScript SDK** (`@aptos-labs/ts-sdk`), a comprehensive SDK
   - Vitest uses `tests/preTest.ts` (globalSetup with setup/teardown) to start/stop a local Aptos node.
 - **Examples**: `examples/`
   - `examples/typescript`, `examples/typescript-esm`, `examples/javascript` use a **linked** SDK (`link:../..`).
-- **Confidential assets SDK**: `confidential-assets/` (separate package + tests)
+- **Confidential asset SDK**: `confidential-asset/` (separate package + tests)
 - **Docs output**: `docs/` (large; includes versioned typedoc output)
 - **Utility scripts**: `scripts/` (`checkVersion.sh`, `updateVersion.sh`, `generateDocs.sh`)
 
@@ -89,15 +89,15 @@ pnpm build
 pnpm test
 ```
 
-### Confidential Assets Package
+### Confidential Asset Package
 
 ```bash
 pnpm install --frozen-lockfile
-cd confidential-assets && pnpm install --frozen-lockfile
-cd confidential-assets && pnpm test
+cd confidential-asset && pnpm install --frozen-lockfile
+cd confidential-asset && pnpm test
 ```
 
-When changing shared infra (vitest config, root tooling), ensure confidential-assets still works.
+When changing shared infra (vitest config, root tooling), ensure confidential-asset still works.
 
 ## Architecture
 

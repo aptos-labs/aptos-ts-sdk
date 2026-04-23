@@ -5,12 +5,7 @@ description: |
 runs:
   using: composite
   steps:
-    # Install node and pnpm.
-    - uses: actions/setup-node@v6
-      with:
-        node-version-file: .node-version
-        registry-url: "https://registry.npmjs.org"
-    - uses: pnpm/action-setup@v4
+    - uses: ./.github/actions/setup-node-pnpm
 
     # Verify that the format is correct (biome format without --write checks formatting)
     - run: pnpm install --frozen-lockfile && pnpm _fmt

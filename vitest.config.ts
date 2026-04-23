@@ -8,14 +8,14 @@ export default defineConfig({
     setupFiles: [path.resolve(__dirname, "tests/setupDotenv.ts")],
     globalSetup: [path.resolve(__dirname, "tests/preTest.ts")],
     include: ["tests/**/*.test.ts"],
-    exclude: ["dist/**", "examples/**", "confidential-assets/**"],
+    exclude: ["dist/**", "examples/**", "confidential-asset/**"],
     coverage: {
       provider: "v8",
       exclude: [
         "src/internal/queries/**",
         "src/types/generated/**",
         "tests/e2e/ans/publishANSContracts.ts",
-        "confidential-assets/**",
+        "confidential-asset/**",
       ],
       thresholds: {
         branches: 40,
