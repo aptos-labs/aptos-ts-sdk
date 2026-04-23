@@ -679,7 +679,7 @@ describe("Confidential Asset Sender API", () => {
       }
       if (!governanceAvailable) {
         console.log("Skipping governance tests: mint.key or Move framework source not available");
-        throw new Error("Governance failed")
+        throw new Error("Governance failed");
       }
       await plainAptos.fundAccount({
         accountAddress: coreResourcesAccount!.accountAddress,
@@ -691,11 +691,7 @@ describe("Confidential Asset Sender API", () => {
       "allow-listing APT should fail when allow listing is disabled",
       async () => {
         expect(governanceAvailable).toBe(true);
-        await govScriptExpectFailure(
-          "set_confidentiality_for_apt",
-          [new Bool(true)],
-          "E_ALLOW_LISTING_IS_DISABLED",
-        );
+        await govScriptExpectFailure("set_confidentiality_for_apt", [new Bool(true)], "E_ALLOW_LISTING_IS_DISABLED");
       },
       longTestTimeout,
     );
@@ -800,10 +796,7 @@ describe("Confidential Asset Sender API", () => {
       "remove asset-specific auditor EK — effective auditor falls back to global (EK_1)",
       async () => {
         expect(governanceAvailable).toBe(true);
-        await govScript("set_asset_specific_auditor", [
-          AccountAddress.fromString(TOKEN_ADDRESS),
-          MoveVector.U8([]),
-        ]);
+        await govScript("set_asset_specific_auditor", [AccountAddress.fromString(TOKEN_ADDRESS), MoveVector.U8([])]);
 
         // With the asset-specific EK removed, the effective auditor should fall back to
         // the global auditor (EK_1), not become None.
@@ -891,7 +884,10 @@ describe("Confidential Asset Sender API", () => {
       // Helper: build + submit raw txn; if paused, expect on-chain failure with the pause abort code; if not, expect success.
       async function expectRawTxnOutcome(_label: string, signer: any, tx: any) {
         const pending = await plainAptos.signAndSubmitTransaction({ signer, transaction: tx });
-        const result = await plainAptos.waitForTransaction({ transactionHash: pending.hash, options: { checkSuccess: false } });
+        const result = await plainAptos.waitForTransaction({
+          transactionHash: pending.hash,
+          options: { checkSuccess: false },
+        });
         if (paused) {
           expect(result.success).toBeFalsy();
           expect(result.vm_status).toContain(EXPECTED_ABORT);
@@ -985,17 +981,9 @@ describe("Confidential Asset Sender API", () => {
       }
     }
 
-    test(
-      "all operations should succeed when not paused",
-      async () => testAllOperations(false),
-      longTestTimeout,
-    );
+    test("all operations should succeed when not paused", async () => testAllOperations(false), longTestTimeout);
 
-    test(
-      "all operations should fail when paused",
-      async () => testAllOperations(true),
-      longTestTimeout,
-    );
+    test("all operations should fail when paused", async () => testAllOperations(true), longTestTimeout);
   });
 
   // =========================================================================

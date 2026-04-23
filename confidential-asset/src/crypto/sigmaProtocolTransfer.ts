@@ -17,10 +17,9 @@
  * Witness: [dk, new_a[ell], new_r[ell], v[n], r[n]]
  */
 
-import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/abstract/utils";
+import { bytesToNumberLE } from "@noble/curves/utils";
 import { utf8ToBytes } from "@noble/hashes/utils";
-import { ed25519 } from "@noble/curves/ed25519";
-import { RistrettoPoint, H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from ".";
+import { H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from ".";
 import type { RistPoint } from ".";
 import { ed25519modN } from "../utils";
 import {
@@ -227,38 +226,42 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
 
   const ell = oldBalanceC.length;
   const n = transferAmountC.length;
-  const numVolun = hasEffectiveAuditor
-    ? auditorEncryptionKeys.length - 1
-    : auditorEncryptionKeys.length;
+  const numVolun = hasEffectiveAuditor ? auditorEncryptionKeys.length - 1 : auditorEncryptionKeys.length;
   const dkBigint = bytesToNumberLE(dk.toUint8Array());
 
-  const G = RistrettoPoint.BASE;
+  const G = ristretto255.Point.BASE;
   const H = H_RISTRETTO;
   const ekSidBytes = senderEncryptionKey.toUint8Array();
-  const ekSid = RistrettoPoint.fromHex(ekSidBytes);
+  const ekSid = ristretto255.Point.fromHex(ekSidBytes);
   const ekRidBytes = recipientEncryptionKey.toUint8Array();
-  const ekRid = RistrettoPoint.fromHex(ekRidBytes);
+  const ekRid = ristretto255.Point.fromHex(ekRidBytes);
 
   // Build statement points — base
   const stmtPoints: RistPoint[] = [G, H, ekSid, ekRid];
   const stmtCompressed: Uint8Array[] = [G.toRawBytes(), H.toRawBytes(), ekSidBytes, ekRidBytes];
 
-  const pushPoint = (p: RistPoint) => { stmtPoints.push(p); stmtCompressed.push(p.toRawBytes()); };
-  const pushPointBytes = (p: RistPoint, bytes: Uint8Array) => { stmtPoints.push(p); stmtCompressed.push(bytes); };
+  const pushPoint = (p: RistPoint) => {
+    stmtPoints.push(p);
+    stmtCompressed.push(p.toRawBytes());
+  };
+  const pushPointBytes = (p: RistPoint, bytes: Uint8Array) => {
+    stmtPoints.push(p);
+    stmtCompressed.push(bytes);
+  };
 
-  for (let i = 0; i < ell; i++) pushPoint(oldBalanceC[i]);    // old_P
-  for (let i = 0; i < ell; i++) pushPoint(oldBalanceD[i]);    // old_R
-  for (let i = 0; i < ell; i++) pushPoint(newBalanceC[i]);    // new_P
-  for (let i = 0; i < ell; i++) pushPoint(newBalanceD[i]);    // new_R
-  for (let j = 0; j < n; j++) pushPoint(transferAmountC[j]);          // P
-  for (let j = 0; j < n; j++) pushPoint(transferAmountDSender[j]);    // R_sid
+  for (let i = 0; i < ell; i++) pushPoint(oldBalanceC[i]); // old_P
+  for (let i = 0; i < ell; i++) pushPoint(oldBalanceD[i]); // old_R
+  for (let i = 0; i < ell; i++) pushPoint(newBalanceC[i]); // new_P
+  for (let i = 0; i < ell; i++) pushPoint(newBalanceD[i]); // new_R
+  for (let j = 0; j < n; j++) pushPoint(transferAmountC[j]); // P
+  for (let j = 0; j < n; j++) pushPoint(transferAmountDSender[j]); // R_sid
   for (let j = 0; j < n; j++) pushPoint(transferAmountDRecipient[j]); // R_rid
 
   // Effective auditor: [ek_eff, new_R_aud_eff[ell], R_aud_eff[n]]
   if (hasEffectiveAuditor) {
     const effIdx = auditorEncryptionKeys.length - 1;
     const ekEffBytes = auditorEncryptionKeys[effIdx].toUint8Array();
-    pushPointBytes(RistrettoPoint.fromHex(ekEffBytes), ekEffBytes);
+    pushPointBytes(ristretto255.Point.fromHex(ekEffBytes), ekEffBytes);
     for (let i = 0; i < ell; i++) pushPoint(newBalanceDAud[effIdx][i]);
     for (let j = 0; j < n; j++) pushPoint(transferAmountDAud[effIdx][j]);
   }
@@ -266,7 +269,7 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
   // Voluntary auditors: for each, [ek_volun, R_volun[n]]
   for (let a = 0; a < numVolun; a++) {
     const ekVolunBytes = auditorEncryptionKeys[a].toUint8Array();
-    pushPointBytes(RistrettoPoint.fromHex(ekVolunBytes), ekVolunBytes);
+    pushPointBytes(ristretto255.Point.fromHex(ekVolunBytes), ekVolunBytes);
     for (let j = 0; j < n; j++) pushPoint(transferAmountDAud[a][j]);
   }
 
@@ -277,11 +280,23 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
   };
 
   // Witness: [dk, new_a[ell], new_r[ell], v[n], r[n]]
-  const witness: bigint[] = [dkBigint, ...newAmountChunks, ...newRandomness, ...transferAmountChunks, ...transferRandomness];
+  const witness: bigint[] = [
+    dkBigint,
+    ...newAmountChunks,
+    ...newRandomness,
+    ...transferAmountChunks,
+    ...transferRandomness,
+  ];
 
   // Domain separator
   const sessionId = bcsSerializeTransferSession(
-    senderAddress, recipientAddress, tokenAddress, ell, n, hasEffectiveAuditor, numVolun,
+    senderAddress,
+    recipientAddress,
+    tokenAddress,
+    ell,
+    n,
+    hasEffectiveAuditor,
+    numVolun,
   );
   const dst: DomainSeparator = {
     contractAddress: APTOS_FRAMEWORK_ADDRESS,
@@ -347,7 +362,7 @@ function makeTransferPsi(ell: number, n: number, hasEffective: boolean, numVolun
     // 4. Balance equation: dk*⟨B,old_R⟩ + (⟨B,new_a⟩ + ⟨B,v⟩)*G
     const bPowersEll = computeBPowers(ell);
     const bPowersN = computeBPowers(n);
-    let balanceResult = RistrettoPoint.ZERO;
+    let balanceResult = ristretto255.Point.ZERO;
     const startOldR = getStartIdxOldR(ell);
     for (let i = 0; i < ell; i++) {
       balanceResult = balanceResult.add(s.points[startOldR + i].multiply(ed25519modN(dk * bPowersEll[i])));
@@ -431,7 +446,7 @@ function makeTransferF(ell: number, n: number, hasEffective: boolean, numVolun: 
 
     // 4. Balance equation target: ⟨B,old_P⟩
     const bPowersEll = computeBPowers(ell);
-    let balanceTarget = RistrettoPoint.ZERO;
+    let balanceTarget = ristretto255.Point.ZERO;
     for (let i = 0; i < ell; i++) {
       balanceTarget = balanceTarget.add(s.points[START_IDX_OLD_P + i].multiply(bPowersEll[i]));
     }
@@ -527,16 +542,22 @@ export function verifyTransfer(args: {
   const n = transferAmountC.length;
   const numVolun = hasEffectiveAuditor ? auditorEkBytes.length - 1 : auditorEkBytes.length;
 
-  const G = RistrettoPoint.BASE;
+  const G = ristretto255.Point.BASE;
   const H = H_RISTRETTO;
-  const ekSid = RistrettoPoint.fromHex(ekSidBytes);
-  const ekRid = RistrettoPoint.fromHex(ekRidBytes);
+  const ekSid = ristretto255.Point.fromHex(ekSidBytes);
+  const ekRid = ristretto255.Point.fromHex(ekRidBytes);
 
   const stmtPoints: RistPoint[] = [G, H, ekSid, ekRid];
   const stmtCompressed: Uint8Array[] = [G.toRawBytes(), H.toRawBytes(), ekSidBytes, ekRidBytes];
 
-  const pushPoint = (p: RistPoint) => { stmtPoints.push(p); stmtCompressed.push(p.toRawBytes()); };
-  const pushPointBytes = (p: RistPoint, bytes: Uint8Array) => { stmtPoints.push(p); stmtCompressed.push(bytes); };
+  const pushPoint = (p: RistPoint) => {
+    stmtPoints.push(p);
+    stmtCompressed.push(p.toRawBytes());
+  };
+  const pushPointBytes = (p: RistPoint, bytes: Uint8Array) => {
+    stmtPoints.push(p);
+    stmtCompressed.push(bytes);
+  };
 
   for (let i = 0; i < ell; i++) pushPoint(oldBalanceC[i]);
   for (let i = 0; i < ell; i++) pushPoint(oldBalanceD[i]);
@@ -549,14 +570,14 @@ export function verifyTransfer(args: {
   // Effective auditor: [ek_eff, new_R_aud_eff[ell], R_aud_eff[n]]
   if (hasEffectiveAuditor) {
     const effIdx = auditorEkBytes.length - 1;
-    pushPointBytes(RistrettoPoint.fromHex(auditorEkBytes[effIdx]), auditorEkBytes[effIdx]);
+    pushPointBytes(ristretto255.Point.fromHex(auditorEkBytes[effIdx]), auditorEkBytes[effIdx]);
     for (let i = 0; i < ell; i++) pushPoint(newBalanceDAud[effIdx][i]);
     for (let j = 0; j < n; j++) pushPoint(transferAmountDAud[effIdx][j]);
   }
 
   // Voluntary auditors: [ek_volun, R_volun[n]]
   for (let a = 0; a < numVolun; a++) {
-    pushPointBytes(RistrettoPoint.fromHex(auditorEkBytes[a]), auditorEkBytes[a]);
+    pushPointBytes(ristretto255.Point.fromHex(auditorEkBytes[a]), auditorEkBytes[a]);
     for (let j = 0; j < n; j++) pushPoint(transferAmountDAud[a][j]);
   }
 
@@ -567,7 +588,13 @@ export function verifyTransfer(args: {
   };
 
   const sessionId = bcsSerializeTransferSession(
-    senderAddress, recipientAddress, tokenAddress, ell, n, hasEffectiveAuditor, numVolun,
+    senderAddress,
+    recipientAddress,
+    tokenAddress,
+    ell,
+    n,
+    hasEffectiveAuditor,
+    numVolun,
   );
   const dst: DomainSeparator = {
     contractAddress: APTOS_FRAMEWORK_ADDRESS,

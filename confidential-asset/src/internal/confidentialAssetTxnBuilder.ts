@@ -12,7 +12,6 @@ import {
   SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
 import {
-  TwistedElGamal,
   ConfidentialNormalization,
   ConfidentialKeyRotation,
   ConfidentialTransfer,
@@ -335,7 +334,15 @@ export class ConfidentialAssetTransactionBuilder {
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    const { sender, senderDecryptionKey, recipient, tokenAddress, amount, additionalAuditorEncryptionKeys = [], memo = new Uint8Array() } = args;
+    const {
+      sender,
+      senderDecryptionKey,
+      recipient,
+      tokenAddress,
+      amount,
+      additionalAuditorEncryptionKeys = [],
+      memo = new Uint8Array(),
+    } = args;
     validateAmount({ amount });
 
     const maxMemoBytes = await this.getMaxMemoBytes();
@@ -424,11 +431,12 @@ export class ConfidentialAssetTransactionBuilder {
     const recipientDPoints = encryptedAmountByRecipient.getCipherText().map((ct) => ct.D.toRawBytes());
     // Split auditor D points into effective (last, if present) and voluntary (remaining)
     const effectiveAuditorDPoints = effectiveAuditorPubKey
-      ? allAuditorAmountCiphertexts[allAuditorAmountCiphertexts.length - 1].getCipherText().map((ct) => ct.D.toRawBytes())
+      ? allAuditorAmountCiphertexts[allAuditorAmountCiphertexts.length - 1]
+          .getCipherText()
+          .map((ct) => ct.D.toRawBytes())
       : [];
-    const volunAuditorDPoints = (effectiveAuditorPubKey
-      ? allAuditorAmountCiphertexts.slice(0, -1)
-      : allAuditorAmountCiphertexts
+    const volunAuditorDPoints = (
+      effectiveAuditorPubKey ? allAuditorAmountCiphertexts.slice(0, -1) : allAuditorAmountCiphertexts
     ).map((cb) => cb.getCipherText().map((ct) => ct.D.toRawBytes()));
 
     // Build R_aud components for new balance (D points encrypted under the effective auditor key, i.e., the last one)
@@ -539,14 +547,7 @@ export class ConfidentialAssetTransactionBuilder {
       sender: args.sender,
       data: {
         function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::rotate_encryption_key_raw`,
-        functionArguments: [
-          args.tokenAddress,
-          newEkBytes,
-          unpause,
-          newDBytes,
-          proof.commitment,
-          proof.response,
-        ],
+        functionArguments: [args.tokenAddress, newEkBytes, unpause, newDBytes, proof.commitment, proof.response],
       },
       options: args.options,
     });

@@ -49,10 +49,7 @@ const IDX_EK = 1;
  * struct RegistrationSession { sender: address, asset_type: Object<Metadata> }
  * ```
  */
-export function bcsSerializeRegistrationSession(
-  senderAddress: Uint8Array,
-  tokenTypeAddress: Uint8Array,
-): Uint8Array {
+export function bcsSerializeRegistrationSession(senderAddress: Uint8Array, tokenTypeAddress: Uint8Array): Uint8Array {
   const serializer = new Serializer();
   serializer.serialize(new FixedBytes(senderAddress));
   serializer.serialize(new FixedBytes(tokenTypeAddress));

@@ -166,7 +166,7 @@ function getRouterAddress(aptosConfig: AptosConfig): string {
 }
 
 const unwrapOption = <T>(option: any): T | undefined => {
-  if (!!option && typeof option === "object" && "vec" in option && Array.isArray(option.vec)) {
+  if (option && typeof option === "object" && "vec" in option && Array.isArray(option.vec)) {
     return option.vec[0];
   }
 
