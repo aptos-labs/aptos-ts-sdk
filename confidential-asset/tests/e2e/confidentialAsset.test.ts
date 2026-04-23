@@ -57,21 +57,6 @@ describe("Confidential Asset Sender API", () => {
     expect(confidentialBalance.pendingBalance()).toBe(BigInt(expectedPending));
   }
 
-  async function checkBobDecryptedBalance(
-    expectedAvailable: AnyNumber,
-    expectedPending: AnyNumber,
-  ) {
-    const confidentialBalance = await confidentialAsset.getBalance({
-      accountAddress: bob.accountAddress,
-      tokenAddress: TOKEN_ADDRESS,
-      decryptionKey: bobConfidential,
-      useCachedValue: false,
-    });
-
-    expect(confidentialBalance.availableBalance()).toBe(BigInt(expectedAvailable));
-    expect(confidentialBalance.pendingBalance()).toBe(BigInt(expectedPending));
-  }
-
   async function checkAliceNormalizedBalanceStatus(expectedStatus: boolean) {
     const isNormalized = await confidentialAsset.isBalanceNormalized({
       accountAddress: alice.accountAddress,
@@ -410,7 +395,6 @@ describe("Confidential Asset Sender API", () => {
   // --- Auditor configuration tests ---
 
   const VOLUNTARY_AUDITOR = TwistedEd25519PrivateKey.generate();
-  const EFFECTIVE_AUDITOR = TwistedEd25519PrivateKey.generate();
 
   test(
     "it should transfer with voluntary auditor only (no effective auditor on-chain)",
@@ -891,7 +875,7 @@ describe("Confidential Asset Sender API", () => {
       }
 
       // Helper: build + submit raw txn; if paused, expect on-chain failure with the pause abort code; if not, expect success.
-      async function expectRawTxnOutcome(label: string, signer: any, tx: any) {
+      async function expectRawTxnOutcome(_label: string, signer: any, tx: any) {
         const pending = await plainAptos.signAndSubmitTransaction({ signer, transaction: tx });
         const result = await plainAptos.waitForTransaction({ transactionHash: pending.hash, options: { checkSuccess: false } });
         if (paused) {
@@ -902,16 +886,13 @@ describe("Confidential Asset Sender API", () => {
         }
       }
 
-      let pauseEnabledByThisTest = false;
       if (paused) {
         await govScript("set_emergency_paused", [new Bool(true)]);
-        pauseEnabledByThisTest = true;
         expect(await confidentialAsset.isEmergencyPaused()).toBe(true);
       } else {
         expect(await confidentialAsset.isEmergencyPaused()).toBe(false);
       }
 
-      try {
         // register
         const newAccount = Account.generate();
         await aptos.fundAccount({ accountAddress: newAccount.accountAddress, amount: 100000000 });
@@ -972,7 +953,7 @@ describe("Confidential Asset Sender API", () => {
           confidentialAsset.rotateEncryptionKey({
             signer: alice,
             senderDecryptionKey: aliceConfidential,
-            newDecryptionKey: TwistedEd25519PrivateKey.generate(),
+            newSenderDecryptionKey: TwistedEd25519PrivateKey.generate(),
             tokenAddress: TOKEN_ADDRESS,
           }),
         );
