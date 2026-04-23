@@ -1,7 +1,14 @@
 import { execSync } from "node:child_process";
 import "../../setupDotenv.js";
-import { AccountAddress, Aptos, AptosApiType, Ed25519PrivateKey, PrivateKey, PrivateKeyVariants } from "../../../src";
-import { LOCAL_ANS_ACCOUNT_PK, LOCAL_ANS_ACCOUNT_ADDRESS } from "../../../src/internal/ans";
+import {
+  AccountAddress,
+  Aptos,
+  AptosApiType,
+  Ed25519PrivateKey,
+  PrivateKey,
+  PrivateKeyVariants,
+} from "../../../src/index.js";
+import { LOCAL_ANS_ACCOUNT_PK, LOCAL_ANS_ACCOUNT_ADDRESS } from "../../../src/internal/ans.js";
 
 /**
  * TS SDK supports ANS. Since ANS contract is not part of aptos-framework

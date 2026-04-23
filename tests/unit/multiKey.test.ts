@@ -1,9 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Deserializer, Ed25519PublicKey, Secp256k1PublicKey, MultiKey } from "../../src";
-import { KeylessPublicKey } from "../../src/core/crypto/keyless";
-import { keylessTestObject, multiKeyTestObject } from "./helper";
+import { Deserializer, Ed25519PublicKey, Secp256k1PublicKey, MultiKey } from "../../src/index.js";
+import { KeylessPublicKey } from "../../src/core/crypto/keyless.js";
+import { keylessTestObject, multiKeyTestObject } from "./helper.js";
 
 describe("MultiKey", () => {
   it("should throw when number of required signatures is less then 1", () => {

@@ -24,7 +24,7 @@ import {
   deserializeFromScriptArgument,
   Serialized,
   MoveString,
-} from "../../src";
+} from "../../src/index.js";
 
 describe("Tests for the script transaction argument class", () => {
   let serializer: Serializer;

@@ -35,16 +35,16 @@ import {
   ModuleId,
   Identifier,
   U64,
-} from "../../src";
+} from "../../src/index.js";
 import {
   AccountAuthenticatorMultiKey,
   AccountAuthenticatorSingleKey,
-} from "../../src/transactions/authenticator/account";
+} from "../../src/transactions/authenticator/account.js";
 import {
   TransactionAuthenticatorEd25519,
   TransactionAuthenticatorMultiEd25519,
   TransactionAuthenticatorSingleSender,
-} from "../../src/transactions/authenticator/transaction";
+} from "../../src/transactions/authenticator/transaction.js";
 
 /**
  * Test vectors from specification documents

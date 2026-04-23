@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Hex, HexInvalidReason } from "../../src";
+import { Hex, HexInvalidReason } from "../../src/index.js";
 
 const mockHex = {
   withoutPrefix: "007711b4d0",

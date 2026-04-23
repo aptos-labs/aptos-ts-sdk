@@ -29,7 +29,7 @@ import {
   TypeTagU8,
   TypeTagU16,
   TypeTagU32,
-} from "../../../src";
+} from "../../../src/index.js";
 import {
   MAX_U128_BIG_INT,
   MAX_U16_NUMBER,
@@ -37,8 +37,8 @@ import {
   MAX_U32_NUMBER,
   MAX_U64_BIG_INT,
   MAX_U8_NUMBER,
-} from "../../../src/bcs/consts";
-import { getAptosClient } from "../helper";
+} from "../../../src/bcs/consts.js";
+import { getAptosClient } from "../helper.js";
 import {
   fundAccounts,
   rawTransactionHelper,
@@ -47,7 +47,7 @@ import {
   PUBLISHER_ACCOUNT_PK,
   MULTI_SIGNER_SCRIPT_ARGUMENT_TEST,
   PUBLISHER_ACCOUNT_ADDRESS,
-} from "./helper";
+} from "./helper.js";
 
 vi.setConfig({ testTimeout: 10000 });
 

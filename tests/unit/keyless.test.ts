@@ -1,10 +1,10 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { keylessTestConfig, keylessTestObject } from "./helper";
-import { Deserializer, Hex } from "../../src";
-import { KeylessPublicKey, KeylessSignature } from "../../src/core/crypto/keyless";
-import { KeylessAccount } from "../../src/account/KeylessAccount";
+import { keylessTestConfig, keylessTestObject } from "./helper.js";
+import { Deserializer, Hex } from "../../src/index.js";
+import { KeylessPublicKey, KeylessSignature } from "../../src/core/crypto/keyless.js";
+import { KeylessAccount } from "../../src/account/KeylessAccount.js";
 
 describe("Keyless", () => {
   describe("keylessPublicKey", () => {

@@ -13,13 +13,13 @@ import {
   generateSigningMessageForTransaction,
   Hex,
   base64UrlEncode,
-} from "../../../src";
+} from "../../../src/index.js";
 import { p256 } from "@noble/curves/nist.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { sha3_256 } from "@noble/hashes/sha3.js";
-import { longTestTimeout } from "../../unit/helper";
-import { getAptosClient } from "../helper";
-import { fundAccounts, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
+import { longTestTimeout } from "../../unit/helper.js";
+import { getAptosClient } from "../helper.js";
+import { fundAccounts, publishTransferPackage, singleSignerScriptBytecode } from "./helper.js";
 const { aptos } = getAptosClient();
 
 describe("sign transaction", () => {

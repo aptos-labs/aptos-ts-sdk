@@ -1,9 +1,9 @@
 import { vi, type MockInstance } from "vitest";
-import { longTestTimeout } from "../../unit/helper";
-import { Account } from "../../../src/account";
-import * as AccountQueries from "../../../src/internal/account";
-import { AccountSequenceNumber } from "../../../src/transactions/management/accountSequenceNumber";
-import { getAptosClient } from "../helper";
+import { longTestTimeout } from "../../unit/helper.js";
+import { Account } from "../../../src/account/index.js";
+import * as AccountQueries from "../../../src/internal/account.js";
+import { AccountSequenceNumber } from "../../../src/transactions/management/accountSequenceNumber.js";
+import { getAptosClient } from "../helper.js";
 
 const { aptos, config: aptosConfig } = getAptosClient();
 

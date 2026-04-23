@@ -1,4 +1,4 @@
-import { getAptosClient } from "../helper";
+import { getAptosClient } from "../helper.js";
 
 describe("object", () => {
   test("it fetches an object data", async () => {

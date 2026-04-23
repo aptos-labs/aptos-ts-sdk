@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { p256 } from "@noble/curves/nist.js";
-import { singleSignerSecp256r1 } from "./helper";
+import { singleSignerSecp256r1 } from "./helper.js";
 import {
   Deserializer,
   Hex,
@@ -12,7 +12,7 @@ import {
   Secp256r1PublicKey,
   Secp256r1Signature,
   Serializer,
-} from "../../src";
+} from "../../src/index.js";
 
 describe("Secp256r1PublicKey", () => {
   it("should create the instance correctly without error", () => {

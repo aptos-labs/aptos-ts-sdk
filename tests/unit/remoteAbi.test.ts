@@ -21,7 +21,7 @@ import {
   I64,
   I128,
   I256,
-} from "../../src";
+} from "../../src/index.js";
 
 const MAX_U8 = 255;
 const MAX_U16 = 65535;

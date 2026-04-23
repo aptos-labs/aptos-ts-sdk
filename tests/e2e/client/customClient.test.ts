@@ -6,9 +6,9 @@ import {
   postAptosFullNode,
   MimeType,
   generateSignedTransaction,
-} from "../../../src";
-import { customClient } from "../../unit/helper";
-import { getAptosClient } from "../helper";
+} from "../../../src/index.js";
+import { customClient } from "../../unit/helper.js";
+import { getAptosClient } from "../helper.js";
 
 describe("custom client", () => {
   test("it uses default client when it doesnt set in AptosConfig", () => {

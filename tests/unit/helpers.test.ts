@@ -1,6 +1,11 @@
-import { base64UrlDecode, base64UrlEncode, base64UrlToBytes, pairedFaMetadataAddress } from "../../src/utils/helpers";
-import { getRuntimePlatform, getRuntimePlatformTag } from "../../src/utils/runtime";
-import { AccountAddress } from "../../src/core/accountAddress";
+import {
+  base64UrlDecode,
+  base64UrlEncode,
+  base64UrlToBytes,
+  pairedFaMetadataAddress,
+} from "../../src/utils/helpers.js";
+import { getRuntimePlatform, getRuntimePlatformTag } from "../../src/utils/runtime.js";
+import { AccountAddress } from "../../src/core/accountAddress.js";
 
 describe("pairedFaMetadataAddress", () => {
   test("matches the ground truth cases on chain", () => {

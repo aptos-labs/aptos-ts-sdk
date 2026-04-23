@@ -40,7 +40,7 @@ import {
   I256,
   ChainId,
   FeePayerRawTransaction,
-} from "../../src";
+} from "../../src/index.js";
 
 /**
  * Creates a Serializer instance that mimics an older SDK version's Serializer

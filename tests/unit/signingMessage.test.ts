@@ -1,9 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, Ed25519PrivateKey, generateSigningMessageForTransaction } from "../../src";
-import { getAptosClient } from "../e2e/helper";
-import { ed25519 } from "./helper";
+import { Account, Ed25519PrivateKey, generateSigningMessageForTransaction } from "../../src/index.js";
+import { getAptosClient } from "../e2e/helper.js";
+import { ed25519 } from "./helper.js";
 
 const { aptos } = getAptosClient();
 const TRANSFER_AMOUNT = 100;

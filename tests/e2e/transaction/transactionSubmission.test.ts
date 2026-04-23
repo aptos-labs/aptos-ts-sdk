@@ -22,16 +22,21 @@ import {
   generateSigningMessageForTransaction,
   Hex,
   base64UrlEncode,
-} from "../../../src";
+} from "../../../src/index.js";
 import { p256 } from "@noble/curves/nist.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { sha3_256 } from "@noble/hashes/sha3.js";
-import { MAX_U64_BIG_INT } from "../../../src/bcs/consts";
-import { longTestTimeout } from "../../unit/helper";
-import { getAptosClient } from "../helper";
-import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
-import { AccountAuthenticatorNoAccountAuthenticator } from "../../../src/transactions";
-import { MultiEd25519Account } from "../../../src/account/MultiEd25519Account";
+import { MAX_U64_BIG_INT } from "../../../src/bcs/consts.js";
+import { longTestTimeout } from "../../unit/helper.js";
+import { getAptosClient } from "../helper.js";
+import {
+  fundAccounts,
+  multiSignerScriptBytecode,
+  publishTransferPackage,
+  singleSignerScriptBytecode,
+} from "./helper.js";
+import { AccountAuthenticatorNoAccountAuthenticator } from "../../../src/transactions/index.js";
+import { MultiEd25519Account } from "../../../src/account/MultiEd25519Account.js";
 import { fail } from "node:assert";
 
 const { aptos } = getAptosClient();

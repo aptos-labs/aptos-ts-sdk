@@ -9,8 +9,8 @@ import {
   Hex,
   isCanonicalEd25519Signature,
   Serializer,
-} from "../../src";
-import { ed25519, wallet } from "./helper";
+} from "../../src/index.js";
+import { ed25519, wallet } from "./helper.js";
 
 describe("Ed25519PublicKey", () => {
   it("should create the instance correctly without error", () => {

@@ -33,7 +33,7 @@ import {
   aptosCoinStructTag,
   Identifier,
   APTOS_COIN,
-} from "../../src";
+} from "../../src/index.js";
 
 const TAG_STRUCT_NAME = "0x1::tag::Tag";
 

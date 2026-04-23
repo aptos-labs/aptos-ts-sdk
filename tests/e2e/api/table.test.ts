@@ -1,4 +1,4 @@
-import { getAptosClient } from "../helper";
+import { getAptosClient } from "../helper.js";
 
 const { aptos } = getAptosClient();
 let resource: Supply;

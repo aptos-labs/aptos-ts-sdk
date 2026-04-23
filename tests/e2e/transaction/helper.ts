@@ -16,11 +16,11 @@ import {
   isUserTransactionResponse,
   Ed25519PrivateKey,
   InputEntryFunctionData,
-} from "../../../src";
-import { EphemeralKeyPair } from "../../../src/account/EphemeralKeyPair";
-import { generateTransactionPayload } from "../../../src/transactions/transactionBuilder/transactionBuilder";
-import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper";
-import { getAptosClient } from "../helper";
+} from "../../../src/index.js";
+import { EphemeralKeyPair } from "../../../src/account/EphemeralKeyPair.js";
+import { generateTransactionPayload } from "../../../src/transactions/transactionBuilder/transactionBuilder.js";
+import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper.js";
+import { getAptosClient } from "../helper.js";
 
 export const EPHEMERAL_KEY_PAIR = new EphemeralKeyPair({
   privateKey: new Ed25519PrivateKey("ed25519-priv-0x1111111111111111111111111111111111111111111111111111111111111111"),

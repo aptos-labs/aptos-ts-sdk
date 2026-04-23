@@ -1,9 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AnyPublicKey, Ed25519PublicKey, Secp256k1PublicKey, Secp256r1PublicKey } from "../../src";
-import { KeylessPublicKey } from "../../src/core/crypto/keyless";
-import { ed25519, secp256k1TestObject, singleSignerSecp256r1 } from "./helper";
+import { AnyPublicKey, Ed25519PublicKey, Secp256k1PublicKey, Secp256r1PublicKey } from "../../src/index.js";
+import { KeylessPublicKey } from "../../src/core/crypto/keyless.js";
+import { ed25519, secp256k1TestObject, singleSignerSecp256r1 } from "./helper.js";
 
 describe("PublicKey", () => {
   it.each([

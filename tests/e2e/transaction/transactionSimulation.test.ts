@@ -6,10 +6,10 @@ import {
   InputEntryFunctionData,
   MultiKeyAccount,
   MultiKey,
-} from "../../../src";
-import { KeylessPublicKey } from "../../../src/core/crypto/keyless";
-import { ed25519, longTestTimeout } from "../../unit/helper";
-import { getAptosClient } from "../helper";
+} from "../../../src/index.js";
+import { KeylessPublicKey } from "../../../src/core/crypto/keyless.js";
+import { ed25519, longTestTimeout } from "../../unit/helper.js";
+import { getAptosClient } from "../helper.js";
 import {
   createAndFundMultisigAccount,
   createMultisigTransaction,
@@ -17,7 +17,7 @@ import {
   multiSignerScriptBytecode,
   publishTransferPackage,
   singleSignerScriptBytecode,
-} from "./helper";
+} from "./helper.js";
 
 describe("transaction simulation", () => {
   const { aptos } = getAptosClient();

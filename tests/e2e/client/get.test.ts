@@ -7,8 +7,8 @@ import {
   paginateWithCursor,
   paginateWithObfuscatedCursor,
   getPageWithObfuscatedCursor,
-} from "../../../src";
-import { getAptosClient } from "../helper";
+} from "../../../src/index.js";
+import { getAptosClient } from "../helper.js";
 
 const partialConfig = new AptosConfig({
   clientConfig: {

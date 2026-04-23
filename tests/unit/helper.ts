@@ -1,9 +1,14 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { ClientRequest, ClientResponse, Deserializer, Ed25519PrivateKey, Hex } from "../../src";
-import { EphemeralKeyPair } from "../../src/account/EphemeralKeyPair";
-import { Groth16VerificationKey, KeylessConfiguration, MoveJWK, ZeroKnowledgeSig } from "../../src/core/crypto/keyless";
+import { ClientRequest, ClientResponse, Deserializer, Ed25519PrivateKey, Hex } from "../../src/index.js";
+import { EphemeralKeyPair } from "../../src/account/EphemeralKeyPair.js";
+import {
+  Groth16VerificationKey,
+  KeylessConfiguration,
+  MoveJWK,
+  ZeroKnowledgeSig,
+} from "../../src/core/crypto/keyless.js";
 
 export const FUND_AMOUNT = 1_000_000_000;
 export const TRANSFER_AMOUNT = 500_000;

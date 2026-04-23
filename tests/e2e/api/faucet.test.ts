@@ -1,9 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, InputViewFunctionJsonData } from "../../../src";
-import { FUND_AMOUNT } from "../../unit/helper";
-import { getAptosClient } from "../helper";
+import { Account, InputViewFunctionJsonData } from "../../../src/index.js";
+import { FUND_AMOUNT } from "../../unit/helper.js";
+import { getAptosClient } from "../helper.js";
 
 describe("Faucet", () => {
   test("it should fund an account", async () => {

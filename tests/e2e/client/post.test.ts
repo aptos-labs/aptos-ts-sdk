@@ -7,10 +7,10 @@ import {
   postAptosFaucet,
   Account,
   InputViewFunctionData,
-} from "../../../src";
-import { GetChainTopUserTransactionsQuery } from "../../../src/types/generated/operations";
-import { GetChainTopUserTransactions } from "../../../src/types/generated/queries";
-import { getAptosClient } from "../helper";
+} from "../../../src/index.js";
+import { GetChainTopUserTransactionsQuery } from "../../../src/types/generated/operations.js";
+import { GetChainTopUserTransactions } from "../../../src/types/generated/queries.js";
+import { getAptosClient } from "../helper.js";
 
 function getAptosConfig(): AptosConfig {
   const partialConfig = {

@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Deserializer, Serializer, I8, I16, I32, I64, I128, I256, MoveVector, MoveOption } from "../../src";
+import { Deserializer, Serializer, I8, I16, I32, I64, I128, I256, MoveVector, MoveOption } from "../../src/index.js";
 
 describe("Signed Integer Types", () => {
   describe("I8", () => {
