@@ -88,6 +88,7 @@ export interface ActivityBase {
   transaction_version: string;
   event_index: string;
   owner_address: string;
+  owner_primary_aptos_name: string | null;
   event_data_version: string;
   block_height: string;
   is_transaction_success: boolean;
@@ -108,11 +109,13 @@ interface WithoutAssetType {
 /** Events involving two parties (e.g. transfer, withdraw). */
 interface WithCounterparty {
   counterparty_address: string;
+  counterparty_primary_aptos_name: string | null;
 }
 
 /** Events involving only one party. */
 interface WithoutCounterparty {
   counterparty_address: null;
+  counterparty_primary_aptos_name: null;
 }
 
 /** Events with a plaintext amount (deposit, withdraw). */

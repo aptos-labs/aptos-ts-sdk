@@ -15,8 +15,24 @@ export const GetConfidentialAssetActivities = `
     event_index
     event_type
     owner_address
+    owner_primary_aptos_name: owner_aptos_names(
+      where: {is_active: {_eq: true}, is_primary: {_eq: true}}
+      order_by: {last_transaction_version: desc}
+      limit: 1
+    ) {
+      domain
+      subdomain
+    }
     asset_type
     counterparty_address
+    counterparty_primary_aptos_name: counterparty_aptos_names(
+      where: {is_active: {_eq: true}, is_primary: {_eq: true}}
+      order_by: {last_transaction_version: desc}
+      limit: 1
+    ) {
+      domain
+      subdomain
+    }
     amount
     event_data
     event_data_version
