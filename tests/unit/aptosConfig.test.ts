@@ -9,7 +9,7 @@ import {
   NetworkToNodeAPI,
   NetworkToIndexerAPI,
   AptosApiType,
-} from "../../src";
+} from "../../src/index.js";
 
 describe("aptos config", () => {
   test("it should set urls based on a local network", async () => {

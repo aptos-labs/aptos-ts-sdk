@@ -19,7 +19,7 @@ import {
   U64,
   U8,
   EntryFunctionArgument,
-} from "../../src";
+} from "../../src/index.js";
 
 describe("Tests for the Serializable class", () => {
   let serializer: Serializer;

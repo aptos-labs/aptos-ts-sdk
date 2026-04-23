@@ -15,9 +15,9 @@ import {
   MultiEd25519Account,
   MultiEd25519PublicKey,
   CommittedTransactionResponse,
-} from "../../../src";
-import { getAptosClient } from "../helper";
-import { simpleCoinTransactionHeler } from "../transaction/helper";
+} from "../../../src/index.js";
+import { getAptosClient } from "../helper.js";
+import { simpleCoinTransactionHeler } from "../transaction/helper.js";
 
 describe("account api", () => {
   const FUND_AMOUNT = 1_000_000_000;

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { secp256k1 } from "@noble/curves/secp256k1.js";
-import { secp256k1TestObject, secp256k1WalletTestObject } from "./helper";
+import { secp256k1TestObject, secp256k1WalletTestObject } from "./helper.js";
 import {
   Deserializer,
   Hex,
@@ -12,7 +12,7 @@ import {
   Secp256k1PublicKey,
   Secp256k1Signature,
   Serializer,
-} from "../../src";
+} from "../../src/index.js";
 
 describe("Secp256k1PublicKey", () => {
   it("should create the instance correctly without error", () => {

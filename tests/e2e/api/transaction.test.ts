@@ -1,10 +1,10 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, TransactionResponse, U64 } from "../../../src";
-import { FUND_AMOUNT } from "../../unit/helper";
-import { getAptosClient } from "../helper";
-import { longWaitForTransaction } from "../../../src/internal/transaction";
+import { Account, TransactionResponse, U64 } from "../../../src/index.js";
+import { FUND_AMOUNT } from "../../unit/helper.js";
+import { getAptosClient } from "../helper.js";
+import { longWaitForTransaction } from "../../../src/internal/transaction.js";
 
 // use it here since all tests use the same configuration
 const { aptos } = getAptosClient();

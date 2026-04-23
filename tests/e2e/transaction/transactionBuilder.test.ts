@@ -25,17 +25,17 @@ import {
   generateTransactionPayloadWithABI,
   SignedTransaction,
   generateUserTransactionHash,
-} from "../../../src";
-import { KeylessPublicKey } from "../../../src/core/crypto/keyless";
-import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
-import { getAptosClient } from "../helper";
+} from "../../../src/index.js";
+import { KeylessPublicKey } from "../../../src/core/crypto/keyless.js";
+import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper.js";
+import { getAptosClient } from "../helper.js";
 import {
   EPHEMERAL_KEY_PAIR,
   fundAccounts,
   multiSignerScriptBytecode,
   publishTransferPackage,
   TYPED_SCRIPT_TEST,
-} from "./helper";
+} from "./helper.js";
 
 const { aptos, config } = getAptosClient();
 

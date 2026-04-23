@@ -1,4 +1,4 @@
-import { Aptos, AptosConfig, AptosSettings, Network, NetworkToNetworkName } from "../../src";
+import { Aptos, AptosConfig, AptosSettings, Network, NetworkToNetworkName } from "../../src/index.js";
 
 /**
  * Use this function whenever you want an Aptos client.

@@ -1,9 +1,9 @@
-import { longTestTimeout } from "../../unit/helper";
-import { Account } from "../../../src/account";
-import { InputGenerateTransactionPayloadData } from "../../../src/transactions/types";
-import { TransactionWorker } from "../../../src/transactions/management/transactionWorker";
-import { TransactionResponseType, TypeTagAddress, TypeTagU64 } from "../../../src";
-import { getAptosClient } from "../helper";
+import { longTestTimeout } from "../../unit/helper.js";
+import { Account } from "../../../src/account/index.js";
+import { InputGenerateTransactionPayloadData } from "../../../src/transactions/types.js";
+import { TransactionWorker } from "../../../src/transactions/management/transactionWorker.js";
+import { TransactionResponseType, TypeTagAddress, TypeTagU64 } from "../../../src/index.js";
+import { getAptosClient } from "../helper.js";
 
 const { aptos, config: aptosConfig } = getAptosClient();
 

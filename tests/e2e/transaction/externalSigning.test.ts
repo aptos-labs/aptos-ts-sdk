@@ -19,10 +19,10 @@ import {
   SimpleTransaction,
   AccountAuthenticator,
   generateSigningMessageForTransaction,
-} from "../../../src";
-import { longTestTimeout } from "../../unit/helper";
-import { getAptosClient } from "../helper";
-import { fundAccounts } from "./helper";
+} from "../../../src/index.js";
+import { longTestTimeout } from "../../unit/helper.js";
+import { getAptosClient } from "../helper.js";
+import { fundAccounts } from "./helper.js";
 
 const { aptos } = getAptosClient();
 

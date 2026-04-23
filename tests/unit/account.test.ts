@@ -19,9 +19,9 @@ import {
   MultiEd25519PublicKey,
   AuthenticationKey,
   AccountPublicKey,
-} from "../../src";
-import { KeylessAccount } from "../../src/account/KeylessAccount";
-import { MultiEd25519Account } from "../../src/account/MultiEd25519Account";
+} from "../../src/index.js";
+import { KeylessAccount } from "../../src/account/KeylessAccount.js";
+import { MultiEd25519Account } from "../../src/account/MultiEd25519Account.js";
 
 import {
   ed25519,
@@ -33,7 +33,7 @@ import {
   Ed25519WalletTestObject,
   keylessTestObject,
   EPHEMERAL_KEY_PAIR,
-} from "./helper";
+} from "./helper.js";
 
 describe("Account", () => {
   describe("generate", () => {

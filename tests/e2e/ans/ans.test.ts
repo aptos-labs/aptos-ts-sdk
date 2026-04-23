@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { vi } from "vitest";
-import { Aptos, Network, Account, AnyRawTransaction, U8, AptosConfig, AccountAddress } from "../../../src";
-import { AnsName, ExpirationStatus, SubdomainExpirationPolicy } from "../../../src/types";
-import { generateTransaction } from "../../../src/internal/transactionSubmission";
-import { getAptosClient } from "../helper";
-import { publishAnsContract } from "./publishANSContracts";
-import { getANSExpirationStatus, isValidANSName } from "../../../src/internal/ans";
+import { Aptos, Network, Account, AnyRawTransaction, U8, AptosConfig, AccountAddress } from "../../../src/index.js";
+import { AnsName, ExpirationStatus, SubdomainExpirationPolicy } from "../../../src/types/index.js";
+import { generateTransaction } from "../../../src/internal/transactionSubmission.js";
+import { getAptosClient } from "../helper.js";
+import { publishAnsContract } from "./publishANSContracts.js";
+import { getANSExpirationStatus, isValidANSName } from "../../../src/internal/ans.js";
 
 // This isn't great, we should look into deploying outside the test
 vi.setConfig({ testTimeout: 20000 });

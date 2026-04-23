@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountAddress, Serializable, Serializer, Deserializer } from "../../src";
+import { AccountAddress, Serializable, Serializer, Deserializer } from "../../src/index.js";
 
 describe("BCS Deserializer", () => {
   it("deserializes a non-empty string", () => {

@@ -8,8 +8,8 @@ import {
   MAX_U64_BIG_INT,
   MAX_U8_NUMBER,
   MAX_U256_BIG_INT,
-} from "../../src/bcs/consts";
-import { AccountAddress, Serializable, Serializer, outOfRangeErrorMessage } from "../../src";
+} from "../../src/bcs/consts.js";
+import { AccountAddress, Serializable, Serializer, outOfRangeErrorMessage } from "../../src/index.js";
 
 describe("BCS Serializer", () => {
   let serializer: Serializer;

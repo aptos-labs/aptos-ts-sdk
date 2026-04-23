@@ -6,9 +6,9 @@ import {
   Deserializer,
   RawTransaction,
   TransactionPayloadEntryFunction,
-} from "../../../src";
-import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
-import { getAptosClient } from "../helper";
+} from "../../../src/index.js";
+import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper.js";
+import { getAptosClient } from "../helper.js";
 
 describe("coin", () => {
   test("it generates a transfer coin transaction with AptosCoin coin type", async () => {

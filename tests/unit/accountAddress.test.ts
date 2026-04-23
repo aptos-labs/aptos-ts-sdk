@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountAddress, AddressInvalidReason, Deserializer, Serializer } from "../../src";
+import { AccountAddress, AddressInvalidReason, Deserializer, Serializer } from "../../src/index.js";
 
 type Addresses = {
   shortWith0x: string;

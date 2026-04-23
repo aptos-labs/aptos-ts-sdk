@@ -12,9 +12,9 @@ import {
   MultiEd25519Account,
   MultiEd25519PublicKey,
   ZkpVariant,
-} from "../../../src";
-import { KeylessAccount } from "../../../src/account/KeylessAccount";
-import { Groth16Zkp, ZeroKnowledgeSig, ZkProof } from "../../../src/core/crypto/keyless";
+} from "../../../src/index.js";
+import { KeylessAccount } from "../../../src/account/KeylessAccount.js";
+import { Groth16Zkp, ZeroKnowledgeSig, ZkProof } from "../../../src/core/crypto/keyless.js";
 
 import {
   ed25519,
@@ -22,8 +22,8 @@ import {
   keylessTestObject,
   EPHEMERAL_KEY_PAIR,
   singleSignerED25519,
-} from "../../unit/helper";
-import { getAptosClient } from "../helper";
+} from "../../unit/helper.js";
+import { getAptosClient } from "../helper.js";
 
 describe("verifySignatureAsync", () => {
   const { aptos } = getAptosClient();

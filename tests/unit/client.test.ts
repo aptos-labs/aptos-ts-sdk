@@ -1,5 +1,5 @@
-import { AptosApiError } from "../../src/errors";
-import { AptosApiType } from "../../src/utils/const";
+import { AptosApiError } from "../../src/errors/index.js";
+import { AptosApiType } from "../../src/utils/const.js";
 
 describe(AptosApiError.name, () => {
   it("should generate pretty error messages", () => {

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { vi } from "vitest";
-import { memoizeAsync, memoize } from "../../src/utils/memoize";
+import { memoizeAsync, memoize } from "../../src/utils/memoize.js";
 
 describe("memoize", () => {
   describe("memoizeAsync", () => {

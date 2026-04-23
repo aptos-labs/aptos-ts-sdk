@@ -7,12 +7,12 @@ import {
   NetworkToIndexerAPI,
   NetworkToNodeAPI,
   U64,
-} from "../../../src";
-import { AptosApiError } from "../../../src/errors";
-import { VERSION } from "../../../src/version";
-import { longTestTimeout } from "../../unit/helper";
-import { getAptosClient } from "../helper";
-import { singleSignerScriptBytecode } from "../transaction/helper";
+} from "../../../src/index.js";
+import { AptosApiError } from "../../../src/errors/index.js";
+import { VERSION } from "../../../src/version.js";
+import { longTestTimeout } from "../../unit/helper.js";
+import { getAptosClient } from "../helper.js";
+import { singleSignerScriptBytecode } from "../transaction/helper.js";
 
 const { aptos, config } = getAptosClient();
 

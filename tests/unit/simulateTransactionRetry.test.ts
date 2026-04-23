@@ -1,9 +1,9 @@
 import { vi, type MockedFunction } from "vitest";
-import { simulateTransaction } from "../../src/internal/transactionSubmission";
-import { AptosConfig } from "../../src/api/aptosConfig";
-import { Network } from "../../src/utils/apiEndpoints";
-import { UserTransactionResponse } from "../../src/types";
-import { postAptosFullNode } from "../../src/client";
+import { simulateTransaction } from "../../src/internal/transactionSubmission.js";
+import { AptosConfig } from "../../src/api/aptosConfig.js";
+import { Network } from "../../src/utils/apiEndpoints.js";
+import { UserTransactionResponse } from "../../src/types/index.js";
+import { postAptosFullNode } from "../../src/client/index.js";
 
 vi.mock("../../src/client", () => ({
   postAptosFullNode: vi.fn(),

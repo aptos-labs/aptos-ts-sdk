@@ -1,8 +1,14 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Network, GraphqlQuery, ProcessorType, InputViewFunctionData, InputViewFunctionJsonData } from "../../../src";
-import { getAptosClient } from "../helper";
+import {
+  Network,
+  GraphqlQuery,
+  ProcessorType,
+  InputViewFunctionData,
+  InputViewFunctionJsonData,
+} from "../../../src/index.js";
+import { getAptosClient } from "../helper.js";
 
 describe("general api", () => {
   const { aptos } = getAptosClient();
