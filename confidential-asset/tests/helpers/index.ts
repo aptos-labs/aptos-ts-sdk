@@ -127,19 +127,46 @@ export const getTestConfidentialAccount = (account?: Ed25519Account) => {
 const GOVERNANCE_SCRIPTS_DIR = path.resolve(__dirname, "../e2e/scripts/governance");
 
 /**
+ * A convenience function to compile a package locally with the CLI
+ * @param packageDir directory of the package to compile
+ * @param args extra arguments to pass to the compile command
+ */
+export function compilePackage(
+  packageDir: string,
+  args?: string[],
+) {
+  try {
+    execSync("aptos --version");
+  } catch {
+    console.log("In order to run compilation, you must have the `aptos` CLI installed.");
+    console.log("aptos is not installed. Please install it from the instructions on aptos.dev");
+  }
+
+  // Assume-yes automatically overwrites the previous compiled version, only do this if you are sure you want to overwrite the previous version.
+  let compileCommand = `aptos move compile --package-dir ${packageDir}`;
+  if (args) compileCommand += ` ${args.join(" ")}`;
+
+  console.log("Running the compilation locally, in a real situation you may want to compile this ahead of time.");
+  console.log(compileCommand);
+  try {
+    execSync(compileCommand);
+  } catch (error: any) {
+    console.error(`Compilation failed: ${error}`);
+    console.error(`${error.stdOut}`);
+    console.error(`${error.stdErr}`);
+    throw error;
+  }
+}
+
+/**
  * Compiles the governance Move scripts (if not already compiled) and returns the
  * bytecode directory path. Returns undefined if compilation fails (e.g., Move
  * framework source not available in CI).
  */
 export function compileGovernanceScripts(): string | undefined {
   const bytecodeDir = path.join(GOVERNANCE_SCRIPTS_DIR, "build/governance/bytecode_scripts");
-  if (!fs.existsSync(bytecodeDir)) {
-    try {
-      execSync("aptos move compile", { cwd: GOVERNANCE_SCRIPTS_DIR, stdio: "pipe" });
-    } catch {
-      return undefined;
-    }
-  }
+  // Compilation must succeed
+  compilePackage(GOVERNANCE_SCRIPTS_DIR, []);
   return bytecodeDir;
 }
 

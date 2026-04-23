@@ -671,9 +671,15 @@ describe("Confidential Asset Sender API", () => {
       coreResourcesAccount = getCoreResourcesAccount();
       bytecodeDir = compileGovernanceScripts();
       governanceAvailable = !!coreResourcesAccount && !!bytecodeDir;
+      if (!coreResourcesAccount) {
+        console.log("Governance test setup: core resources account not available");
+      }
+      if (!bytecodeDir) {
+        console.log("Governance test Setup: Move scripts not compiled");
+      }
       if (!governanceAvailable) {
         console.log("Skipping governance tests: mint.key or Move framework source not available");
-        return;
+        throw new Error("Governance failed")
       }
       await plainAptos.fundAccount({
         accountAddress: coreResourcesAccount!.accountAddress,
