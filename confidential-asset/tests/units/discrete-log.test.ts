@@ -6,7 +6,7 @@
  * - Baby-Step Giant-Step (pure TypeScript)
  */
 
-import { RistrettoPoint } from "@noble/curves/ed25519";
+import { ristretto255 } from "@noble/curves/ed25519";
 import { TwistedElGamal, TwistedEd25519PrivateKey } from "../../src";
 import { createBsgsTable, BsgsSolver } from "../../src/crypto/bsgs";
 // ============================================================================
@@ -216,8 +216,8 @@ describe("Baby-Step Giant-Step (TypeScript)", () => {
   describe("BsgsSolver", () => {
     it("solves known 16-bit values correctly", () => {
       for (const x of [0n, 1n, 255n, 256n, 1000n, 65535n]) {
-        const P = x === 0n ? RistrettoPoint.ZERO : RistrettoPoint.BASE.multiply(x);
-        const result = solver.solve(P.toRawBytes());
+        const P = x === 0n ? ristretto255.Point.ZERO : ristretto255.Point.BASE.multiply(x);
+        const result = solver.solve(P.toBytes());
         expect(result).toBe(x);
       }
     });
@@ -225,16 +225,16 @@ describe("Baby-Step Giant-Step (TypeScript)", () => {
     it("solves random 16-bit values correctly", () => {
       for (let i = 0; i < BENCHMARK_ITERATIONS; i++) {
         const x = generateRandomInteger(16);
-        const P = x === 0n ? RistrettoPoint.ZERO : RistrettoPoint.BASE.multiply(x);
-        const result = solver.solve(P.toRawBytes());
+        const P = x === 0n ? ristretto255.Point.ZERO : ristretto255.Point.BASE.multiply(x);
+        const result = solver.solve(P.toBytes());
         expect(result).toBe(x);
       }
     });
 
     it("throws for values outside search space", () => {
       const x = 1n << 32n;
-      const P = RistrettoPoint.BASE.multiply(x);
-      expect(() => solver.solve(P.toRawBytes())).toThrow();
+      const P = ristretto255.Point.BASE.multiply(x);
+      expect(() => solver.solve(P.toBytes())).toThrow();
     });
 
     it("solves using smallest sufficient table", () => {
@@ -242,12 +242,12 @@ describe("Baby-Step Giant-Step (TypeScript)", () => {
       expect(solver.hasTable(32)).toBe(true);
 
       const x1 = 100n;
-      const P1 = RistrettoPoint.BASE.multiply(x1);
-      expect(solver.solve(P1.toRawBytes())).toBe(x1);
+      const P1 = ristretto255.Point.BASE.multiply(x1);
+      expect(solver.solve(P1.toBytes())).toBe(x1);
 
       const x2 = 100000n;
-      const P2 = RistrettoPoint.BASE.multiply(x2);
-      expect(solver.solve(P2.toRawBytes())).toBe(x2);
+      const P2 = ristretto255.Point.BASE.multiply(x2);
+      expect(solver.solve(P2.toBytes())).toBe(x2);
     });
   });
 
@@ -257,10 +257,10 @@ describe("Baby-Step Giant-Step (TypeScript)", () => {
 
       for (let i = 0; i < BENCHMARK_ITERATIONS; i++) {
         const x = generateRandomInteger(16);
-        const P = x === 0n ? RistrettoPoint.ZERO : RistrettoPoint.BASE.multiply(x);
+        const P = x === 0n ? ristretto255.Point.ZERO : ristretto255.Point.BASE.multiply(x);
 
         const start = performance.now();
-        const result = solver.solve(P.toRawBytes());
+        const result = solver.solve(P.toBytes());
         const elapsed = performance.now() - start;
 
         times.push(elapsed);
@@ -278,10 +278,10 @@ describe("Baby-Step Giant-Step (TypeScript)", () => {
 
       for (let i = 0; i < BENCHMARK_ITERATIONS; i++) {
         const x = generateRandomInteger(32);
-        const P = x === 0n ? RistrettoPoint.ZERO : RistrettoPoint.BASE.multiply(x);
+        const P = x === 0n ? ristretto255.Point.ZERO : ristretto255.Point.BASE.multiply(x);
 
         const start = performance.now();
-        const result = solver.solve(P.toRawBytes());
+        const result = solver.solve(P.toBytes());
         const elapsed = performance.now() - start;
 
         times.push(elapsed);

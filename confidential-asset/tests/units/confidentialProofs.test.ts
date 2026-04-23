@@ -12,7 +12,6 @@ import {
 } from "../../src";
 import type { SigmaProtocolProof } from "../../src/crypto/sigmaProtocol";
 import { verifyWithdrawal } from "../../src/crypto/sigmaProtocolWithdraw";
-import { verifyNormalization } from "../../src/crypto/sigmaProtocolWithdraw";
 import { verifyTransfer } from "../../src/crypto/sigmaProtocolTransfer";
 import { longTestTimeout } from "../helpers";
 
@@ -305,7 +304,7 @@ describe("Generate 'confidential coin' proofs", () => {
       const isValid = ConfidentialKeyRotation.verify({
         oldEk: aliceConfidentialDecryptionKey.publicKey().toUint8Array(),
         newEk: newEkBytes,
-        oldD: aliceEncryptedBalanceCipherText.map((ct) => ct.D.toRawBytes()),
+        oldD: aliceEncryptedBalanceCipherText.map((ct) => ct.D.toBytes()),
         newD: newDBytes,
         senderAddress: dummySenderAddress,
         tokenAddress: dummyTokenAddress,
@@ -351,7 +350,7 @@ describe("Generate 'confidential coin' proofs", () => {
   test(
     "Verify normalization sigma proof",
     () => {
-      const isValid = verifyNormalization({
+      const isValid = verifyWithdrawal({
         senderAddress: dummySenderAddress,
         tokenAddress: dummyTokenAddress,
         chainId: 4,
