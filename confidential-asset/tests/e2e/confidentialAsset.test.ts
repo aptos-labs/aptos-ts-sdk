@@ -900,13 +900,16 @@ describe("Confidential Asset Sender API", () => {
         }
       }
 
+      let pauseEnabledByThisTest = false;
       if (paused) {
         await govScript("set_emergency_paused", [new Bool(true)]);
+        pauseEnabledByThisTest = true;
         expect(await confidentialAsset.isEmergencyPaused()).toBe(true);
       } else {
         expect(await confidentialAsset.isEmergencyPaused()).toBe(false);
       }
 
+      try {
         // register
         const newAccount = Account.generate();
         await aptos.fundAccount({ accountAddress: newAccount.accountAddress, amount: 100000000 });
@@ -928,54 +931,57 @@ describe("Confidential Asset Sender API", () => {
           }),
         );
 
-      // rollover (raw txn to bypass SDK precondition checks; needs pending balance from deposit above)
-      const rolloverTx = await confidentialAsset.transaction.rolloverPendingBalance({
-        sender: alice.accountAddress,
-        tokenAddress: TOKEN_ADDRESS,
-      });
-      await expectRawTxnOutcome("rollover", alice, rolloverTx);
-
-      // normalize (after rollover, Alice is not normalized)
-      await expectOutcome("normalize", () =>
-        confidentialAsset.normalizeBalance({
-          signer: alice,
-          senderDecryptionKey: aliceConfidential,
+        // rollover (raw txn to bypass SDK precondition checks; needs pending balance from deposit above)
+        const rolloverTx = await confidentialAsset.transaction.rolloverPendingBalance({
+          sender: alice.accountAddress,
           tokenAddress: TOKEN_ADDRESS,
-        }),
-      );
+        });
+        await expectRawTxnOutcome("rollover", alice, rolloverTx);
 
-      // withdraw
-      await expectOutcome("withdraw", () =>
-        confidentialAsset.withdraw({
-          signer: alice,
-          senderDecryptionKey: aliceConfidential,
-          tokenAddress: TOKEN_ADDRESS,
-          amount: 1n,
-          recipient: alice.accountAddress,
-        }),
-      );
-
-      // transfer
-      await expectOutcome("transfer", async () => {
-        const result = await tryTransfer();
-        if (!result.success) throw new Error(result.vm_status);
-      });
-
-      // key rotation (only test when paused — when unpaused, it would change Alice's key and break later tests)
-      if (paused) {
-        await expectOutcome("key rotation", () =>
-          confidentialAsset.rotateEncryptionKey({
+        // normalize (after rollover, Alice is not normalized)
+        await expectOutcome("normalize", () =>
+          confidentialAsset.normalizeBalance({
             signer: alice,
             senderDecryptionKey: aliceConfidential,
-            newSenderDecryptionKey: TwistedEd25519PrivateKey.generate(),
             tokenAddress: TOKEN_ADDRESS,
           }),
         );
-      }
 
-      if (paused) {
-        await govScript("set_emergency_paused", [new Bool(false)]);
-        expect(await confidentialAsset.isEmergencyPaused()).toBe(false);
+        // withdraw
+        await expectOutcome("withdraw", () =>
+          confidentialAsset.withdraw({
+            signer: alice,
+            senderDecryptionKey: aliceConfidential,
+            tokenAddress: TOKEN_ADDRESS,
+            amount: 1n,
+            recipient: alice.accountAddress,
+          }),
+        );
+
+        // transfer
+        await expectOutcome("transfer", async () => {
+          const result = await tryTransfer();
+          if (!result.success) throw new Error(result.vm_status);
+        });
+
+        // key rotation (only test when paused — when unpaused, it would change Alice's key and break later tests)
+        if (paused) {
+          await expectOutcome("key rotation", () =>
+            confidentialAsset.rotateEncryptionKey({
+              signer: alice,
+              senderDecryptionKey: aliceConfidential,
+              newSenderDecryptionKey: TwistedEd25519PrivateKey.generate(),
+              tokenAddress: TOKEN_ADDRESS,
+            }),
+          );
+        }
+      } finally {
+        // Always clear the pause flag if this test set it — otherwise a mid-test
+        // failure would leave the module paused and cascade into later e2e tests.
+        if (pauseEnabledByThisTest) {
+          await govScript("set_emergency_paused", [new Bool(false)]);
+          expect(await confidentialAsset.isEmergencyPaused()).toBe(false);
+        }
       }
     }
 
