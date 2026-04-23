@@ -44,9 +44,9 @@ describe("Confidential Asset Sender API", () => {
   const bobConfidential = getTestConfidentialAccount(bob);
 
   async function getPublicTokenBalance(accountAddress: AccountAddressInput) {
-    return await aptos.getAccountCoinAmount({
+    return await aptos.getBalance({
       accountAddress,
-      faMetadataAddress: TOKEN_ADDRESS,
+      asset: TOKEN_ADDRESS,
     });
   }
   async function checkAliceDecryptedBalance(
@@ -58,21 +58,6 @@ describe("Confidential Asset Sender API", () => {
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       decryptionKey: decryptionKey || aliceConfidential,
-      useCachedValue: false,
-    });
-
-    expect(confidentialBalance.availableBalance()).toBe(BigInt(expectedAvailable));
-    expect(confidentialBalance.pendingBalance()).toBe(BigInt(expectedPending));
-  }
-
-  async function checkBobDecryptedBalance(
-    expectedAvailable: AnyNumber,
-    expectedPending: AnyNumber,
-  ) {
-    const confidentialBalance = await confidentialAsset.getBalance({
-      accountAddress: bob.accountAddress,
-      tokenAddress: TOKEN_ADDRESS,
-      decryptionKey: bobConfidential,
       useCachedValue: false,
     });
 
@@ -159,7 +144,7 @@ describe("Confidential Asset Sender API", () => {
       }
 
       // This should be false after a rollover
-      checkAliceNormalizedBalanceStatus(false);
+      await checkAliceNormalizedBalanceStatus(false);
 
       // Verify the confidential balance has been updated correctly
       await checkAliceDecryptedBalance(DEPOSIT_AMOUNT, 0);
@@ -171,7 +156,7 @@ describe("Confidential Asset Sender API", () => {
     "it should throw error if rollover is attempted but Alice's confidential balance is not normalized",
     async () => {
       // Verify the current balance is not normalized
-      checkAliceNormalizedBalanceStatus(false);
+      await checkAliceNormalizedBalanceStatus(false);
 
       // Attempting to rollover should throw an error as the balance is not normalized
       await expect(
@@ -189,9 +174,9 @@ describe("Confidential Asset Sender API", () => {
     "it should withdraw Alice's confidential balance and check the balance",
     async () => {
       // Get the current public token balance of Alice
-      const aliceTokenBalance = await aptos.getAccountCoinAmount({
+      const aliceTokenBalance = await aptos.getBalance({
         accountAddress: alice.accountAddress,
-        faMetadataAddress: TOKEN_ADDRESS,
+        asset: TOKEN_ADDRESS,
       });
 
       // Withdraw the amount from the confidential balance to the public balance
@@ -207,15 +192,15 @@ describe("Confidential Asset Sender API", () => {
       await checkAliceDecryptedBalance(DEPOSIT_AMOUNT - WITHDRAW_AMOUNT, 0);
 
       // Verify the public token balance has been updated correctly
-      const aliceNewTokenBalance = await aptos.getAccountCoinAmount({
+      const aliceNewTokenBalance = await aptos.getBalance({
         accountAddress: alice.accountAddress,
-        faMetadataAddress: TOKEN_ADDRESS,
+        asset: TOKEN_ADDRESS,
       });
 
       expect(aliceNewTokenBalance).toBe(aliceTokenBalance + WITHDRAW_AMOUNT);
 
       // Verify the balance is normalized after the withdrawal
-      checkAliceNormalizedBalanceStatus(true);
+      await checkAliceNormalizedBalanceStatus(true);
     },
     longTestTimeout,
   );
@@ -418,7 +403,6 @@ describe("Confidential Asset Sender API", () => {
   // --- Auditor configuration tests ---
 
   const VOLUNTARY_AUDITOR = TwistedEd25519PrivateKey.generate();
-  const EFFECTIVE_AUDITOR = TwistedEd25519PrivateKey.generate();
 
   test(
     "it should transfer with voluntary auditor only (no effective auditor on-chain)",
@@ -503,7 +487,7 @@ describe("Confidential Asset Sender API", () => {
       }
 
       // This should be false after a rollover
-      checkAliceNormalizedBalanceStatus(false);
+      await checkAliceNormalizedBalanceStatus(false);
 
       const preNormalizationBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
@@ -540,7 +524,7 @@ describe("Confidential Asset Sender API", () => {
       expect(normalizeTx.success).toBeTruthy();
 
       // This should be true after normalization
-      checkAliceNormalizedBalanceStatus(true);
+      await checkAliceNormalizedBalanceStatus(true);
     },
     longTestTimeout,
   );
@@ -611,7 +595,7 @@ describe("Confidential Asset Sender API", () => {
       }
 
       // This should be false after rollover
-      checkAliceNormalizedBalanceStatus(false);
+      await checkAliceNormalizedBalanceStatus(false);
 
       const transferTx = await confidentialAsset.transfer({
         senderDecryptionKey: aliceConfidential,
@@ -623,7 +607,7 @@ describe("Confidential Asset Sender API", () => {
       expect(transferTx.success).toBeTruthy();
 
       // This should be true after a transfer
-      checkAliceNormalizedBalanceStatus(true);
+      await checkAliceNormalizedBalanceStatus(true);
     },
     longTestTimeout,
   );
@@ -687,9 +671,15 @@ describe("Confidential Asset Sender API", () => {
       coreResourcesAccount = getCoreResourcesAccount();
       bytecodeDir = compileGovernanceScripts();
       governanceAvailable = !!coreResourcesAccount && !!bytecodeDir;
+      if (!coreResourcesAccount) {
+        console.log("Governance test setup: core resources account not available");
+      }
+      if (!bytecodeDir) {
+        console.log("Governance test Setup: Move scripts not compiled");
+      }
       if (!governanceAvailable) {
         console.log("Skipping governance tests: mint.key or Move framework source not available");
-        return;
+        throw new Error("Governance failed")
       }
       await plainAptos.fundAccount({
         accountAddress: coreResourcesAccount!.accountAddress,
@@ -700,7 +690,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "allow-listing APT should fail when allow listing is disabled",
       async () => {
-        if (!governanceAvailable) return;
+        expect(governanceAvailable).toBe(true);
         await govScriptExpectFailure(
           "set_confidentiality_for_apt",
           [new Bool(true)],
@@ -713,7 +703,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "enabling allow listing should block APT transfers (APT not yet allow-listed)",
       async () => {
-        if (!governanceAvailable) return;
+        expect(governanceAvailable).toBe(true);
         const [beforeEnabled] = await plainAptos.view<[boolean]>({
           payload: { function: "0x1::confidential_asset::is_allow_listing_required", functionArguments: [] },
         });
@@ -736,7 +726,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "allow-listing APT should enable transfers",
       async () => {
-        if (!governanceAvailable) return;
+        expect(governanceAvailable).toBe(true);
         await govScript("set_confidentiality_for_apt", [new Bool(true)]);
 
         const result = await tryTransfer();
@@ -748,7 +738,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "disabling allow listing should allow all transfers (even if APT was previously allow-listed)",
       async () => {
-        if (!governanceAvailable) return;
+        expect(governanceAvailable).toBe(true);
         await govScript("set_allow_listing", [new Bool(false)]);
 
         const result = await tryTransfer();
@@ -766,17 +756,17 @@ describe("Confidential Asset Sender API", () => {
     test(
       "set global auditor (EK_1) and transfer should succeed",
       async () => {
-        if (!governanceAvailable) return;
+        expect(governanceAvailable).toBe(true);
         const ek1Bytes = Array.from(AUDITOR_KEY_1.publicKey().toUint8Array());
         await govScript("set_global_auditor", [MoveVector.U8(ek1Bytes)]);
 
-        // The allow-listing tests created an AssetConfig for APT, so
-        // get_effective_auditor_config returns the asset-specific config (no EK),
-        // not the global one. The global auditor IS set, but it's shadowed.
+        // Even though allow-listing tests created an AssetConfig for APT (with no asset-specific
+        // auditor EK), the global auditor should be returned as the effective auditor.
         const auditorEk = await confidentialAsset.getAssetAuditorEncryptionKey({
           tokenAddress: TOKEN_ADDRESS,
         });
-        expect(auditorEk).toBeUndefined();
+        expect(auditorEk).toBeDefined();
+        expect(auditorEk!.toUint8Array()).toEqual(AUDITOR_KEY_1.publicKey().toUint8Array());
 
         const result = await tryTransfer();
         expect(result.success).toBeTruthy();
@@ -787,7 +777,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "set asset-specific auditor (EK_2) and transfer should succeed with EK_2",
       async () => {
-        if (!governanceAvailable) return;
+        expect(governanceAvailable).toBe(true);
         const ek2Bytes = Array.from(AUDITOR_KEY_2.publicKey().toUint8Array());
         await govScript("set_asset_specific_auditor", [
           AccountAddress.fromString(TOKEN_ADDRESS),
@@ -807,18 +797,21 @@ describe("Confidential Asset Sender API", () => {
     );
 
     test(
-      "remove asset-specific auditor EK — effective auditor becomes None (asset-specific overrides global)",
+      "remove asset-specific auditor EK — effective auditor falls back to global (EK_1)",
       async () => {
-        if (!governanceAvailable) return;
+        expect(governanceAvailable).toBe(true);
         await govScript("set_asset_specific_auditor", [
           AccountAddress.fromString(TOKEN_ADDRESS),
           MoveVector.U8([]),
         ]);
 
+        // With the asset-specific EK removed, the effective auditor should fall back to
+        // the global auditor (EK_1), not become None.
         const auditorEk = await confidentialAsset.getAssetAuditorEncryptionKey({
           tokenAddress: TOKEN_ADDRESS,
         });
-        expect(auditorEk).toBeUndefined();
+        expect(auditorEk).toBeDefined();
+        expect(auditorEk!.toUint8Array()).toEqual(AUDITOR_KEY_1.publicKey().toUint8Array());
 
         const result = await tryTransfer();
         expect(result.success).toBeTruthy();
@@ -829,7 +822,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "set asset-specific auditor back to EK_2, then update global to EK_3 — effective auditor stays EK_2",
       async () => {
-        if (!governanceAvailable) return;
+        expect(governanceAvailable).toBe(true);
         const ek2Bytes = Array.from(AUDITOR_KEY_2.publicKey().toUint8Array());
         await govScript("set_asset_specific_auditor", [
           AccountAddress.fromString(TOKEN_ADDRESS),
@@ -854,7 +847,7 @@ describe("Confidential Asset Sender API", () => {
     test(
       "remove global auditor and transfer should succeed (asset-specific EK_2 still active)",
       async () => {
-        if (!governanceAvailable) return;
+        expect(governanceAvailable).toBe(true);
         await govScript("set_global_auditor", [MoveVector.U8([])]);
 
         const auditorEk = await confidentialAsset.getAssetAuditorEncryptionKey({
@@ -866,6 +859,141 @@ describe("Confidential Asset Sender API", () => {
         const result = await tryTransfer();
         expect(result.success).toBeTruthy();
       },
+      longTestTimeout,
+    );
+  });
+
+  // =========================================================================
+  // Emergency pause
+  // =========================================================================
+
+  describe("Emergency pause", () => {
+    async function testAllOperations(paused: boolean) {
+      expect(governanceAvailable).toBe(true);
+
+      const EXPECTED_ABORT = "E_EMERGENCY_PAUSED";
+
+      // Helper: run an async op; if paused, expect it to throw with the pause abort code; if not, expect it to succeed.
+      async function expectOutcome(label: string, op: () => Promise<any>) {
+        if (paused) {
+          try {
+            await op();
+            expect(`${label} should have failed`).toBe("but it succeeded");
+          } catch (e: any) {
+            const msg = e.message || String(e);
+            expect(msg).toContain(EXPECTED_ABORT);
+          }
+        } else {
+          await op(); // should not throw
+        }
+      }
+
+      // Helper: build + submit raw txn; if paused, expect on-chain failure with the pause abort code; if not, expect success.
+      async function expectRawTxnOutcome(_label: string, signer: any, tx: any) {
+        const pending = await plainAptos.signAndSubmitTransaction({ signer, transaction: tx });
+        const result = await plainAptos.waitForTransaction({ transactionHash: pending.hash, options: { checkSuccess: false } });
+        if (paused) {
+          expect(result.success).toBeFalsy();
+          expect(result.vm_status).toContain(EXPECTED_ABORT);
+        } else {
+          expect(result.success).toBeTruthy();
+        }
+      }
+
+      let pauseEnabledByThisTest = false;
+      if (paused) {
+        await govScript("set_emergency_paused", [new Bool(true)]);
+        pauseEnabledByThisTest = true;
+        expect(await confidentialAsset.isEmergencyPaused()).toBe(true);
+      } else {
+        expect(await confidentialAsset.isEmergencyPaused()).toBe(false);
+      }
+
+      try {
+        // register
+        const newAccount = Account.generate();
+        await aptos.fundAccount({ accountAddress: newAccount.accountAddress, amount: 100000000 });
+        const newKey = TwistedEd25519PrivateKey.generate();
+        await expectOutcome("register", () =>
+          confidentialAsset.registerBalance({
+            signer: newAccount,
+            tokenAddress: TOKEN_ADDRESS,
+            decryptionKey: newKey,
+          }),
+        );
+
+        // deposit (gives Alice pending balance for rollover below)
+        await expectOutcome("deposit", () =>
+          confidentialAsset.deposit({
+            signer: alice,
+            tokenAddress: TOKEN_ADDRESS,
+            amount: 1,
+          }),
+        );
+
+        // rollover (raw txn to bypass SDK precondition checks; needs pending balance from deposit above)
+        const rolloverTx = await confidentialAsset.transaction.rolloverPendingBalance({
+          sender: alice.accountAddress,
+          tokenAddress: TOKEN_ADDRESS,
+        });
+        await expectRawTxnOutcome("rollover", alice, rolloverTx);
+
+        // normalize (after rollover, Alice is not normalized)
+        await expectOutcome("normalize", () =>
+          confidentialAsset.normalizeBalance({
+            signer: alice,
+            senderDecryptionKey: aliceConfidential,
+            tokenAddress: TOKEN_ADDRESS,
+          }),
+        );
+
+        // withdraw
+        await expectOutcome("withdraw", () =>
+          confidentialAsset.withdraw({
+            signer: alice,
+            senderDecryptionKey: aliceConfidential,
+            tokenAddress: TOKEN_ADDRESS,
+            amount: 1n,
+            recipient: alice.accountAddress,
+          }),
+        );
+
+        // transfer
+        await expectOutcome("transfer", async () => {
+          const result = await tryTransfer();
+          if (!result.success) throw new Error(result.vm_status);
+        });
+
+        // key rotation (only test when paused — when unpaused, it would change Alice's key and break later tests)
+        if (paused) {
+          await expectOutcome("key rotation", () =>
+            confidentialAsset.rotateEncryptionKey({
+              signer: alice,
+              senderDecryptionKey: aliceConfidential,
+              newSenderDecryptionKey: TwistedEd25519PrivateKey.generate(),
+              tokenAddress: TOKEN_ADDRESS,
+            }),
+          );
+        }
+      } finally {
+        // Always clear the pause flag if this test set it — otherwise a mid-test
+        // failure would leave the module paused and cascade into later e2e tests.
+        if (pauseEnabledByThisTest) {
+          await govScript("set_emergency_paused", [new Bool(false)]);
+          expect(await confidentialAsset.isEmergencyPaused()).toBe(false);
+        }
+      }
+    }
+
+    test(
+      "all operations should succeed when not paused",
+      async () => testAllOperations(false),
+      longTestTimeout,
+    );
+
+    test(
+      "all operations should fail when paused",
+      async () => testAllOperations(true),
       longTestTimeout,
     );
   });

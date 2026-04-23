@@ -22,6 +22,7 @@ import {
   getEncryptionKey,
   hasUserRegistered,
   isBalanceNormalized,
+  isEmergencyPaused,
   isIncomingTransfersPaused,
 } from "../internal";
 
@@ -503,6 +504,23 @@ export class ConfidentialAsset {
     options?: LedgerVersionArg;
   }): Promise<{ isGlobal: boolean; epoch: bigint } | undefined> {
     return getEffectiveAuditorHint({
+      client: this.client(),
+      moduleAddress: this.moduleAddress(),
+      ...args,
+    });
+  }
+
+  /**
+   * Check if the confidential asset module is emergency-paused by governance.
+   * When paused, all user operations (deposit, withdraw, transfer, rollover, etc.) are blocked.
+   *
+   * @param args.options - Optional ledger version for the view call
+   * @returns A boolean indicating if all user operations are paused
+   */
+  async isEmergencyPaused(args?: {
+    options?: LedgerVersionArg;
+  }): Promise<boolean> {
+    return isEmergencyPaused({
       client: this.client(),
       moduleAddress: this.moduleAddress(),
       ...args,

@@ -32,12 +32,30 @@ export class ConfidentialAssetTransactionBuilder {
   readonly confidentialAssetModuleAddress: string;
 
   private _chainId?: number;
+  private _maxMemoBytes?: number;
 
   async getChainId(): Promise<number> {
     if (!this._chainId) {
       this._chainId = await this.client.getChainId();
     }
     return this._chainId;
+  }
+
+  async getMaxMemoBytes(): Promise<number> {
+    if (this._maxMemoBytes === undefined) {
+      const [result] = await this.client.view<[string]>({
+        payload: {
+          function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::get_max_memo_bytes`,
+          functionArguments: [],
+        },
+      });
+      const maxMemoBytes = Number(result);
+      if (!Number.isFinite(maxMemoBytes) || !Number.isInteger(maxMemoBytes) || maxMemoBytes < 0) {
+        throw new Error(`Invalid max memo bytes returned from chain: ${result}`);
+      }
+      this._maxMemoBytes = maxMemoBytes;
+    }
+    return this._maxMemoBytes;
   }
 
   constructor(config: AptosConfig, confidentialAssetModuleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS) {
@@ -319,6 +337,11 @@ export class ConfidentialAssetTransactionBuilder {
   }): Promise<SimpleTransaction> {
     const { sender, senderDecryptionKey, recipient, tokenAddress, amount, additionalAuditorEncryptionKeys = [], memo = new Uint8Array() } = args;
     validateAmount({ amount });
+
+    const maxMemoBytes = await this.getMaxMemoBytes();
+    if (memo.length > maxMemoBytes) {
+      throw new Error(`Memo exceeds maximum length: ${memo.length} > ${maxMemoBytes} bytes`);
+    }
 
     // Resolve addresses to 32-byte arrays
     const senderAddr = AccountAddress.from(sender);

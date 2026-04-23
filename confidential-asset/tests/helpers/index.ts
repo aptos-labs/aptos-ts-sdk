@@ -3,30 +3,19 @@ import fs from "fs";
 import { execSync } from "child_process";
 import {
   Network,
-  NetworkToNetworkName,
   AptosConfig,
   Aptos,
   AccountAddress,
-  AnyRawTransaction,
   Account,
-  Bool,
   CommittedTransactionResponse,
-  InputGenerateTransactionPayloadData,
-  TransactionWorkerEventsEnum,
   Ed25519PrivateKey,
   PrivateKey,
   PrivateKeyVariants,
   Ed25519Account,
-  AptosApiType,
-  SimpleTransaction,
   PendingTransactionResponse,
   InputSubmitTransactionData,
   TransactionSubmitter,
-  MoveVector,
-  MoveString,
-  U8,
 } from "@aptos-labs/ts-sdk";
-import { ConfidentialAssetTransactionBuilder } from "../../src";
 import { TwistedEd25519PrivateKey } from "../../src";
 import { ConfidentialAsset } from "../../src";
 
@@ -74,70 +63,13 @@ export const confidentialAsset = new ConfidentialAsset({
 });
 export const aptos = new Aptos(config);
 
-const rootDir = path.resolve(__dirname, "../../../");
-
-export const addNewContentLineToFile = (filename: string, data: string) => {
-  const filePath = path.resolve(rootDir, filename);
-
-  const content = `\n#TESTNET_DK=${data}\n`;
-
-  fs.appendFileSync(filePath, content);
-};
-
-export const getBalances = async (
-  decryptionKey: TwistedEd25519PrivateKey,
-  accountAddress: AccountAddress,
-  tokenAddress = TOKEN_ADDRESS,
-) => {
-  return confidentialAsset.getBalance({
-    decryptionKey,
-    accountAddress,
-    tokenAddress,
-  });
-};
-
-export const sendAndWaitTx = async (
-  transaction: AnyRawTransaction,
-  signer: Account,
-): Promise<CommittedTransactionResponse> => {
-  const pendingTxn = await aptos.signAndSubmitTransaction({ signer, transaction });
-  return aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
-};
-
-export const sendAndWaitBatchTxs = async (
-  txPayloads: InputGenerateTransactionPayloadData[],
-  sender: Account,
-): Promise<CommittedTransactionResponse[]> => {
-  aptos.transaction.batch.forSingleAccount({
-    sender,
-    data: txPayloads,
-  });
-
-  let allTxSentPromiseResolve: (value: void | PromiseLike<void>) => void;
-
-  const txHashes: string[] = [];
-  aptos.transaction.batch.on(TransactionWorkerEventsEnum.TransactionSent, async (data) => {
-    txHashes.push(data.transactionHash);
-
-    if (txHashes.length === txPayloads.length) {
-      allTxSentPromiseResolve();
-    }
-  });
-
-  await new Promise<void>((resolve) => {
-    allTxSentPromiseResolve = resolve;
-  });
-
-  return Promise.all(txHashes.map((txHash) => aptos.waitForTransaction({ transactionHash: txHash })));
-};
-
 /**
  * Returns the localnet core resources account (0xA550C18) by reading the BCS-encoded
  * private key from mint.key. During test genesis, the root_key's auth key is set on this
  * account. It has mint capability and can call `aptos_governance::get_signer_testnet_only`
  * to obtain the 0x1 framework signer.
  *
- * Returns undefined if mint.key is not found (e.g., governance scripts not available).
+ * Returns undefined if mint.key is not found (e.g., governance scripts are not available).
  */
 export const getCoreResourcesAccount = (): Ed25519Account | undefined => {
   // The localnet must write mint.key to ~/.aptos/testnet/. This happens automatically
@@ -150,7 +82,7 @@ export const getCoreResourcesAccount = (): Ed25519Account | undefined => {
   if (!keyPath) return undefined;
 
   const keyBytes = fs.readFileSync(keyPath);
-  const rawKey = keyBytes.slice(1); // strip BCS length prefix
+  const rawKey = keyBytes.subarray(1); // strip BCS length prefix
   const privateKey = new Ed25519PrivateKey(rawKey);
   // The address must be 0xA550C18 (core_resources) — that's where genesis set the
   // auth key to match this private key via rotate_authentication_key_internal.
@@ -195,19 +127,46 @@ export const getTestConfidentialAccount = (account?: Ed25519Account) => {
 const GOVERNANCE_SCRIPTS_DIR = path.resolve(__dirname, "../e2e/scripts/governance");
 
 /**
+ * A convenience function to compile a package locally with the CLI
+ * @param packageDir directory of the package to compile
+ * @param args extra arguments to pass to the compile command
+ */
+export function compilePackage(
+  packageDir: string,
+  args?: string[],
+) {
+  try {
+    execSync("aptos --version");
+  } catch {
+    console.log("In order to run compilation, you must have the `aptos` CLI installed.");
+    console.log("aptos is not installed. Please install it from the instructions on aptos.dev");
+  }
+
+  // Assume-yes automatically overwrites the previous compiled version, only do this if you are sure you want to overwrite the previous version.
+  let compileCommand = `aptos move compile --package-dir ${packageDir}`;
+  if (args) compileCommand += ` ${args.join(" ")}`;
+
+  console.log("Running the compilation locally, in a real situation you may want to compile this ahead of time.");
+  console.log(compileCommand);
+  try {
+    execSync(compileCommand);
+  } catch (error: any) {
+    console.error(`Compilation failed: ${error}`);
+    console.error(`${error.stdOut}`);
+    console.error(`${error.stdErr}`);
+    throw error;
+  }
+}
+
+/**
  * Compiles the governance Move scripts (if not already compiled) and returns the
  * bytecode directory path. Returns undefined if compilation fails (e.g., Move
  * framework source not available in CI).
  */
 export function compileGovernanceScripts(): string | undefined {
   const bytecodeDir = path.join(GOVERNANCE_SCRIPTS_DIR, "build/governance/bytecode_scripts");
-  if (!fs.existsSync(bytecodeDir)) {
-    try {
-      execSync("aptos move compile", { cwd: GOVERNANCE_SCRIPTS_DIR, stdio: "pipe" });
-    } catch {
-      return undefined;
-    }
-  }
+  // Compilation must succeed
+  compilePackage(GOVERNANCE_SCRIPTS_DIR, []);
   return bytecodeDir;
 }
 
