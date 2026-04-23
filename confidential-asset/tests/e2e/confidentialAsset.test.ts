@@ -136,7 +136,7 @@ describe("Confidential Asset Sender API", () => {
       }
 
       // This should be false after a rollover
-      checkAliceNormalizedBalanceStatus(false);
+      await checkAliceNormalizedBalanceStatus(false);
 
       // Verify the confidential balance has been updated correctly
       await checkAliceDecryptedBalance(DEPOSIT_AMOUNT, 0);
@@ -148,7 +148,7 @@ describe("Confidential Asset Sender API", () => {
     "it should throw error if rollover is attempted but Alice's confidential balance is not normalized",
     async () => {
       // Verify the current balance is not normalized
-      checkAliceNormalizedBalanceStatus(false);
+      await checkAliceNormalizedBalanceStatus(false);
 
       // Attempting to rollover should throw an error as the balance is not normalized
       await expect(
@@ -192,7 +192,7 @@ describe("Confidential Asset Sender API", () => {
       expect(aliceNewTokenBalance).toBe(aliceTokenBalance + WITHDRAW_AMOUNT);
 
       // Verify the balance is normalized after the withdrawal
-      checkAliceNormalizedBalanceStatus(true);
+      await checkAliceNormalizedBalanceStatus(true);
     },
     longTestTimeout,
   );
@@ -479,7 +479,7 @@ describe("Confidential Asset Sender API", () => {
       }
 
       // This should be false after a rollover
-      checkAliceNormalizedBalanceStatus(false);
+      await checkAliceNormalizedBalanceStatus(false);
 
       const preNormalizationBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
@@ -516,7 +516,7 @@ describe("Confidential Asset Sender API", () => {
       expect(normalizeTx.success).toBeTruthy();
 
       // This should be true after normalization
-      checkAliceNormalizedBalanceStatus(true);
+      await checkAliceNormalizedBalanceStatus(true);
     },
     longTestTimeout,
   );
@@ -587,7 +587,7 @@ describe("Confidential Asset Sender API", () => {
       }
 
       // This should be false after rollover
-      checkAliceNormalizedBalanceStatus(false);
+      await checkAliceNormalizedBalanceStatus(false);
 
       const transferTx = await confidentialAsset.transfer({
         senderDecryptionKey: aliceConfidential,
@@ -599,7 +599,7 @@ describe("Confidential Asset Sender API", () => {
       expect(transferTx.success).toBeTruthy();
 
       // This should be true after a transfer
-      checkAliceNormalizedBalanceStatus(true);
+      await checkAliceNormalizedBalanceStatus(true);
     },
     longTestTimeout,
   );
