@@ -64,7 +64,7 @@
   },
   "devDependencies": {
     "@babel/traverse": "^7.28.6",
-    "@biomejs/biome": "^2.4.13",
+    "@biomejs/biome": "2.4.12",
     "@cucumber/cucumber": "^12.6.0",
     "@graphql-codegen/cli": "^6.1.2",
     "@graphql-codegen/import-types-preset": "^3.0.1",
