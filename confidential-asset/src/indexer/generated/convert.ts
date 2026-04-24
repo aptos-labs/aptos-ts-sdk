@@ -26,8 +26,7 @@ import type {
 } from "../types";
 
 /** A single row as returned by the generated GraphQL query. */
-export type GraphqlActivityRow =
-  GetConfidentialAssetActivitiesQuery["confidential_asset_activities"][number];
+export type GraphqlActivityRow = GetConfidentialAssetActivitiesQuery["confidential_asset_activities"][number];
 
 /**
  * Converts an array of Aptos name objects (as returned by the indexer) into a
@@ -36,7 +35,7 @@ export type GraphqlActivityRow =
  * - With subdomain: `"subdomain.domain"` (no `.apt` suffix)
  * - Domain only:    `"domain.apt"`
  */
-export function parseAptosName(names: Array<{ domain?: string | null, subdomain?: string | null }>): string | null {
+export function parseAptosName(names: Array<{ domain?: string | null; subdomain?: string | null }>): string | null {
   const name = names[0];
   if (!name?.domain) return null;
   return name.subdomain ? `${name.subdomain}.${name.domain}` : `${name.domain}.apt`;
@@ -205,8 +204,6 @@ export function convertActivity(row: GraphqlActivityRow): ConfidentialAssetActiv
 }
 
 /** Batch-convert an array of GraphQL rows. */
-export function convertActivities(
-  rows: GraphqlActivityRow[],
-): ConfidentialAssetActivity[] {
+export function convertActivities(rows: GraphqlActivityRow[]): ConfidentialAssetActivity[] {
   return rows.map(convertActivity);
 }

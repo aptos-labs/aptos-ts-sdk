@@ -37,11 +37,7 @@ export class EncryptedAmount {
     if (cipherText) {
       this.cipherText = cipherText;
     } else {
-      this.randomness =
-        randomness ??
-        Array(this.getAmountChunks().length)
-          .fill(0)
-          .map(() => ed25519GenRandom());
+      this.randomness = randomness ?? new Array(this.getAmountChunks().length).fill(0).map(() => ed25519GenRandom());
       this.cipherText = this.getAmountChunks().map((chunk, i) =>
         TwistedElGamal.encryptWithPK(chunk, publicKey, randomness?.[i]),
       );
@@ -57,11 +53,11 @@ export class EncryptedAmount {
   }
 
   getCipherTextBytes(): Uint8Array {
-    return concatBytes(...this.cipherText.map((el) => el.serialize()).flat());
+    return concatBytes(...this.cipherText.flatMap((el) => el.serialize()));
   }
 
   getCipherTextDPointBytes(): Uint8Array {
-    return concatBytes(...this.cipherText.map((el) => el.D.toRawBytes()).flat());
+    return concatBytes(...this.cipherText.flatMap((el) => el.D.toRawBytes()));
   }
 
   getRandomness(): bigint[] | undefined {

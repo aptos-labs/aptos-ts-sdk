@@ -1,7 +1,7 @@
-import * as Types from './operations';
+import * as Types from "./operations";
 
-import { GraphQLClient, RequestOptions } from 'graphql-request';
-type GraphQLClientRequestHeaders = RequestOptions['requestHeaders'];
+import { GraphQLClient, RequestOptions } from "graphql-request";
+type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 
 export const GetConfidentialAssetActivities = `
     query getConfidentialAssetActivities($where_condition: confidential_asset_activities_bool_exp, $offset: Int, $limit: Int, $order_by: [confidential_asset_activities_order_by!]) {
@@ -44,16 +44,35 @@ export const GetConfidentialAssetActivities = `
 }
     `;
 
-export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string, variables?: any) => Promise<T>;
-
+export type SdkFunctionWrapper = <T>(
+  action: (requestHeaders?: Record<string, string>) => Promise<T>,
+  operationName: string,
+  operationType?: string,
+  variables?: any,
+) => Promise<T>;
 
 const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationType, _variables) => action();
 
 export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
   return {
-    getConfidentialAssetActivities(variables?: Types.GetConfidentialAssetActivitiesQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<Types.GetConfidentialAssetActivitiesQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<Types.GetConfidentialAssetActivitiesQuery>({ document: GetConfidentialAssetActivities, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'getConfidentialAssetActivities', 'query', variables);
-    }
+    getConfidentialAssetActivities(
+      variables?: Types.GetConfidentialAssetActivitiesQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+      signal?: RequestInit["signal"],
+    ): Promise<Types.GetConfidentialAssetActivitiesQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetConfidentialAssetActivitiesQuery>({
+            document: GetConfidentialAssetActivities,
+            variables,
+            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+            signal,
+          }),
+        "getConfidentialAssetActivities",
+        "query",
+        variables,
+      );
+    },
   };
 }
 export type Sdk = ReturnType<typeof getSdk>;

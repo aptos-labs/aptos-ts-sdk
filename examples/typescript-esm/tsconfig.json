@@ -17,6 +17,5 @@
       "@aptos/*": ["../.."]
     }
   },
-  "include": ["*.ts", "sponsored_transactions/*.ts"],
-
+  "include": ["*.ts", "sponsored_transactions/*.ts"]
 }

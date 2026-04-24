@@ -12,10 +12,7 @@ import type { ConfidentialAssetActivity } from "./types";
 import { GetConfidentialAssetActivities } from "./generated/queries";
 import type { GetConfidentialAssetActivitiesQuery } from "./generated/operations";
 import { convertActivities } from "./generated/convert";
-import type {
-  ConfidentialAssetActivitiesBoolExp,
-  ConfidentialAssetActivitiesOrderBy,
-} from "./generated/types";
+import type { ConfidentialAssetActivitiesBoolExp, ConfidentialAssetActivitiesOrderBy } from "./generated/types";
 
 export type { ConfidentialAssetActivitiesBoolExp, ConfidentialAssetActivitiesOrderBy };
 

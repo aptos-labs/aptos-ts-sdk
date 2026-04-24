@@ -141,7 +141,7 @@ export class BsgsSolver {
           //console.log(`BSGS: Creating table for ${bitWidth}-bit DLPs...`);
           const startTime = performance.now();
           const table = createBsgsTable(bitWidth);
-          const elapsed = performance.now() - startTime;
+          const _elapsed = performance.now() - startTime;
           //console.log(`BSGS: ${bitWidth}-bit table created in ${elapsed.toFixed(2)}ms (${table.babySteps.size} entries)`);
           this.tables.set(bitWidth, table);
         }
@@ -163,7 +163,7 @@ export class BsgsSolver {
     // Sort tables by bit width (smallest first for efficiency)
     const sortedTables = [...this.tables.entries()].sort((a, b) => a[0] - b[0]);
 
-    for (const [bitWidth, table] of sortedTables) {
+    for (const [_bitWidth, table] of sortedTables) {
       const result = solveDlpBsgs(point, table);
       if (result !== null) {
         return result;

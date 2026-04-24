@@ -1,11 +1,6 @@
 import { numberToBytesLE } from "@noble/curves/abstract/utils";
 import { RistrettoPoint } from "@noble/curves/ed25519";
-import {
-  AVAILABLE_BALANCE_CHUNK_COUNT,
-  CHUNK_BITS,
-  ChunkedAmount,
-  TRANSFER_AMOUNT_CHUNK_COUNT,
-} from "./chunkedAmount";
+import { AVAILABLE_BALANCE_CHUNK_COUNT, CHUNK_BITS, ChunkedAmount, TRANSFER_AMOUNT_CHUNK_COUNT } from "./chunkedAmount";
 import { AnyNumber } from "@aptos-labs/ts-sdk";
 import { batchRangeProof, batchVerifyProof } from "@aptos-labs/confidential-asset-bindings";
 import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey, H_RISTRETTO } from ".";
@@ -221,13 +216,12 @@ export class ConfidentialTransfer {
     );
 
     // Encrypt the new balance under each auditor key with the same randomness
-    const auditorEncryptedBalancesAfterTransfer = auditorEncryptionKeys.map(
-      (encryptionKey) =>
-        EncryptedAmount.fromAmountAndPublicKey({
-          amount: remainingBalance,
-          publicKey: encryptionKey,
-          randomness: newBalanceRandomness,
-        }),
+    const auditorEncryptedBalancesAfterTransfer = auditorEncryptionKeys.map((encryptionKey) =>
+      EncryptedAmount.fromAmountAndPublicKey({
+        amount: remainingBalance,
+        publicKey: encryptionKey,
+        randomness: newBalanceRandomness,
+      }),
     );
 
     return new ConfidentialTransfer({
@@ -268,12 +262,14 @@ export class ConfidentialTransfer {
 
     // Auditor data
     const auditorEncryptionKeys = this.auditorEncryptionKeys.length > 0 ? this.auditorEncryptionKeys : undefined;
-    const newBalanceDAud = this.auditorEncryptedBalancesAfterTransfer.length > 0
-      ? this.auditorEncryptedBalancesAfterTransfer.map((ea) => ea.getCipherText().map((ct) => ct.D))
-      : undefined;
-    const transferAmountDAud = this.transferAmountEncryptedByAuditors.length > 0
-      ? this.transferAmountEncryptedByAuditors.map((ea) => ea.getCipherText().map((ct) => ct.D))
-      : undefined;
+    const newBalanceDAud =
+      this.auditorEncryptedBalancesAfterTransfer.length > 0
+        ? this.auditorEncryptedBalancesAfterTransfer.map((ea) => ea.getCipherText().map((ct) => ct.D))
+        : undefined;
+    const transferAmountDAud =
+      this.transferAmountEncryptedByAuditors.length > 0
+        ? this.transferAmountEncryptedByAuditors.map((ea) => ea.getCipherText().map((ct) => ct.D))
+        : undefined;
 
     return proveTransfer({
       dk: this.senderDecryptionKey,

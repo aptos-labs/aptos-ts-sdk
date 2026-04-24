@@ -1,6 +1,6 @@
-import path from "path";
-import fs from "fs";
-import { execSync } from "child_process";
+import path from "node:path";
+import fs from "node:fs";
+import { execSync } from "node:child_process";
 import {
   Network,
   AptosConfig,
@@ -74,9 +74,7 @@ export const aptos = new Aptos(config);
 export const getCoreResourcesAccount = (): Ed25519Account | undefined => {
   // The localnet must write mint.key to ~/.aptos/testnet/. This happens automatically
   // with the npm CLI package. When running from source, pass --test-dir ~/.aptos/testnet.
-  const candidates = [
-    path.join(process.env.HOME || "~", ".aptos/testnet/mint.key"),
-  ];
+  const candidates = [path.join(process.env.HOME || "~", ".aptos/testnet/mint.key")];
 
   const keyPath = candidates.find((p) => fs.existsSync(p));
   if (!keyPath) return undefined;
@@ -131,10 +129,7 @@ const GOVERNANCE_SCRIPTS_DIR = path.resolve(__dirname, "../e2e/scripts/governanc
  * @param packageDir directory of the package to compile
  * @param args extra arguments to pass to the compile command
  */
-export function compilePackage(
-  packageDir: string,
-  args?: string[],
-) {
+export function compilePackage(packageDir: string, args?: string[]) {
   try {
     execSync("aptos --version");
   } catch {
