@@ -120,8 +120,8 @@ export async function getBalance(
     setCache(getAvailableBalanceCacheKey(accountAddress, tokenAddress, args.client.config.network), balance.available);
     setCache(getPendingBalanceCacheKey(accountAddress, tokenAddress, args.client.config.network), balance.pending);
     return balance;
-  } catch (error) {
-    throw error;
+  } catch (e) {
+    throw new Error(`Failed to get balance: ${e}`);
   }
 }
 
@@ -325,24 +325,19 @@ export async function getEncryptionKey(
   },
 ): Promise<TwistedEd25519PublicKey> {
   const { accountAddress, tokenAddress, options, useCachedValue = false } = args;
-  try {
-    return await memoizeAsync(
-      async () => {
-        const [{ data }] = await args.client.view<[{ data: string }]>({
-          options,
-          payload: {
-            function: `${args.moduleAddress}::${MODULE_NAME}::get_encryption_key`,
-            functionArguments: [accountAddress, tokenAddress],
-          },
-        });
-        return new TwistedEd25519PublicKey(data);
-      },
-      `${accountAddress}-encryption-key-for-${tokenAddress}-${args.client.config.network}`,
-      1000 * 60 * 60, // 1 hour cache duration
-      useCachedValue,
-    )();
-  } catch (error) {
-    throw error;
-  }
+  return await memoizeAsync(
+    async () => {
+      const [{ data }] = await args.client.view<[{ data: string }]>({
+        options,
+        payload: {
+          function: `${args.moduleAddress}::${MODULE_NAME}::get_encryption_key`,
+          functionArguments: [accountAddress, tokenAddress],
+        },
+      });
+      return new TwistedEd25519PublicKey(data);
+    },
+    `${accountAddress}-encryption-key-for-${tokenAddress}-${args.client.config.network}`,
+    1000 * 60 * 60, // 1 hour cache duration
+    useCachedValue,
+  )();
 }
-

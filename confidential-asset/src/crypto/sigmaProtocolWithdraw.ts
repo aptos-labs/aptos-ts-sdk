@@ -258,10 +258,7 @@ export type WithdrawProofArgs = {
 /**
  * Build the statement and witness for a withdrawal or normalization proof, then prove it.
  */
-function proveWithdrawInternal(
-  protocolId: string,
-  args: WithdrawProofArgs,
-): SigmaProtocolProof {
+function proveWithdrawInternal(protocolId: string, args: WithdrawProofArgs): SigmaProtocolProof {
   const {
     dk,
     senderAddress,

@@ -21,7 +21,7 @@ import {
   Network,
   NetworkToNetworkName,
 } from "@aptos-labs/ts-sdk";
-import { createInterface } from "readline";
+import { createInterface } from "node:readline";
 // Default to devnet, but allow for overriding
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 

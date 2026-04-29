@@ -12,7 +12,6 @@ import {
   SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
 import {
-  TwistedElGamal,
   ConfidentialNormalization,
   ConfidentialKeyRotation,
   ConfidentialTransfer,
@@ -205,8 +204,8 @@ export class ConfidentialAssetTransactionBuilder {
 
     // Build auditor A components (D points encrypted under auditor key)
     const newBalanceA = auditorEncryptedBalance
-      ? auditorEncryptedBalance.getCipherText().map((ct) => ct.D.toRawBytes())
-      : ([]);
+      ? auditorEncryptedBalance.getCipherText().map((ct) => ct.D.toBytes())
+      : [];
 
     return this.client.transaction.build.simple({
       ...args,
@@ -216,8 +215,8 @@ export class ConfidentialAssetTransactionBuilder {
           tokenAddress,
           recipient,
           String(amount),
-          encryptedAmountAfterWithdraw.getCipherText().map((ct) => ct.C.toRawBytes()), // new_balance_C
-          encryptedAmountAfterWithdraw.getCipherText().map((ct) => ct.D.toRawBytes()), // new_balance_D
+          encryptedAmountAfterWithdraw.getCipherText().map((ct) => ct.C.toBytes()), // new_balance_C
+          encryptedAmountAfterWithdraw.getCipherText().map((ct) => ct.D.toBytes()), // new_balance_D
           newBalanceA, // new_balance_A
           rangeProof,
           sigmaProof.commitment,
@@ -335,7 +334,15 @@ export class ConfidentialAssetTransactionBuilder {
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    const { sender, senderDecryptionKey, recipient, tokenAddress, amount, additionalAuditorEncryptionKeys = [], memo = new Uint8Array() } = args;
+    const {
+      sender,
+      senderDecryptionKey,
+      recipient,
+      tokenAddress,
+      amount,
+      additionalAuditorEncryptionKeys = [],
+      memo = new Uint8Array(),
+    } = args;
     validateAmount({ amount });
 
     const maxMemoBytes = await this.getMaxMemoBytes();
@@ -421,20 +428,19 @@ export class ConfidentialAssetTransactionBuilder {
     const volunAuditorEncryptionKeys = additionalAuditorEncryptionKeys.map((pk) => pk.toUint8Array());
 
     // Only send D components for recipient and auditors (C components are shared with sender_amount)
-    const recipientDPoints = encryptedAmountByRecipient.getCipherText().map((ct) => ct.D.toRawBytes());
+    const recipientDPoints = encryptedAmountByRecipient.getCipherText().map((ct) => ct.D.toBytes());
     // Split auditor D points into effective (last, if present) and voluntary (remaining)
     const effectiveAuditorDPoints = effectiveAuditorPubKey
-      ? allAuditorAmountCiphertexts[allAuditorAmountCiphertexts.length - 1].getCipherText().map((ct) => ct.D.toRawBytes())
+      ? allAuditorAmountCiphertexts[allAuditorAmountCiphertexts.length - 1].getCipherText().map((ct) => ct.D.toBytes())
       : [];
-    const volunAuditorDPoints = (effectiveAuditorPubKey
-      ? allAuditorAmountCiphertexts.slice(0, -1)
-      : allAuditorAmountCiphertexts
-    ).map((cb) => cb.getCipherText().map((ct) => ct.D.toRawBytes()));
+    const volunAuditorDPoints = (
+      effectiveAuditorPubKey ? allAuditorAmountCiphertexts.slice(0, -1) : allAuditorAmountCiphertexts
+    ).map((cb) => cb.getCipherText().map((ct) => ct.D.toBytes()));
 
     // Build R_aud components for new balance (D points encrypted under the effective auditor key, i.e., the last one)
     // Only populated when there IS an effective auditor — voluntary auditors don't get new balance R components.
     const newBalanceA = effectiveAuditorPubKey
-      ? auditorNewBalanceList[auditorNewBalanceList.length - 1].getCipherText().map((ct) => ct.D.toRawBytes())
+      ? auditorNewBalanceList[auditorNewBalanceList.length - 1].getCipherText().map((ct) => ct.D.toBytes())
       : [];
 
     return this.client.transaction.build.simple({
@@ -445,11 +451,11 @@ export class ConfidentialAssetTransactionBuilder {
         functionArguments: [
           tokenAddress,
           recipient,
-          encryptedAmountAfterTransfer.getCipherText().map((ct) => ct.C.toRawBytes()), // new_balance_C
-          encryptedAmountAfterTransfer.getCipherText().map((ct) => ct.D.toRawBytes()), // new_balance_D
+          encryptedAmountAfterTransfer.getCipherText().map((ct) => ct.C.toBytes()), // new_balance_C
+          encryptedAmountAfterTransfer.getCipherText().map((ct) => ct.D.toBytes()), // new_balance_D
           newBalanceA, // new_balance_A
-          confidentialTransfer.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.C.toRawBytes()), // sender_amount_C
-          confidentialTransfer.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.D.toRawBytes()), // sender_amount_D
+          confidentialTransfer.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.C.toBytes()), // sender_amount_C
+          confidentialTransfer.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.D.toBytes()), // sender_amount_D
           recipientDPoints,
           effectiveAuditorDPoints,
           volunAuditorEncryptionKeys,
@@ -539,14 +545,7 @@ export class ConfidentialAssetTransactionBuilder {
       sender: args.sender,
       data: {
         function: `${this.confidentialAssetModuleAddress}::${MODULE_NAME}::rotate_encryption_key_raw`,
-        functionArguments: [
-          args.tokenAddress,
-          newEkBytes,
-          unpause,
-          newDBytes,
-          proof.commitment,
-          proof.response,
-        ],
+        functionArguments: [args.tokenAddress, newEkBytes, unpause, newDBytes, proof.commitment, proof.response],
       },
       options: args.options,
     });

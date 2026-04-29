@@ -19,7 +19,6 @@ import {
   SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
 
-
 const INITIAL_BALANCE = 1_000_000_000;
 const TRANSFER_AMOUNT = 100;
 

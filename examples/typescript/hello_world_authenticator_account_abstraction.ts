@@ -6,7 +6,6 @@ import {
   Network,
   AptosConfig,
   MoveFunctionId,
-  UserTransactionResponse,
   NetworkToNetworkName,
 } from "@aptos-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils.js";
@@ -83,9 +82,9 @@ const main = async () => {
   const response = await aptos.waitForTransaction({ transactionHash: pendingTransferTxn.hash });
   console.log(`Committed transaction: ${response.hash}`);
 
-  const txn = (await aptos.getTransactionByHash({
+  const txn = await aptos.getTransactionByHash({
     transactionHash: pendingTransferTxn.hash,
-  }));
+  });
   if (!("signature" in txn)) {
     throw new Error("Transaction signature not found");
   }

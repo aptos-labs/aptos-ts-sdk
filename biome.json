@@ -7,18 +7,7 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": [
-      "**",
-      "!src/types/generated/**",
-      "!dist/**",
-      "!node_modules/**",
-      "!**/dist/**",
-      "!**/node_modules/**",
-      "!confidential-asset/**",
-      "!projects/**",
-      "!examples/**",
-      "!docs/**"
-    ]
+    "includes": ["**", "!src/types/generated", "!dist", "!node_modules", "!**/dist", "!**/node_modules", "!docs"]
   },
   "formatter": {
     "enabled": true,

@@ -4,19 +4,14 @@ query getConfidentialAssetActivities(
   $limit: Int
   $order_by: [confidential_asset_activities_order_by!]
 ) {
-  confidential_asset_activities(
-    where: $where_condition
-    offset: $offset
-    limit: $limit
-    order_by: $order_by
-  ) {
+  confidential_asset_activities(where: $where_condition, offset: $offset, limit: $limit, order_by: $order_by) {
     transaction_version
     event_index
     event_type
     owner_address
     owner_primary_aptos_name: owner_aptos_names(
-      where: {is_active: {_eq: true}, is_primary: {_eq: true}}
-      order_by: {last_transaction_version: desc}
+      where: { is_active: { _eq: true }, is_primary: { _eq: true } }
+      order_by: { last_transaction_version: desc }
       limit: 1
     ) {
       domain
@@ -25,8 +20,8 @@ query getConfidentialAssetActivities(
     asset_type
     counterparty_address
     counterparty_primary_aptos_name: counterparty_aptos_names(
-      where: {is_active: {_eq: true}, is_primary: {_eq: true}}
-      order_by: {last_transaction_version: desc}
+      where: { is_active: { _eq: true }, is_primary: { _eq: true } }
+      order_by: { last_transaction_version: desc }
       limit: 1
     ) {
       domain

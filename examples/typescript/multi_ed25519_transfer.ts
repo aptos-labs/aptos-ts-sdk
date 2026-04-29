@@ -42,9 +42,7 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress): Pro
 };
 
 const example = async () => {
-  console.log(
-    "This example will create a 2-of-3 MultiEd25519 account, fund it, and transfer from it.",
-  );
+  console.log("This example will create a 2-of-3 MultiEd25519 account, fund it, and transfer from it.");
 
   const config = new AptosConfig({ network: APTOS_NETWORK });
   const aptos = new Aptos(config);

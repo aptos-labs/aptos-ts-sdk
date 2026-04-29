@@ -25,8 +25,8 @@ const example = async () => {
   const sdk = new Aptos(config);
 
   // Create two accounts
-  let alice = Account.generate({ scheme: 0 });
-  let bob = Account.generate({ scheme: 0 });
+  const alice = Account.generate({ scheme: 0 });
+  const bob = Account.generate({ scheme: 0 });
 
   console.log("=== Addresses ===\n");
   console.log(`Alice's address is: ${alice.accountAddress}`);
@@ -49,8 +49,8 @@ const example = async () => {
 
   // Show the balances
   console.log("\n=== Balances ===\n");
-  let aliceBalance = await balance(sdk, "Alice", alice.accountAddress);
-  let bobBalance = await balance(sdk, "Bob", bob.accountAddress);
+  const aliceBalance = await balance(sdk, "Alice", alice.accountAddress);
+  const bobBalance = await balance(sdk, "Bob", bob.accountAddress);
 
   if (aliceBalance !== ALICE_INITIAL_BALANCE) throw new Error("Alice's balance is incorrect");
   if (bobBalance !== BOB_INITIAL_BALANCE) throw new Error("Bob's balance is incorrect");
@@ -65,13 +65,13 @@ const example = async () => {
   });
 
   console.log("\n=== Transfer transaction ===\n");
-  let committedTxn = await sdk.signAndSubmitTransaction({ signer: alice, transaction: txn });
+  const committedTxn = await sdk.signAndSubmitTransaction({ signer: alice, transaction: txn });
   console.log(`Committed transaction: ${committedTxn.hash}`);
   await sdk.waitForTransaction({ transactionHash: committedTxn.hash });
 
   console.log("\n=== Balances after transfer ===\n");
-  let newAliceBalance = await balance(sdk, "Alice", alice.accountAddress);
-  let newBobBalance = await balance(sdk, "Bob", bob.accountAddress);
+  const newAliceBalance = await balance(sdk, "Alice", alice.accountAddress);
+  const newBobBalance = await balance(sdk, "Bob", bob.accountAddress);
 
   // Bob should have the transfer amount
   if (newBobBalance !== TRANSFER_AMOUNT + BOB_INITIAL_BALANCE)
