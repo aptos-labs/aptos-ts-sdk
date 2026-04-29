@@ -25,7 +25,7 @@ import {
   SymmetricKey,
   SymmetricCiphertext,
 } from "../../../../../src/core/crypto/encryption";
-import { bls12_381 } from "@noble/curves/bls12-381";
+import { bls12_381 } from "@noble/curves/bls12-381.js";
 
 function makeStubCiphertext(): Ciphertext {
   const vk = new Uint8Array(32);

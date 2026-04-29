@@ -8,7 +8,7 @@ import {
   assertSimulatableTransaction,
   ENCRYPTED_TRANSACTION_SIMULATION_NOT_SUPPORTED_MESSAGE,
 } from "../../src/internal/transactionSubmission";
-import { bls12_381 } from "@noble/curves/bls12-381";
+import { bls12_381 } from "@noble/curves/bls12-381.js";
 import { ChainId } from "../../src/transactions/instances/chainId";
 import { RawTransaction } from "../../src/transactions/instances/rawTransaction";
 import { SimpleTransaction } from "../../src/transactions/instances/simpleTransaction";

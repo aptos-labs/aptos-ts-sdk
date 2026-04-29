@@ -1,18 +1,18 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { randomBytes } from "@noble/hashes/utils";
-import { gcm } from "@noble/ciphers/aes";
-import { hkdf } from "@noble/hashes/hkdf";
-import { sha256 } from "@noble/hashes/sha2";
-import { type H2COpts, hash_to_field } from "@noble/curves/abstract/hash-to-curve";
-import { bls12_381 } from "@noble/curves/bls12-381";
-import type { WeierstrassPoint } from "@noble/curves/abstract/weierstrass";
-import type { Fp2 } from "@noble/curves/abstract/tower";
-import { Serializable, Serializer } from "../../../bcs/serializer";
-import { Deserializer } from "../../../bcs/deserializer";
-import { leBytesToBigint } from "./fieldSerialization";
-import { g2ToBytes } from "./curveSerialization";
+import { randomBytes } from "@noble/hashes/utils.js";
+import { gcm } from "@noble/ciphers/aes.js";
+import { hkdf } from "@noble/hashes/hkdf.js";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { type H2COpts, hash_to_field } from "@noble/curves/abstract/hash-to-curve.js";
+import { bls12_381 } from "@noble/curves/bls12-381.js";
+import type { WeierstrassPoint } from "@noble/curves/abstract/weierstrass.js";
+import type { Fp2 } from "@noble/curves/abstract/tower.js";
+import { Serializable, Serializer } from "../../../bcs/serializer.js";
+import { Deserializer } from "../../../bcs/deserializer.js";
+import { leBytesToBigint } from "./fieldSerialization.js";
+import { g2ToBytes } from "./curveSerialization.js";
 
 const HASH_G2_ELEMENT_DST = "APTOS_BATCH_ENCRYPTION_HASH_G2_ELEMENT";
 const HKDF_SALT = new TextEncoder().encode("APTOS_BATCH_ENCRYPTION_OTP");
@@ -117,7 +117,7 @@ export function hmacKdf(otpSource: Uint8Array): Uint8Array {
 
 export function getRandomFr(): bigint {
   const randomBigint = leBytesToBigint(randomBytes(128));
-  return bls12_381.G1.Point.Fn.create(randomBigint);
+  return bls12_381.fields.Fr.create(randomBigint);
 }
 
 /**

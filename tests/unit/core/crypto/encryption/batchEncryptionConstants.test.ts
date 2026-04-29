@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { bls12_381 } from "@noble/curves/bls12-381";
+import { bls12_381 } from "@noble/curves/bls12-381.js";
 import { describe, expect, test } from "vitest";
 import { g2ToBytes } from "../../../../../src/core/crypto/encryption/curveSerialization";
 import { hashG2Element, ID_HASH_DST } from "../../../../../src/core/crypto/encryption/symmetric";

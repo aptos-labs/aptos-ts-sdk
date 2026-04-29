@@ -13,5 +13,5 @@
  * @module
  */
 
-export { EncryptionKey, Ciphertext, BIBECiphertext } from "./ciphertext";
-export { SymmetricKey, SymmetricCiphertext, OneTimePad } from "./symmetric";
+export { EncryptionKey, Ciphertext, BIBECiphertext } from "./ciphertext.js";
+export { SymmetricKey, SymmetricCiphertext, OneTimePad } from "./symmetric.js";

@@ -6,22 +6,16 @@
  * The key is per-epoch; cache by epoch and refresh when epoch changes.
  */
 
-import { AptosConfig } from "../api/aptosConfig";
-import { Hex } from "../core";
-import { Deserializer } from "../bcs/deserializer";
-import { EncryptionKey } from "../core/crypto/encryption";
-import { getLedgerInfo } from "./general";
+import { AptosConfig } from "../api/aptosConfig.js";
+import { Hex } from "../core/hex.js";
+import { Deserializer } from "../bcs/deserializer.js";
+import { EncryptionKey } from "../core/crypto/encryption/index.js";
+import { getLedgerInfo } from "./general.js";
 
 interface CachedEncryptionKey {
   epoch: string;
   key: EncryptionKey;
 }
-
-export type FetchedEncryptionKey = {
-  key: EncryptionKey;
-  /** Ledger epoch for the cached key (matches aptos-core `EncryptionKeyState.epoch` / `EncryptedInner.encryption_epoch`). */
-  epoch: bigint;
-};
 
 const encryptionKeyCache = new Map<string, CachedEncryptionKey>();
 
@@ -36,17 +30,16 @@ const encryptionKeyCache = new Map<string, CachedEncryptionKey>();
 export async function fetchAndCacheEncryptionKey(args: {
   aptosConfig: AptosConfig;
   forceRefresh?: boolean;
-}): Promise<FetchedEncryptionKey | null> {
+}): Promise<{ key: EncryptionKey; epoch: bigint } | null> {
   const { aptosConfig, forceRefresh } = args;
   const cacheKey = `encryption-key-${aptosConfig.network}`;
 
   const ledgerInfo = await getLedgerInfo({ aptosConfig });
-  const epochBig = BigInt(ledgerInfo.epoch);
 
   if (!forceRefresh) {
     const cached = encryptionKeyCache.get(cacheKey);
     if (cached && cached.epoch === ledgerInfo.epoch) {
-      return { key: cached.key, epoch: epochBig };
+      return { key: cached.key, epoch: BigInt(cached.epoch) };
     }
   }
 
@@ -60,7 +53,7 @@ export async function fetchAndCacheEncryptionKey(args: {
   const key = EncryptionKey.deserialize(deserializer);
 
   encryptionKeyCache.set(cacheKey, { epoch: ledgerInfo.epoch, key });
-  return { key, epoch: epochBig };
+  return { key, epoch: BigInt(ledgerInfo.epoch) };
 }
 
 /**

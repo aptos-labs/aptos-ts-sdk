@@ -56,6 +56,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Prevent `@types/node` type leak in emitted `.d.ts`: `TEXT_ENCODER` now has an explicit structural type (`{ encode(input: string): Uint8Array }`) so consumers without `@types/node` (browsers, Deno, React Native) don't hit `Cannot find name 'util'` when compiling against the SDK.
 - Fix `examples/typescript` build: split `EphemeralKeyPair` imports to `@aptos-labs/ts-sdk/keyless`, update `@noble/hashes/sha3` to `@noble/hashes/sha3.js` (noble v2 exports), add explicit `"types": ["node"]` to the example `tsconfig.json`, and use `??` (instead of `||`) when reading `process.env.APTOS_NETWORK` so it type-checks under strict null checks.
 - Encrypted transaction builds with multisig inner **script** payload: `payloadToExecutable` now maps `Script` to `TransactionExecutableScript`, consistent with the orderless `convertPayloadToInnerPayload` path.
+- Encrypted transaction crypto (`src/core/crypto/encryption/`): ESM `nodenext` import specifiers, `@noble/ciphers` 2.x with `.js` subpaths, and `@noble/curves` 2.x (`bls12_381.G1.hashToCurve`, `bls12_381.fields.Fr`, `ed25519.utils.randomSecretKey`). `fetchAndCacheEncryptionKey` returns `{ key, epoch }` with **`epoch` as `bigint`** for BCS `encryption_epoch`.
 
 ## Added
 

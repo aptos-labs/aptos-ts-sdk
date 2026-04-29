@@ -1,9 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import type { Fp2 } from "@noble/curves/abstract/tower";
-import type { WeierstrassPoint } from "@noble/curves/abstract/weierstrass";
-import { bls12_381 } from "@noble/curves/bls12-381";
+import type { Fp2 } from "@noble/curves/abstract/tower.js";
+import type { WeierstrassPoint } from "@noble/curves/abstract/weierstrass.js";
+import { bls12_381 } from "@noble/curves/bls12-381.js";
 
 export const G1_SIZE = 48;
 export const G2_SIZE = 96;

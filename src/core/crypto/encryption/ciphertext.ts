@@ -6,14 +6,14 @@
  * BCS layout must match the Rust types in aptos_batch_encryption::shared::ciphertext.
  */
 
-import { ed25519 } from "@noble/curves/ed25519";
-import { bls12_381 } from "@noble/curves/bls12-381";
-import type { Fp2 } from "@noble/curves/abstract/tower";
-import type { WeierstrassPoint } from "@noble/curves/abstract/weierstrass";
-import { Serializable, Serializer } from "../../../bcs/serializer";
-import { Deserializer } from "../../../bcs/deserializer";
-import { leBytesToBigint, bigintToLEBytesFr, fp12ToLEBytes } from "./fieldSerialization";
-import { bytesToG2, G2_SIZE, g2ToBytes } from "./curveSerialization";
+import { ed25519 } from "@noble/curves/ed25519.js";
+import { bls12_381 } from "@noble/curves/bls12-381.js";
+import type { Fp2 } from "@noble/curves/abstract/tower.js";
+import type { WeierstrassPoint } from "@noble/curves/abstract/weierstrass.js";
+import { Serializable, Serializer } from "../../../bcs/serializer.js";
+import { Deserializer } from "../../../bcs/deserializer.js";
+import { leBytesToBigint, bigintToLEBytesFr, fp12ToLEBytes } from "./fieldSerialization.js";
+import { bytesToG2, G2_SIZE, g2ToBytes } from "./curveSerialization.js";
 import {
   getRandomFr,
   hashG2Element,
@@ -22,7 +22,7 @@ import {
   OneTimePad,
   SymmetricCiphertext,
   SymmetricKey,
-} from "./symmetric";
+} from "./symmetric.js";
 
 /**
  * Corresponds to the Rust type `aptos_batch_encryption::shared::ciphertext::BIBECiphertext`.
@@ -181,7 +181,7 @@ export class EncryptionKey extends Serializable {
    * The ciphertext Id must equal hash(vk || BCS(associated_data)) with ID_HASH_DST so the node can verify.
    */
   encrypt(plaintext: Serializable, associatedData: Serializable): Ciphertext {
-    const secretKey = ed25519.utils.randomPrivateKey();
+    const secretKey = ed25519.utils.randomSecretKey();
     const publicKey = ed25519.getPublicKey(secretKey);
 
     // Serialize associated data first (Rust: bcs::to_bytes(associated_data))

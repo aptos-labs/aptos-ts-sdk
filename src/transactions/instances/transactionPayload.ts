@@ -879,7 +879,10 @@ export class PayloadAssociatedData extends Serializable {
  * Matches `aptos_types::transaction::RequestedMultipliers` (BCS enum; variant 0 = V1).
  */
 export class RequestedMultipliers extends Serializable {
-  constructor(public readonly executionBps: bigint, public readonly ioBps: bigint) {
+  constructor(
+    public readonly executionBps: bigint,
+    public readonly ioBps: bigint,
+  ) {
     super();
   }
 
