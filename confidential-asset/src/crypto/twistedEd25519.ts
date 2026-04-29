@@ -1,8 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { ed25519, RistrettoPoint } from "@noble/curves/ed25519";
-import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/abstract/utils";
+import { ed25519, ristretto255 } from "@noble/curves/ed25519";
+import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/utils";
 import { ed25519InvertN, ed25519modN } from "../utils";
 import {
   HexInput,
@@ -19,8 +19,8 @@ import {
   Deserializer,
 } from "@aptos-labs/ts-sdk";
 
-export { RistrettoPoint } from "@noble/curves/ed25519";
-export type RistPoint = InstanceType<typeof RistrettoPoint>;
+export { ristretto255 } from "@noble/curves/ed25519";
+export type RistPoint = InstanceType<typeof ristretto255.Point>;
 /**
  * The hash of the basepoint of the Ristretto255 group using SHA3_512
  */
@@ -28,10 +28,10 @@ export const HASH_BASE_POINT = "8c9240b456a9e6dc65c377a1048d745f94a08cdb7f44cbcd
 /**
  * Ristretto point from HASH_BASE_POINT
  */
-export const H_RISTRETTO: RistPoint = RistrettoPoint.fromHex(HASH_BASE_POINT);
+export const H_RISTRETTO: RistPoint = ristretto255.Point.fromHex(HASH_BASE_POINT);
 
 /**
- * Represents the public key of an Twisted ElGamal Ed25519 key pair.
+ * Represents the public key of a Twisted ElGamal Ed25519 key pair.
  */
 export class TwistedEd25519PublicKey {
   /**
@@ -100,7 +100,7 @@ export class TwistedEd25519PublicKey {
 }
 
 /**
- * Represents the private key of an Twisted ElGamal Ed25519 key pair.
+ * Represents the private key of a Twisted ElGamal Ed25519 key pair.
  */
 export class TwistedEd25519PrivateKey extends Serializable {
   /**
@@ -145,7 +145,7 @@ export class TwistedEd25519PrivateKey extends Serializable {
    * @returns TwistedEd25519PrivateKey
    */
   static generate(): TwistedEd25519PrivateKey {
-    const keyPair = ed25519.utils.randomPrivateKey();
+    const keyPair = ed25519.utils.randomSecretKey();
     return new TwistedEd25519PrivateKey(keyPair);
   }
 

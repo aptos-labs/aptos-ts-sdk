@@ -1,5 +1,5 @@
-import { numberToBytesLE } from "@noble/curves/abstract/utils";
-import { RistrettoPoint } from "@noble/curves/ed25519";
+import { numberToBytesLE } from "@noble/curves/utils";
+import { ristretto255 } from "@noble/curves/ed25519";
 import { AVAILABLE_BALANCE_CHUNK_COUNT, CHUNK_BITS, ChunkedAmount, TRANSFER_AMOUNT_CHUNK_COUNT } from "./chunkedAmount";
 import { AnyNumber } from "@aptos-labs/ts-sdk";
 import { batchRangeProof, batchVerifyProof } from "@aptos-labs/confidential-asset-bindings";
@@ -51,7 +51,7 @@ export class ConfidentialTransfer {
 
   /**
    * The encrypted actual balance, which is the on-chain representation of the balance of the sender before the transfer.
-   * This is can be decrypted with the sender decryption key.
+   * This can be decrypted with the sender decryption key.
    */
   senderEncryptedAvailableBalance: EncryptedAmount;
 
@@ -62,7 +62,7 @@ export class ConfidentialTransfer {
   transferAmountEncryptedBySender: EncryptedAmount;
 
   /**
-   * The encrypted balance remaining after the transfer. It is the computed by encrypting confidentialBalanceAfterTransfer
+   * The encrypted balance remaining after the transfer. It is computed by encrypting confidentialBalanceAfterTransfer
    * with the public key of senderDecryptionKey and newBalanceRandomness.
    **/
   senderEncryptedAvailableBalanceAfterTransfer: EncryptedAmount;
@@ -301,7 +301,7 @@ export class ConfidentialTransfer {
     const rangeProofAmount = await batchRangeProof({
       v: this.transferAmountEncryptedBySender.getAmountChunks(),
       rs: this.transferAmountRandomness.slice(0, TRANSFER_AMOUNT_CHUNK_COUNT).map((el) => numberToBytesLE(el, 32)),
-      valBase: RistrettoPoint.BASE.toBytes(),
+      valBase: ristretto255.Point.BASE.toBytes(),
       randBase: H_RISTRETTO.toBytes(),
       numBits: CHUNK_BITS,
     });
@@ -309,7 +309,7 @@ export class ConfidentialTransfer {
     const rangeProofNewBalance = await batchRangeProof({
       v: this.senderEncryptedAvailableBalanceAfterTransfer.getAmountChunks(),
       rs: this.newBalanceRandomness.map((el) => numberToBytesLE(el, 32)),
-      valBase: RistrettoPoint.BASE.toBytes(),
+      valBase: ristretto255.Point.BASE.toBytes(),
       randBase: H_RISTRETTO.toBytes(),
       numBits: CHUNK_BITS,
     });
@@ -353,14 +353,14 @@ export class ConfidentialTransfer {
     const isRangeProofAmountValid = await batchVerifyProof({
       proof: opts.rangeProofAmount,
       comms: opts.encryptedAmountByRecipient.getCipherText().map((el) => el.C.toBytes()),
-      valBase: RistrettoPoint.BASE.toBytes(),
+      valBase: ristretto255.Point.BASE.toBytes(),
       randBase: H_RISTRETTO.toBytes(),
       numBits: CHUNK_BITS,
     });
     const rangeProofNewBalance = await batchVerifyProof({
       proof: opts.rangeProofNewBalance,
       comms: opts.encryptedActualBalanceAfterTransfer.getCipherText().map((el) => el.C.toBytes()),
-      valBase: RistrettoPoint.BASE.toBytes(),
+      valBase: ristretto255.Point.BASE.toBytes(),
       randBase: H_RISTRETTO.toBytes(),
       numBits: CHUNK_BITS,
     });

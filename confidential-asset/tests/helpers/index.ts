@@ -141,7 +141,7 @@ export function compilePackage(packageDir: string, args?: string[]) {
     console.log("aptos is not installed. Please install it from the instructions on aptos.dev");
   }
 
-  // Assume-yes automatically overwrites the previous compiled version, only do this if you are sure you want to overwrite the previous version.
+  // Assume yes automatically overwrites the previous compiled version, only do this if you are sure you want to overwrite the previous version.
   let compileCommand = `aptos move compile --package-dir ${packageDir}`;
   if (args) compileCommand += ` ${args.join(" ")}`;
 

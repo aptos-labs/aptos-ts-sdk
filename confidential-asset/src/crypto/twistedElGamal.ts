@@ -1,8 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { ed25519, RistrettoPoint } from "@noble/curves/ed25519";
-import { bytesToNumberLE } from "@noble/curves/abstract/utils";
+import { ed25519, ristretto255 } from "@noble/curves/ed25519";
+import { bytesToNumberLE } from "@noble/curves/utils";
 import { H_RISTRETTO, RistPoint, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
 import { ed25519GenRandom, ed25519modN } from "../utils";
 import { HexInput } from "@aptos-labs/ts-sdk";
@@ -21,12 +21,12 @@ export type ModifyCiphertextOperation = "add" | "subtract";
  */
 export class TwistedElGamal {
   /**
-   * The private key of an Twisted ElGamal Ed25519 key pair.
+   * The private key of a Twisted ElGamal Ed25519 key pair.
    */
   private readonly privateKey: TwistedEd25519PrivateKey;
 
   /**
-   * Create a new TwistedElGamal instance from private key.
+   * Create a new TwistedElGamal instance from a private key.
    *
    * @param privateKey TwistedEd25519PrivateKey or HexInput (string or Uint8Array)
    */
@@ -59,21 +59,21 @@ export class TwistedElGamal {
    *
    * @param amount amount for encryption
    * @param publicKey Twisted ElGamal Ed25519 public key.
-   * @param random Random number less than ed25519.CURVE.n (bigint)
+   * @param random Random number less than ed25519.Point.CURVE().n (bigint)
    */
   static encryptWithPK(amount: bigint, publicKey: TwistedEd25519PublicKey, random?: bigint) {
-    if (amount < 0n && amount > ed25519.CURVE.n)
-      throw new Error(`The amount must be in the range 0n to ${ed25519.CURVE.n - 1n}`);
+    if (amount < 0n && amount > ed25519.Point.CURVE().n)
+      throw new Error(`The amount must be in the range 0n to ${ed25519.Point.CURVE().n - 1n}`);
 
-    if (random !== undefined && random < 0n && random > ed25519.CURVE.n)
-      throw new Error(`The random must be in the range 0n to ${ed25519.CURVE.n - 1n}`);
+    if (random !== undefined && random < 0n && random > ed25519.Point.CURVE().n)
+      throw new Error(`The random must be in the range 0n to ${ed25519.Point.CURVE().n - 1n}`);
 
     const m = amount;
     const r = random ?? ed25519GenRandom();
     const rH = H_RISTRETTO.multiply(r);
-    const mG = m === BigInt(0) ? RistrettoPoint.ZERO : RistrettoPoint.BASE.multiply(m);
+    const mG = m === BigInt(0) ? ristretto255.Point.ZERO : ristretto255.Point.BASE.multiply(m);
 
-    const D = RistrettoPoint.fromHex(publicKey.toUint8Array()).multiply(r);
+    const D = ristretto255.Point.fromHex(publicKey.toUint8Array()).multiply(r);
     const C = mG.add(rH);
 
     return new TwistedElGamalCiphertext(C.toBytes(), D.toBytes());
@@ -85,12 +85,12 @@ export class TwistedElGamal {
    * @param amount amount for encryption
    */
   static encryptWithNoRandomness(amount: bigint) {
-    if (amount < 0n && amount > ed25519.CURVE.n)
-      throw new Error(`The amount must be in the range 0n to ${ed25519.CURVE.n - 1n}`);
+    if (amount < 0n && amount > ed25519.Point.CURVE().n)
+      throw new Error(`The amount must be in the range 0n to ${ed25519.Point.CURVE().n - 1n}`);
 
-    const C = amount === BigInt(0) ? RistrettoPoint.ZERO : RistrettoPoint.BASE.multiply(amount);
+    const C = amount === BigInt(0) ? ristretto255.Point.ZERO : ristretto255.Point.BASE.multiply(amount);
 
-    return new TwistedElGamalCiphertext(C.toBytes(), RistrettoPoint.ZERO.toBytes());
+    return new TwistedElGamalCiphertext(C.toBytes(), ristretto255.Point.ZERO.toBytes());
   }
 
   static initialized = false;
@@ -98,10 +98,8 @@ export class TwistedElGamal {
   static calculateCiphertextMG(ciphertext: TwistedElGamalCiphertext, privateKey: TwistedEd25519PrivateKey): RistPoint {
     const { C, D } = ciphertext;
     const modS = ed25519modN(bytesToNumberLE(privateKey.toUint8Array()));
-    const sD = RistrettoPoint.fromHex(D.toBytes()).multiply(modS);
-    const mG = RistrettoPoint.fromHex(C.toBytes()).subtract(sD);
-
-    return mG;
+    const sD = ristretto255.Point.fromHex(D.toBytes()).multiply(modS);
+    return ristretto255.Point.fromHex(C.toBytes()).subtract(sD);
   }
 
   /**
@@ -193,19 +191,19 @@ export class TwistedElGamalCiphertext {
   readonly D: RistPoint;
 
   constructor(C: HexInput, D: HexInput) {
-    this.C = RistrettoPoint.fromHex(C);
-    this.D = RistrettoPoint.fromHex(D);
+    this.C = ristretto255.Point.fromHex(C);
+    this.D = ristretto255.Point.fromHex(D);
   }
 
   public addAmount(amount: bigint): TwistedElGamalCiphertext {
-    const aG = RistrettoPoint.BASE.multiply(amount);
+    const aG = ristretto255.Point.BASE.multiply(amount);
     const updatedC = this.C.add(aG);
 
     return new TwistedElGamalCiphertext(updatedC.toBytes(), this.D.toBytes());
   }
 
   public subtractAmount(amount: bigint): TwistedElGamalCiphertext {
-    const aG = RistrettoPoint.BASE.multiply(amount);
+    const aG = ristretto255.Point.BASE.multiply(amount);
     const updatedC = this.C.subtract(aG);
 
     return new TwistedElGamalCiphertext(updatedC.toBytes(), this.D.toBytes());

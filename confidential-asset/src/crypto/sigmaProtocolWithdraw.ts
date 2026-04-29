@@ -21,10 +21,10 @@
  * When an auditor is present, additional outputs prove new_R_aud[i] = new_r[i] * ek_aud.
  */
 
-import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/abstract/utils";
+import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/utils";
 import { utf8ToBytes } from "@noble/hashes/utils";
 import { ed25519 } from "@noble/curves/ed25519";
-import { RistrettoPoint, H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from ".";
+import { ristretto255, H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from ".";
 import type { RistPoint } from ".";
 import { ed25519modN } from "../utils";
 import {
@@ -41,7 +41,7 @@ import { Serializer, FixedBytes, U64 } from "@aptos-labs/ts-sdk";
 
 const PROTOCOL_ID_WITHDRAWAL = "AptosConfidentialAsset/WithdrawalV1";
 
-/** Fully-qualified Move type name for the phantom marker type, matching `type_info::type_name<Withdrawal>()` */
+/** Fully qualified Move type name for the phantom marker type, matching `type_info::type_name<Withdrawal>()` */
 const TYPE_NAME = "0x1::sigma_protocol_withdraw::Withdrawal";
 
 /**
@@ -114,7 +114,7 @@ function getStartIdxNewRAud(ell: number): number {
  *   0: dk * ek
  *   1..ell: new_a[i] * G + new_r[i] * H
  *   ell+1..2*ell: new_r[i] * ek
- *   2*ell+1: dk * <B, old_R> + <B, new_a> * G   (balance equation)
+ *   2*ell+1: dk * <B, old_R> + <B, new_a> * G (balance equation)
  *
  * With auditor (m = 2 + 3*ell):
  *   Insert new_r[i] * ek_aud between the ek outputs and the balance equation.
@@ -154,7 +154,7 @@ function makeWithdrawPsi(ell: number, hasAuditor: boolean): PsiFunction {
 
     // Balance equation: dk * <B, old_R> + <B, new_a> * G
     const bPowers = computeBPowers(ell);
-    let balanceResult = RistrettoPoint.ZERO;
+    let balanceResult = ristretto255.Point.ZERO;
     const startOldR = getStartIdxOldR(ell);
     for (let i = 0; i < ell; i++) {
       balanceResult = balanceResult.add(s.points[startOldR + i].multiply(ed25519modN(dk * bPowers[i])));
@@ -210,14 +210,14 @@ function makeWithdrawF(ell: number, hasAuditor: boolean, v: bigint): Transformat
 
     // Balance equation target: <B, old_P> - v*G
     const bPowers = computeBPowers(ell);
-    let balanceTarget = RistrettoPoint.ZERO;
+    let balanceTarget = ristretto255.Point.ZERO;
     for (let i = 0; i < ell; i++) {
       balanceTarget = balanceTarget.add(s.points[START_IDX_OLD_P + i].multiply(bPowers[i]));
     }
     // Subtract v*G: add (-v)*G (skip when v = 0 to avoid multiply-by-zero error)
     const vMod = ed25519modN(v);
     if (vMod !== 0n) {
-      const negV = ed25519modN(ed25519.CURVE.n - vMod);
+      const negV = ed25519modN(ed25519.Point.CURVE().n - vMod);
       balanceTarget = balanceTarget.add(G.multiply(negV));
     }
     result.push(balanceTarget);
@@ -251,7 +251,7 @@ export type WithdrawProofArgs = {
   newRandomness: bigint[];
   /** Optional auditor encryption key */
   auditorEncryptionKey?: TwistedEd25519PublicKey;
-  /** Optional new balance D points encrypted under auditor key */
+  /** Optional new balance D points encrypted with an auditor key */
   newBalanceDAud?: RistPoint[];
 };
 
@@ -279,46 +279,46 @@ function proveWithdrawInternal(protocolId: string, args: WithdrawProofArgs): Sig
   const hasAuditor = auditorEncryptionKey !== undefined;
   const dkBigint = bytesToNumberLE(dk.toUint8Array());
   const ekBytes = dk.publicKey().toUint8Array();
-  const ek = RistrettoPoint.fromHex(ekBytes);
+  const ek = ristretto255.Point.fromHex(ekBytes);
 
-  const G = RistrettoPoint.BASE;
+  const G = ristretto255.Point.BASE;
   const H = H_RISTRETTO;
 
   // Build statement points
   const stmtPoints: RistPoint[] = [G, H, ek];
-  const stmtCompressed: Uint8Array[] = [G.toRawBytes(), H.toRawBytes(), ekBytes];
+  const stmtCompressed: Uint8Array[] = [G.toBytes(), H.toBytes(), ekBytes];
 
   // old_P (old balance C = commitments)
   for (let i = 0; i < ell; i++) {
     stmtPoints.push(oldBalanceC[i]);
-    stmtCompressed.push(oldBalanceC[i].toRawBytes());
+    stmtCompressed.push(oldBalanceC[i].toBytes());
   }
   // old_R (old balance D = ciphertext D components)
   for (let i = 0; i < ell; i++) {
     stmtPoints.push(oldBalanceD[i]);
-    stmtCompressed.push(oldBalanceD[i].toRawBytes());
+    stmtCompressed.push(oldBalanceD[i].toBytes());
   }
   // new_P (new balance C)
   for (let i = 0; i < ell; i++) {
     stmtPoints.push(newBalanceC[i]);
-    stmtCompressed.push(newBalanceC[i].toRawBytes());
+    stmtCompressed.push(newBalanceC[i].toBytes());
   }
   // new_R (new balance D)
   for (let i = 0; i < ell; i++) {
     stmtPoints.push(newBalanceD[i]);
-    stmtCompressed.push(newBalanceD[i].toRawBytes());
+    stmtCompressed.push(newBalanceD[i].toBytes());
   }
 
   // Auditor points
   if (hasAuditor) {
     const ekAudBytes = auditorEncryptionKey.toUint8Array();
-    const ekAud = RistrettoPoint.fromHex(ekAudBytes);
+    const ekAud = ristretto255.Point.fromHex(ekAudBytes);
     stmtPoints.push(ekAud);
     stmtCompressed.push(ekAudBytes);
 
     for (let i = 0; i < ell; i++) {
       stmtPoints.push(newBalanceDAud![i]);
-      stmtCompressed.push(newBalanceDAud![i].toRawBytes());
+      stmtCompressed.push(newBalanceDAud![i].toBytes());
     }
   }
 
@@ -436,39 +436,39 @@ function verifyWithdrawInternal(
 
   const ell = oldBalanceC.length;
   const hasAuditor = auditorEkBytes !== undefined;
-  const ek = RistrettoPoint.fromHex(ekBytes);
-  const G = RistrettoPoint.BASE;
+  const ek = ristretto255.Point.fromHex(ekBytes);
+  const G = ristretto255.Point.BASE;
   const H = H_RISTRETTO;
 
   // Build statement points
   const stmtPoints: RistPoint[] = [G, H, ek];
-  const stmtCompressed: Uint8Array[] = [G.toRawBytes(), H.toRawBytes(), ekBytes];
+  const stmtCompressed: Uint8Array[] = [G.toBytes(), H.toBytes(), ekBytes];
 
   for (let i = 0; i < ell; i++) {
     stmtPoints.push(oldBalanceC[i]);
-    stmtCompressed.push(oldBalanceC[i].toRawBytes());
+    stmtCompressed.push(oldBalanceC[i].toBytes());
   }
   for (let i = 0; i < ell; i++) {
     stmtPoints.push(oldBalanceD[i]);
-    stmtCompressed.push(oldBalanceD[i].toRawBytes());
+    stmtCompressed.push(oldBalanceD[i].toBytes());
   }
   for (let i = 0; i < ell; i++) {
     stmtPoints.push(newBalanceC[i]);
-    stmtCompressed.push(newBalanceC[i].toRawBytes());
+    stmtCompressed.push(newBalanceC[i].toBytes());
   }
   for (let i = 0; i < ell; i++) {
     stmtPoints.push(newBalanceD[i]);
-    stmtCompressed.push(newBalanceD[i].toRawBytes());
+    stmtCompressed.push(newBalanceD[i].toBytes());
   }
 
   if (hasAuditor) {
-    const ekAud = RistrettoPoint.fromHex(auditorEkBytes);
+    const ekAud = ristretto255.Point.fromHex(auditorEkBytes);
     stmtPoints.push(ekAud);
     stmtCompressed.push(auditorEkBytes);
 
     for (let i = 0; i < ell; i++) {
       stmtPoints.push(newBalanceDAud![i]);
-      stmtCompressed.push(newBalanceDAud![i].toRawBytes());
+      stmtCompressed.push(newBalanceDAud![i].toBytes());
     }
   }
 

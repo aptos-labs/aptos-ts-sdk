@@ -8,7 +8,7 @@
  * where n = 2^bitWidth is the search space size.
  */
 
-import { RistrettoPoint } from "@noble/curves/ed25519";
+import { ristretto255 } from "@noble/curves/ed25519";
 import { RistPoint } from "./twistedEd25519";
 
 /**
@@ -58,8 +58,8 @@ export function createBsgsTable(bitWidth: number): BsgsTable {
   const babySteps = new Map<bigint, bigint>();
 
   // Baby steps: compute j * G for j = 0, 1, ..., m-1 using only additions
-  let current = RistrettoPoint.ZERO;
-  const G = RistrettoPoint.BASE;
+  let current = ristretto255.Point.ZERO;
+  const G = ristretto255.Point.BASE;
 
   for (let j = 0n; j < m; j++) {
     const key = bytesToBigInt(current.toBytes());
@@ -67,7 +67,7 @@ export function createBsgsTable(bitWidth: number): BsgsTable {
     current = current.add(G);
   }
 
-  // After the loop, current = m * G (no need to recompute with multiply)
+  // After the loop, current = m * G (no need to recompute multiply)
   const giantStep = current.negate();
 
   return {
@@ -96,7 +96,7 @@ export function solveDlpBsgs(point: Uint8Array, table: BsgsTable): bigint | null
     return table.babySteps.get(pointKey)!;
   }
 
-  const P = RistrettoPoint.fromHex(point);
+  const P = ristretto255.Point.fromHex(point);
   const { m, babySteps, giantStep } = table;
 
   // Giant steps: for i = 1, 2, ..., m-1

@@ -1,5 +1,5 @@
-import { numberToBytesLE } from "@noble/curves/abstract/utils";
-import { RistrettoPoint } from "@noble/curves/ed25519";
+import { numberToBytesLE } from "@noble/curves/utils";
+import { ristretto255 } from "@noble/curves/ed25519";
 import { ed25519GenListOfRandom } from "../utils";
 import {
   AVAILABLE_BALANCE_CHUNK_COUNT,
@@ -38,7 +38,7 @@ export class ConfidentialWithdraw {
 
   senderEncryptedAvailableBalanceAfterWithdrawal: EncryptedAmount;
 
-  /** Optional: new balance encrypted under auditor key */
+  /** Optional: new balance encrypted with an auditor key */
   auditorEncryptedBalanceAfterWithdrawal?: EncryptedAmount;
 
   randomness: bigint[];
@@ -188,7 +188,7 @@ export class ConfidentialWithdraw {
     const rangeProof = await batchRangeProof({
       v: this.senderEncryptedAvailableBalanceAfterWithdrawal.getAmountChunks(),
       rs: this.randomness.map((chunk) => numberToBytesLE(chunk, 32)),
-      valBase: RistrettoPoint.BASE.toBytes(),
+      valBase: ristretto255.Point.BASE.toBytes(),
       randBase: H_RISTRETTO.toBytes(),
       numBits: CHUNK_BITS,
     });
@@ -223,7 +223,7 @@ export class ConfidentialWithdraw {
     return batchVerifyProof({
       proof: opts.rangeProof,
       comms: opts.senderEncryptedAvailableBalanceAfterWithdrawal.getCipherText().map((el) => el.C.toBytes()),
-      valBase: RistrettoPoint.BASE.toBytes(),
+      valBase: ristretto255.Point.BASE.toBytes(),
       randBase: H_RISTRETTO.toBytes(),
       numBits: CHUNK_BITS,
     });

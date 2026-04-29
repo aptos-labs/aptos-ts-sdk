@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * Converters from the loosely-typed GraphQL/Hasura response model (where
+ * Converters from the loosely typed GraphQL/Hasura response model (where
  * bigint, numeric, jsonb, and timestamp columns are all `any`) into the
- * strongly-typed discriminated union in {@link ../types}.
+ * strongly typed discriminated union in {@link ../types}.
  */
 
 import type { GetConfidentialAssetActivitiesQuery } from "./operations";
@@ -56,7 +56,7 @@ function base(row: GraphqlActivityRow): ActivityBase {
 }
 
 /**
- * Convert a single GraphQL activity row into a strongly-typed
+ * Convert a single GraphQL activity row into a strongly typed
  * {@link ConfidentialAssetActivity}.
  *
  * Each branch is checked with `satisfies` so that field assignments are

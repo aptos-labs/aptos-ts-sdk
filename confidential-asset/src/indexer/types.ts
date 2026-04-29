@@ -8,11 +8,11 @@
  *
  * The main export is the discriminated union {@link ConfidentialAssetActivity},
  * keyed on `event_type`. Each variant precisely describes which columns are
- * non-null so consumers never need to defensively check fields that are
+ * non-null, so consumers never need to defensively check fields that are
  * guaranteed to be present (or absent) for a given event type.
  */
 
-// ─── Shared sub-types used inside event_data JSONB ──────────────────────────
+// ─── Shared subtypes used inside event_data JSONB ──────────────────────────
 
 /** A compressed Ristretto point, hex-encoded. */
 export interface CompressedRistrettoPoint {
@@ -106,7 +106,7 @@ interface WithoutAssetType {
   asset_type: null;
 }
 
-/** Events involving two parties (e.g. transfer, withdraw). */
+/** Events involving two parties (e.g., transfer, withdraw). */
 interface WithCounterparty {
   counterparty_address: string;
   counterparty_primary_aptos_name: string | null;

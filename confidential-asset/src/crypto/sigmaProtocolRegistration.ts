@@ -17,9 +17,9 @@
  * The transformation function f outputs: [H]
  */
 
-import { bytesToNumberLE } from "@noble/curves/abstract/utils";
+import { bytesToNumberLE } from "@noble/curves/utils";
 import { utf8ToBytes } from "@noble/hashes/utils";
-import { RistrettoPoint, H_RISTRETTO, TwistedEd25519PrivateKey } from ".";
+import { ristretto255, H_RISTRETTO, TwistedEd25519PrivateKey } from ".";
 import type { RistPoint } from ".";
 import {
   sigmaProtocolProve,
@@ -36,7 +36,7 @@ import { Serializer, FixedBytes } from "@aptos-labs/ts-sdk";
 /** Protocol ID matching the Move constant */
 const PROTOCOL_ID = "AptosConfidentialAsset/RegistrationV1";
 
-/** Fully-qualified Move type name for the phantom marker type, matching `type_info::type_name<Registration>()` */
+/** Fully qualified Move type name for the phantom marker type, matching `type_info::type_name<Registration>()` */
 const TYPE_NAME = "0x1::sigma_protocol_registration::Registration";
 
 /** Statement point indices */
@@ -93,12 +93,12 @@ export function proveRegistration(args: {
   const dkBigint = bytesToNumberLE(dk.toUint8Array());
 
   const ekBytes = dk.publicKey().toUint8Array();
-  const ek = RistrettoPoint.fromHex(ekBytes);
+  const ek = ristretto255.Point.fromHex(ekBytes);
   const H = H_RISTRETTO;
 
   const stmt: SigmaProtocolStatement = {
     points: [H, ek],
-    compressedPoints: [H.toRawBytes(), ekBytes],
+    compressedPoints: [H.toBytes(), ekBytes],
     scalars: [],
   };
 
@@ -126,12 +126,12 @@ export function verifyRegistration(args: {
   proof: SigmaProtocolProof;
 }): boolean {
   const { ek: ekBytes, senderAddress, tokenAddress, chainId, proof } = args;
-  const ek = RistrettoPoint.fromHex(ekBytes);
+  const ek = ristretto255.Point.fromHex(ekBytes);
   const H = H_RISTRETTO;
 
   const stmt: SigmaProtocolStatement = {
     points: [H, ek],
-    compressedPoints: [H.toRawBytes(), ekBytes],
+    compressedPoints: [H.toBytes(), ekBytes],
     scalars: [],
   };
 

@@ -267,7 +267,7 @@ export type EffectiveAuditorHintResponse = {
 
 /**
  * Get the effective auditor hint for a user's confidential store.
- * Indicates which auditor (global vs asset-specific) and epoch the balance ciphertext is encrypted for.
+ * Indicates which auditor (global vs. asset-specific) and epoch the balance ciphertext is encrypted for.
  *
  * @returns The auditor hint, or undefined if no auditor hint is set (e.g., balance is zero or no auditor was active).
  */
@@ -337,7 +337,7 @@ export async function getEncryptionKey(
       return new TwistedEd25519PublicKey(data);
     },
     `${accountAddress}-encryption-key-for-${tokenAddress}-${args.client.config.network}`,
-    1000 * 60 * 60, // 1 hour cache duration
+    1000 * 60 * 60, // 1-hour cache duration
     useCachedValue,
   )();
 }

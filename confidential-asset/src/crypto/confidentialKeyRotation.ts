@@ -9,7 +9,7 @@
  *   H = dk * ek
  *   new_ek = delta * ek
  *   ek = delta_inv * new_ek
- *   new_D_i = delta * old_D_i,  for all i in [num_chunks]
+ *   new_D_i = delta * old_D_i, for all i in [num_chunks]
  *
  * where:
  *   - H is the encryption key basepoint (= hash_to_point_base)
@@ -26,9 +26,9 @@
  *   [H, new_ek, ek, new_D_i for each i]
  */
 
-import { bytesToNumberLE } from "@noble/curves/abstract/utils";
+import { bytesToNumberLE } from "@noble/curves/utils";
 import { utf8ToBytes } from "@noble/hashes/utils";
-import { TwistedEd25519PrivateKey, RistrettoPoint, H_RISTRETTO } from ".";
+import { TwistedEd25519PrivateKey, ristretto255, H_RISTRETTO } from ".";
 import type { RistPoint } from ".";
 import { ed25519InvertN, ed25519modN } from "../utils";
 import { EncryptedAmount } from "./encryptedAmount";
@@ -48,7 +48,7 @@ import {
 /** Protocol ID matching the Move constant */
 const PROTOCOL_ID = "AptosConfidentialAsset/KeyRotationV1";
 
-/** Fully-qualified Move type name for the phantom marker type, matching `type_info::type_name<KeyRotation>()` */
+/** Fully qualified Move type name for the phantom marker type, matching `type_info::type_name<KeyRotation>()` */
 const TYPE_NAME = "0x1::sigma_protocol_key_rotation::KeyRotation";
 
 /** Statement point indices (matching Move constants) */
@@ -141,11 +141,11 @@ export class ConfidentialKeyRotation {
 
   private currentEncryptedAvailableBalance: EncryptedAmount;
 
-  private senderAddress: Uint8Array;
+  private readonly senderAddress: Uint8Array;
 
-  private tokenAddress: Uint8Array;
+  private readonly tokenAddress: Uint8Array;
 
-  private chainId: number;
+  private readonly chainId: number;
 
   constructor(args: {
     currentDecryptionKey: TwistedEd25519PrivateKey;
@@ -191,24 +191,24 @@ export class ConfidentialKeyRotation {
 
     // Get old encryption key (compressed Ristretto point)
     const oldEkBytes = this.currentDecryptionKey.publicKey().toUint8Array();
-    const oldEk = RistrettoPoint.fromHex(oldEkBytes);
+    const oldEk = ristretto255.Point.fromHex(oldEkBytes);
 
     // H = encryption key basepoint (hash_to_point_base)
     const H = H_RISTRETTO;
-    const compressedH = H.toRawBytes();
+    const compressedH = H.toBytes();
 
     // new_ek = delta * old_ek
     const newEk = oldEk.multiply(delta);
-    const compressedNewEk = newEk.toRawBytes();
+    const compressedNewEk = newEk.toBytes();
 
     // Get old D components from the current balance
     const oldCipherTexts = this.currentEncryptedAvailableBalance.getCipherText();
     const oldD: RistPoint[] = oldCipherTexts.map((ct) => ct.D);
-    const compressedOldD: Uint8Array[] = oldD.map((d) => d.toRawBytes());
+    const compressedOldD: Uint8Array[] = oldD.map((d) => d.toBytes());
 
     // Compute new_D = delta * old_D for each chunk
     const newD: RistPoint[] = oldD.map((d) => d.multiply(delta));
-    const compressedNewD: Uint8Array[] = newD.map((d) => d.toRawBytes());
+    const compressedNewD: Uint8Array[] = newD.map((d) => d.toBytes());
 
     // Build statement: points = [H, ek, new_ek, old_D_0..old_D_{n-1}, new_D_0..new_D_{n-1}]
     const stmtPoints: RistPoint[] = [H, oldEk, newEk, ...oldD, ...newD];
@@ -279,13 +279,13 @@ export class ConfidentialKeyRotation {
 
     // Build statement points
     const H = H_RISTRETTO;
-    const ek = RistrettoPoint.fromHex(oldEk);
-    const new_ek = RistrettoPoint.fromHex(newEk);
-    const oldDPoints = oldD.map((d) => RistrettoPoint.fromHex(d));
-    const newDPoints = newD.map((d) => RistrettoPoint.fromHex(d));
+    const ek = ristretto255.Point.fromHex(oldEk);
+    const new_ek = ristretto255.Point.fromHex(newEk);
+    const oldDPoints = oldD.map((d) => ristretto255.Point.fromHex(d));
+    const newDPoints = newD.map((d) => ristretto255.Point.fromHex(d));
 
     const stmtPoints: RistPoint[] = [H, ek, new_ek, ...oldDPoints, ...newDPoints];
-    const stmtCompressedPoints: Uint8Array[] = [H.toRawBytes(), oldEk, newEk, ...oldD, ...newD];
+    const stmtCompressedPoints: Uint8Array[] = [H.toBytes(), oldEk, newEk, ...oldD, ...newD];
 
     const stmt: SigmaProtocolStatement = {
       points: stmtPoints,

@@ -152,7 +152,7 @@ export class ConfidentialAssetTransactionBuilder {
    * @param args.senderDecryptionKey - The decryption key of the sender
    * @param args.tokenAddress - The token address of the asset to withdraw from
    * @param args.amount - The amount to withdraw
-   * @param args.recipient - The account address to withdraw to. This is the senders address if not set.
+   * @param args.recipient - The account address to withdraw to. This is the sender's address if not set.
    * @param args.withFeePayer - Whether to use the fee payer for the transaction
    * @returns A SimpleTransaction to withdraw the amount
    * @throws {Error} If the amount to withdraw is greater than the available balance
@@ -162,7 +162,7 @@ export class ConfidentialAssetTransactionBuilder {
     senderDecryptionKey: TwistedEd25519PrivateKey;
     tokenAddress: AccountAddressInput;
     amount: AnyNumber;
-    /** If not set we will use the sender's address. */
+    /** If not set, we will use the sender's address. */
     recipient?: AccountAddressInput;
     withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
@@ -228,7 +228,7 @@ export class ConfidentialAssetTransactionBuilder {
   }
 
   /**
-   * Rollover an account's pending balance for an asset into the available balance.
+   * Roll over an account's pending balance for an asset into the available balance.
    *
    * @param args.sender - The address of the sender of the transaction
    * @param args.tokenAddress - The token address of the asset to roll over
@@ -476,7 +476,7 @@ export class ConfidentialAssetTransactionBuilder {
    * This will by default check if the pending balance is empty and throw an error if it is not.
    * The new entry function uses the Sigma protocol for key rotation proofs and supports an `unpause` flag.
    *
-   * @param args.sender - The address of the sender of the transaction who's encryption key is being rotated
+   * @param args.sender - The address of the sender of the transaction whose encryption key is being rotated
    * @param args.senderDecryptionKey - The decryption key of the sender
    * @param args.newSenderDecryptionKey - The new decryption key
    * @param args.tokenAddress - The token address of the asset to rotate the encryption key for
@@ -556,7 +556,7 @@ export class ConfidentialAssetTransactionBuilder {
    *
    * This can be used to normalize a user's balance for a given token address.
    *
-   * @param args.sender - The address of the sender of the transaction who's balance is being normalized
+   * @param args.sender - The address of the sender of the transaction whose balance is being normalized
    * @param args.senderDecryptionKey - The decryption key of the sender
    * @param args.tokenAddress - The token address of the asset to normalize
    * @param args.withFeePayer - Whether to use the fee payer for the transaction
