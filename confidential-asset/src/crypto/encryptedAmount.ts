@@ -16,12 +16,12 @@ export class EncryptedAmount {
    * The randomness used to encrypt the amount. This may not be set d. This is maintained
    * for debugging purposes.
    */
-  private randomness?: bigint[];
+  private readonly randomness?: bigint[];
 
   /**
    * The ciphertext of the encrypted amount.
    */
-  private cipherText: TwistedElGamalCiphertext[];
+  private readonly cipherText: TwistedElGamalCiphertext[];
 
   constructor(args: {
     chunkedAmount: ChunkedAmount;

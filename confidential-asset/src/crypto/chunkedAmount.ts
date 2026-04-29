@@ -41,7 +41,7 @@ export class ChunkedAmount {
 
   /**
    * Returns the original amount from the provided chunks,
-   * where each chunk is represented as a 32 bit number
+   * where each chunk is represented as a 32-bit number
    *
    * amount = a0 + a1 * (2 ** 32) + a2 * (2 ** 64) ... a_i * (2 ** 32 * i)
    */
@@ -52,7 +52,7 @@ export class ChunkedAmount {
   }
 
   /**
-   * Splits a given bigint amount into an array of smaller "chunk" values (also as bigints).
+   * Splits a given bigint amount into an array of smaller "chunk" values (also as bigint).
    *
    * @param amount - The original amount as a bigint.
    * @param chunksCount - The number of chunks to split the amount into (default is ConfidentialAmount.CHUNKS_COUNT).
@@ -76,12 +76,12 @@ export class ChunkedAmount {
        * 1. Shift the amount right by (chunkBitsBi * i) bits to move the desired chunk
        *    into the lowest bits of the number.
        *
-       * 2. Use a bitmask ( (1n << chunkBitsBi) - 1n ) to extract only those `chunkBits`
+       * 2. Use a bitmask ((1n << chunkBitsBi) - 1n) to extract only those `chunkBits`
        *    bits. This mask is effectively a number with `chunkBits` 1s in binary.
        */
       const chunk = (BigInt(amount) >> (chunkBitsBi * BigInt(i))) & ((1n << chunkBitsBi) - 1n);
 
-      // Add this extracted chunk to the chunks array.
+      // Add this extracted chunk to the chunk array.
       chunks.push(chunk);
     }
 

@@ -373,6 +373,7 @@ export class ConfidentialAsset {
       newSenderDecryptionKey,
       tokenAddress,
       withFeePayer = this.withFeePayer,
+      options,
     } = args;
     const results: CommittedTransactionResponse[] = [];
 
@@ -399,6 +400,7 @@ export class ConfidentialAsset {
       ...args,
       withFeePayer,
       sender: signer.accountAddress,
+      options,
     });
     results.push(
       await this.submitTxn({

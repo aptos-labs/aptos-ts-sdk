@@ -1,5 +1,5 @@
-import { RistrettoPoint } from "@noble/curves/ed25519";
-import { numberToBytesLE } from "@noble/curves/abstract/utils";
+import { ristretto255 } from "@noble/curves/ed25519";
+import { numberToBytesLE } from "@noble/curves/utils";
 import { MODULE_NAME } from "../consts";
 import { batchRangeProof, batchVerifyProof } from "@aptos-labs/confidential-asset-bindings";
 import { TwistedEd25519PrivateKey, H_RISTRETTO, TwistedEd25519PublicKey } from ".";
@@ -31,7 +31,7 @@ export class ConfidentialNormalization {
 
   normalizedEncryptedAvailableBalance: EncryptedAmount;
 
-  /** Optional: normalized balance encrypted under auditor key */
+  /** Optional: normalized balance encrypted with an auditor key */
   auditorEncryptedNormalizedBalance?: EncryptedAmount;
 
   randomness: bigint[];
@@ -150,8 +150,8 @@ export class ConfidentialNormalization {
     const rangeProof = await batchRangeProof({
       v: this.normalizedEncryptedAvailableBalance.getAmountChunks(),
       rs: this.randomness.map((el) => numberToBytesLE(el, 32)),
-      valBase: RistrettoPoint.BASE.toRawBytes(),
-      randBase: H_RISTRETTO.toRawBytes(),
+      valBase: ristretto255.Point.BASE.toBytes(),
+      randBase: H_RISTRETTO.toBytes(),
       numBits: CHUNK_BITS,
     });
 
@@ -164,9 +164,9 @@ export class ConfidentialNormalization {
   }): Promise<boolean> {
     return batchVerifyProof({
       proof: opts.rangeProof,
-      comms: opts.normalizedEncryptedBalance.getCipherText().map((el) => el.C.toRawBytes()),
-      valBase: RistrettoPoint.BASE.toRawBytes(),
-      randBase: H_RISTRETTO.toRawBytes(),
+      comms: opts.normalizedEncryptedBalance.getCipherText().map((el) => el.C.toBytes()),
+      valBase: ristretto255.Point.BASE.toBytes(),
+      randBase: H_RISTRETTO.toBytes(),
       numBits: CHUNK_BITS,
     });
   }

@@ -18,7 +18,7 @@
  */
 
 import { utf8ToBytes } from "@noble/hashes/utils";
-import { RistrettoPoint, H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from ".";
+import { ristretto255, H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from ".";
 import type { RistPoint } from ".";
 import { ed25519modN } from "../utils";
 import {
@@ -32,10 +32,11 @@ import {
   type TransformationFunction,
 } from "./sigmaProtocol";
 import { Serializer, FixedBytes, U64 } from "@aptos-labs/ts-sdk";
+import { bytesToNumberLE } from "@noble/curves/utils";
 
 const PROTOCOL_ID = "AptosConfidentialAsset/TransferV1";
 
-/** Fully-qualified Move type name for the phantom marker type, matching `type_info::type_name<Transfer>()` */
+/** Fully qualified Move type name for the phantom marker type, matching `type_info::type_name<Transfer>()` */
 const TYPE_NAME = "0x1::sigma_protocol_transfer::Transfer";
 
 /**
@@ -123,11 +124,11 @@ function getStartIdxRSid(ell: number, n: number): number {
 function getStartIdxRRid(ell: number, n: number): number {
   return START_IDX_OLD_P + 4 * ell + 2 * n;
 }
-/** Start of the effective auditor section (if present). */
+/** Starting index of the effective auditor section (if present). */
 function getIdxEkAudEff(ell: number, n: number): number {
   return START_IDX_OLD_P + 4 * ell + 3 * n;
 }
-/** Start of the voluntary auditors section. */
+/** Starting index of the voluntary auditors section. */
 function getStartIdxVolun(ell: number, n: number, hasEffective: boolean): number {
   return START_IDX_OLD_P + 4 * ell + 3 * n + (hasEffective ? 1 + ell + n : 0);
 }
@@ -228,12 +229,12 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
   const numVolun = hasEffectiveAuditor ? auditorEncryptionKeys.length - 1 : auditorEncryptionKeys.length;
   const dkBigint = bytesToNumberLE(dk.toUint8Array());
 
-  const G = RistrettoPoint.BASE;
+  const G = ristretto255.Point.BASE;
   const H = H_RISTRETTO;
   const ekSidBytes = senderEncryptionKey.toUint8Array();
-  const ekSid = RistrettoPoint.fromHex(ekSidBytes);
+  const ekSid = ristretto255.Point.fromHex(ekSidBytes);
   const ekRidBytes = recipientEncryptionKey.toUint8Array();
-  const ekRid = RistrettoPoint.fromHex(ekRidBytes);
+  const ekRid = ristretto255.Point.fromHex(ekRidBytes);
 
   // Build statement points — base
   const stmtPoints: RistPoint[] = [G, H, ekSid, ekRid];
@@ -260,7 +261,7 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
   if (hasEffectiveAuditor) {
     const effIdx = auditorEncryptionKeys.length - 1;
     const ekEffBytes = auditorEncryptionKeys[effIdx].toUint8Array();
-    pushPointBytes(RistrettoPoint.fromHex(ekEffBytes), ekEffBytes);
+    pushPointBytes(ristretto255.Point.fromHex(ekEffBytes), ekEffBytes);
     for (let i = 0; i < ell; i++) pushPoint(newBalanceDAud[effIdx][i]);
     for (let j = 0; j < n; j++) pushPoint(transferAmountDAud[effIdx][j]);
   }
@@ -268,7 +269,7 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
   // Voluntary auditors: for each, [ek_volun, R_volun[n]]
   for (let a = 0; a < numVolun; a++) {
     const ekVolunBytes = auditorEncryptionKeys[a].toUint8Array();
-    pushPointBytes(RistrettoPoint.fromHex(ekVolunBytes), ekVolunBytes);
+    pushPointBytes(ristretto255.Point.fromHex(ekVolunBytes), ekVolunBytes);
     for (let j = 0; j < n; j++) pushPoint(transferAmountDAud[a][j]);
   }
 
@@ -361,7 +362,7 @@ function makeTransferPsi(ell: number, n: number, hasEffective: boolean, numVolun
     // 4. Balance equation: dk*⟨B,old_R⟩ + (⟨B,new_a⟩ + ⟨B,v⟩)*G
     const bPowersEll = computeBPowers(ell);
     const bPowersN = computeBPowers(n);
-    let balanceResult = RistrettoPoint.ZERO;
+    let balanceResult = ristretto255.Point.ZERO;
     const startOldR = getStartIdxOldR(ell);
     for (let i = 0; i < ell; i++) {
       balanceResult = balanceResult.add(s.points[startOldR + i].multiply(ed25519modN(dk * bPowersEll[i])));
@@ -443,9 +444,9 @@ function makeTransferF(ell: number, n: number, hasEffective: boolean, numVolun: 
       }
     }
 
-    // 4. Balance equation target: ⟨B,old_P⟩
+    // 4. Balance equation target: ⟨B, old_P⟩
     const bPowersEll = computeBPowers(ell);
-    let balanceTarget = RistrettoPoint.ZERO;
+    let balanceTarget = ristretto255.Point.ZERO;
     for (let i = 0; i < ell; i++) {
       balanceTarget = balanceTarget.add(s.points[START_IDX_OLD_P + i].multiply(bPowersEll[i]));
     }
@@ -541,10 +542,10 @@ export function verifyTransfer(args: {
   const n = transferAmountC.length;
   const numVolun = hasEffectiveAuditor ? auditorEkBytes.length - 1 : auditorEkBytes.length;
 
-  const G = RistrettoPoint.BASE;
+  const G = ristretto255.Point.BASE;
   const H = H_RISTRETTO;
-  const ekSid = RistrettoPoint.fromHex(ekSidBytes);
-  const ekRid = RistrettoPoint.fromHex(ekRidBytes);
+  const ekSid = ristretto255.Point.fromHex(ekSidBytes);
+  const ekRid = ristretto255.Point.fromHex(ekRidBytes);
 
   const stmtPoints: RistPoint[] = [G, H, ekSid, ekRid];
   const stmtCompressed: Uint8Array[] = [G.toBytes(), H.toBytes(), ekSidBytes, ekRidBytes];
@@ -569,14 +570,14 @@ export function verifyTransfer(args: {
   // Effective auditor: [ek_eff, new_R_aud_eff[ell], R_aud_eff[n]]
   if (hasEffectiveAuditor) {
     const effIdx = auditorEkBytes.length - 1;
-    pushPointBytes(RistrettoPoint.fromHex(auditorEkBytes[effIdx]), auditorEkBytes[effIdx]);
+    pushPointBytes(ristretto255.Point.fromHex(auditorEkBytes[effIdx]), auditorEkBytes[effIdx]);
     for (let i = 0; i < ell; i++) pushPoint(newBalanceDAud[effIdx][i]);
     for (let j = 0; j < n; j++) pushPoint(transferAmountDAud[effIdx][j]);
   }
 
   // Voluntary auditors: [ek_volun, R_volun[n]]
   for (let a = 0; a < numVolun; a++) {
-    pushPointBytes(RistrettoPoint.fromHex(auditorEkBytes[a]), auditorEkBytes[a]);
+    pushPointBytes(ristretto255.Point.fromHex(auditorEkBytes[a]), auditorEkBytes[a]);
     for (let j = 0; j < n; j++) pushPoint(transferAmountDAud[a][j]);
   }
 

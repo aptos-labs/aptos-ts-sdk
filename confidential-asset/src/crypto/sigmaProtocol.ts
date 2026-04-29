@@ -8,12 +8,12 @@
  * so the prover must produce the exact same serialization.
  */
 
-import { sha512 } from "@noble/hashes/sha512";
-import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/abstract/utils";
+import { sha512 } from "@noble/hashes/sha2";
+import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/utils";
 import { Serializer, U64, Serializable, FixedBytes } from "@aptos-labs/ts-sdk";
 import { ed25519modN, ed25519GenListOfRandom } from "../utils";
 import { utf8ToBytes } from "@noble/hashes/utils";
-import { RistrettoPoint } from ".";
+import { ristretto255 } from ".";
 import type { RistPoint } from ".";
 
 // =============================================================================
@@ -89,7 +89,7 @@ export function bcsSerializeKeyRotationSession(
 
 /**
  * A public statement for a Sigma protocol, matching `sigma_protocol_statement::Statement`.
- * Contains points (RistrettoPoints), their compressed forms, and optional scalars.
+ * Contains points (ristretto255.Points), their compressed forms, and optional scalars.
  */
 export interface SigmaProtocolStatement {
   /** The decompressed points in the statement */
@@ -163,10 +163,14 @@ function scalarFromUniform64Bytes(hash: Uint8Array): bigint {
 /**
  * Compute the Fiat-Shamir challenge matching Move's `sigma_protocol_fiat_shamir::fiat_shamir`.
  *
- * @param typeName - The fully-qualified Move type name of the phantom marker type `P` in `Statement<P>`.
+ * @param dst
+ * @param typeName - The fully qualified Move type name of the phantom marker type `P` in `Statement<P>`.
  *   E.g., `"0x1::sigma_protocol_registration::Registration"`. Must match `type_info::type_name<P>()` on-chain.
  *
  * Returns `{ e, betas }` where `e` is the challenge scalar and `betas = [1, beta, beta^2, ...]`.
+ * @param stmt
+ * @param compressedA
+ * @param k
  */
 export function sigmaProtocolFiatShamir(
   dst: DomainSeparator,
@@ -213,7 +217,7 @@ export function sigmaProtocolFiatShamir(
 
 /**
  * A homomorphism function psi: given witness scalars and statement points,
- * returns a vector of m RistrettoPoints.
+ * returns a vector of m ristretto255.Points.
  */
 export type PsiFunction = (stmt: SigmaProtocolStatement, witness: bigint[]) => RistPoint[];
 
@@ -291,6 +295,7 @@ export function sigmaProtocolProve(
  *   psi(stmt, sigma)[i] == A[i] + e * f(stmt)[i]
  *
  * @param dst - Domain separator for Fiat-Shamir
+ * @param typeName
  * @param psi - Homomorphism function mapping scalars to group elements
  * @param f - Transformation function that extracts target points from statement
  * @param stmt - The public statement
@@ -328,7 +333,7 @@ export function sigmaProtocolVerify(
   }
 
   // Decompress commitment points A
-  const _A = commitment.map((c) => RistrettoPoint.fromHex(c));
+  const _A = commitment.map((c) => ristretto255.Point.fromHex(c));
 
   // Check: psi(sigma)[i] == A[i] + e * f(stmt)[i] for all i
   for (let i = 0; i < m; i++) {
