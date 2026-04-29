@@ -215,7 +215,7 @@ export class TwistedEd25519PrivateKey extends Serializable {
   publicKey(): TwistedEd25519PublicKey {
     const scalarLE = bytesToNumberLE(this.key.toUint8Array());
     const invertModScalarLE = ed25519InvertN(scalarLE);
-    const key = H_RISTRETTO.multiply(invertModScalarLE).toRawBytes();
+    const key = H_RISTRETTO.multiply(invertModScalarLE).toBytes();
 
     return new TwistedEd25519PublicKey(key);
   }

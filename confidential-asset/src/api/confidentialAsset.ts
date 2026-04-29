@@ -53,16 +53,6 @@ type DepositParams = ConfidentialAssetSubmissionParams & {
   recipient?: AccountAddressInput;
 };
 
-type WithdrawParams = ConfidentialAssetSubmissionParams & {
-  senderDecryptionKey: TwistedEd25519PrivateKey;
-  amount: AnyNumber;
-  recipient?: AccountAddressInput;
-};
-
-type TransferParams = WithdrawParams & {
-  additionalAuditorEncryptionKeys?: TwistedEd25519PublicKey[];
-};
-
 type RolloverParams = ConfidentialAssetSubmissionParams & {
   senderDecryptionKey?: TwistedEd25519PrivateKey;
   withPauseIncoming?: boolean;
@@ -87,7 +77,7 @@ export class ConfidentialAsset {
   withFeePayer: boolean;
   constructor(args: { config: AptosConfig; confidentialAssetModuleAddress?: string; withFeePayer?: boolean }) {
     const { confidentialAssetModuleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS } = args;
-    let config = args.config;
+    const config = args.config;
     this.transaction = new ConfidentialAssetTransactionBuilder(config, confidentialAssetModuleAddress);
     this.withFeePayer = args.withFeePayer ?? false;
   }
@@ -383,7 +373,6 @@ export class ConfidentialAsset {
       newSenderDecryptionKey,
       tokenAddress,
       withFeePayer = this.withFeePayer,
-      options,
     } = args;
     const results: CommittedTransactionResponse[] = [];
 
@@ -517,9 +506,7 @@ export class ConfidentialAsset {
    * @param args.options - Optional ledger version for the view call
    * @returns A boolean indicating if all user operations are paused
    */
-  async isEmergencyPaused(args?: {
-    options?: LedgerVersionArg;
-  }): Promise<boolean> {
+  async isEmergencyPaused(args?: { options?: LedgerVersionArg }): Promise<boolean> {
     return isEmergencyPaused({
       client: this.client(),
       moduleAddress: this.moduleAddress(),

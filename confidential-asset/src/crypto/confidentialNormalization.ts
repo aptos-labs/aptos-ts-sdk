@@ -172,11 +172,7 @@ export class ConfidentialNormalization {
   }
 
   async authorizeNormalization(): Promise<
-    [
-      { sigmaProof: SigmaProtocolProof; rangeProof: Uint8Array },
-      EncryptedAmount,
-      EncryptedAmount | undefined,
-    ]
+    [{ sigmaProof: SigmaProtocolProof; rangeProof: Uint8Array }, EncryptedAmount, EncryptedAmount | undefined]
   > {
     const sigmaProof = this.genSigmaProof();
     const rangeProof = await this.genRangeProof();
@@ -199,9 +195,7 @@ export class ConfidentialNormalization {
     const [{ sigmaProof, rangeProof }, normalizedCB, auditorCB] = await this.authorizeNormalization();
 
     // Build auditor A components (D points encrypted under auditor key)
-    const newBalanceA = auditorCB
-      ? auditorCB.getCipherText().map((ct) => ct.D.toBytes())
-      : ([]);
+    const newBalanceA = auditorCB ? auditorCB.getCipherText().map((ct) => ct.D.toBytes()) : [];
 
     return args.client.transaction.build.simple({
       ...args,

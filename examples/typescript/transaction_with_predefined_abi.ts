@@ -20,7 +20,6 @@ import {
   U64,
 } from "@aptos-labs/ts-sdk";
 
-
 const APTOS_COIN_TYPE = parseTypeTag(APTOS_COIN);
 const ALICE_INITIAL_BALANCE = 1_000_000_000;
 const BOB_INITIAL_BALANCE = 100;

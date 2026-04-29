@@ -76,7 +76,7 @@ export class TwistedElGamal {
     const D = RistrettoPoint.fromHex(publicKey.toUint8Array()).multiply(r);
     const C = mG.add(rH);
 
-    return new TwistedElGamalCiphertext(C.toRawBytes(), D.toRawBytes());
+    return new TwistedElGamalCiphertext(C.toBytes(), D.toBytes());
   }
 
   /**
@@ -90,7 +90,7 @@ export class TwistedElGamal {
 
     const C = amount === BigInt(0) ? RistrettoPoint.ZERO : RistrettoPoint.BASE.multiply(amount);
 
-    return new TwistedElGamalCiphertext(C.toRawBytes(), RistrettoPoint.ZERO.toRawBytes());
+    return new TwistedElGamalCiphertext(C.toBytes(), RistrettoPoint.ZERO.toBytes());
   }
 
   static initialized = false;
@@ -98,8 +98,8 @@ export class TwistedElGamal {
   static calculateCiphertextMG(ciphertext: TwistedElGamalCiphertext, privateKey: TwistedEd25519PrivateKey): RistPoint {
     const { C, D } = ciphertext;
     const modS = ed25519modN(bytesToNumberLE(privateKey.toUint8Array()));
-    const sD = RistrettoPoint.fromHex(D.toRawBytes()).multiply(modS);
-    const mG = RistrettoPoint.fromHex(C.toRawBytes()).subtract(sD);
+    const sD = RistrettoPoint.fromHex(D.toBytes()).multiply(modS);
+    const mG = RistrettoPoint.fromHex(C.toBytes()).subtract(sD);
 
     return mG;
   }
@@ -138,7 +138,7 @@ export class TwistedElGamal {
   ): Promise<bigint> {
     const mG = TwistedElGamal.calculateCiphertextMG(ciphertext, privateKey);
 
-    return TwistedElGamal.decryptAmount(mG.toRawBytes());
+    return TwistedElGamal.decryptAmount(mG.toBytes());
   }
 
   /**
@@ -201,31 +201,31 @@ export class TwistedElGamalCiphertext {
     const aG = RistrettoPoint.BASE.multiply(amount);
     const updatedC = this.C.add(aG);
 
-    return new TwistedElGamalCiphertext(updatedC.toRawBytes(), this.D.toRawBytes());
+    return new TwistedElGamalCiphertext(updatedC.toBytes(), this.D.toBytes());
   }
 
   public subtractAmount(amount: bigint): TwistedElGamalCiphertext {
     const aG = RistrettoPoint.BASE.multiply(amount);
     const updatedC = this.C.subtract(aG);
 
-    return new TwistedElGamalCiphertext(updatedC.toRawBytes(), this.D.toRawBytes());
+    return new TwistedElGamalCiphertext(updatedC.toBytes(), this.D.toBytes());
   }
 
   public addCiphertext(ciphertext: TwistedElGamalCiphertext): TwistedElGamalCiphertext {
     const updatedC = this.C.add(ciphertext.C);
     const updatedD = this.D.add(ciphertext.D);
 
-    return new TwistedElGamalCiphertext(updatedC.toRawBytes(), updatedD.toRawBytes());
+    return new TwistedElGamalCiphertext(updatedC.toBytes(), updatedD.toBytes());
   }
 
   public subtractCiphertext(ciphertext: TwistedElGamalCiphertext): TwistedElGamalCiphertext {
     const updatedC = this.C.subtract(ciphertext.C);
     const updatedD = this.D.subtract(ciphertext.D);
 
-    return new TwistedElGamalCiphertext(updatedC.toRawBytes(), updatedD.toRawBytes());
+    return new TwistedElGamalCiphertext(updatedC.toBytes(), updatedD.toBytes());
   }
 
   public serialize(): Uint8Array {
-    return new Uint8Array([...this.C.toRawBytes(), ...this.D.toRawBytes()]);
+    return new Uint8Array([...this.C.toBytes(), ...this.D.toBytes()]);
   }
 }

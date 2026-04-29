@@ -6,7 +6,6 @@
 
 import { Account, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
 
-
 const INITIAL_BALANCE = 1_000_000_000;
 
 // Set up the client

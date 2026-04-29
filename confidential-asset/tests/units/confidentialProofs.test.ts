@@ -68,8 +68,12 @@ describe("Generate 'confidential coin' proofs", () => {
         ekBytes: aliceConfidentialDecryptionKey.publicKey().toUint8Array(),
         oldBalanceC: confidentialWithdraw.senderEncryptedAvailableBalance.getCipherText().map((ct) => ct.C),
         oldBalanceD: confidentialWithdraw.senderEncryptedAvailableBalance.getCipherText().map((ct) => ct.D),
-        newBalanceC: confidentialWithdraw.senderEncryptedAvailableBalanceAfterWithdrawal.getCipherText().map((ct) => ct.C),
-        newBalanceD: confidentialWithdraw.senderEncryptedAvailableBalanceAfterWithdrawal.getCipherText().map((ct) => ct.D),
+        newBalanceC: confidentialWithdraw.senderEncryptedAvailableBalanceAfterWithdrawal
+          .getCipherText()
+          .map((ct) => ct.C),
+        newBalanceD: confidentialWithdraw.senderEncryptedAvailableBalanceAfterWithdrawal
+          .getCipherText()
+          .map((ct) => ct.D),
         proof: confidentialWithdrawSigmaProof,
       });
 
@@ -138,11 +142,17 @@ describe("Generate 'confidential coin' proofs", () => {
         ekRidBytes: bobConfidentialDecryptionKey.publicKey().toUint8Array(),
         oldBalanceC: confidentialTransfer.senderEncryptedAvailableBalance.getCipherText().map((ct) => ct.C),
         oldBalanceD: confidentialTransfer.senderEncryptedAvailableBalance.getCipherText().map((ct) => ct.D),
-        newBalanceC: confidentialTransfer.senderEncryptedAvailableBalanceAfterTransfer.getCipherText().map((ct) => ct.C),
-        newBalanceD: confidentialTransfer.senderEncryptedAvailableBalanceAfterTransfer.getCipherText().map((ct) => ct.D),
+        newBalanceC: confidentialTransfer.senderEncryptedAvailableBalanceAfterTransfer
+          .getCipherText()
+          .map((ct) => ct.C),
+        newBalanceD: confidentialTransfer.senderEncryptedAvailableBalanceAfterTransfer
+          .getCipherText()
+          .map((ct) => ct.D),
         transferAmountC: confidentialTransfer.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.C),
         transferAmountDSender: confidentialTransfer.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.D),
-        transferAmountDRecipient: confidentialTransfer.transferAmountEncryptedByRecipient.getCipherText().map((ct) => ct.D),
+        transferAmountDRecipient: confidentialTransfer.transferAmountEncryptedByRecipient
+          .getCipherText()
+          .map((ct) => ct.D),
         hasEffectiveAuditor: false,
         proof: confidentialTransferSigmaProof,
       });
@@ -214,18 +224,28 @@ describe("Generate 'confidential coin' proofs", () => {
         ekRidBytes: bobConfidentialDecryptionKey.publicKey().toUint8Array(),
         oldBalanceC: confidentialTransferWithAuditors.senderEncryptedAvailableBalance.getCipherText().map((ct) => ct.C),
         oldBalanceD: confidentialTransferWithAuditors.senderEncryptedAvailableBalance.getCipherText().map((ct) => ct.D),
-        newBalanceC: confidentialTransferWithAuditors.senderEncryptedAvailableBalanceAfterTransfer.getCipherText().map((ct) => ct.C),
-        newBalanceD: confidentialTransferWithAuditors.senderEncryptedAvailableBalanceAfterTransfer.getCipherText().map((ct) => ct.D),
-        transferAmountC: confidentialTransferWithAuditors.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.C),
-        transferAmountDSender: confidentialTransferWithAuditors.transferAmountEncryptedBySender.getCipherText().map((ct) => ct.D),
-        transferAmountDRecipient: confidentialTransferWithAuditors.transferAmountEncryptedByRecipient.getCipherText().map((ct) => ct.D),
+        newBalanceC: confidentialTransferWithAuditors.senderEncryptedAvailableBalanceAfterTransfer
+          .getCipherText()
+          .map((ct) => ct.C),
+        newBalanceD: confidentialTransferWithAuditors.senderEncryptedAvailableBalanceAfterTransfer
+          .getCipherText()
+          .map((ct) => ct.D),
+        transferAmountC: confidentialTransferWithAuditors.transferAmountEncryptedBySender
+          .getCipherText()
+          .map((ct) => ct.C),
+        transferAmountDSender: confidentialTransferWithAuditors.transferAmountEncryptedBySender
+          .getCipherText()
+          .map((ct) => ct.D),
+        transferAmountDRecipient: confidentialTransferWithAuditors.transferAmountEncryptedByRecipient
+          .getCipherText()
+          .map((ct) => ct.D),
         hasEffectiveAuditor: false,
         auditorEkBytes: [auditor.publicKey().toUint8Array()],
-        newBalanceDAud: confidentialTransferWithAuditors.auditorEncryptedBalancesAfterTransfer.map(
-          (ea) => ea.getCipherText().map((ct) => ct.D),
+        newBalanceDAud: confidentialTransferWithAuditors.auditorEncryptedBalancesAfterTransfer.map((ea) =>
+          ea.getCipherText().map((ct) => ct.D),
         ),
-        transferAmountDAud: confidentialTransferWithAuditors.transferAmountEncryptedByAuditors.map(
-          (ea) => ea.getCipherText().map((ct) => ct.D),
+        transferAmountDAud: confidentialTransferWithAuditors.transferAmountEncryptedByAuditors.map((ea) =>
+          ea.getCipherText().map((ct) => ct.D),
         ),
         proof: confidentialTransferWithAuditorsSigmaProof,
       });

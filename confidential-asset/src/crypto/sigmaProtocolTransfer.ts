@@ -17,9 +17,7 @@
  * Witness: [dk, new_a[ell], new_r[ell], v[n], r[n]]
  */
 
-import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/abstract/utils";
 import { utf8ToBytes } from "@noble/hashes/utils";
-import { ed25519 } from "@noble/curves/ed25519";
 import { RistrettoPoint, H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from ".";
 import type { RistPoint } from ".";
 import { ed25519modN } from "../utils";
@@ -227,9 +225,7 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
 
   const ell = oldBalanceC.length;
   const n = transferAmountC.length;
-  const numVolun = hasEffectiveAuditor
-    ? auditorEncryptionKeys.length - 1
-    : auditorEncryptionKeys.length;
+  const numVolun = hasEffectiveAuditor ? auditorEncryptionKeys.length - 1 : auditorEncryptionKeys.length;
   const dkBigint = bytesToNumberLE(dk.toUint8Array());
 
   const G = RistrettoPoint.BASE;
@@ -241,17 +237,23 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
 
   // Build statement points — base
   const stmtPoints: RistPoint[] = [G, H, ekSid, ekRid];
-  const stmtCompressed: Uint8Array[] = [G.toRawBytes(), H.toRawBytes(), ekSidBytes, ekRidBytes];
+  const stmtCompressed: Uint8Array[] = [G.toBytes(), H.toBytes(), ekSidBytes, ekRidBytes];
 
-  const pushPoint = (p: RistPoint) => { stmtPoints.push(p); stmtCompressed.push(p.toRawBytes()); };
-  const pushPointBytes = (p: RistPoint, bytes: Uint8Array) => { stmtPoints.push(p); stmtCompressed.push(bytes); };
+  const pushPoint = (p: RistPoint) => {
+    stmtPoints.push(p);
+    stmtCompressed.push(p.toBytes());
+  };
+  const pushPointBytes = (p: RistPoint, bytes: Uint8Array) => {
+    stmtPoints.push(p);
+    stmtCompressed.push(bytes);
+  };
 
-  for (let i = 0; i < ell; i++) pushPoint(oldBalanceC[i]);    // old_P
-  for (let i = 0; i < ell; i++) pushPoint(oldBalanceD[i]);    // old_R
-  for (let i = 0; i < ell; i++) pushPoint(newBalanceC[i]);    // new_P
-  for (let i = 0; i < ell; i++) pushPoint(newBalanceD[i]);    // new_R
-  for (let j = 0; j < n; j++) pushPoint(transferAmountC[j]);          // P
-  for (let j = 0; j < n; j++) pushPoint(transferAmountDSender[j]);    // R_sid
+  for (let i = 0; i < ell; i++) pushPoint(oldBalanceC[i]); // old_P
+  for (let i = 0; i < ell; i++) pushPoint(oldBalanceD[i]); // old_R
+  for (let i = 0; i < ell; i++) pushPoint(newBalanceC[i]); // new_P
+  for (let i = 0; i < ell; i++) pushPoint(newBalanceD[i]); // new_R
+  for (let j = 0; j < n; j++) pushPoint(transferAmountC[j]); // P
+  for (let j = 0; j < n; j++) pushPoint(transferAmountDSender[j]); // R_sid
   for (let j = 0; j < n; j++) pushPoint(transferAmountDRecipient[j]); // R_rid
 
   // Effective auditor: [ek_eff, new_R_aud_eff[ell], R_aud_eff[n]]
@@ -277,11 +279,23 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
   };
 
   // Witness: [dk, new_a[ell], new_r[ell], v[n], r[n]]
-  const witness: bigint[] = [dkBigint, ...newAmountChunks, ...newRandomness, ...transferAmountChunks, ...transferRandomness];
+  const witness: bigint[] = [
+    dkBigint,
+    ...newAmountChunks,
+    ...newRandomness,
+    ...transferAmountChunks,
+    ...transferRandomness,
+  ];
 
   // Domain separator
   const sessionId = bcsSerializeTransferSession(
-    senderAddress, recipientAddress, tokenAddress, ell, n, hasEffectiveAuditor, numVolun,
+    senderAddress,
+    recipientAddress,
+    tokenAddress,
+    ell,
+    n,
+    hasEffectiveAuditor,
+    numVolun,
   );
   const dst: DomainSeparator = {
     contractAddress: APTOS_FRAMEWORK_ADDRESS,
@@ -533,10 +547,16 @@ export function verifyTransfer(args: {
   const ekRid = RistrettoPoint.fromHex(ekRidBytes);
 
   const stmtPoints: RistPoint[] = [G, H, ekSid, ekRid];
-  const stmtCompressed: Uint8Array[] = [G.toRawBytes(), H.toRawBytes(), ekSidBytes, ekRidBytes];
+  const stmtCompressed: Uint8Array[] = [G.toBytes(), H.toBytes(), ekSidBytes, ekRidBytes];
 
-  const pushPoint = (p: RistPoint) => { stmtPoints.push(p); stmtCompressed.push(p.toRawBytes()); };
-  const pushPointBytes = (p: RistPoint, bytes: Uint8Array) => { stmtPoints.push(p); stmtCompressed.push(bytes); };
+  const pushPoint = (p: RistPoint) => {
+    stmtPoints.push(p);
+    stmtCompressed.push(p.toBytes());
+  };
+  const pushPointBytes = (p: RistPoint, bytes: Uint8Array) => {
+    stmtPoints.push(p);
+    stmtCompressed.push(bytes);
+  };
 
   for (let i = 0; i < ell; i++) pushPoint(oldBalanceC[i]);
   for (let i = 0; i < ell; i++) pushPoint(oldBalanceD[i]);
@@ -567,7 +587,13 @@ export function verifyTransfer(args: {
   };
 
   const sessionId = bcsSerializeTransferSession(
-    senderAddress, recipientAddress, tokenAddress, ell, n, hasEffectiveAuditor, numVolun,
+    senderAddress,
+    recipientAddress,
+    tokenAddress,
+    ell,
+    n,
+    hasEffectiveAuditor,
+    numVolun,
   );
   const dst: DomainSeparator = {
     contractAddress: APTOS_FRAMEWORK_ADDRESS,

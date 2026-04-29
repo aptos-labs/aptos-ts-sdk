@@ -9,7 +9,7 @@
  */
 /* eslint-disable no-console */
 
-import assert from "assert";
+import assert from "node:assert";
 import { Account, Aptos, AptosConfig, Hex, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils.js";
 

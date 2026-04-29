@@ -178,14 +178,7 @@ export function sigmaProtocolFiatShamir(
   const m = compressedA.length;
   if (m === 0) throw new Error("Proof commitment must not be empty");
 
-  const fiatShamirInputs = new BcsFiatShamirInputs(
-    dst,
-    typeName,
-    k,
-    stmt.compressedPoints,
-    stmt.scalars,
-    compressedA,
-  );
+  const fiatShamirInputs = new BcsFiatShamirInputs(dst, typeName, k, stmt.compressedPoints, stmt.scalars, compressedA);
   const bytes = fiatShamirInputs.bcsToBytes();
 
   // seed = SHA2-512(BCS(inputs))
@@ -270,7 +263,7 @@ export function sigmaProtocolProve(
   const _A = psi(stmt, alpha);
 
   // Step 3: Compress A
-  const compressedA = _A.map((p) => p.toRawBytes());
+  const compressedA = _A.map((p) => p.toBytes());
 
   // Step 4: Derive challenge e via Fiat-Shamir
   const { e } = sigmaProtocolFiatShamir(dst, typeName, stmt, compressedA, k);

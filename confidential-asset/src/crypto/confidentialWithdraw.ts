@@ -188,8 +188,8 @@ export class ConfidentialWithdraw {
     const rangeProof = await batchRangeProof({
       v: this.senderEncryptedAvailableBalanceAfterWithdrawal.getAmountChunks(),
       rs: this.randomness.map((chunk) => numberToBytesLE(chunk, 32)),
-      valBase: RistrettoPoint.BASE.toRawBytes(),
-      randBase: H_RISTRETTO.toRawBytes(),
+      valBase: RistrettoPoint.BASE.toBytes(),
+      randBase: H_RISTRETTO.toBytes(),
       numBits: CHUNK_BITS,
     });
 
@@ -222,9 +222,9 @@ export class ConfidentialWithdraw {
   }) {
     return batchVerifyProof({
       proof: opts.rangeProof,
-      comms: opts.senderEncryptedAvailableBalanceAfterWithdrawal.getCipherText().map((el) => el.C.toRawBytes()),
-      valBase: RistrettoPoint.BASE.toRawBytes(),
-      randBase: H_RISTRETTO.toRawBytes(),
+      comms: opts.senderEncryptedAvailableBalanceAfterWithdrawal.getCipherText().map((el) => el.C.toBytes()),
+      valBase: RistrettoPoint.BASE.toBytes(),
+      randBase: H_RISTRETTO.toBytes(),
       numBits: CHUNK_BITS,
     });
   }

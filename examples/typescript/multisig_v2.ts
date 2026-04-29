@@ -33,7 +33,6 @@ import {
   InputViewFunctionJsonData,
 } from "@aptos-labs/ts-sdk";
 
-
 // Default to devnet, but allow for overriding
 const aptosNetworkEnv = process.env.APTOS_NETWORK;
 const APTOS_NETWORK: Network =
