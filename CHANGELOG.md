@@ -12,6 +12,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - **Sub-path exports** — import from `@aptos-labs/ts-sdk/account`, `@aptos-labs/ts-sdk/transaction`, `@aptos-labs/ts-sdk/keyless`, etc. for minimal bundle sizes.
 - **`sideEffects: false`** in package.json for bundler tree-shaking.
 - **Variant registry pattern** for `AnyPublicKey`/`AnySignature` — keyless variants register at runtime, removing compile-time poseidon dependency from core crypto.
+- `TransactionExtraConfig::V2` BCS support: `TransactionExtraConfigV2`, `UserTxnLimitsRequest`, and `RequestedMultipliers` (deserialize + serialize for forward-compatible tooling). Encrypted transaction submission continues to use **V1** `extra_config` until the target fullnode accepts V2 on the wire.
 
 ## Breaking
 
@@ -29,11 +30,13 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Changed
 
+- **Breaking (encrypted transactions):** Align encrypted payload wire format and client crypto with aptos-core **#19460** / **#19461**. `DecryptedPlaintext` replaces the old plaintext shape (**16-byte** `decryption_nonce`, `BCSCryptoHash` salt `APTOS::DecryptedPlaintext`). `PayloadAssociatedData` BCS-matches **`PayloadAssociatedData::V1 { sender, signer_auth_keys }`** (enum tag + sender + `Vec<(AccountAddress, AuthenticationKey)>`). Use **`PayloadAssociatedData.singleSigner(sender, key)`** for the common case; **`options.secondarySignerAuthenticationKeys`** (paired with `secondarySignerAddresses` on the build input) is required for **encrypted multi-agent** AAD. `TransactionPayloadEncryptedPayload` includes **`encryption_epoch`** after `payload_hash`. `fetchAndCacheEncryptionKey` returns **`{ key, epoch }`**. **`options.authenticationKey`** is **required** when `options.encrypted` is true. REST `EncryptedTransactionPayloadResponse` includes optional **`encryption_epoch`** and optional **`decryption_failure_reason`** on failed decryption views.
 - Introduce `MultiSigTransactionPayloadVariants` for multisig inner payload BCS tags and consolidate bytecode handling in `buildTransactionPayload`.
 - Upgraded `@noble/curves` and `@noble/hashes` to 2.x (ESM-only).
 - Remove `dotenv` usage from all TypeScript/JavaScript examples. Node 22+ users can rely on the built-in `node --env-file=.env` flag (or `tsx --env-file=.env`) when a `.env` file is needed; the examples default to devnet and don't require one.
 - `AnsName` now reports nullable indexer fields honestly instead of fabricating placeholder values. `domain`, `token_standard`, and `is_primary` are typed as optional (`string | undefined` / `AnsTokenStandard | undefined` / `boolean | undefined`), and `sanitizeANSName` passes them through as `undefined` rather than defaulting to `"N/A"`, `"v2"`, `false`, or `""`. Consumers that previously relied on these fields always being present should handle the `undefined` case (or filter the row out as bad indexer data).
 - `AccountAbstraction.addAuthenticationFunctionTransaction`, `removeAuthenticationFunctionTransaction`, and `disableAccountAbstractionTransaction` now type their `authenticationFunction` parameter as `MoveFunctionId` instead of `string`. `MoveFunctionId` is a string alias, so string literals still compile; callers passing a typed `string` variable may need to retype it (or cast) to satisfy the tightened signature. Updated the `hello_world_authenticator_account_abstraction.ts` and `public_key_authenticator_account_abstraction.ts` examples accordingly — they now annotate `authenticationFunction` as `MoveFunctionId` and call `.toString()` on the account address so the template literal type resolves correctly.
+- Batch-encryption curve deserialization: `bytesToG1` / `bytesToG2` require prime-order subgroup points (`isTorsionFree` after `fromBytes`), matching aptos-core `ts-batch-encrypt`.
 
 ## Fixed
 
@@ -52,6 +55,20 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Regenerate `examples/typescript/pnpm-lock.yaml` to include the recently added `@noble/hashes` dependency so `pnpm install --frozen-lockfile` succeeds in CI.
 - Prevent `@types/node` type leak in emitted `.d.ts`: `TEXT_ENCODER` now has an explicit structural type (`{ encode(input: string): Uint8Array }`) so consumers without `@types/node` (browsers, Deno, React Native) don't hit `Cannot find name 'util'` when compiling against the SDK.
 - Fix `examples/typescript` build: split `EphemeralKeyPair` imports to `@aptos-labs/ts-sdk/keyless`, update `@noble/hashes/sha3` to `@noble/hashes/sha3.js` (noble v2 exports), add explicit `"types": ["node"]` to the example `tsconfig.json`, and use `??` (instead of `||`) when reading `process.env.APTOS_NETWORK` so it type-checks under strict null checks.
+- Encrypted transaction builds with multisig inner **script** payload: `payloadToExecutable` now maps `Script` to `TransactionExecutableScript`, consistent with the orderless `convertPayloadToInnerPayload` path.
+- Encrypted transaction crypto (`src/core/crypto/encryption/`): ESM `nodenext` import specifiers, `@noble/ciphers` 2.x with `.js` subpaths, and `@noble/curves` 2.x (`bls12_381.G1.hashToCurve`, `bls12_381.fields.Fr`, `ed25519.utils.randomSecretKey`). `fetchAndCacheEncryptionKey` returns `{ key, epoch }` with **`epoch` as `bigint`** for BCS `encryption_epoch`.
+
+## Added
+
+- Encrypted transaction payloads: `options: { encrypted: true, authenticationKey }` with the node's per-epoch key (BLS12-381 batch IBE + AES-128-GCM). Adds crypto/BCS types (`EncryptionKey`, `Ciphertext`, `BIBECiphertext`, symmetric helpers, `TransactionPayloadEncryptedPayload`, `DecryptedPlaintext`, `PayloadAssociatedData`, `ClaimedEntryFunction`), `fetchAndCacheEncryptionKey` (returns `{ key, epoch }`), orderless + encrypted via `TransactionExtraConfigV1`, `RawTransaction.asEncryptedVariantForSigning()`, ledger `encryption_key` and `TransactionPayloadResponse` typings, `claimed_entry_fun` (auto or `options.claimedEntryFunction`), and client-side `assertSimulatableTransaction` when simulating encrypted builds.
+- Tests: batch-encryption constants, encrypted payload BCS, simulate guard unit test, devnet e2e (`APTOS_NETWORK=devnet vitest run tests/e2e/transaction/encryptedTransaction.test.ts --config vitest.config.e2e-devnet.ts`).
+
+## Changed
+
+- **Compatibility note:** Older aptos-core could fail signature verification for some encrypted authenticator shapes; current core uses `RawTransaction::as_encrypted_variant` in all verify paths.
+- **Breaking / behavior:** `simulateTransaction` / `aptos.transaction.simulate.*` reject encrypted payloads; simulate plaintext then rebuild with `encrypted: true` for submit.
+- Orderless transactions use `sequence_number = u64::MAX` with replay nonce in `TransactionExtraConfigV1` (aptos-core `RawTransaction::replay_protector`); `replayProtectionNonce` `0` is preserved when building.
+- `generateSignedTransactionForSimulation` uses `asEncryptedVariantForSigning()` for fee payer and multi-agent paths.
 
 # 6.3.0 (2026-03-22)
 

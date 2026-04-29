@@ -1,6 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { sha3_256 as sha3Hash } from "@noble/hashes/sha3.js";
 import { Deserializer } from "../../bcs/deserializer.js";
 import { Serializable, Serializer } from "../../bcs/serializer.js";
 import { EntryFunctionBytes } from "../../bcs/serializable/entryFunctionBytes.js";
@@ -21,6 +22,8 @@ import {
 } from "../../bcs/serializable/movePrimitives.js";
 import { MoveVector, Serialized } from "../../bcs/serializable/moveStructs.js";
 import { AccountAddress } from "../../core/index.js";
+import { AuthenticationKey } from "../../core/authenticationKey.js";
+import { Ciphertext } from "../../core/crypto/encryption/index.js";
 import { Identifier } from "./identifier.js";
 import { ModuleId } from "./moduleId.js";
 import type { EntryFunctionArgument, ScriptFunctionArgument, TransactionArgument } from "./transactionArgument.js";
@@ -130,6 +133,8 @@ export abstract class TransactionPayload extends Serializable {
         return TransactionPayloadMultiSig.load(deserializer);
       case TransactionPayloadVariants.Payload:
         return TransactionInnerPayload.deserialize(deserializer);
+      case TransactionPayloadVariants.EncryptedPayload:
+        return TransactionPayloadEncryptedPayload.load(deserializer);
       default:
         throw new Error(`Unknown variant index for TransactionPayload: ${index}`);
     }
@@ -372,6 +377,120 @@ export class EntryFunction {
 }
 
 /**
+ * Optional claim about the entry function inside an encrypted payload (`claimed_entry_fun` in aptos-core).
+ * Lets fee payers and multisig co-signers see module and optionally function name without decrypting.
+ *
+ * BCS matches `aptos_types::transaction::encrypted_payload::ClaimedEntryFunction`: `module` (ModuleId) then
+ * `function` as `Option<Identifier>`. On the REST API the same optional field is JSON-serialized as `name`, not `function`.
+ */
+export class ClaimedEntryFunction extends Serializable {
+  public readonly moduleId: ModuleId;
+
+  /** BCS/Rust `function`; JSON API field is `name`. */
+  public readonly functionName?: Identifier;
+
+  constructor(moduleId: ModuleId, functionName?: Identifier) {
+    super();
+    this.moduleId = moduleId;
+    this.functionName = functionName;
+  }
+
+  serialize(serializer: Serializer): void {
+    this.moduleId.serialize(serializer);
+    serializer.serializeOption(this.functionName);
+  }
+
+  static deserialize(deserializer: Deserializer): ClaimedEntryFunction {
+    const moduleId = ModuleId.deserialize(deserializer);
+    const functionName = deserializer.deserializeOption(Identifier);
+    return new ClaimedEntryFunction(moduleId, functionName);
+  }
+
+  /**
+   * Build a claim from a plaintext entry function (module + function name).
+   * @param includeFunctionName - When false, only the module is claimed (`Option::None` for function on wire).
+   */
+  static fromEntryFunction(entry: EntryFunction, opts?: { includeFunctionName?: boolean }): ClaimedEntryFunction {
+    const includeFunctionName = opts?.includeFunctionName !== false;
+    return new ClaimedEntryFunction(entry.module_name, includeFunctionName ? entry.function_name : undefined);
+  }
+}
+
+/**
+ * Encrypted payload variant indices matching Rust `EncryptedPayload` enum.
+ */
+export enum EncryptedPayloadVariants {
+  Encrypted = 0,
+  FailedDecryption = 1,
+  Decrypted = 2,
+}
+
+/**
+ * Represents the `EncryptedPayload::Encrypted` variant as a `TransactionPayload`.
+ * BCS layout: variant tag (5) | EncryptedPayload tag (0) | Ciphertext | TransactionExtraConfig |
+ * payload_hash (32 bytes) | optional ClaimedEntryFunction (BCS Option).
+ */
+export class TransactionPayloadEncryptedPayload extends TransactionPayload {
+  public readonly ciphertext: Ciphertext;
+
+  public readonly extraConfig: TransactionExtraConfig;
+
+  public readonly payloadHash: Uint8Array;
+
+  /** Epoch hint matching the node's per-epoch encryption key (see aptos-core `EncryptedInner`). */
+  public readonly encryptionEpoch: bigint;
+
+  public readonly claimedEntryFun?: ClaimedEntryFunction;
+
+  constructor(
+    ciphertext: Ciphertext,
+    extraConfig: TransactionExtraConfig,
+    payloadHash: Uint8Array,
+    encryptionEpoch: bigint,
+    claimedEntryFun?: ClaimedEntryFunction,
+  ) {
+    super();
+    if (payloadHash.length !== 32) {
+      throw new Error("payloadHash must be 32 bytes");
+    }
+    this.ciphertext = ciphertext;
+    this.extraConfig = extraConfig;
+    this.payloadHash = payloadHash;
+    this.encryptionEpoch = encryptionEpoch;
+    this.claimedEntryFun = claimedEntryFun;
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(TransactionPayloadVariants.EncryptedPayload);
+    serializer.serializeU32AsUleb128(EncryptedPayloadVariants.Encrypted);
+    this.ciphertext.serialize(serializer);
+    this.extraConfig.serialize(serializer);
+    serializer.serializeFixedBytes(this.payloadHash);
+    serializer.serializeU64(this.encryptionEpoch);
+    serializer.serializeOption(this.claimedEntryFun);
+  }
+
+  static load(deserializer: Deserializer): TransactionPayloadEncryptedPayload {
+    const variant = deserializer.deserializeUleb128AsU32();
+    if (variant !== EncryptedPayloadVariants.Encrypted) {
+      throw new Error(`Only EncryptedPayload::Encrypted (variant 0) is supported on the client, got ${variant}`);
+    }
+    const ciphertext = Ciphertext.deserialize(deserializer);
+    const extraConfig = TransactionExtraConfig.deserialize(deserializer);
+    const payloadHash = deserializer.deserializeFixedBytes(32);
+    const encryptionEpoch = deserializer.deserializeU64();
+    const claimedEntryFun = deserializer.deserializeOption(ClaimedEntryFunction);
+    return new TransactionPayloadEncryptedPayload(
+      ciphertext,
+      extraConfig,
+      payloadHash,
+      encryptionEpoch,
+      claimedEntryFun,
+    );
+  }
+}
+
+/**
  * Represents a Script that can be serialized and deserialized.
  * Scripts contain the Move bytecode payload that can be submitted to the Aptos chain for execution.
  * @group Implementation
@@ -609,6 +728,8 @@ export abstract class TransactionExecutable {
         return TransactionExecutableEntryFunction.load(deserializer);
       case TransactionExecutableVariants.Empty:
         return TransactionExecutableEmpty.load(deserializer);
+      case TransactionExecutableVariants.Encrypted:
+        return TransactionExecutableEncrypted.load(deserializer);
       default:
         throw new Error(`Unknown variant index for TransactionExecutable: ${index}`);
     }
@@ -663,7 +784,207 @@ export class TransactionExecutableEmpty extends TransactionExecutable {
   }
 }
 
-export abstract class TransactionExtraConfig {
+export class TransactionExecutableEncrypted extends TransactionExecutable {
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(TransactionExecutableVariants.Encrypted);
+  }
+
+  static load(_: Deserializer): TransactionExecutableEncrypted {
+    return new TransactionExecutableEncrypted();
+  }
+}
+
+/** 16-byte decryption nonce for encrypted payloads (aptos-core `DecryptionNonce`). */
+export const DECRYPTION_NONCE_LENGTH = 16;
+
+/**
+ * BCS-serializable `DecryptedPlaintext`.
+ * Built client-side before encrypting; its BCS hash becomes `payload_hash`.
+ *
+ * Matches Rust: `DecryptedPlaintext { executable, decryption_nonce: [u8; 16] }`
+ */
+export class DecryptedPlaintext extends Serializable {
+  executable: TransactionExecutable;
+
+  decryptionNonce: Uint8Array;
+
+  constructor(executable: TransactionExecutable, decryptionNonce: Uint8Array) {
+    super();
+    if (decryptionNonce.length !== DECRYPTION_NONCE_LENGTH) {
+      throw new Error(`decryptionNonce must be ${DECRYPTION_NONCE_LENGTH} bytes`);
+    }
+    this.executable = executable;
+    this.decryptionNonce = decryptionNonce;
+  }
+
+  serialize(serializer: Serializer): void {
+    this.executable.serialize(serializer);
+    serializer.serializeFixedBytes(this.decryptionNonce);
+  }
+
+  static deserialize(deserializer: Deserializer): DecryptedPlaintext {
+    const executable = TransactionExecutable.deserialize(deserializer);
+    const decryptionNonce = deserializer.deserializeFixedBytes(DECRYPTION_NONCE_LENGTH);
+    return new DecryptedPlaintext(executable, decryptionNonce);
+  }
+
+  /**
+   * Domain-separated BCS crypto hash (`BCSCryptoHash` / `CryptoHash` in aptos-core).
+   *
+   * Hash = SHA3-256( SHA3-256("APTOS::DecryptedPlaintext") || BCS(self) )
+   */
+  hash(): Uint8Array {
+    const salt = "APTOS::DecryptedPlaintext";
+    const saltHash = sha3Hash(new TextEncoder().encode(salt));
+    const bcsBytes = this.bcsToBytes();
+    const h = sha3Hash.create();
+    h.update(saltHash);
+    h.update(bcsBytes);
+    return h.digest();
+  }
+}
+
+/** @deprecated Use {@link DecryptedPlaintext} (aptos-core rename). */
+export const DecryptedPayload = DecryptedPlaintext;
+
+/** One `(AccountAddress, AuthenticationKey)` entry in `PayloadAssociatedData::V1.signer_auth_keys` (aptos-core). */
+export type SignerAuthKeyPair = {
+  address: AccountAddress;
+  authenticationKey: AuthenticationKey;
+};
+
+/** BCS variant index for `PayloadAssociatedData::V1`. */
+export const PayloadAssociatedDataV1Variant = 0;
+
+/**
+ * BCS-serializable AAD for batch encryption of user transaction payloads.
+ *
+ * Matches Rust `aptos_types::transaction::encrypted_payload::PayloadAssociatedData::V1`:
+ * enum discriminant (uleb128) | `sender` | `signer_auth_keys` as BCS `Vec<(AccountAddress, AuthenticationKey)>`.
+ */
+export class PayloadAssociatedData extends Serializable {
+  constructor(
+    public readonly sender: AccountAddress,
+    public readonly signerAuthKeys: readonly SignerAuthKeyPair[],
+  ) {
+    super();
+    if (signerAuthKeys.length === 0) {
+      throw new Error("PayloadAssociatedData requires at least one signer auth key pair");
+    }
+  }
+
+  /**
+   * Primary sender plus their authentication key (Rust: `vec![(sender, auth_key)]` prefix before
+   * `additional_signer_auth_keys`).
+   */
+  static singleSigner(sender: AccountAddress, authenticationKey: AuthenticationKey): PayloadAssociatedData {
+    return new PayloadAssociatedData(sender, [{ address: sender, authenticationKey }]);
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(PayloadAssociatedDataV1Variant);
+    this.sender.serialize(serializer);
+    serializer.serializeU32AsUleb128(this.signerAuthKeys.length);
+    for (const { address, authenticationKey } of this.signerAuthKeys) {
+      address.serialize(serializer);
+      authenticationKey.serialize(serializer);
+    }
+  }
+
+  static deserialize(deserializer: Deserializer): PayloadAssociatedData {
+    const variant = deserializer.deserializeUleb128AsU32();
+    if (variant !== PayloadAssociatedDataV1Variant) {
+      throw new Error(`Unknown PayloadAssociatedData variant: ${variant}`);
+    }
+    const sender = AccountAddress.deserialize(deserializer);
+    const len = deserializer.deserializeUleb128AsU32();
+    const signerAuthKeys: SignerAuthKeyPair[] = [];
+    for (let i = 0; i < len; i += 1) {
+      signerAuthKeys.push({
+        address: AccountAddress.deserialize(deserializer),
+        authenticationKey: AuthenticationKey.deserialize(deserializer),
+      });
+    }
+    return new PayloadAssociatedData(sender, signerAuthKeys);
+  }
+}
+
+/**
+ * Matches `aptos_types::transaction::RequestedMultipliers` (BCS enum; variant 0 = V1).
+ */
+export class RequestedMultipliers extends Serializable {
+  constructor(
+    public readonly executionBps: bigint,
+    public readonly ioBps: bigint,
+  ) {
+    super();
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(0);
+    serializer.serializeU64(this.executionBps);
+    serializer.serializeU64(this.ioBps);
+  }
+
+  static deserialize(deserializer: Deserializer): RequestedMultipliers {
+    const variant = deserializer.deserializeUleb128AsU32();
+    if (variant !== 0) {
+      throw new Error(`Unknown RequestedMultipliers variant: ${variant}`);
+    }
+    return new RequestedMultipliers(deserializer.deserializeU64(), deserializer.deserializeU64());
+  }
+}
+
+export enum UserTxnLimitsRequestVariant {
+  StakePoolOwner = 0,
+  DelegatedVoter = 1,
+  DelegationPoolDelegator = 2,
+}
+
+/**
+ * Matches `aptos_types::transaction::UserTxnLimitsRequest`.
+ */
+export class UserTxnLimitsRequest extends Serializable {
+  constructor(
+    public readonly variant: UserTxnLimitsRequestVariant,
+    public readonly poolAddress: AccountAddress | undefined,
+    public readonly multipliers: RequestedMultipliers,
+  ) {
+    super();
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(this.variant);
+    if (this.variant === UserTxnLimitsRequestVariant.StakePoolOwner) {
+      this.multipliers.serialize(serializer);
+    } else {
+      if (this.poolAddress === undefined) {
+        throw new Error("UserTxnLimitsRequest requires pool_address for voter/delegator variants");
+      }
+      this.poolAddress.serialize(serializer);
+      this.multipliers.serialize(serializer);
+    }
+  }
+
+  static deserialize(deserializer: Deserializer): UserTxnLimitsRequest {
+    const variant = deserializer.deserializeUleb128AsU32() as UserTxnLimitsRequestVariant;
+    if (variant === UserTxnLimitsRequestVariant.StakePoolOwner) {
+      const multipliers = RequestedMultipliers.deserialize(deserializer);
+      return new UserTxnLimitsRequest(variant, undefined, multipliers);
+    }
+    if (
+      variant === UserTxnLimitsRequestVariant.DelegatedVoter ||
+      variant === UserTxnLimitsRequestVariant.DelegationPoolDelegator
+    ) {
+      const poolAddress = AccountAddress.deserialize(deserializer);
+      const multipliers = RequestedMultipliers.deserialize(deserializer);
+      return new UserTxnLimitsRequest(variant, poolAddress, multipliers);
+    }
+    throw new Error(`Unknown UserTxnLimitsRequest variant: ${variant}`);
+  }
+}
+
+export abstract class TransactionExtraConfig extends Serializable {
   abstract serialize(serializer: Serializer): void;
 
   static deserialize(deserializer: Deserializer): TransactionExtraConfig {
@@ -672,6 +993,8 @@ export abstract class TransactionExtraConfig {
     switch (index) {
       case TransactionExtraConfigVariants.V1:
         return TransactionExtraConfigV1.load(deserializer);
+      case TransactionExtraConfigVariants.V2:
+        return TransactionExtraConfigV2.load(deserializer);
       default:
         throw new Error(`Unknown variant index for TransactionExtraConfig: ${index}`);
     }
@@ -700,5 +1023,41 @@ export class TransactionExtraConfigV1 extends TransactionExtraConfig {
     const multisigAddress = deserializer.deserializeOption(AccountAddress);
     const replayProtectionNonce = deserializer.deserializeOption(U64);
     return new TransactionExtraConfigV1(multisigAddress, replayProtectionNonce?.value);
+  }
+}
+
+/**
+ * Matches `aptos_types::transaction::TransactionExtraConfig::V2` (replay/multisig + optional staking limits request).
+ */
+export class TransactionExtraConfigV2 extends TransactionExtraConfig {
+  multisigAddress?: AccountAddress;
+  replayProtectionNonce?: bigint;
+  txnLimitsRequest?: UserTxnLimitsRequest;
+
+  constructor(
+    multisigAddress?: AccountAddress,
+    replayProtectionNonce?: AnyNumber,
+    txnLimitsRequest?: UserTxnLimitsRequest,
+  ) {
+    super();
+    this.multisigAddress = multisigAddress;
+    this.replayProtectionNonce = replayProtectionNonce !== undefined ? BigInt(replayProtectionNonce) : undefined;
+    this.txnLimitsRequest = txnLimitsRequest;
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(TransactionExtraConfigVariants.V2);
+    serializer.serializeOption<AccountAddress>(this.multisigAddress);
+    serializer.serializeOption<U64>(
+      this.replayProtectionNonce !== undefined ? new U64(this.replayProtectionNonce) : undefined,
+    );
+    serializer.serializeOption<UserTxnLimitsRequest>(this.txnLimitsRequest);
+  }
+
+  static load(deserializer: Deserializer): TransactionExtraConfigV2 {
+    const multisigAddress = deserializer.deserializeOption(AccountAddress);
+    const replayProtectionNonce = deserializer.deserializeOption(U64);
+    const txnLimitsRequest = deserializer.deserializeOption(UserTxnLimitsRequest);
+    return new TransactionExtraConfigV2(multisigAddress, replayProtectionNonce?.value, txnLimitsRequest);
   }
 }
