@@ -847,31 +847,65 @@ export class DecryptedPlaintext extends Serializable {
 /** @deprecated Use {@link DecryptedPlaintext} (aptos-core rename). */
 export const DecryptedPayload = DecryptedPlaintext;
 
+/** One `(AccountAddress, AuthenticationKey)` entry in `PayloadAssociatedData::V1.signer_auth_keys` (aptos-core). */
+export type SignerAuthKeyPair = {
+  address: AccountAddress;
+  authenticationKey: AuthenticationKey;
+};
+
+/** BCS variant index for `PayloadAssociatedData::V1`. */
+export const PayloadAssociatedDataV1Variant = 0;
+
 /**
  * BCS-serializable AAD for batch encryption of user transaction payloads.
  *
- * Matches Rust: `PayloadAssociatedData { sender, auth_key }` (aptos-core #19460).
+ * Matches Rust `aptos_types::transaction::encrypted_payload::PayloadAssociatedData::V1`:
+ * enum discriminant (uleb128) | `sender` | `signer_auth_keys` as BCS `Vec<(AccountAddress, AuthenticationKey)>`.
  */
 export class PayloadAssociatedData extends Serializable {
-  sender: AccountAddress;
-
-  authKey: AuthenticationKey;
-
-  constructor(sender: AccountAddress, authKey: AuthenticationKey) {
+  constructor(
+    public readonly sender: AccountAddress,
+    public readonly signerAuthKeys: readonly SignerAuthKeyPair[],
+  ) {
     super();
-    this.sender = sender;
-    this.authKey = authKey;
+    if (signerAuthKeys.length === 0) {
+      throw new Error("PayloadAssociatedData requires at least one signer auth key pair");
+    }
+  }
+
+  /**
+   * Primary sender plus their authentication key (Rust: `vec![(sender, auth_key)]` prefix before
+   * `additional_signer_auth_keys`).
+   */
+  static singleSigner(sender: AccountAddress, authenticationKey: AuthenticationKey): PayloadAssociatedData {
+    return new PayloadAssociatedData(sender, [{ address: sender, authenticationKey }]);
   }
 
   serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(PayloadAssociatedDataV1Variant);
     this.sender.serialize(serializer);
-    this.authKey.serialize(serializer);
+    serializer.serializeU32AsUleb128(this.signerAuthKeys.length);
+    for (const { address, authenticationKey } of this.signerAuthKeys) {
+      address.serialize(serializer);
+      authenticationKey.serialize(serializer);
+    }
   }
 
   static deserialize(deserializer: Deserializer): PayloadAssociatedData {
+    const variant = deserializer.deserializeUleb128AsU32();
+    if (variant !== PayloadAssociatedDataV1Variant) {
+      throw new Error(`Unknown PayloadAssociatedData variant: ${variant}`);
+    }
     const sender = AccountAddress.deserialize(deserializer);
-    const authKey = AuthenticationKey.deserialize(deserializer);
-    return new PayloadAssociatedData(sender, authKey);
+    const len = deserializer.deserializeUleb128AsU32();
+    const signerAuthKeys: SignerAuthKeyPair[] = [];
+    for (let i = 0; i < len; i += 1) {
+      signerAuthKeys.push({
+        address: AccountAddress.deserialize(deserializer),
+        authenticationKey: AuthenticationKey.deserialize(deserializer),
+      });
+    }
+    return new PayloadAssociatedData(sender, signerAuthKeys);
   }
 }
 

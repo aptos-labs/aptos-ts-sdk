@@ -68,17 +68,34 @@ describe("encrypted payload BCS round-trip (unit)", () => {
     expect(h1.length).toBe(32);
   });
 
-  test("PayloadAssociatedData serialize/deserialize", () => {
+  test("PayloadAssociatedData serialize/deserialize (V1 + signer_auth_keys)", () => {
     const sender = AccountAddress.ONE;
     const authKey = new AuthenticationKey({ data: new Uint8Array(32).fill(0xab) });
-    const ad = new PayloadAssociatedData(sender, authKey);
+    const ad = PayloadAssociatedData.singleSigner(sender, authKey);
 
     const bytes = ad.bcsToBytes();
     const restored = PayloadAssociatedData.deserialize(new Deserializer(bytes));
 
     expect(restored.sender.equals(sender)).toBe(true);
-    expect(restored.authKey.toUint8Array()).toEqual(authKey.toUint8Array());
+    expect(restored.signerAuthKeys.length).toBe(1);
+    expect(restored.signerAuthKeys[0]!.address.equals(sender)).toBe(true);
+    expect(restored.signerAuthKeys[0]!.authenticationKey.toUint8Array()).toEqual(authKey.toUint8Array());
     expect(restored.bcsToBytes()).toEqual(bytes);
+  });
+
+  test("PayloadAssociatedData multi-signer order round-trips", () => {
+    const sender = AccountAddress.ONE;
+    const secondary = AccountAddress.TWO;
+    const k1 = new AuthenticationKey({ data: new Uint8Array(32).fill(0x01) });
+    const k2 = new AuthenticationKey({ data: new Uint8Array(32).fill(0x02) });
+    const ad = new PayloadAssociatedData(sender, [
+      { address: sender, authenticationKey: k1 },
+      { address: secondary, authenticationKey: k2 },
+    ]);
+    const restored = PayloadAssociatedData.deserialize(new Deserializer(ad.bcsToBytes()));
+    expect(restored.signerAuthKeys.length).toBe(2);
+    expect(restored.signerAuthKeys[0]!.address.equals(sender)).toBe(true);
+    expect(restored.signerAuthKeys[1]!.address.equals(secondary)).toBe(true);
   });
 
   test("TransactionExtraConfigV1 with replay nonce round-trips", () => {

@@ -383,8 +383,13 @@ export async function generateRawTransaction(args: {
   payload: AnyTransactionPayloadInstance;
   options?: InputGenerateTransactionOptions;
   feePayerAddress?: AccountAddressInput;
+  /**
+   * When building an encrypted multi-agent transaction, secondary signer addresses (same order as
+   * `options.secondarySignerAuthenticationKeys`).
+   */
+  secondarySignerAddresses?: AccountAddressInput[];
 }): Promise<RawTransaction> {
-  const { aptosConfig, sender, payload, options, feePayerAddress } = args;
+  const { aptosConfig, sender, payload, options, feePayerAddress, secondarySignerAddresses } = args;
 
   if (options?.replayProtectionNonce !== undefined && options?.accountSequenceNumber !== undefined) {
     throw new Error("Cannot specify both replayProtectionNonce and accountSequenceNumber in options.");
@@ -468,12 +473,32 @@ export async function generateRawTransaction(args: {
         "options.authenticationKey is required when options.encrypted is true (32-byte auth key hex; must match the signing authenticator).",
       );
     }
+    const secondaryAddrs = secondarySignerAddresses ?? [];
+    const secondaryAuthHex = options.secondarySignerAuthenticationKeys;
+    if (secondaryAddrs.length > 0) {
+      if (!secondaryAuthHex || secondaryAuthHex.length !== secondaryAddrs.length) {
+        throw new Error(
+          "Encrypted multi-agent transactions require options.secondarySignerAuthenticationKeys with one 32-byte auth key per secondarySignerAddresses entry, in the same order.",
+        );
+      }
+    } else if (secondaryAuthHex !== undefined && secondaryAuthHex.length > 0) {
+      throw new Error(
+        "options.secondarySignerAuthenticationKeys was set but no secondarySignerAddresses were provided to generateRawTransaction.",
+      );
+    }
     const authenticationKey = new AuthenticationKey({ data: options.authenticationKey });
     const claimedEntryFun = resolveClaimedEntryFunForEncryptedTransaction({
       payload,
       feePayerAddress,
       options,
     });
+    const additionalSignerAuthKeys =
+      secondaryAddrs.length > 0 && secondaryAuthHex
+        ? secondaryAddrs.map((addr, i) => ({
+            address: AccountAddress.from(addr),
+            authenticationKey: new AuthenticationKey({ data: secondaryAuthHex[i]! }),
+          }))
+        : undefined;
     txnPayload = await encryptTransactionPayload({
       aptosConfig,
       sender: AccountAddress.from(sender),
@@ -481,6 +506,7 @@ export async function generateRawTransaction(args: {
       replayProtectionNonce,
       claimedEntryFun,
       authenticationKey,
+      additionalSignerAuthKeys,
     });
   } else if (replayProtectionNonce !== undefined) {
     txnPayload = convertPayloadToInnerPayload(payload, replayProtectionNonce);
@@ -651,7 +677,7 @@ function resolveClaimedEntryFunForEncryptedTransaction(args: {
  * 1. Convert payload to TransactionExecutable + TransactionExtraConfig
  * 2. Generate random decryption nonce
  * 3. Build DecryptedPlaintext(executable, 16-byte nonce)
- * 4. Build PayloadAssociatedData(sender, auth_key)
+ * 4. Build `PayloadAssociatedData::V1` (sender + `signer_auth_keys`, matching Rust `encrypt_payload`)
  * 5. Encrypt with AAD using EncryptionKey
  * 6. Compute payload_hash = CryptoHash(DecryptedPlaintext)
  * 7. Return EncryptedInner on wire (epoch hint + optional claimed_entry_fun)
@@ -663,8 +689,18 @@ async function encryptTransactionPayload(args: {
   replayProtectionNonce?: bigint;
   claimedEntryFun?: ClaimedEntryFunction;
   authenticationKey: AuthenticationKey;
+  /** Additional `(address, authentication_key)` pairs after the primary sender, same order as multi-agent secondaries. */
+  additionalSignerAuthKeys?: Array<{ address: AccountAddress; authenticationKey: AuthenticationKey }>;
 }): Promise<TransactionPayloadEncryptedPayload> {
-  const { aptosConfig, sender, payload, replayProtectionNonce, claimedEntryFun, authenticationKey } = args;
+  const {
+    aptosConfig,
+    sender,
+    payload,
+    replayProtectionNonce,
+    claimedEntryFun,
+    authenticationKey,
+    additionalSignerAuthKeys,
+  } = args;
 
   const encryption = await fetchAndCacheEncryptionKey({ aptosConfig });
   if (!encryption) {
@@ -696,7 +732,11 @@ async function encryptTransactionPayload(args: {
   crypto.getRandomValues(nonceBytes);
 
   const decryptedPayload = new DecryptedPlaintext(executable, nonceBytes);
-  const associatedData = new PayloadAssociatedData(sender, authenticationKey);
+  const signerAuthKeys = [
+    { address: sender, authenticationKey },
+    ...(additionalSignerAuthKeys ?? []),
+  ];
+  const associatedData = new PayloadAssociatedData(sender, signerAuthKeys);
 
   const ciphertext = encryptionKey.encrypt(decryptedPayload, associatedData);
 
@@ -760,6 +800,7 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
     payload,
     options,
     feePayerAddress,
+    secondarySignerAddresses: "secondarySignerAddresses" in args ? args.secondarySignerAddresses : undefined,
   });
 
   // if multi agent transaction
