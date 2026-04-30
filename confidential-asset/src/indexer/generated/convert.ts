@@ -7,7 +7,7 @@
  * strongly typed discriminated union in {@link ../types}.
  */
 
-import type { GetConfidentialAssetActivitiesQuery } from "./operations";
+import type { GetConfidentialAssetActivitiesQuery } from "./operations.js";
 import type {
   ActivityBase,
   AllowListingChangedActivity,
@@ -23,7 +23,7 @@ import type {
   RolledOverActivity,
   TransferredActivity,
   WithdrawnActivity,
-} from "../types";
+} from "../types.js";
 
 /** A single row as returned by the generated GraphQL query. */
 export type GraphqlActivityRow = GetConfidentialAssetActivitiesQuery["confidential_asset_activities"][number];

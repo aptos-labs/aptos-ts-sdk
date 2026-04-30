@@ -4,30 +4,25 @@
   "packageManager": "pnpm@10.30.3",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
   "bugs": {
     "url": "https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose"
   },
   "homepage": "https://aptos-labs.github.io/aptos-ts-sdk/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aptos-labs/aptos-ts-sdk.git",
+    "directory": "confidential-asset"
+  },
   "version": "1.1.1",
+  "type": "module",
   "sideEffects": false,
-  "main": "dist/common/index.js",
-  "module": "dist/esm/index.mjs",
   "exports": {
     ".": {
-      "source": "./src/index.ts",
-      "require": {
-        "types": "./dist/common/index.d.ts",
-        "default": "./dist/common/index.js"
-      },
-      "import": {
-        "types": "./dist/esm/index.d.mts",
-        "default": "./dist/esm/index.mjs"
-      }
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
-    "./dist/common/cli/index.js": "./dist/common/cli/index.js",
-    "./dist/esm/cli/index.mjs": "./dist/esm/cli/index.mjs",
     "./package.json": "./package.json"
   },
   "files": [
@@ -37,7 +32,12 @@
   "scripts": {
     "build:clean": "rm -rf dist",
     "build": "pnpm build:clean && tsc -p tsconfig.build.json",
-    "build:types": "tsc -p tsconfig.build.json --outDir ./dist/types --declaration --emitDeclarationOnly",
+    "prepublishOnly": "pnpm run build",
+    "_fmt": "biome format",
+    "fmt": "biome format --write",
+    "format": "pnpm fmt",
+    "lint": "biome lint",
+    "check": "biome check",
     "test": "vitest run",
     "test:browser": "vitest run --config vitest.browser.config.mts",
     "e2e-test": "vitest run tests/e2e",
@@ -54,16 +54,12 @@
   },
   "devDependencies": {
     "@aptos-labs/ts-sdk": "^6.3.1",
-    "@swc/cli": "^0.8.0",
-    "@swc/core": "^1.15.18",
+    "@biomejs/biome": "2.4.6",
     "@types/node": "^22.19.13",
     "@vitest/browser": "^4.1.5",
     "@vitest/browser-playwright": "^4.1.5",
     "@vitest/coverage-v8": "^4.1.5",
     "playwright": "^1.59.1",
-    "tsc-alias": "^1.8.16",
-    "tslib": "^2.8.1",
-    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^4.1.5",
     "vite": "^7.3.2"
