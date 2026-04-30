@@ -36,7 +36,7 @@ Runtime-specific tests exist in `examples/web-test/` (Playwright), `examples/bun
   - Vitest uses `tests/preTest.ts` (globalSetup with setup/teardown) to start/stop a local Aptos node.
 - **Examples**: `examples/`
   - `examples/typescript`, `examples/javascript` use a **linked** SDK (`link:../..`).
-- **Confidential asset SDK**: `confidential-asset/` (separate package + tests)
+- **Confidential asset SDK**: `confidential-asset/` (separate package + tests, with its own [`CHANGELOG.md`](./confidential-asset/CHANGELOG.md))
 - **Docs output**: `docs/` (large; includes versioned typedoc output)
 - **Utility scripts**: `scripts/` (`checkVersion.sh`, `updateVersion.sh`, `generateDocs.sh`)
 
@@ -63,8 +63,11 @@ Before every commit:
 
 1. **Check code**: Run `pnpm check` to run Biome (lint + format)
 2. **Format code**: Run `pnpm fmt` to auto-format with Biome
-3. **Update CHANGELOG.md**: Add a descriptive entry for the change under the appropriate section (Added, Changed, Fixed, etc.)
-4. **Write descriptive commit messages**: Commits should clearly explain what changed and why
+3. **Update the appropriate CHANGELOG**: Add a descriptive entry under the appropriate section (Added, Changed, Fixed, etc.).
+   - Changes to `@aptos-labs/ts-sdk` (everything under `src/`, `tests/`, root configs, examples, docs tooling, etc.) → root [`CHANGELOG.md`](./CHANGELOG.md).
+   - Changes to `@aptos-labs/confidential-asset` (everything under `confidential-asset/`) → [`confidential-asset/CHANGELOG.md`](./confidential-asset/CHANGELOG.md).
+   - If a single commit touches both packages, add an entry to **each** changelog rather than mixing concerns.
+4. **Write descriptive commit messages**: Commits should clearly explain what changed and why. For confidential-asset–only commits, prefix the subject with `[confidential-asset]` to match existing history.
 
 ## Testing
 
@@ -169,7 +172,7 @@ When releasing a new version with breaking changes:
 
 1. Create an upgrade guide at `upgrade-guides/UPGRADE_GUIDE_X.Y.Z.md`
 2. Document all breaking changes with before/after code examples
-3. Reference the upgrade guide in CHANGELOG.md under the version heading
+3. Reference the upgrade guide in the appropriate changelog under the version heading — root [`CHANGELOG.md`](./CHANGELOG.md) for `@aptos-labs/ts-sdk` releases, [`confidential-asset/CHANGELOG.md`](./confidential-asset/CHANGELOG.md) for `@aptos-labs/confidential-asset` releases.
 
 ## Guardrails
 
