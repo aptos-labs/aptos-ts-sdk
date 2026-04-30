@@ -8,11 +8,11 @@
  */
 
 import { Aptos } from "@aptos-labs/ts-sdk";
-import type { ConfidentialAssetActivity } from "./types";
-import { GetConfidentialAssetActivities } from "./generated/queries";
-import type { GetConfidentialAssetActivitiesQuery } from "./generated/operations";
-import { convertActivities } from "./generated/convert";
-import type { ConfidentialAssetActivitiesBoolExp, ConfidentialAssetActivitiesOrderBy } from "./generated/types";
+import type { ConfidentialAssetActivity } from "./types.js";
+import { GetConfidentialAssetActivities } from "./generated/queries.js";
+import type { GetConfidentialAssetActivitiesQuery } from "./generated/operations.js";
+import { convertActivities } from "./generated/convert.js";
+import type { ConfidentialAssetActivitiesBoolExp, ConfidentialAssetActivitiesOrderBy } from "./generated/types.js";
 
 export type { ConfidentialAssetActivitiesBoolExp, ConfidentialAssetActivitiesOrderBy };
 

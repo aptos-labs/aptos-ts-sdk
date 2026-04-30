@@ -18,5 +18,5 @@
     "rootDir": ".",
     "types": ["node", "vitest/globals"]
   },
-  "include": ["src", "tests", "vitest.config.mts"]
+  "include": ["src", "tests", "vitest.config.ts", "vitest.browser.config.mts"]
 }

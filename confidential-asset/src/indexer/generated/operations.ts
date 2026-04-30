@@ -1,4 +1,4 @@
-import * as Types from "./types";
+import * as Types from "./types.js";
 
 export type GetConfidentialAssetActivitiesQueryVariables = Types.Exact<{
   where_condition?: Types.InputMaybe<Types.ConfidentialAssetActivitiesBoolExp>;
