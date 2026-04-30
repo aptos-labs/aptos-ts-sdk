@@ -7,15 +7,15 @@ import {
   TwistedEd25519PublicKey,
   EncryptedAmount,
   TwistedElGamalCiphertext,
-} from "../crypto";
+} from "../crypto/index.js";
 import {
   getAvailableBalanceCacheKey,
   getCache,
   getPendingBalanceCacheKey,
   memoizeAsync,
   setCache,
-} from "../utils/memoize";
-import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS, MODULE_NAME } from "../consts";
+} from "../utils/memoize.js";
+import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS, MODULE_NAME } from "../consts.js";
 
 type ViewFunctionParams = {
   client: Aptos;

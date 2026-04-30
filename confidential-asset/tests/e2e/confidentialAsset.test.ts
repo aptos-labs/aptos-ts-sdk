@@ -10,7 +10,7 @@ import {
   Ed25519Account,
   MoveVector,
 } from "@aptos-labs/ts-sdk";
-import { TwistedEd25519PrivateKey } from "../../src";
+import { TwistedEd25519PrivateKey } from "../../src/index.js";
 import {
   getTestAccount,
   getTestConfidentialAccount,
@@ -23,9 +23,9 @@ import {
   longTestTimeout,
   confidentialAsset,
   feePayerAccount,
-} from "../helpers";
-import { getCache } from "../../src/utils/memoize";
-import { ConfidentialBalance } from "../../src/internal/viewFunctions";
+} from "../helpers/index.mjs";
+import { getCache } from "../../src/utils/memoize.js";
+import { ConfidentialBalance } from "../../src/internal/viewFunctions.js";
 
 function getCachedBalance(accountAddress: AccountAddressInput, tokenAddress: AccountAddressInput): ConfidentialBalance {
   const cacheKey = `${accountAddress}-balance-for-${tokenAddress}-${aptos.config.network}`;
@@ -84,15 +84,15 @@ describe("Confidential Asset Sender API", () => {
   beforeAll(async () => {
     await aptos.fundAccount({
       accountAddress: alice.accountAddress,
-      amount: 100000000,
+      amount: 1000000000,
     });
     await aptos.fundAccount({
       accountAddress: bob.accountAddress,
-      amount: 100000000,
+      amount: 1000000000,
     });
     await aptos.fundAccount({
       accountAddress: feePayerAccount.accountAddress,
-      amount: 100000000,
+      amount: 1000000000,
     });
 
     console.log("Funded accounts");
@@ -651,7 +651,10 @@ describe("Confidential Asset Sender API", () => {
     return result;
   }
 
-  async function tryTransfer(): Promise<{ success: boolean; vm_status?: string }> {
+  async function tryTransfer(): Promise<{
+    success: boolean;
+    vm_status?: string;
+  }> {
     try {
       const tx = await confidentialAsset.transfer({
         senderDecryptionKey: aliceConfidential,
@@ -701,14 +704,20 @@ describe("Confidential Asset Sender API", () => {
       async () => {
         expect(governanceAvailable).toBe(true);
         const [beforeEnabled] = await plainAptos.view<[boolean]>({
-          payload: { function: "0x1::confidential_asset::is_allow_listing_required", functionArguments: [] },
+          payload: {
+            function: "0x1::confidential_asset::is_allow_listing_required",
+            functionArguments: [],
+          },
         });
         expect(beforeEnabled).toBeFalsy();
 
         await govScript("set_allow_listing", [new Bool(true)]);
 
         const [afterEnabled] = await plainAptos.view<[boolean]>({
-          payload: { function: "0x1::confidential_asset::is_allow_listing_required", functionArguments: [] },
+          payload: {
+            function: "0x1::confidential_asset::is_allow_listing_required",
+            functionArguments: [],
+          },
         });
         expect(afterEnabled).toBeTruthy();
 
@@ -883,7 +892,10 @@ describe("Confidential Asset Sender API", () => {
 
       // Helper: build + submit raw txn; if paused, expect on-chain failure with the pause abort code; if not, expect success.
       async function expectRawTxnOutcome(_label: string, signer: any, tx: any) {
-        const pending = await plainAptos.signAndSubmitTransaction({ signer, transaction: tx });
+        const pending = await plainAptos.signAndSubmitTransaction({
+          signer,
+          transaction: tx,
+        });
         const result = await plainAptos.waitForTransaction({
           transactionHash: pending.hash,
           options: { checkSuccess: false },
@@ -908,7 +920,10 @@ describe("Confidential Asset Sender API", () => {
       try {
         // register
         const newAccount = Account.generate();
-        await aptos.fundAccount({ accountAddress: newAccount.accountAddress, amount: 100000000 });
+        await aptos.fundAccount({
+          accountAddress: newAccount.accountAddress,
+          amount: 100000000,
+        });
         const newKey = TwistedEd25519PrivateKey.generate();
         await expectOutcome("register", () =>
           confidentialAsset.registerBalance({

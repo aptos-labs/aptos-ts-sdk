@@ -1,5 +1,5 @@
 // Copyright (c) Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-export * from "./types";
-export * from "./queries";
+export * from "./types.js";
+export * from "./queries.js";

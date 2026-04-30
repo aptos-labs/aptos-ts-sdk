@@ -8,13 +8,13 @@
  * so the prover must produce the exact same serialization.
  */
 
-import { sha512 } from "@noble/hashes/sha2";
-import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/utils";
+import { sha512 } from "@noble/hashes/sha2.js";
+import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/utils.js";
+import { ristretto255 } from "@noble/curves/ed25519.js";
 import { Serializer, U64, Serializable, FixedBytes } from "@aptos-labs/ts-sdk";
-import { ed25519modN, ed25519GenListOfRandom } from "../utils";
-import { utf8ToBytes } from "@noble/hashes/utils";
-import { ristretto255 } from ".";
-import type { RistPoint } from ".";
+import { ed25519modN, ed25519GenListOfRandom } from "../utils.js";
+import { utf8ToBytes } from "@noble/hashes/utils.js";
+import type { RistrettoPoint } from "./ristrettoPoint.js";
 
 // =============================================================================
 // Domain Separator & Session
@@ -93,7 +93,7 @@ export function bcsSerializeKeyRotationSession(
  */
 export interface SigmaProtocolStatement {
   /** The decompressed points in the statement */
-  points: RistPoint[];
+  points: RistrettoPoint[];
   /** The compressed (serialized) points (32 bytes each) */
   compressedPoints: Uint8Array[];
   /** Optional public scalars in the statement (empty for key rotation) */
@@ -219,13 +219,13 @@ export function sigmaProtocolFiatShamir(
  * A homomorphism function psi: given witness scalars and statement points,
  * returns a vector of m ristretto255.Points.
  */
-export type PsiFunction = (stmt: SigmaProtocolStatement, witness: bigint[]) => RistPoint[];
+export type PsiFunction = (stmt: SigmaProtocolStatement, witness: bigint[]) => RistrettoPoint[];
 
 /**
  * A transformation function f: given a statement, returns the target vector
  * that psi(witness) should equal.
  */
-export type TransformationFunction = (stmt: SigmaProtocolStatement) => RistPoint[];
+export type TransformationFunction = (stmt: SigmaProtocolStatement) => RistrettoPoint[];
 
 /**
  * The result of a Sigma protocol proof.
@@ -333,7 +333,7 @@ export function sigmaProtocolVerify(
   }
 
   // Decompress commitment points A
-  const _A = commitment.map((c) => ristretto255.Point.fromHex(c));
+  const _A = commitment.map((c) => ristretto255.Point.fromBytes(c));
 
   // Check: psi(sigma)[i] == A[i] + e * f(stmt)[i] for all i
   for (let i = 0; i < m; i++) {

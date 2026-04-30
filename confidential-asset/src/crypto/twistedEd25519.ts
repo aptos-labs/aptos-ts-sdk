@@ -1,26 +1,25 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { ed25519, ristretto255 } from "@noble/curves/ed25519";
-import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/utils";
-import { ed25519InvertN, ed25519modN } from "../utils";
+import { ed25519, ristretto255 } from "@noble/curves/ed25519.js";
+import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/utils.js";
 import {
-  HexInput,
-  Hex,
-  Serializable,
-  isValidHardenedPath,
-  mnemonicToSeed,
+  CKDPriv,
+  deriveKey,
+  Deserializer,
   Ed25519Signature,
   HARDENED_OFFSET,
-  deriveKey,
-  splitPath,
-  CKDPriv,
+  Hex,
+  HexInput,
+  isValidHardenedPath,
+  mnemonicToSeed,
+  Serializable,
   Serializer,
-  Deserializer,
+  splitPath,
 } from "@aptos-labs/ts-sdk";
+import { type RistrettoPoint } from "./ristrettoPoint.js";
+import { ed25519InvertN, ed25519modN } from "../utils.js";
 
-export { ristretto255 } from "@noble/curves/ed25519";
-export type RistPoint = InstanceType<typeof ristretto255.Point>;
 /**
  * The hash of the basepoint of the Ristretto255 group using SHA3_512
  */
@@ -28,7 +27,7 @@ export const HASH_BASE_POINT = "8c9240b456a9e6dc65c377a1048d745f94a08cdb7f44cbcd
 /**
  * Ristretto point from HASH_BASE_POINT
  */
-export const H_RISTRETTO: RistPoint = ristretto255.Point.fromHex(HASH_BASE_POINT);
+export const H_RISTRETTO: RistrettoPoint = ristretto255.Point.fromHex(HASH_BASE_POINT);
 
 /**
  * Represents the public key of a Twisted ElGamal Ed25519 key pair.

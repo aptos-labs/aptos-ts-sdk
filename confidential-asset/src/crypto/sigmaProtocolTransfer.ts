@@ -17,10 +17,12 @@
  * Witness: [dk, new_a[ell], new_r[ell], v[n], r[n]]
  */
 
-import { utf8ToBytes } from "@noble/hashes/utils";
-import { ristretto255, H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from ".";
-import type { RistPoint } from ".";
-import { ed25519modN } from "../utils";
+import { bytesToNumberLE } from "@noble/curves/utils.js";
+import { utf8ToBytes } from "@noble/hashes/utils.js";
+import { ristretto255 } from "@noble/curves/ed25519.js";
+import { H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519.js";
+import type { RistrettoPoint } from "./ristrettoPoint.js";
+import { ed25519modN } from "../utils.js";
 import {
   sigmaProtocolProve,
   sigmaProtocolVerify,
@@ -30,9 +32,8 @@ import {
   type SigmaProtocolProof,
   type PsiFunction,
   type TransformationFunction,
-} from "./sigmaProtocol";
+} from "./sigmaProtocol.js";
 import { Serializer, FixedBytes, U64 } from "@aptos-labs/ts-sdk";
-import { bytesToNumberLE } from "@noble/curves/utils";
 
 const PROTOCOL_ID = "AptosConfidentialAsset/TransferV1";
 
@@ -152,23 +153,23 @@ export type TransferProofArgs = {
   /** Recipient's encryption key */
   recipientEncryptionKey: TwistedEd25519PublicKey;
   /** Old sender balance C (commitment) points, one per chunk (ell chunks) */
-  oldBalanceC: RistPoint[];
+  oldBalanceC: RistrettoPoint[];
   /** Old sender balance D (ciphertext) points, one per chunk (ell chunks) */
-  oldBalanceD: RistPoint[];
+  oldBalanceD: RistrettoPoint[];
   /** New sender balance C points (ell chunks) */
-  newBalanceC: RistPoint[];
+  newBalanceC: RistrettoPoint[];
   /** New sender balance D points (ell chunks) */
-  newBalanceD: RistPoint[];
+  newBalanceD: RistrettoPoint[];
   /** New balance amount chunks (plaintext values per chunk, ell chunks) */
   newAmountChunks: bigint[];
   /** New balance randomness (ell values) */
   newRandomness: bigint[];
   /** Transfer amount C (commitment) points (n chunks) */
-  transferAmountC: RistPoint[];
+  transferAmountC: RistrettoPoint[];
   /** Transfer amount D for sender (n chunks) */
-  transferAmountDSender: RistPoint[];
+  transferAmountDSender: RistrettoPoint[];
   /** Transfer amount D for recipient (n chunks) */
-  transferAmountDRecipient: RistPoint[];
+  transferAmountDRecipient: RistrettoPoint[];
   /** Transfer amount chunks (plaintext values, n chunks) */
   transferAmountChunks: bigint[];
   /** Transfer amount randomness (n values) */
@@ -182,9 +183,9 @@ export type TransferProofArgs = {
   /** Auditor encryption keys: voluntary first, then effective (if hasEffectiveAuditor) */
   auditorEncryptionKeys?: TwistedEd25519PublicKey[];
   /** New balance D points encrypted under each auditor key (only effective auditor's is used in sigma proof) */
-  newBalanceDAud?: RistPoint[][];
+  newBalanceDAud?: RistrettoPoint[][];
   /** Transfer amount D points encrypted under each auditor key (all used in sigma proof) */
-  transferAmountDAud?: RistPoint[][];
+  transferAmountDAud?: RistrettoPoint[][];
 };
 
 /**
@@ -232,19 +233,19 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
   const G = ristretto255.Point.BASE;
   const H = H_RISTRETTO;
   const ekSidBytes = senderEncryptionKey.toUint8Array();
-  const ekSid = ristretto255.Point.fromHex(ekSidBytes);
+  const ekSid = ristretto255.Point.fromBytes(ekSidBytes);
   const ekRidBytes = recipientEncryptionKey.toUint8Array();
-  const ekRid = ristretto255.Point.fromHex(ekRidBytes);
+  const ekRid = ristretto255.Point.fromBytes(ekRidBytes);
 
   // Build statement points — base
-  const stmtPoints: RistPoint[] = [G, H, ekSid, ekRid];
+  const stmtPoints: RistrettoPoint[] = [G, H, ekSid, ekRid];
   const stmtCompressed: Uint8Array[] = [G.toBytes(), H.toBytes(), ekSidBytes, ekRidBytes];
 
-  const pushPoint = (p: RistPoint) => {
+  const pushPoint = (p: RistrettoPoint) => {
     stmtPoints.push(p);
     stmtCompressed.push(p.toBytes());
   };
-  const pushPointBytes = (p: RistPoint, bytes: Uint8Array) => {
+  const pushPointBytes = (p: RistrettoPoint, bytes: Uint8Array) => {
     stmtPoints.push(p);
     stmtCompressed.push(bytes);
   };
@@ -261,7 +262,7 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
   if (hasEffectiveAuditor) {
     const effIdx = auditorEncryptionKeys.length - 1;
     const ekEffBytes = auditorEncryptionKeys[effIdx].toUint8Array();
-    pushPointBytes(ristretto255.Point.fromHex(ekEffBytes), ekEffBytes);
+    pushPointBytes(ristretto255.Point.fromBytes(ekEffBytes), ekEffBytes);
     for (let i = 0; i < ell; i++) pushPoint(newBalanceDAud[effIdx][i]);
     for (let j = 0; j < n; j++) pushPoint(transferAmountDAud[effIdx][j]);
   }
@@ -269,7 +270,7 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
   // Voluntary auditors: for each, [ek_volun, R_volun[n]]
   for (let a = 0; a < numVolun; a++) {
     const ekVolunBytes = auditorEncryptionKeys[a].toUint8Array();
-    pushPointBytes(ristretto255.Point.fromHex(ekVolunBytes), ekVolunBytes);
+    pushPointBytes(ristretto255.Point.fromBytes(ekVolunBytes), ekVolunBytes);
     for (let j = 0; j < n; j++) pushPoint(transferAmountDAud[a][j]);
   }
 
@@ -324,7 +325,7 @@ export function proveTransfer(args: TransferProofArgs): SigmaProtocolProof {
  *   7c. r[j]*ek_volun_t,          ∀j ∈ [n], ∀t ∈ [T]  (voluntary auditors)
  */
 function makeTransferPsi(ell: number, n: number, hasEffective: boolean, numVolun: number): PsiFunction {
-  return (s: SigmaProtocolStatement, w: bigint[]): RistPoint[] => {
+  return (s: SigmaProtocolStatement, w: bigint[]): RistrettoPoint[] => {
     const dk = w[0];
     const newA = w.slice(1, 1 + ell);
     const newR = w.slice(1 + ell, 1 + 2 * ell);
@@ -336,7 +337,7 @@ function makeTransferPsi(ell: number, n: number, hasEffective: boolean, numVolun
     const ekSid = s.points[IDX_EK_SID];
     const ekRid = s.points[IDX_EK_RID];
 
-    const result: RistPoint[] = [];
+    const result: RistrettoPoint[] = [];
 
     // 1. dk * ek_sid
     result.push(ekSid.multiply(dk));
@@ -418,8 +419,8 @@ function makeTransferPsi(ell: number, n: number, hasEffective: boolean, numVolun
  * Matches the Move implementation ordering (mirrors psi with statement points).
  */
 function makeTransferF(ell: number, n: number, hasEffective: boolean, numVolun: number): TransformationFunction {
-  return (s: SigmaProtocolStatement): RistPoint[] => {
-    const result: RistPoint[] = [];
+  return (s: SigmaProtocolStatement): RistrettoPoint[] => {
+    const result: RistrettoPoint[] = [];
 
     // 1. H
     result.push(s.points[IDX_H]);
@@ -504,17 +505,17 @@ export function verifyTransfer(args: {
   chainId: number;
   ekSidBytes: Uint8Array;
   ekRidBytes: Uint8Array;
-  oldBalanceC: RistPoint[];
-  oldBalanceD: RistPoint[];
-  newBalanceC: RistPoint[];
-  newBalanceD: RistPoint[];
-  transferAmountC: RistPoint[];
-  transferAmountDSender: RistPoint[];
-  transferAmountDRecipient: RistPoint[];
+  oldBalanceC: RistrettoPoint[];
+  oldBalanceD: RistrettoPoint[];
+  newBalanceC: RistrettoPoint[];
+  newBalanceD: RistrettoPoint[];
+  transferAmountC: RistrettoPoint[];
+  transferAmountDSender: RistrettoPoint[];
+  transferAmountDRecipient: RistrettoPoint[];
   hasEffectiveAuditor: boolean;
   auditorEkBytes?: Uint8Array[];
-  newBalanceDAud?: RistPoint[][];
-  transferAmountDAud?: RistPoint[][];
+  newBalanceDAud?: RistrettoPoint[][];
+  transferAmountDAud?: RistrettoPoint[][];
   proof: SigmaProtocolProof;
 }): boolean {
   const {
@@ -544,17 +545,17 @@ export function verifyTransfer(args: {
 
   const G = ristretto255.Point.BASE;
   const H = H_RISTRETTO;
-  const ekSid = ristretto255.Point.fromHex(ekSidBytes);
-  const ekRid = ristretto255.Point.fromHex(ekRidBytes);
+  const ekSid = ristretto255.Point.fromBytes(ekSidBytes);
+  const ekRid = ristretto255.Point.fromBytes(ekRidBytes);
 
-  const stmtPoints: RistPoint[] = [G, H, ekSid, ekRid];
+  const stmtPoints: RistrettoPoint[] = [G, H, ekSid, ekRid];
   const stmtCompressed: Uint8Array[] = [G.toBytes(), H.toBytes(), ekSidBytes, ekRidBytes];
 
-  const pushPoint = (p: RistPoint) => {
+  const pushPoint = (p: RistrettoPoint) => {
     stmtPoints.push(p);
     stmtCompressed.push(p.toBytes());
   };
-  const pushPointBytes = (p: RistPoint, bytes: Uint8Array) => {
+  const pushPointBytes = (p: RistrettoPoint, bytes: Uint8Array) => {
     stmtPoints.push(p);
     stmtCompressed.push(bytes);
   };
@@ -570,14 +571,14 @@ export function verifyTransfer(args: {
   // Effective auditor: [ek_eff, new_R_aud_eff[ell], R_aud_eff[n]]
   if (hasEffectiveAuditor) {
     const effIdx = auditorEkBytes.length - 1;
-    pushPointBytes(ristretto255.Point.fromHex(auditorEkBytes[effIdx]), auditorEkBytes[effIdx]);
+    pushPointBytes(ristretto255.Point.fromBytes(auditorEkBytes[effIdx]), auditorEkBytes[effIdx]);
     for (let i = 0; i < ell; i++) pushPoint(newBalanceDAud[effIdx][i]);
     for (let j = 0; j < n; j++) pushPoint(transferAmountDAud[effIdx][j]);
   }
 
   // Voluntary auditors: [ek_volun, R_volun[n]]
   for (let a = 0; a < numVolun; a++) {
-    pushPointBytes(ristretto255.Point.fromHex(auditorEkBytes[a]), auditorEkBytes[a]);
+    pushPointBytes(ristretto255.Point.fromBytes(auditorEkBytes[a]), auditorEkBytes[a]);
     for (let j = 0; j < n; j++) pushPoint(transferAmountDAud[a][j]);
   }
 

@@ -1,20 +1,16 @@
-import { concatBytes } from "@noble/hashes/utils";
-import { ed25519GenRandom } from "../utils";
-import { TwistedElGamal, TwistedElGamalCiphertext } from "./twistedElGamal";
-import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey, CHUNK_BITS, ChunkedAmount } from ".";
+import { concatBytes } from "@noble/hashes/utils.js";
+import { ed25519GenRandom } from "../utils.js";
+import { TwistedElGamal, TwistedElGamalCiphertext } from "./twistedElGamal.js";
+import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519.js";
+import { CHUNK_BITS, ChunkedAmount } from "./chunkedAmount.js";
 
 export class EncryptedAmount {
-  // private amount: bigint;
-
-  // private amountChunks: bigint[];
-
   readonly publicKey: TwistedEd25519PublicKey;
 
   chunkedAmount: ChunkedAmount;
 
   /**
-   * The randomness used to encrypt the amount. This may not be set d. This is maintained
-   * for debugging purposes.
+   * The randomness used to encrypt the amount. May not be set when constructed from on-chain ciphertext.
    */
   private readonly randomness?: bigint[];
 

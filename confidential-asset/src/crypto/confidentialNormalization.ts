@@ -1,14 +1,15 @@
-import { ristretto255 } from "@noble/curves/ed25519";
-import { numberToBytesLE } from "@noble/curves/utils";
-import { MODULE_NAME } from "../consts";
+import { ristretto255 } from "@noble/curves/ed25519.js";
+import { numberToBytesLE } from "@noble/curves/utils.js";
+import { MODULE_NAME } from "../consts.js";
 import { batchRangeProof, batchVerifyProof } from "@aptos-labs/confidential-asset-bindings";
-import { TwistedEd25519PrivateKey, H_RISTRETTO, TwistedEd25519PublicKey } from ".";
-import { ed25519GenListOfRandom } from "../utils";
-import { EncryptedAmount } from "./encryptedAmount";
-import { AVAILABLE_BALANCE_CHUNK_COUNT, CHUNK_BITS } from "./chunkedAmount";
+import { TwistedEd25519PrivateKey, H_RISTRETTO, TwistedEd25519PublicKey } from "./twistedEd25519.js";
+import { ed25519GenListOfRandom } from "../utils.js";
+import { EncryptedAmount } from "./encryptedAmount.js";
+import { AVAILABLE_BALANCE_CHUNK_COUNT, CHUNK_BITS } from "./chunkedAmount.js";
 import { Aptos, SimpleTransaction, AccountAddressInput, InputGenerateTransactionOptions } from "@aptos-labs/ts-sdk";
-import type { SigmaProtocolProof } from "./sigmaProtocol";
-import { proveWithdrawal } from "./sigmaProtocolWithdraw";
+import type { SigmaProtocolProof } from "./sigmaProtocol.js";
+import { proveWithdrawal } from "./sigmaProtocolWithdraw.js";
+import type { RistrettoPoint } from "./ristrettoPoint.js";
 
 export type CreateConfidentialNormalizationOpArgs = {
   decryptionKey: TwistedEd25519PrivateKey;
@@ -123,7 +124,7 @@ export class ConfidentialNormalization {
     const newBalanceD = newCipherTexts.map((ct) => ct.D);
 
     let auditorEncryptionKey: TwistedEd25519PublicKey | undefined;
-    let newBalanceDAud: import(".").RistPoint[] | undefined;
+    let newBalanceDAud: RistrettoPoint[] | undefined;
     if (this.auditorEncryptionKey && this.auditorEncryptedNormalizedBalance) {
       auditorEncryptionKey = this.auditorEncryptionKey;
       newBalanceDAud = this.auditorEncryptedNormalizedBalance.getCipherText().map((ct) => ct.D);

@@ -1,14 +1,19 @@
-import { numberToBytesLE } from "@noble/curves/utils";
-import { ristretto255 } from "@noble/curves/ed25519";
-import { AVAILABLE_BALANCE_CHUNK_COUNT, CHUNK_BITS, ChunkedAmount, TRANSFER_AMOUNT_CHUNK_COUNT } from "./chunkedAmount";
+import { numberToBytesLE } from "@noble/curves/utils.js";
+import { ristretto255 } from "@noble/curves/ed25519.js";
+import {
+  AVAILABLE_BALANCE_CHUNK_COUNT,
+  CHUNK_BITS,
+  ChunkedAmount,
+  TRANSFER_AMOUNT_CHUNK_COUNT,
+} from "./chunkedAmount.js";
 import { AnyNumber } from "@aptos-labs/ts-sdk";
 import { batchRangeProof, batchVerifyProof } from "@aptos-labs/confidential-asset-bindings";
-import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey, H_RISTRETTO } from ".";
-import { TwistedElGamalCiphertext } from "./twistedElGamal";
-import { ed25519GenListOfRandom } from "../utils";
-import { EncryptedAmount } from "./encryptedAmount";
-import type { SigmaProtocolProof } from "./sigmaProtocol";
-import { proveTransfer } from "./sigmaProtocolTransfer";
+import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey, H_RISTRETTO } from "./twistedEd25519.js";
+import { TwistedElGamalCiphertext } from "./twistedElGamal.js";
+import { ed25519GenListOfRandom } from "../utils.js";
+import { EncryptedAmount } from "./encryptedAmount.js";
+import type { SigmaProtocolProof } from "./sigmaProtocol.js";
+import { proveTransfer } from "./sigmaProtocolTransfer.js";
 
 export type ConfidentialTransferRangeProof = {
   rangeProofAmount: Uint8Array;

@@ -1,3 +1,22 @@
 {
-  "extends": "../tsconfig.json"
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Scope ambient types for the production build to prevent accidental type
+    // leaks in emitted .d.ts files:
+    //   - Drops `vitest/globals` so test-runner types (`expect`, `describe`,
+    //     `vi`, `beforeEach`, …) never leak into emitted .d.ts.
+    //   - Keeps `node` because `src/cli/` imports from `node:child_process`
+    //     and `node:os`, and `src/utils/helpers.ts` reads `process.env`
+    //     (guarded). Web-platform types the SDK uses (`TextEncoder`,
+    //     `TextDecoder`, `atob`/`btoa`, `fetch`, `RequestInit`, …) are also
+    //     pulled in via `@types/node` on Node 22+.
+    //
+    // If a non-CLI source file ever needs to expose a Node-only type in its
+    // public signature, prefer a minimal structural type declared locally
+    // over widening this list. See `TEXT_ENCODER` in `src/utils/const.ts` for
+    // the pattern used to avoid leaking `import("util").TextEncoder`.
+    "types": ["node"]
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts"]
 }

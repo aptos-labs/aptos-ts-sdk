@@ -17,8 +17,8 @@ import {
   InputSubmitTransactionData,
   TransactionSubmitter,
 } from "@aptos-labs/ts-sdk";
-import { TwistedEd25519PrivateKey } from "../../src";
-import { ConfidentialAsset } from "../../src";
+import { TwistedEd25519PrivateKey } from "../../src/index.js";
+import { ConfidentialAsset } from "../../src/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -41,10 +41,10 @@ class CustomTransactionSubmitter implements TransactionSubmitter {
       aptosConfig: AptosConfig;
     } & Omit<InputSubmitTransactionData, "transactionSubmitter">,
   ): Promise<PendingTransactionResponse> {
-    const newConfig = new AptosConfig({
-      ...args.aptosConfig,
-    });
-    const aptos = new Aptos(newConfig);
+    // Use a plain config (no plugins) to avoid re-triggering this plugin on the inner submit call.
+    // Spreading args.aptosConfig would copy pluginSettings (including TRANSACTION_SUBMITTER),
+    // causing infinite recursion where the fee payer is re-applied on every recursive call.
+    const aptos = new Aptos(new AptosConfig({ network: args.aptosConfig.network }));
     const feePayerAuthenticator = aptos.signAsFeePayer({ signer: feePayerAccount, transaction: args.transaction });
     return aptos.transaction.submit.simple({
       transaction: args.transaction,

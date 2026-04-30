@@ -18,10 +18,10 @@ import {
   ConfidentialWithdraw,
   TwistedEd25519PublicKey,
   TwistedEd25519PrivateKey,
-} from "../crypto";
-import { proveRegistration } from "../crypto/sigmaProtocolRegistration";
-import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS, MODULE_NAME } from "../consts";
-import { getBalance, getEncryptionKey, isBalanceNormalized, isIncomingTransfersPaused } from "./viewFunctions";
+} from "../crypto/index.js";
+import { proveRegistration } from "../crypto/sigmaProtocolRegistration.js";
+import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS, MODULE_NAME } from "../consts.js";
+import { getBalance, getEncryptionKey, isBalanceNormalized, isIncomingTransfersPaused } from "./viewFunctions.js";
 
 /**
  * A class to handle creating transactions for confidential asset operations
