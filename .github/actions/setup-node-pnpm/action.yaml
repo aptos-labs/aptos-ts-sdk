@@ -7,13 +7,17 @@ runs:
   using: composite
   steps:
     - name: Setup Node
-      uses: actions/setup-node@v6
+      uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # pin@v6
       with:
         node-version-file: .node-version
         registry-url: "https://registry.npmjs.org"
-    
+
     - name: Setup pnpm
-      uses: pnpm/action-setup@v4
-    
+      uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # pin@v4
+
+    - name: Add local package binaries to PATH
+      run: echo "${GITHUB_WORKSPACE}/node_modules/.bin" >> "${GITHUB_PATH}"
+      shell: bash
+
     - name: Setup AikidoSec Safe Chain
-      uses: aptos-labs/actions/aikidosec-safe-chain@main
+      uses: aptos-labs/actions/aikidosec-safe-chain@528ef7ad9427a8c0720ea3eea790a9190d6e377d # pin@main
