@@ -8,6 +8,9 @@ For changes to the main Aptos TypeScript SDK (`@aptos-labs/ts-sdk`), see the [ro
 
 ## Fixed
 
+- Fix CI browser test job for `@aptos-labs/confidential-asset`:
+  - `vitest.browser.config.mts` `include`/`exclude` patterns updated from `*.test.ts` to `*.test.{ts,mts}`. The unit tests live in `.test.mts` files, so vitest was finding zero tests and exiting with code 1 (the `pnpm test:browser` step in `.github/actions/run-confidential-asset-tests`).
+  - `import { RistrettoPoint }` was a value-position import of a type-only export in three source files (`crypto/twistedElGamal.ts`, `crypto/confidentialKeyRotation.ts`, `crypto/bsgs.ts`) and one re-export (`crypto/index.ts`). Node-mode vite/esbuild silently elides such imports when only used in type positions, but browser-mode vite serves modules over HTTP and ESM strictly requires the named export to exist at runtime, producing `SyntaxError: The requested module '/src/crypto/ristrettoPoint.ts' does not provide an export named 'RistrettoPoint'`. Fixed by switching all four to `import type` / `export type`.
 - Address PR review (#888) feedback on cryptographic helpers:
   - `TwistedElGamal.encryptWithPK` and `TwistedElGamal.encryptWithNoRandomness` now actually reject out-of-range scalars. The previous validation used `amount < 0n && amount > n`, which is impossible (no value can be both negative and larger than the curve order), so all inputs silently passed the check. Now uses `amount < 0n || amount >= n` (and the same fix is applied to the `random` parameter).
   - `ed25519GenRandom` now rejects `rand === n` (was only rejecting `rand > n`), so the rejection-sampling loop guarantees the documented `[0, n)` range.

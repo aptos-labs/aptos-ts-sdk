@@ -7,7 +7,7 @@ import { H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "
 import { ed25519GenRandom, ed25519modN } from "../utils.js";
 import { Hex, HexInput } from "@aptos-labs/ts-sdk";
 import { solveDiscreteLog } from "@aptos-labs/confidential-asset-bindings";
-import { RistrettoPoint } from "./ristrettoPoint.js";
+import type { RistrettoPoint } from "./ristrettoPoint.js";
 
 export interface DecryptionRange {
   start?: bigint;

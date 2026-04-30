@@ -5,7 +5,7 @@
  * where n = 2^bitWidth is the search space size.
  */
 import { ristretto255 } from "@noble/curves/ed25519.js";
-import { RistrettoPoint } from "./ristrettoPoint.js";
+import type { RistrettoPoint } from "./ristrettoPoint.js";
 import { bytesToBigInt } from "../utils.js";
 
 /**
