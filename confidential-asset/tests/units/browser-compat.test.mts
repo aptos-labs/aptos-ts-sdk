@@ -20,7 +20,7 @@ import {
   ChunkedAmount,
   ConfidentialWithdraw,
   ConfidentialTransfer,
-} from "../../src";
+} from "../../src/index.js";
 
 // Intentionally not importing from ../helpers — that module depends on
 // Node.js-only APIs (child_process, fs) which are unavailable in browsers.

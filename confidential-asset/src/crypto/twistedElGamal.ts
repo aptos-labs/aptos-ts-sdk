@@ -1,12 +1,13 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { ed25519, ristretto255 } from "@noble/curves/ed25519";
-import { bytesToNumberLE } from "@noble/curves/utils";
-import { H_RISTRETTO, RistPoint, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
-import { ed25519GenRandom, ed25519modN } from "../utils";
-import { HexInput } from "@aptos-labs/ts-sdk";
+import { ed25519, ristretto255 } from "@noble/curves/ed25519.js";
+import { bytesToNumberLE } from "@noble/curves/utils.js";
+import { H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519.js";
+import { ed25519GenRandom, ed25519modN } from "../utils.js";
+import { Hex, HexInput } from "@aptos-labs/ts-sdk";
 import { solveDiscreteLog } from "@aptos-labs/confidential-asset-bindings";
+import { RistrettoPoint } from "./ristrettoPoint.js";
 
 export interface DecryptionRange {
   start?: bigint;
@@ -73,7 +74,7 @@ export class TwistedElGamal {
     const rH = H_RISTRETTO.multiply(r);
     const mG = m === BigInt(0) ? ristretto255.Point.ZERO : ristretto255.Point.BASE.multiply(m);
 
-    const D = ristretto255.Point.fromHex(publicKey.toUint8Array()).multiply(r);
+    const D = ristretto255.Point.fromBytes(publicKey.toUint8Array()).multiply(r);
     const C = mG.add(rH);
 
     return new TwistedElGamalCiphertext(C.toBytes(), D.toBytes());
@@ -95,11 +96,14 @@ export class TwistedElGamal {
 
   static initialized = false;
 
-  static calculateCiphertextMG(ciphertext: TwistedElGamalCiphertext, privateKey: TwistedEd25519PrivateKey): RistPoint {
+  static calculateCiphertextMG(
+    ciphertext: TwistedElGamalCiphertext,
+    privateKey: TwistedEd25519PrivateKey,
+  ): RistrettoPoint {
     const { C, D } = ciphertext;
     const modS = ed25519modN(bytesToNumberLE(privateKey.toUint8Array()));
-    const sD = ristretto255.Point.fromHex(D.toBytes()).multiply(modS);
-    return ristretto255.Point.fromHex(C.toBytes()).subtract(sD);
+    const sD = ristretto255.Point.fromAffine(D).multiply(modS);
+    return ristretto255.Point.fromAffine(C).subtract(sD);
   }
 
   /**
@@ -186,13 +190,13 @@ export class TwistedElGamal {
  * Points of ciphertext encrypted by Twisted ElGamal
  */
 export class TwistedElGamalCiphertext {
-  readonly C: RistPoint;
+  readonly C: RistrettoPoint;
 
-  readonly D: RistPoint;
+  readonly D: RistrettoPoint;
 
   constructor(C: HexInput, D: HexInput) {
-    this.C = ristretto255.Point.fromHex(C);
-    this.D = ristretto255.Point.fromHex(D);
+    this.C = ristretto255.Point.fromBytes(Hex.fromHexInput(C).toUint8Array());
+    this.D = ristretto255.Point.fromBytes(Hex.fromHexInput(D).toUint8Array());
   }
 
   public addAmount(amount: bigint): TwistedElGamalCiphertext {

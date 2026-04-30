@@ -14,7 +14,7 @@ export default defineConfig({
     // Aptos framework, which require a manual localnet re-deployment. So this
     // automatic deployment before every test is disabled, as a result.
     globalSetup: process.env.SKIP_SETUP ? [] : [path.resolve(__dirname, "../tests/preTest.ts")],
-    include: ["tests/**/*.test.ts"],
+    include: ["tests/**/*.test.mts"],
     exclude: ["tests/units/api/**"],
     coverage: {
       provider: "v8",

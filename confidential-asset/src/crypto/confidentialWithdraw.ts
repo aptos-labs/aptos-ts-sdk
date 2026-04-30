@@ -1,18 +1,14 @@
-import { numberToBytesLE } from "@noble/curves/utils";
-import { ristretto255 } from "@noble/curves/ed25519";
-import { ed25519GenListOfRandom } from "../utils";
-import {
-  AVAILABLE_BALANCE_CHUNK_COUNT,
-  CHUNK_BITS,
-  TwistedEd25519PrivateKey,
-  TwistedEd25519PublicKey,
-  H_RISTRETTO,
-  TwistedElGamalCiphertext,
-  EncryptedAmount,
-} from ".";
+import { numberToBytesLE } from "@noble/curves/utils.js";
+import { ristretto255 } from "@noble/curves/ed25519.js";
+import { ed25519GenListOfRandom } from "../utils.js";
+import { AVAILABLE_BALANCE_CHUNK_COUNT, CHUNK_BITS } from "./chunkedAmount.js";
+import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey, H_RISTRETTO } from "./twistedEd25519.js";
+import { TwistedElGamalCiphertext } from "./twistedElGamal.js";
+import { EncryptedAmount } from "./encryptedAmount.js";
+import type { RistrettoPoint } from "./ristrettoPoint.js";
 import { batchRangeProof, batchVerifyProof } from "@aptos-labs/confidential-asset-bindings";
-import type { SigmaProtocolProof } from "./sigmaProtocol";
-import { proveWithdrawal } from "./sigmaProtocolWithdraw";
+import type { SigmaProtocolProof } from "./sigmaProtocol.js";
+import { proveWithdrawal } from "./sigmaProtocolWithdraw.js";
 
 export type CreateConfidentialWithdrawOpArgs = {
   decryptionKey: TwistedEd25519PrivateKey;
@@ -161,7 +157,7 @@ export class ConfidentialWithdraw {
     const newBalanceD = newCipherTexts.map((ct) => ct.D);
 
     let auditorEncryptionKey: TwistedEd25519PublicKey | undefined;
-    let newBalanceDAud: import(".").RistPoint[] | undefined;
+    let newBalanceDAud: RistrettoPoint[] | undefined;
     if (this.auditorEncryptionKey && this.auditorEncryptedBalanceAfterWithdrawal) {
       auditorEncryptionKey = this.auditorEncryptionKey;
       newBalanceDAud = this.auditorEncryptedBalanceAfterWithdrawal.getCipherText().map((ct) => ct.D);

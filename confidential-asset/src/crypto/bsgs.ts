@@ -1,15 +1,12 @@
-// Copyright © Aptos Foundation
-// SPDX-License-Identifier: Apache-2.0
-
-/**
+/*
  * Baby-Step Giant-Step (BSGS) algorithm for solving discrete logarithms.
  *
  * Given a point P = x * G, finds x in O(sqrt(n)) time using O(sqrt(n)) space,
  * where n = 2^bitWidth is the search space size.
  */
-
-import { ristretto255 } from "@noble/curves/ed25519";
-import { RistPoint } from "./twistedEd25519";
+import { ristretto255 } from "@noble/curves/ed25519.js";
+import { RistrettoPoint } from "./ristrettoPoint.js";
+import { bytesToBigInt } from "../utils.js";
 
 /**
  * BSGS table for a specific bit width.
@@ -22,19 +19,7 @@ export interface BsgsTable {
   /** The baby-step table: maps point (as bigint) to index j */
   babySteps: Map<bigint, bigint>;
   /** Precomputed -m * G for giant steps */
-  giantStep: RistPoint;
-}
-
-/**
- * Convert bytes to a BigInt key for fast Map lookups.
- * Uses little-endian interpretation of the full 32 bytes.
- */
-function bytesToBigInt(bytes: Uint8Array): bigint {
-  let result = 0n;
-  for (let i = bytes.length - 1; i >= 0; i--) {
-    result = (result << 8n) | BigInt(bytes[i]);
-  }
-  return result;
+  giantStep: RistrettoPoint;
 }
 
 /**
@@ -96,7 +81,7 @@ export function solveDlpBsgs(point: Uint8Array, table: BsgsTable): bigint | null
     return table.babySteps.get(pointKey)!;
   }
 
-  const P = ristretto255.Point.fromHex(point);
+  const P = ristretto255.Point.fromBytes(point);
   const { m, babySteps, giantStep } = table;
 
   // Giant steps: for i = 1, 2, ..., m-1

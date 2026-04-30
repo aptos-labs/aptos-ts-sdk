@@ -26,13 +26,13 @@
  *   [H, new_ek, ek, new_D_i for each i]
  */
 
-import { bytesToNumberLE } from "@noble/curves/utils";
-import { utf8ToBytes } from "@noble/hashes/utils";
-import { TwistedEd25519PrivateKey, ristretto255, H_RISTRETTO } from ".";
-import type { RistPoint } from ".";
-import { ed25519InvertN, ed25519modN } from "../utils";
-import { EncryptedAmount } from "./encryptedAmount";
-import { AVAILABLE_BALANCE_CHUNK_COUNT } from "./chunkedAmount";
+import { bytesToNumberLE } from "@noble/curves/utils.js";
+import { utf8ToBytes } from "@noble/hashes/utils.js";
+import { ristretto255 } from "@noble/curves/ed25519.js";
+import { TwistedEd25519PrivateKey, H_RISTRETTO } from "./twistedEd25519.js";
+import { ed25519InvertN, ed25519modN } from "../utils.js";
+import { EncryptedAmount } from "./encryptedAmount.js";
+import { AVAILABLE_BALANCE_CHUNK_COUNT } from "./chunkedAmount.js";
 import {
   sigmaProtocolProve,
   sigmaProtocolVerify,
@@ -43,7 +43,8 @@ import {
   type SigmaProtocolProof,
   type PsiFunction,
   type TransformationFunction,
-} from "./sigmaProtocol";
+} from "./sigmaProtocol.js";
+import { RistrettoPoint } from "./ristrettoPoint.js";
 
 /** Protocol ID matching the Move constant */
 const PROTOCOL_ID = "AptosConfidentialAsset/KeyRotationV1";
@@ -68,7 +69,7 @@ function getStartIdxForNewD(numChunks: number): number {
  * psi(dk, delta, delta_inv) = [dk*ek, delta*ek, delta_inv*new_ek, delta*old_D_i for each i]
  */
 function makeKeyRotationPsi(numChunks: number): PsiFunction {
-  return (s: SigmaProtocolStatement, w: bigint[]): RistPoint[] => {
+  return (s: SigmaProtocolStatement, w: bigint[]): RistrettoPoint[] => {
     const dk_w = w[0];
     const delta_w = w[1];
     const deltaInv_w = w[2];
@@ -76,7 +77,7 @@ function makeKeyRotationPsi(numChunks: number): PsiFunction {
     const ek = s.points[IDX_EK];
     const new_ek = s.points[IDX_EK_NEW];
 
-    const result: RistPoint[] = [
+    const result: RistrettoPoint[] = [
       ek.multiply(dk_w), // dk * ek
       ek.multiply(delta_w), // delta * ek
       new_ek.multiply(deltaInv_w), // delta_inv * new_ek
@@ -96,10 +97,10 @@ function makeKeyRotationPsi(numChunks: number): PsiFunction {
  * f(stmt) = [H, new_ek, ek, new_D_i for each i]
  */
 function makeKeyRotationF(numChunks: number): TransformationFunction {
-  return (s: SigmaProtocolStatement): RistPoint[] => {
+  return (s: SigmaProtocolStatement): RistrettoPoint[] => {
     const idxNewDStart = getStartIdxForNewD(numChunks);
 
-    const result: RistPoint[] = [
+    const result: RistrettoPoint[] = [
       s.points[IDX_H], // H
       s.points[IDX_EK_NEW], // new_ek
       s.points[IDX_EK], // ek
@@ -191,7 +192,7 @@ export class ConfidentialKeyRotation {
 
     // Get old encryption key (compressed Ristretto point)
     const oldEkBytes = this.currentDecryptionKey.publicKey().toUint8Array();
-    const oldEk = ristretto255.Point.fromHex(oldEkBytes);
+    const oldEk = ristretto255.Point.fromBytes(oldEkBytes);
 
     // H = encryption key basepoint (hash_to_point_base)
     const H = H_RISTRETTO;
@@ -203,15 +204,15 @@ export class ConfidentialKeyRotation {
 
     // Get old D components from the current balance
     const oldCipherTexts = this.currentEncryptedAvailableBalance.getCipherText();
-    const oldD: RistPoint[] = oldCipherTexts.map((ct) => ct.D);
+    const oldD: RistrettoPoint[] = oldCipherTexts.map((ct) => ct.D);
     const compressedOldD: Uint8Array[] = oldD.map((d) => d.toBytes());
 
     // Compute new_D = delta * old_D for each chunk
-    const newD: RistPoint[] = oldD.map((d) => d.multiply(delta));
+    const newD: RistrettoPoint[] = oldD.map((d) => d.multiply(delta));
     const compressedNewD: Uint8Array[] = newD.map((d) => d.toBytes());
 
     // Build statement: points = [H, ek, new_ek, old_D_0..old_D_{n-1}, new_D_0..new_D_{n-1}]
-    const stmtPoints: RistPoint[] = [H, oldEk, newEk, ...oldD, ...newD];
+    const stmtPoints: RistrettoPoint[] = [H, oldEk, newEk, ...oldD, ...newD];
     const stmtCompressedPoints: Uint8Array[] = [
       compressedH,
       oldEkBytes,
@@ -279,12 +280,12 @@ export class ConfidentialKeyRotation {
 
     // Build statement points
     const H = H_RISTRETTO;
-    const ek = ristretto255.Point.fromHex(oldEk);
-    const new_ek = ristretto255.Point.fromHex(newEk);
-    const oldDPoints = oldD.map((d) => ristretto255.Point.fromHex(d));
-    const newDPoints = newD.map((d) => ristretto255.Point.fromHex(d));
+    const ek = ristretto255.Point.fromBytes(oldEk);
+    const new_ek = ristretto255.Point.fromBytes(newEk);
+    const oldDPoints = oldD.map((d) => ristretto255.Point.fromBytes(d));
+    const newDPoints = newD.map((d) => ristretto255.Point.fromBytes(d));
 
-    const stmtPoints: RistPoint[] = [H, ek, new_ek, ...oldDPoints, ...newDPoints];
+    const stmtPoints: RistrettoPoint[] = [H, ek, new_ek, ...oldDPoints, ...newDPoints];
     const stmtCompressedPoints: Uint8Array[] = [H.toBytes(), oldEk, newEk, ...oldD, ...newD];
 
     const stmt: SigmaProtocolStatement = {

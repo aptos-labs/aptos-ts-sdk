@@ -21,12 +21,12 @@
  * When an auditor is present, additional outputs prove new_R_aud[i] = new_r[i] * ek_aud.
  */
 
-import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/utils";
-import { utf8ToBytes } from "@noble/hashes/utils";
-import { ed25519 } from "@noble/curves/ed25519";
-import { ristretto255, H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from ".";
-import type { RistPoint } from ".";
-import { ed25519modN } from "../utils";
+import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/utils.js";
+import { utf8ToBytes } from "@noble/hashes/utils.js";
+import { ed25519, ristretto255 } from "@noble/curves/ed25519.js";
+import { H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519.js";
+import type { RistrettoPoint } from "./ristrettoPoint.js";
+import { ed25519modN } from "../utils.js";
 import {
   sigmaProtocolProve,
   sigmaProtocolVerify,
@@ -36,7 +36,7 @@ import {
   type SigmaProtocolProof,
   type PsiFunction,
   type TransformationFunction,
-} from "./sigmaProtocol";
+} from "./sigmaProtocol.js";
 import { Serializer, FixedBytes, U64 } from "@aptos-labs/ts-sdk";
 
 const PROTOCOL_ID_WITHDRAWAL = "AptosConfidentialAsset/WithdrawalV1";
@@ -120,7 +120,7 @@ function getStartIdxNewRAud(ell: number): number {
  *   Insert new_r[i] * ek_aud between the ek outputs and the balance equation.
  */
 function makeWithdrawPsi(ell: number, hasAuditor: boolean): PsiFunction {
-  return (s: SigmaProtocolStatement, w: bigint[]): RistPoint[] => {
+  return (s: SigmaProtocolStatement, w: bigint[]): RistrettoPoint[] => {
     const dk = w[0];
     const newA = w.slice(1, 1 + ell);
     const newR = w.slice(1 + ell, 1 + 2 * ell);
@@ -129,7 +129,7 @@ function makeWithdrawPsi(ell: number, hasAuditor: boolean): PsiFunction {
     const H = s.points[IDX_H];
     const ek = s.points[IDX_EK];
 
-    const result: RistPoint[] = [];
+    const result: RistrettoPoint[] = [];
 
     // Output 0: dk * ek
     result.push(ek.multiply(dk));
@@ -181,9 +181,9 @@ function makeWithdrawPsi(ell: number, hasAuditor: boolean): PsiFunction {
  *   Insert new_R_aud[i] between the new_R outputs and the balance equation target.
  */
 function makeWithdrawF(ell: number, hasAuditor: boolean, v: bigint): TransformationFunction {
-  return (s: SigmaProtocolStatement): RistPoint[] => {
+  return (s: SigmaProtocolStatement): RistrettoPoint[] => {
     const G = s.points[IDX_G];
-    const result: RistPoint[] = [];
+    const result: RistrettoPoint[] = [];
 
     // Output 0: H
     result.push(s.points[IDX_H]);
@@ -238,13 +238,13 @@ export type WithdrawProofArgs = {
   /** The withdrawal amount (0 for normalization) */
   amount: bigint;
   /** Old balance C (commitment) points, one per chunk */
-  oldBalanceC: RistPoint[];
+  oldBalanceC: RistrettoPoint[];
   /** Old balance D (ciphertext) points, one per chunk */
-  oldBalanceD: RistPoint[];
+  oldBalanceD: RistrettoPoint[];
   /** New balance C points */
-  newBalanceC: RistPoint[];
+  newBalanceC: RistrettoPoint[];
   /** New balance D points */
-  newBalanceD: RistPoint[];
+  newBalanceD: RistrettoPoint[];
   /** New balance amount chunks (plaintext values per chunk) */
   newAmountChunks: bigint[];
   /** New balance randomness, one per chunk */
@@ -252,7 +252,7 @@ export type WithdrawProofArgs = {
   /** Optional auditor encryption key */
   auditorEncryptionKey?: TwistedEd25519PublicKey;
   /** Optional new balance D points encrypted with an auditor key */
-  newBalanceDAud?: RistPoint[];
+  newBalanceDAud?: RistrettoPoint[];
 };
 
 /**
@@ -279,13 +279,13 @@ function proveWithdrawInternal(protocolId: string, args: WithdrawProofArgs): Sig
   const hasAuditor = auditorEncryptionKey !== undefined;
   const dkBigint = bytesToNumberLE(dk.toUint8Array());
   const ekBytes = dk.publicKey().toUint8Array();
-  const ek = ristretto255.Point.fromHex(ekBytes);
+  const ek = ristretto255.Point.fromBytes(ekBytes);
 
   const G = ristretto255.Point.BASE;
   const H = H_RISTRETTO;
 
   // Build statement points
-  const stmtPoints: RistPoint[] = [G, H, ek];
+  const stmtPoints: RistrettoPoint[] = [G, H, ek];
   const stmtCompressed: Uint8Array[] = [G.toBytes(), H.toBytes(), ekBytes];
 
   // old_P (old balance C = commitments)
@@ -312,7 +312,7 @@ function proveWithdrawInternal(protocolId: string, args: WithdrawProofArgs): Sig
   // Auditor points
   if (hasAuditor) {
     const ekAudBytes = auditorEncryptionKey.toUint8Array();
-    const ekAud = ristretto255.Point.fromHex(ekAudBytes);
+    const ekAud = ristretto255.Point.fromBytes(ekAudBytes);
     stmtPoints.push(ekAud);
     stmtCompressed.push(ekAudBytes);
 
@@ -370,12 +370,12 @@ export function verifyWithdrawal(args: {
   chainId: number;
   amount: bigint;
   ekBytes: Uint8Array;
-  oldBalanceC: RistPoint[];
-  oldBalanceD: RistPoint[];
-  newBalanceC: RistPoint[];
-  newBalanceD: RistPoint[];
+  oldBalanceC: RistrettoPoint[];
+  oldBalanceD: RistrettoPoint[];
+  newBalanceC: RistrettoPoint[];
+  newBalanceD: RistrettoPoint[];
   auditorEkBytes?: Uint8Array;
-  newBalanceDAud?: RistPoint[];
+  newBalanceDAud?: RistrettoPoint[];
   proof: SigmaProtocolProof;
 }): boolean {
   return verifyWithdrawInternal(PROTOCOL_ID_WITHDRAWAL, args);
@@ -391,12 +391,12 @@ export function verifyNormalization(args: {
   chainId: number;
   amount: bigint;
   ekBytes: Uint8Array;
-  oldBalanceC: RistPoint[];
-  oldBalanceD: RistPoint[];
-  newBalanceC: RistPoint[];
-  newBalanceD: RistPoint[];
+  oldBalanceC: RistrettoPoint[];
+  oldBalanceD: RistrettoPoint[];
+  newBalanceC: RistrettoPoint[];
+  newBalanceD: RistrettoPoint[];
   auditorEkBytes?: Uint8Array;
-  newBalanceDAud?: RistPoint[];
+  newBalanceDAud?: RistrettoPoint[];
   proof: SigmaProtocolProof;
 }): boolean {
   return verifyWithdrawInternal(PROTOCOL_ID_WITHDRAWAL, args);
@@ -410,12 +410,12 @@ function verifyWithdrawInternal(
     chainId: number;
     amount: bigint;
     ekBytes: Uint8Array;
-    oldBalanceC: RistPoint[];
-    oldBalanceD: RistPoint[];
-    newBalanceC: RistPoint[];
-    newBalanceD: RistPoint[];
+    oldBalanceC: RistrettoPoint[];
+    oldBalanceD: RistrettoPoint[];
+    newBalanceC: RistrettoPoint[];
+    newBalanceD: RistrettoPoint[];
     auditorEkBytes?: Uint8Array;
-    newBalanceDAud?: RistPoint[];
+    newBalanceDAud?: RistrettoPoint[];
     proof: SigmaProtocolProof;
   },
 ): boolean {
@@ -436,12 +436,12 @@ function verifyWithdrawInternal(
 
   const ell = oldBalanceC.length;
   const hasAuditor = auditorEkBytes !== undefined;
-  const ek = ristretto255.Point.fromHex(ekBytes);
+  const ek = ristretto255.Point.fromBytes(ekBytes);
   const G = ristretto255.Point.BASE;
   const H = H_RISTRETTO;
 
   // Build statement points
-  const stmtPoints: RistPoint[] = [G, H, ek];
+  const stmtPoints: RistrettoPoint[] = [G, H, ek];
   const stmtCompressed: Uint8Array[] = [G.toBytes(), H.toBytes(), ekBytes];
 
   for (let i = 0; i < ell; i++) {
@@ -462,7 +462,7 @@ function verifyWithdrawInternal(
   }
 
   if (hasAuditor) {
-    const ekAud = ristretto255.Point.fromHex(auditorEkBytes);
+    const ekAud = ristretto255.Point.fromBytes(auditorEkBytes);
     stmtPoints.push(ekAud);
     stmtCompressed.push(auditorEkBytes);
 

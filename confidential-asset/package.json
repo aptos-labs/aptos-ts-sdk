@@ -36,7 +36,7 @@
   ],
   "scripts": {
     "build:clean": "rm -rf dist",
-    "build": "pnpm build:clean && tsup",
+    "build": "pnpm build:clean && tsc -p tsconfig.build.json",
     "build:types": "tsc -p tsconfig.build.json --outDir ./dist/types --declaration --emitDeclarationOnly",
     "test": "vitest run",
     "test:browser": "vitest run --config vitest.browser.config.mts",
@@ -45,34 +45,42 @@
     "publish-zeta": "pnpm build && npm publish --tag zeta"
   },
   "peerDependencies": {
-    "@aptos-labs/ts-sdk": "^5.2.1 || ^6.1.0"
+    "@aptos-labs/ts-sdk": "^5.2.1 || ^6.3.1 || ^7.0.0"
   },
   "dependencies": {
     "@aptos-labs/confidential-asset-bindings": "^1.1.1",
-    "@noble/curves": "1.9.7",
-    "@noble/hashes": "1.8.0"
+    "@noble/curves": "^2.2.0",
+    "@noble/hashes": "^2.2.0"
   },
   "devDependencies": {
+    "@aptos-labs/ts-sdk": "^6.3.1",
     "@swc/cli": "^0.8.0",
     "@swc/core": "^1.15.18",
     "@types/node": "^22.19.13",
-    "@vitest/browser": "^4.1.2",
-    "@vitest/browser-playwright": "^4.1.2",
-    "@vitest/coverage-v8": "^4.1.2",
+    "@vitest/browser": "^4.1.5",
+    "@vitest/browser-playwright": "^4.1.5",
+    "@vitest/coverage-v8": "^4.1.5",
     "playwright": "^1.59.1",
     "tsc-alias": "^1.8.16",
     "tslib": "^2.8.1",
-    "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.2"
+    "vitest": "^4.1.5",
+    "vite": "^7.3.2"
   },
   "pnpm": {
     "overrides": {
+      "@aptos-labs/aptos-client": "^4.0.0",
       "glob@^10": "^10.5.0",
       "minimatch@^9": "^9.0.7",
       "file-type": "21.3.3",
-      "yauzl": "3.2.1"
+      "yauzl": "3.2.1",
+      "postcss": "^8.5.10",
+      "uuid": "^14.0.0",
+      "@xmldom/xmldom": "^0.8.13",
+      "picomatch@^2": "^2.3.2",
+      "picomatch@^4": "^4.0.4",
+      "brace-expansion@^2": "^2.0.3"
     }
   }
 }

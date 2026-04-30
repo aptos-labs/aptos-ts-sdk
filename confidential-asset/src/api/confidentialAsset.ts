@@ -12,8 +12,8 @@ import {
   LedgerVersionArg,
   SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
-import { TwistedEd25519PublicKey, TwistedEd25519PrivateKey, ConfidentialNormalization } from "../crypto";
-import { clearBalanceCache, clearEncryptionKeyCache, getEncryptionKeyCacheKey, setCache } from "../utils/memoize";
+import { ConfidentialNormalization, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../crypto/index.js";
+import { clearBalanceCache, clearEncryptionKeyCache, getEncryptionKeyCacheKey, setCache } from "../utils/memoize.js";
 import {
   ConfidentialAssetTransactionBuilder,
   ConfidentialBalance,
@@ -24,17 +24,17 @@ import {
   isBalanceNormalized,
   isEmergencyPaused,
   isIncomingTransfersPaused,
-} from "../internal";
+} from "../internal/index.js";
 
 // Constants
-import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS } from "../consts";
+import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS } from "../consts.js";
 
 // Indexer
 import {
+  type ConfidentialAssetActivity,
   getConfidentialAssetActivities,
   type GetConfidentialAssetActivitiesArgs,
-  type ConfidentialAssetActivity,
-} from "../indexer";
+} from "../indexer/index.js";
 
 // Base param types
 type ConfidentialAssetSubmissionParams = {
@@ -337,7 +337,7 @@ export class ConfidentialAsset {
    * @param args.tokenAddress - The token address of the asset to check
    * @param args.options.ledgerVersion - The ledger version to use for the view call
    * @returns A boolean indicating if the user's incoming transfers are paused
-   * @throws {AptosApiError} If the there is no registered confidential balance for token address on the account
+   * @throws {AptosApiError} If there is no registered confidential balance for token address on the account
    */
   async isIncomingTransfersPaused(args: {
     accountAddress: AccountAddressInput;
@@ -588,13 +588,12 @@ export class ConfidentialAsset {
       senderAuthenticator,
     });
     const transactionHash = pendingTxResponse.hash;
-    const committedTx = await this.client().waitForTransaction({
+    return await this.client().waitForTransaction({
       transactionHash,
       options: {
         checkSuccess: true,
       },
     });
-    return committedTx;
   }
 
   /**

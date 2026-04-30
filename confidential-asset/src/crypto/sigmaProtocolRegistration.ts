@@ -17,10 +17,11 @@
  * The transformation function f outputs: [H]
  */
 
-import { bytesToNumberLE } from "@noble/curves/utils";
-import { utf8ToBytes } from "@noble/hashes/utils";
-import { ristretto255, H_RISTRETTO, TwistedEd25519PrivateKey } from ".";
-import type { RistPoint } from ".";
+import { bytesToNumberLE } from "@noble/curves/utils.js";
+import { utf8ToBytes } from "@noble/hashes/utils.js";
+import { ristretto255 } from "@noble/curves/ed25519.js";
+import { H_RISTRETTO, TwistedEd25519PrivateKey } from "./twistedEd25519.js";
+import type { RistrettoPoint } from "./ristrettoPoint.js";
 import {
   sigmaProtocolProve,
   sigmaProtocolVerify,
@@ -30,7 +31,7 @@ import {
   type SigmaProtocolProof,
   type PsiFunction,
   type TransformationFunction,
-} from "./sigmaProtocol";
+} from "./sigmaProtocol.js";
 import { Serializer, FixedBytes } from "@aptos-labs/ts-sdk";
 
 /** Protocol ID matching the Move constant */
@@ -62,7 +63,7 @@ export function bcsSerializeRegistrationSession(senderAddress: Uint8Array, token
  * psi(dk) = [dk * ek]
  */
 function makeRegistrationPsi(): PsiFunction {
-  return (s: SigmaProtocolStatement, w: bigint[]): RistPoint[] => {
+  return (s: SigmaProtocolStatement, w: bigint[]): RistrettoPoint[] => {
     const dk = w[0];
     const ek = s.points[IDX_EK];
     return [ek.multiply(dk)];
@@ -75,7 +76,7 @@ function makeRegistrationPsi(): PsiFunction {
  * f(stmt) = [H]
  */
 function makeRegistrationF(): TransformationFunction {
-  return (s: SigmaProtocolStatement): RistPoint[] => {
+  return (s: SigmaProtocolStatement): RistrettoPoint[] => {
     return [s.points[IDX_H]];
   };
 }
@@ -93,7 +94,7 @@ export function proveRegistration(args: {
   const dkBigint = bytesToNumberLE(dk.toUint8Array());
 
   const ekBytes = dk.publicKey().toUint8Array();
-  const ek = ristretto255.Point.fromHex(ekBytes);
+  const ek = ristretto255.Point.fromBytes(ekBytes);
   const H = H_RISTRETTO;
 
   const stmt: SigmaProtocolStatement = {
@@ -126,7 +127,7 @@ export function verifyRegistration(args: {
   proof: SigmaProtocolProof;
 }): boolean {
   const { ek: ekBytes, senderAddress, tokenAddress, chainId, proof } = args;
-  const ek = ristretto255.Point.fromHex(ekBytes);
+  const ek = ristretto255.Point.fromBytes(ekBytes);
   const H = H_RISTRETTO;
 
   const stmt: SigmaProtocolStatement = {

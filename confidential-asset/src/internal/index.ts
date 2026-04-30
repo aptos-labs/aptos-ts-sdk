@@ -1,2 +1,2 @@
-export * from "./confidentialAssetTxnBuilder";
-export * from "./viewFunctions";
+export * from "./confidentialAssetTxnBuilder.js";
+export * from "./viewFunctions.js";

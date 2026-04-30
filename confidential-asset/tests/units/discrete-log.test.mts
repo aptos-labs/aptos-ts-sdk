@@ -6,9 +6,9 @@
  * - Baby-Step Giant-Step (pure TypeScript)
  */
 
-import { ristretto255 } from "@noble/curves/ed25519";
-import { TwistedElGamal, TwistedEd25519PrivateKey } from "../../src";
-import { createBsgsTable, BsgsSolver } from "../../src/crypto/bsgs";
+import { ristretto255 } from "@noble/curves/ed25519.js";
+import { TwistedElGamal, TwistedEd25519PrivateKey } from "../../src/index.js";
+import { createBsgsTable, BsgsSolver } from "../../src/crypto/bsgs.js";
 // ============================================================================
 // Helpers
 // ============================================================================

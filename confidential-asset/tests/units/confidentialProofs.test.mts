@@ -9,11 +9,11 @@ import {
   ConfidentialWithdraw,
   EncryptedAmount,
   TwistedEd25519PrivateKey,
-} from "../../src";
-import type { SigmaProtocolProof } from "../../src/crypto/sigmaProtocol";
-import { verifyWithdrawal } from "../../src/crypto/sigmaProtocolWithdraw";
-import { verifyTransfer } from "../../src/crypto/sigmaProtocolTransfer";
-import { longTestTimeout } from "../helpers";
+} from "../../src/index.js";
+import type { SigmaProtocolProof } from "../../src/crypto/sigmaProtocol.js";
+import { verifyWithdrawal } from "../../src/crypto/sigmaProtocolWithdraw.js";
+import { verifyTransfer } from "../../src/crypto/sigmaProtocolTransfer.js";
+import { longTestTimeout } from "../helpers/index.mjs";
 
 describe("Generate 'confidential coin' proofs", () => {
   const ALICE_BALANCE = 18446744073709551716n;

@@ -89,13 +89,13 @@ cargo run -p aptos -- node run-localnet --with-indexer-api --test-dir=~/.aptos/t
 
 Second, run the SDK test of your choosing; e.g.:
 ```
-pnpm test tests/e2e/confidentialAsset.test.ts
+pnpm test tests/e2e/confidentialAsset.test.mts
 
 pnpm test tests/e2e/
 
 pnpm test decryption
 
-pnpm test tests/e2e/confidentialAsset.test.ts -t "rotate Alice" --runInBand
+pnpm test tests/e2e/confidentialAsset.test.mts -t "rotate Alice" --runInBand
 ```
 
 Or, run all tests:
@@ -114,5 +114,5 @@ SKIP_SETUP=1 pnpm test discrete
 ### Range proof tests
 
 ```bash
-pnpm test tests/units/confidentialProofs.test.ts
+pnpm test tests/units/confidentialProofs.test.mts
 ```
