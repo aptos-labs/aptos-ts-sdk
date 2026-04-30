@@ -60,6 +60,16 @@ export const DEFAULT_TXN_EXP_SEC_FROM_NOW = 20;
 export const DEFAULT_TXN_TIMEOUT_SEC = 20;
 
 /**
+ * The default number of seconds to wait for the indexer to sync to the target ledger version.
+ *
+ * The indexer may lag behind the fullnode, so after a transaction is committed the SDK waits for
+ * the indexer to catch up before returning. This timeout controls how long to wait before giving up.
+ * @group Implementation
+ * @category Utils
+ */
+export const DEFAULT_INDEXER_SYNC_TIMEOUT_SEC = 10;
+
+/**
  * The default gas currency for the network.
  * @group Implementation
  * @category Utils
