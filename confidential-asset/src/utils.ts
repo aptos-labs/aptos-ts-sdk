@@ -18,13 +18,14 @@ export function ed25519InvertN(a: bigint): bigint {
 }
 
 /*
- * Generate random number less than order of curve ed25519
+ * Generate random number less than order of curve ed25519 (i.e. in [0, n)).
  */
 export function ed25519GenRandom(): bigint {
+  const n = ed25519.Point.CURVE().n;
   let rand: bigint;
   do {
     rand = bytesToNumberBE(randomBytes(32));
-  } while (rand > ed25519.Point.CURVE().n);
+  } while (rand >= n);
 
   return rand;
 }
