@@ -8,7 +8,7 @@ runs:
     - uses: ./.github/actions/setup-node-pnpm
 
     # Install Deno
-    - uses: denoland/setup-deno@v2
+    - uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282 # pin@v2.0.4
       with:
         deno-version: v2.x
 
@@ -20,18 +20,20 @@ runs:
     - run: pnpm build
       shell: bash
 
-    # Install the CLI.
-    - run: pnpm install -g @aptos-labs/aptos-cli
-      shell: bash
-
     # Run a local testnet in the background.
-    - run: aptos node run-local-testnet --force-restart --assume-yes --with-indexer-api --log-to-stdout >& ${{ runner.temp }}/local-testnet-logs.txt &
+    - run: pnpm exec aptos node run-local-testnet --force-restart --assume-yes --with-indexer-api --log-to-stdout >& ${{ runner.temp }}/local-testnet-logs.txt &
       shell: bash
 
     # Wait for the local testnet to be ready by hitting the readiness endpoint.
-    - run: pnpm install -g wait-on
-      shell: bash
-    - run: wait-on --verbose --interval 1500 --timeout 120000 --httpTimeout 120000 http-get://127.0.0.1:8070
+    - run: |
+        for attempt in {1..80}; do
+          if curl --fail --silent --show-error --max-time 120 http://127.0.0.1:8070 > /dev/null; then
+            exit 0
+          fi
+          echo "Waiting for local testnet readiness endpoint (attempt ${attempt}/80)"
+          sleep 1.5
+        done
+        exit 1
       shell: bash
 
     # Run the Deno tests
