@@ -8,7 +8,7 @@ runs:
     - uses: ./.github/actions/setup-node-pnpm
 
     # Install Bun
-    - uses: oven-sh/setup-bun@v2
+    - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # pin@v2
       with:
         bun-version: latest
 
@@ -20,18 +20,19 @@ runs:
     - run: pnpm build
       shell: bash
 
-    # Install the CLI.
-    - run: pnpm install -g @aptos-labs/aptos-cli
-      shell: bash
-
     # Run a local testnet in the background.
-    - run: aptos node run-local-testnet --force-restart --assume-yes --with-indexer-api --log-to-stdout >& ${{ runner.temp }}/local-testnet-logs.txt &
+    - run: pnpm exec aptos node run-local-testnet --force-restart --assume-yes --with-indexer-api --log-to-stdout >& ${{ runner.temp }}/local-testnet-logs.txt &
       shell: bash
 
     # Wait for the local testnet to be ready by hitting the readiness endpoint.
-    - run: pnpm install -g wait-on
-      shell: bash
-    - run: wait-on --verbose --interval 1500 --timeout 120000 --httpTimeout 120000 http-get://127.0.0.1:8070
+    - run: |
+        for _ in {1..80}; do
+          if curl --fail --silent --show-error --max-time 120 http://127.0.0.1:8070 >/dev/null; then
+            exit 0
+          fi
+          sleep 1.5
+        done
+        exit 1
       shell: bash
 
     # Run the Bun tests

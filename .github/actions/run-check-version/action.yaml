@@ -6,11 +6,11 @@ runs:
   using: composite
   steps:
     # Install node and pnpm.
-    - uses: actions/setup-node@v6
+    - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # pin@v6
       with:
         node-version-file: .node-version
         registry-url: "https://registry.npmjs.org"
-    - uses: pnpm/action-setup@v4
+    - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # pin@v4
 
     # Run version check
     - run: pnpm check-version
