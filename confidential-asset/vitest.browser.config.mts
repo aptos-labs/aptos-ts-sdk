@@ -22,10 +22,10 @@ export default defineConfig({
       provider: playwright(),
       instances: [{ browser: "chromium" }],
     },
-    include: ["tests/units/**/*.test.ts"],
+    include: ["tests/units/**/*.test.{ts,mts}"],
     // confidentialProofs imports from tests/helpers which uses child_process/fs (Node-only).
     // It's a Node-targeted test; exclude it so failures here are signal, not noise.
-    exclude: ["tests/units/api/**", "**/confidentialProofs.test.ts"],
+    exclude: ["tests/units/api/**", "**/confidentialProofs.test.{ts,mts}"],
     // No globalSetup — localnet not needed for unit tests
     fileParallelism: true,
     testTimeout: 120000,

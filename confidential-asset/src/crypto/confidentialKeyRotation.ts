@@ -44,7 +44,7 @@ import {
   type PsiFunction,
   type TransformationFunction,
 } from "./sigmaProtocol.js";
-import { RistrettoPoint } from "./ristrettoPoint.js";
+import type { RistrettoPoint } from "./ristrettoPoint.js";
 
 /** Protocol ID matching the Move constant */
 const PROTOCOL_ID = "AptosConfidentialAsset/KeyRotationV1";

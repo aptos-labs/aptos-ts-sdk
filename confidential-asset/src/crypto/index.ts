@@ -11,4 +11,4 @@ export * from "./confidentialKeyRotation.js";
 export * from "./confidentialNormalization.js";
 export * from "./confidentialTransfer.js";
 export * from "./confidentialWithdraw.js";
-export { RistrettoPoint } from "./ristrettoPoint.js";
+export type { RistrettoPoint } from "./ristrettoPoint.js";
