@@ -100,29 +100,25 @@ export async function getBalance(
   },
 ): Promise<ConfidentialBalance> {
   const { accountAddress, tokenAddress, useCachedValue = false } = args;
-  try {
-    if (useCachedValue) {
-      const cachedAvailableBalance = getCache<EncryptedAmount>(
-        getAvailableBalanceCacheKey(accountAddress, tokenAddress, args.client.config.network),
-        1000 * 30, // 30 seconds
-      );
-      const cachedPendingBalance = getCache<EncryptedAmount>(
-        getPendingBalanceCacheKey(accountAddress, tokenAddress, args.client.config.network),
-        1000 * 30, // 30 seconds
-      );
-      if (cachedAvailableBalance !== undefined && cachedPendingBalance !== undefined) {
-        return new ConfidentialBalance(cachedAvailableBalance, cachedPendingBalance);
-      }
+  if (useCachedValue) {
+    const cachedAvailableBalance = getCache<EncryptedAmount>(
+      getAvailableBalanceCacheKey(accountAddress, tokenAddress, args.client.config.network),
+      1000 * 30, // 30 seconds
+    );
+    const cachedPendingBalance = getCache<EncryptedAmount>(
+      getPendingBalanceCacheKey(accountAddress, tokenAddress, args.client.config.network),
+      1000 * 30, // 30 seconds
+    );
+    if (cachedAvailableBalance !== undefined && cachedPendingBalance !== undefined) {
+      return new ConfidentialBalance(cachedAvailableBalance, cachedPendingBalance);
     }
-
-    const balance = await getBalanceInternal(args);
-
-    setCache(getAvailableBalanceCacheKey(accountAddress, tokenAddress, args.client.config.network), balance.available);
-    setCache(getPendingBalanceCacheKey(accountAddress, tokenAddress, args.client.config.network), balance.pending);
-    return balance;
-  } catch (e) {
-    throw new Error(`Failed to get balance: ${e}`);
   }
+
+  const balance = await getBalanceInternal(args);
+
+  setCache(getAvailableBalanceCacheKey(accountAddress, tokenAddress, args.client.config.network), balance.available);
+  setCache(getPendingBalanceCacheKey(accountAddress, tokenAddress, args.client.config.network), balance.pending);
+  return balance;
 }
 
 /**

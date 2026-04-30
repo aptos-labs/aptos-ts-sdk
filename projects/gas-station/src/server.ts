@@ -75,7 +75,8 @@ app.post("/signAndSubmit", async (req: Request, res: Response) => {
     return res.status(200).json({ transactionHash: response.hash });
   } catch (error) {
     console.error("Error processing transaction:", error);
-    return res.status(500).json({ error: error });
+    const message = error instanceof Error ? error.message : String(error);
+    return res.status(500).json({ error: message });
   }
 });
 

@@ -63,11 +63,11 @@ export class TwistedElGamal {
    * @param random Random number less than ed25519.Point.CURVE().n (bigint)
    */
   static encryptWithPK(amount: bigint, publicKey: TwistedEd25519PublicKey, random?: bigint) {
-    if (amount < 0n && amount > ed25519.Point.CURVE().n)
-      throw new Error(`The amount must be in the range 0n to ${ed25519.Point.CURVE().n - 1n}`);
+    const n = ed25519.Point.CURVE().n;
+    if (amount < 0n || amount >= n) throw new Error(`The amount must be in the range 0n to ${n - 1n}`);
 
-    if (random !== undefined && random < 0n && random > ed25519.Point.CURVE().n)
-      throw new Error(`The random must be in the range 0n to ${ed25519.Point.CURVE().n - 1n}`);
+    if (random !== undefined && (random < 0n || random >= n))
+      throw new Error(`The random must be in the range 0n to ${n - 1n}`);
 
     const m = amount;
     const r = random ?? ed25519GenRandom();
@@ -86,8 +86,8 @@ export class TwistedElGamal {
    * @param amount amount for encryption
    */
   static encryptWithNoRandomness(amount: bigint) {
-    if (amount < 0n && amount > ed25519.Point.CURVE().n)
-      throw new Error(`The amount must be in the range 0n to ${ed25519.Point.CURVE().n - 1n}`);
+    const n = ed25519.Point.CURVE().n;
+    if (amount < 0n || amount >= n) throw new Error(`The amount must be in the range 0n to ${n - 1n}`);
 
     const C = amount === BigInt(0) ? ristretto255.Point.ZERO : ristretto255.Point.BASE.multiply(amount);
 
@@ -102,8 +102,8 @@ export class TwistedElGamal {
   ): RistrettoPoint {
     const { C, D } = ciphertext;
     const modS = ed25519modN(bytesToNumberLE(privateKey.toUint8Array()));
-    const sD = ristretto255.Point.fromAffine(D).multiply(modS);
-    return ristretto255.Point.fromAffine(C).subtract(sD);
+    const sD = D.multiply(modS);
+    return C.subtract(sD);
   }
 
   /**

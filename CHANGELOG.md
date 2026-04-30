@@ -37,6 +37,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Fixed
 
+- `projects/gas-station` example: `/signAndSubmit` now returns a string `error` message in its 500 JSON response instead of the raw error object. `JSON.stringify`-ing an `Error` produces `{}` (because its standard properties are non-enumerable), so the previous response was effectively `{"error":{}}`. Now formats the message safely (`error instanceof Error ? error.message : String(error)`) so clients get a useful diagnostic without the example leaking internal error shape.
 - Fix `aptos.transaction.getBlockByHeight({ options: { withTransactions: true } })` / `getBlockByVersion` crashing with `TypeError: Cannot use 'in' operator to search for 'version' in undefined` on blocks whose `transactions` array is empty. `fillBlockTransactions` now guards `lastTxn` before the `in` check.
 - Fix `aptos.account.accountExists` (`doesAccountExistAtAddress`) on accounts with many resources: the old path fetched the full resource list and scanned it for `0x1::account::Account`, which is slow and can fail for large or sparse accounts. Replaced with a single fallible resource fetch (new internal `getResourceFallible` helper) that treats 404 as "not found". Only affects internal callers; the public API is unchanged.
 - `aptos.ans.*` queries no longer throw on indexer rows with missing fields. `sanitizeANSName` drops its non-null assertions and passes nullable indexer fields through as `undefined` instead of crashing. See the `Breaking` section for the `AnsName` type change.
