@@ -56,5 +56,10 @@
     "@types/node": "^22.19.17",
     "typescript": "^6.0.2",
     "tsx": "^4.21.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "picomatch@^4": "^4.0.4"
+    }
   }
 }
