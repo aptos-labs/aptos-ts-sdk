@@ -25,7 +25,7 @@ import { getLedgerInfo } from "../../internal/general.js";
 import { fetchAndCacheEncryptionKey } from "../../internal/encryptionKey.js";
 import { getGasPriceEstimation } from "../../internal/transaction.js";
 import { NetworkToChainId } from "../../utils/apiEndpoints.js";
-import { MIN_MAX_GAS_AMOUNT, TEXT_ENCODER } from "../../utils/const.js";
+import { MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE, MIN_MAX_GAS_AMOUNT, TEXT_ENCODER } from "../../utils/const.js";
 import { normalizeBundle } from "../../utils/normalizeBundle.js";
 import {
   AccountAuthenticator,
@@ -455,7 +455,12 @@ export async function generateRawTransaction(args: {
     : BigInt(aptosConfig.getDefaultMaxGasAmount());
   const { maxGasAmount, gasUnitPrice, expireTimestamp, replayProtectionNonce } = {
     maxGasAmount: userMaxGas < BigInt(MIN_MAX_GAS_AMOUNT) ? BigInt(MIN_MAX_GAS_AMOUNT) : userMaxGas,
-    gasUnitPrice: options?.gasUnitPrice ?? BigInt(gasEstimate),
+    gasUnitPrice: (() => {
+      const raw = BigInt(options?.gasUnitPrice ?? gasEstimate);
+      return options?.encrypted && raw < BigInt(MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE)
+        ? BigInt(MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE)
+        : raw;
+    })(),
     expireTimestamp:
       options?.expireTimestamp ?? BigInt(Math.floor(Date.now() / 1000) + aptosConfig.getDefaultTxnExpirySecFromNow()),
     replayProtectionNonce:

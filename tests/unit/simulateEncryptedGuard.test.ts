@@ -16,6 +16,7 @@ import {
   TransactionExtraConfigV1,
   TransactionPayloadEncryptedPayload,
 } from "../../src/transactions/instances/transactionPayload";
+import { MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE } from "../../src/utils/const";
 
 function makeStubCiphertext(): Ciphertext {
   const vk = new Uint8Array(32);
@@ -29,6 +30,16 @@ function makeStubCiphertext(): Ciphertext {
   const signature = new Uint8Array(64);
   return new Ciphertext(vk, bibeCt, adBytes, signature);
 }
+
+describe("MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE", () => {
+  test("is 200 (2x the mainnet base minimum of 100)", () => {
+    expect(MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE).toBe(200);
+  });
+
+  test("is greater than zero", () => {
+    expect(MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE).toBeGreaterThan(0);
+  });
+});
 
 describe("assertSimulatableTransaction", () => {
   test("throws for encrypted payload with actionable message", () => {
