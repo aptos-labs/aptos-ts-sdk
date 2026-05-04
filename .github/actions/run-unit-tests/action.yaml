@@ -1,0 +1,14 @@
+name: "Run SDK unit tests"
+description: |
+  Run the SDK unit tests (no Docker / local testnet required)
+
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/setup-node-pnpm
+
+    - run: pnpm install --frozen-lockfile
+      shell: bash
+
+    - run: pnpm unit-test
+      shell: bash

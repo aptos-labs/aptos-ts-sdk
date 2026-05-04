@@ -1,5 +1,4 @@
 import { spawn } from "node:child_process";
-import { platform } from "node:os";
 
 import { AccountAddress } from "../core/index.js";
 import { Network } from "../utils/index.js";
@@ -356,19 +355,11 @@ export class Move {
 
   private async runCommand(args: Array<string>, showStdout: boolean = true): Promise<{ result?: any; output: string }> {
     return new Promise((resolve, reject) => {
-      const currentPlatform = platform();
-      let childProcess;
+      const childProcess = spawn("npx", args);
       let stdout = "";
       // CLI final stdout is the Result/Error JSON string output
       // so we need to keep track of the last stdout
       let lastStdout = "";
-
-      // Check if current OS is windows
-      if (currentPlatform === "win32") {
-        childProcess = spawn("npx", args, { shell: true });
-      } else {
-        childProcess = spawn("npx", args);
-      }
 
       childProcess.stdout.on("data", (data) => {
         lastStdout = data.toString();
