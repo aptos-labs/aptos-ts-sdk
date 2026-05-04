@@ -6,8 +6,9 @@ import type { Fp2, Fp6, Fp12 } from "@noble/curves/abstract/tower.js";
 const BIGINT_SIZE = 48;
 const FP2_SIZE = 2 * BIGINT_SIZE;
 const FP6_SIZE = 3 * FP2_SIZE;
+const FP12_SIZE = 2 * FP6_SIZE;
 
-export function bigintToLEBytes(val: bigint, numBytes: number): Uint8Array {
+export function bigintToLEBytesInternal(val: bigint, numBytes: number): Uint8Array {
   const ret: number[] = [];
   let v = val;
   for (let i = 0; i < numBytes; i++) {
@@ -18,11 +19,11 @@ export function bigintToLEBytes(val: bigint, numBytes: number): Uint8Array {
 }
 
 export function bigintToLEBytesFr(val: bigint): Uint8Array {
-  return bigintToLEBytes(val, 32);
+  return bigintToLEBytesInternal(val, 32);
 }
 
 export function bigintToLEBytesFq(val: bigint): Uint8Array {
-  return bigintToLEBytes(val, 48);
+  return bigintToLEBytesInternal(val, 48);
 }
 
 export function leBytesToBigint(bytes: Uint8Array): bigint {
@@ -49,8 +50,33 @@ export function fp6ToLEBytes(val: Fp6): Uint8Array {
 }
 
 export function fp12ToLEBytes(val: Fp12): Uint8Array {
-  const ret = new Uint8Array(2 * FP6_SIZE);
+  const ret = new Uint8Array(FP12_SIZE);
   ret.set(fp6ToLEBytes(val.c0));
   ret.set(fp6ToLEBytes(val.c1), FP6_SIZE);
   return ret;
+}
+
+export function leBytesToFp2(bytes: Uint8Array): Fp2 {
+  return {
+    c0: leBytesToBigint(bytes.slice(0, BIGINT_SIZE)),
+    c1: leBytesToBigint(bytes.slice(BIGINT_SIZE, FP2_SIZE)),
+  };
+}
+
+export function leBytesToFp6(bytes: Uint8Array): Fp6 {
+  return {
+    c0: leBytesToFp2(bytes.slice(0, FP2_SIZE)),
+    c1: leBytesToFp2(bytes.slice(FP2_SIZE, 2 * FP2_SIZE)),
+    c2: leBytesToFp2(bytes.slice(2 * FP2_SIZE, FP6_SIZE)),
+  };
+}
+
+export function leBytesToFp12(bytes: Uint8Array): Fp12 {
+  if (bytes.length !== FP12_SIZE) {
+    throw new Error(`Expected ${FP12_SIZE} bytes for Fp12, got ${bytes.length}`);
+  }
+  return {
+    c0: leBytesToFp6(bytes.slice(0, FP6_SIZE)),
+    c1: leBytesToFp6(bytes.slice(FP6_SIZE, FP12_SIZE)),
+  };
 }

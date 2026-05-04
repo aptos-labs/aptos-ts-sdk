@@ -4,14 +4,11 @@
 /**
  * Batch encryption primitives for encrypted transaction payloads.
  *
- * Reference implementation: aptos-core/crates/aptos-batch-encryption/ts-batch-encrypt/src/
- * Rust types:               aptos-core/crates/aptos-batch-encryption/src/shared/
- *
- * This module is encrypt-only; full decrypt helpers are omitted. `curveSerialization.bytesToG1/G2`
- * include subgroup checks when deserializing keys/ciphertexts from the node (aptos-core parity).
+ * Ported from aptos-core/crates/aptos-batch-encryption. Encrypt-only — decryption helpers are not implemented
+ * because the SDK never decrypts ciphertexts client-side. `bytesToG1`/`bytesToG2` enforce the prime-order
+ * subgroup check on deserialization, matching aptos-core `ts-batch-encrypt`.
  *
  * @module
  */
 
-export { EncryptionKey, Ciphertext, BIBECiphertext } from "./ciphertext.js";
-export { SymmetricKey, SymmetricCiphertext, OneTimePad } from "./symmetric.js";
+export { EncryptionKey } from "./ciphertext.js";

@@ -3,7 +3,8 @@
 
 import { describe, expect, test } from "vitest";
 import { AccountAddress } from "../../src/core";
-import { BIBECiphertext, Ciphertext, SymmetricCiphertext, SymmetricKey } from "../../src/core/crypto/encryption";
+import { BIBECiphertext, Ciphertext } from "../../src/core/crypto/encryption/ciphertext";
+import { SymmetricCiphertext, SymmetricKey } from "../../src/core/crypto/encryption/symmetric";
 import {
   assertSimulatableTransaction,
   ENCRYPTED_TRANSACTION_SIMULATION_NOT_SUPPORTED_MESSAGE,

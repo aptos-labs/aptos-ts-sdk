@@ -20,7 +20,8 @@ import { fetchAndCacheEncryptionKey } from "../../../src/internal/encryptionKey"
 import { getLedgerInfo } from "../../../src/internal/general";
 import { RawTransaction } from "../../../src/transactions/instances/rawTransaction";
 import { TransactionExtraConfigV1 } from "../../../src/transactions/instances/transactionPayload";
-import { describe, expect, test, type TestContext } from "vitest";
+import { describe, expect, test, type TestContext, beforeAll } from "vitest";
+import { MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE } from "../../../src/utils/const";
 import { FUND_AMOUNT, TRANSFER_AMOUNT, longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 
@@ -38,9 +39,6 @@ const SKIP_ENCRYPTED_TESTS_REASON =
  * yet (same network gating as other encrypted submits); validate with unit tests + a capable node when needed.
  */
 
-/** VM floor for encrypted txs (aptos-core `encrypted_txn_min_price_per_gas_unit`, often 200 when base min is 100). */
-const ENCRYPTED_TXN_MIN_GAS_UNIT_PRICE = 200n;
-
 /**
  * Capped max gas for encrypted e2e so `max_gas × gas_unit_price` stays within devnet faucet limits
  * (default 2M × 200 would require several APT reserved).
@@ -51,8 +49,8 @@ const ENCRYPTED_E2E_DEFAULT_MAX_GAS = 600_000;
 function encryptedBuildOptions(account: Account, extra: Record<string, unknown> = {}) {
   return {
     encrypted: true as const,
-    authenticationKey: Account.authKey({ publicKey: account.publicKey }).data.toString(),
-    gasUnitPrice: ENCRYPTED_TXN_MIN_GAS_UNIT_PRICE,
+    authenticationKey: account.publicKey,
+    gasUnitPrice: BigInt(MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE),
     maxGasAmount: ENCRYPTED_E2E_DEFAULT_MAX_GAS,
     ...extra,
   };
@@ -640,7 +638,7 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
 
         expect(transaction.rawTransaction.payload).toBeInstanceOf(TransactionPayloadEncryptedPayload);
         const enc = transaction.rawTransaction.payload as TransactionPayloadEncryptedPayload;
-        expect(enc.claimedEntryFun).toBeDefined();
+        expect(enc.claimedEntryFunction).toBeDefined();
         expect(enc.extraConfig).toBeInstanceOf(TransactionExtraConfigV1);
         expect(
           (enc.extraConfig as TransactionExtraConfigV1).multisigAddress?.equals(AccountAddress.from(multisigAddress)),

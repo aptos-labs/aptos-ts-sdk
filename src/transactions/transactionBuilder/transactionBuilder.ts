@@ -10,7 +10,6 @@ import { sha3_256 as sha3Hash } from "@noble/hashes/sha3.js";
 import { AptosConfig } from "../../api/aptosConfig.js";
 import { MAX_U64_BIG_INT } from "../../bcs/consts.js";
 import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core/index.js";
-import { AuthenticationKey } from "../../core/authenticationKey.js";
 import {
   AnyPublicKey,
   AnySignature,
@@ -22,7 +21,6 @@ import { AnyPublicKeyVariant } from "../../types/index.js";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519.js";
 import { getInfo } from "../../internal/utils/index.js";
 import { getLedgerInfo } from "../../internal/general.js";
-import { fetchAndCacheEncryptionKey } from "../../internal/encryptionKey.js";
 import { getGasPriceEstimation } from "../../internal/transaction.js";
 import { NetworkToChainId } from "../../utils/apiEndpoints.js";
 import { MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE, MIN_MAX_GAS_AMOUNT, TEXT_ENCODER } from "../../utils/const.js";
@@ -57,9 +55,6 @@ import {
   TransactionPayloadMultiSig,
   TransactionPayloadScript,
 } from "../instances/index.js";
-import { Identifier } from "../instances/identifier.js";
-import { ModuleId } from "../instances/moduleId.js";
-import { ClaimedEntryFunction } from "../instances/transactionPayload.js";
 import { SignedTransaction } from "../instances/signedTransaction.js";
 import {
   AnyRawTransaction,
@@ -81,7 +76,6 @@ import {
   InputViewFunctionDataWithRemoteABI,
   InputViewFunctionDataWithABI,
   FunctionABI,
-  InputClaimedEntryFunction,
 } from "../types.js";
 import { convertArgument, fetchEntryFunctionAbi, fetchViewFunctionAbi, standardizeTypeTags } from "./remoteAbi.js";
 import { memoizeAsync } from "../../utils/memoize.js";
@@ -90,19 +84,14 @@ import { SimpleTransaction } from "../instances/simpleTransaction.js";
 import { MultiAgentTransaction } from "../instances/multiAgentTransaction.js";
 import { getFunctionParts } from "../../utils/helpers.js";
 import {
-  DecryptedPlaintext,
-  DECRYPTION_NONCE_LENGTH,
-  PayloadAssociatedData,
   TransactionExecutable,
   TransactionExecutableEmpty,
   TransactionExecutableEntryFunction,
   TransactionExecutableScript,
-  TransactionExtraConfig,
   TransactionExtraConfigV1,
-  TransactionExtraConfigV2,
   TransactionInnerPayloadV1,
-  TransactionPayloadEncryptedPayload,
 } from "../instances/transactionPayload.js";
+import { buildEncryptedPayload } from "./encryptPayload.js";
 
 /**
  * Builds a transaction payload based on the provided arguments and returns a transaction payload.
@@ -453,85 +442,34 @@ export async function generateRawTransaction(args: {
   const userMaxGas = options?.maxGasAmount
     ? BigInt(options.maxGasAmount)
     : BigInt(aptosConfig.getDefaultMaxGasAmount());
-  const { maxGasAmount, gasUnitPrice, expireTimestamp, replayProtectionNonce } = {
-    maxGasAmount: userMaxGas < BigInt(MIN_MAX_GAS_AMOUNT) ? BigInt(MIN_MAX_GAS_AMOUNT) : userMaxGas,
-    gasUnitPrice: (() => {
-      const raw = BigInt(options?.gasUnitPrice ?? gasEstimate);
-      return options?.encrypted && raw < BigInt(MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE)
-        ? BigInt(MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE)
-        : raw;
-    })(),
-    expireTimestamp:
-      options?.expireTimestamp ?? BigInt(Math.floor(Date.now() / 1000) + aptosConfig.getDefaultTxnExpirySecFromNow()),
-    replayProtectionNonce:
-      options?.replayProtectionNonce !== undefined && options?.replayProtectionNonce !== null
-        ? BigInt(options.replayProtectionNonce)
-        : undefined,
-  };
+  const maxGasAmount = userMaxGas < BigInt(MIN_MAX_GAS_AMOUNT) ? BigInt(MIN_MAX_GAS_AMOUNT) : userMaxGas;
+  let gasUnitPrice = BigInt(options?.gasUnitPrice ?? gasEstimate);
+  if (options?.encrypted && gasUnitPrice < BigInt(MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE)) {
+    if (options.gasUnitPrice !== undefined) {
+      // Caller explicitly set a price below the encrypted-transaction floor — warn so they know it was overridden.
+      console.warn(
+        `Encrypted transaction: gasUnitPrice ${gasUnitPrice} is below the minimum ${MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE}; overriding to ${MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE}.`,
+      );
+    }
+    gasUnitPrice = BigInt(MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE);
+  }
+  const expireTimestamp =
+    options?.expireTimestamp ?? BigInt(Math.floor(Date.now() / 1000) + aptosConfig.getDefaultTxnExpirySecFromNow());
+  const replayProtectionNonce =
+    options?.replayProtectionNonce !== undefined ? BigInt(options.replayProtectionNonce) : undefined;
 
-  // If encryption requested, encrypt the original payload (before inner-payload conversion).
-  // The encrypted payload carries its own extra_config with the replay nonce.
+  // If encryption was requested, the encrypted payload carries its own extra_config (with the
+  // replay nonce). Otherwise the orderless flow wraps the payload in an inner V1.
   let txnPayload: AnyTransactionPayloadInstance = payload;
   if (options?.encrypted) {
-    if (options.authenticationKey === undefined) {
-      throw new Error(
-        "options.authenticationKey is required when options.encrypted is true (32-byte auth key hex; must match the signing authenticator).",
-      );
-    }
-    const secondaryAddrs = secondarySignerAddresses ?? [];
-    const secondaryAuthHex = options.secondarySignerAuthenticationKeys;
-    if (secondaryAddrs.length > 0) {
-      if (!secondaryAuthHex || secondaryAuthHex.length !== secondaryAddrs.length) {
-        throw new Error(
-          "Encrypted multi-agent transactions require options.secondarySignerAuthenticationKeys with one 32-byte auth key per secondarySignerAddresses entry, in the same order.",
-        );
-      }
-    } else if (secondaryAuthHex !== undefined && secondaryAuthHex.length > 0) {
-      throw new Error(
-        "options.secondarySignerAuthenticationKeys was set but no secondarySignerAddresses were provided to generateRawTransaction.",
-      );
-    }
-    const feePayerAddr = feePayerAddress !== undefined ? AccountAddress.from(feePayerAddress) : undefined;
-    const hasNonZeroFeePayer = feePayerAddr !== undefined && !feePayerAddr.equals(AccountAddress.ZERO);
-    if (hasNonZeroFeePayer && options.feePayerAuthenticationKey === undefined) {
-      throw new Error(
-        "options.feePayerAuthenticationKey is required when options.encrypted is true and feePayerAddress is a non-zero sponsor. " +
-          "Must match the fee payer authenticator; AAD order is sender, then secondaries, then fee payer (aptos-core `all_signer_auth_keys`).",
-      );
-    }
-    if (options.feePayerAuthenticationKey !== undefined && !hasNonZeroFeePayer) {
-      throw new Error(
-        "options.feePayerAuthenticationKey was set but feePayerAddress is missing or the zero address (no on-chain fee payer for AAD).",
-      );
-    }
-    const authenticationKey = new AuthenticationKey({ data: options.authenticationKey });
-    const claimedEntryFun = resolveClaimedEntryFunForEncryptedTransaction({
-      payload,
-      feePayerAddress,
-      options,
-    });
-    const secondaryPairs: Array<{ address: AccountAddress; authenticationKey: AuthenticationKey }> =
-      secondaryAddrs.length > 0 && secondaryAuthHex
-        ? secondaryAddrs.map((addr, i) => ({
-            address: AccountAddress.from(addr),
-            authenticationKey: new AuthenticationKey({ data: secondaryAuthHex[i]! }),
-          }))
-        : [];
-    if (hasNonZeroFeePayer && feePayerAddr && options.feePayerAuthenticationKey !== undefined) {
-      secondaryPairs.push({
-        address: feePayerAddr,
-        authenticationKey: new AuthenticationKey({ data: options.feePayerAuthenticationKey }),
-      });
-    }
-    const additionalSignerAuthKeys = secondaryPairs.length > 0 ? secondaryPairs : undefined;
-    txnPayload = await encryptTransactionPayload({
+    txnPayload = await buildEncryptedPayload({
       aptosConfig,
-      sender: AccountAddress.from(sender),
+      sender,
       payload,
+      options,
+      feePayerAddress,
+      secondarySignerAddresses,
       replayProtectionNonce,
-      claimedEntryFun,
-      authenticationKey,
-      additionalSignerAuthKeys,
     });
   } else if (replayProtectionNonce !== undefined) {
     txnPayload = convertPayloadToInnerPayload(payload, replayProtectionNonce);
@@ -583,198 +521,6 @@ export function convertPayloadToInnerPayload(
     );
   }
   throw new Error(`Unsupported payload type: ${payload}`);
-}
-
-/**
- * Converts a transaction payload to an executable for use inside a DecryptedPlaintext.
- * Maps the various payload types to their corresponding TransactionExecutable variants.
- */
-function payloadToExecutable(payload: AnyTransactionPayloadInstance): {
-  executable: TransactionExecutable;
-  extraConfig: TransactionExtraConfig;
-} {
-  if (payload instanceof TransactionPayloadScript) {
-    return {
-      executable: new TransactionExecutableScript(payload.script),
-      extraConfig: new TransactionExtraConfigV1(),
-    };
-  }
-  if (payload instanceof TransactionPayloadEntryFunction) {
-    return {
-      executable: new TransactionExecutableEntryFunction(payload.entryFunction),
-      extraConfig: new TransactionExtraConfigV1(),
-    };
-  }
-  if (payload instanceof TransactionPayloadMultiSig) {
-    const innerPayload = payload.multiSig.transaction_payload;
-    let executable: TransactionExecutable;
-    if (innerPayload === undefined || innerPayload?.transaction_payload === undefined) {
-      executable = new TransactionExecutableEmpty();
-    } else if (innerPayload.transaction_payload instanceof EntryFunction) {
-      executable = new TransactionExecutableEntryFunction(innerPayload.transaction_payload);
-    } else if (innerPayload.transaction_payload instanceof Script) {
-      executable = new TransactionExecutableScript(innerPayload.transaction_payload);
-    } else {
-      throw new Error("Unsupported multisig transaction payload type");
-    }
-    return {
-      executable,
-      extraConfig: new TransactionExtraConfigV1(payload.multiSig.multisig_address),
-    };
-  }
-  if (payload instanceof TransactionInnerPayloadV1) {
-    return {
-      executable: payload.executable,
-      extraConfig: payload.extra_config,
-    };
-  }
-  throw new Error(`Cannot convert payload to executable: ${payload}`);
-}
-
-function toClaimedEntryFunction(input: ClaimedEntryFunction | InputClaimedEntryFunction): ClaimedEntryFunction {
-  if (input instanceof ClaimedEntryFunction) {
-    return input;
-  }
-  return new ClaimedEntryFunction(
-    ModuleId.fromStr(input.module),
-    input.functionName !== undefined ? new Identifier(input.functionName) : undefined,
-  );
-}
-
-function assertClaimMatchesExecutable(payload: AnyTransactionPayloadInstance, claim: ClaimedEntryFunction): void {
-  const { executable } = payloadToExecutable(payload);
-  if (!(executable instanceof TransactionExecutableEntryFunction)) {
-    throw new Error("claimedEntryFunction is only valid when the plaintext executable is an entry function.");
-  }
-  const entry = executable.entryFunction;
-  if (
-    !entry.module_name.address.equals(claim.moduleId.address) ||
-    entry.module_name.name.identifier !== claim.moduleId.name.identifier
-  ) {
-    throw new Error("claimedEntryFunction.module must match the entry function module.");
-  }
-  if (claim.functionName !== undefined && entry.function_name.identifier !== claim.functionName.identifier) {
-    throw new Error("claimedEntryFunction.functionName must match the entry function name when provided.");
-  }
-}
-
-function payloadImpliesCoSignerClaimVisibility(payload: AnyTransactionPayloadInstance): boolean {
-  if (payload instanceof TransactionPayloadMultiSig) {
-    return true;
-  }
-  if (payload instanceof TransactionInnerPayloadV1) {
-    const ec = payload.extra_config;
-    return (
-      (ec instanceof TransactionExtraConfigV1 || ec instanceof TransactionExtraConfigV2) &&
-      ec.multisigAddress !== undefined
-    );
-  }
-  return false;
-}
-
-function resolveClaimedEntryFunForEncryptedTransaction(args: {
-  payload: AnyTransactionPayloadInstance;
-  feePayerAddress?: AccountAddressInput;
-  options?: InputGenerateTransactionOptions;
-}): ClaimedEntryFunction | undefined {
-  const { payload, feePayerAddress, options } = args;
-  const hasFeePayer = feePayerAddress !== undefined;
-  const coSignerFlow = payloadImpliesCoSignerClaimVisibility(payload);
-  if (!hasFeePayer && !coSignerFlow) {
-    return undefined;
-  }
-  if (options?.claimedEntryFunction !== undefined) {
-    const claim = toClaimedEntryFunction(options.claimedEntryFunction);
-    assertClaimMatchesExecutable(payload, claim);
-    return claim;
-  }
-  const { executable } = payloadToExecutable(payload);
-  if (executable instanceof TransactionExecutableEntryFunction) {
-    return ClaimedEntryFunction.fromEntryFunction(executable.entryFunction);
-  }
-  return undefined;
-}
-
-/**
- * Encrypts a transaction payload using the encryption key from the node.
- *
- * Steps (matching Rust sdk/src/transaction_builder.rs encrypt_payload):
- * 1. Convert payload to TransactionExecutable + TransactionExtraConfig
- * 2. Generate random decryption nonce
- * 3. Build DecryptedPlaintext(executable, 16-byte nonce)
- * 4. Build `PayloadAssociatedData::V1` (sender + `signer_auth_keys`: primary, then secondaries, then fee payer last if any)
- * 5. Encrypt with AAD using EncryptionKey
- * 6. Compute payload_hash = CryptoHash(DecryptedPlaintext)
- * 7. Return EncryptedInner on wire (epoch hint + optional claimed_entry_fun)
- */
-async function encryptTransactionPayload(args: {
-  aptosConfig: AptosConfig;
-  sender: AccountAddress;
-  payload: AnyTransactionPayloadInstance;
-  replayProtectionNonce?: bigint;
-  claimedEntryFun?: ClaimedEntryFunction;
-  authenticationKey: AuthenticationKey;
-  /**
-   * Additional `(address, authentication_key)` pairs after the primary sender: secondary signers in order, then
-   * fee payer last (matches aptos-core `TransactionAuthenticator::all_signer_auth_keys` / Rust `sign_fee_payer_with_transaction_builder`).
-   */
-  additionalSignerAuthKeys?: Array<{ address: AccountAddress; authenticationKey: AuthenticationKey }>;
-}): Promise<TransactionPayloadEncryptedPayload> {
-  const {
-    aptosConfig,
-    sender,
-    payload,
-    replayProtectionNonce,
-    claimedEntryFun,
-    authenticationKey,
-    additionalSignerAuthKeys,
-  } = args;
-
-  const encryption = await fetchAndCacheEncryptionKey({ aptosConfig });
-  if (!encryption) {
-    throw new Error(
-      "Encrypted transactions requested but the node does not provide an encryption key. " +
-        "Ensure the node supports encrypted transaction submission.",
-    );
-  }
-
-  const { key: encryptionKey, epoch: encryptionEpoch } = encryption;
-
-  const { executable, extraConfig: baseExtraConfig } = payloadToExecutable(payload);
-
-  // Encrypted transactions cannot carry a multisig_address — the server enforces this too.
-  if (baseExtraConfig instanceof TransactionExtraConfigV1 && baseExtraConfig.multisigAddress !== undefined) {
-    throw new Error(
-      "Encrypted transactions do not support multisig (multisig_address must not be set in extra_config).",
-    );
-  }
-
-  // Ensure replay protection nonce propagates to extraConfig
-  let extraConfig: TransactionExtraConfig = baseExtraConfig;
-  if (replayProtectionNonce !== undefined) {
-    if (extraConfig instanceof TransactionExtraConfigV1) {
-      extraConfig = new TransactionExtraConfigV1(extraConfig.multisigAddress, replayProtectionNonce);
-    } else if (extraConfig instanceof TransactionExtraConfigV2) {
-      extraConfig = new TransactionExtraConfigV2(
-        extraConfig.multisigAddress,
-        replayProtectionNonce,
-        extraConfig.txnLimitsRequest,
-      );
-    }
-  }
-
-  const nonceBytes = new Uint8Array(DECRYPTION_NONCE_LENGTH);
-  crypto.getRandomValues(nonceBytes);
-
-  const decryptedPayload = new DecryptedPlaintext(executable, nonceBytes);
-  const signerAuthKeys = [{ address: sender, authenticationKey }, ...(additionalSignerAuthKeys ?? [])];
-  const associatedData = new PayloadAssociatedData(sender, signerAuthKeys);
-
-  const ciphertext = encryptionKey.encrypt(decryptedPayload, associatedData);
-
-  const payloadHash = decryptedPayload.hash();
-
-  return new TransactionPayloadEncryptedPayload(ciphertext, extraConfig, payloadHash, encryptionEpoch, claimedEntryFun);
 }
 
 /**
@@ -872,9 +618,8 @@ export async function generateSignedTransactionForSimulation(args: InputSimulate
 
   // fee payer transaction
   if (transaction.feePayerAddress) {
-    const rawTxnForSim = transaction.rawTransaction.asEncryptedVariantForSigning();
     const transactionToSign = new FeePayerRawTransaction(
-      rawTxnForSim,
+      transaction.rawTransaction,
       transaction.secondarySignerAddresses ?? [],
       transaction.feePayerAddress,
     );
@@ -908,8 +653,10 @@ export async function generateSignedTransactionForSimulation(args: InputSimulate
 
   // multi agent transaction
   if (transaction.secondarySignerAddresses) {
-    const rawTxnForSim = transaction.rawTransaction.asEncryptedVariantForSigning();
-    const transactionToSign = new MultiAgentRawTransaction(rawTxnForSim, transaction.secondarySignerAddresses);
+    const transactionToSign = new MultiAgentRawTransaction(
+      transaction.rawTransaction,
+      transaction.secondarySignerAddresses,
+    );
 
     let secondaryAccountAuthenticators: Array<AccountAuthenticator> = [];
 

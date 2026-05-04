@@ -27,15 +27,18 @@ import { Serializable } from "../../bcs/index.js";
  * @category Transactions
  */
 export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTransactionInstance {
-  const rawTxn = transaction.rawTransaction.asEncryptedVariantForSigning();
   if (transaction.feePayerAddress) {
-    return new FeePayerRawTransaction(rawTxn, transaction.secondarySignerAddresses ?? [], transaction.feePayerAddress);
+    return new FeePayerRawTransaction(
+      transaction.rawTransaction,
+      transaction.secondarySignerAddresses ?? [],
+      transaction.feePayerAddress,
+    );
   }
   if (transaction.secondarySignerAddresses) {
-    return new MultiAgentRawTransaction(rawTxn, transaction.secondarySignerAddresses);
+    return new MultiAgentRawTransaction(transaction.rawTransaction, transaction.secondarySignerAddresses);
   }
 
-  return rawTxn;
+  return transaction.rawTransaction;
 }
 
 /**

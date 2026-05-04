@@ -10,21 +10,18 @@ import { ModuleId } from "../../../../../src/transactions/instances/moduleId";
 import {
   ClaimedEntryFunction,
   DecryptedPlaintext,
-  EntryFunction,
   PayloadAssociatedData,
+} from "../../../../../src/transactions/instances/encryptedPayload";
+import {
+  EntryFunction,
   TransactionExecutableEntryFunction,
   TransactionExtraConfig,
   TransactionExtraConfigV1,
-  TransactionExtraConfigV2,
   TransactionPayload,
   TransactionPayloadEncryptedPayload,
 } from "../../../../../src/transactions/instances/transactionPayload";
-import {
-  Ciphertext,
-  BIBECiphertext,
-  SymmetricKey,
-  SymmetricCiphertext,
-} from "../../../../../src/core/crypto/encryption";
+import { Ciphertext, BIBECiphertext } from "../../../../../src/core/crypto/encryption/ciphertext";
+import { SymmetricKey, SymmetricCiphertext } from "../../../../../src/core/crypto/encryption/symmetric";
 import { bls12_381 } from "@noble/curves/bls12-381.js";
 
 function makeStubCiphertext(): Ciphertext {
@@ -71,7 +68,7 @@ describe("encrypted payload BCS round-trip (unit)", () => {
   test("PayloadAssociatedData serialize/deserialize (V1 + signer_auth_keys)", () => {
     const sender = AccountAddress.ONE;
     const authKey = new AuthenticationKey({ data: new Uint8Array(32).fill(0xab) });
-    const ad = PayloadAssociatedData.singleSigner(sender, authKey);
+    const ad = new PayloadAssociatedData(sender, [{ address: sender, authenticationKey: authKey }]);
 
     const bytes = ad.bcsToBytes();
     const restored = PayloadAssociatedData.deserialize(new Deserializer(bytes));
@@ -178,7 +175,7 @@ describe("encrypted payload BCS round-trip (unit)", () => {
 
     expect(restored.payloadHash).toEqual(payloadHash);
     expect(restored.encryptionEpoch).toBe(encryptionEpoch);
-    expect(restored.claimedEntryFun).toBeUndefined();
+    expect(restored.claimedEntryFunction).toBeUndefined();
   });
 
   test("TransactionPayloadEncryptedPayload round-trip with ClaimedEntryFunction (module + function)", () => {
@@ -195,10 +192,10 @@ describe("encrypted payload BCS round-trip (unit)", () => {
     expect(restoredPayload).toBeInstanceOf(TransactionPayloadEncryptedPayload);
     const restored = restoredPayload as TransactionPayloadEncryptedPayload;
 
-    expect(restored.claimedEntryFun).toBeDefined();
-    expect(restored.claimedEntryFun!.moduleId.address.equals(claim.moduleId.address)).toBe(true);
-    expect(restored.claimedEntryFun!.moduleId.name.identifier).toBe(claim.moduleId.name.identifier);
-    expect(restored.claimedEntryFun!.functionName?.identifier).toBe("transfer");
+    expect(restored.claimedEntryFunction).toBeDefined();
+    expect(restored.claimedEntryFunction!.moduleId.address.equals(claim.moduleId.address)).toBe(true);
+    expect(restored.claimedEntryFunction!.moduleId.name.identifier).toBe(claim.moduleId.name.identifier);
+    expect(restored.claimedEntryFunction!.functionName?.identifier).toBe("transfer");
     expect(restored.encryptionEpoch).toBe(1n);
   });
 
@@ -214,8 +211,8 @@ describe("encrypted payload BCS round-trip (unit)", () => {
     expect(restoredPayload).toBeInstanceOf(TransactionPayloadEncryptedPayload);
     const restored = restoredPayload as TransactionPayloadEncryptedPayload;
 
-    expect(restored.claimedEntryFun?.functionName).toBeUndefined();
-    expect(restored.claimedEntryFun?.moduleId.name.identifier).toBe("aptos_account");
+    expect(restored.claimedEntryFunction?.functionName).toBeUndefined();
+    expect(restored.claimedEntryFunction?.moduleId.name.identifier).toBe("aptos_account");
     expect(restored.encryptionEpoch).toBe(99n);
   });
 
@@ -236,15 +233,6 @@ describe("encrypted payload BCS round-trip (unit)", () => {
     expect(Buffer.from(claim.bcsToBytes()).toString("hex")).toBe(
       "00000000000000000000000000000000000000000000000000000000000000010d6170746f735f6163636f756e7401087472616e73666572",
     );
-  });
-
-  test("TransactionExtraConfigV2 round-trip (matches aptos-core TransactionExtraConfig::V2 wire)", () => {
-    const ec = new TransactionExtraConfigV2(undefined, 12345n, undefined);
-    const restored = TransactionExtraConfig.deserialize(new Deserializer(ec.bcsToBytes()));
-    expect(restored).toBeInstanceOf(TransactionExtraConfigV2);
-    const v2 = restored as TransactionExtraConfigV2;
-    expect(v2.replayProtectionNonce).toBe(12345n);
-    expect(v2.txnLimitsRequest).toBeUndefined();
   });
 
   test("BIBECiphertext serialize/deserialize preserves id", () => {
