@@ -19,5 +19,10 @@
   "dependencies": {
     "@aptos-labs/ts-sdk": "link:../..",
     "npm-run-all2": "8.0.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "picomatch@^4": "^4.0.4"
+    }
   }
 }
