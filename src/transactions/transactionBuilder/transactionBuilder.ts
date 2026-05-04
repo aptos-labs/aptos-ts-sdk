@@ -737,6 +737,13 @@ async function encryptTransactionPayload(args: {
 
   const { executable, extraConfig: baseExtraConfig } = payloadToExecutable(payload);
 
+  // Encrypted transactions cannot carry a multisig_address — the server enforces this too.
+  if (baseExtraConfig instanceof TransactionExtraConfigV1 && baseExtraConfig.multisigAddress !== undefined) {
+    throw new Error(
+      "Encrypted transactions do not support multisig (multisig_address must not be set in extra_config).",
+    );
+  }
+
   // Ensure replay protection nonce propagates to extraConfig
   let extraConfig: TransactionExtraConfig = baseExtraConfig;
   if (replayProtectionNonce !== undefined) {

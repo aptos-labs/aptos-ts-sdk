@@ -443,6 +443,14 @@ export async function signAndSubmitTransaction(
   if (isKeylessSigner(feePayer)) {
     await feePayer.checkKeylessAccountValidity(aptosConfig);
   }
+  if (
+    transaction.rawTransaction.payload instanceof TransactionPayloadEncryptedPayload &&
+    (isKeylessSigner(signer) || isKeylessSigner(feePayer))
+  ) {
+    throw new Error(
+      "Encrypted transactions are not supported with keyless or federated keyless signers (signature mutability breaks payload binding).",
+    );
+  }
   const feePayerAuthenticator =
     args.feePayerAuthenticator || (feePayer && signAsFeePayer({ signer: feePayer, transaction }));
 
