@@ -21,26 +21,22 @@ const encryptionKeyCache = new Map<string, CachedEncryptionKey>();
 
 /**
  * Fetches the encryption key from the fullnode index endpoint, deserializes it,
- * and caches it by epoch + network. Returns null if the node does not support
+ * and caches it by fullnode URL (or network label) + epoch. Returns null if the node does not support
  * encrypted transactions.
  *
  * @param args.aptosConfig - Aptos configuration.
- * @param args.forceRefresh - If true, bypass cache and fetch fresh.
  */
 export async function fetchAndCacheEncryptionKey(args: {
   aptosConfig: AptosConfig;
-  forceRefresh?: boolean;
 }): Promise<{ key: EncryptionKey; epoch: bigint } | null> {
-  const { aptosConfig, forceRefresh } = args;
-  const cacheKey = `encryption-key-${aptosConfig.network}`;
+  const { aptosConfig } = args;
+  const cacheKey = `encryption-key-${aptosConfig.fullnode ?? aptosConfig.network}`;
 
   const ledgerInfo = await getLedgerInfo({ aptosConfig });
 
-  if (!forceRefresh) {
-    const cached = encryptionKeyCache.get(cacheKey);
-    if (cached && cached.epoch === ledgerInfo.epoch) {
-      return { key: cached.key, epoch: BigInt(cached.epoch) };
-    }
+  const cached = encryptionKeyCache.get(cacheKey);
+  if (cached && cached.epoch === ledgerInfo.epoch) {
+    return { key: cached.key, epoch: BigInt(cached.epoch) };
   }
 
   const hexKey = ledgerInfo.encryption_key;
@@ -54,12 +50,4 @@ export async function fetchAndCacheEncryptionKey(args: {
 
   encryptionKeyCache.set(cacheKey, { epoch: ledgerInfo.epoch, key });
   return { key, epoch: BigInt(ledgerInfo.epoch) };
-}
-
-/**
- * Clears the cached encryption key for a given network. Useful for testing
- * or when an epoch boundary is detected.
- */
-export function clearEncryptionKeyCache(aptosConfig: AptosConfig): void {
-  encryptionKeyCache.delete(`encryption-key-${aptosConfig.network}`);
 }

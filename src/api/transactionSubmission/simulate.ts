@@ -99,8 +99,6 @@ export class Simulate {
    *
    * example();
    * ```
-   * @throws Error if `args.transaction` uses an encrypted payload (built with `options.encrypted`).
-   *   Simulate a plaintext transaction with the same entry function, then build with encryption for submit.
    * @group Implementation
    */
   @ValidateFeePayerDataOnSimulation
@@ -179,8 +177,6 @@ export class Simulate {
    *
    * example();
    * ```
-   * @throws Error if `args.transaction` uses an encrypted payload (built with `options.encrypted`).
-   *   Simulate a plaintext transaction with the same entry function, then build with encryption for submit.
    * @group Implementation
    */
   @ValidateFeePayerDataOnSimulation

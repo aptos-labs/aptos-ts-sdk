@@ -111,21 +111,6 @@ export class RawTransaction extends Serializable {
       chain_id,
     );
   }
-
-  /**
-   * Raw transaction bytes used for signing encrypted user transactions.
-   *
-   * Matches aptos-core `RawTransaction::as_encrypted_variant`: verification uses the **Encrypted**
-   * payload shape on the wire. If the in-memory payload were an internal `EncryptedPayload::Decrypted`
-   * representation, this would return the equivalent `Encrypted` BCS form. The SDK currently only builds
-   * `EncryptedPayload::Encrypted` for clients, so this is a no-op until a deserialized-decrypted path exists.
-   *
-   * @group Implementation
-   * @category Transactions
-   */
-  asEncryptedVariantForSigning(): RawTransaction {
-    return this;
-  }
 }
 
 /**

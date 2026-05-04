@@ -128,8 +128,6 @@ export enum TransactionExecutableVariants {
  */
 export enum TransactionExtraConfigVariants {
   V1 = 0,
-  /** Staking-backed transaction limits request (aptos-core #19109); BCS must include `txn_limits_request` option. */
-  V2 = 1,
 }
 
 /**
@@ -1116,30 +1114,44 @@ export type ClaimedEntryFunctionResponse = {
 };
 
 /**
- * Encrypted transaction payload as returned by the API (`encrypted_state` discriminator).
+ * Encrypted payload response when the node has not yet decrypted it, or decryption failed.
+ * Narrow on `encrypted_state` to distinguish from {@link DecryptedEncryptedTransactionPayloadResponse}.
+ */
+export type EncryptedEncryptedTransactionPayloadResponse = {
+  type: string;
+  encrypted_state: "encrypted" | "failed_decryption";
+  payload_hash: string;
+  ciphertext: string;
+  claimed_entry_fun: ClaimedEntryFunctionResponse | null;
+  /** Ledger epoch hint for the encryption key used on the wire (aptos-core `EncryptedInner.encryption_epoch`). */
+  encryption_epoch?: string;
+  /** Present when `encrypted_state` is `failed_decryption`. Not yet surfaced by the REST API; reserved for future use. */
+  decryption_failure_reason?: string;
+};
+
+/**
+ * Encrypted payload response after the node has successfully decrypted it.
+ * Narrow on `encrypted_state === "decrypted"` to access `decrypted_payload`.
+ */
+export type DecryptedEncryptedTransactionPayloadResponse = {
+  type: string;
+  encrypted_state: "decrypted";
+  payload_hash: string;
+  ciphertext: string;
+  claimed_entry_fun: ClaimedEntryFunctionResponse | null;
+  decrypted_payload: EntryFunctionPayloadResponse | ScriptPayloadResponse | MultisigPayloadResponse;
+  decryption_nonce: string;
+  encryption_epoch?: string;
+};
+
+/**
+ * Encrypted transaction payload as returned by the API. Discriminate on `encrypted_state`:
+ * - `"encrypted"` / `"failed_decryption"` → {@link EncryptedEncryptedTransactionPayloadResponse}
+ * - `"decrypted"` → {@link DecryptedEncryptedTransactionPayloadResponse}
  */
 export type EncryptedTransactionPayloadResponse =
-  | {
-      type: string;
-      encrypted_state: "encrypted" | "failed_decryption";
-      payload_hash: string;
-      ciphertext: string;
-      claimed_entry_fun: ClaimedEntryFunctionResponse | null;
-      /** Ledger epoch hint for the encryption key used on the wire (aptos-core `EncryptedInner.encryption_epoch`). */
-      encryption_epoch?: string;
-      /** Present when `encrypted_state` is `failed_decryption`. Field not yet surfaced by the REST API; reserved for future use. */
-      decryption_failure_reason?: string;
-    }
-  | {
-      type: string;
-      encrypted_state: "decrypted";
-      payload_hash: string;
-      ciphertext: string;
-      claimed_entry_fun: ClaimedEntryFunctionResponse | null;
-      decrypted_payload: EntryFunctionPayloadResponse | ScriptPayloadResponse | MultisigPayloadResponse;
-      decryption_nonce: string;
-      encryption_epoch?: string;
-    };
+  | EncryptedEncryptedTransactionPayloadResponse
+  | DecryptedEncryptedTransactionPayloadResponse;
 
 /**
  * The payload for a transaction response, which can be an entry function, script, multisig, or encrypted payload.
