@@ -149,6 +149,9 @@ export function compilePackage(packageDir: string, args?: string[]) {
   console.log(["aptos", ...cliArgs].join(" "));
 
   const result = spawnSync("aptos", cliArgs, { stdio: "inherit" });
+  if (result.error) {
+    throw new Error(`Failed to launch aptos CLI: ${result.error.message}`);
+  }
   if (result.status !== 0) {
     throw new Error(`Compilation failed with exit code ${result.status}`);
   }

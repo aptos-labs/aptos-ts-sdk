@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { platform } from "node:os";
 
 import { AccountAddress } from "../core/index.js";
 import { Network } from "../utils/index.js";
@@ -355,11 +356,16 @@ export class Move {
 
   private async runCommand(args: Array<string>, showStdout: boolean = true): Promise<{ result?: any; output: string }> {
     return new Promise((resolve, reject) => {
-      const childProcess = spawn("npx", args);
+      // On Windows, npx is a .cmd shim and cannot be resolved by spawn without shell:true.
+      // Using npx.cmd directly avoids the shell while still finding the executable.
+      const npx = platform() === "win32" ? "npx.cmd" : "npx";
+      const childProcess = spawn(npx, args);
       let stdout = "";
       // CLI final stdout is the Result/Error JSON string output
       // so we need to keep track of the last stdout
       let lastStdout = "";
+
+      childProcess.on("error", reject);
 
       childProcess.stdout.on("data", (data) => {
         lastStdout = data.toString();
