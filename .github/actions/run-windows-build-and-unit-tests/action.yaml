@@ -1,6 +1,6 @@
-name: "Run SDK unit tests"
+name: "Run SDK build and unit tests on Windows"
 description: |
-  Run the SDK unit tests (no Docker / local testnet required)
+  Build the SDK and run unit tests on Windows (no Docker / local testnet required)
 
 runs:
   using: composite
@@ -8,6 +8,9 @@ runs:
     - uses: ./.github/actions/setup-node-pnpm
 
     - run: pnpm install --frozen-lockfile
+      shell: bash
+
+    - run: pnpm build
       shell: bash
 
     - run: pnpm unit-test
