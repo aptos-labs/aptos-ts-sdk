@@ -1,6 +1,6 @@
 import path from "node:path";
 import fs from "node:fs";
-import { execSync } from "node:child_process";
+import { execSync, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import {
   Network,
@@ -142,18 +142,15 @@ export function compilePackage(packageDir: string, args?: string[]) {
   }
 
   // Assume yes automatically overwrites the previous compiled version, only do this if you are sure you want to overwrite the previous version.
-  let compileCommand = `aptos move compile --package-dir ${packageDir}`;
-  if (args) compileCommand += ` ${args.join(" ")}`;
+  const cliArgs = ["move", "compile", "--package-dir", packageDir];
+  if (args) cliArgs.push(...args);
 
   console.log("Running the compilation locally, in a real situation you may want to compile this ahead of time.");
-  console.log(compileCommand);
-  try {
-    execSync(compileCommand);
-  } catch (error: any) {
-    console.error(`Compilation failed: ${error}`);
-    console.error(`${error.stdOut}`);
-    console.error(`${error.stdErr}`);
-    throw error;
+  console.log(["aptos", ...cliArgs].join(" "));
+
+  const result = spawnSync("aptos", cliArgs, { stdio: "inherit" });
+  if (result.status !== 0) {
+    throw new Error(`Compilation failed with exit code ${result.status}`);
   }
 }
 
