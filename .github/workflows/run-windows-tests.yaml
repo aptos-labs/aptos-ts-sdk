@@ -14,5 +14,4 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/actions/run-build
-      - uses: ./.github/actions/run-unit-tests
+      - uses: ./.github/actions/run-windows-build-and-unit-tests
