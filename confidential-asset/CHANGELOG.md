@@ -8,6 +8,9 @@ For changes to the main Aptos TypeScript SDK (`@aptos-labs/ts-sdk`), see the [ro
 
 ## Fixed
 
+- Address PR review (#891) feedback on `compilePackage` test helper (`tests/helpers/index.mts`):
+  - Throw a descriptive error immediately when the `aptos --version` probe fails, instead of logging instructions and then continuing on to spawn `aptos` (which would inevitably fail with a confusing double-failure). Also pipes the probe's stdout/stderr to `ignore` so a missing CLI no longer prints stack noise before our own error message.
+  - Surface signal-based termination explicitly: `spawnSync` returns `result.status === null` when the child is killed by a signal, so the previous error read `Compilation failed with exit code null`. Now reports `Compilation terminated by signal <SIG>` when `result.signal` is set, and falls back to `exit code unknown` for the rare null-without-signal case.
 - Fix CI browser test job for `@aptos-labs/confidential-asset`:
   - `vitest.browser.config.mts` `include`/`exclude` patterns updated from `*.test.ts` to `*.test.{ts,mts}`. The unit tests live in `.test.mts` files, so vitest was finding zero tests and exiting with code 1 (the `pnpm test:browser` step in `.github/actions/run-confidential-asset-tests`).
   - `import { RistrettoPoint }` was a value-position import of a type-only export in three source files (`crypto/twistedElGamal.ts`, `crypto/confidentialKeyRotation.ts`, `crypto/bsgs.ts`) and one re-export (`crypto/index.ts`). Node-mode vite/esbuild silently elides such imports when only used in type positions, but browser-mode vite serves modules over HTTP and ESM strictly requires the named export to exist at runtime, producing `SyntaxError: The requested module '/src/crypto/ristrettoPoint.ts' does not provide an export named 'RistrettoPoint'`. Fixed by switching all four to `import type` / `export type`.

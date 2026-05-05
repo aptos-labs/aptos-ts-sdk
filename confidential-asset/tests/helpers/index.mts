@@ -135,10 +135,11 @@ const GOVERNANCE_SCRIPTS_DIR = path.resolve(__dirname, "../e2e/scripts/governanc
  */
 export function compilePackage(packageDir: string, args?: string[]) {
   try {
-    execSync("aptos --version");
+    execSync("aptos --version", { stdio: "ignore" });
   } catch {
-    console.log("In order to run compilation, you must have the `aptos` CLI installed.");
-    console.log("aptos is not installed. Please install it from the instructions on aptos.dev");
+    throw new Error(
+      "Could not find the `aptos` CLI on PATH. Install it from https://aptos.dev/tools/aptos-cli/install-cli/ before running confidential-asset tests.",
+    );
   }
 
   // Assume yes automatically overwrites the previous compiled version, only do this if you are sure you want to overwrite the previous version.
@@ -152,8 +153,11 @@ export function compilePackage(packageDir: string, args?: string[]) {
   if (result.error) {
     throw new Error(`Failed to launch aptos CLI: ${result.error.message}`);
   }
+  if (result.signal) {
+    throw new Error(`Compilation terminated by signal ${result.signal}`);
+  }
   if (result.status !== 0) {
-    throw new Error(`Compilation failed with exit code ${result.status}`);
+    throw new Error(`Compilation failed with exit code ${result.status ?? "unknown"}`);
   }
 }
 

@@ -356,8 +356,29 @@ export class Move {
 
   private async runCommand(args: Array<string>, showStdout: boolean = true): Promise<{ result?: any; output: string }> {
     return new Promise((resolve, reject) => {
+      // Defense-in-depth: reject any arg containing characters that have shell
+      // semantics on either POSIX shells or cmd.exe. We only ever shell out to
+      // `npx`; legitimate CLI args here are flag names, file paths, addresses,
+      // and named-address pairs ("alice=0x123,bob=0x456"). Rejecting arbitrary
+      // shell metacharacters keeps the surface narrow and makes the
+      // `shell: true` branch below safe even though Node already escapes args
+      // to .cmd targets on Windows >= 18.20.2 (CVE-2024-27980 mitigation).
+      const SHELL_METACHARS = /[;|&`$<>()*?!\\\n\r\0]/;
+      for (const arg of args) {
+        if (SHELL_METACHARS.test(arg)) {
+          reject(new Error(`Refusing to run npx with arg containing shell metacharacter: ${JSON.stringify(arg)}`));
+          return;
+        }
+      }
+
+      // On Windows, `npx` resolves to a `.cmd` shim. Node's `spawn` requires
+      // `shell: true` to find/launch `.cmd`/`.bat` files since the
+      // CVE-2024-27980 mitigation; Node also auto-escapes the argv before
+      // handing it to cmd.exe in that path. Combined with the metacharacter
+      // check above, this keeps the call safe.
       const isWindows = platform() === "win32";
       const spawnOptions = isWindows ? { shell: true } : undefined;
+      // codeql[js/shell-command-injection-from-environment] -- args validated above; shell required for .cmd on Windows
       const childProcess = spawn("npx", args, spawnOptions);
       let stdout = "";
       // CLI final stdout is the Result/Error JSON string output
