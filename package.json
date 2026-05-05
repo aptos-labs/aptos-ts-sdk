@@ -101,7 +101,7 @@
     "lint": "biome lint",
     "check": "biome check",
     "test": "vitest run",
-    "unit-test": "vitest run tests/unit",
+    "unit-test": "vitest run --config vitest.config.unit.ts",
     "e2e-test": "vitest run tests/e2e",
     "indexer-codegen": "graphql-codegen --config ./src/types/codegen.yaml && pnpm fmt",
     "doc": "scripts/generateDocs.sh",
