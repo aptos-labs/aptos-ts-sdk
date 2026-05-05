@@ -5,7 +5,7 @@
   "main": "index.js",
   "packageManager": "pnpm@10.30.3",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --noEmit",
     "start-server": "tsx src/server.ts",
     "start-client": "tsx src/client.ts"
   },
@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "axios": "1.16.0",
-    "dotenv": "^16.6.1",
     "express": "^5.2.1"
   },
   "devDependencies": {
@@ -26,9 +25,6 @@
     "@types/node": "^22.19.13",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3"
-  },
-  "peerDependencies": {
-    "@aptos-labs/ts-sdk": "^5.2.1 || ^6.1.0"
   },
   "pnpm": {
     "overrides": {
