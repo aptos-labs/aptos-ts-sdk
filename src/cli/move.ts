@@ -356,10 +356,9 @@ export class Move {
 
   private async runCommand(args: Array<string>, showStdout: boolean = true): Promise<{ result?: any; output: string }> {
     return new Promise((resolve, reject) => {
-      // On Windows, npx is a .cmd shim and cannot be resolved by spawn without shell:true.
-      // Using npx.cmd directly avoids the shell while still finding the executable.
-      const npx = platform() === "win32" ? "npx.cmd" : "npx";
-      const childProcess = spawn(npx, args);
+      const isWindows = platform() === "win32";
+      const spawnOptions = isWindows ? { shell: true } : undefined;
+      const childProcess = spawn("npx", args, spawnOptions);
       let stdout = "";
       // CLI final stdout is the Result/Error JSON string output
       // so we need to keep track of the last stdout
