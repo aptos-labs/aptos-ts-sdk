@@ -24,12 +24,8 @@ import {
   TransactionPayloadEncryptedPayload,
   TransactionPayloadMultiSig,
 } from "../instances/transactionPayload.js";
-import {
-  AnyTransactionPayloadInstance,
-  HexInput,
-  InputClaimedEntryFunction,
-  InputGenerateTransactionOptions,
-} from "../types.js";
+import { HexInput } from "../../types/index.js";
+import { AnyTransactionPayloadInstance, InputClaimedEntryFunction, InputGenerateTransactionOptions } from "../types.js";
 import { convertPayloadToInnerPayload } from "./transactionBuilder.js";
 
 function payloadToExecutable(payload: AnyTransactionPayloadInstance): {
