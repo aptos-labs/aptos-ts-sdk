@@ -54,6 +54,15 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Regenerate `examples/typescript/pnpm-lock.yaml` to include the recently added `@noble/hashes` dependency so `pnpm install --frozen-lockfile` succeeds in CI.
 - Prevent `@types/node` type leak in emitted `.d.ts`: `TEXT_ENCODER` now has an explicit structural type (`{ encode(input: string): Uint8Array }`) so consumers without `@types/node` (browsers, Deno, React Native) don't hit `Cannot find name 'util'` when compiling against the SDK.
 - Fix `examples/typescript` build: split `EphemeralKeyPair` imports to `@aptos-labs/ts-sdk/keyless`, update `@noble/hashes/sha3` to `@noble/hashes/sha3.js` (noble v2 exports), add explicit `"types": ["node"]` to the example `tsconfig.json`, and use `??` (instead of `||`) when reading `process.env.APTOS_NETWORK` so it type-checks under strict null checks.
+- [Transactions] Address PR review feedback on struct/enum argument support:
+  - Fix double ULEB128 length prefix in `StructEnumArgumentParser.encodeVector()` for the `vector<u8>` string special case (`serializeBytes` already writes the length, so the explicit `serializeU32AsUleb128` was producing invalid BCS).
+  - Substitute generic type parameters in enum variant payload types so generic enums (e.g. `Some(T0)`) encode against the instantiated type instead of failing on `TypeTagGeneric`.
+  - Recognize `MoveStructArgument` / `MoveEnumArgument` in `isEncodedEntryFunctionArgument()` and accept them (along with `FixedBytes`) for custom `TypeTagStruct` parameters in `checkType()`, so pre-encoded struct/enum arguments work end-to-end.
+  - Mirror the synchronous `Option<T>` auto-wrapping behavior in the async `checkOrConvertArgumentWithABI()` path.
+  - Propagate `options` (and `moduleAbi`) through generic / vector / JSON-string recursive conversion calls in both sync and async paths so flags like `allowUnknownStructs` are not dropped.
+  - Improve error formatting in `StructEnumArgumentParser.fetchModule()` (avoid `[object Object]` from string-interpolating the caught error) and update the `aptosConfig`-required error to mention `MoveStructArgument` / `MoveEnumArgument` as the preferred pre-encoded types.
+  - Fix `ModuleAbiBundle.referencedStructModules` doc comment to match the actual `address::module` key format.
+  - Make `MoveStructArgument` / `MoveEnumArgument` a `import type` in `src/transactions/types.ts` to avoid pulling `structEnumParser` into the module graph for purely type-level uses.
 
 # 6.3.0 (2026-03-22)
 

@@ -29,6 +29,7 @@ import {
 } from "../../bcs/index.js";
 import { AccountAddress } from "../../core/index.js";
 import { MoveFunction } from "../../types/index.js";
+import { MoveEnumArgument, MoveStructArgument } from "./structEnumParser.js";
 
 /**
  * Determines if the provided argument is of type boolean.
@@ -217,7 +218,9 @@ export function isEncodedEntryFunctionArgument(
     isBcsI128(arg) ||
     isBcsI256(arg) ||
     arg instanceof MoveVector ||
-    arg instanceof MoveOption
+    arg instanceof MoveOption ||
+    arg instanceof MoveStructArgument ||
+    arg instanceof MoveEnumArgument
   );
 }
 /**
