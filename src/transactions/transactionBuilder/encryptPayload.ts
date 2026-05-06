@@ -83,7 +83,11 @@ function resolveClaimedEntryFun(args: {
   options: InputGenerateTransactionOptions;
 }): ClaimedEntryFunction | undefined {
   const { payload, feePayerAddress, options } = args;
-  if (feePayerAddress === undefined && !payloadHasMultisigAddress(payload)) {
+  // Match `buildSignerAuthKeys`: a zero-address fee payer is not a real sponsor, so it should not
+  // force a `claimed_entry_fun` to be exposed/validated.
+  const hasFeePayer =
+    feePayerAddress !== undefined && !AccountAddress.from(feePayerAddress).equals(AccountAddress.ZERO);
+  if (!hasFeePayer && !payloadHasMultisigAddress(payload)) {
     return undefined;
   }
   if (options.claimedEntryFunction !== undefined) {

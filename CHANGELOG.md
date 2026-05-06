@@ -18,9 +18,9 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
   - Simulating an encrypted payload throws a clear error; simulate the plaintext version first.
   - Keyless signers are rejected at signing time (signature mutability breaks payload binding).
   - Multisig payloads are structured correctly on the SDK side but currently rejected by the server; pending fullnode support.
-  - New exports: `EncryptionKey`, `DecryptedPlaintext`, `PayloadAssociatedData`, `ClaimedEntryFunction`, `MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE`, `fetchAndCacheEncryptionKey`.
+  - New exports: `EncryptionKey`, `DecryptedPlaintext`, `PayloadAssociatedData`, `ClaimedEntryFunction`, `MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE`.
   - Ledger info gains optional `encryption_key`; `TransactionPayloadResponse` gains `EncryptedTransactionPayloadResponse`.
-  - Devnet e2e tests: `pnpm test-encrypted`.
+  - Devnet e2e tests: `pnpm e2e-encrypted`.
 
 ## Breaking
 
