@@ -17,6 +17,11 @@ import { g2ToBytes } from "./curveSerialization.js";
 const HASH_G2_ELEMENT_DST = "APTOS_BATCH_ENCRYPTION_HASH_G2_ELEMENT";
 const HKDF_SALT = new TextEncoder().encode("APTOS_BATCH_ENCRYPTION_OTP");
 
+/** AES-128 key length and OTP length (both 16 bytes). */
+const SYMMETRIC_KEY_LENGTH = 16;
+/** AES-GCM nonce length. */
+const GCM_NONCE_LENGTH = 12;
+
 /** Domain separation tag for Id::from_verifying_key_and_ad. Must match Rust ID_HASH_DST. */
 export const ID_HASH_DST = new TextEncoder().encode("APTOS_BATCH_ENCRYPTION_HASH_ID");
 
@@ -25,20 +30,20 @@ export class OneTimePad extends Serializable {
 
   constructor(otp: Uint8Array) {
     super();
-    if (otp.length !== 16) {
-      throw new Error("One-time-pad length must be 16 bytes");
+    if (otp.length !== SYMMETRIC_KEY_LENGTH) {
+      throw new Error(`One-time-pad length must be ${SYMMETRIC_KEY_LENGTH} bytes`);
     }
     this.otp = otp;
   }
 
   static fromSourceBytes(otpSource: Uint8Array): OneTimePad {
     const derived = hmacKdf(otpSource);
-    return new OneTimePad(derived.slice(0, 16));
+    return new OneTimePad(derived.slice(0, SYMMETRIC_KEY_LENGTH));
   }
 
   padKey(value: SymmetricKey): SymmetricKey {
-    const paddedKey = new Uint8Array(16);
-    for (let i = 0; i < 16; i++) {
+    const paddedKey = new Uint8Array(SYMMETRIC_KEY_LENGTH);
+    for (let i = 0; i < SYMMETRIC_KEY_LENGTH; i++) {
       paddedKey[i] = value.key[i] ^ this.otp[i];
     }
     return new SymmetricKey(paddedKey);
@@ -49,7 +54,7 @@ export class OneTimePad extends Serializable {
   }
 
   static deserialize(deserializer: Deserializer): OneTimePad {
-    return new OneTimePad(deserializer.deserializeFixedBytes(16));
+    return new OneTimePad(deserializer.deserializeFixedBytes(SYMMETRIC_KEY_LENGTH));
   }
 }
 
@@ -59,8 +64,8 @@ export class SymmetricCiphertext extends Serializable {
 
   constructor(nonce: Uint8Array, ctBody: Uint8Array) {
     super();
-    if (nonce.length !== 12) {
-      throw new Error("Nonce must be 12 bytes");
+    if (nonce.length !== GCM_NONCE_LENGTH) {
+      throw new Error(`Nonce must be ${GCM_NONCE_LENGTH} bytes`);
     }
     this.nonce = nonce;
     this.ctBody = ctBody;
@@ -72,7 +77,7 @@ export class SymmetricCiphertext extends Serializable {
   }
 
   static deserialize(deserializer: Deserializer): SymmetricCiphertext {
-    const nonce = deserializer.deserializeFixedBytes(12);
+    const nonce = deserializer.deserializeFixedBytes(GCM_NONCE_LENGTH);
     const ctBody = deserializer.deserializeBytes();
     return new SymmetricCiphertext(nonce, ctBody);
   }
@@ -84,17 +89,17 @@ export class SymmetricKey extends Serializable {
   constructor(key?: Uint8Array) {
     super();
     if (key) {
-      if (key.length !== 16) {
-        throw new Error("Must provide a key of size 16");
+      if (key.length !== SYMMETRIC_KEY_LENGTH) {
+        throw new Error(`Must provide a key of size ${SYMMETRIC_KEY_LENGTH}`);
       }
       this.key = key;
     } else {
-      this.key = randomBytes(16);
+      this.key = randomBytes(SYMMETRIC_KEY_LENGTH);
     }
   }
 
   encrypt(msg: Serializable): SymmetricCiphertext {
-    const nonce = randomBytes(12);
+    const nonce = randomBytes(GCM_NONCE_LENGTH);
     const serializer = new Serializer();
     msg.serialize(serializer);
     const bytes = serializer.toUint8Array();
@@ -107,7 +112,7 @@ export class SymmetricKey extends Serializable {
   }
 
   static deserialize(deserializer: Deserializer): SymmetricKey {
-    return new SymmetricKey(deserializer.deserializeFixedBytes(16));
+    return new SymmetricKey(deserializer.deserializeFixedBytes(SYMMETRIC_KEY_LENGTH));
   }
 }
 
