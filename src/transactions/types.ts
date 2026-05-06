@@ -44,7 +44,7 @@ import { AccountAuthenticator } from "./authenticator/account.js";
 import { SimpleTransaction } from "./instances/simpleTransaction.js";
 import { MultiAgentTransaction } from "./instances/multiAgentTransaction.js";
 import { Serialized } from "../bcs/index.js";
-import { MoveStructArgument, MoveEnumArgument } from "./transactionBuilder/structEnumParser.js";
+import type { MoveStructArgument, MoveEnumArgument } from "./transactionBuilder/structEnumParser.js";
 
 /**
  * Entry function arguments for building a raw transaction using remote ABI, supporting various data types including primitives and arrays.

@@ -296,7 +296,8 @@ export class StructEnumArgumentParser {
       this.moduleCache.set(cacheKey, accountModules);
       return accountModules;
     } catch (error) {
-      throw new Error(`Failed to fetch module ${moduleAddress}${MODULE_SEPARATOR}${moduleName}: ${error}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to fetch module ${moduleAddress}${MODULE_SEPARATOR}${moduleName}: ${errorMessage}`);
     }
   }
 
@@ -465,7 +466,9 @@ export class StructEnumArgumentParser {
     // We need to handle the variantFields based on the type string
 
     const variantDef = enumDef.fields[variantIndex];
-    const variantType = this.parseTypeString(variantDef.type);
+    // Substitute generic type parameters for the variant payload type so that
+    // generic enums (e.g. `Some(T0)`) are encoded against the instantiated type.
+    const variantType = this.substituteTypeParams(this.parseTypeString(variantDef.type), structTag);
 
     // If variant has fields, encode them
     if (typeof variantFields === "object" && variantFields !== null && !Array.isArray(variantFields)) {
@@ -702,11 +705,11 @@ export class StructEnumArgumentParser {
     if (!Array.isArray(value)) {
       // Special case: vector<u8> can be a string
       if (vectorType.value instanceof TypeTagU8 && typeof value === "string") {
-        // Treat as UTF-8 encoded string
+        // Treat as UTF-8 encoded string. `serializeBytes` already writes the
+        // ULEB128 length prefix, so we must not write the length explicitly.
         const encoder = new TextEncoder();
         const bytes = encoder.encode(value);
         const serializer = new Serializer();
-        serializer.serializeU32AsUleb128(bytes.length);
         serializer.serializeBytes(bytes);
         return serializer.toUint8Array();
       }

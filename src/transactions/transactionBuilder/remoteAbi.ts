@@ -78,7 +78,7 @@ import {
 import { MoveFunction, MoveModule } from "../../types/index.js";
 import { warnIfDevelopment } from "../../utils/helpers.js";
 import { memoizeAsync } from "../../utils/memoize.js";
-import { StructEnumArgumentParser } from "./structEnumParser.js";
+import { MoveEnumArgument, MoveStructArgument, StructEnumArgumentParser } from "./structEnumParser.js";
 import { TEXT_ENCODER } from "../../utils/index.js";
 
 /**
@@ -114,7 +114,7 @@ const MODULE_ABI_CACHE_TTL_MS = 5 * 60 * 1000;
 export type ModuleAbiBundle = {
   /** The main module ABI */
   module: MoveModule;
-  /** Map of referenced struct ABIs: "address::module::struct" -> MoveModule */
+  /** Map of modules containing referenced struct ABIs: "address::module" -> MoveModule */
   referencedStructModules: Map<string, MoveModule>;
 };
 
@@ -580,9 +580,27 @@ export async function checkOrConvertArgumentWithABI(
   aptosConfig: AptosConfig,
   moduleAbi?: MoveModule,
   options?: { allowUnknownStructs?: boolean },
-) {
+): Promise<EntryFunctionArgumentTypes> {
   // If the argument is bcs encoded, we can just use it directly
   if (isEncodedEntryFunctionArgument(arg)) {
+    // If the expected type is Option but the arg is not already a MoveOption,
+    // wrap it after validating it matches the Option's inner type. This mirrors
+    // the behavior of the synchronous `checkOrConvertArgument` path so that
+    // pre-encoded inner values (e.g. AccountAddress inside Vector<Option<address>>)
+    // can be passed through the async path as well.
+    if (param.isStruct() && param.isOption() && !(arg instanceof MoveOption)) {
+      const inner = await checkOrConvertArgumentWithABI(
+        arg,
+        param.value.typeArgs[0],
+        position,
+        genericTypeParams,
+        aptosConfig,
+        moduleAbi,
+        options,
+      );
+      return new MoveOption(inner);
+    }
+
     // Ensure the type matches the ABI
     checkType(param, arg, position);
     return arg;
@@ -721,7 +739,14 @@ function parseArgSync(
       throw new Error(`Generic argument ${param.toString()} is invalid for argument ${position}`);
     }
 
-    return checkOrConvertArgument(arg, genericTypeParams[genericIndex], position, genericTypeParams, moduleAbi);
+    return checkOrConvertArgument(
+      arg,
+      genericTypeParams[genericIndex],
+      position,
+      genericTypeParams,
+      moduleAbi,
+      options,
+    );
   }
 
   // We have to special case some vectors for Vector<u8>
@@ -742,13 +767,13 @@ function parseArgSync(
     if (isString(arg)) {
       // In a web env, arguments are passing as strings
       if (arg.startsWith("[")) {
-        return checkOrConvertArgument(JSON.parse(arg), param, position, genericTypeParams);
+        return checkOrConvertArgument(JSON.parse(arg), param, position, genericTypeParams, moduleAbi, options);
       }
     }
 
     if (Array.isArray(arg)) {
       return new MoveVector(
-        arg.map((item) => checkOrConvertArgument(item, param.value, position, genericTypeParams, moduleAbi)),
+        arg.map((item) => checkOrConvertArgument(item, param.value, position, genericTypeParams, moduleAbi, options)),
       );
     }
 
@@ -1021,6 +1046,7 @@ async function parseArgAsync(
       genericTypeParams,
       aptosConfig,
       moduleAbi,
+      options,
     );
   }
 
@@ -1044,7 +1070,15 @@ async function parseArgAsync(
     if (isString(arg)) {
       // In a web env, arguments are passing as strings
       if (arg.startsWith("[")) {
-        return checkOrConvertArgumentWithABI(JSON.parse(arg), param, position, genericTypeParams, aptosConfig);
+        return checkOrConvertArgumentWithABI(
+          JSON.parse(arg),
+          param,
+          position,
+          genericTypeParams,
+          aptosConfig,
+          moduleAbi,
+          options,
+        );
       }
     }
 
@@ -1053,7 +1087,15 @@ async function parseArgAsync(
     if (Array.isArray(arg)) {
       const elements = await Promise.all(
         arg.map((item) =>
-          checkOrConvertArgumentWithABI(item, param.value, position, genericTypeParams, aptosConfig, moduleAbi),
+          checkOrConvertArgumentWithABI(
+            item,
+            param.value,
+            position,
+            genericTypeParams,
+            aptosConfig,
+            moduleAbi,
+            options,
+          ),
         ),
       );
       return new MoveVector(elements);
@@ -1166,7 +1208,9 @@ async function parseArgAsync(
         throw new Error(
           `AptosConfig required for struct/enum argument at position ${position}. ` +
             `Type: '${param.toString()}'. ` +
-            `Either provide aptosConfig or use FixedBytes with pre-encoded BCS bytes.`,
+            `Either provide aptosConfig, or pre-encode the argument as a ` +
+            `MoveStructArgument / MoveEnumArgument (preferred) or as FixedBytes ` +
+            `containing the BCS-encoded value.`,
         );
       }
 
@@ -1366,6 +1410,17 @@ function checkType(param: TypeTag, arg: EntryFunctionArgumentTypes, position: nu
       }
       throwTypeMismatch("MoveOption", position);
     }
+
+    // For custom (non-framework) struct/enum params, accept the pre-encoded
+    // argument types: MoveStructArgument, MoveEnumArgument, or FixedBytes.
+    // We cannot fully verify the inner BCS bytes without the ABI, but accepting
+    // these classes is safer than rejecting valid pre-encoded inputs and is
+    // required for documented "pre-encode and pass" flows.
+    if (arg instanceof MoveStructArgument || arg instanceof MoveEnumArgument || arg instanceof FixedBytes) {
+      return;
+    }
+
+    throwTypeMismatch("MoveStructArgument | MoveEnumArgument | FixedBytes", position);
   }
 
   throw new Error(`Type mismatch for argument ${position}, expected '${param.toString()}'`);
