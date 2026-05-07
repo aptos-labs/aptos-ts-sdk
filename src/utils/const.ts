@@ -38,6 +38,14 @@ export const DEFAULT_MAX_GAS_AMOUNT = 2000000;
 export const MIN_MAX_GAS_AMOUNT = 2000;
 
 /**
+ * Minimum gas unit price (Octas per gas unit) for encrypted transactions.
+ * Encrypted transactions require 2× the network base minimum (100) because validators
+ * bear the decryption compute cost (aptos-core `encrypted_txn_min_price_per_gas_unit`,
+ * RELEASE_V1_45+). The node rejects encrypted submissions below this price.
+ */
+export const MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE = 200;
+
+/**
  * The default transaction expiration seconds from now.
  *
  * This time is how long until the blockchain nodes will reject the transaction.

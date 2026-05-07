@@ -12,6 +12,15 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - **Sub-path exports** — import from `@aptos-labs/ts-sdk/account`, `@aptos-labs/ts-sdk/transaction`, `@aptos-labs/ts-sdk/keyless`, etc. for minimal bundle sizes.
 - **`sideEffects: false`** in package.json for bundler tree-shaking.
 - **Variant registry pattern** for `AnyPublicKey`/`AnySignature` — keyless variants register at runtime, removing compile-time poseidon dependency from core crypto.
+- **Encrypted transaction payloads** — pass `options: { encrypted: true, authenticationKey }` to `build.simple()`, `build.multiAgent()`, or `build.sponsorship()` to encrypt the executable payload with the node's per-epoch BLS12-381 batch IBE key before submission.
+  - `authenticationKey` accepts an `AccountPublicKey` (auth key derived automatically) or a raw 32-byte hex string. Multi-agent builds also accept `secondarySignerAuthenticationKeys`; sponsored builds accept `feePayerAuthenticationKey`.
+  - Gas unit price is floored at `MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE` (200) to cover validator decryption cost.
+  - Simulating an encrypted payload throws a clear error; simulate the plaintext version first.
+  - Keyless signers are rejected at signing time (signature mutability breaks payload binding).
+  - Multisig payloads are structured correctly on the SDK side but currently rejected by the server; pending fullnode support.
+  - New exports: `EncryptionKey`, `DecryptedPlaintext`, `PayloadAssociatedData`, `ClaimedEntryFunction`, `MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE`.
+  - Ledger info gains optional `encryption_key`; `TransactionPayloadResponse` gains `EncryptedTransactionPayloadResponse`.
+  - Devnet e2e tests: `pnpm e2e-encrypted`.
 
 ## Breaking
 
@@ -26,6 +35,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - **`generateSignedTransactionForSimulation` is now async** — callers must `await` it.
   - See: `upgrade-guides/UPGRADE_GUIDE_7.0.0.md`
 - Rename `AccountSequenceNumber.lastUncommintedNumber` → `lastUncommittedNumber` (typo fix).
+- **`AuthenticationKey` BCS wire format changed** — `serialize()` now emits ULEB128 length-prefixed bytes (`serializeBytes`) instead of raw fixed bytes (`serializeFixedBytes`), matching the Rust `serde_bytes`-derived `AuthenticationKey::serialize`. This affects any caller that BCS-encodes an `AuthenticationKey` directly (e.g., `authKey.bcsToBytes()`, `authKey.bcsToHex()`). If you persist or transmit `AuthenticationKey` BCS bytes, update the reader to expect a 1-byte `0x20` length prefix before the 32 payload bytes. `toString()` now returns the raw 32-byte hex address rather than the BCS representation.
 
 ## Changed
 
@@ -34,10 +44,15 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Remove `dotenv` usage from all TypeScript/JavaScript examples. Node 22+ users can rely on the built-in `node --env-file=.env` flag (or `tsx --env-file=.env`) when a `.env` file is needed; the examples default to devnet and don't require one.
 - `AnsName` now reports nullable indexer fields honestly instead of fabricating placeholder values. `domain`, `token_standard`, and `is_primary` are typed as optional (`string | undefined` / `AnsTokenStandard | undefined` / `boolean | undefined`), and `sanitizeANSName` passes them through as `undefined` rather than defaulting to `"N/A"`, `"v2"`, `false`, or `""`. Consumers that previously relied on these fields always being present should handle the `undefined` case (or filter the row out as bad indexer data).
 - `AccountAbstraction.addAuthenticationFunctionTransaction`, `removeAuthenticationFunctionTransaction`, and `disableAccountAbstractionTransaction` now type their `authenticationFunction` parameter as `MoveFunctionId` instead of `string`. `MoveFunctionId` is a string alias, so string literals still compile; callers passing a typed `string` variable may need to retype it (or cast) to satisfy the tightened signature. Updated the `hello_world_authenticator_account_abstraction.ts` and `public_key_authenticator_account_abstraction.ts` examples accordingly — they now annotate `authenticationFunction` as `MoveFunctionId` and call `.toString()` on the account address so the template literal type resolves correctly.
+- Batch-encryption curve deserialization: `bytesToG2` requires prime-order subgroup points (`isTorsionFree` after `fromBytes`), matching aptos-core `ts-batch-encrypt`.
 
 ## Fixed
 
 - Fix Windows compatibility when using `aptos move` CLI helpers (e.g. `aptos move compile`). The previous implementation attempted to spawn `npx.cmd` directly without `shell: true`, which is rejected by Node.js ≥20.12.2+ due to security restrictions on executing `.cmd`/`.bat` shims. Now correctly passes `{ shell: true }` on Windows (consistent with `LocalNode`).
+- **Encrypted transactions:** Enforce minimum gas unit price of 200 Octas/gas-unit when `options.encrypted` is true. The aptos-core gas schedule (`RELEASE_V1_45`, `encrypted_txn_min_price_per_gas_unit = 200`) requires encrypted transactions to pay 2× the network base minimum (100) to cover validator decryption cost. If the estimated or caller-supplied gas unit price is below 200, `generateRawTransaction` silently bumps it to 200. Callers who explicitly set a higher price are unaffected. New export: `MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE = 200` from `src/utils/const.ts`.
+- **Encrypted transactions:** Reject multisig payloads client-side when `options.encrypted` is true. Payloads derived from `TransactionPayloadMultiSig` (or any payload that sets `multisig_address` in `extra_config`) now throw immediately in `encryptTransactionPayload`, matching the server-side rejection added in aptos-core `83daaf1ad4`. Previously the error surfaced only at submission.
+- **Encrypted transactions:** `signAndSubmitTransaction` now throws before submission if the signer or fee payer is a keyless or federated keyless account and the transaction payload is encrypted. Encrypted transactions cannot use keyless signers because signature malleability breaks payload binding (server-enforced in aptos-core `83daaf1ad4`).
+- **Types:** `decryption_failure_reason` in `EncryptedTransactionPayloadResponse` is annotated as "not yet surfaced by the REST API" — the field is optional and safe to ignore in current responses.
 - `projects/gas-station` example: `/signAndSubmit` now returns a string `error` message in its 500 JSON response instead of the raw error object. `JSON.stringify`-ing an `Error` produces `{}` (because its standard properties are non-enumerable), so the previous response was effectively `{"error":{}}`. Now formats the message safely (`error instanceof Error ? error.message : String(error)`) so clients get a useful diagnostic without the example leaking internal error shape.
 - Fix `aptos.transaction.getBlockByHeight({ options: { withTransactions: true } })` / `getBlockByVersion` crashing with `TypeError: Cannot use 'in' operator to search for 'version' in undefined` on blocks whose `transactions` array is empty. `fillBlockTransactions` now guards `lastTxn` before the `in` check.
 - Fix `aptos.account.accountExists` (`doesAccountExistAtAddress`) on accounts with many resources: the old path fetched the full resource list and scanned it for `0x1::account::Account`, which is slow and can fail for large or sparse accounts. Replaced with a single fallible resource fetch (new internal `getResourceFallible` helper) that treats 404 as "not found". Only affects internal callers; the public API is unchanged.

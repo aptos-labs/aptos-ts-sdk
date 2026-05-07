@@ -9,5 +9,6 @@ export * from "./rotationProofChallenge.js";
 export * from "./signedTransaction.js";
 export * from "./transactionArgument.js";
 export * from "./transactionPayload.js";
+export * from "./encryptedPayload.js";
 export * from "./simpleTransaction.js";
 export * from "./multiAgentTransaction.js";

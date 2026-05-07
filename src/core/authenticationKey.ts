@@ -59,26 +59,31 @@ export class AuthenticationKey extends Serializable {
   }
 
   /**
-   * Serializes the fixed bytes data into a format suitable for transmission or storage.
-   *
-   * @param serializer - The serializer instance used to perform the serialization.
-   * @group Implementation
-   * @category Serialization
+   * BCS wire format: ULEB128 length `0x20` then 32 bytes. Matches Rust `AuthenticationKey`'s
+   * `serde_bytes`-derived `Serialize`. Used by `PayloadAssociatedData::V1.signer_auth_keys`.
    */
   serialize(serializer: Serializer): void {
-    serializer.serializeFixedBytes(this.data.toUint8Array());
+    serializer.serializeBytes(this.data.toUint8Array());
   }
 
   /**
-   * Deserialize an AuthenticationKey from the byte buffer in a Deserializer instance.
-   * @param deserializer - The deserializer to deserialize the AuthenticationKey from.
-   * @returns An instance of AuthenticationKey.
-   * @group Implementation
-   * @category Serialization
+   * Inverse of {@link serialize}. The runtime length check rejects malformed input that decodes
+   * to anything other than 32 bytes — `deserializeBytes` returns variable-length data.
    */
   static deserialize(deserializer: Deserializer): AuthenticationKey {
-    const bytes = deserializer.deserializeFixedBytes(AuthenticationKey.LENGTH);
+    const bytes = deserializer.deserializeBytes();
+    if (bytes.length !== AuthenticationKey.LENGTH) {
+      throw new Error(`AuthenticationKey BCS must be ${AuthenticationKey.LENGTH} bytes, got ${bytes.length}`);
+    }
     return new AuthenticationKey({ data: bytes });
+  }
+
+  /**
+   * Override `Serializable.toString` (which would return the length-prefixed BCS hex) so the public
+   * representation stays the underlying 32-byte hex address — what callers compare against.
+   */
+  toString(): string {
+    return this.data.toString();
   }
 
   /**
