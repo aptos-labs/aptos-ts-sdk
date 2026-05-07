@@ -1,8 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Hex } from "../../src/index.js";
-import { bigIntToBytesLE, bytesToBigIntLE, hashStrToField, poseidonHash } from "../../src/core/crypto/poseidon.js";
+import { bigIntToBytesLE, bytesToBigIntLE, hashStrToField, Hex, poseidonHash } from "../../src";
 
 describe("Poseidon", () => {
   it("should hash correctly", () => {

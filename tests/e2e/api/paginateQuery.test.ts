@@ -1,4 +1,4 @@
-import { getAptosClient } from "../helper.js";
+import { getAptosClient } from "../helper";
 
 describe("PaginateQuery", () => {
   const { aptos } = getAptosClient();

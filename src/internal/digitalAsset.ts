@@ -9,11 +9,11 @@
  * @group Implementation
  */
 
-import { AptosConfig } from "../api/aptosConfig.js";
-import { Bool, MoveString, MoveVector, U64 } from "../bcs/index.js";
-import { AccountAddress, AccountAddressInput } from "../core/index.js";
-import { Account } from "../account/index.js";
-import { EntryFunctionABI, InputGenerateTransactionOptions } from "../transactions/types.js";
+import { AptosConfig } from "../api/aptosConfig";
+import { Bool, MoveString, MoveVector, U64 } from "../bcs";
+import { AccountAddress, AccountAddressInput } from "../core";
+import { Account } from "../account";
+import { EntryFunctionABI, InputGenerateTransactionOptions } from "../transactions/types";
 import {
   AnyNumber,
   GetCollectionDataResponse,
@@ -27,27 +27,27 @@ import {
   PaginationArgs,
   TokenStandardArg,
   WhereArg,
-} from "../types/index.js";
+} from "../types";
 import {
   GetCollectionDataQuery,
   GetCurrentTokenOwnershipQuery,
   GetTokenActivityQuery,
   GetTokenDataQuery,
-} from "../types/generated/operations.js";
+} from "../types/generated/operations";
 import {
   GetCollectionData,
   GetCurrentTokenOwnership,
   GetTokenActivity,
   GetTokenData,
-} from "../types/generated/queries.js";
-import { queryIndexer } from "./general.js";
-import { generateTransaction } from "./transactionSubmission.js";
-import { MAX_U64_BIG_INT } from "../bcs/consts.js";
+} from "../types/generated/queries";
+import { queryIndexer } from "./general";
+import { generateTransaction } from "./transactionSubmission";
+import { MAX_U64_BIG_INT } from "../bcs/consts";
 import {
   CurrentCollectionsV2BoolExp,
   CurrentTokenOwnershipsV2BoolExp,
   TokenActivitiesV2BoolExp,
-} from "../types/generated/types.js";
+} from "../types/generated/types";
 import {
   checkOrConvertArgument,
   objectStructTag,
@@ -59,8 +59,8 @@ import {
   TypeTagStruct,
   TypeTagU64,
   TypeTagVector,
-} from "../transactions/index.js";
-import { SimpleTransaction } from "../transactions/instances/simpleTransaction.js";
+} from "../transactions";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 // A property type map for the user input and what Move expects
 const PropertyTypeMap = {

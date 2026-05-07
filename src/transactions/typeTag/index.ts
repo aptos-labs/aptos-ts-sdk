@@ -1,11 +1,11 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Deserializer } from "../../bcs/deserializer.js";
-import { Serializable, Serializer } from "../../bcs/serializer.js";
-import { AccountAddress } from "../../core/index.js";
-import { Identifier } from "../instances/identifier.js";
-import { TypeTagVariants } from "../../types/index.js";
+import { Deserializer } from "../../bcs/deserializer";
+import { Serializable, Serializer } from "../../bcs/serializer";
+import { AccountAddress } from "../../core";
+import { Identifier } from "../instances/identifier";
+import { TypeTagVariants } from "../../types";
 
 /**
  * Represents a type tag in the serialization framework, serving as a base class for various specific type tags.

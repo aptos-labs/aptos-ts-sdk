@@ -1,12 +1,14 @@
 /**
  * This example shows how to use the Aptos client to create accounts, fund them, and transfer between them.
  */
-import { Account, Aptos, AptosConfig, NetworkToNetworkName, Network } from "@aptos-labs/ts-sdk";
+const dotenv = require("dotenv");
+dotenv.config();
+const { Account, Aptos, AptosConfig, NetworkToNetworkName, Network } = require("@aptos-labs/ts-sdk");
 
 const ALICE_INITIAL_BALANCE = 1_000_000_000;
 const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 100;
-const APTOS_NETWORK = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET] ?? Network.DEVNET;
+const APTOS_NETWORK = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 
 const balance = async (sdk, name, address, versionToWaitFor) => {
   const amount = await sdk.getAccountAPTAmount({
@@ -25,8 +27,8 @@ const example = async () => {
   const sdk = new Aptos(config);
 
   // Create two accounts
-  const alice = Account.generate({ scheme: 0 });
-  const bob = Account.generate({ scheme: 0 });
+  let alice = Account.generate({ scheme: 0 });
+  let bob = Account.generate({ scheme: 0 });
 
   console.log("=== Addresses ===\n");
   console.log(`Alice's address is: ${alice.accountAddress}`);
@@ -49,8 +51,8 @@ const example = async () => {
 
   // Show the balances
   console.log("\n=== Balances ===\n");
-  const aliceBalance = await balance(sdk, "Alice", alice.accountAddress);
-  const bobBalance = await balance(sdk, "Bob", bob.accountAddress);
+  let aliceBalance = await balance(sdk, "Alice", alice.accountAddress);
+  let bobBalance = await balance(sdk, "Bob", bob.accountAddress);
 
   if (aliceBalance !== ALICE_INITIAL_BALANCE) throw new Error("Alice's balance is incorrect");
   if (bobBalance !== BOB_INITIAL_BALANCE) throw new Error("Bob's balance is incorrect");
@@ -65,13 +67,13 @@ const example = async () => {
   });
 
   console.log("\n=== Transfer transaction ===\n");
-  const committedTxn = await sdk.signAndSubmitTransaction({ signer: alice, transaction: txn });
+  let committedTxn = await sdk.signAndSubmitTransaction({ signer: alice, transaction: txn });
   console.log(`Committed transaction: ${committedTxn.hash}`);
   await sdk.waitForTransaction({ transactionHash: committedTxn.hash });
 
   console.log("\n=== Balances after transfer ===\n");
-  const newAliceBalance = await balance(sdk, "Alice", alice.accountAddress);
-  const newBobBalance = await balance(sdk, "Bob", bob.accountAddress);
+  let newAliceBalance = await balance(sdk, "Alice", alice.accountAddress);
+  let newBobBalance = await balance(sdk, "Bob", bob.accountAddress);
 
   // Bob should have the transfer amount
   if (newBobBalance !== TRANSFER_AMOUNT + BOB_INITIAL_BALANCE)

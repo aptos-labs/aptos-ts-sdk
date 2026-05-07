@@ -1,10 +1,10 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account } from "../../account/index.js";
-import { signTransaction } from "../../internal/transactionSubmission.js";
-import { AccountAuthenticator, AnyRawTransaction } from "../../transactions/index.js";
-import { AptosConfig } from "../aptosConfig.js";
+import { Account } from "../../account";
+import { signTransaction } from "../../internal/transactionSubmission";
+import { AccountAuthenticator, AnyRawTransaction } from "../../transactions";
+import { AptosConfig } from "../aptosConfig";
 
 /**
  * A class to handle all `Sign` transaction operations.

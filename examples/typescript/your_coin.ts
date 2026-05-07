@@ -1,7 +1,10 @@
 /* eslint-disable no-console */
 
+import dotenv from "dotenv";
 import { Account, AccountAddress, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
-import { compilePackage, getPackageBytesToPublish } from "./utils.js";
+import { compilePackage, getPackageBytesToPublish } from "./utils";
+
+dotenv.config();
 
 /**
  * This example demonstrate how one can publish a new custom coin to chain.

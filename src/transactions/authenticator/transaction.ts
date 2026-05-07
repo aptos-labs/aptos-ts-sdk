@@ -1,12 +1,12 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountAuthenticator } from "./account.js";
-import { Deserializer, Serializable, Serializer } from "../../bcs/index.js";
-import { AccountAddress } from "../../core/index.js";
-import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519.js";
-import { MultiEd25519PublicKey, MultiEd25519Signature } from "../../core/crypto/multiEd25519.js";
-import { TransactionAuthenticatorVariant } from "../../types/index.js";
+import { AccountAuthenticator } from "./account";
+import { Deserializer, Serializable, Serializer } from "../../bcs";
+import { AccountAddress } from "../../core";
+import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
+import { MultiEd25519PublicKey, MultiEd25519Signature } from "../../core/crypto/multiEd25519";
+import { TransactionAuthenticatorVariant } from "../../types";
 
 /**
  * Represents an abstract base class for transaction authenticators.

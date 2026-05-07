@@ -9,13 +9,15 @@
     "ignoreUnknown": true,
     "includes": [
       "**",
-      "!src/types/generated",
-      "!dist",
-      "!node_modules",
-      "!**/dist",
-      "!**/node_modules",
-      "!docs",
-      "!**/*.js"
+      "!src/types/generated/**",
+      "!dist/**",
+      "!node_modules/**",
+      "!**/dist/**",
+      "!**/node_modules/**",
+      "!confidential-assets/**",
+      "!projects/**",
+      "!examples/**",
+      "!docs/**"
     ]
   },
   "formatter": {

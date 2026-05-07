@@ -1,13 +1,13 @@
-import { HexInput, SigningScheme } from "../../types/index.js";
-import { TEXT_ENCODER } from "../../utils/const.js";
-import { Hex } from "../hex.js";
-import { Ed25519PublicKey } from "./ed25519.js";
-import { MultiEd25519PublicKey } from "./multiEd25519.js";
-import { MultiKey } from "./multiKey.js";
-import { AccountPublicKey } from "./publicKey.js";
-import { AnyPublicKey } from "./singleKey.js";
-import { BaseAccountPublicKey } from "./types.js";
-import { detectPublicKeyVariant } from "./anyKeyRegistry.js";
+import { HexInput, SigningScheme } from "../../types";
+import { Hex } from "../hex";
+import { Ed25519PublicKey } from "./ed25519";
+import { FederatedKeylessPublicKey } from "./federatedKeyless";
+import { KeylessPublicKey } from "./keyless";
+import { MultiEd25519PublicKey } from "./multiEd25519";
+import { MultiKey } from "./multiKey";
+import { AccountPublicKey } from "./publicKey";
+import { AnyPublicKey } from "./singleKey";
+import { BaseAccountPublicKey } from "./types";
 
 /**
  * Helper function to convert a message to sign or to verify to a valid message input
@@ -24,7 +24,7 @@ export const convertSigningMessage = (message: HexInput): HexInput => {
     const isValid = Hex.isValid(message);
     // If message is not a valid Hex string, convert it
     if (!isValid.valid) {
-      return TEXT_ENCODER.encode(message);
+      return new TextEncoder().encode(message);
     }
     // If message is a valid Hex string, return it
     return message;
@@ -42,11 +42,7 @@ export const accountPublicKeyToBaseAccountPublicKey = (publicKey: AccountPublicK
   ) {
     return publicKey;
   }
-  // Keyless / FederatedKeyless public keys register themselves in the variant
-  // registry when imported. Using the registry lets us wrap them in
-  // `AnyPublicKey` here without a compile-time dependency on the keyless
-  // module (which would pull poseidon-lite into the `/account` sub-path).
-  if (detectPublicKeyVariant(publicKey) !== undefined) {
+  if (publicKey instanceof KeylessPublicKey || publicKey instanceof FederatedKeylessPublicKey) {
     return new AnyPublicKey(publicKey);
   }
   throw new Error(`Unknown account public key: ${publicKey}`);

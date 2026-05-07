@@ -1,12 +1,12 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
-import { Serializable, Serializer, serializeEntryFunctionBytesCompat } from "../bcs/serializer.js";
-import { Deserializer } from "../bcs/deserializer.js";
-import { ParsingError, ParsingResult } from "./common.js";
-import { TransactionArgument } from "../transactions/instances/transactionArgument.js";
-import { HexInput, ScriptTransactionArgumentVariants } from "../types/index.js";
+import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
+import { Serializable, Serializer } from "../bcs/serializer";
+import { Deserializer } from "../bcs/deserializer";
+import { ParsingError, ParsingResult } from "./common";
+import { TransactionArgument } from "../transactions/instances/transactionArgument";
+import { HexInput, ScriptTransactionArgumentVariants } from "../types";
 
 /**
  * Provides reasons for an address was invalid.
@@ -240,14 +240,14 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   /**
    * Serializes the current instance into a byte sequence suitable for entry functions.
    * This allows for the proper encoding of data when interacting with entry functions in the blockchain.
-   * Uses serializeAsBytes when available, with a fallback for older Serializer versions.
+   * Uses the optimized serializeAsBytes method to reduce allocations.
    *
    * @param serializer - The serializer instance used to convert the data into bytes.
    * @group Implementation
    * @category Serialization
    */
   serializeForEntryFunction(serializer: Serializer): void {
-    serializeEntryFunctionBytesCompat(serializer, this);
+    serializer.serializeAsBytes(this);
   }
 
   /**

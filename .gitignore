@@ -23,7 +23,3 @@ examples/typescript/facoin/facoin.json
 .env
 .env.*
 *.tgz
-
-# Playwright
-playwright-report/
-test-results/

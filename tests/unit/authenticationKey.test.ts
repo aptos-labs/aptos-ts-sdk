@@ -1,14 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-  AuthenticationKey,
-  Deserializer,
-  Ed25519PublicKey,
-  MultiEd25519PublicKey,
-  Serializer,
-} from "../../src/index.js";
-import { ed25519, multiEd25519PkTestObject } from "./helper.js";
+import { AuthenticationKey, Deserializer, Ed25519PublicKey, MultiEd25519PublicKey, Serializer } from "../../src";
+import { ed25519, multiEd25519PkTestObject } from "./helper";
 
 describe("AuthenticationKey", () => {
   it("should create an instance with save the HexInput correctly", () => {

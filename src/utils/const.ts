@@ -112,10 +112,5 @@ export const FIREBASE_AUTH_ISS_PATTERN = /^https:\/\/securetoken\.google\.com\/[
 
 /**
  * Shared TextEncoder instance for string serialization to avoid repeated instantiation.
- *
- * The explicit structural type prevents TypeScript from inferring `import("util").TextEncoder`
- * (from `@types/node`) into the emitted `.d.ts`, which would force every SDK consumer to
- * have `@types/node` installed. The SDK is runtime-agnostic (browser/Node/Bun/Deno/RN), so
- * we expose only the minimal shape the SDK actually uses.
  */
-export const TEXT_ENCODER: { encode(input: string): Uint8Array } = new TextEncoder();
+export const TEXT_ENCODER = new TextEncoder();

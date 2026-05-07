@@ -10,7 +10,7 @@ import {
   Network,
   NetworkToNetworkName,
 } from "@aptos-labs/ts-sdk";
-import { compilePackage, getPackageBytesToPublish } from "./utils.js";
+import { compilePackage, getPackageBytesToPublish } from "./utils";
 
 /**
  * This example demonstrate how one can compile, deploy, and transfer fungible assets (FA) between primary and secondary stores

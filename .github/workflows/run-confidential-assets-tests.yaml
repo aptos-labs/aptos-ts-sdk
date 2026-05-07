@@ -1,0 +1,17 @@
+name: "Run tests for confidential assets with local testnet from latest CLI"
+on:
+  pull_request:
+    types: [labeled, opened, synchronize, reopened, auto_merge_enabled]
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/run-confidential-assets-tests

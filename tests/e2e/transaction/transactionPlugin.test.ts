@@ -8,10 +8,10 @@ import {
   PendingTransactionResponse,
   TransactionResponseType,
   InputSubmitTransactionData,
-} from "../../../src/index.js";
-import { getAptosClient } from "../helper.js";
-import { fundAccounts, publishTransferPackage } from "./helper.js";
-import { longTestTimeout } from "../../unit/helper.js";
+} from "../../../src";
+import { getAptosClient } from "../helper";
+import { fundAccounts, publishTransferPackage } from "./helper";
+import { longTestTimeout } from "../../unit/helper";
 
 // Global state to track plugin calls
 interface PluginCallData {

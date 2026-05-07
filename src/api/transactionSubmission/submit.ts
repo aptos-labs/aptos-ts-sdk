@@ -1,11 +1,11 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { submitTransaction } from "../../internal/transactionSubmission.js";
-import { AccountAuthenticator, AnyRawTransaction, InputTransactionPluginData } from "../../transactions/index.js";
-import { PendingTransactionResponse } from "../../types/index.js";
-import { AptosConfig } from "../aptosConfig.js";
-import { validateFeePayerDataOnSubmission } from "./helpers.js";
+import { submitTransaction } from "../../internal/transactionSubmission";
+import { AccountAuthenticator, AnyRawTransaction, InputTransactionPluginData } from "../../transactions";
+import { PendingTransactionResponse } from "../../types";
+import { AptosConfig } from "../aptosConfig";
+import { validateFeePayerDataOnSubmission } from "./helpers";
 
 /**
  * A class to handle all `Submit` transaction operations.

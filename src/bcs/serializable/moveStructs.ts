@@ -1,13 +1,13 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Bool, U128, U16, U256, U32, U64, U8, I8, I16, I32, I64, I128, I256 } from "./movePrimitives.js";
-import { Serializable, Serializer, serializeEntryFunctionBytesCompat } from "../serializer.js";
-import { Deserializable, Deserializer } from "../deserializer.js";
-import { AnyNumber, HexInput, ScriptTransactionArgumentVariants } from "../../types/index.js";
-import { Hex } from "../../core/hex.js";
-import { EntryFunctionArgument, TransactionArgument } from "../../transactions/instances/transactionArgument.js";
-import { TEXT_ENCODER } from "../../utils/const.js";
+import { Bool, U128, U16, U256, U32, U64, U8, I8, I16, I32, I64, I128, I256 } from "./movePrimitives";
+import { Serializable, Serializer } from "../serializer";
+import { Deserializable, Deserializer } from "../deserializer";
+import { AnyNumber, HexInput, ScriptTransactionArgumentVariants } from "../../types";
+import { Hex } from "../../core/hex";
+import { AccountAddress, AccountAddressInput } from "../../core/accountAddress";
+import { EntryFunctionArgument, TransactionArgument } from "../../transactions/instances/transactionArgument";
 
 /**
  * This class is the Aptos Typescript SDK representation of a Move `vector<T>`,
@@ -70,14 +70,14 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
   /**
    * Serializes the current instance into a byte sequence suitable for entry functions.
    * This allows the data to be properly formatted for transmission or storage.
-   * Uses serializeAsBytes when available, with a fallback for older Serializer versions.
+   * Uses the optimized serializeAsBytes method to reduce allocations.
    *
    * @param serializer - The serializer instance used to serialize the byte sequence.
    * @group Implementation
    * @category BCS
    */
   serializeForEntryFunction(serializer: Serializer): void {
-    serializeEntryFunctionBytesCompat(serializer, this);
+    serializer.serializeAsBytes(this);
   }
 
   /**
@@ -377,6 +377,23 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
   }
 
   /**
+   * Factory method to generate a MoveVector<AccountAddress> from an array of `AccountAddressInput` values.
+   *
+   * @param values - The values used to fill the MoveVector.
+   * @returns A MoveVector<AccountAddress> with the inner values.
+   *
+   * @example
+   * ```typescript
+   * const v = MoveVector.Address(["0x1", "0x2"]);
+   * ```
+   * @group Implementation
+   * @category BCS
+   */
+  static Address(values: Array<AccountAddressInput>): MoveVector<AccountAddress> {
+    return new MoveVector<AccountAddress>(values.map((v) => AccountAddress.from(v)));
+  }
+
+  /**
    * Serializes the current object using the provided serializer.
    * This function will serialize the value if it is present.
    *
@@ -494,12 +511,13 @@ export class MoveString extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    serializeEntryFunctionBytesCompat(serializer, this);
+    serializer.serializeAsBytes(this);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
     // Serialize the string as a fixed byte string, i.e., without the length prefix
-    const fixedStringBytes = TEXT_ENCODER.encode(this.value);
+    const textEncoder = new TextEncoder();
+    const fixedStringBytes = textEncoder.encode(this.value);
     // Put those bytes into a vector<u8> and serialize it as a script function argument
     const vectorU8 = MoveVector.U8(fixedStringBytes);
     vectorU8.serializeForScriptFunction(serializer);
@@ -530,7 +548,7 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    serializeEntryFunctionBytesCompat(serializer, this);
+    serializer.serializeAsBytes(this);
   }
 
   /**
@@ -811,6 +829,25 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    */
   static MoveString(value?: string | null): MoveOption<MoveString> {
     return new MoveOption<MoveString>(value !== null && value !== undefined ? new MoveString(value) : undefined);
+  }
+
+  /**
+   * Factory method to generate a MoveOption<AccountAddress> from an `AccountAddressInput` or `undefined`.
+   *
+   * @example
+   * MoveOption.Address("0x1").isSome() === true;
+   * MoveOption.Address().isSome() === false;
+   * MoveOption.Address(undefined).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * the resulting MoveOption's .isSome() method will return false.
+   * @returns a MoveOption<AccountAddress> with an inner value `value`
+   * @group Implementation
+   * @category BCS
+   */
+  static Address(value?: AccountAddressInput | null): MoveOption<AccountAddress> {
+    return new MoveOption<AccountAddress>(
+      value !== null && value !== undefined ? AccountAddress.from(value) : undefined,
+    );
   }
 
   static deserialize<U extends Serializable & EntryFunctionArgument>(

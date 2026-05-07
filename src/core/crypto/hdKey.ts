@@ -1,10 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { hmac } from "@noble/hashes/hmac.js";
-import { sha512 } from "@noble/hashes/sha2.js";
+import { hmac } from "@noble/hashes/hmac";
+import { sha512 } from "@noble/hashes/sha512";
 import * as bip39 from "@scure/bip39";
-import { TEXT_ENCODER } from "../../utils/const.js";
 
 /**
  * Contains the derived cryptographic key as a Uint8Array.
@@ -86,11 +85,8 @@ export function isValidHardenedPath(path: string): boolean {
  * @group Implementation
  * @category Serialization
  */
-const toBytes = (input: Uint8Array | string): Uint8Array =>
-  typeof input === "string" ? TEXT_ENCODER.encode(input) : input;
-
 export const deriveKey = (hashSeed: Uint8Array | string, data: Uint8Array | string): DerivedKeys => {
-  const digest = hmac.create(sha512, toBytes(hashSeed)).update(toBytes(data)).digest();
+  const digest = hmac.create(sha512, hashSeed).update(data).digest();
   return {
     key: digest.slice(0, 32),
     chainCode: digest.slice(32),

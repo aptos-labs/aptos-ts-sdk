@@ -1,4 +1,4 @@
-import { Serializable } from "../../bcs/index.js";
+import { Serializable } from "../../bcs";
 
 /**
  * An abstract representation of a cryptographic proof associated with specific

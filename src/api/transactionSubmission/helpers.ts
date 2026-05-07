@@ -1,5 +1,5 @@
-import { AccountAuthenticator, AnyRawTransaction, InputTransactionPluginData } from "../../transactions/index.js";
-import { AptosConfig } from "../aptosConfig.js";
+import { AccountAuthenticator, AnyRawTransaction, InputTransactionPluginData } from "../../transactions";
+import { AptosConfig } from "../aptosConfig";
 
 /**
  * Validates the fee payer data when submitting a transaction to ensure that the fee

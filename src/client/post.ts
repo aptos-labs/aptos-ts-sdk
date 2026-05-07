@@ -1,10 +1,10 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "../api/aptosConfig.js";
-import { aptosRequest } from "./core.js";
-import { AptosResponse, AnyNumber, ClientConfig, MimeType } from "../types/index.js";
-import { AptosApiType } from "../utils/const.js";
+import { AptosConfig } from "../api/aptosConfig";
+import { aptosRequest } from "./core";
+import { AptosResponse, AnyNumber, ClientConfig, MimeType } from "../types";
+import { AptosApiType } from "../utils/const";
 
 /**
  * Options for making a POST request, including the API client configuration.

@@ -4,21 +4,21 @@ import {
   TypeTagAddress,
   TypeTagStruct,
   stringStructTag,
-} from "../transactions/index.js";
-import { AccountAddressInput } from "../core/index.js";
-import { generateTransaction } from "./transactionSubmission.js";
-import { MoveFunctionId } from "../types/index.js";
-import { AptosConfig } from "../api/aptosConfig.js";
-import { getFunctionParts } from "../utils/helpers.js";
+} from "../transactions";
+import { AccountAddressInput } from "../core";
+import { generateTransaction } from "./transactionSubmission";
+import { MoveFunctionId } from "../types";
+import { AptosConfig } from "../api/aptosConfig";
+import { getFunctionParts } from "../utils/helpers";
 
 export async function addAuthenticationFunctionTransaction(args: {
   aptosConfig: AptosConfig;
   sender: AccountAddressInput;
-  authenticationFunction: MoveFunctionId;
+  authenticationFunction: string;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
   const { aptosConfig, sender, authenticationFunction, options } = args;
-  const { moduleAddress, moduleName, functionName } = getFunctionParts(authenticationFunction);
+  const { moduleAddress, moduleName, functionName } = getFunctionParts(authenticationFunction as MoveFunctionId);
   return generateTransaction({
     aptosConfig,
     sender,
@@ -38,11 +38,11 @@ export async function addAuthenticationFunctionTransaction(args: {
 export async function removeAuthenticationFunctionTransaction(args: {
   aptosConfig: AptosConfig;
   sender: AccountAddressInput;
-  authenticationFunction: MoveFunctionId;
+  authenticationFunction: string;
   options?: InputGenerateTransactionOptions;
 }) {
   const { aptosConfig, sender, authenticationFunction, options } = args;
-  const { moduleAddress, moduleName, functionName } = getFunctionParts(authenticationFunction);
+  const { moduleAddress, moduleName, functionName } = getFunctionParts(authenticationFunction as MoveFunctionId);
   return generateTransaction({
     aptosConfig,
     sender,

@@ -24,7 +24,7 @@ import {
   Deserializer,
   Serializer,
   parseTypeTag,
-} from "../../src/index.js";
+} from "../../src";
 
 const expectedTypeTag = {
   string: "0x1::some_module::SomeResource",

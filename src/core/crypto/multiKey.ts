@@ -1,11 +1,11 @@
-import { AnyPublicKeyVariant, SigningScheme as AuthenticationKeyScheme, HexInput } from "../../types/index.js";
-import { Deserializer } from "../../bcs/deserializer.js";
-import { Serializer } from "../../bcs/serializer.js";
-import { AuthenticationKey } from "../authenticationKey.js";
-import { AccountPublicKey, PublicKey } from "./publicKey.js";
-import { Signature } from "./signature.js";
-import { AnyPublicKey, AnySignature } from "./singleKey.js";
-import { AptosConfig } from "../../api/aptosConfig.js";
+import { AnyPublicKeyVariant, SigningScheme as AuthenticationKeyScheme, HexInput } from "../../types";
+import { Deserializer } from "../../bcs/deserializer";
+import { Serializer } from "../../bcs/serializer";
+import { AuthenticationKey } from "../authenticationKey";
+import { AccountPublicKey, PublicKey } from "./publicKey";
+import { Signature } from "./signature";
+import { AnyPublicKey, AnySignature } from "./singleKey";
+import { AptosConfig } from "../../api";
 
 /**
  * Counts the number of set bits (1s) in a byte.

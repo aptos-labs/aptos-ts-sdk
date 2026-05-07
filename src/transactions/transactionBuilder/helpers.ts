@@ -7,7 +7,7 @@ import {
   InputGenerateTransactionPayloadDataWithRemoteABI,
   InputScriptData,
   SimpleEntryFunctionArgumentTypes,
-} from "../types.js";
+} from "../types";
 import {
   Bool,
   FixedBytes,
@@ -26,10 +26,9 @@ import {
   U32,
   U64,
   U8,
-} from "../../bcs/index.js";
-import { AccountAddress } from "../../core/index.js";
-import { MoveFunction } from "../../types/index.js";
-import { MoveEnumArgument, MoveStructArgument } from "./structEnumParser.js";
+} from "../../bcs";
+import { AccountAddress } from "../../core";
+import { MoveFunction } from "../../types";
 
 /**
  * Determines if the provided argument is of type boolean.
@@ -218,9 +217,7 @@ export function isEncodedEntryFunctionArgument(
     isBcsI128(arg) ||
     isBcsI256(arg) ||
     arg instanceof MoveVector ||
-    arg instanceof MoveOption ||
-    arg instanceof MoveStructArgument ||
-    arg instanceof MoveEnumArgument
+    arg instanceof MoveOption
   );
 }
 /**

@@ -1,9 +1,5 @@
 import { defineConfig } from "vitest/config";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import path from "path";
 
 export default defineConfig({
   test: {
@@ -12,14 +8,14 @@ export default defineConfig({
     setupFiles: [path.resolve(__dirname, "tests/setupDotenv.ts")],
     globalSetup: [path.resolve(__dirname, "tests/preTest.ts")],
     include: ["tests/**/*.test.ts"],
-    exclude: ["dist/**", "examples/**", "confidential-asset/**"],
+    exclude: ["dist/**", "examples/**", "confidential-assets/**"],
     coverage: {
       provider: "v8",
       exclude: [
         "src/internal/queries/**",
         "src/types/generated/**",
         "tests/e2e/ans/publishANSContracts.ts",
-        "confidential-asset/**",
+        "confidential-assets/**",
       ],
       thresholds: {
         branches: 40,

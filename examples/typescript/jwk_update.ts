@@ -4,8 +4,7 @@
  * This example shows how to use install JSON Web Key Set (JWKS) on an account to support Federated Keyless Accounts
  */
 
-import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-import { EphemeralKeyPair } from "@aptos-labs/ts-sdk/keyless";
+import { Aptos, AptosConfig, EphemeralKeyPair, Network } from "@aptos-labs/ts-sdk";
 import * as readlineSync from "readline-sync";
 
 const example = async () => {

@@ -1,6 +1,5 @@
-import { secp256k1WalletTestObject, wallet } from "./helper.js";
-import { Ed25519PrivateKey, Hex, Secp256k1PrivateKey } from "../../src/index.js";
-import { isValidBIP44Path, isValidHardenedPath } from "../../src/core/crypto/hdKey.js";
+import { secp256k1WalletTestObject, wallet } from "./helper";
+import { Ed25519PrivateKey, Hex, isValidBIP44Path, isValidHardenedPath, Secp256k1PrivateKey } from "../../src";
 
 describe("Hierarchical Deterministic Key (hdkey)", () => {
   describe("hardened path", () => {

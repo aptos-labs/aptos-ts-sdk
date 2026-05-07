@@ -1,21 +1,13 @@
-import {
-  AbstractedAccount,
-  Account,
-  AccountAddress,
-  Ed25519PrivateKey,
-  Hex,
-  MoveVector,
-  Network,
-} from "../../../src/index.js";
-import { DerivableAbstractedAccount } from "../../../src/account/DerivableAbstractedAccount.js";
-import { Ed25519Account } from "../../../src/account/Ed25519Account.js";
-import { ed25519, FUND_AMOUNT } from "../../unit/helper.js";
-import { getAptosClient } from "../helper.js";
+import { AbstractedAccount, Account, AccountAddress, Ed25519PrivateKey, Hex, MoveVector, Network } from "../../../src";
+import { DerivableAbstractedAccount } from "../../../src/account/DerivableAbstractedAccount";
+import { Ed25519Account } from "../../../src/account/Ed25519Account";
+import { ed25519, FUND_AMOUNT } from "../../unit/helper";
+import { getAptosClient } from "../helper";
 import {
   addPermissionDelegationScriptBytecode,
   publishAnyAuthenticatorAAPackage,
   publishHelloWorldAAPackage,
-} from "../transaction/helper.js";
+} from "../transaction/helper";
 
 describe("abstraction api", () => {
   const { aptos } = getAptosClient({ network: Network.LOCAL });
@@ -177,7 +169,7 @@ describe("abstraction api", () => {
           authenticationFunction,
         });
 
-        await expect(async () => {
+        expect(async () => {
           await aptos.transaction.signAndSubmitTransaction({
             signer: abstractAccount,
             transaction: await aptos.transferCoinTransaction({

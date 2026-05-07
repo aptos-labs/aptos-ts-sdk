@@ -1,7 +1,7 @@
-import { sha3_256 } from "@noble/hashes/sha3.js";
-import { AccountAddress } from "../../accountAddress.js";
-import { DeriveScheme } from "../../../types/index.js";
-import { TEXT_ENCODER } from "../../../utils/const.js";
+import { sha3_256 } from "@noble/hashes/sha3";
+import { AccountAddress } from "../../accountAddress";
+import { DeriveScheme } from "../../../types";
+import { TEXT_ENCODER } from "../../../utils/const";
 
 /**
  * Creates an object address from creator address and seed

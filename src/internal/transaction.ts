@@ -9,9 +9,9 @@
  * @group Implementation
  */
 
-import { AptosConfig } from "../api/aptosConfig.js";
-import { getAptosFullNode, paginateWithCursor } from "../client/index.js";
-import { AptosApiError } from "../errors/index.js";
+import { AptosConfig } from "../api/aptosConfig";
+import { getAptosFullNode, paginateWithCursor } from "../client";
+import { AptosApiError } from "../errors";
 import {
   TransactionResponseType,
   type AnyNumber,
@@ -22,11 +22,11 @@ import {
   WaitForTransactionOptions,
   CommittedTransactionResponse,
   Block,
-} from "../types/index.js";
-import { DEFAULT_TXN_TIMEOUT_SEC, ProcessorType } from "../utils/const.js";
-import { sleep } from "../utils/helpers.js";
-import { memoizeAsync } from "../utils/memoize.js";
-import { getIndexerLastSuccessVersion, getProcessorStatus } from "./general.js";
+} from "../types";
+import { DEFAULT_TXN_TIMEOUT_SEC, ProcessorType } from "../utils/const";
+import { sleep } from "../utils/helpers";
+import { memoizeAsync } from "../utils/memoize";
+import { getIndexerLastSuccessVersion, getProcessorStatus } from "./general";
 
 /**
  * Retrieve a list of transactions based on the specified options.
@@ -458,9 +458,8 @@ async function fillBlockTransactions(args: {
     const firstVersion = BigInt(block.first_version);
     const lastVersion = BigInt(block.last_version);
 
-    // Convert the transaction to the type. When the block has no transactions yet,
-    // `lastTxn` is `undefined` and `"version" in undefined` throws, so guard explicitly.
-    const curVersion: string | undefined = lastTxn && "version" in lastTxn ? lastTxn.version : undefined;
+    // Convert the transaction to the type
+    const curVersion: string | undefined = (lastTxn as any)?.version;
     let latestVersion;
 
     // This time, if we don't have any transactions, we will try once with the start of the block

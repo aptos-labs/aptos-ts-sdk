@@ -8,26 +8,26 @@ import {
   GetFungibleAssetMetadataResponse,
   PaginationArgs,
   WhereArg,
-} from "../types/index.js";
+} from "../types";
 import {
   getCurrentFungibleAssetBalances,
   getFungibleAssetActivities,
   getFungibleAssetMetadata,
   transferFungibleAsset,
   transferFungibleAssetBetweenStores,
-} from "../internal/fungibleAsset.js";
+} from "../internal/fungibleAsset";
 import {
   CurrentFungibleAssetBalancesBoolExp,
   FungibleAssetActivitiesBoolExp,
   FungibleAssetMetadataBoolExp,
-} from "../types/generated/types.js";
-import { ProcessorType } from "../utils/const.js";
-import { AptosConfig } from "./aptosConfig.js";
-import { waitForIndexerOnVersion } from "./utils.js";
-import { Account } from "../account/index.js";
-import { AccountAddress, AccountAddressInput } from "../core/index.js";
-import { InputGenerateTransactionOptions } from "../transactions/index.js";
-import { SimpleTransaction } from "../transactions/instances/simpleTransaction.js";
+} from "../types/generated/types";
+import { ProcessorType } from "../utils/const";
+import { AptosConfig } from "./aptosConfig";
+import { waitForIndexerOnVersion } from "./utils";
+import { Account } from "../account";
+import { AccountAddress, AccountAddressInput } from "../core";
+import { InputGenerateTransactionOptions } from "../transactions";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 /**
  * A class for querying and managing fungible asset-related operations on the Aptos blockchain.

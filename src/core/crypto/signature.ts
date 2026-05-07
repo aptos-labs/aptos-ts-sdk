@@ -1,5 +1,5 @@
-import { Serializable } from "../../bcs/index.js";
-import { Hex } from "../hex.js";
+import { Serializable } from "../../bcs";
+import { Hex } from "../hex";
 
 /**
  * An abstract representation of a crypto signature,

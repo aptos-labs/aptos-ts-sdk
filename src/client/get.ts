@@ -1,7 +1,7 @@
-import { AptosConfig } from "../api/aptosConfig.js";
-import { aptosRequest } from "./core.js";
-import { AptosResponse, AnyNumber, ClientConfig, MimeType } from "../types/index.js";
-import { AptosApiType } from "../utils/const.js";
+import { AptosConfig } from "../api/aptosConfig";
+import { aptosRequest } from "./core";
+import { AptosResponse, AnyNumber, ClientConfig, MimeType } from "../types";
+import { AptosApiType } from "../utils/const";
 
 /**
  * Options for making a GET request, including configuration for the API client.
@@ -166,7 +166,8 @@ export async function paginateWithCursor<Req extends Record<string, any>, Res ex
   let cursor: string | undefined;
   const requestParams = options.params as { start?: string; limit?: number };
   do {
-    const response = await getAptosFullNode<Req, Res>({
+    const response = await get<Req, Res>({
+      type: AptosApiType.FULLNODE,
       aptosConfig: options.aptosConfig,
       originMethod: options.originMethod,
       path: options.path,
@@ -240,7 +241,8 @@ export async function getPageWithObfuscatedCursor<Req extends Record<string, any
     requestParams.limit = options.params.limit;
   }
 
-  const response = await getAptosFullNode<Req, Res>({
+  const response = await get<Req, Res>({
+    type: AptosApiType.FULLNODE,
     aptosConfig: options.aptosConfig,
     originMethod: options.originMethod,
     path: options.path,

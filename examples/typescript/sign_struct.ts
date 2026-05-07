@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import dotenv from "dotenv";
 import {
   Account,
   AccountAddress,
@@ -14,7 +15,9 @@ import {
   sleep,
   U64,
 } from "@aptos-labs/ts-sdk";
-import { compilePackage, getPackageBytesToPublish } from "./utils.js";
+import { compilePackage, getPackageBytesToPublish } from "./utils";
+
+dotenv.config();
 
 const ALICE_INITIAL_BALANCE = 1_000_000_000;
 const BOB_INITIAL_BALANCE = 1_000_000_000;

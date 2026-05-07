@@ -1,12 +1,12 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountAddressInput } from "../core/index.js";
-import { transferCoinTransaction } from "../internal/coin.js";
-import { SimpleTransaction } from "../transactions/instances/simpleTransaction.js";
-import { InputGenerateTransactionOptions } from "../transactions/types.js";
-import { AnyNumber, MoveStructId } from "../types/index.js";
-import { AptosConfig } from "./aptosConfig.js";
+import { AccountAddressInput } from "../core";
+import { transferCoinTransaction } from "../internal/coin";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
+import { InputGenerateTransactionOptions } from "../transactions/types";
+import { AnyNumber, MoveStructId } from "../types";
+import { AptosConfig } from "./aptosConfig";
 
 /**
  * A class to handle all `Coin` operations.

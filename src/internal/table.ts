@@ -1,5 +1,5 @@
-import { AptosConfig } from "../api/aptosConfig.js";
-import { postAptosFullNode } from "../client/index.js";
+import { AptosConfig } from "../api/aptosConfig";
+import { postAptosFullNode } from "../client";
 import {
   TableItemRequest,
   LedgerVersionArg,
@@ -8,11 +8,11 @@ import {
   OrderByArg,
   GetTableItemsDataResponse,
   GetTableItemsMetadataResponse,
-} from "../types/index.js";
-import { GetTableItemsDataQuery, GetTableItemsMetadataQuery } from "../types/generated/operations.js";
-import { GetTableItemsData, GetTableItemsMetadata } from "../types/generated/queries.js";
-import { TableItemsBoolExp, TableMetadatasBoolExp } from "../types/generated/types.js";
-import { queryIndexer } from "./general.js";
+} from "../types";
+import { GetTableItemsDataQuery, GetTableItemsMetadataQuery } from "../types/generated/operations";
+import { GetTableItemsData, GetTableItemsMetadata } from "../types/generated/queries";
+import { TableItemsBoolExp, TableMetadatasBoolExp } from "../types/generated/types";
+import { queryIndexer } from "./general";
 
 /**
  * Retrieves a specific item from a table in the Aptos blockchain.

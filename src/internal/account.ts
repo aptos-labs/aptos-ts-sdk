@@ -8,13 +8,13 @@
  * account namespace and without having a dependency cycle error.
  * @group Implementation
  */
-import { AptosConfig } from "../api/aptosConfig.js";
+import { AptosConfig } from "../api/aptosConfig";
 import {
   getAptosFullNode,
   getPageWithObfuscatedCursor,
   paginateWithCursor,
   paginateWithObfuscatedCursor,
-} from "../client/index.js";
+} from "../client";
 import {
   AccountData,
   anyPublicKeyVariantToString,
@@ -33,24 +33,29 @@ import {
   PaginationArgs,
   TokenStandardArg,
   WhereArg,
-} from "../types/index.js";
-import { AccountAddress, AccountAddressInput } from "../core/accountAddress.js";
-import { Account, Ed25519Account, MultiEd25519Account, MultiKeyAccount, SingleKeyAccount } from "../account/index.js";
-import { isKeylessSigner } from "../account/keylessSigner.js";
-// Type-only imports are erased at compile time, so they do not pull in the
-// poseidon-lite dependency that the concrete keyless account classes require.
-// The runtime `.create()` calls are behind dynamic `import()` in
-// `deriveOwnedAccountsFromKeylessSigner` below.
-import type { AbstractKeylessAccount } from "../account/AbstractKeylessAccount.js";
-import type { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless.js";
-import { AccountPublicKey } from "../core/crypto/publicKey.js";
-import { AnyPublicKey, PrivateKeyInput } from "../core/crypto/singleKey.js";
-import { Ed25519PublicKey } from "../core/crypto/ed25519.js";
-import { MultiEd25519PublicKey } from "../core/crypto/multiEd25519.js";
-import { AbstractMultiKey, MultiKey } from "../core/crypto/multiKey.js";
-import { BaseAccountPublicKey } from "../core/crypto/types.js";
-import { queryIndexer } from "./general.js";
-import { getModule as getModuleUtil, getInfo as getInfoUtil } from "./utils/index.js";
+} from "../types";
+import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
+import {
+  Account,
+  Ed25519Account,
+  FederatedKeylessAccount,
+  KeylessAccount,
+  MultiEd25519Account,
+  MultiKeyAccount,
+  SingleKeyAccount,
+} from "../account";
+import {
+  AbstractMultiKey,
+  AccountPublicKey,
+  AnyPublicKey,
+  BaseAccountPublicKey,
+  Ed25519PublicKey,
+  MultiEd25519PublicKey,
+  MultiKey,
+  PrivateKeyInput,
+} from "../core/crypto";
+import { queryIndexer } from "./general";
+import { getModule as getModuleUtil, getInfo as getInfoUtil } from "./utils";
 import {
   GetAccountCoinsCountQuery,
   GetAccountCoinsDataQuery,
@@ -62,7 +67,7 @@ import {
   GetAccountTransactionsCountQuery,
   GetAuthKeysForPublicKeyQuery,
   GetAccountAddressesForAuthKeyQuery,
-} from "../types/generated/operations.js";
+} from "../types/generated/operations";
 import {
   GetAccountCoinsCount,
   GetAccountCoinsData,
@@ -74,18 +79,14 @@ import {
   GetAccountTransactionsCount,
   GetAuthKeysForPublicKey,
   GetAccountAddressesForAuthKey,
-} from "../types/generated/queries.js";
-import { Secp256k1PrivateKey } from "../core/crypto/secp256k1.js";
-import { Ed25519PrivateKey } from "../core/crypto/ed25519.js";
-import { AuthenticationKey } from "../core/authenticationKey.js";
-import { createObjectAddress } from "../core/account/utils/address.js";
-import { Hex } from "../core/hex.js";
-import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types.js";
-import { getTableItem } from "./table.js";
-import { APTOS_COIN } from "../utils/index.js";
-import { AptosApiError } from "../errors/index.js";
-import { Deserializer, U8, MoveVector } from "../bcs/index.js";
-import { generateTransaction } from "./transactionSubmission.js";
+} from "../types/generated/queries";
+import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey, createObjectAddress, Hex } from "../core";
+import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
+import { getTableItem } from "./table";
+import { APTOS_COIN } from "../utils";
+import { AptosApiError } from "../errors";
+import { Deserializer, U8, MoveVector } from "../bcs";
+import { generateTransaction } from "./transactionSubmission";
 import {
   EntryFunctionABI,
   InputGenerateTransactionOptions,
@@ -93,8 +94,8 @@ import {
   SimpleTransaction,
   TypeTagU8,
   TypeTagVector,
-} from "../transactions/index.js";
-import { accountPublicKeyToBaseAccountPublicKey, accountPublicKeyToSigningScheme } from "../core/crypto/utils.js";
+} from "../transactions";
+import { accountPublicKeyToBaseAccountPublicKey, accountPublicKeyToSigningScheme } from "../core/crypto/utils";
 
 /**
  * Retrieves account information for a specified account address.
@@ -303,25 +304,7 @@ export async function getResource<T extends {}>(args: {
     path: `accounts/${AccountAddress.from(accountAddress).toString()}/resource/${resourceType}`,
     params: { ledger_version: options?.ledgerVersion },
   });
-  // TODO: Fix type checking, so cast is unnecessary
   return data.data as T;
-}
-
-export async function getResourceFallible<T extends {}>(args: {
-  aptosConfig: AptosConfig;
-  accountAddress: AccountAddressInput;
-  resourceType: MoveStructId;
-  options?: LedgerVersionArg;
-}): Promise<T | null> {
-  try {
-    return await getResource<T>(args);
-  } catch (error: any) {
-    // explicitly return null if there is no resource
-    if (error?.status === 404 && error?.data?.error_code === "resource_not_found") {
-      return null;
-    }
-    throw error;
-  }
 }
 
 /**
@@ -913,11 +896,10 @@ async function doesAccountExistAtAddress(args: {
   try {
     // Get the account resources and the balance of the account.  We need to check both because
     // an account resource can exist with 0 balance and a balance can exist without an account resource (light accounts).
-    const [accountResource, ownedObjects] = await Promise.all([
-      getResourceFallible<{ authentication_key: string }>({
+    const [resources, ownedObjects] = await Promise.all([
+      getResources({
         aptosConfig,
         accountAddress,
-        resourceType: "0x1::account::Account",
       }),
       getAccountOwnedObjects({
         aptosConfig,
@@ -927,6 +909,10 @@ async function doesAccountExistAtAddress(args: {
         },
       }),
     ]);
+
+    const accountResource: MoveResource<{ authentication_key: string }> | undefined = resources.find(
+      (r) => r.type === "0x1::account::Account",
+    ) as MoveResource<{ authentication_key: string }> | undefined;
 
     // If the account resource is not found and the balance is 0, then the account does not exist.
     if (!accountResource && ownedObjects.length === 0) {
@@ -942,7 +928,7 @@ async function doesAccountExistAtAddress(args: {
     // then the auth key is the account address by default.
     let authKey;
     if (accountResource) {
-      authKey = accountResource.authentication_key;
+      authKey = accountResource.data.authentication_key;
     } else {
       authKey = accountAddress.toStringLong();
     }
@@ -1219,12 +1205,8 @@ export async function deriveOwnedAccountsFromSigner(args: {
     return deriveOwnedAccountsFromPrivateKey({ aptosConfig, privateKey: signer.privateKey, options });
   }
 
-  if (isKeylessSigner(signer)) {
-    return deriveOwnedAccountsFromKeylessSigner({
-      aptosConfig,
-      keylessAccount: signer as AbstractKeylessAccount,
-      options,
-    });
+  if (signer instanceof KeylessAccount || signer instanceof FederatedKeylessAccount) {
+    return deriveOwnedAccountsFromKeylessSigner({ aptosConfig, keylessAccount: signer, options });
   }
 
   if (signer instanceof MultiKeyAccount) {
@@ -1244,7 +1226,7 @@ export async function deriveOwnedAccountsFromSigner(args: {
 
 async function deriveOwnedAccountsFromKeylessSigner(args: {
   aptosConfig: AptosConfig;
-  keylessAccount: AbstractKeylessAccount;
+  keylessAccount: KeylessAccount | FederatedKeylessAccount;
   options?: { includeUnverified?: boolean; noMultiKey?: boolean };
 }): Promise<Account[]> {
   const { aptosConfig, keylessAccount, options } = args;
@@ -1262,11 +1244,6 @@ async function deriveOwnedAccountsFromKeylessSigner(args: {
     verificationKeyHash: keylessAccount.verificationKeyHash,
   };
 
-  // Structural discriminator: `FederatedKeylessPublicKey` has a `jwkAddress`
-  // field; plain `KeylessPublicKey` does not. Avoids pulling the concrete
-  // keyless account classes (and poseidon-lite) into the static import graph.
-  const isFederated = "jwkAddress" in keylessAccount.publicKey;
-
   const accounts: Account[] = [];
   for (const { accountAddress, publicKey } of addressesAndPublicKeys) {
     if (publicKey instanceof AbstractMultiKey) {
@@ -1278,19 +1255,15 @@ async function deriveOwnedAccountsFromKeylessSigner(args: {
       } else if (publicKey instanceof MultiKey) {
         accounts.push(new MultiKeyAccount({ multiKey: publicKey, signers: [keylessAccount], address: accountAddress }));
       }
-    } else if (isFederated) {
-      // Dynamic import to avoid pulling poseidon-lite into the `/account` sub-path bundle.
-      const { FederatedKeylessAccount } = await import("../account/FederatedKeylessAccount.js");
+    } else if (keylessAccount instanceof FederatedKeylessAccount) {
       accounts.push(
         FederatedKeylessAccount.create({
           ...keylessAccountParams,
           address: accountAddress,
-          jwkAddress: (keylessAccount.publicKey as FederatedKeylessPublicKey).jwkAddress,
+          jwkAddress: keylessAccount.publicKey.jwkAddress,
         }),
       );
     } else {
-      // Dynamic import to avoid pulling poseidon-lite into the `/account` sub-path bundle.
-      const { KeylessAccount } = await import("../account/KeylessAccount.js");
       accounts.push(
         KeylessAccount.create({
           ...keylessAccountParams,
@@ -1326,10 +1299,9 @@ async function deriveOwnedAccountsFromPrivateKey(args: {
       }
       // Construct the appropriate multi-key type.
       if (publicKey instanceof MultiEd25519PublicKey) {
-        if (!(privateKey instanceof Ed25519PrivateKey)) {
-          throw new Error("Private key not Ed25519 for MultiEd25519 signature");
-        }
-        accounts.push(new MultiEd25519Account({ publicKey, signers: [privateKey], address: accountAddress }));
+        accounts.push(
+          new MultiEd25519Account({ publicKey, signers: [privateKey as Ed25519PrivateKey], address: accountAddress }),
+        );
       } else if (publicKey instanceof MultiKey) {
         accounts.push(
           new MultiKeyAccount({ multiKey: publicKey, signers: [singleKeyAccount], address: accountAddress }),

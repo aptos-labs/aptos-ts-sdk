@@ -6,13 +6,12 @@
     "declarationMap": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "noImplicitAny": true,
-    "rootDir": "./src",
     "outDir": "./dist",
     "sourceMap": true,
-    "target": "es2022",
+    "target": "es2020",
     "pretty": true
   },
   "include": ["src/**/*.ts"], // Include all `.ts` files in the `src` folder

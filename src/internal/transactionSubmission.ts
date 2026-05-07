@@ -6,19 +6,19 @@
  * @group Implementation
  */
 
-import { AptosConfig } from "../api/aptosConfig.js";
-import { Deserializer, MoveVector } from "../bcs/index.js";
-import { postAptosFullNode } from "../client/index.js";
-import { Account } from "../account/index.js";
-import { isKeylessSigner } from "../account/keylessSigner.js";
-import { AccountAddress, AccountAddressInput } from "../core/accountAddress.js";
-import { AccountAuthenticator } from "../transactions/authenticator/account.js";
+import { AptosConfig } from "../api/aptosConfig";
+import { Deserializer, MoveVector } from "../bcs";
+import { postAptosFullNode } from "../client";
+import { Account, AbstractKeylessAccount, isKeylessSigner } from "../account";
+import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
+import { FederatedKeylessPublicKey, KeylessPublicKey, KeylessSignature } from "../core/crypto";
+import { AccountAuthenticator } from "../transactions/authenticator/account";
 import {
   buildTransaction,
   generateTransactionPayload,
   generateSignedTransactionForSimulation,
   generateSignedTransaction,
-} from "../transactions/transactionBuilder/transactionBuilder.js";
+} from "../transactions/transactionBuilder/transactionBuilder";
 import {
   InputGenerateTransactionData,
   AnyRawTransaction,
@@ -31,17 +31,11 @@ import {
   AnyTransactionPayloadInstance,
   EntryFunctionABI,
   InputTransactionPluginData,
-} from "../transactions/types.js";
-import {
-  UserTransactionResponse,
-  PendingTransactionResponse,
-  MimeType,
-  HexInput,
-  AnyPublicKeyVariant,
-} from "../types/index.js";
-import { SignedTransaction, TypeTagVector, generateSigningMessageForTransaction } from "../transactions/index.js";
-import { SimpleTransaction } from "../transactions/instances/simpleTransaction.js";
-import { MultiAgentTransaction } from "../transactions/instances/multiAgentTransaction.js";
+} from "../transactions/types";
+import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput } from "../types";
+import { SignedTransaction, TypeTagVector, generateSigningMessageForTransaction } from "../transactions";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
+import { MultiAgentTransaction } from "../transactions/instances/multiAgentTransaction";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -286,7 +280,7 @@ export async function simulateTransaction(
 ): Promise<Array<UserTransactionResponse>> {
   const { aptosConfig, transaction, signerPublicKey, secondarySignersPublicKeys, feePayerPublicKey, options } = args;
 
-  const signedTransaction = await generateSignedTransactionForSimulation({
+  const signedTransaction = generateSignedTransactionForSimulation({
     transaction,
     signerPublicKey,
     secondarySignersPublicKeys,
@@ -366,32 +360,18 @@ export async function submitTransaction(
     });
     return data;
   } catch (e) {
-    // Best-effort diagnostic: if this was a keyless submission, refresh the
-    // JWK so the next attempt can succeed. Any failure here (deserialization,
-    // unregistered variant, network error while fetching JWKs, etc.) must
-    // NOT mask the original submission error `e`.
-    try {
-      const signedTxn = SignedTransaction.deserialize(new Deserializer(signedTransaction));
-      if (signedTxn.authenticator.isSingleSender() && signedTxn.authenticator.sender.isSingleKey()) {
-        const { variant } = signedTxn.authenticator.sender.public_key;
-        if (variant === AnyPublicKeyVariant.Keyless || variant === AnyPublicKeyVariant.FederatedKeyless) {
-          // Dynamic import to avoid pulling poseidon-lite into the main bundle
-          const { AbstractKeylessAccount } = await import("../account/AbstractKeylessAccount.js");
-          // Match `AbstractKeylessAccount.fetchJWK`'s `publicKey` type so the
-          // `FederatedKeyless` branch is not miscast to `KeylessPublicKey`.
-          type KP =
-            | import("../core/crypto/keyless.js").KeylessPublicKey
-            | import("../core/crypto/federatedKeyless.js").FederatedKeylessPublicKey;
-          type KS = import("../core/crypto/keyless.js").KeylessSignature;
-          await AbstractKeylessAccount.fetchJWK({
-            aptosConfig,
-            publicKey: signedTxn.authenticator.sender.public_key.publicKey as KP,
-            kid: (signedTxn.authenticator.sender.signature.signature as KS).getJwkKid(),
-          });
-        }
-      }
-    } catch {
-      // Swallow diagnostic errors so we always rethrow the original submission error.
+    const signedTxn = SignedTransaction.deserialize(new Deserializer(signedTransaction));
+    if (
+      signedTxn.authenticator.isSingleSender() &&
+      signedTxn.authenticator.sender.isSingleKey() &&
+      (signedTxn.authenticator.sender.public_key.publicKey instanceof KeylessPublicKey ||
+        signedTxn.authenticator.sender.public_key.publicKey instanceof FederatedKeylessPublicKey)
+    ) {
+      await AbstractKeylessAccount.fetchJWK({
+        aptosConfig,
+        publicKey: signedTxn.authenticator.sender.public_key.publicKey,
+        kid: (signedTxn.authenticator.sender.signature.signature as KeylessSignature).getJwkKid(),
+      });
     }
     throw e;
   }
@@ -456,17 +436,10 @@ export async function signAndSubmitAsFeePayer(
   });
 }
 
-// Lazy-initialized to avoid circular dependency issues at module evaluation time.
-let _packagePublishAbi: EntryFunctionABI | undefined;
-function getPackagePublishAbi(): EntryFunctionABI {
-  if (!_packagePublishAbi) {
-    _packagePublishAbi = {
-      typeParameters: [],
-      parameters: [TypeTagVector.u8(), new TypeTagVector(TypeTagVector.u8())],
-    };
-  }
-  return _packagePublishAbi;
-}
+const packagePublishAbi: EntryFunctionABI = {
+  typeParameters: [],
+  parameters: [TypeTagVector.u8(), new TypeTagVector(TypeTagVector.u8())],
+};
 
 /**
  * Publishes a package transaction to the Aptos blockchain.
@@ -497,7 +470,7 @@ export async function publicPackageTransaction(args: {
     data: {
       function: "0x1::code::publish_package_txn",
       functionArguments: [MoveVector.U8(metadataBytes), new MoveVector(totalByteCode)],
-      abi: getPackagePublishAbi(),
+      abi: packagePublishAbi,
     },
     options,
   });

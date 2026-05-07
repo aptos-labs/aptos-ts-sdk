@@ -1,11 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-  ValidatorTransactionResponse,
-  TransactionResponseType,
-  BlockMetadataTransactionResponse,
-} from "../../../src/index.js";
+import { ValidatorTransactionResponse, TransactionResponseType, BlockMetadataTransactionResponse } from "../../../src";
 
 describe("transaction response types", () => {
   test("it tests a sample validator_transaction JSON response satisfies ValidatorTransactionResponse", async () => {

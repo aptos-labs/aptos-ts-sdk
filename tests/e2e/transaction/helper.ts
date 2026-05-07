@@ -15,12 +15,13 @@ import {
   AnyRawTransaction,
   isUserTransactionResponse,
   Ed25519PrivateKey,
+  EphemeralKeyPair,
+  generateTransactionPayload,
   InputEntryFunctionData,
-} from "../../../src/index.js";
-import { EphemeralKeyPair } from "../../../src/account/EphemeralKeyPair.js";
-import { generateTransactionPayload } from "../../../src/transactions/transactionBuilder/transactionBuilder.js";
-import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper.js";
-import { getAptosClient } from "../helper.js";
+} from "../../../src";
+import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper";
+import { getAptosClient } from "../helper";
+import { Base64 } from "js-base64";
 
 export const EPHEMERAL_KEY_PAIR = new EphemeralKeyPair({
   privateKey: new Ed25519PrivateKey("ed25519-priv-0x1111111111111111111111111111111111111111111111111111111111111111"),
@@ -392,3 +393,5 @@ export async function publishHelloWorldAAPackage(aptos: Aptos, senderAccount: Ac
     ],
   );
 }
+
+export const b64urlEncode = (u8: Uint8Array) => Base64.fromUint8Array(u8, true);

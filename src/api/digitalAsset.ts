@@ -12,10 +12,10 @@ import {
   OrderByArg,
   PaginationArgs,
   TokenStandardArg,
-} from "../types/index.js";
-import { AccountAddress, AccountAddressInput } from "../core/index.js";
-import { Account } from "../account/index.js";
-import { InputGenerateTransactionOptions } from "../transactions/types.js";
+} from "../types";
+import { AccountAddress, AccountAddressInput } from "../core";
+import { Account } from "../account";
+import { InputGenerateTransactionOptions } from "../transactions/types";
 import {
   addDigitalAssetPropertyTransaction,
   addDigitalAssetTypedPropertyTransaction,
@@ -44,11 +44,11 @@ import {
   unfreezeDigitalAssetTransferTransaction,
   updateDigitalAssetPropertyTransaction,
   updateDigitalAssetTypedPropertyTransaction,
-} from "../internal/digitalAsset.js";
-import { ProcessorType } from "../utils/const.js";
-import { AptosConfig } from "./aptosConfig.js";
-import { waitForIndexerOnVersion } from "./utils.js";
-import { SimpleTransaction } from "../transactions/instances/simpleTransaction.js";
+} from "../internal/digitalAsset";
+import { ProcessorType } from "../utils/const";
+import { AptosConfig } from "./aptosConfig";
+import { waitForIndexerOnVersion } from "./utils";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 /**
  * A class to query all `DigitalAsset` related queries on Aptos.

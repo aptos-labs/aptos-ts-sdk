@@ -7,12 +7,12 @@ import {
   NetworkToIndexerAPI,
   NetworkToNodeAPI,
   U64,
-} from "../../../src/index.js";
-import { AptosApiError } from "../../../src/errors/index.js";
-import { VERSION } from "../../../src/version.js";
-import { longTestTimeout } from "../../unit/helper.js";
-import { getAptosClient } from "../helper.js";
-import { singleSignerScriptBytecode } from "../transaction/helper.js";
+} from "../../../src";
+import { AptosApiError } from "../../../src/errors";
+import { VERSION } from "../../../src/version";
+import { longTestTimeout } from "../../unit/helper";
+import { getAptosClient } from "../helper";
+import { singleSignerScriptBytecode } from "../transaction/helper";
 
 const { aptos, config } = getAptosClient();
 
@@ -55,16 +55,7 @@ describe("aptos request", () => {
             config,
             AptosApiType.FULLNODE,
           );
-          // Assert shape without injecting `VERSION` into a dynamic RegExp
-          // (CodeQL flags unsanitized-template-into-RegExp even when the input
-          // is a trusted constant — and `VERSION` *is* trusted: it's the SDK's
-          // own `src/version.ts`).
-          const clientHeader = response.config.headers["x-aptos-client"];
-          const expectedPrefix = `aptos-typescript-sdk/${VERSION}; platform=`;
-          expect(clientHeader.startsWith(expectedPrefix)).toBe(true);
-          // Tail is one of: node/22.12.0, bun/1.1.38, deno/2.1.4, browser,
-          // react-native, unknown (the versioned forms add `/<digits>.<digits>...`).
-          expect(clientHeader.slice(expectedPrefix.length)).toMatch(/^\w+(-\w+)?(\/[\d.]+)?$/);
+          expect(response.config.headers).toHaveProperty("x-aptos-client", `aptos-typescript-sdk/${VERSION}`);
           expect(response.config.headers).toHaveProperty("my", "header");
           expect(response.config.headers).toHaveProperty("content-type", "application/x.aptos.signed_transaction+bcs");
           expect(response.config.headers).toHaveProperty(

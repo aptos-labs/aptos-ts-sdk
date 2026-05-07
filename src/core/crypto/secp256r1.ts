@@ -1,20 +1,20 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { sha3_256 } from "@noble/hashes/sha3.js";
-import { p256 } from "@noble/curves/nist.js";
-import { Deserializer, Serializer } from "../../bcs/index.js";
-import { Hex } from "../hex.js";
+import { sha3_256 } from "@noble/hashes/sha3";
+import { p256 } from "@noble/curves/nist";
+import { Deserializer, Serializer } from "../../bcs";
+import { Hex } from "../hex";
 import {
   HexInput,
   PrivateKeyVariants,
   SigningScheme as AuthenticationKeyScheme,
   AnyPublicKeyVariant,
-} from "../../types/index.js";
-import { PublicKey, VerifySignatureAsyncArgs } from "./publicKey.js";
-import { PrivateKey } from "./privateKey.js";
-import { Signature } from "./signature.js";
-import { AuthenticationKey } from "../authenticationKey.js";
+} from "../../types";
+import { PublicKey, VerifySignatureAsyncArgs } from "./publicKey";
+import { PrivateKey } from "./privateKey";
+import { Signature } from "./signature";
+import { AuthenticationKey } from "../authenticationKey";
 
 /**
  * Represents a Secp256r1 ECDSA public key.
@@ -58,8 +58,8 @@ export class Secp256r1PublicKey extends PublicKey {
     }
 
     if (keyLength === Secp256r1PublicKey.COMPRESSED_LENGTH) {
-      const point = p256.Point.fromBytes(hex.toUint8Array());
-      this.key = Hex.fromHexInput(point.toBytes(false));
+      const point = p256.ProjectivePoint.fromHex(hex.toUint8Array());
+      this.key = Hex.fromHexInput(point.toRawBytes(false));
     } else {
       this.key = hex;
     }
@@ -119,7 +119,7 @@ export class Secp256r1PublicKey extends PublicKey {
     const sha3Message = sha3_256(msgHex);
     const rawSignature = signature.toUint8Array();
 
-    return p256.verify(rawSignature, sha3Message, this.toUint8Array(), { prehash: false });
+    return p256.verify(rawSignature, sha3Message, this.toUint8Array());
   }
 
   /**
@@ -188,16 +188,9 @@ export class Secp256r1PublicKey extends PublicKey {
   static isInstance(publicKey: PublicKey): publicKey is Secp256r1PublicKey {
     return (
       "key" in publicKey &&
-      typeof publicKey.key === "object" &&
-      publicKey.key !== null &&
-      "data" in publicKey.key &&
-      typeof publicKey.key.data === "object" &&
-      publicKey.key.data !== null &&
-      "length" in publicKey.key.data &&
-      publicKey.key?.data?.length === Secp256r1PublicKey.LENGTH &&
+      (publicKey.key as any)?.data?.length === Secp256r1PublicKey.LENGTH &&
       "keyType" in publicKey &&
-      typeof publicKey === "object" &&
-      publicKey.keyType === "secp256r1"
+      (publicKey as any).keyType === "secp256r1"
     );
   }
 
@@ -307,8 +300,8 @@ export class Secp256r1PrivateKey extends PrivateKey {
   sign(message: HexInput): Secp256r1Signature {
     const msgHex = Hex.fromHexInput(message);
     const sha3Message = sha3_256(msgHex.toUint8Array());
-    const signature = p256.sign(sha3Message, this.key.toUint8Array(), { prehash: false });
-    return new Secp256r1Signature(signature);
+    const signature = p256.sign(sha3Message, this.key.toUint8Array());
+    return new Secp256r1Signature(signature.toCompactRawBytes());
   }
 
   /**
@@ -344,7 +337,7 @@ export class Secp256r1PrivateKey extends PrivateKey {
    * @category Serialization
    */
   static generate(): Secp256r1PrivateKey {
-    const hexInput = p256.utils.randomSecretKey();
+    const hexInput = p256.utils.randomPrivateKey();
     return new Secp256r1PrivateKey(hexInput);
   }
 
@@ -449,8 +442,8 @@ export class Secp256r1Signature extends Signature {
     if (signatureLength !== Secp256r1Signature.LENGTH) {
       throw new Error(`Signature length should be ${Secp256r1Signature.LENGTH}, received ${signatureLength}`);
     }
-    const signature = p256.Signature.fromBytes(hex.toUint8Array());
-    this.data = Hex.fromHexInput(signature.toBytes());
+    const signature = p256.Signature.fromCompact(hex.toUint8Array()).normalizeS().toCompactRawBytes();
+    this.data = Hex.fromHexInput(signature);
   }
 
   /**

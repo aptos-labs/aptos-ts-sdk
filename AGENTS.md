@@ -6,27 +6,9 @@ This file provides guidance to AI agents when working with code in this reposito
 
 This is the **Aptos TypeScript SDK** (`@aptos-labs/ts-sdk`), a comprehensive SDK for interacting with the Aptos blockchain. It provides account management, transaction building/submission, data querying, digital assets, keyless authentication, and more.
 
-## Runtime Compatibility
-
-This SDK must work in **all** of the following runtimes:
-
-- **Browsers** (Chrome, Firefox, Safari — via bundlers like Vite/webpack)
-- **React Native**
-- **Node.js** (>= 22)
-- **Bun**
-- **Deno**
-
-**Do not use Node-only APIs in `src/`.** This means:
-- No `Buffer` — use `Uint8Array`, `atob`/`btoa`, or `TextEncoder`/`TextDecoder`
-- No `node:` protocol imports (e.g., `node:events`, `node:crypto`, `node:fs`)
-- No `process.env` without guards
-- `src/cli/` is the only exception (Node-only by design)
-
-Runtime-specific tests exist in `examples/web-test/` (Playwright), `examples/bun-test/`, and `examples/deno-test/`, with corresponding CI workflows in `.github/workflows/`. React Native is supported but not CI-tested — browser tests cover the same API surface (requires RN 0.74+ for Hermes `TextEncoder`/`crypto.getRandomValues` support).
-
 ## Requirements
 
-- **Node**: use the version in `.node-version` (currently `v22.12.0`). `package.json` requires `node >= 22`.
+- **Node**: use the version in `.node-version` (currently `v22.12.0`). `package.json` requires `node >= 20`.
 - **pnpm**: repo uses `pnpm` (see `.tool-versions`, `package.json#packageManager`).
 
 ## Repo Layout
@@ -35,8 +17,8 @@ Runtime-specific tests exist in `examples/web-test/` (Playwright), `examples/bun
 - **SDK tests**: `tests/`
   - Vitest uses `tests/preTest.ts` (globalSetup with setup/teardown) to start/stop a local Aptos node.
 - **Examples**: `examples/`
-  - `examples/typescript`, `examples/javascript` use a **linked** SDK (`link:../..`).
-- **Confidential asset SDK**: `confidential-asset/` (separate package + tests, with its own [`CHANGELOG.md`](./confidential-asset/CHANGELOG.md))
+  - `examples/typescript`, `examples/typescript-esm`, `examples/javascript` use a **linked** SDK (`link:../..`).
+- **Confidential assets SDK**: `confidential-assets/` (separate package + tests)
 - **Docs output**: `docs/` (large; includes versioned typedoc output)
 - **Utility scripts**: `scripts/` (`checkVersion.sh`, `updateVersion.sh`, `generateDocs.sh`)
 
@@ -44,7 +26,7 @@ Runtime-specific tests exist in `examples/web-test/` (Playwright), `examples/bun
 
 ```bash
 pnpm install              # Install dependencies (CI uses --frozen-lockfile)
-pnpm build                # Build ESM output to dist/
+pnpm build                # Build CJS + ESM output to dist/
 pnpm fmt                  # Format code with Biome
 pnpm _fmt                 # Check formatting without writing (what CI runs)
 pnpm lint                 # Run Biome linter
@@ -63,11 +45,8 @@ Before every commit:
 
 1. **Check code**: Run `pnpm check` to run Biome (lint + format)
 2. **Format code**: Run `pnpm fmt` to auto-format with Biome
-3. **Update the appropriate CHANGELOG**: Add a descriptive entry under the appropriate section (Added, Changed, Fixed, etc.).
-   - Changes to `@aptos-labs/ts-sdk` (everything under `src/`, `tests/`, root configs, examples, docs tooling, etc.) → root [`CHANGELOG.md`](./CHANGELOG.md).
-   - Changes to `@aptos-labs/confidential-asset` (everything under `confidential-asset/`) → [`confidential-asset/CHANGELOG.md`](./confidential-asset/CHANGELOG.md).
-   - If a single commit touches both packages, add an entry to **each** changelog rather than mixing concerns.
-4. **Write descriptive commit messages**: Commits should clearly explain what changed and why. For confidential-asset–only commits, prefix the subject with `[confidential-asset]` to match existing history.
+3. **Update CHANGELOG.md**: Add a descriptive entry for the change under the appropriate section (Added, Changed, Fixed, etc.)
+4. **Write descriptive commit messages**: Commits should clearly explain what changed and why
 
 ## Testing
 
@@ -110,15 +89,15 @@ pnpm build
 pnpm test
 ```
 
-### Confidential Asset Package
+### Confidential Assets Package
 
 ```bash
 pnpm install --frozen-lockfile
-cd confidential-asset && pnpm install --frozen-lockfile
-cd confidential-asset && pnpm test
+cd confidential-assets && pnpm install --frozen-lockfile
+cd confidential-assets && pnpm test
 ```
 
-When changing shared infra (vitest config, root tooling), ensure confidential-asset still works.
+When changing shared infra (vitest config, root tooling), ensure confidential-assets still works.
 
 ## Architecture
 
@@ -172,7 +151,15 @@ When releasing a new version with breaking changes:
 
 1. Create an upgrade guide at `upgrade-guides/UPGRADE_GUIDE_X.Y.Z.md`
 2. Document all breaking changes with before/after code examples
-3. Reference the upgrade guide in the appropriate changelog under the version heading — root [`CHANGELOG.md`](./CHANGELOG.md) for `@aptos-labs/ts-sdk` releases, [`confidential-asset/CHANGELOG.md`](./confidential-asset/CHANGELOG.md) for `@aptos-labs/confidential-asset` releases.
+3. Reference the upgrade guide in CHANGELOG.md under the version heading
+
+## Bun Compatibility
+
+When using with Bun, disable HTTP/2:
+
+```typescript
+const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET, clientConfig: { http2: false } }));
+```
 
 ## Guardrails
 

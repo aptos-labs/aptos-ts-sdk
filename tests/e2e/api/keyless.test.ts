@@ -1,18 +1,21 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, ProofFetchStatus, ZkpVariant } from "../../../src/index.js";
-import { KeylessAccount } from "../../../src/account/KeylessAccount.js";
-import { FederatedKeylessAccount } from "../../../src/account/FederatedKeylessAccount.js";
-import { Groth16Zkp, ZeroKnowledgeSig, ZkProof } from "../../../src/core/crypto/keyless.js";
-import { clearMemoizeCache } from "../../../src/utils/memoize.js";
-
-import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper.js";
-import { getAptosClient } from "../helper.js";
 import {
-  EPHEMERAL_KEY_PAIR,
-  simpleCoinTransactionHeler as simpleCoinTransactionHelper,
-} from "../transaction/helper.js";
+  Account,
+  FederatedKeylessAccount,
+  Groth16Zkp,
+  KeylessAccount,
+  ProofFetchStatus,
+  ZeroKnowledgeSig,
+  ZkProof,
+  ZkpVariant,
+} from "../../../src";
+import { clearMemoizeCache } from "../../../src/utils/memoize";
+
+import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper";
+import { getAptosClient } from "../helper";
+import { EPHEMERAL_KEY_PAIR, simpleCoinTransactionHeler as simpleCoinTransactionHelper } from "../transaction/helper";
 
 export const TEST_JWT_TOKENS = [
   "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0Lm9pZGMucHJvdmlkZXIiLCJhdWQiOiJ0ZXN0LWtleWxlc3MtZGFwcCIsInN1YiI6InRlc3QtdXNlci0wIiwiZW1haWwiOiJ0ZXN0QGFwdG9zbGFicy5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaWF0Ijo5ODc2NTQzMjA5LCJleHAiOjk4NzY1NDMyMTAsIm5vbmNlIjoiMTk2NDM2OTg4NjEyNjU1Njc4MDQ5MDk5MTMxMzA1MDcyNDc4MTQ1MjY5MTM1NzAyMjgzMTY0MTczNzc5NjUxMDU2ODE3OTYxNzMwOTgifQ.C6QG9WyEIAqYEiLkY8-5yqTKYtCzmnu2RM4P7iqr17toRXhL2ZqCiQYgE2TpY60RlOqBI7_aiHOlxJRvF_iQghEQQSWkgWhkcjVkSvBJW0IHm0IrSRl9ZytQHi6x0vPa8bUff5L--9JfxMiH27wOTrGtTA1n8Fz3G8JKQfYNQF2VawzytJu3lywduRj6pZw9-FFTgPqPsZWQvwhiX75Tgud976CpDusKOrPAM3rA9fXgKo_aTKeOPiEIm11ezI1bsOJ3B4JhsxLT5vszZ11Ywytst8XXwqWHjnulkJWjM9QfVUJhsO-jEQ5T_dYDqMVnnkdzjJyMRbvgbyNPUkvx8Q",

@@ -1,15 +1,18 @@
 /* eslint-disable no-console */
+import dotenv from "dotenv";
 import {
   Account,
   AbstractedAccount,
   Aptos,
   Network,
   AptosConfig,
-  MoveFunctionId,
+  UserTransactionResponse,
   Serializer,
   NetworkToNetworkName,
 } from "@aptos-labs/ts-sdk";
-import { compilePackage, getPackageBytesToPublish } from "./utils.js";
+import { compilePackage, getPackageBytesToPublish } from "./utils";
+
+dotenv.config();
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 const aptos = new Aptos(new AptosConfig({ network: APTOS_NETWORK }));
@@ -44,7 +47,7 @@ const main = async () => {
 
   console.log("\n=== Dispatchable authentication function info ===");
 
-  const authenticationFunction: MoveFunctionId = `${alice.accountAddress.toString()}::public_key_authenticator::authenticate`;
+  const authenticationFunction = `${alice.accountAddress}::public_key_authenticator::authenticate`;
   const [moduleAddress, moduleName, functionName] = authenticationFunction.split("::");
 
   console.log(`Module address: ${moduleAddress}`);
@@ -103,12 +106,9 @@ const main = async () => {
   const response = await aptos.waitForTransaction({ transactionHash: pendingTransferTxn.hash });
   console.log(`Committed transaction: ${response.hash}`);
 
-  const txn = await aptos.getTransactionByHash({
+  const txn = (await aptos.getTransactionByHash({
     transactionHash: pendingTransferTxn.hash,
-  });
-  if (!("signature" in txn)) {
-    throw new Error("Transaction signature not found");
-  }
+  })) as UserTransactionResponse;
   console.log(`Transaction Signature: ${JSON.stringify(txn.signature, null, 2)}`);
 };
 
