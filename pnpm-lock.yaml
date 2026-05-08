@@ -114,9 +114,6 @@ importers:
       '@noble/hashes':
         specifier: 2.4.0
         version: 2.4.0
-      '@noble/post-quantum':
-        specifier: ^0.5.2
-        version: 0.5.4
       '@scure/bip32':
         specifier: ^2.4.0
         version: 2.4.0
@@ -190,6 +187,10 @@ importers:
       vitest:
         specifier: ^4.1.11
         version: 4.1.11(@types/node@22.20.1)(@vitest/browser-playwright@4.1.11)(@vitest/coverage-v8@4.1.11)(vite@7.3.6(@types/node@22.20.1)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.0))
+    optionalDependencies:
+      '@noble/post-quantum':
+        specifier: ^0.5.2
+        version: 0.5.4
 
 packages:
 
@@ -6143,12 +6144,14 @@ snapshots:
   '@noble/curves@2.0.1':
     dependencies:
       '@noble/hashes': 2.0.1
+    optional: true
 
   '@noble/curves@2.4.0':
     dependencies:
       '@noble/hashes': 2.4.0
 
-  '@noble/hashes@2.0.1': {}
+  '@noble/hashes@2.0.1':
+    optional: true
 
   '@noble/hashes@2.4.0': {}
 
@@ -6156,6 +6159,7 @@ snapshots:
     dependencies:
       '@noble/curves': 2.0.1
       '@noble/hashes': 2.0.1
+    optional: true
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
