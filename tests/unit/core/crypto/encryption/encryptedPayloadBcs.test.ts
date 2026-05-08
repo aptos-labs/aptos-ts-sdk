@@ -80,6 +80,34 @@ describe("encrypted payload BCS round-trip (unit)", () => {
     expect(restored.bcsToBytes()).toEqual(bytes);
   });
 
+  /**
+   * Pins the on-the-wire byte layout for a 1-signer `PayloadAssociatedData::V1` so that any future
+   * change to `AuthenticationKey` BCS (or to `PayloadAssociatedData.serialize()`) that drops the
+   * `serde_bytes`-derived length prefix fails *this* test immediately — instead of silently
+   * producing AAD bytes that round-trip with themselves but diverge from the node's AAD reconstruction
+   * and break every encrypted-transaction submission with "associated data of the CT does not match".
+   */
+  test("PayloadAssociatedData golden BCS bytes pin AuthenticationKey length-prefix (regression)", () => {
+    const sender = AccountAddress.ONE;
+    const authKey = new AuthenticationKey({ data: new Uint8Array(32).fill(0xab) });
+    const ad = new PayloadAssociatedData(sender, [{ address: sender, authenticationKey: authKey }]);
+    const bytes = ad.bcsToBytes();
+
+    // variant V1 (1) | sender (32) | Vec length (1) | entry.address (32) | authKey uleb128 length (1) | authKey (32)
+    expect(bytes.length).toBe(1 + 32 + 1 + 32 + 1 + 32);
+    // The AAD-mismatch failure mode hinges on this single byte: must be 0x20 (uleb128(32)) for AuthenticationKey.
+    expect(bytes[1 + 32 + 1 + 32]).toBe(0x20);
+
+    expect(Buffer.from(bytes).toString("hex")).toBe(
+      "00" +
+        "0000000000000000000000000000000000000000000000000000000000000001" +
+        "01" +
+        "0000000000000000000000000000000000000000000000000000000000000001" +
+        "20" +
+        "abababababababababababababababababababababababababababababababab",
+    );
+  });
+
   test("PayloadAssociatedData multi-signer order round-trips", () => {
     const sender = AccountAddress.ONE;
     const secondary = AccountAddress.TWO;

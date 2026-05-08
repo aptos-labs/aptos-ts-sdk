@@ -35,6 +35,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - **`generateSignedTransactionForSimulation` is now async** — callers must `await` it.
   - See: `upgrade-guides/UPGRADE_GUIDE_7.0.0.md`
 - Rename `AccountSequenceNumber.lastUncommintedNumber` → `lastUncommittedNumber` (typo fix).
+- **`AuthenticationKey` BCS wire format changed** — `serialize()` now emits ULEB128 length-prefixed bytes (`serializeBytes`) instead of raw fixed bytes (`serializeFixedBytes`), matching the Rust `serde_bytes`-derived `AuthenticationKey::serialize`. This is required for encrypted-transaction `PayloadAssociatedData` AAD bytes to match what the node verifies — without the prefix, the per-payload `Id = hash(vk || BCS(AAD))` diverges from the server and every encrypted submission is rejected. Affects any caller that BCS-encodes an `AuthenticationKey` directly (e.g., `authKey.bcsToBytes()`, `authKey.bcsToHex()`); persisted/transmitted BCS bytes now carry a 1-byte `0x20` length prefix before the 32 payload bytes. `toString()` continues to return the raw 32-byte hex address (overridden) so existing string-equality checks against the REST `authentication_key` field and indexer GraphQL filters keep working.
 
 ## Changed
 
