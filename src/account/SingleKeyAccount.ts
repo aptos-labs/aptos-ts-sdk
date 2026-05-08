@@ -8,9 +8,9 @@ import {
   KeylessSignature,
   PrivateKeyInput,
   Secp256k1PrivateKey,
-  SlhDsaSha2128sPrivateKey,
   Signature,
 } from "../core/crypto";
+import { SlhDsaSha2128sPrivateKey } from "../core/crypto/slhDsaSha2128s";
 import type { Account } from "./Account";
 import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction } from "../transactions/types";

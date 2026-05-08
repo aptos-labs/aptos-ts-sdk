@@ -24,6 +24,17 @@
         "default": "./dist/esm/index.mjs"
       }
     },
+    "./slh-dsa-sha2-128s": {
+      "source": "./src/slh-dsa-sha2-128s.ts",
+      "require": {
+        "types": "./dist/common/slh-dsa-sha2-128s.d.ts",
+        "default": "./dist/common/slh-dsa-sha2-128s.js"
+      },
+      "import": {
+        "types": "./dist/esm/slh-dsa-sha2-128s.d.mts",
+        "default": "./dist/esm/slh-dsa-sha2-128s.mjs"
+      }
+    },
     "./dist/common/cli/index.js": "./dist/common/cli/index.js",
     "./dist/esm/cli/index.mjs": "./dist/esm/cli/index.mjs",
     "./package.json": "./package.json"
@@ -54,13 +65,15 @@
     "@aptos-labs/aptos-client": "^2.1.0",
     "@noble/curves": "^1.9.0",
     "@noble/hashes": "^1.5.0",
-    "@noble/post-quantum": "^0.5.2",
     "@scure/bip32": "^1.4.0",
     "@scure/bip39": "^1.3.0",
     "eventemitter3": "^5.0.1",
     "js-base64": "^3.7.7",
     "jwt-decode": "^4.0.0",
     "poseidon-lite": "^0.2.0"
+  },
+  "optionalDependencies": {
+    "@noble/post-quantum": "^0.5.2"
   },
   "devDependencies": {
     "@babel/traverse": "^7.28.4",

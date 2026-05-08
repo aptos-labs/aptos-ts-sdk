@@ -1,16 +1,12 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { Deserializer, Hex, PrivateKey, PrivateKeyVariants, Serializer } from "../../src";
 import {
-  Deserializer,
-  Hex,
-  PrivateKey,
-  PrivateKeyVariants,
-  Serializer,
   SlhDsaSha2128sPrivateKey,
   SlhDsaSha2128sPublicKey,
   SlhDsaSha2128sSignature,
-} from "../../src";
+} from "../../src/slh-dsa-sha2-128s";
 
 /* eslint-disable max-len */
 describe("SlhDsaSha2128sPublicKey", () => {

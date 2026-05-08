@@ -31,7 +31,7 @@ const DEFAULT_CONFIG: Options = {
 // Common.js config
 const COMMON_CONFIG: MandatoryOptions = {
   ...DEFAULT_CONFIG,
-  entry: ["src/index.ts", "src/cli/index.ts"],
+  entry: ["src/index.ts", "src/cli/index.ts", "src/slh-dsa-sha2-128s.ts"],
   format: "cjs",
   outDir: "dist/common",
 };

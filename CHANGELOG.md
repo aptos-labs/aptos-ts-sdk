@@ -4,6 +4,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 - Add `is_enum` field to `MoveStruct`.
+- SLH-DSA-SHA2-128s primitives are exported from `@aptos-labs/ts-sdk/slh-dsa-sha2-128s` (not the root package) so `@noble/post-quantum` stays an optional dependency and is only loaded when SLH code paths run.
 
 # 5.2.1 (2026-01-12)
 

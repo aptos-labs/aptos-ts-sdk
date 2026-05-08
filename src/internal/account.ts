@@ -82,14 +82,8 @@ import {
   GetAuthKeysForPublicKey,
   GetAccountAddressesForAuthKey,
 } from "../types/generated/queries";
-import {
-  Secp256k1PrivateKey,
-  AuthenticationKey,
-  Ed25519PrivateKey,
-  SlhDsaSha2128sPrivateKey,
-  createObjectAddress,
-  Hex,
-} from "../core";
+import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey, createObjectAddress, Hex } from "../core";
+import { SlhDsaSha2128sPrivateKey } from "../core/crypto/slhDsaSha2128s";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 import { getTableItem } from "./table";
 import { APTOS_COIN } from "../utils";
