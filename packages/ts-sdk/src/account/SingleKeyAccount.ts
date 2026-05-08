@@ -7,9 +7,9 @@ import {
   Ed25519PrivateKey,
   PrivateKeyInput,
   Secp256k1PrivateKey,
-  SlhDsaSha2128sPrivateKey,
   Signature,
 } from "../core/crypto/index.js";
+import { SlhDsaSha2128sPrivateKey } from "../core/crypto/slhDsaSha2128s.js";
 import type { Account } from "./Account.js";
 import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage.js";
 import { AnyRawTransaction } from "../transactions/types.js";

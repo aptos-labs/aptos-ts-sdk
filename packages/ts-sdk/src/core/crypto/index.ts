@@ -10,7 +10,6 @@ export * from "./privateKey.js";
 export * from "./publicKey.js";
 export * from "./secp256k1.js";
 export * from "./secp256r1.js";
-export * from "./slhDsaSha2128s.js";
 export * from "./signature.js";
 export * from "./singleKey.js";
 export * from "./types.js";
