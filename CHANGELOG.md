@@ -39,6 +39,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Changed
 
+- Skip staking API e2e tests (`tests/e2e/api/staking.test.ts` via `describe.skip`): they query live mainnet/devnet indexers and assume specific on-chain staking state, so remote API errors (for example indexer 5xx) and changing pool data make CI unreliable.
 - Introduce `MultiSigTransactionPayloadVariants` for multisig inner payload BCS tags and consolidate bytecode handling in `buildTransactionPayload`.
 - Upgraded `@noble/curves` and `@noble/hashes` to 2.x (ESM-only).
 - Remove `dotenv` usage from all TypeScript/JavaScript examples. Node 22+ users can rely on the built-in `node --env-file=.env` flag (or `tsx --env-file=.env`) when a `.env` file is needed; the examples default to devnet and don't require one.
