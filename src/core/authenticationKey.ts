@@ -59,7 +59,7 @@ export class AuthenticationKey extends Serializable {
   }
 
   /**
-   * Serializes the fixed bytes data into a format suitable for transmission or storage.
+   * Serializes the authentication key as length-prefixed bytes (BCS `serde_bytes` encoding).
    *
    * @param serializer - The serializer instance used to perform the serialization.
    * @group Implementation

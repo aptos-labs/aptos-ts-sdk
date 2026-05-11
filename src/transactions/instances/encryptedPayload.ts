@@ -13,6 +13,8 @@ import { EntryFunction, TransactionExecutable } from "./transactionPayload.js";
 /** 16-byte decryption nonce for encrypted payloads (aptos-core `DecryptionNonce`). */
 export const DECRYPTION_NONCE_LENGTH = 16;
 
+const DECRYPTED_PLAINTEXT_SALT = sha3Hash(new TextEncoder().encode("APTOS::DecryptedPlaintext"));
+
 /**
  * Optional claim about the entry function inside an encrypted payload (`claimed_entry_fun` in aptos-core).
  * Lets fee payers and multisig co-signers see module and optionally function name without decrypting.
@@ -85,9 +87,8 @@ export class DecryptedPlaintext extends Serializable {
    * SHA3-256( SHA3-256("APTOS::DecryptedPlaintext") || BCS(self) ).
    */
   hash(): Uint8Array {
-    const saltHash = sha3Hash(new TextEncoder().encode("APTOS::DecryptedPlaintext"));
     const h = sha3Hash.create();
-    h.update(saltHash);
+    h.update(DECRYPTED_PLAINTEXT_SALT);
     h.update(this.bcsToBytes());
     return h.digest();
   }
