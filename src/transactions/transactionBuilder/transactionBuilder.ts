@@ -8,6 +8,7 @@
  */
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3.js";
 import { AptosConfig } from "../../api/aptosConfig.js";
+import { MAX_U64_BIG_INT } from "../../bcs/consts.js";
 import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core/index.js";
 import {
   AnyPublicKey,
@@ -22,7 +23,7 @@ import { getInfo } from "../../internal/utils/index.js";
 import { getLedgerInfo } from "../../internal/general.js";
 import { getGasPriceEstimation } from "../../internal/transaction.js";
 import { NetworkToChainId } from "../../utils/apiEndpoints.js";
-import { MIN_MAX_GAS_AMOUNT, TEXT_ENCODER } from "../../utils/const.js";
+import { MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE, MIN_MAX_GAS_AMOUNT, TEXT_ENCODER } from "../../utils/const.js";
 import { normalizeBundle } from "../../utils/normalizeBundle.js";
 import {
   AccountAuthenticator,
@@ -90,6 +91,7 @@ import {
   TransactionExtraConfigV1,
   TransactionInnerPayloadV1,
 } from "../instances/transactionPayload.js";
+import { buildEncryptedPayload } from "./encryptPayload.js";
 
 /**
  * Builds a transaction payload based on the provided arguments and returns a transaction payload.
@@ -373,8 +375,13 @@ export async function generateRawTransaction(args: {
   payload: AnyTransactionPayloadInstance;
   options?: InputGenerateTransactionOptions;
   feePayerAddress?: AccountAddressInput;
+  /**
+   * When building an encrypted multi-agent transaction, secondary signer addresses (same order as
+   * `options.secondarySignerAuthenticationKeys`).
+   */
+  secondarySignerAddresses?: AccountAddressInput[];
 }): Promise<RawTransaction> {
-  const { aptosConfig, sender, payload, options, feePayerAddress } = args;
+  const { aptosConfig, sender, payload, options, feePayerAddress, secondarySignerAddresses } = args;
 
   if (options?.replayProtectionNonce !== undefined && options?.accountSequenceNumber !== undefined) {
     throw new Error("Cannot specify both replayProtectionNonce and accountSequenceNumber in options.");
@@ -402,9 +409,9 @@ export async function generateRawTransaction(args: {
         return options.accountSequenceNumber;
       }
       if (options?.replayProtectionNonce !== undefined) {
-        // If replay nonce is provided, use it as the sequence number
-        // This is an unused value, so it's specifically to show that the sequence number is not used
-        return 0xdeadbeefn;
+        // Orderless: chain uses sequence_number = u64::MAX and replay protection via
+        // extra_config.replay_protection_nonce (see RawTransaction::replay_protector in aptos-core).
+        return MAX_U64_BIG_INT;
       }
 
       return (await getInfo({ aptosConfig, accountAddress: sender })).sequence_number;
@@ -438,17 +445,36 @@ export async function generateRawTransaction(args: {
   const userMaxGas = options?.maxGasAmount
     ? BigInt(options.maxGasAmount)
     : BigInt(aptosConfig.getDefaultMaxGasAmount());
-  const { maxGasAmount, gasUnitPrice, expireTimestamp, replayProtectionNonce } = {
-    maxGasAmount: userMaxGas < BigInt(MIN_MAX_GAS_AMOUNT) ? BigInt(MIN_MAX_GAS_AMOUNT) : userMaxGas,
-    gasUnitPrice: options?.gasUnitPrice ?? BigInt(gasEstimate),
-    expireTimestamp:
-      options?.expireTimestamp ?? BigInt(Math.floor(Date.now() / 1000) + aptosConfig.getDefaultTxnExpirySecFromNow()),
-    replayProtectionNonce: options?.replayProtectionNonce ? BigInt(options.replayProtectionNonce) : undefined,
-  };
+  const maxGasAmount = userMaxGas < BigInt(MIN_MAX_GAS_AMOUNT) ? BigInt(MIN_MAX_GAS_AMOUNT) : userMaxGas;
+  let gasUnitPrice = BigInt(options?.gasUnitPrice ?? gasEstimate);
+  if (options?.encrypted && gasUnitPrice < BigInt(MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE)) {
+    if (options.gasUnitPrice !== undefined) {
+      // Caller explicitly set a price below the encrypted-transaction floor — warn so they know it was overridden.
+      console.warn(
+        `Encrypted transaction: gasUnitPrice ${gasUnitPrice} is below the minimum ${MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE}; overriding to ${MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE}.`,
+      );
+    }
+    gasUnitPrice = BigInt(MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE);
+  }
+  const expireTimestamp =
+    options?.expireTimestamp ?? BigInt(Math.floor(Date.now() / 1000) + aptosConfig.getDefaultTxnExpirySecFromNow());
+  const replayProtectionNonce =
+    options?.replayProtectionNonce !== undefined ? BigInt(options.replayProtectionNonce) : undefined;
 
-  // If we're using replay nonce, we must convert the original payload
-  let txnPayload = payload;
-  if (replayProtectionNonce !== undefined) {
+  // If encryption was requested, the encrypted payload carries its own extra_config (with the
+  // replay nonce). Otherwise the orderless flow wraps the payload in an inner V1.
+  let txnPayload: AnyTransactionPayloadInstance = payload;
+  if (options?.encrypted) {
+    txnPayload = await buildEncryptedPayload({
+      aptosConfig,
+      sender,
+      payload,
+      options,
+      feePayerAddress,
+      secondarySignerAddresses,
+      replayProtectionNonce,
+    });
+  } else if (replayProtectionNonce !== undefined) {
     txnPayload = convertPayloadToInnerPayload(payload, replayProtectionNonce);
   }
 
@@ -555,6 +581,7 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
     payload,
     options,
     feePayerAddress,
+    secondarySignerAddresses: "secondarySignerAddresses" in args ? args.secondarySignerAddresses : undefined,
   });
 
   // if multi agent transaction

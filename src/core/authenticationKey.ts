@@ -59,14 +59,14 @@ export class AuthenticationKey extends Serializable {
   }
 
   /**
-   * Serializes the fixed bytes data into a format suitable for transmission or storage.
+   * Serializes the authentication key as length-prefixed bytes (BCS `serde_bytes` encoding).
    *
    * @param serializer - The serializer instance used to perform the serialization.
    * @group Implementation
    * @category Serialization
    */
   serialize(serializer: Serializer): void {
-    serializer.serializeFixedBytes(this.data.toUint8Array());
+    serializer.serializeBytes(this.data.toUint8Array());
   }
 
   /**
@@ -77,8 +77,20 @@ export class AuthenticationKey extends Serializable {
    * @category Serialization
    */
   static deserialize(deserializer: Deserializer): AuthenticationKey {
-    const bytes = deserializer.deserializeFixedBytes(AuthenticationKey.LENGTH);
+    const bytes = deserializer.deserializeBytes();
+    if (bytes.length !== AuthenticationKey.LENGTH) {
+      throw new Error(`AuthenticationKey BCS must be ${AuthenticationKey.LENGTH} bytes, got ${bytes.length}`);
+    }
     return new AuthenticationKey({ data: bytes });
+  }
+
+  /**
+   * Override `Serializable.toString` (which would return the length-prefixed BCS hex) so the public
+   * representation stays the underlying 32-byte hex address — what callers compare against
+   * (REST `authentication_key`, indexer GraphQL filters, on-chain account address derivation).
+   */
+  toString(): string {
+    return this.data.toString();
   }
 
   /**
