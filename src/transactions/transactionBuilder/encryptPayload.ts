@@ -83,10 +83,11 @@ function resolveClaimedEntryFun(args: {
   options: InputGenerateTransactionOptions;
 }): ClaimedEntryFunction | undefined {
   const { payload, feePayerAddress, options } = args;
-  // Match `buildSignerAuthKeys`: a zero-address fee payer is not a real sponsor, so it should not
-  // force a `claimed_entry_fun` to be exposed/validated.
-  const hasFeePayer =
-    feePayerAddress !== undefined && !AccountAddress.from(feePayerAddress).equals(AccountAddress.ZERO);
+  // Unlike buildSignerAuthKeys, we treat a zero feePayerAddress (deferred gas-station sponsor) the
+  // same as a real one: a fee payer *will* sign, so include claimed_entry_fun so they can inspect
+  // the payload without decrypting it. The zero check in buildSignerAuthKeys is different — adding
+  // a placeholder zero auth key to the cryptographic AAD would corrupt it.
+  const hasFeePayer = feePayerAddress !== undefined;
   if (!hasFeePayer && !payloadHasMultisigAddress(payload)) {
     return undefined;
   }
