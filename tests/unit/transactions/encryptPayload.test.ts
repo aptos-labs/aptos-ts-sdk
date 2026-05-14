@@ -144,4 +144,30 @@ describe("buildEncryptedPayload input validation", () => {
       }),
     ).rejects.toThrow("node does not provide an encryption key");
   });
+
+  test("includes claimedEntryFunction when feePayerAddress is ZERO (withFeePayer:true gas-station path)", async () => {
+    const mockCiphertext = {} as any;
+    mockFetch.mockResolvedValue({ key: { encrypt: vi.fn().mockReturnValue(mockCiphertext) }, epoch: 1n } as any);
+    const result = await buildEncryptedPayload({
+      aptosConfig: config,
+      sender,
+      payload: makePayload(),
+      options: { encrypted: true, authenticationKey: VALID_AUTH_KEY },
+      feePayerAddress: AccountAddress.ZERO,
+    });
+    expect(result.claimedEntryFunction).not.toBeUndefined();
+    expect(result.claimedEntryFunction?.moduleId.address.toString()).toBe("0x1");
+  });
+
+  test("omits claimedEntryFunction when no feePayerAddress and no multisig", async () => {
+    const mockCiphertext = {} as any;
+    mockFetch.mockResolvedValue({ key: { encrypt: vi.fn().mockReturnValue(mockCiphertext) }, epoch: 1n } as any);
+    const result = await buildEncryptedPayload({
+      aptosConfig: config,
+      sender,
+      payload: makePayload(),
+      options: { encrypted: true, authenticationKey: VALID_AUTH_KEY },
+    });
+    expect(result.claimedEntryFunction).toBeUndefined();
+  });
 });
