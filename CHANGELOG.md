@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 7.0.1 (2026-05-14)
+
 ## Fixed
 
 - Encrypted transactions built with `withFeePayer: true` (deferred gas-station sponsor) now correctly include `claimedEntryFunction` in the payload so the eventual fee payer can inspect which module/function they are sponsoring without decrypting the payload.
