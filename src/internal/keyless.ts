@@ -275,9 +275,20 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
     } else {
       errorMessage = `error unknown - ${error}`;
     }
+    // Surface only the origin (scheme + host + port) of the JWKS URL in the
+    // user-facing error. The full URL, which may include `iss`-derived path
+    // segments or tenant identifiers from enterprise IdPs, is intentionally
+    // omitted to avoid leaking infrastructure details into logs / crash
+    // reporters.
+    let jwksOrigin: string;
+    try {
+      jwksOrigin = new URL(jwksUrl).origin;
+    } catch {
+      jwksOrigin = "<invalid url>";
+    }
     throw KeylessError.fromErrorType({
       type: KeylessErrorType.JWK_FETCH_FAILED_FEDERATED,
-      details: `Failed to fetch JWKS at ${jwksUrl}: ${errorMessage}`,
+      details: `Failed to fetch JWKS from ${jwksOrigin}: ${errorMessage}`,
     });
   }
 

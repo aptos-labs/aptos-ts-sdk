@@ -14,6 +14,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Poseidon length-validation error messages no longer stringify the input `Uint8Array` (which yielded its full byte content) — they now report `bytes.length`, avoiding leakage of caller-supplied data (e.g., JWT claim values) into logs and crash reporters.
 - `Deserializer.deserializeVector` now rejects vector lengths beyond `(1 << 31) - 1`. Without the cap, a crafted BCS blob with a maximal ULEB128 length prefix would cause the deserializer to loop billions of times before the inner read-bounds check tripped — effectively a CPU-exhaustion DoS for any consumer of untrusted BCS data.
 - `AptosApiError.message` for `AptosApiType.PEPPER` and `AptosApiType.PROVER` no longer embeds the raw response body. Pepper- and prover-service responses can include JWT claims or pepper-derived state; the raw body remains accessible via `AptosApiError.data` for callers that need it, but it's kept out of the default `Error.message` (and therefore out of generic crash reporters / log aggregators).
+- `updateFederatedKeylessJwkSetTransaction` JWKS-fetch errors now report only the origin (scheme + host + port) of the JWKS URL, not the full URL. This avoids leaking `iss`-derived path segments or tenant identifiers from enterprise IdP setups into logs.
 
 # 7.0.1 (2026-05-14)
 
