@@ -267,6 +267,28 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
     }
   }
 
+  // SSRF guard: require HTTPS. Without this check a caller-supplied `iss` or
+  // `jwksUrl` could redirect the fetch to plaintext HTTP, cloud-metadata
+  // endpoints (e.g., `http://169.254.169.254/...`), internal services, or
+  // non-network schemes like `file:` / `data:`. The on-chain JWKS update is
+  // a privileged operation, so we refuse to source key material over an
+  // untrusted transport.
+  let parsedJwksUrl: URL;
+  try {
+    parsedJwksUrl = new URL(jwksUrl);
+  } catch {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWK_FETCH_FAILED_FEDERATED,
+      details: "JWKS URL is not a valid URL",
+    });
+  }
+  if (parsedJwksUrl.protocol !== "https:") {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWK_FETCH_FAILED_FEDERATED,
+      details: `JWKS URL must use https: (got ${parsedJwksUrl.protocol})`,
+    });
+  }
+
   let response: Response;
 
   try {
@@ -286,15 +308,9 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
     // segments or tenant identifiers from enterprise IdPs, is intentionally
     // omitted to avoid leaking infrastructure details into logs / crash
     // reporters.
-    let jwksOrigin: string;
-    try {
-      jwksOrigin = new URL(jwksUrl).origin;
-    } catch {
-      jwksOrigin = "<invalid url>";
-    }
     throw KeylessError.fromErrorType({
       type: KeylessErrorType.JWK_FETCH_FAILED_FEDERATED,
-      details: `Failed to fetch JWKS from ${jwksOrigin}: ${errorMessage}`,
+      details: `Failed to fetch JWKS from ${parsedJwksUrl.origin}: ${errorMessage}`,
     });
   }
 
