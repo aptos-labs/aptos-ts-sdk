@@ -404,6 +404,13 @@ export class AptosApiError extends Error {
  * @param {AptosRequest} opts.aptosRequest - The original request made to the Aptos API.
  * @param {AptosResponse} opts.aptosResponse - The response received from the Aptos API.
  */
+// API types whose response bodies may contain keyless-account material (JWT
+// claims, pepper-derived state). For these we exclude the body from the error
+// message to avoid leaking sensitive data into logs and crash reporters. The
+// structured `error_code`/`message` shape is still safe to include because it
+// is shaped by the service for client consumption.
+const SENSITIVE_BODY_API_TYPES: ReadonlySet<AptosApiType> = new Set([AptosApiType.PEPPER, AptosApiType.PROVER]);
+
 function deriveErrorMessage({ apiType, aptosRequest, aptosResponse }: AptosApiErrorOpts): string {
   // extract the W3C trace_id from the response headers if it exists. Some services set this in the response, and it's useful for debugging.
   // See https://www.w3.org/TR/trace-context/#relationship-between-the-headers .
@@ -423,6 +430,13 @@ function deriveErrorMessage({ apiType, aptosRequest, aptosResponse }: AptosApiEr
   // We don't need http status codes etc. in this case.
   if (aptosResponse.data?.message != null && aptosResponse.data?.error_code != null) {
     return `${errorPrelude}: ${JSON.stringify(aptosResponse.data)}`;
+  }
+
+  // For sensitive API types, omit the response body entirely from the message.
+  // The full body is still accessible via `AptosApiError.data` for callers that
+  // explicitly need it; this just keeps it out of the default Error.message.
+  if (SENSITIVE_BODY_API_TYPES.has(apiType)) {
+    return `${errorPrelude} status: ${aptosResponse.statusText}(code:${aptosResponse.status}) (response body redacted for ${apiType})`;
   }
 
   // This is the generic/catch-all case. We received some response from the API, but it doesn't appear to be a well-known structure.
