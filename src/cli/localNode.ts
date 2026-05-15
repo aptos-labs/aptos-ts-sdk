@@ -3,6 +3,7 @@ import kill from "tree-kill";
 import { platform } from "node:os";
 
 import { sleep } from "../utils/helpers.js";
+import { assertSafeCliArgs } from "./spawnArgs.js";
 
 /**
  * Represents a local node for running a localnet environment.
@@ -86,6 +87,12 @@ export class LocalNode {
    * @category CLI
    */
   start(): void {
+    // Reject shell-metacharacter-bearing extras up front. On Windows we have
+    // to spawn with `shell: true` (npx is a .cmd shim and Node refuses to
+    // spawn .cmd/.bat without the shell since CVE-2024-27980), so unsafe
+    // characters in extraArgs would otherwise be interpreted by cmd.exe.
+    assertSafeCliArgs(this.extraArgs);
+
     const cliCommand = "npx";
     const cliArgs = [
       "aptos",
