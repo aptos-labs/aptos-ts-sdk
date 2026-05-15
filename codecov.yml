@@ -1,4 +1,5 @@
 # https://docs.codecov.com/docs/codecov-yaml
+# CI uploads only the `unit` flag (Vitest unit suite); e2e / localnet coverage is not included.
 coverage:
   status:
     project:

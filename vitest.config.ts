@@ -15,13 +15,9 @@ export default defineConfig({
     exclude: ["dist/**", "examples/**", "confidential-asset/**"],
     coverage: {
       provider: "v8",
+      include: ["src/**/*.ts"],
       reporter: ["text", "html", "clover", "json", "lcov"],
-      exclude: [
-        "src/internal/queries/**",
-        "src/types/generated/**",
-        "tests/e2e/ans/publishANSContracts.ts",
-        "confidential-asset/**",
-      ],
+      exclude: ["tests/**", "src/internal/queries/**", "src/types/generated/**"],
       thresholds: {
         branches: 40,
         functions: 50,

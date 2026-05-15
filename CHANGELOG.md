@@ -6,7 +6,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Added
 
-- CI uploads unit-test coverage to Codecov (`codecov.yaml` workflow, `pnpm test:coverage:unit`). Repository owners should enable the Codecov GitHub app and optionally set `CODECOV_TOKEN` for uploads.
+- CI uploads unit test coverage to Codecov (`codecov.yaml` via `.github/actions/run-codecov`, `pnpm test:coverage:unit`). Uploads use the Codecov `unit` flag; Vitest coverage is scoped to `src/**/*.ts` (excluding generated GraphQL queries and indexer types) so metrics reflect SDK sources. Repository owners should enable the Codecov GitHub app and optionally set `CODECOV_TOKEN` for uploads.
 
 # 7.0.1 (2026-05-14)
 

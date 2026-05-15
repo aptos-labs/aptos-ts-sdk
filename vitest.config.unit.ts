@@ -16,14 +16,10 @@ export default defineConfig({
     testTimeout: 30000,
     coverage: {
       provider: "v8",
+      include: ["src/**/*.ts"],
       reporter: ["text", "lcov"],
       reportsDirectory: "./coverage",
-      exclude: [
-        "src/internal/queries/**",
-        "src/types/generated/**",
-        "tests/e2e/ans/publishANSContracts.ts",
-        "confidential-asset/**",
-      ],
+      exclude: ["tests/**", "src/internal/queries/**", "src/types/generated/**"],
     },
   },
   resolve: {
