@@ -119,7 +119,7 @@ export class Secp256r1PublicKey extends PublicKey {
     const sha3Message = sha3_256(msgHex);
     const rawSignature = signature.toUint8Array();
 
-    return p256.verify(rawSignature, sha3Message, this.toUint8Array(), { prehash: false });
+    return p256.verify(rawSignature, sha3Message, this.toUint8Array(), { prehash: false, lowS: true });
   }
 
   /**

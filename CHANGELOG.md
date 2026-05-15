@@ -8,6 +8,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - CI uploads unit test coverage to Codecov (`codecov.yaml` via `.github/actions/run-codecov`, `pnpm test:coverage:unit`). Uploads use the Codecov `unit` flag; Vitest coverage is scoped to `src/**/*.ts` (excluding generated GraphQL queries and indexer types) so metrics reflect SDK sources. Repository owners should enable the Codecov GitHub app and optionally set `CODECOV_TOKEN` for uploads.
 
+## Fixed
+
+- `Secp256r1PublicKey.verifySignature` now enforces canonical low-S form (matches `Secp256k1PublicKey.verifySignature` and aligns with on-chain verifier expectations). Previously accepted both low-S and high-S signatures, which could cause SDK-validated signatures to be rejected by the chain.
+
 # 7.0.1 (2026-05-14)
 
 ## Fixed
