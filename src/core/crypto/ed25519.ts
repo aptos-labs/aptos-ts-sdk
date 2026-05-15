@@ -100,6 +100,13 @@ export class Ed25519PublicKey extends AccountPublicKey {
   /**
    * Verifies a signed message using a public key.
    *
+   * MESSAGE-INPUT AMBIGUITY: When `message` is a string, it is interpreted
+   * as hex if it parses as valid hex (with or without `0x` prefix), and as
+   * UTF-8 otherwise. A bare even-length string of hex characters (e.g.,
+   * `"cafe"`) is always treated as the 2 bytes `[0xCA, 0xFE]`, even when
+   * the caller intended it as text. See {@link convertSigningMessage} for
+   * the full rule. Prefer passing `Uint8Array` for unambiguous behavior.
+   *
    * @param args - The arguments for verification.
    * @param args.message - A signed message as a Hex string or Uint8Array.
    * @param args.signature - The signature of the message.
@@ -444,6 +451,11 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   /**
    * Sign the given message with the private key.
    * This function generates a digital signature for the specified message, ensuring its authenticity and integrity.
+   *
+   * MESSAGE-INPUT AMBIGUITY: See {@link convertSigningMessage}. When
+   * `message` is a string, a bare even-length string of hex characters
+   * (e.g., `"cafe"`) is signed as the 2 bytes `[0xCA, 0xFE]`, not the 4
+   * bytes of UTF-8 text. Prefer `Uint8Array` for unambiguous behavior.
    *
    * @param message - A message as a string or Uint8Array in HexInput format.
    * @returns A digital signature for the provided message.

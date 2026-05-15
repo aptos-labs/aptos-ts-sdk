@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Changed
+
+- `Secp256r1PrivateKey.sign` and `Secp256r1PublicKey.verifySignature` now flow string inputs through `convertSigningMessage`, matching `Ed25519` and `Secp256k1` behavior. Practical effect: a non-hex string like `"hello"` is now accepted and encoded as UTF-8 (previously threw via `Hex.fromHexInput`). Bare even-length hex strings continue to be treated as hex bytes, and `Uint8Array` inputs are unchanged. This is a backwards-compatible behavior expansion — no existing valid inputs change meaning.
+
 ## Added
 
 - CI uploads unit test coverage to Codecov (`codecov.yaml` via `.github/actions/run-codecov`, `pnpm test:coverage:unit`). Uploads use the Codecov `unit` flag; Vitest coverage is scoped to `src/**/*.ts` (excluding generated GraphQL queries and indexer types) so metrics reflect SDK sources. Repository owners should enable the Codecov GitHub app and optionally set `CODECOV_TOKEN` for uploads.
@@ -25,6 +29,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Documentation
 
+- Document the silent hex/text discrimination heuristic in `convertSigningMessage` and on every curve's `sign()` / `verifySignature()` JSDoc. A bare even-length string of hex characters (e.g., `"cafe"`) is interpreted as the 2 bytes `[0xCA, 0xFE]`, not as the 4 UTF-8 bytes of the text — this is silent and has caught callers off-guard, so the JSDoc now spells out the rule and recommends `Uint8Array` for unambiguous behavior. The heuristic itself is preserved because changing it would silently re-interpret bytes signed by existing dApps and wallets with no migration path.
 - Replace the brief "this cannot guarantee complete removal" disclaimer on `Ed25519PrivateKey.clear()`, `Secp256k1PrivateKey.clear()`, and `EphemeralKeyPair.clear()` with an honest enumeration of the four classes of unreachable copies (JS string copies from `toString()` / `toHexString()` / `bcsToHex()`, noble-curves `BigInt` scalar intermediates, JIT register / stack residue, GC-relocated copies in survivor heap spaces). Adds `SECURITY:` JSDoc notes on the string-producing methods (`toString()`, `toHexString()`, `toAIP80String()`) of `Ed25519PrivateKey`, `Secp256k1PrivateKey`, and `Secp256r1PrivateKey` explaining that the returned string cannot be cleared. Points callers toward `toUint8Array()` (clearable) and notes the architectural alternatives (non-extractable WebCrypto keys for Ed25519, WASM-backed crypto for secp256k1, hardware-backed keys) for cases where real key-material hygiene matters.
 - Document on `EphemeralKeyPair.nonce` that the field is NOT secret (it appears in the OIDC redirect URL, the returned JWT, and the prover-service inputs) and is NOT zeroed by `clear()` (it is an immutable JS string with no API to overwrite). Calls out the narrow forensic-correlation consequence so callers know what privacy property `clear()` does and doesn't provide for this field.
 - Document on `AptosApiError` (both class-level JSDoc and the `data` field JSDoc) that `error.data` always retains the raw response body — including for `AptosApiType.PEPPER` and `AptosApiType.PROVER` — even though `error.message` is redacted for those API types. Callers that log or serialize `AptosApiError.data` (Sentry auto-capture, structured loggers, `JSON.stringify`) need to treat it as sensitive for keyless-flow errors.

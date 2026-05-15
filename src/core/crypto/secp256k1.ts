@@ -67,6 +67,12 @@ export class Secp256k1PublicKey extends PublicKey {
    *
    * This function checks the validity of a signature for a given message, ensuring that the signature is canonical as a malleability check.
    *
+   * MESSAGE-INPUT AMBIGUITY: See {@link convertSigningMessage}. When
+   * `message` is a string, a bare even-length string of hex characters
+   * (e.g., `"cafe"`) is verified against the 2 bytes `[0xCA, 0xFE]`, not
+   * the 4 bytes of UTF-8 text. Prefer `Uint8Array` for unambiguous
+   * behavior.
+   *
    * @param args - The arguments for verifying the signature.
    * @param args.message - The message that was signed.
    * @param args.signature - The signature to verify against the public key.
@@ -378,6 +384,11 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
   /**
    * Sign the given message with the private key.
    * This function generates a cryptographic signature for the provided message, ensuring the signature is canonical and non-malleable.
+   *
+   * MESSAGE-INPUT AMBIGUITY: See {@link convertSigningMessage}. When
+   * `message` is a string, a bare even-length string of hex characters
+   * (e.g., `"cafe"`) is signed as the 2 bytes `[0xCA, 0xFE]`, not the 4
+   * bytes of UTF-8 text. Prefer `Uint8Array` for unambiguous behavior.
    *
    * @param message - A message in HexInput format to be signed.
    * @returns Signature - The generated signature for the provided message.

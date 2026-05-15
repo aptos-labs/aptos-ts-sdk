@@ -194,6 +194,42 @@ describe("Secp256r1PrivateKey", () => {
     expect(privateKey1.toString()).not.toEqual(privateKey2.toString());
   });
 
+  describe("message-input parity with Ed25519/Secp256k1 (L-4 / F)", () => {
+    it("accepts a non-hex string as UTF-8 (was: threw on non-hex)", () => {
+      const privateKey = Secp256r1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      // "hello" is not valid hex; previously this would throw via
+      // Hex.fromHexInput. Now it flows through convertSigningMessage and is
+      // encoded as the 5 UTF-8 bytes of "hello".
+      const signature = privateKey.sign("hello");
+      expect(publicKey.verifySignature({ message: "hello", signature })).toBe(true);
+    });
+
+    it("a bare even-length hex string is interpreted as hex (documented ambiguity)", () => {
+      const privateKey = Secp256r1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      // "cafe" parses as valid hex → signs/verifies the 2 bytes [0xCA, 0xFE].
+      const signature = privateKey.sign("cafe");
+      // Verification with the matching Uint8Array confirms the heuristic.
+      expect(
+        publicKey.verifySignature({
+          message: new Uint8Array([0xca, 0xfe]),
+          signature,
+        }),
+      ).toBe(true);
+    });
+
+    it("0x-prefixed hex and matching Uint8Array produce the same signature", () => {
+      const privateKey = Secp256r1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      const bytes = new Uint8Array([0xde, 0xad, 0xbe, 0xef]);
+      const sigFromBytes = privateKey.sign(bytes);
+      // Both forms verify against either input shape.
+      expect(publicKey.verifySignature({ message: "0xdeadbeef", signature: sigFromBytes })).toBe(true);
+      expect(publicKey.verifySignature({ message: bytes, signature: sigFromBytes })).toBe(true);
+    });
+  });
+
   describe("clear()", () => {
     it("zeros the underlying byte buffer", () => {
       const key = Secp256r1PrivateKey.generate();

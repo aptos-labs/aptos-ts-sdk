@@ -15,6 +15,7 @@ import { PublicKey, VerifySignatureAsyncArgs } from "./publicKey.js";
 import { PrivateKey } from "./privateKey.js";
 import { Signature } from "./signature.js";
 import { AuthenticationKey } from "../authenticationKey.js";
+import { convertSigningMessage } from "./utils.js";
 
 /**
  * Represents a Secp256r1 ECDSA public key.
@@ -106,6 +107,16 @@ export class Secp256r1PublicKey extends PublicKey {
    *
    * This function checks the validity of a signature for a given message.
    *
+   * MESSAGE-INPUT AMBIGUITY: See {@link convertSigningMessage}. When
+   * `message` is a string, a bare even-length string of hex characters
+   * (e.g., `"cafe"`) is verified against the 2 bytes `[0xCA, 0xFE]`, not
+   * the 4 bytes of UTF-8 text. Non-hex strings (e.g., `"hello"`) are
+   * accepted as UTF-8 — this matches `Ed25519PublicKey.verifySignature`
+   * and `Secp256k1PublicKey.verifySignature` rather than the previous
+   * Secp256r1-specific behavior that threw on non-hex strings.
+   *
+   * Prefer `Uint8Array` for unambiguous behavior.
+   *
    * @param args - The arguments for verifying the signature.
    * @param args.message - The message that was signed.
    * @param args.signature - The signature to verify against the public key.
@@ -115,7 +126,8 @@ export class Secp256r1PublicKey extends PublicKey {
   verifySignature(args: { message: HexInput; signature: Signature }): boolean {
     const { message, signature } = args;
 
-    const msgHex = Hex.fromHexInput(message).toUint8Array();
+    const messageToVerify = convertSigningMessage(message);
+    const msgHex = Hex.fromHexInput(messageToVerify).toUint8Array();
     const sha3Message = sha3_256(msgHex);
     const rawSignature = signature.toUint8Array();
 
@@ -321,6 +333,16 @@ export class Secp256r1PrivateKey extends PrivateKey {
    * Sign the given message with the private key.
    * This function generates a cryptographic signature for the provided message.
    *
+   * MESSAGE-INPUT AMBIGUITY: See {@link convertSigningMessage}. When
+   * `message` is a string, a bare even-length string of hex characters
+   * (e.g., `"cafe"`) is signed as the 2 bytes `[0xCA, 0xFE]`, not the 4
+   * bytes of UTF-8 text. Non-hex strings (e.g., `"hello"`) are accepted as
+   * UTF-8 — this matches `Ed25519PrivateKey.sign` and
+   * `Secp256k1PrivateKey.sign` rather than the previous Secp256r1-specific
+   * behavior that threw on non-hex strings.
+   *
+   * Prefer `Uint8Array` for unambiguous behavior.
+   *
    * @param message - A message in HexInput format to be signed.
    * @returns Signature - The generated signature for the provided message.
    * @throws Error if the private key has been cleared from memory.
@@ -329,7 +351,8 @@ export class Secp256r1PrivateKey extends PrivateKey {
    */
   sign(message: HexInput): Secp256r1Signature {
     this.ensureNotCleared();
-    const msgHex = Hex.fromHexInput(message);
+    const messageToSign = convertSigningMessage(message);
+    const msgHex = Hex.fromHexInput(messageToSign);
     const sha3Message = sha3_256(msgHex.toUint8Array());
     const signature = p256.sign(sha3Message, this.key.toUint8Array(), { prehash: false });
     return new Secp256r1Signature(signature);

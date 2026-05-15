@@ -10,7 +10,34 @@ import { BaseAccountPublicKey } from "./types.js";
 import { detectPublicKeyVariant } from "./anyKeyRegistry.js";
 
 /**
- * Helper function to convert a message to sign or to verify to a valid message input
+ * Normalizes a sign/verify message into a {@link HexInput} that downstream
+ * callers can pass to `Hex.fromHexInput()`.
+ *
+ * Behavior — be aware before passing a string:
+ * - `Uint8Array` → returned as-is (used as raw bytes).
+ * - String that parses as hex via `Hex.isValid()` (with or without a `0x`
+ *   prefix) → returned as the original hex string, which downstream
+ *   `Hex.fromHexInput()` decodes to its byte form.
+ * - Any other string → returned as the UTF-8 byte encoding of the string.
+ *
+ * **AMBIGUITY**: a bare even-length string of hex characters is *always*
+ * interpreted as hex, even when the caller intended it as text. For example:
+ *
+ * ```ts
+ * sign("cafe")       // signs 2 bytes: [0xCA, 0xFE]
+ * sign("decade")     // signs 3 bytes: [0xDE, 0xCA, 0xDE]
+ * sign("0xcafe")     // signs 2 bytes: [0xCA, 0xFE]   (explicit hex)
+ * sign("hello")      // signs 5 bytes: UTF-8 "hello"  (not valid hex)
+ * sign(new TextEncoder().encode("cafe"))  // signs 4 bytes: UTF-8 "cafe"
+ * ```
+ *
+ * If you mean *text*, pass `TextEncoder.encode(text)` or any `Uint8Array`.
+ * If you mean *hex bytes*, the most explicit form is also a `Uint8Array`
+ * (`Hex.fromHexInput("0x...").toUint8Array()`), or a string prefixed with
+ * `0x` for clarity. The heuristic is preserved as-is for backwards
+ * compatibility — changing it would silently re-interpret bytes signed by
+ * existing dApps and wallets — but new code should treat string inputs to
+ * `sign()` / `verifySignature()` as untyped and prefer `Uint8Array`.
  *
  * @param message a message as a string or Uint8Array
  *
