@@ -102,6 +102,7 @@
     "check": "biome check",
     "test": "vitest run",
     "unit-test": "vitest run --config vitest.config.unit.ts",
+    "test:coverage:unit": "vitest run --coverage --config vitest.config.unit.ts",
     "e2e-test": "vitest run tests/e2e",
     "e2e-encrypted": "vitest run tests/e2e/transaction/encryptedTransaction.test.ts --config vitest.config.e2e-devnet.ts",
     "indexer-codegen": "graphql-codegen --config ./src/types/codegen.yaml && pnpm fmt",

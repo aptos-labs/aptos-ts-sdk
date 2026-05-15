@@ -15,6 +15,7 @@ export default defineConfig({
     exclude: ["dist/**", "examples/**", "confidential-asset/**"],
     coverage: {
       provider: "v8",
+      reporter: ["text", "html", "clover", "json", "lcov"],
       exclude: [
         "src/internal/queries/**",
         "src/types/generated/**",

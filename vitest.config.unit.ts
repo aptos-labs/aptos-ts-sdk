@@ -14,6 +14,17 @@ export default defineConfig({
     pool: "forks",
     maxWorkers: 4,
     testTimeout: 30000,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "lcov"],
+      reportsDirectory: "./coverage",
+      exclude: [
+        "src/internal/queries/**",
+        "src/types/generated/**",
+        "tests/e2e/ans/publishANSContracts.ts",
+        "confidential-asset/**",
+      ],
+    },
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
