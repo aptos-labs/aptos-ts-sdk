@@ -278,6 +278,12 @@ export class Secp256r1PrivateKey extends PrivateKey {
   /**
    * Get the private key as a string representation.
    *
+   * SECURITY: This produces an immutable JS string containing the key
+   * material. Unlike `Ed25519PrivateKey` / `Secp256k1PrivateKey`, this
+   * class does not yet implement `clear()` — but even if it did, the
+   * returned string could not be zeroed. Strings in JavaScript are
+   * immutable and live in the heap until GC collects them.
+   *
    * @returns string representation of the private key
    * @group Implementation
    * @category Serialization
@@ -288,6 +294,9 @@ export class Secp256r1PrivateKey extends PrivateKey {
 
   /**
    * Get the private key as a hex string with the 0x prefix.
+   *
+   * SECURITY: Same caveat as `toString()` — produces an immutable JS string
+   * containing the key material.
    *
    * @returns string representation of the private key.
    */

@@ -134,11 +134,22 @@ export class EphemeralKeyPair extends Serializable {
   }
 
   /**
-   * Clears the ephemeral private key from memory by overwriting it with random bytes.
-   * After calling this method, the ephemeral key pair can no longer be used for signing.
+   * Overwrites the ephemeral private key and blinder byte buffers with random
+   * bytes and then zeros. After calling this method the key pair can no
+   * longer sign transactions.
    *
-   * Note: Due to JavaScript's memory management, this cannot guarantee complete removal of
-   * sensitive data from memory, but it significantly reduces the window of exposure.
+   * SECURITY: This is a best-effort window-narrowing tool, NOT a true
+   * zeroization guarantee. See `Ed25519PrivateKey.clear()` for the full
+   * enumeration of JavaScript-level limits (immutable string copies, noble
+   * `BigInt` intermediates, JIT register/stack residue, GC-relocated
+   * copies).
+   *
+   * SPECIFIC TO `EphemeralKeyPair`: the `nonce` field is NOT cleared by
+   * this method. It is the OIDC nonce — already public (it appears in the
+   * IdP redirect URL, the returned JWT, and the proof inputs) — and is
+   * stored as an immutable JS string that the language provides no API to
+   * overwrite. See the `nonce` field JSDoc for the narrow
+   * forensic-correlation consequence.
    *
    * @group Implementation
    * @category Account (On-Chain Model)

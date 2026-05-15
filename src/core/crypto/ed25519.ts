@@ -362,11 +362,40 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   }
 
   /**
-   * Clears the private key from memory by overwriting it with random bytes.
-   * After calling this method, the private key can no longer be used for signing or deriving public keys.
+   * Overwrites the underlying private-key byte buffer with random bytes and
+   * then zeros. After calling this method the key can no longer sign or
+   * derive a public key.
    *
-   * Note: Due to JavaScript's memory management, this cannot guarantee complete removal of
-   * sensitive data from memory, but it significantly reduces the window of exposure.
+   * SECURITY: This is a best-effort window-narrowing tool, NOT a true
+   * zeroization guarantee. In JavaScript, four classes of copies cannot be
+   * reached from user code and so survive `clear()`:
+   *
+   *   1. **JS string copies.** Any value previously produced by `toString()`,
+   *      `toHexString()`, or `bcsToHex().toString()` is an immutable string
+   *      in the heap. The language provides no API to overwrite string
+   *      memory; it is reclaimed only when GC collects it.
+   *   2. **noble-curves internals.** The sign path inside `@noble/curves`
+   *      expands the private key into scalar `BigInt` field elements, which
+   *      are also immutable in V8/JSC/Hermes. Even if noble explicitly zeroed
+   *      its own byte copies after use, the `BigInt` intermediates persist.
+   *   3. **JIT register / stack residue.** The engine may have held key
+   *      bytes in CPU registers or on the engine stack during a sign call.
+   *      There is no JS-visible way to scrub those.
+   *   4. **GC-relocated copies.** Generational GCs (V8, JSC) copy live
+   *      objects between heap regions during minor/major collections. The
+   *      `Uint8Array` we zeroed may have stale copies sitting in survivor
+   *      space until the next cycle reclaims them.
+   *
+   * This method zeros the SDK's own `Uint8Array` (the most reachable
+   * copy), but downstream consumers should treat it as a hardening signal,
+   * not a guarantee. If you need real key-material hygiene, prefer
+   * non-extractable `crypto.subtle` keys (where the underlying algorithm
+   * is supported by the host runtime), a WASM-backed crypto library, or
+   * hardware-backed keys (passkeys / secure enclave / HSM).
+   *
+   * To minimize the size of the unreachable-copy set, avoid calling
+   * `toString()` / `toHexString()` on private keys at all in long-lived
+   * processes — the byte form is what gets cleared.
    *
    * @group Implementation
    * @category Serialization
@@ -446,6 +475,13 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   /**
    * Get the private key as a hex string with the 0x prefix.
    *
+   * SECURITY: This produces an immutable JS string containing the key
+   * material in hex. Strings cannot be zeroed by `clear()` (see the
+   * `clear()` JSDoc for the four classes of unreachable copies). Avoid
+   * calling this method on long-lived `Ed25519PrivateKey` instances in
+   * processes where memory hygiene matters; prefer `toUint8Array()`,
+   * which returns a clearable `Uint8Array`.
+   *
    * @returns string representation of the private key.
    * @throws Error if the private key has been cleared from memory.
    * @group Implementation
@@ -459,6 +495,9 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   /**
    * Get the private key as a hex string with the 0x prefix.
    *
+   * SECURITY: Same caveat as `toString()` — the returned string is an
+   * immutable JS heap allocation that `clear()` cannot zero.
+   *
    * @returns string representation of the private key.
    * @throws Error if the private key has been cleared from memory.
    */
@@ -471,6 +510,9 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    * Get the private key as a AIP-80 compliant hex string.
    *
    * [Read about AIP-80](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md)
+   *
+   * SECURITY: Same caveat as `toString()` — produces an immutable JS string
+   * containing the key material; cannot be zeroed by `clear()`.
    *
    * @returns AIP-80 compliant string representation of the private key.
    * @throws Error if the private key has been cleared from memory.
