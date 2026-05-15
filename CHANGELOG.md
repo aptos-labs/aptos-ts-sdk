@@ -24,6 +24,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Documentation
 
+- Document on `EphemeralKeyPair.nonce` that the field is NOT secret (it appears in the OIDC redirect URL, the returned JWT, and the prover-service inputs) and is NOT zeroed by `clear()` (it is an immutable JS string with no API to overwrite). Calls out the narrow forensic-correlation consequence so callers know what privacy property `clear()` does and doesn't provide for this field.
 - Document on `AptosApiError` (both class-level JSDoc and the `data` field JSDoc) that `error.data` always retains the raw response body — including for `AptosApiType.PEPPER` and `AptosApiType.PROVER` — even though `error.message` is redacted for those API types. Callers that log or serialize `AptosApiError.data` (Sentry auto-capture, structured loggers, `JSON.stringify`) need to treat it as sensitive for keyless-flow errors.
 - Document that `jwt-decode` performs no signature verification at the SDK layer. The cryptographic binding between a JWT and its IdP is enforced on-chain by the keyless verifier; the SDK only decodes claims to derive the account address and pass the JWT through to the prover service. Added explicit `SECURITY:` notes on `KeylessPublicKey.fromJwtAndPepper`, `getIssAudAndUidVal`, the `getProof` flow in `src/internal/keyless.ts`, and `AbstractKeylessAccount.checkKeylessAccountValidity` so future contributors don't mistakenly assume client-side verification is happening.
 

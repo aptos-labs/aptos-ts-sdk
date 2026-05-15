@@ -42,8 +42,20 @@ export class EphemeralKeyPair extends Serializable {
   readonly expiryDateSecs: number;
 
   /**
-   * The value passed to the IdP when the user authenticates.  It consists of a hash of the
-   * ephemeral public key, expiry date, and blinder.
+   * The value passed to the IdP when the user authenticates. It consists of a
+   * hash of the ephemeral public key, expiry date, and blinder.
+   *
+   * SECURITY: This value is NOT secret. It is sent to the IdP in the OIDC
+   * redirect URL, embedded in the returned JWT, and packed into the proof
+   * inputs sent to the prover service. The `clear()` lifecycle hook does
+   * NOT zero this field — it is an immutable JS string and JavaScript
+   * provides no API to overwrite string memory. A memory-read attacker who
+   * dumps the process after `clear()` could correlate the surviving `nonce`
+   * against IdP logs or on-chain activity. This is acceptable given that
+   * the nonce was always public to begin with; it just means the privacy
+   * benefit of `clear()` does not extend to unlinking the (already public)
+   * nonce from any later forensic snapshot.
+   *
    * @group Implementation
    * @category Account (On-Chain Model)
    */
