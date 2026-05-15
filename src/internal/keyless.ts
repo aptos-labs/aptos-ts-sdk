@@ -314,7 +314,8 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
     });
   }
 
-  const jwks = (await response.json()) as JWKS;
+  const rawJwks: unknown = await response.json();
+  const jwks = validateJwksResponse(rawJwks, parsedJwksUrl.origin);
   return generateTransaction({
     aptosConfig,
     sender: sender.accountAddress,
@@ -330,4 +331,56 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
     },
     options,
   });
+}
+
+/**
+ * Caller can supply any IdP URL, so the JWKS response is untrusted. The shape
+ * isn't enforced by the TS cast above, and `jwks.keys.map(...)` would throw a
+ * confusing `TypeError: Cannot read properties of ... 'map'` on malformed
+ * payloads. Worse, a hostile/buggy IdP could return an unboundedly large
+ * `keys` array and we'd pack the whole thing into the on-chain transaction.
+ *
+ * Validate the four fields we actually use (kid, alg, e, n), cap the key
+ * count, and surface a single descriptive error when anything is off.
+ */
+const MAX_FEDERATED_JWKS_KEYS = 32;
+
+function validateJwksResponse(raw: unknown, originForError: string): JWKS {
+  if (raw === null || typeof raw !== "object" || !Array.isArray((raw as { keys?: unknown }).keys)) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWK_FETCH_FAILED_FEDERATED,
+      details: `JWKS response from ${originForError} is missing a 'keys' array`,
+    });
+  }
+  const keys = (raw as { keys: unknown[] }).keys;
+  if (keys.length === 0) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWK_FETCH_FAILED_FEDERATED,
+      details: `JWKS response from ${originForError} has an empty 'keys' array`,
+    });
+  }
+  if (keys.length > MAX_FEDERATED_JWKS_KEYS) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWK_FETCH_FAILED_FEDERATED,
+      details: `JWKS response from ${originForError} has ${keys.length} keys (max ${MAX_FEDERATED_JWKS_KEYS})`,
+    });
+  }
+  for (let i = 0; i < keys.length; i += 1) {
+    const key = keys[i];
+    if (key === null || typeof key !== "object") {
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.JWK_FETCH_FAILED_FEDERATED,
+        details: `JWKS response from ${originForError}: key at index ${i} is not an object`,
+      });
+    }
+    for (const field of ["kid", "alg", "e", "n"] as const) {
+      if (typeof (key as Record<string, unknown>)[field] !== "string") {
+        throw KeylessError.fromErrorType({
+          type: KeylessErrorType.JWK_FETCH_FAILED_FEDERATED,
+          details: `JWKS response from ${originForError}: key at index ${i} is missing string field '${field}'`,
+        });
+      }
+    }
+  }
+  return raw as JWKS;
 }

@@ -1,12 +1,18 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Account } from "../../src/account/index.js";
 import { AptosConfig } from "../../src/api/aptosConfig.js";
 import { KeylessError, KeylessErrorType } from "../../src/errors/index.js";
 import { Network } from "../../src/utils/index.js";
 import { updateFederatedKeylessJwkSetTransaction } from "../../src/internal/keyless.js";
+
+function mockFetchJsonResponse(body: unknown): void {
+  vi.spyOn(globalThis, "fetch").mockResolvedValue(
+    new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } }),
+  );
+}
 
 // These tests exercise the SSRF guard added to
 // `updateFederatedKeylessJwkSetTransaction`. The guard runs before any network
@@ -50,6 +56,58 @@ describe("updateFederatedKeylessJwkSetTransaction — JWKS URL validation", () =
         jwksUrl: "not a url",
       }),
     ).rejects.toBeInstanceOf(KeylessError);
+  });
+
+  describe("response-shape validation", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    const validKey = {
+      kid: "abc",
+      kty: "RSA",
+      alg: "RS256",
+      e: "AQAB",
+      n: "xxx",
+    };
+    const callArgs = { aptosConfig, sender, iss: "https://example.com", jwksUrl: "https://example.com/jwks.json" };
+
+    it.each([
+      ["null", null],
+      ["non-object", "string-instead-of-object"],
+      ["missing keys field", { foo: "bar" }],
+      ["keys is not an array", { keys: { kid: "abc" } }],
+    ])("rejects %s", async (_label, body) => {
+      mockFetchJsonResponse(body);
+      await expect(updateFederatedKeylessJwkSetTransaction(callArgs)).rejects.toMatchObject({
+        name: "KeylessError",
+        type: KeylessErrorType.JWK_FETCH_FAILED_FEDERATED,
+      });
+    });
+
+    it("rejects an empty keys array", async () => {
+      mockFetchJsonResponse({ keys: [] });
+      await expect(updateFederatedKeylessJwkSetTransaction(callArgs)).rejects.toThrow(/empty 'keys' array/);
+    });
+
+    it("rejects more than 32 keys", async () => {
+      mockFetchJsonResponse({ keys: Array.from({ length: 33 }, () => validKey) });
+      await expect(updateFederatedKeylessJwkSetTransaction(callArgs)).rejects.toThrow(/max 32/);
+    });
+
+    it.each(["kid", "alg", "e", "n"] as const)("rejects a key missing the '%s' field", async (field) => {
+      const broken = { ...validKey } as Record<string, string>;
+      delete broken[field];
+      mockFetchJsonResponse({ keys: [broken] });
+      await expect(updateFederatedKeylessJwkSetTransaction(callArgs)).rejects.toThrow(
+        new RegExp(`missing string field '${field}'`),
+      );
+    });
+
+    it("rejects a non-object key entry", async () => {
+      mockFetchJsonResponse({ keys: ["not-an-object"] });
+      await expect(updateFederatedKeylessJwkSetTransaction(callArgs)).rejects.toThrow(/is not an object/);
+    });
   });
 
   it("error message does NOT leak the full URL (only origin)", async () => {
