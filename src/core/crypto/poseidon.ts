@@ -221,9 +221,9 @@ function padUint8ArrayWithZeros(inputArray: Uint8Array, paddedSize: number): Uin
  * @category Serialization
  */
 export function poseidonHash(inputs: (number | bigint | string)[]): bigint {
-  if (inputs.length > numInputsToPoseidonFunc.length) {
+  if (inputs.length === 0 || inputs.length > numInputsToPoseidonFunc.length) {
     throw new Error(
-      `Unable to hash input of length ${inputs.length}.  Max input length is ${numInputsToPoseidonFunc.length}`,
+      `poseidonHash requires between 1 and ${numInputsToPoseidonFunc.length} inputs, got ${inputs.length}`,
     );
   }
   return numInputsToPoseidonFunc[inputs.length - 1](inputs);

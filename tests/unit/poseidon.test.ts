@@ -37,6 +37,9 @@ describe("Poseidon", () => {
     }
   });
   it("should error if too many inputs", () => {
-    expect(() => poseidonHash(new Array(17).fill(0))).toThrow();
+    expect(() => poseidonHash(new Array(17).fill(0))).toThrow(/between 1 and 16/);
+  });
+  it("should error with a descriptive message on empty input (not TypeError)", () => {
+    expect(() => poseidonHash([])).toThrow(/between 1 and 16/);
   });
 });
