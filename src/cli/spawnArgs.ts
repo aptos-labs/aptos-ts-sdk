@@ -9,14 +9,15 @@
  * mitigation is to reject argument strings that contain characters the shell
  * would interpret.
  *
- * cmd.exe: `& | < > ^ ( ) " '` plus newlines.
+ * cmd.exe: `& | < > ^ ( ) " ' % !` plus newlines (`%` triggers environment-
+ * variable expansion like `%USERPROFILE%`; `!` triggers delayed expansion).
  * /bin/sh: `& | ; < > ` $ ( ) "` `' \` plus newlines.
  *
  * The union below covers both. Common, legitimate CLI argument characters
  * (letters, digits, `-`, `_`, `=`, `.`, `,`, `:`, `/`, `\`, space) are
  * unaffected.
  */
-const UNSAFE_SHELL_CHARS = /[&|;<>`$()"'\n\r^!*?]/;
+const UNSAFE_SHELL_CHARS = /[&|;<>`$()"'\n\r^!*?%]/;
 
 /**
  * Validates that a CLI argument does not contain shell metacharacters that
@@ -31,7 +32,7 @@ export function assertSafeCliArg(arg: string): void {
   if (UNSAFE_SHELL_CHARS.test(arg)) {
     throw new Error(
       `CLI argument contains characters that could be interpreted by the shell: ${JSON.stringify(arg)}. ` +
-        "Remove shell metacharacters (& | ; < > \" ' ` $ ( ) ^ ! * ? newlines).",
+        "Remove shell metacharacters (& | ; < > \" ' ` $ ( ) ^ ! * ? % newlines).",
     );
   }
 }

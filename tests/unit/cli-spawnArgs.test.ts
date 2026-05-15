@@ -38,6 +38,8 @@ describe("assertSafeCliArg", () => {
     ["bang history", "foo!cmd"],
     ["glob star", "foo*"],
     ["glob question", "foo?"],
+    ["cmd.exe env-var expansion", "foo%USERPROFILE%bar"],
+    ["cmd.exe single percent", "foo%bar"],
   ])("rejects shell metacharacter (%s)", (_label, arg) => {
     expect(() => assertSafeCliArg(arg)).toThrow(/shell/);
   });

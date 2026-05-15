@@ -10,6 +10,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Fixed
 
+- `assertSafeCliArg` now rejects `%` in CLI arguments. On Windows with `shell: true`, `cmd.exe` performs environment-variable expansion on `%VAR%` patterns — a `%USERPROFILE%`-style payload in `extraArgs` would resolve to the running user's home directory at the shell layer, bypassing the previous metacharacter blocklist.
 - `Secp256r1PublicKey.verifySignature` now enforces canonical low-S form (matches `Secp256k1PublicKey.verifySignature` and aligns with on-chain verifier expectations). Previously accepted both low-S and high-S signatures, which could cause SDK-validated signatures to be rejected by the chain.
 - Poseidon length-validation error messages no longer stringify the input `Uint8Array` (which yielded its full byte content) — they now report `bytes.length`, avoiding leakage of caller-supplied data (e.g., JWT claim values) into logs and crash reporters.
 - `Deserializer.deserializeVector` now rejects vector lengths beyond `(1 << 31) - 1`. Without the cap, a crafted BCS blob with a maximal ULEB128 length prefix would cause the deserializer to loop billions of times before the inner read-bounds check tripped — effectively a CPU-exhaustion DoS for any consumer of untrusted BCS data.
