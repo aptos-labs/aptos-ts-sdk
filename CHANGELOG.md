@@ -4,6 +4,14 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 7.0.1 (2026-05-14)
+
+## Fixed
+
+- Encrypted transactions built with `withFeePayer: true` (deferred gas-station sponsor) now correctly include `claimedEntryFunction` in the payload so the eventual fee payer can inspect which module/function they are sponsoring without decrypting the payload.
+
+# 7.0.0 (2026-05-11)
+
 ## Added
 
 - Add support for script payloads in multisig transactions. `MultiSigTransactionPayload` now accepts both `EntryFunction` and `Script` payloads, and the new `InputMultiSigScriptData` type allows building multisig transactions with script bytecode. This aligns with the upstream `MultisigTransactionPayload::Script` variant added in aptos-core.
@@ -12,6 +20,15 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - **Sub-path exports** — import from `@aptos-labs/ts-sdk/account`, `@aptos-labs/ts-sdk/transaction`, `@aptos-labs/ts-sdk/keyless`, etc. for minimal bundle sizes.
 - **`sideEffects: false`** in package.json for bundler tree-shaking.
 - **Variant registry pattern** for `AnyPublicKey`/`AnySignature` — keyless variants register at runtime, removing compile-time poseidon dependency from core crypto.
+- **Encrypted transaction payloads** — pass `options: { encrypted: true, authenticationKey }` to `build.simple()`, `build.multiAgent()`, or `build.sponsorship()` to encrypt the executable payload with the node's per-epoch BLS12-381 batch IBE key before submission.
+  - `authenticationKey` accepts an `AccountPublicKey` (auth key derived automatically) or a raw 32-byte hex string. Multi-agent builds also accept `secondarySignerAuthenticationKeys`; sponsored builds accept `feePayerAuthenticationKey`.
+  - Gas unit price is floored at `MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE` (200) to cover validator decryption cost.
+  - Simulating an encrypted payload throws a clear error; simulate the plaintext version first.
+  - Keyless signers are rejected at signing time (signature mutability breaks payload binding).
+  - Multisig payloads are structured correctly on the SDK side but currently rejected by the server; pending fullnode support.
+  - New exports: `EncryptionKey`, `DecryptedPlaintext`, `PayloadAssociatedData`, `ClaimedEntryFunction`, `MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE`.
+  - Ledger info gains optional `encryption_key`; `TransactionPayloadResponse` gains `EncryptedTransactionPayloadResponse`.
+  - Devnet e2e tests: `pnpm e2e-encrypted`.
 
 ## Breaking
 
@@ -26,18 +43,27 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - **`generateSignedTransactionForSimulation` is now async** — callers must `await` it.
   - See: `upgrade-guides/UPGRADE_GUIDE_7.0.0.md`
 - Rename `AccountSequenceNumber.lastUncommintedNumber` → `lastUncommittedNumber` (typo fix).
+- **`AuthenticationKey` BCS wire format changed** — `serialize()` now emits ULEB128 length-prefixed bytes (`serializeBytes`) instead of raw fixed bytes (`serializeFixedBytes`), matching the Rust `serde_bytes`-derived `AuthenticationKey::serialize`. This is required for encrypted-transaction `PayloadAssociatedData` AAD bytes to match what the node verifies — without the prefix, the per-payload `Id = hash(vk || BCS(AAD))` diverges from the server and every encrypted submission is rejected. Affects any caller that BCS-encodes an `AuthenticationKey` directly (e.g., `authKey.bcsToBytes()`, `authKey.bcsToHex()`); persisted/transmitted BCS bytes now carry a 1-byte `0x20` length prefix before the 32 payload bytes. `toString()` continues to return the raw 32-byte hex address (overridden) so existing string-equality checks against the REST `authentication_key` field and indexer GraphQL filters keep working.
 
 ## Changed
 
+- Skip staking API e2e tests (`tests/e2e/api/staking.test.ts` via `describe.skip`): they query live mainnet/devnet indexers and assume specific on-chain staking state, so remote API errors (for example indexer 5xx) and changing pool data make CI unreliable.
 - Introduce `MultiSigTransactionPayloadVariants` for multisig inner payload BCS tags and consolidate bytecode handling in `buildTransactionPayload`.
 - Upgraded `@noble/curves` and `@noble/hashes` to 2.x (ESM-only).
 - Remove `dotenv` usage from all TypeScript/JavaScript examples. Node 22+ users can rely on the built-in `node --env-file=.env` flag (or `tsx --env-file=.env`) when a `.env` file is needed; the examples default to devnet and don't require one.
 - `AnsName` now reports nullable indexer fields honestly instead of fabricating placeholder values. `domain`, `token_standard`, and `is_primary` are typed as optional (`string | undefined` / `AnsTokenStandard | undefined` / `boolean | undefined`), and `sanitizeANSName` passes them through as `undefined` rather than defaulting to `"N/A"`, `"v2"`, `false`, or `""`. Consumers that previously relied on these fields always being present should handle the `undefined` case (or filter the row out as bad indexer data).
 - `AccountAbstraction.addAuthenticationFunctionTransaction`, `removeAuthenticationFunctionTransaction`, and `disableAccountAbstractionTransaction` now type their `authenticationFunction` parameter as `MoveFunctionId` instead of `string`. `MoveFunctionId` is a string alias, so string literals still compile; callers passing a typed `string` variable may need to retype it (or cast) to satisfy the tightened signature. Updated the `hello_world_authenticator_account_abstraction.ts` and `public_key_authenticator_account_abstraction.ts` examples accordingly — they now annotate `authenticationFunction` as `MoveFunctionId` and call `.toString()` on the account address so the template literal type resolves correctly.
+- Batch-encryption curve deserialization: `bytesToG2` requires prime-order subgroup points (`isTorsionFree` after `fromBytes`), matching aptos-core `ts-batch-encrypt`.
+- Orderless transaction replay-protection sequence number: `generateRawTransaction` now sets `sequence_number = u64::MAX` (via `MAX_U64_BIG_INT`) when `replayProtectionNonce` is provided, matching the on-chain `RawTransaction::replay_protector` contract. Previously it set `0xdeadbeefn`, which was an arbitrary sentinel that happened to be ignored by the server. No caller-visible API change; the wire bytes for orderless transactions differ.
 
 ## Fixed
 
+- Fix Windows compatibility when using `aptos move` CLI helpers (e.g. `aptos move compile`). The previous implementation attempted to spawn `npx.cmd` directly without `shell: true`, which is rejected by Node.js ≥20.12.2+ due to security restrictions on executing `.cmd`/`.bat` shims. Now correctly passes `{ shell: true }` on Windows (consistent with `LocalNode`).
+- **Encrypted transactions:** Enforce minimum gas unit price of 200 Octas/gas-unit when `options.encrypted` is true. The aptos-core gas schedule (`RELEASE_V1_45`, `encrypted_txn_min_price_per_gas_unit = 200`) requires encrypted transactions to pay 2× the network base minimum (100) to cover validator decryption cost. If the gas unit price is below 200, `generateRawTransaction` bumps the effective price to 200. When `options.gasUnitPrice` is explicitly set below the floor, a `console.warn` is emitted; when the estimated price falls below the floor, the bump is silent. Callers who explicitly set a higher price are unaffected. New export: `MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE = 200` from `src/utils/const.ts`.
+- **Encrypted transactions:** `signAndSubmitTransaction` now throws before submission if the signer or fee payer is a keyless or federated keyless account and the transaction payload is encrypted. Encrypted transactions cannot use keyless signers because signature malleability breaks payload binding (server-enforced in aptos-core `83daaf1ad4`). Detection is duck-typed via `isKeylessSigner`, so a `MultiKeyAccount` that wraps a keyless inner signer is not currently caught by this guard — submission will still fail server-side.
+- **Types:** `decryption_failure_reason` in `EncryptedTransactionPayloadResponse` is annotated as "not yet surfaced by the REST API" — the field is optional and safe to ignore in current responses.
 - `projects/gas-station` example: `/signAndSubmit` now returns a string `error` message in its 500 JSON response instead of the raw error object. `JSON.stringify`-ing an `Error` produces `{}` (because its standard properties are non-enumerable), so the previous response was effectively `{"error":{}}`. Now formats the message safely (`error instanceof Error ? error.message : String(error)`) so clients get a useful diagnostic without the example leaking internal error shape.
+- Pin GitHub Actions workflow dependencies to immutable commit SHAs, disable persisted checkout credentials for CI jobs, and remove mutable global package installs from runtime test workflows.
 - Fix `aptos.transaction.getBlockByHeight({ options: { withTransactions: true } })` / `getBlockByVersion` crashing with `TypeError: Cannot use 'in' operator to search for 'version' in undefined` on blocks whose `transactions` array is empty. `fillBlockTransactions` now guards `lastTxn` before the `in` check.
 - Fix `aptos.account.accountExists` (`doesAccountExistAtAddress`) on accounts with many resources: the old path fetched the full resource list and scanned it for `0x1::account::Account`, which is slow and can fail for large or sparse accounts. Replaced with a single fallible resource fetch (new internal `getResourceFallible` helper) that treats 404 as "not found". Only affects internal callers; the public API is unchanged.
 - `aptos.ans.*` queries no longer throw on indexer rows with missing fields. `sanitizeANSName` drops its non-null assertions and passes nullable indexer fields through as `undefined` instead of crashing. See the `Breaking` section for the `AnsName` type change.
@@ -53,6 +79,17 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Regenerate `examples/typescript/pnpm-lock.yaml` to include the recently added `@noble/hashes` dependency so `pnpm install --frozen-lockfile` succeeds in CI.
 - Prevent `@types/node` type leak in emitted `.d.ts`: `TEXT_ENCODER` now has an explicit structural type (`{ encode(input: string): Uint8Array }`) so consumers without `@types/node` (browsers, Deno, React Native) don't hit `Cannot find name 'util'` when compiling against the SDK.
 - Fix `examples/typescript` build: split `EphemeralKeyPair` imports to `@aptos-labs/ts-sdk/keyless`, update `@noble/hashes/sha3` to `@noble/hashes/sha3.js` (noble v2 exports), add explicit `"types": ["node"]` to the example `tsconfig.json`, and use `??` (instead of `||`) when reading `process.env.APTOS_NETWORK` so it type-checks under strict null checks.
+- Encrypted transaction builds with multisig inner **script** payload: `payloadToExecutable` now maps `Script` to `TransactionExecutableScript`, consistent with the orderless `convertPayloadToInnerPayload` path.
+- Encrypted transaction crypto (`src/core/crypto/encryption/`): ESM `nodenext` import specifiers, `@noble/ciphers` 2.x with `.js` subpaths, and `@noble/curves` 2.x (`bls12_381.G1.hashToCurve`, `bls12_381.fields.Fr`, `ed25519.utils.randomSecretKey`). `fetchAndCacheEncryptionKey` returns `{ key, epoch }` with **`epoch` as `bigint`** for BCS `encryption_epoch`.
+- [Transactions] Address PR review feedback on struct/enum argument support:
+  - Fix double ULEB128 length prefix in `StructEnumArgumentParser.encodeVector()` for the `vector<u8>` string special case (`serializeBytes` already writes the length, so the explicit `serializeU32AsUleb128` was producing invalid BCS).
+  - Substitute generic type parameters in enum variant payload types so generic enums (e.g. `Some(T0)`) encode against the instantiated type instead of failing on `TypeTagGeneric`.
+  - Recognize `MoveStructArgument` / `MoveEnumArgument` in `isEncodedEntryFunctionArgument()` and accept them (along with `FixedBytes`) for custom `TypeTagStruct` parameters in `checkType()`, so pre-encoded struct/enum arguments work end-to-end.
+  - Mirror the synchronous `Option<T>` auto-wrapping behavior in the async `checkOrConvertArgumentWithABI()` path.
+  - Propagate `options` (and `moduleAbi`) through generic / vector / JSON-string recursive conversion calls in both sync and async paths so flags like `allowUnknownStructs` are not dropped.
+  - Improve error formatting in `StructEnumArgumentParser.fetchModule()` (avoid `[object Object]` from string-interpolating the caught error) and update the `aptosConfig`-required error to mention `MoveStructArgument` / `MoveEnumArgument` as the preferred pre-encoded types.
+  - Fix `ModuleAbiBundle.referencedStructModules` doc comment to match the actual `address::module` key format.
+  - Make `MoveStructArgument` / `MoveEnumArgument` a `import type` in `src/transactions/types.ts` to avoid pulling `structEnumParser` into the module graph for purely type-level uses.
 
 # 6.3.0 (2026-03-22)
 
@@ -100,6 +137,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Added
 
+- [Transactions] Add async variants of argument conversion functions (`convertArgumentWithABI`, `checkOrConvertArgumentWithABI`, `parseArgAsync`) to support fetching module ABIs for struct/enum argument encoding. Original synchronous functions remain unchanged for backwards compatibility.
+
 - Add JWK caching for keyless authentication with 5-minute TTL to improve performance
 - Add `clearMemoizeCache()` utility function for clearing the memoization cache
 - Add Bun runtime detection with `isBun()` utility function
@@ -107,6 +146,15 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add Bun runtime CI tests to verify SDK compatibility with Bun
 - Add Deno runtime CI tests to verify SDK compatibility with Deno
 - Add web environment CI tests using Vitest + jsdom to verify browser compatibility
+- [Transactions] Add support for public copy structs and enums as transaction arguments via `MoveStructArgument`, `MoveEnumArgument`, and `StructEnumArgumentParser` classes
+  - Automatic type inference from function ABI
+  - Nested structs/enums support (up to 7 levels deep)
+  - Generic type parameter substitution (T0, T1, etc.)
+  - Support for all Move primitive types (bool, u8-u256, i8-i256, address)
+  - Special framework types (String, Object<T>, Option<T>)
+  - Option<T> dual format support (vector and enum formats)
+  - Module ABI caching for performance
+  - Comprehensive validation and error messages
 
 ## Changed
 

@@ -356,19 +356,15 @@ export class Move {
 
   private async runCommand(args: Array<string>, showStdout: boolean = true): Promise<{ result?: any; output: string }> {
     return new Promise((resolve, reject) => {
-      const currentPlatform = platform();
-      let childProcess;
+      const isWindows = platform() === "win32";
+      const spawnOptions = isWindows ? { shell: true } : undefined;
+      const childProcess = spawn("npx", args, spawnOptions);
       let stdout = "";
       // CLI final stdout is the Result/Error JSON string output
       // so we need to keep track of the last stdout
       let lastStdout = "";
 
-      // Check if current OS is windows
-      if (currentPlatform === "win32") {
-        childProcess = spawn("npx", args, { shell: true });
-      } else {
-        childProcess = spawn("npx", args);
-      }
+      childProcess.on("error", reject);
 
       childProcess.stdout.on("data", (data) => {
         lastStdout = data.toString();

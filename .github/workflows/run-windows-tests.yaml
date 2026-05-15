@@ -1,0 +1,19 @@
+name: "Run build and unit tests on Windows"
+on:
+  pull_request:
+    types: [labeled, opened, synchronize, reopened, auto_merge_enabled]
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  run-windows-tests:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/run-windows-build-and-unit-tests

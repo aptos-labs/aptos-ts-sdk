@@ -89,6 +89,7 @@ export enum TransactionPayloadVariants {
   EntryFunction = 2,
   Multisig = 3,
   Payload = 4,
+  EncryptedPayload = 5,
 }
 
 /**
@@ -118,6 +119,7 @@ export enum TransactionExecutableVariants {
   Script = 0,
   EntryFunction = 1,
   Empty = 2,
+  Encrypted = 3,
 }
 
 /**
@@ -1104,9 +1106,61 @@ export type DeletedTableData = {
 };
 
 /**
- * The payload for a transaction response, which can be an entry function, script, or multisig payload.
+ * Claimed entry function metadata on encrypted transaction payloads (REST API uses `name` for the optional function identifier).
  */
-export type TransactionPayloadResponse = EntryFunctionPayloadResponse | ScriptPayloadResponse | MultisigPayloadResponse;
+export type ClaimedEntryFunctionResponse = {
+  module: string;
+  name?: string;
+};
+
+/**
+ * Encrypted payload response when the node has not yet decrypted it, or decryption failed.
+ * Narrow on `encrypted_state` to distinguish from {@link DecryptedEncryptedTransactionPayloadResponse}.
+ */
+export type EncryptedEncryptedTransactionPayloadResponse = {
+  type: string;
+  encrypted_state: "encrypted" | "failed_decryption";
+  payload_hash: string;
+  ciphertext: string;
+  claimed_entry_fun: ClaimedEntryFunctionResponse | null;
+  /** Ledger epoch hint for the encryption key used on the wire (aptos-core `EncryptedInner.encryption_epoch`). */
+  encryption_epoch?: string;
+  /** Present when `encrypted_state` is `failed_decryption`. Not yet surfaced by the REST API; reserved for future use. */
+  decryption_failure_reason?: string;
+};
+
+/**
+ * Encrypted payload response after the node has successfully decrypted it.
+ * Narrow on `encrypted_state === "decrypted"` to access `decrypted_payload`.
+ */
+export type DecryptedEncryptedTransactionPayloadResponse = {
+  type: string;
+  encrypted_state: "decrypted";
+  payload_hash: string;
+  ciphertext: string;
+  claimed_entry_fun: ClaimedEntryFunctionResponse | null;
+  decrypted_payload: EntryFunctionPayloadResponse | ScriptPayloadResponse | MultisigPayloadResponse;
+  decryption_nonce: string;
+  encryption_epoch?: string;
+};
+
+/**
+ * Encrypted transaction payload as returned by the API. Discriminate on `encrypted_state`:
+ * - `"encrypted"` / `"failed_decryption"` → {@link EncryptedEncryptedTransactionPayloadResponse}
+ * - `"decrypted"` → {@link DecryptedEncryptedTransactionPayloadResponse}
+ */
+export type EncryptedTransactionPayloadResponse =
+  | EncryptedEncryptedTransactionPayloadResponse
+  | DecryptedEncryptedTransactionPayloadResponse;
+
+/**
+ * The payload for a transaction response, which can be an entry function, script, multisig, or encrypted payload.
+ */
+export type TransactionPayloadResponse =
+  | EntryFunctionPayloadResponse
+  | ScriptPayloadResponse
+  | MultisigPayloadResponse
+  | EncryptedTransactionPayloadResponse;
 
 /**
  * The response payload for an entry function, containing the type of the entry.
@@ -1683,6 +1737,11 @@ export type LedgerInfo = {
    * software version used by the API endpoint.
    */
   git_hash?: string;
+  /**
+   * Hex-encoded encryption key for encrypted transactions.
+   * Present when the node supports encrypted transaction submission.
+   */
+  encryption_key?: string;
 };
 
 /**

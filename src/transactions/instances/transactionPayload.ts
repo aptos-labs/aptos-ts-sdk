@@ -21,6 +21,8 @@ import {
 } from "../../bcs/serializable/movePrimitives.js";
 import { MoveVector, Serialized } from "../../bcs/serializable/moveStructs.js";
 import { AccountAddress } from "../../core/index.js";
+import { Ciphertext } from "../../core/crypto/encryption/ciphertext.js";
+import { ClaimedEntryFunction } from "./encryptedPayload.js";
 import { Identifier } from "./identifier.js";
 import { ModuleId } from "./moduleId.js";
 import type { EntryFunctionArgument, ScriptFunctionArgument, TransactionArgument } from "./transactionArgument.js";
@@ -130,6 +132,8 @@ export abstract class TransactionPayload extends Serializable {
         return TransactionPayloadMultiSig.load(deserializer);
       case TransactionPayloadVariants.Payload:
         return TransactionInnerPayload.deserialize(deserializer);
+      case TransactionPayloadVariants.EncryptedPayload:
+        return TransactionPayloadEncryptedPayload.load(deserializer);
       default:
         throw new Error(`Unknown variant index for TransactionPayload: ${index}`);
     }
@@ -372,6 +376,80 @@ export class EntryFunction {
 }
 
 /**
+ * Discriminants of Rust `EncryptedPayload`. Only `Encrypted` is produced or accepted client-side;
+ * `FailedDecryption` and `Decrypted` are listed for wire-format reference.
+ */
+enum EncryptedPayloadVariants {
+  Encrypted = 0,
+  FailedDecryption = 1,
+  Decrypted = 2,
+}
+
+/**
+ * `EncryptedPayload::Encrypted` as a `TransactionPayload`. BCS:
+ * variant tag (5) | inner tag (0) | Ciphertext | TransactionExtraConfig | 32-byte payload_hash | u64 epoch | Option&lt;ClaimedEntryFunction&gt;.
+ */
+export class TransactionPayloadEncryptedPayload extends TransactionPayload {
+  public readonly ciphertext: Ciphertext;
+
+  public readonly extraConfig: TransactionExtraConfig;
+
+  public readonly payloadHash: Uint8Array;
+
+  /** Epoch hint matching the node's per-epoch encryption key (see aptos-core `EncryptedInner`). */
+  public readonly encryptionEpoch: bigint;
+
+  public readonly claimedEntryFunction?: ClaimedEntryFunction;
+
+  constructor(
+    ciphertext: Ciphertext,
+    extraConfig: TransactionExtraConfig,
+    payloadHash: Uint8Array,
+    encryptionEpoch: bigint,
+    claimedEntryFunction?: ClaimedEntryFunction,
+  ) {
+    super();
+    if (payloadHash.length !== 32) {
+      throw new Error("payloadHash must be 32 bytes");
+    }
+    this.ciphertext = ciphertext;
+    this.extraConfig = extraConfig;
+    this.payloadHash = payloadHash;
+    this.encryptionEpoch = encryptionEpoch;
+    this.claimedEntryFunction = claimedEntryFunction;
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(TransactionPayloadVariants.EncryptedPayload);
+    serializer.serializeU32AsUleb128(EncryptedPayloadVariants.Encrypted);
+    this.ciphertext.serialize(serializer);
+    this.extraConfig.serialize(serializer);
+    serializer.serializeFixedBytes(this.payloadHash);
+    serializer.serializeU64(this.encryptionEpoch);
+    serializer.serializeOption(this.claimedEntryFunction);
+  }
+
+  static load(deserializer: Deserializer): TransactionPayloadEncryptedPayload {
+    const variant = deserializer.deserializeUleb128AsU32();
+    if (variant !== EncryptedPayloadVariants.Encrypted) {
+      throw new Error(`Only EncryptedPayload::Encrypted (variant 0) is supported on the client, got ${variant}`);
+    }
+    const ciphertext = Ciphertext.deserialize(deserializer);
+    const extraConfig = TransactionExtraConfig.deserialize(deserializer);
+    const payloadHash = deserializer.deserializeFixedBytes(32);
+    const encryptionEpoch = deserializer.deserializeU64();
+    const claimedEntryFunction = deserializer.deserializeOption(ClaimedEntryFunction);
+    return new TransactionPayloadEncryptedPayload(
+      ciphertext,
+      extraConfig,
+      payloadHash,
+      encryptionEpoch,
+      claimedEntryFunction,
+    );
+  }
+}
+
+/**
  * Represents a Script that can be serialized and deserialized.
  * Scripts contain the Move bytecode payload that can be submitted to the Aptos chain for execution.
  * @group Implementation
@@ -609,6 +687,8 @@ export abstract class TransactionExecutable {
         return TransactionExecutableEntryFunction.load(deserializer);
       case TransactionExecutableVariants.Empty:
         return TransactionExecutableEmpty.load(deserializer);
+      case TransactionExecutableVariants.Encrypted:
+        return TransactionExecutableEncrypted.load(deserializer);
       default:
         throw new Error(`Unknown variant index for TransactionExecutable: ${index}`);
     }
@@ -663,7 +743,22 @@ export class TransactionExecutableEmpty extends TransactionExecutable {
   }
 }
 
-export abstract class TransactionExtraConfig {
+/**
+ * Server-side sentinel variant the fullnode places in a decrypted transaction.
+ * The SDK never constructs this; it exists only for deserialization completeness.
+ * @internal
+ */
+export class TransactionExecutableEncrypted extends TransactionExecutable {
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(TransactionExecutableVariants.Encrypted);
+  }
+
+  static load(_: Deserializer): TransactionExecutableEncrypted {
+    return new TransactionExecutableEncrypted();
+  }
+}
+
+export abstract class TransactionExtraConfig extends Serializable {
   abstract serialize(serializer: Serializer): void;
 
   static deserialize(deserializer: Deserializer): TransactionExtraConfig {

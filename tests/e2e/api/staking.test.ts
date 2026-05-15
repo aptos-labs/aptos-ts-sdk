@@ -4,7 +4,9 @@
 import { AptosConfig, Aptos, Network } from "../../../src/index.js";
 import { longTestTimeout } from "../../unit/helper.js";
 
-describe("staking api", () => {
+// Skipped: relies on live mainnet/devnet indexer responses and on-chain staking
+// state; remote APIs and pool data change, causing flaky CI (e.g. indexer 5xx).
+describe.skip("staking api", () => {
   test(
     "it queries for the number of delegators",
     async () => {

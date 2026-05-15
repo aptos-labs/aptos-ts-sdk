@@ -18,9 +18,8 @@ runs:
     - run: cd confidential-asset && pnpm install --frozen-lockfile
       shell: bash
 
-    # Install the Aptos CLI globally so the tests' LocalNode setup (which
-    # shells out to `aptos node run-localnet`) can find the binary on PATH.
-    - run: pnpm install -g @aptos-labs/aptos-cli
+    # Expose the lockfile-installed Aptos CLI for tests' LocalNode setup.
+    - run: echo "$PWD/node_modules/.bin" >> "$GITHUB_PATH"
       shell: bash
 
     # Run the Confidential Asset tests.
