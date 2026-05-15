@@ -17,7 +17,9 @@ describe("u64ToNumberSafe", () => {
 
   it("throws above Number.MAX_SAFE_INTEGER", () => {
     expect(() => u64ToNumberSafe(BigInt(Number.MAX_SAFE_INTEGER) + 1n, "field")).toThrow(RangeError);
-    expect(() => u64ToNumberSafe(BigInt(Number.MAX_SAFE_INTEGER) + 1n, "field")).toThrow(/exceeds Number\.MAX_SAFE_INTEGER/);
+    expect(() => u64ToNumberSafe(BigInt(Number.MAX_SAFE_INTEGER) + 1n, "field")).toThrow(
+      /exceeds Number\.MAX_SAFE_INTEGER/,
+    );
   });
 
   it("includes the field name in the thrown message for diagnosability", () => {
