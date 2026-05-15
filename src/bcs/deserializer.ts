@@ -22,9 +22,13 @@ const MAX_DESERIALIZE_BYTES_LENGTH = 10 * 1024 * 1024; // 10MB
  * with a ULEB128 length close to `MAX_U32_NUMBER` (~4.29 billion) would cause
  * `deserializeVector` to spin for billions of iterations before the inner
  * `read()` bounds check trips, effectively a CPU-exhaustion DoS. Matches the
- * canonical `MAX_SEQUENCE_LENGTH = (1 << 31) - 1` bound used elsewhere in BCS.
+ * canonical `MAX_SEQUENCE_LENGTH = 2^31 - 1` bound used elsewhere in BCS.
+ *
+ * Note: written as `2 ** 31 - 1` rather than `(1 << 31) - 1` because the
+ * bitwise shift operates on 32-bit *signed* integers in JavaScript, which
+ * would produce a negative value here.
  */
-const MAX_DESERIALIZE_VECTOR_LENGTH = (1 << 31) - 1;
+const MAX_DESERIALIZE_VECTOR_LENGTH = 2 ** 31 - 1;
 
 /**
  * This interface exists to define Deserializable<T> inputs for functions that
