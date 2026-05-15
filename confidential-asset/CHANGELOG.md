@@ -6,6 +6,10 @@ For changes to the main Aptos TypeScript SDK (`@aptos-labs/ts-sdk`), see the [ro
 
 # Unreleased
 
+## Added
+
+- `TwistedEd25519PrivateKey.clear()` and `isCleared()` mirror the lifecycle hooks on the main SDK's `Ed25519PrivateKey` / `Secp256k1PrivateKey`. After `clear()` is called, the underlying byte buffer of the `Hex` wrapper is overwritten and subsequent calls to `publicKey()`, `toUint8Array()`, `toString()`, and `toStringWithoutPrefix()` throw. **SECURITY NOTE:** as documented on the new JSDoc, this cannot fully zeroize the key in JavaScript — any `toString()` output already produced is an immutable JS string, and noble-curves / `ed25519modN` operations may have produced `BigInt` intermediates that also can't be wiped. Treat `clear()` as a best-effort window-narrowing tool, not a true zeroization guarantee.
+
 ## Fixed
 
 - `TwistedElGamal.decryptAmount` no longer calls `console.error` on the caught discrete-log failure before re-throwing. The underlying error is now attached as `error.cause` on the thrown `TypeError`, so legitimate debug flows keep full diagnostic context but production log aggregators / crash reporters don't capture the raw error unconditionally.
