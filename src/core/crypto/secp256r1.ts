@@ -243,6 +243,12 @@ export class Secp256r1PrivateKey extends PrivateKey {
   private readonly key: Hex;
 
   /**
+   * Whether the key has been cleared from memory.
+   * @private
+   */
+  private cleared: boolean = false;
+
+  /**
    * Create a new PrivateKey instance from a Uint8Array or String.
    *
    * [Read about AIP-80](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md)
@@ -268,10 +274,12 @@ export class Secp256r1PrivateKey extends PrivateKey {
    * Get the private key in bytes (Uint8Array).
    *
    * @returns
+   * @throws Error if the private key has been cleared from memory.
    * @group Implementation
    * @category Serialization
    */
   toUint8Array(): Uint8Array {
+    this.ensureNotCleared();
     return this.key.toUint8Array();
   }
 
@@ -279,16 +287,19 @@ export class Secp256r1PrivateKey extends PrivateKey {
    * Get the private key as a string representation.
    *
    * SECURITY: This produces an immutable JS string containing the key
-   * material. Unlike `Ed25519PrivateKey` / `Secp256k1PrivateKey`, this
-   * class does not yet implement `clear()` — but even if it did, the
-   * returned string could not be zeroed. Strings in JavaScript are
-   * immutable and live in the heap until GC collects them.
+   * material. Strings cannot be zeroed by `clear()` (see the `clear()`
+   * JSDoc for the four classes of unreachable copies). Avoid calling this
+   * method on long-lived `Secp256r1PrivateKey` instances in processes
+   * where memory hygiene matters; prefer `toUint8Array()`, which returns
+   * a clearable `Uint8Array`.
    *
    * @returns string representation of the private key
+   * @throws Error if the private key has been cleared from memory.
    * @group Implementation
    * @category Serialization
    */
   toString(): string {
+    this.ensureNotCleared();
     return PrivateKey.formatPrivateKey(this.key.toString(), PrivateKeyVariants.Secp256r1);
   }
 
@@ -296,11 +307,13 @@ export class Secp256r1PrivateKey extends PrivateKey {
    * Get the private key as a hex string with the 0x prefix.
    *
    * SECURITY: Same caveat as `toString()` — produces an immutable JS string
-   * containing the key material.
+   * containing the key material; cannot be zeroed by `clear()`.
    *
    * @returns string representation of the private key.
+   * @throws Error if the private key has been cleared from memory.
    */
   toHexString(): string {
+    this.ensureNotCleared();
     return this.key.toString();
   }
 
@@ -310,10 +323,12 @@ export class Secp256r1PrivateKey extends PrivateKey {
    *
    * @param message - A message in HexInput format to be signed.
    * @returns Signature - The generated signature for the provided message.
+   * @throws Error if the private key has been cleared from memory.
    * @group Implementation
    * @category Serialization
    */
   sign(message: HexInput): Secp256r1Signature {
+    this.ensureNotCleared();
     const msgHex = Hex.fromHexInput(message);
     const sha3Message = sha3_256(msgHex.toUint8Array());
     const signature = p256.sign(sha3Message, this.key.toUint8Array(), { prehash: false });
@@ -361,12 +376,60 @@ export class Secp256r1PrivateKey extends PrivateKey {
    * Derive the Secp256r1PublicKey from this private key.
    *
    * @returns Secp256r1PublicKey The derived public key.
+   * @throws Error if the private key has been cleared from memory.
    * @group Implementation
    * @category Serialization
    */
   publicKey(): Secp256r1PublicKey {
+    this.ensureNotCleared();
     const bytes = p256.getPublicKey(this.key.toUint8Array(), false);
     return new Secp256r1PublicKey(bytes);
+  }
+
+  /**
+   * Throws if the key has already been cleared.
+   * @private
+   */
+  private ensureNotCleared(): void {
+    if (this.cleared) {
+      throw new Error("Private key has been cleared from memory and can no longer be used");
+    }
+  }
+
+  /**
+   * Overwrites the underlying private-key byte buffer with random bytes and
+   * then zeros. After calling this method the key can no longer sign or
+   * derive a public key.
+   *
+   * SECURITY: This is a best-effort window-narrowing tool, NOT a true
+   * zeroization guarantee. See `Ed25519PrivateKey.clear()` for the full
+   * enumeration of JavaScript-level limits (immutable string copies, noble
+   * `BigInt` intermediates, JIT register/stack residue, GC-relocated
+   * copies). For Secp256r1 specifically, non-extractable `crypto.subtle`
+   * P-256 keys are universally supported across modern runtimes and are
+   * the architecturally-correct path for callers who need real memory
+   * hygiene; consider that alternative for new code.
+   *
+   * @group Implementation
+   * @category Serialization
+   */
+  clear(): void {
+    if (!this.cleared) {
+      const keyBytes = this.key.toUint8Array();
+      // Multiple overwrite passes for consistency with the other private-key classes.
+      crypto.getRandomValues(keyBytes);
+      keyBytes.fill(0xff);
+      crypto.getRandomValues(keyBytes);
+      keyBytes.fill(0);
+      this.cleared = true;
+    }
+  }
+
+  /**
+   * Returns whether `clear()` has been called.
+   */
+  isCleared(): boolean {
+    return this.cleared;
   }
 }
 

@@ -7,6 +7,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 ## Added
 
 - CI uploads unit test coverage to Codecov (`codecov.yaml` via `.github/actions/run-codecov`, `pnpm test:coverage:unit`). Uploads use the Codecov `unit` flag; Vitest coverage is scoped to `src/**/*.ts` (excluding generated GraphQL queries and indexer types) so metrics reflect SDK sources. Repository owners should enable the Codecov GitHub app and optionally set `CODECOV_TOKEN` for uploads.
+- `Secp256r1PrivateKey.clear()` and `isCleared()` mirror the lifecycle hooks already present on `Ed25519PrivateKey` and `Secp256k1PrivateKey`. After `clear()` is called, the underlying byte buffer is overwritten and subsequent calls to `toUint8Array()`, `toString()`, `toHexString()`, `publicKey()`, and `sign()` throw. Same JavaScript-level limits as the other classes (see `clear()` JSDoc) — best-effort window-narrowing, not a true zeroization guarantee.
 
 ## Fixed
 

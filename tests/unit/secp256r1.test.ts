@@ -193,6 +193,52 @@ describe("Secp256r1PrivateKey", () => {
     expect(privateKey2).toBeInstanceOf(Secp256r1PrivateKey);
     expect(privateKey1.toString()).not.toEqual(privateKey2.toString());
   });
+
+  describe("clear()", () => {
+    it("zeros the underlying byte buffer", () => {
+      const key = Secp256r1PrivateKey.generate();
+      const bytes = key.toUint8Array();
+      expect(bytes.some((b) => b !== 0)).toBe(true);
+      key.clear();
+      // toUint8Array() now throws, but the captured `bytes` reference points
+      // at the same backing buffer of the Hex wrapper, which is now zeroed.
+      expect(bytes.every((b) => b === 0)).toBe(true);
+    });
+
+    it("isCleared() flips from false to true", () => {
+      const key = Secp256r1PrivateKey.generate();
+      expect(key.isCleared()).toBe(false);
+      key.clear();
+      expect(key.isCleared()).toBe(true);
+    });
+
+    it("clear() is idempotent", () => {
+      const key = Secp256r1PrivateKey.generate();
+      key.clear();
+      expect(() => key.clear()).not.toThrow();
+      expect(key.isCleared()).toBe(true);
+    });
+
+    it.each([
+      ["toUint8Array", (k: Secp256r1PrivateKey) => k.toUint8Array()],
+      ["toString", (k: Secp256r1PrivateKey) => k.toString()],
+      ["toHexString", (k: Secp256r1PrivateKey) => k.toHexString()],
+      ["publicKey", (k: Secp256r1PrivateKey) => k.publicKey()],
+      ["sign", (k: Secp256r1PrivateKey) => k.sign("0x00")],
+    ])("rejects %s() after clear()", (_label, op) => {
+      const key = Secp256r1PrivateKey.generate();
+      key.clear();
+      expect(() => op(key)).toThrow(/cleared from memory/);
+    });
+
+    it("normal operations work before clear()", () => {
+      const key = Secp256r1PrivateKey.generate();
+      expect(() => key.publicKey()).not.toThrow();
+      expect(() => key.toUint8Array()).not.toThrow();
+      expect(() => key.toString()).not.toThrow();
+      expect(() => key.sign("0x00")).not.toThrow();
+    });
+  });
 });
 
 describe("Secp256r1Signature", () => {
