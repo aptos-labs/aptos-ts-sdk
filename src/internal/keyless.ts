@@ -108,6 +108,12 @@ export async function getProof(args: {
   if (Hex.fromHexInput(pepper).toUint8Array().length !== KeylessAccount.PEPPER_LENGTH) {
     throw new Error(`Pepper needs to be ${KeylessAccount.PEPPER_LENGTH} bytes`);
   }
+  // SECURITY: jwtDecode does NOT verify the JWT signature. The prover service
+  // is the next hop and will reject a tampered JWT, and the on-chain keyless
+  // verifier validates the signature against the JWK set published on-chain.
+  // Callers must still source `jwt` from a trusted IdP redirect flow — accepting
+  // a user-supplied JWT here will produce a useless proof, not a forged one,
+  // but it also leaks the (unverified) claims to the prover.
   const decodedJwt = jwtDecode<JwtPayload>(jwt);
   if (typeof decodedJwt.iat !== "number") {
     throw new Error("iat was not found");

@@ -347,6 +347,9 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
         type: KeylessErrorType.ASYNC_PROOF_FETCH_FAILED,
       });
     }
+    // SECURITY: jwtDecode does NOT verify the JWT signature; we only read the
+    // `kid` header to compare against the verification key hash. JWT signature
+    // verification is performed on-chain by the keyless verifier.
     const header = jwtDecode(this.jwt, { header: true });
     if (header.kid === undefined) {
       throw KeylessError.fromErrorType({

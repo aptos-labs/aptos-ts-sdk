@@ -17,6 +17,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - `updateFederatedKeylessJwkSetTransaction` JWKS-fetch errors now report only the origin (scheme + host + port) of the JWKS URL, not the full URL. This avoids leaking `iss`-derived path segments or tenant identifiers from enterprise IdP setups into logs.
 - `LocalNode.start` and `Move.runCommand` now reject shell metacharacters in CLI arguments before invoking `spawn`. Windows requires `shell: true` to launch `.cmd` shims (CVE-2024-27980 mitigation), which previously meant characters like `&`, `|`, `;`, `` ` ``, `$`, `(`, `)`, `<`, `>`, `^`, `!`, `*`, `?`, quotes, and newlines in caller-supplied `extraArgs` / `extraArguments` could be interpreted by `cmd.exe` and trigger command injection. The new validator (`assertSafeCliArg` / `assertSafeCliArgs`, exported from `@aptos-labs/ts-sdk/cli`) is applied on all platforms for consistency.
 
+## Documentation
+
+- Document that `jwt-decode` performs no signature verification at the SDK layer. The cryptographic binding between a JWT and its IdP is enforced on-chain by the keyless verifier; the SDK only decodes claims to derive the account address and pass the JWT through to the prover service. Added explicit `SECURITY:` notes on `KeylessPublicKey.fromJwtAndPepper`, `getIssAudAndUidVal`, the `getProof` flow in `src/internal/keyless.ts`, and `AbstractKeylessAccount.checkKeylessAccountValidity` so future contributors don't mistakenly assume client-side verification is happening.
+
 # 7.0.1 (2026-05-14)
 
 ## Fixed
