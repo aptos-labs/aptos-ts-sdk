@@ -11,6 +11,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 ## Fixed
 
 - `Secp256r1PublicKey.verifySignature` now enforces canonical low-S form (matches `Secp256k1PublicKey.verifySignature` and aligns with on-chain verifier expectations). Previously accepted both low-S and high-S signatures, which could cause SDK-validated signatures to be rejected by the chain.
+- Poseidon length-validation error messages no longer stringify the input `Uint8Array` (which yielded its full byte content) — they now report `bytes.length`, avoiding leakage of caller-supplied data (e.g., JWT claim values) into logs and crash reporters.
 
 # 7.0.1 (2026-05-14)
 

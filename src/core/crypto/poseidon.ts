@@ -68,7 +68,7 @@ export function hashStrToField(str: string, maxSizeBytes: number): bigint {
  */
 function hashBytesWithLen(bytes: Uint8Array, maxSizeBytes: number): bigint {
   if (bytes.length > maxSizeBytes) {
-    throw new Error(`Inputted bytes of length ${bytes} is longer than ${maxSizeBytes}`);
+    throw new Error(`Inputted bytes of length ${bytes.length} is longer than ${maxSizeBytes}`);
   }
   const packed = padAndPackBytesWithLen(bytes, maxSizeBytes);
   return poseidonHash(packed);
@@ -86,7 +86,7 @@ function hashBytesWithLen(bytes: Uint8Array, maxSizeBytes: number): bigint {
  */
 function padAndPackBytesNoLen(bytes: Uint8Array, maxSizeBytes: number): bigint[] {
   if (bytes.length > maxSizeBytes) {
-    throw new Error(`Input bytes of length ${bytes} is longer than ${maxSizeBytes}`);
+    throw new Error(`Input bytes of length ${bytes.length} is longer than ${maxSizeBytes}`);
   }
   const paddedStrBytes = padUint8ArrayWithZeros(bytes, maxSizeBytes);
   return packBytes(paddedStrBytes);
@@ -106,7 +106,7 @@ function padAndPackBytesNoLen(bytes: Uint8Array, maxSizeBytes: number): bigint[]
  */
 export function padAndPackBytesWithLen(bytes: Uint8Array, maxSizeBytes: number): bigint[] {
   if (bytes.length > maxSizeBytes) {
-    throw new Error(`Input bytes of length ${bytes} is longer than ${maxSizeBytes}`);
+    throw new Error(`Input bytes of length ${bytes.length} is longer than ${maxSizeBytes}`);
   }
   return padAndPackBytesNoLen(bytes, maxSizeBytes).concat([BigInt(bytes.length)]);
 }
