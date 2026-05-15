@@ -7,6 +7,39 @@ import { createObjectAddress } from "../core/account/utils/address.js";
 import { TEXT_ENCODER } from "./const.js";
 
 /**
+ * Maximum bigint value that can be losslessly converted to a JS `number`.
+ * Equal to `BigInt(Number.MAX_SAFE_INTEGER)` (2^53 - 1).
+ */
+const MAX_SAFE_U64 = BigInt(Number.MAX_SAFE_INTEGER);
+
+/**
+ * Narrows a u64 (`bigint`) into a JS `number` with an explicit safety check.
+ *
+ * The `deserializeU64` reader returns `bigint`, but several keyless code
+ * paths historically narrowed the value with `Number(value)` to fit existing
+ * `number`-typed fields (expiry timestamps, expiry horizons). For values
+ * larger than `Number.MAX_SAFE_INTEGER` (~9 × 10^15), `Number(bigint)`
+ * silently loses precision — comparisons against `Date.now() / 1000` then
+ * return wrong results.
+ *
+ * Real-world expiry values are far below the unsafe range (year ~285 million
+ * AD as a Unix timestamp), so this check is effectively a guard against
+ * corrupted or malicious BCS data rather than a precision concern in normal
+ * operation. Throwing is correct behavior at the BCS/JSON boundary.
+ */
+export function u64ToNumberSafe(value: bigint, fieldName: string): number {
+  if (value < 0n) {
+    throw new RangeError(`${fieldName} is negative (${value}); expected an unsigned u64`);
+  }
+  if (value > MAX_SAFE_U64) {
+    throw new RangeError(
+      `${fieldName} (${value}) exceeds Number.MAX_SAFE_INTEGER (${MAX_SAFE_U64}); refusing to silently lose precision`,
+    );
+  }
+  return Number(value);
+}
+
+/**
  * Checks if the current runtime environment is Bun.
  * This is useful for detecting Bun-specific compatibility issues.
  *

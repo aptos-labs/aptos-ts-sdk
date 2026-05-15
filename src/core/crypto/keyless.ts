@@ -28,6 +28,7 @@ import {
   PatchedJWKsResponse,
 } from "../../types/keyless.js";
 import { AptosConfig } from "../../api/aptosConfig.js";
+import { u64ToNumberSafe } from "../../utils/helpers.js";
 import { getAptosFullNode } from "../../client/index.js";
 import { memoizeAsync } from "../../utils/memoize.js";
 import { AccountAddress, AccountAddressInput } from "../accountAddress.js";
@@ -661,7 +662,7 @@ export class KeylessSignature extends Signature {
     const ephemeralSignature = EphemeralSignature.deserialize(deserializer);
     return new KeylessSignature({
       jwtHeader,
-      expiryDateSecs: Number(expiryDateSecs),
+      expiryDateSecs: u64ToNumberSafe(expiryDateSecs, "KeylessSignature.expiryDateSecs"),
       ephemeralCertificate,
       ephemeralPublicKey,
       ephemeralSignature,
@@ -1125,7 +1126,7 @@ export class ZeroKnowledgeSig extends Signature {
 
   static deserialize(deserializer: Deserializer): ZeroKnowledgeSig {
     const proof = ZkProof.deserialize(deserializer);
-    const expHorizonSecs = Number(deserializer.deserializeU64());
+    const expHorizonSecs = u64ToNumberSafe(deserializer.deserializeU64(), "ZeroKnowledgeSig.expHorizonSecs");
     const extraField = deserializer.deserializeOption("string");
     const overrideAudVal = deserializer.deserializeOption("string");
     const trainingWheelsSignature = deserializer.deserializeOption(EphemeralSignature);
@@ -1237,7 +1238,9 @@ export class KeylessConfiguration {
         gammaAbcG1: res.gamma_abc_g1,
         gammaG2: res.gamma_g2,
       }),
-      maxExpHorizonSecs: Number(config.max_exp_horizon_secs),
+      // Chain config returns u64 as a decimal string; widen → safe-narrow so
+      // a malformed/exotic value throws rather than silently truncates.
+      maxExpHorizonSecs: u64ToNumberSafe(BigInt(config.max_exp_horizon_secs), "KeylessConfiguration.maxExpHorizonSecs"),
       trainingWheelsPubkey: config.training_wheels_pubkey.vec[0],
       maxExtraFieldBytes: config.max_extra_field_bytes,
       maxJwtHeaderB64Bytes: config.max_jwt_header_b64_bytes,

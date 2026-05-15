@@ -10,7 +10,7 @@ import { PrivateKey } from "../core/crypto/privateKey.js";
 import { Hex } from "../core/hex.js";
 import { EphemeralPublicKeyVariant, HexInput } from "../types/index.js";
 import { Deserializer, Serializable, Serializer } from "../bcs/index.js";
-import { floorToWholeHour, nowInSeconds } from "../utils/helpers.js";
+import { floorToWholeHour, nowInSeconds, u64ToNumberSafe } from "../utils/helpers.js";
 
 const TWO_WEEKS_IN_SECONDS = 1_209_600;
 
@@ -199,7 +199,11 @@ export class EphemeralKeyPair extends Serializable {
     }
     const expiryDateSecs = deserializer.deserializeU64();
     const blinder = deserializer.deserializeFixedBytes(31);
-    return new EphemeralKeyPair({ privateKey, expiryDateSecs: Number(expiryDateSecs), blinder });
+    return new EphemeralKeyPair({
+      privateKey,
+      expiryDateSecs: u64ToNumberSafe(expiryDateSecs, "EphemeralKeyPair.expiryDateSecs"),
+      blinder,
+    });
   }
 
   /**
