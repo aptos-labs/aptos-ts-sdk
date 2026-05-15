@@ -23,6 +23,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Documentation
 
+- Document on `AptosApiError` (both class-level JSDoc and the `data` field JSDoc) that `error.data` always retains the raw response body — including for `AptosApiType.PEPPER` and `AptosApiType.PROVER` — even though `error.message` is redacted for those API types. Callers that log or serialize `AptosApiError.data` (Sentry auto-capture, structured loggers, `JSON.stringify`) need to treat it as sensitive for keyless-flow errors.
 - Document that `jwt-decode` performs no signature verification at the SDK layer. The cryptographic binding between a JWT and its IdP is enforced on-chain by the keyless verifier; the SDK only decodes claims to derive the account address and pass the JWT through to the prover service. Added explicit `SECURITY:` notes on `KeylessPublicKey.fromJwtAndPepper`, `getIssAudAndUidVal`, the `getProof` flow in `src/internal/keyless.ts`, and `AbstractKeylessAccount.checkKeylessAccountValidity` so future contributors don't mistakenly assume client-side verification is happening.
 
 # 7.0.1 (2026-05-14)

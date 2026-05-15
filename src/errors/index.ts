@@ -361,6 +361,15 @@ type AptosApiErrorOpts = {
  * @param statusText - The message associated with the response status.
  * @param data - The response data returned from the API.
  * @param request - The original AptosRequest that triggered the error.
+ *
+ * SECURITY: `Error.message` is sanitized for `AptosApiType.PEPPER` and
+ * `AptosApiType.PROVER` so that response bodies (which can contain JWT claims
+ * or pepper-derived material) don't leak into default log/crash sinks. The
+ * `data` field, however, ALWAYS holds the raw response body — including for
+ * those sensitive API types — so callers that log or serialize
+ * `AptosApiError.data` (e.g., `JSON.stringify(error)`, Sentry's automatic
+ * field capture, custom structured loggers) must treat it accordingly. If
+ * you only need a human-readable summary, prefer `error.message`.
  */
 export class AptosApiError extends Error {
   readonly url: string;
@@ -369,6 +378,16 @@ export class AptosApiError extends Error {
 
   readonly statusText: string;
 
+  /**
+   * The raw response body returned by the API.
+   *
+   * SECURITY: For `AptosApiType.PEPPER` and `AptosApiType.PROVER`, this can
+   * contain sensitive keyless-flow material (JWT claims, pepper-derived
+   * state). It is NOT redacted here — only `Error.message` is. Treat
+   * `error.data` as sensitive when handling errors from those API types,
+   * especially before passing the error to a structured logger or crash
+   * reporter.
+   */
   readonly data: any;
 
   readonly request: AptosRequest;
