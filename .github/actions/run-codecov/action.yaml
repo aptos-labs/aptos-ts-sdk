@@ -1,0 +1,27 @@
+name: "Unit test coverage and Codecov upload"
+description: |
+  Install dependencies, run Vitest unit tests with coverage, and upload lcov to Codecov.
+
+inputs:
+  codecov-token:
+    description: Optional Codecov token (tokenless uploads work for many public repos).
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/setup-node-pnpm
+    - run: pnpm install --frozen-lockfile
+      shell: bash
+    - name: Unit tests with coverage
+      run: pnpm run test:coverage:unit
+      shell: bash
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@1e68e06f1dbfde0e4cefc87efeba9e4643565303 # pin@v5.1.2
+      with:
+        token: ${{ inputs.codecov-token }}
+        files: coverage/lcov.info
+        flags: unit
+        name: unit
+        fail_ci_if_error: false
