@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`AptosApiError > should generate pretty error messages 1`] = `"Request to [Pepper]: POST http://blabla.com/my/api:8080 failed with status: Bad Request(code:400) and response body: {"error":"something went wrong"}"`;
+exports[`AptosApiError > should generate pretty error messages 1`] = `"Request to [Pepper]: POST http://blabla.com/my/api:8080 failed with status: Bad Request(code:400) (response body redacted for Pepper)"`;
 
 exports[`AptosApiError > should generate pretty error messages 2`] = `"Request to [Indexer]: POST http://blabla.com/my/api:8080 failed with: Your graphql query is invalid."`;
 
