@@ -4,6 +4,17 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Added
+
+- Unambiguous signing/verification API split across `Ed25519`, `Secp256k1`, and `Secp256r1`:
+  - `signBytes(message: Uint8Array)` and `signText(message: string)` on each `PrivateKey` class. `signBytes` signs exactly the provided bytes; `signText` UTF-8-encodes the string before signing. No hex/text heuristic — the input type determines the interpretation unambiguously.
+  - `verifyBytes({ message: Uint8Array, signature })` and `verifyText({ message: string, signature })` on each `PublicKey` class, mirroring the sign side.
+  - These pair as `signBytes` ↔ `verifyBytes` and `signText` ↔ `verifyText`. Prefer these over the legacy polymorphic methods for any new code.
+
+## Deprecated
+
+- `Ed25519PrivateKey.sign`, `Secp256k1PrivateKey.sign`, `Secp256r1PrivateKey.sign`, `Ed25519PublicKey.verifySignature`, `Secp256k1PublicKey.verifySignature`, and `Secp256r1PublicKey.verifySignature` are now `@deprecated`. The polymorphic `message: HexInput` input is silently ambiguous — a bare even-length hex string (e.g., `"cafe"`) is interpreted as the 2 bytes `[0xCA, 0xFE]`, not as 4 UTF-8 text bytes. The deprecated methods continue to work exactly as before for backwards compatibility; they now internally delegate to `signBytes` / `verifyBytes` after running the legacy `convertSigningMessage` heuristic.
+
 ## Changed
 
 - `Secp256r1PrivateKey.sign` and `Secp256r1PublicKey.verifySignature` now flow string inputs through `convertSigningMessage`, matching `Ed25519` and `Secp256k1` behavior. Practical effect: a non-hex string like `"hello"` is now accepted and encoded as UTF-8 (previously threw via `Hex.fromHexInput`). Bare even-length hex strings continue to be treated as hex bytes, and `Uint8Array` inputs are unchanged. This is a backwards-compatible behavior expansion — no existing valid inputs change meaning.

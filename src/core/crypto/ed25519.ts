@@ -11,6 +11,7 @@ import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSee
 import { PrivateKey } from "./privateKey.js";
 import { AccountPublicKey, PublicKey, VerifySignatureArgs, VerifySignatureAsyncArgs } from "./publicKey.js";
 import { Signature } from "./signature.js";
+import { TEXT_ENCODER } from "../../utils/const.js";
 import { convertSigningMessage } from "./utils.js";
 
 /**
@@ -98,14 +99,51 @@ export class Ed25519PublicKey extends AccountPublicKey {
   // region AccountPublicKey
 
   /**
+   * Verifies a signature against the exact bytes of `message`. This is the
+   * unambiguous form — the input is interpreted as raw bytes regardless of
+   * what they encode. Pair with {@link Ed25519PrivateKey.signBytes}.
+   *
+   * Performs an Ed25519 malleability check (rejects non-canonical S values)
+   * before delegating to the underlying curve verifier.
+   *
+   * @param args - The arguments for verification.
+   * @param args.message - The exact bytes that were signed.
+   * @param args.signature - The signature to verify.
+   * @group Implementation
+   * @category Serialization
+   */
+  verifyBytes(args: { message: Uint8Array; signature: Signature }): boolean {
+    const { message, signature } = args;
+    if (!isCanonicalEd25519Signature(signature)) {
+      return false;
+    }
+    return ed25519.verify(signature.toUint8Array(), message, this.key.toUint8Array());
+  }
+
+  /**
+   * Verifies a signature against the UTF-8 encoding of `message`. The input
+   * is always treated as text — there is no hex/text heuristic. Pair with
+   * {@link Ed25519PrivateKey.signText}.
+   *
+   * @param args - The arguments for verification.
+   * @param args.message - The text that was signed.
+   * @param args.signature - The signature to verify.
+   * @group Implementation
+   * @category Serialization
+   */
+  verifyText(args: { message: string; signature: Signature }): boolean {
+    return this.verifyBytes({ message: TEXT_ENCODER.encode(args.message), signature: args.signature });
+  }
+
+  /**
    * Verifies a signed message using a public key.
    *
-   * MESSAGE-INPUT AMBIGUITY: When `message` is a string, it is interpreted
-   * as hex if it parses as valid hex (with or without `0x` prefix), and as
-   * UTF-8 otherwise. A bare even-length string of hex characters (e.g.,
-   * `"cafe"`) is always treated as the 2 bytes `[0xCA, 0xFE]`, even when
-   * the caller intended it as text. See {@link convertSigningMessage} for
-   * the full rule. Prefer passing `Uint8Array` for unambiguous behavior.
+   * @deprecated The polymorphic `message: HexInput` input is ambiguous — a
+   * bare even-length string of hex characters (e.g., `"cafe"`) is
+   * interpreted as the 2 bytes `[0xCA, 0xFE]`, not as 4 UTF-8 text bytes.
+   * Use {@link verifyBytes} for `Uint8Array` input or {@link verifyText}
+   * for `string` input; both are unambiguous. See
+   * {@link convertSigningMessage} for the full legacy rule.
    *
    * @param args - The arguments for verification.
    * @param args.message - A signed message as a Hex string or Uint8Array.
@@ -115,16 +153,9 @@ export class Ed25519PublicKey extends AccountPublicKey {
    */
   verifySignature(args: VerifySignatureArgs): boolean {
     const { message, signature } = args;
-    // Verify malleability
-    if (!isCanonicalEd25519Signature(signature)) {
-      return false;
-    }
-
     const messageToVerify = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
-    const signatureBytes = signature.toUint8Array();
-    const publicKeyBytes = this.key.toUint8Array();
-    return ed25519.verify(signatureBytes, messageBytes, publicKeyBytes);
+    return this.verifyBytes({ message: messageBytes, signature });
   }
 
   /**
@@ -449,13 +480,47 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   }
 
   /**
+   * Sign exactly the bytes of `message`. The input is interpreted as raw
+   * bytes regardless of what they encode. Pair with
+   * {@link Ed25519PublicKey.verifyBytes}.
+   *
+   * @param message - The exact bytes to sign.
+   * @returns A digital signature for the provided bytes.
+   * @throws Error if the private key has been cleared from memory.
+   * @group Implementation
+   * @category Serialization
+   */
+  signBytes(message: Uint8Array): Ed25519Signature {
+    this.ensureNotCleared();
+    const signatureBytes = ed25519.sign(message, this.signingKey.toUint8Array());
+    return new Ed25519Signature(signatureBytes);
+  }
+
+  /**
+   * Sign the UTF-8 encoding of `message`. The input is always treated as
+   * text — there is no hex/text heuristic. Pair with
+   * {@link Ed25519PublicKey.verifyText}.
+   *
+   * @param message - The text to sign.
+   * @returns A digital signature for the UTF-8 bytes of the provided text.
+   * @throws Error if the private key has been cleared from memory.
+   * @group Implementation
+   * @category Serialization
+   */
+  signText(message: string): Ed25519Signature {
+    return this.signBytes(TEXT_ENCODER.encode(message));
+  }
+
+  /**
    * Sign the given message with the private key.
    * This function generates a digital signature for the specified message, ensuring its authenticity and integrity.
    *
-   * MESSAGE-INPUT AMBIGUITY: See {@link convertSigningMessage}. When
-   * `message` is a string, a bare even-length string of hex characters
-   * (e.g., `"cafe"`) is signed as the 2 bytes `[0xCA, 0xFE]`, not the 4
-   * bytes of UTF-8 text. Prefer `Uint8Array` for unambiguous behavior.
+   * @deprecated The polymorphic `message: HexInput` input is ambiguous — a
+   * bare even-length string of hex characters (e.g., `"cafe"`) is signed
+   * as the 2 bytes `[0xCA, 0xFE]`, not as 4 UTF-8 text bytes. Use
+   * {@link signBytes} for `Uint8Array` input or {@link signText} for
+   * `string` input; both are unambiguous. See
+   * {@link convertSigningMessage} for the full legacy rule.
    *
    * @param message - A message as a string or Uint8Array in HexInput format.
    * @returns A digital signature for the provided message.
@@ -464,11 +529,9 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    * @category Serialization
    */
   sign(message: HexInput): Ed25519Signature {
-    this.ensureNotCleared();
     const messageToSign = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToSign).toUint8Array();
-    const signatureBytes = ed25519.sign(messageBytes, this.signingKey.toUint8Array());
-    return new Ed25519Signature(signatureBytes);
+    return this.signBytes(messageBytes);
   }
 
   /**

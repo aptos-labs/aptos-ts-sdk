@@ -16,6 +16,7 @@ import { PrivateKey } from "./privateKey.js";
 import { Signature } from "./signature.js";
 import { AuthenticationKey } from "../authenticationKey.js";
 import { convertSigningMessage } from "./utils.js";
+import { TEXT_ENCODER } from "../../utils/const.js";
 
 /**
  * Represents a Secp256r1 ECDSA public key.
@@ -103,19 +104,50 @@ export class Secp256r1PublicKey extends PublicKey {
   }
 
   /**
+   * Verifies a signature against the exact bytes of `message`. This is the
+   * unambiguous form — the input is interpreted as raw bytes regardless of
+   * what they encode. Pair with {@link Secp256r1PrivateKey.signBytes}.
+   *
+   * The message is SHA3-256 hashed before verification (matching the
+   * Aptos-side Secp256r1 signing convention), and the signature is required
+   * to be in canonical low-S form for malleability resistance.
+   *
+   * @param args - The arguments for verification.
+   * @param args.message - The exact bytes that were signed.
+   * @param args.signature - The signature to verify.
+   * @group Implementation
+   * @category Serialization
+   */
+  verifyBytes(args: { message: Uint8Array; signature: Signature }): boolean {
+    const { message, signature } = args;
+    const sha3Message = sha3_256(message);
+    return p256.verify(signature.toUint8Array(), sha3Message, this.toUint8Array(), { prehash: false, lowS: true });
+  }
+
+  /**
+   * Verifies a signature against the UTF-8 encoding of `message`. The input
+   * is always treated as text — there is no hex/text heuristic. Pair with
+   * {@link Secp256r1PrivateKey.signText}.
+   *
+   * @param args - The arguments for verification.
+   * @param args.message - The text that was signed.
+   * @param args.signature - The signature to verify.
+   * @group Implementation
+   * @category Serialization
+   */
+  verifyText(args: { message: string; signature: Signature }): boolean {
+    return this.verifyBytes({ message: TEXT_ENCODER.encode(args.message), signature: args.signature });
+  }
+
+  /**
    * Verifies a Secp256r1 signature against the public key.
    *
-   * This function checks the validity of a signature for a given message.
-   *
-   * MESSAGE-INPUT AMBIGUITY: See {@link convertSigningMessage}. When
-   * `message` is a string, a bare even-length string of hex characters
-   * (e.g., `"cafe"`) is verified against the 2 bytes `[0xCA, 0xFE]`, not
-   * the 4 bytes of UTF-8 text. Non-hex strings (e.g., `"hello"`) are
-   * accepted as UTF-8 — this matches `Ed25519PublicKey.verifySignature`
-   * and `Secp256k1PublicKey.verifySignature` rather than the previous
-   * Secp256r1-specific behavior that threw on non-hex strings.
-   *
-   * Prefer `Uint8Array` for unambiguous behavior.
+   * @deprecated The polymorphic `message: HexInput` input is ambiguous — a
+   * bare even-length string of hex characters (e.g., `"cafe"`) is verified
+   * against the 2 bytes `[0xCA, 0xFE]`, not 4 UTF-8 text bytes. Use
+   * {@link verifyBytes} for `Uint8Array` input or {@link verifyText} for
+   * `string` input; both are unambiguous. See
+   * {@link convertSigningMessage} for the full legacy rule.
    *
    * @param args - The arguments for verifying the signature.
    * @param args.message - The message that was signed.
@@ -125,13 +157,9 @@ export class Secp256r1PublicKey extends PublicKey {
    */
   verifySignature(args: { message: HexInput; signature: Signature }): boolean {
     const { message, signature } = args;
-
     const messageToVerify = convertSigningMessage(message);
-    const msgHex = Hex.fromHexInput(messageToVerify).toUint8Array();
-    const sha3Message = sha3_256(msgHex);
-    const rawSignature = signature.toUint8Array();
-
-    return p256.verify(rawSignature, sha3Message, this.toUint8Array(), { prehash: false, lowS: true });
+    const msgBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
+    return this.verifyBytes({ message: msgBytes, signature });
   }
 
   /**
@@ -330,18 +358,51 @@ export class Secp256r1PrivateKey extends PrivateKey {
   }
 
   /**
+   * Sign exactly the bytes of `message`. The input is interpreted as raw
+   * bytes regardless of what they encode. Pair with
+   * {@link Secp256r1PublicKey.verifyBytes}.
+   *
+   * The message is SHA3-256 hashed before signing (matching the Aptos-side
+   * Secp256r1 signing convention).
+   *
+   * @param message - The exact bytes to sign.
+   * @returns The generated signature for the provided bytes.
+   * @throws Error if the private key has been cleared from memory.
+   * @group Implementation
+   * @category Serialization
+   */
+  signBytes(message: Uint8Array): Secp256r1Signature {
+    this.ensureNotCleared();
+    const sha3Message = sha3_256(message);
+    const signature = p256.sign(sha3Message, this.key.toUint8Array(), { prehash: false });
+    return new Secp256r1Signature(signature);
+  }
+
+  /**
+   * Sign the UTF-8 encoding of `message`. The input is always treated as
+   * text — there is no hex/text heuristic. Pair with
+   * {@link Secp256r1PublicKey.verifyText}.
+   *
+   * @param message - The text to sign.
+   * @returns The generated signature for the UTF-8 bytes of the provided text.
+   * @throws Error if the private key has been cleared from memory.
+   * @group Implementation
+   * @category Serialization
+   */
+  signText(message: string): Secp256r1Signature {
+    return this.signBytes(TEXT_ENCODER.encode(message));
+  }
+
+  /**
    * Sign the given message with the private key.
    * This function generates a cryptographic signature for the provided message.
    *
-   * MESSAGE-INPUT AMBIGUITY: See {@link convertSigningMessage}. When
-   * `message` is a string, a bare even-length string of hex characters
-   * (e.g., `"cafe"`) is signed as the 2 bytes `[0xCA, 0xFE]`, not the 4
-   * bytes of UTF-8 text. Non-hex strings (e.g., `"hello"`) are accepted as
-   * UTF-8 — this matches `Ed25519PrivateKey.sign` and
-   * `Secp256k1PrivateKey.sign` rather than the previous Secp256r1-specific
-   * behavior that threw on non-hex strings.
-   *
-   * Prefer `Uint8Array` for unambiguous behavior.
+   * @deprecated The polymorphic `message: HexInput` input is ambiguous — a
+   * bare even-length string of hex characters (e.g., `"cafe"`) is signed
+   * as the 2 bytes `[0xCA, 0xFE]`, not 4 UTF-8 text bytes. Use
+   * {@link signBytes} for `Uint8Array` input or {@link signText} for
+   * `string` input; both are unambiguous. See
+   * {@link convertSigningMessage} for the full legacy rule.
    *
    * @param message - A message in HexInput format to be signed.
    * @returns Signature - The generated signature for the provided message.
@@ -350,12 +411,9 @@ export class Secp256r1PrivateKey extends PrivateKey {
    * @category Serialization
    */
   sign(message: HexInput): Secp256r1Signature {
-    this.ensureNotCleared();
     const messageToSign = convertSigningMessage(message);
-    const msgHex = Hex.fromHexInput(messageToSign);
-    const sha3Message = sha3_256(msgHex.toUint8Array());
-    const signature = p256.sign(sha3Message, this.key.toUint8Array(), { prehash: false });
-    return new Secp256r1Signature(signature);
+    const msgBytes = Hex.fromHexInput(messageToSign).toUint8Array();
+    return this.signBytes(msgBytes);
   }
 
   /**
