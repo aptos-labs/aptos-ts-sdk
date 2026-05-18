@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Fixed
+
+- `AptosApiError.message` for `AptosApiType.PEPPER` and `AptosApiType.PROVER` is now redacted in **every** branch of `deriveErrorMessage`, not only the generic catch-all. The previous implementation placed the sensitive-type check after the well-known `{ message, error_code }` structured-error branch, so a Pepper/Prover response in that shape would still be serialized into `Error.message`. The sensitive-type check now runs first and short-circuits before any body-serializing branch can fire. The full body remains accessible via `AptosApiError.data` (still annotated as sensitive in its JSDoc).
+
 ## Added
 
 - Unambiguous signing/verification API split across `Ed25519`, `Secp256k1`, and `Secp256r1`:

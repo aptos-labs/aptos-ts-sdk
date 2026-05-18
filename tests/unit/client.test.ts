@@ -99,4 +99,36 @@ describe(AptosApiError.name, () => {
     });
     expect(err3.message).toMatchSnapshot();
   });
+
+  it("redacts Pepper/Prover bodies even when they match the structured { message, error_code } shape", () => {
+    // Regression for PR #897 review: previously, `deriveErrorMessage` would
+    // serialize the full body into Error.message if the response matched
+    // `{ message, error_code }`, even for sensitive API types. That bypassed
+    // the redaction. Sensitive types must short-circuit before any
+    // body-serializing branch.
+    for (const apiType of [AptosApiType.PEPPER, AptosApiType.PROVER]) {
+      const err = new AptosApiError({
+        apiType,
+        aptosRequest: { url: "https://example.com", method: "POST" },
+        aptosResponse: {
+          data: {
+            message: "Pepper service is down",
+            error_code: "INTERNAL_ERROR",
+            // A sensitive field a real Pepper response might carry.
+            partial_jwt_claim: "leaked-uid-value",
+          },
+          status: 500,
+          statusText: "Internal Server Error",
+          url: "https://example.com",
+          headers: {},
+        },
+      });
+      expect(err.message).toContain(`response body redacted for ${apiType}`);
+      expect(err.message).not.toContain("leaked-uid-value");
+      expect(err.message).not.toContain("Pepper service is down");
+      expect(err.message).not.toContain("INTERNAL_ERROR");
+      // The full body is still accessible via `.data` for explicit consumers.
+      expect(err.data).toMatchObject({ partial_jwt_claim: "leaked-uid-value" });
+    }
+  });
 });

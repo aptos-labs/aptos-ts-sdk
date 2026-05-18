@@ -425,9 +425,9 @@ export class AptosApiError extends Error {
  */
 // API types whose response bodies may contain keyless-account material (JWT
 // claims, pepper-derived state). For these we exclude the body from the error
-// message to avoid leaking sensitive data into logs and crash reporters. The
-// structured `error_code`/`message` shape is still safe to include because it
-// is shaped by the service for client consumption.
+// message — including from the structured-error branch — so nothing about
+// the response payload reaches the default Error.message sink. Callers that
+// need the full body can still read it from `AptosApiError.data`.
 const SENSITIVE_BODY_API_TYPES: ReadonlySet<AptosApiType> = new Set([AptosApiType.PEPPER, AptosApiType.PROVER]);
 
 function deriveErrorMessage({ apiType, aptosRequest, aptosResponse }: AptosApiErrorOpts): string {
@@ -440,6 +440,17 @@ function deriveErrorMessage({ apiType, aptosRequest, aptosResponse }: AptosApiEr
     aptosResponse.url ?? aptosRequest.url
   } ${traceIdString}failed with`;
 
+  // For sensitive API types, redact the response body in every branch below.
+  // Doing this up-front rather than per-branch ensures a Pepper/Prover
+  // response that happens to match the `{ message, error_code }` shape (or
+  // some future well-known shape) can't slip a payload through into
+  // Error.message. The full body remains on AptosApiError.data for callers
+  // that explicitly need it.
+  const isSensitive = SENSITIVE_BODY_API_TYPES.has(apiType);
+  if (isSensitive) {
+    return `${errorPrelude} status: ${aptosResponse.statusText}(code:${aptosResponse.status}) (response body redacted for ${apiType})`;
+  }
+
   // handle graphql responses from indexer api and extract the error message of the first error
   if (apiType === AptosApiType.INDEXER && aptosResponse.data?.errors?.[0]?.message != null) {
     return `${errorPrelude}: ${aptosResponse.data.errors[0].message}`;
@@ -449,13 +460,6 @@ function deriveErrorMessage({ apiType, aptosRequest, aptosResponse }: AptosApiEr
   // We don't need http status codes etc. in this case.
   if (aptosResponse.data?.message != null && aptosResponse.data?.error_code != null) {
     return `${errorPrelude}: ${JSON.stringify(aptosResponse.data)}`;
-  }
-
-  // For sensitive API types, omit the response body entirely from the message.
-  // The full body is still accessible via `AptosApiError.data` for callers that
-  // explicitly need it; this just keeps it out of the default Error.message.
-  if (SENSITIVE_BODY_API_TYPES.has(apiType)) {
-    return `${errorPrelude} status: ${aptosResponse.statusText}(code:${aptosResponse.status}) (response body redacted for ${apiType})`;
   }
 
   // This is the generic/catch-all case. We received some response from the API, but it doesn't appear to be a well-known structure.
