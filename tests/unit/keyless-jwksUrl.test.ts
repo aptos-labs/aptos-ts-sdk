@@ -110,21 +110,37 @@ describe("updateFederatedKeylessJwkSetTransaction — JWKS URL validation", () =
     });
   });
 
-  it("error message does NOT leak the full URL (only origin)", async () => {
-    try {
-      await updateFederatedKeylessJwkSetTransaction({
-        aptosConfig,
-        sender,
-        iss: "https://example.com",
-        jwksUrl: "http://tenant-secret.internal.corp/path/to/jwks.json",
-      });
-      throw new Error("expected throw");
-    } catch (error) {
-      expect(error).toBeInstanceOf(KeylessError);
-      const message = (error as Error).message;
-      // The protocol is reported, but neither the host nor the path appears.
-      expect(message).not.toContain("tenant-secret.internal.corp");
-      expect(message).not.toContain("/path/to/jwks.json");
-    }
+  describe("error-message URL leakage (fetch-failure path)", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("surfaces only the origin (scheme + host + port) — never the path or query", async () => {
+      // Use a valid `https://` URL so it passes the SSRF guard and reaches
+      // the fetch call. Mock fetch to throw so the catch block's
+      // origin-only error formatter runs. This is the path that needs
+      // testing — the SSRF-rejection path doesn't exercise it.
+      vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("ECONNREFUSED"));
+
+      try {
+        await updateFederatedKeylessJwkSetTransaction({
+          aptosConfig,
+          sender,
+          iss: "https://example.com",
+          jwksUrl: "https://tenant-secret.internal.corp:8443/path/to/jwks.json?token=abc",
+        });
+        throw new Error("expected throw");
+      } catch (error) {
+        expect(error).toBeInstanceOf(KeylessError);
+        const message = (error as Error).message;
+        // Origin (https://host:port) is reported — needed for debugging.
+        expect(message).toContain("https://tenant-secret.internal.corp:8443");
+        // But the path and query are not.
+        expect(message).not.toContain("/path/to/jwks.json");
+        expect(message).not.toContain("token=abc");
+        // And the inner fetch error is propagated.
+        expect(message).toContain("ECONNREFUSED");
+      }
+    });
   });
 });
