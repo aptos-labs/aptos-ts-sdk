@@ -6,6 +6,23 @@ For changes to the main Aptos TypeScript SDK (`@aptos-labs/ts-sdk`), see the [ro
 
 # Unreleased
 
+## Breaking
+
+- **Confidential-asset decryption-key derivation now uses a domain-separated signing message.** The plaintext `TwistedEd25519PrivateKey.decryptionKeyDerivationMessage` constant has been **removed**. Callers must now use `TwistedEd25519PrivateKey.getDecryptionKeySigningMessage(network)`, which returns the 32-byte signing message `sha3_256("APTOS_CONFIDENTIAL_ASSETS::DK_DERIVATION::" || network)`. `network` is any `Network` value from `@aptos-labs/ts-sdk` (e.g. `Network.MAINNET`); the underlying enum string is what gets hashed. The previous plaintext message lacked any domain separation (no protocol tag, no chain binding, no envelope), so any other signing surface producing an Ed25519 signature over those exact bytes would recover the decryption key. New `TwistedEd25519PrivateKey.DK_DERIVATION_DOMAIN_PREFIX` constant exported alongside.
+
+  **Migration.** Any pre-existing decryption keys derived under the old plaintext message will not be reproducible by this SDK after upgrade; users holding balances under such keys must rotate to a new key derived under the new scheme via `ConfidentialAssetTransactionBuilder.rotateEncryptionKey` *before* upgrading the SDK in their toolchain. Pseudocode:
+
+  ```ts
+  // OLD (removed):
+  const sig = account.sign(TwistedEd25519PrivateKey.decryptionKeyDerivationMessage);
+  const dk = TwistedEd25519PrivateKey.fromSignature(sig);
+
+  // NEW:
+  const msg = TwistedEd25519PrivateKey.getDecryptionKeySigningMessage(Network.MAINNET);
+  const sig = account.sign(msg);
+  const dk = TwistedEd25519PrivateKey.fromSignature(sig);
+  ```
+
 ## Fixed
 
 - Fix CI browser test job for `@aptos-labs/confidential-asset`:
