@@ -9,13 +9,21 @@
  * mitigation is to reject argument strings that contain characters the shell
  * would interpret.
  *
- * cmd.exe: `& | < > ^ ( ) " ' % !` plus newlines (`%` triggers environment-
- * variable expansion like `%USERPROFILE%`; `!` triggers delayed expansion).
- * /bin/sh: `& | ; < > ` $ ( ) "` `' \` plus newlines.
+ * - cmd.exe metacharacters: `& | < > ^ ( ) " ' % !` plus newlines
+ *   (`%` triggers environment-variable expansion like `%USERPROFILE%`;
+ *   `!` triggers delayed expansion).
+ * - /bin/sh metacharacters: `& | ; < > ` $ ( ) "` `'` plus newlines.
  *
- * The union below covers both. Common, legitimate CLI argument characters
- * (letters, digits, `-`, `_`, `=`, `.`, `,`, `:`, `/`, `\`, space) are
- * unaffected.
+ * Backslash is intentionally NOT in the blocklist even though it's a
+ * /bin/sh escape character — Windows paths (`C:\Program Files\...`) and
+ * Windows-style flag values rely on it, and disallowing it would break
+ * legitimate `extraArgs` usage on every Move/LocalNode call from a Windows
+ * developer machine. The trade-off: on POSIX a caller passing `"a\b"` will
+ * have the backslash interpreted by `/bin/sh`, but our spawn call uses
+ * `shell: false` on POSIX anyway, so this doesn't materially matter.
+ *
+ * Common, legitimate CLI argument characters (letters, digits, `-`, `_`,
+ * `=`, `.`, `,`, `:`, `/`, `\`, space) are unaffected.
  */
 const UNSAFE_SHELL_CHARS = /[&|;<>`$()"'\n\r^!*?%]/;
 

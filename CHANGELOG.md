@@ -4,32 +4,27 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
-## Fixed
-
-- `AptosApiError.message` for `AptosApiType.PEPPER` and `AptosApiType.PROVER` is now redacted in **every** branch of `deriveErrorMessage`, not only the generic catch-all. The previous implementation placed the sensitive-type check after the well-known `{ message, error_code }` structured-error branch, so a Pepper/Prover response in that shape would still be serialized into `Error.message`. The sensitive-type check now runs first and short-circuits before any body-serializing branch can fire. The full body remains accessible via `AptosApiError.data` (still annotated as sensitive in its JSDoc).
-
 ## Added
 
 - Unambiguous signing/verification API split across `Ed25519`, `Secp256k1`, and `Secp256r1`:
   - `signBytes(message: Uint8Array)` and `signText(message: string)` on each `PrivateKey` class. `signBytes` signs exactly the provided bytes; `signText` UTF-8-encodes the string before signing. No hex/text heuristic — the input type determines the interpretation unambiguously.
   - `verifyBytes({ message: Uint8Array, signature })` and `verifyText({ message: string, signature })` on each `PublicKey` class, mirroring the sign side.
   - These pair as `signBytes` ↔ `verifyBytes` and `signText` ↔ `verifyText`. Prefer these over the legacy polymorphic methods for any new code.
-
-## Deprecated
-
-- `Ed25519PrivateKey.sign`, `Secp256k1PrivateKey.sign`, `Secp256r1PrivateKey.sign`, `Ed25519PublicKey.verifySignature`, `Secp256k1PublicKey.verifySignature`, and `Secp256r1PublicKey.verifySignature` are now `@deprecated`. The polymorphic `message: HexInput` input is silently ambiguous — a bare even-length hex string (e.g., `"cafe"`) is interpreted as the 2 bytes `[0xCA, 0xFE]`, not as 4 UTF-8 text bytes. The deprecated methods continue to work exactly as before for backwards compatibility; they now internally delegate to `signBytes` / `verifyBytes` after running the legacy `convertSigningMessage` heuristic.
+- `Secp256r1PrivateKey.clear()` and `isCleared()` mirror the lifecycle hooks already present on `Ed25519PrivateKey` and `Secp256k1PrivateKey`. After `clear()` is called, the underlying byte buffer is overwritten and subsequent calls to `toUint8Array()`, `toString()`, `toHexString()`, `publicKey()`, and `sign()` throw. Same JavaScript-level limits as the other classes (see `clear()` JSDoc) — best-effort window-narrowing, not a true zeroization guarantee.
 
 ## Changed
 
 - `Secp256r1PrivateKey.sign` and `Secp256r1PublicKey.verifySignature` now flow string inputs through `convertSigningMessage`, matching `Ed25519` and `Secp256k1` behavior. Practical effect: a non-hex string like `"hello"` is now accepted and encoded as UTF-8 (previously threw via `Hex.fromHexInput`). Bare even-length hex strings continue to be treated as hex bytes, and `Uint8Array` inputs are unchanged. This is a backwards-compatible behavior expansion — no existing valid inputs change meaning.
 
-## Added
+## Deprecated
 
 - CI uploads unit test coverage to Codecov (`codecov.yaml` via `.github/actions/run-codecov`, `pnpm test:coverage:unit`). Uploads use the Codecov `unit` flag; Vitest coverage is scoped to `src/**/*.ts` (excluding generated GraphQL queries and indexer types) so metrics reflect SDK sources. Repository owners should enable the Codecov GitHub app and optionally set `CODECOV_TOKEN` for uploads.
 - `Secp256r1PrivateKey.clear()` and `isCleared()` mirror the lifecycle hooks already present on `Ed25519PrivateKey` and `Secp256k1PrivateKey`. After `clear()` is called, the underlying byte buffer is overwritten and subsequent calls to `toUint8Array()`, `toString()`, `toHexString()`, `publicKey()`, and `sign()` throw. Same JavaScript-level limits as the other classes (see `clear()` JSDoc) — best-effort window-narrowing, not a true zeroization guarantee.
+- `Ed25519PrivateKey.sign`, `Secp256k1PrivateKey.sign`, `Secp256r1PrivateKey.sign`, `Ed25519PublicKey.verifySignature`, `Secp256k1PublicKey.verifySignature`, and `Secp256r1PublicKey.verifySignature` are now `@deprecated`. The polymorphic `message: HexInput` input is silently ambiguous — a bare even-length hex string (e.g., `"cafe"`) is interpreted as the 2 bytes `[0xCA, 0xFE]`, not as 4 UTF-8 text bytes. The deprecated methods continue to work exactly as before for backwards compatibility; they now internally delegate to `signBytes` / `verifyBytes` after running the legacy `convertSigningMessage` heuristic.
 
 ## Fixed
 
+- `AptosApiError.message` for `AptosApiType.PEPPER` and `AptosApiType.PROVER` is now redacted in **every** branch of `deriveErrorMessage`, not only the generic catch-all. The previous implementation placed the sensitive-type check after the well-known `{ message, error_code }` structured-error branch, so a Pepper/Prover response in that shape would still be serialized into `Error.message`. The sensitive-type check now runs first and short-circuits before any body-serializing branch can fire. The full body remains accessible via `AptosApiError.data` (still annotated as sensitive in its JSDoc).
 - u64 → number narrowing at the BCS/JSON boundaries in keyless deserialization paths (`EphemeralKeyPair.deserialize`, `KeylessSignature.deserialize`, `ZeroKnowledgeSig.deserialize`, `KeylessConfiguration.create`) now uses a new `u64ToNumberSafe(value, fieldName)` helper that throws `RangeError` if the value exceeds `Number.MAX_SAFE_INTEGER` (2^53 - 1) instead of silently truncating. Real-world expiry timestamps and horizons are far below the unsafe range, so this is effectively a guard against corrupted or malicious BCS data rather than a behavior change for normal inputs.
 - `updateFederatedKeylessJwkSetTransaction` now validates the JWKS response shape at runtime before building the on-chain transaction. Previously the response was cast to `JWKS` via `as` with no runtime check, so a malformed payload would throw a confusing `TypeError: Cannot read properties of ... 'map'`, and a hostile or buggy IdP could return an unbounded `keys` array that would be packed into the chain transaction. The validator confirms the response is an object with a non-empty `keys` array of at most 32 entries, each entry being an object whose `kid`, `alg`, `e`, and `n` fields are strings.
 - `poseidonHash` now rejects empty input arrays with a descriptive error (`"poseidonHash requires between 1 and 16 inputs, got 0"`). Previously `poseidonHash([])` evaluated `numInputsToPoseidonFunc[-1]` and threw `TypeError: undefined is not a function`, which gave no hint about the actual constraint. No SDK call path produces an empty array, but the function is exported and third-party callers could hit this.
