@@ -15,6 +15,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 ## Changed
 
 - `Secp256r1PrivateKey.sign` and `Secp256r1PublicKey.verifySignature` now flow string inputs through `convertSigningMessage`, matching `Ed25519` and `Secp256k1` behavior. Practical effect: a non-hex string like `"hello"` is now accepted and encoded as UTF-8 (previously threw via `Hex.fromHexInput`). Bare even-length hex strings continue to be treated as hex bytes, and `Uint8Array` inputs are unchanged. This is a backwards-compatible behavior expansion — no existing valid inputs change meaning.
+- Coverage thresholds in `vitest.config.ts` raised from `branches: 40, functions/lines/statements: 50` to `80` for all four metrics. New unit-test files target previously-uncovered branches in `src/utils/{helpers,memoize}.ts`, `src/core/crypto/{utils,ephemeral,singleKey}.ts`, `src/core/crypto/encryption/{symmetric,ciphertext}.ts` (constructor validation paths), `src/account/EphemeralKeyPair.ts`, and `src/transactions/transactionBuilder/signingMessage.ts`. The combined unit + e2e run is expected to meet the new gate; CI is authoritative.
 
 ## Deprecated
 
