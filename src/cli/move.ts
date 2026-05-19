@@ -1,9 +1,8 @@
 import { spawn } from "node:child_process";
-import { platform } from "node:os";
 
 import { AccountAddress } from "../core/index.js";
 import { Network } from "../utils/index.js";
-import { assertSafeCliArgs } from "./spawnArgs.js";
+import { assertSafeCliArgs, resolveNpxCli } from "./spawnArgs.js";
 
 /**
  * Class representing a Move package management utility for the Aptos blockchain.
@@ -356,18 +355,13 @@ export class Move {
    */
 
   private async runCommand(args: Array<string>, showStdout: boolean = true): Promise<{ result?: any; output: string }> {
-    // Reject shell-metacharacter-bearing args up front. On Windows we have to
-    // spawn with `shell: true` (npx is a .cmd shim and Node refuses to spawn
-    // .cmd/.bat without the shell since CVE-2024-27980), so unsafe characters
-    // in args would otherwise be interpreted by cmd.exe. We validate on all
-    // platforms for consistency — extraArguments shouldn't contain shell
-    // metacharacters regardless of OS.
+    // Defense-in-depth: reject shell metacharacters even though we no longer
+    // invoke a shell. See `resolveNpxCli` for the rationale on bypassing the
+    // `npx` / `npx.cmd` shim.
     assertSafeCliArgs(args);
 
     return new Promise((resolve, reject) => {
-      const isWindows = platform() === "win32";
-      const spawnOptions = isWindows ? { shell: true } : undefined;
-      const childProcess = spawn("npx", args, spawnOptions);
+      const childProcess = spawn(process.execPath, [resolveNpxCli(), ...args]);
       let stdout = "";
       // CLI final stdout is the Result/Error JSON string output
       // so we need to keep track of the last stdout

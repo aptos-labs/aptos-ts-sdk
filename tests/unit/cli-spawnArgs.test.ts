@@ -1,8 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { existsSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { assertSafeCliArg, assertSafeCliArgs } from "../../src/cli/spawnArgs.js";
+import { assertSafeCliArg, assertSafeCliArgs, resolveNpxCli } from "../../src/cli/spawnArgs.js";
 
 describe("assertSafeCliArg", () => {
   it("accepts typical CLI argument shapes", () => {
@@ -57,5 +58,15 @@ describe("assertSafeCliArgs", () => {
 
   it("rejects when any element is unsafe", () => {
     expect(() => assertSafeCliArgs(["aptos", "node", "& calc.exe"])).toThrow(/shell/);
+  });
+});
+
+describe("resolveNpxCli", () => {
+  // Best-effort: depends on the host having npm bundled with Node.js. CI for
+  // this SDK runs on standard nodejs.org / nvm-style installs where it is.
+  it("returns a path to an existing npx-cli.js", () => {
+    const resolved = resolveNpxCli();
+    expect(resolved).toMatch(/npx-cli\.js$/);
+    expect(existsSync(resolved)).toBe(true);
   });
 });

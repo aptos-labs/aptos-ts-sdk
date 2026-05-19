@@ -1,9 +1,8 @@
 import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import kill from "tree-kill";
-import { platform } from "node:os";
 
 import { sleep } from "../utils/helpers.js";
-import { assertSafeCliArgs } from "./spawnArgs.js";
+import { assertSafeCliArgs, resolveNpxCli } from "./spawnArgs.js";
 
 /**
  * Represents a local node for running a localnet environment.
@@ -87,14 +86,13 @@ export class LocalNode {
    * @category CLI
    */
   start(): void {
-    // Reject shell-metacharacter-bearing extras up front. On Windows we have
-    // to spawn with `shell: true` (npx is a .cmd shim and Node refuses to
-    // spawn .cmd/.bat without the shell since CVE-2024-27980), so unsafe
-    // characters in extraArgs would otherwise be interpreted by cmd.exe.
+    // Defense-in-depth: reject shell metacharacters even though we no longer
+    // invoke a shell. See `resolveNpxCli` for the rationale on bypassing the
+    // `npx` / `npx.cmd` shim.
     assertSafeCliArgs(this.extraArgs);
 
-    const cliCommand = "npx";
     const cliArgs = [
+      resolveNpxCli(),
       "aptos",
       "node",
       "run-localnet",
@@ -104,13 +102,9 @@ export class LocalNode {
       ...this.extraArgs,
     ];
 
-    const currentPlatform = platform();
-    const spawnConfig = {
+    this.process = spawn(process.execPath, cliArgs, {
       env: { ...process.env, ENABLE_KEYLESS_DEFAULT: "1" },
-      ...(currentPlatform === "win32" && { shell: true }),
-    };
-
-    this.process = spawn(cliCommand, cliArgs, spawnConfig);
+    });
 
     this.process.stdout?.on("data", (data: any) => {
       const str = data.toString();
