@@ -633,7 +633,9 @@ describe.skipIf(!isEncryptionCapableNetwork)("encrypted transactions", () => {
             function: "0x1::aptos_account::transfer",
             functionArguments: [multisigReceiver.accountAddress, TRANSFER_AMOUNT],
           },
-          options: encryptedBuildOptions(multisigOwner, { maxGasAmount: 1_500_000 }),
+          options: encryptedBuildOptions(multisigOwner, {
+            maxGasAmount: 1_500_000,
+          }),
         });
 
         expect(transaction.rawTransaction.payload).toBeInstanceOf(TransactionPayloadEncryptedPayload);
