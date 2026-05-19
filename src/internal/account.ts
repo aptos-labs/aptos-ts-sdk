@@ -388,18 +388,33 @@ export async function lookupOriginalAccountAddress(args: {
  * derive auth keys when the caller does not pass them explicitly. Callers that just rotated their
  * key and need an immediate fresh read should pass the auth key explicitly instead of relying on
  * this cache.
+ *
+ * If the address has no `0x1::account::Account` resource on chain (a brand-new account, or a light
+ * account with balance/objects but no explicit resource), returns the address bytes as the
+ * authentication key — matching the chain's account-creation convention (see
+ * [`doesAccountExistAtAddress`]). This makes encrypted-transaction builds work for not-yet-created
+ * signers (e.g., fee-payer sponsorship of an uncreated sender).
  */
 export async function fetchAndCacheAuthKeyForAddress(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
 }): Promise<AuthenticationKey> {
   const { aptosConfig, accountAddress } = args;
-  const addr = AccountAddress.from(accountAddress).toString();
+  const address = AccountAddress.from(accountAddress);
+  const addr = address.toString();
   const cacheKey = `auth-key-${aptosConfig.fullnode ?? aptosConfig.network}-${addr}`;
   return memoizeAsync(
     async () => {
-      const info = await getInfoUtil({ aptosConfig, accountAddress: addr });
-      return new AuthenticationKey({ data: info.authentication_key });
+      try {
+        const info = await getInfoUtil({ aptosConfig, accountAddress: addr });
+        return new AuthenticationKey({ data: info.authentication_key });
+      } catch (err) {
+        if (err instanceof AptosApiError && err.data?.error_code === "account_not_found") {
+          // Chain convention: with no Account resource the auth key is the address itself.
+          return new AuthenticationKey({ data: address.toUint8Array() });
+        }
+        throw err;
+      }
     },
     cacheKey,
     60 * 60 * 1000,
