@@ -1,5 +1,11 @@
 # https://docs.codecov.com/docs/codecov-yaml
-# CI uploads only the `unit` flag (Vitest unit suite); e2e / localnet coverage is not included.
+#
+# CI uploads only the `unit` flag (Vitest unit suite); e2e / localnet coverage
+# is not included. Coverage is informational only — status checks post so
+# trends are visible per PR but do not block merges. To turn enforcement on,
+# drop `informational: true` and set a numeric `target` (e.g. `target: 80%`)
+# or `target: auto` (no regressions vs. base).
+
 coverage:
   status:
     project:
@@ -8,3 +14,16 @@ coverage:
     patch:
       default:
         informational: true
+
+# Keep the ignore list in sync with `coverage.exclude` in `vitest.config.ts`.
+# Generated code and the separate confidential-asset package would otherwise
+# inflate the denominator with files the unit suite is not responsible for.
+ignore:
+  - "src/internal/queries/**"
+  - "src/types/generated/**"
+  - "tests/**"
+  - "examples/**"
+  - "confidential-asset/**"
+  - "projects/**"
+  - "dist/**"
+  - "docs/**"

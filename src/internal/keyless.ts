@@ -108,6 +108,12 @@ export async function getProof(args: {
   if (Hex.fromHexInput(pepper).toUint8Array().length !== KeylessAccount.PEPPER_LENGTH) {
     throw new Error(`Pepper needs to be ${KeylessAccount.PEPPER_LENGTH} bytes`);
   }
+  // SECURITY: jwtDecode does NOT verify the JWT signature. The prover service
+  // is the next hop and will reject a tampered JWT, and the on-chain keyless
+  // verifier validates the signature against the JWK set published on-chain.
+  // Callers must still source `jwt` from a trusted IdP redirect flow — accepting
+  // a user-supplied JWT here will produce a useless proof, not a forged one,
+  // but it also leaks the (unverified) claims to the prover.
   const decodedJwt = jwtDecode<JwtPayload>(jwt);
   if (typeof decodedJwt.iat !== "number") {
     throw new Error("iat was not found");
@@ -261,6 +267,28 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
     }
   }
 
+  // SSRF guard: require HTTPS. Without this check a caller-supplied `iss` or
+  // `jwksUrl` could redirect the fetch to plaintext HTTP, cloud-metadata
+  // endpoints (e.g., `http://169.254.169.254/...`), internal services, or
+  // non-network schemes like `file:` / `data:`. The on-chain JWKS update is
+  // a privileged operation, so we refuse to source key material over an
+  // untrusted transport.
+  let parsedJwksUrl: URL;
+  try {
+    parsedJwksUrl = new URL(jwksUrl);
+  } catch {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWK_FETCH_FAILED_FEDERATED,
+      details: "JWKS URL is not a valid URL",
+    });
+  }
+  if (parsedJwksUrl.protocol !== "https:") {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWK_FETCH_FAILED_FEDERATED,
+      details: `JWKS URL must use https: (got ${parsedJwksUrl.protocol})`,
+    });
+  }
+
   let response: Response;
 
   try {
@@ -275,13 +303,19 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
     } else {
       errorMessage = `error unknown - ${error}`;
     }
+    // Surface only the origin (scheme + host + port) of the JWKS URL in the
+    // user-facing error. The full URL, which may include `iss`-derived path
+    // segments or tenant identifiers from enterprise IdPs, is intentionally
+    // omitted to avoid leaking infrastructure details into logs / crash
+    // reporters.
     throw KeylessError.fromErrorType({
       type: KeylessErrorType.JWK_FETCH_FAILED_FEDERATED,
-      details: `Failed to fetch JWKS at ${jwksUrl}: ${errorMessage}`,
+      details: `Failed to fetch JWKS from ${parsedJwksUrl.origin}: ${errorMessage}`,
     });
   }
 
-  const jwks = (await response.json()) as JWKS;
+  const rawJwks: unknown = await response.json();
+  const jwks = validateJwksResponse(rawJwks, parsedJwksUrl.origin);
   return generateTransaction({
     aptosConfig,
     sender: sender.accountAddress,
@@ -297,4 +331,56 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
     },
     options,
   });
+}
+
+/**
+ * Caller can supply any IdP URL, so the JWKS response is untrusted. The shape
+ * isn't enforced by the TS cast above, and `jwks.keys.map(...)` would throw a
+ * confusing `TypeError: Cannot read properties of ... 'map'` on malformed
+ * payloads. Worse, a hostile/buggy IdP could return an unboundedly large
+ * `keys` array and we'd pack the whole thing into the on-chain transaction.
+ *
+ * Validate the four fields we actually use (kid, alg, e, n), cap the key
+ * count, and surface a single descriptive error when anything is off.
+ */
+const MAX_FEDERATED_JWKS_KEYS = 32;
+
+function validateJwksResponse(raw: unknown, originForError: string): JWKS {
+  if (raw === null || typeof raw !== "object" || !Array.isArray((raw as { keys?: unknown }).keys)) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWK_FETCH_FAILED_FEDERATED,
+      details: `JWKS response from ${originForError} is missing a 'keys' array`,
+    });
+  }
+  const keys = (raw as { keys: unknown[] }).keys;
+  if (keys.length === 0) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWK_FETCH_FAILED_FEDERATED,
+      details: `JWKS response from ${originForError} has an empty 'keys' array`,
+    });
+  }
+  if (keys.length > MAX_FEDERATED_JWKS_KEYS) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWK_FETCH_FAILED_FEDERATED,
+      details: `JWKS response from ${originForError} has ${keys.length} keys (max ${MAX_FEDERATED_JWKS_KEYS})`,
+    });
+  }
+  for (let i = 0; i < keys.length; i += 1) {
+    const key = keys[i];
+    if (key === null || typeof key !== "object") {
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.JWK_FETCH_FAILED_FEDERATED,
+        details: `JWKS response from ${originForError}: key at index ${i} is not an object`,
+      });
+    }
+    for (const field of ["kid", "alg", "e", "n"] as const) {
+      if (typeof (key as Record<string, unknown>)[field] !== "string") {
+        throw KeylessError.fromErrorType({
+          type: KeylessErrorType.JWK_FETCH_FAILED_FEDERATED,
+          details: `JWKS response from ${originForError}: key at index ${i} is missing string field '${field}'`,
+        });
+      }
+    }
+  }
+  return raw as JWKS;
 }

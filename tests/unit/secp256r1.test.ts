@@ -193,6 +193,130 @@ describe("Secp256r1PrivateKey", () => {
     expect(privateKey2).toBeInstanceOf(Secp256r1PrivateKey);
     expect(privateKey1.toString()).not.toEqual(privateKey2.toString());
   });
+
+  describe("message-input parity with Ed25519/Secp256k1 (L-4 / F)", () => {
+    it("accepts a non-hex string as UTF-8 (was: threw on non-hex)", () => {
+      const privateKey = Secp256r1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      // "hello" is not valid hex; previously this would throw via
+      // Hex.fromHexInput. Now it flows through convertSigningMessage and is
+      // encoded as the 5 UTF-8 bytes of "hello".
+      const signature = privateKey.sign("hello");
+      expect(publicKey.verifySignature({ message: "hello", signature })).toBe(true);
+    });
+
+    it("a bare even-length hex string is interpreted as hex (documented ambiguity)", () => {
+      const privateKey = Secp256r1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      // "cafe" parses as valid hex → signs/verifies the 2 bytes [0xCA, 0xFE].
+      const signature = privateKey.sign("cafe");
+      // Verification with the matching Uint8Array confirms the heuristic.
+      expect(
+        publicKey.verifySignature({
+          message: new Uint8Array([0xca, 0xfe]),
+          signature,
+        }),
+      ).toBe(true);
+    });
+
+    it("0x-prefixed hex and matching Uint8Array produce the same signature", () => {
+      const privateKey = Secp256r1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      const bytes = new Uint8Array([0xde, 0xad, 0xbe, 0xef]);
+      const sigFromBytes = privateKey.sign(bytes);
+      // Both forms verify against either input shape.
+      expect(publicKey.verifySignature({ message: "0xdeadbeef", signature: sigFromBytes })).toBe(true);
+      expect(publicKey.verifySignature({ message: bytes, signature: sigFromBytes })).toBe(true);
+    });
+  });
+
+  describe("clear()", () => {
+    it("zeros the underlying byte buffer", () => {
+      const key = Secp256r1PrivateKey.generate();
+      const bytes = key.toUint8Array();
+      expect(bytes.some((b) => b !== 0)).toBe(true);
+      key.clear();
+      // toUint8Array() now throws, but the captured `bytes` reference points
+      // at the same backing buffer of the Hex wrapper, which is now zeroed.
+      expect(bytes.every((b) => b === 0)).toBe(true);
+    });
+
+    it("isCleared() flips from false to true", () => {
+      const key = Secp256r1PrivateKey.generate();
+      expect(key.isCleared()).toBe(false);
+      key.clear();
+      expect(key.isCleared()).toBe(true);
+    });
+
+    it("clear() is idempotent", () => {
+      const key = Secp256r1PrivateKey.generate();
+      key.clear();
+      expect(() => key.clear()).not.toThrow();
+      expect(key.isCleared()).toBe(true);
+    });
+
+    it.each([
+      ["toUint8Array", (k: Secp256r1PrivateKey) => k.toUint8Array()],
+      ["toString", (k: Secp256r1PrivateKey) => k.toString()],
+      ["toHexString", (k: Secp256r1PrivateKey) => k.toHexString()],
+      ["publicKey", (k: Secp256r1PrivateKey) => k.publicKey()],
+      ["sign", (k: Secp256r1PrivateKey) => k.sign("0x00")],
+    ])("rejects %s() after clear()", (_label, op) => {
+      const key = Secp256r1PrivateKey.generate();
+      key.clear();
+      expect(() => op(key)).toThrow(/cleared from memory/);
+    });
+
+    it("normal operations work before clear()", () => {
+      const key = Secp256r1PrivateKey.generate();
+      expect(() => key.publicKey()).not.toThrow();
+      expect(() => key.toUint8Array()).not.toThrow();
+      expect(() => key.toString()).not.toThrow();
+      expect(() => key.sign("0x00")).not.toThrow();
+    });
+  });
+
+  describe("signBytes / signText (unambiguous API)", () => {
+    it("signBytes signs exact bytes; verifyBytes round-trips", () => {
+      const privateKey = Secp256r1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      const bytes = new Uint8Array([0xde, 0xad, 0xbe, 0xef]);
+      const sig = privateKey.signBytes(bytes);
+      expect(publicKey.verifyBytes({ message: bytes, signature: sig })).toBe(true);
+    });
+
+    it("signText UTF-8-encodes the string; verifyText round-trips", () => {
+      const privateKey = Secp256r1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      const sig = privateKey.signText("hello");
+      expect(publicKey.verifyText({ message: "hello", signature: sig })).toBe(true);
+    });
+
+    it('signText("cafe") and signBytes([0xCA, 0xFE]) are over different bytes', () => {
+      const privateKey = Secp256r1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      const sigText = privateKey.signText("cafe");
+      const sigHexBytes = privateKey.signBytes(new Uint8Array([0xca, 0xfe]));
+      // ECDSA signatures are non-deterministic; verify cross-rejection
+      // demonstrates the underlying messages differ.
+      expect(publicKey.verifyBytes({ message: new Uint8Array([0xca, 0xfe]), signature: sigText })).toBe(false);
+      expect(publicKey.verifyText({ message: "cafe", signature: sigHexBytes })).toBe(false);
+    });
+
+    it("legacy sign(HexInput) still produces a signature that verifyBytes accepts", () => {
+      const privateKey = Secp256r1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      const legacySig = privateKey.sign("cafe");
+      expect(publicKey.verifyBytes({ message: new Uint8Array([0xca, 0xfe]), signature: legacySig })).toBe(true);
+    });
+
+    it("signBytes / signText throw after clear()", () => {
+      const privateKey = Secp256r1PrivateKey.generate();
+      privateKey.clear();
+      expect(() => privateKey.signBytes(new Uint8Array([1, 2, 3]))).toThrow(/cleared from memory/);
+      expect(() => privateKey.signText("hello")).toThrow(/cleared from memory/);
+    });
+  });
 });
 
 describe("Secp256r1Signature", () => {

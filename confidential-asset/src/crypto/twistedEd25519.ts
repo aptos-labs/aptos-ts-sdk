@@ -122,6 +122,12 @@ export class TwistedEd25519PrivateKey extends Serializable {
    */
   private readonly key: Hex;
 
+  /**
+   * Whether the key has been cleared from memory.
+   * @private
+   */
+  private cleared: boolean = false;
+
   // region Constructors
 
   /**
@@ -235,6 +241,7 @@ export class TwistedEd25519PrivateKey extends Serializable {
    * @returns TwistedEd25519PublicKey
    */
   publicKey(): TwistedEd25519PublicKey {
+    this.ensureNotCleared();
     const scalarLE = bytesToNumberLE(this.key.toUint8Array());
     const invertModScalarLE = ed25519InvertN(scalarLE);
     const key = H_RISTRETTO.multiply(invertModScalarLE).toBytes();
@@ -248,6 +255,7 @@ export class TwistedEd25519PrivateKey extends Serializable {
    * @returns Uint8Array representation of the private key
    */
   toUint8Array(): Uint8Array {
+    this.ensureNotCleared();
     return this.key.toUint8Array();
   }
 
@@ -257,6 +265,7 @@ export class TwistedEd25519PrivateKey extends Serializable {
    * @returns string representation of the private key
    */
   toString(): string {
+    this.ensureNotCleared();
     return this.key.toString();
   }
 
@@ -266,7 +275,60 @@ export class TwistedEd25519PrivateKey extends Serializable {
    * @returns string representation of the private key
    */
   toStringWithoutPrefix(): string {
+    this.ensureNotCleared();
     return this.key.toStringWithoutPrefix();
+  }
+
+  // endregion
+
+  // region Memory lifecycle
+
+  /**
+   * Throws if the key has already been cleared.
+   * @private
+   */
+  private ensureNotCleared(): void {
+    if (this.cleared) {
+      throw new Error("Private key has been cleared from memory and can no longer be used");
+    }
+  }
+
+  /**
+   * Overwrites the underlying private-key byte buffer with random bytes and
+   * then zeros. After calling this method the key can no longer be used for
+   * `publicKey()`, `toUint8Array()`, `toString()`, or `serialize()`.
+   *
+   * SECURITY: Due to JavaScript's memory model this CANNOT fully erase the
+   * key material. Specifically:
+   *   - any `toString()` / `toStringWithoutPrefix()` output retained by the
+   *     caller is an immutable JS string and can't be overwritten;
+   *   - noble-curves and downstream `ed25519modN` / `ed25519InvertN`
+   *     operations may have produced intermediate `BigInt` copies (also
+   *     immutable);
+   *   - the GC may have relocated the buffer between heap regions.
+   *
+   * This method zeros the `Uint8Array` backing the SDK's own `Hex` wrapper,
+   * which is the most reachable copy and the only one we can reliably wipe
+   * from pure JS. Treat the API as a best-effort window-narrowing tool, not
+   * a true zeroization guarantee.
+   */
+  clear(): void {
+    if (!this.cleared) {
+      const keyBytes = this.key.toUint8Array();
+      // Multiple overwrite passes for consistency with the main SDK.
+      crypto.getRandomValues(keyBytes);
+      keyBytes.fill(0xff);
+      crypto.getRandomValues(keyBytes);
+      keyBytes.fill(0);
+      this.cleared = true;
+    }
+  }
+
+  /**
+   * Returns whether `clear()` has been called.
+   */
+  isCleared(): boolean {
+    return this.cleared;
   }
 
   // endregion

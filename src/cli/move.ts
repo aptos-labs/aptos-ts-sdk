@@ -3,6 +3,7 @@ import { platform } from "node:os";
 
 import { AccountAddress } from "../core/index.js";
 import { Network } from "../utils/index.js";
+import { assertSafeCliArgs } from "./spawnArgs.js";
 
 /**
  * Class representing a Move package management utility for the Aptos blockchain.
@@ -355,6 +356,14 @@ export class Move {
    */
 
   private async runCommand(args: Array<string>, showStdout: boolean = true): Promise<{ result?: any; output: string }> {
+    // Reject shell-metacharacter-bearing args up front. On Windows we have to
+    // spawn with `shell: true` (npx is a .cmd shim and Node refuses to spawn
+    // .cmd/.bat without the shell since CVE-2024-27980), so unsafe characters
+    // in args would otherwise be interpreted by cmd.exe. We validate on all
+    // platforms for consistency — extraArguments shouldn't contain shell
+    // metacharacters regardless of OS.
+    assertSafeCliArgs(args);
+
     return new Promise((resolve, reject) => {
       const isWindows = platform() === "win32";
       const spawnOptions = isWindows ? { shell: true } : undefined;

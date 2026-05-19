@@ -18,6 +18,19 @@ const TEXT_DECODER = new TextDecoder();
 const MAX_DESERIALIZE_BYTES_LENGTH = 10 * 1024 * 1024; // 10MB
 
 /**
+ * Maximum allowed vector element count. Without this cap a malformed BCS blob
+ * with a ULEB128 length close to `MAX_U32_NUMBER` (~4.29 billion) would cause
+ * `deserializeVector` to spin for billions of iterations before the inner
+ * `read()` bounds check trips, effectively a CPU-exhaustion DoS. Matches the
+ * canonical `MAX_SEQUENCE_LENGTH = 2^31 - 1` bound used elsewhere in BCS.
+ *
+ * Note: written as `2 ** 31 - 1` rather than `(1 << 31) - 1` because the
+ * bitwise shift operates on 32-bit *signed* integers in JavaScript, which
+ * would produce a negative value here.
+ */
+const MAX_DESERIALIZE_VECTOR_LENGTH = 2 ** 31 - 1;
+
+/**
  * This interface exists to define Deserializable<T> inputs for functions that
  * deserialize a byte buffer into a type T.
  * It is not intended to be implemented or extended, because Typescript has no support
@@ -588,6 +601,9 @@ export class Deserializer {
    */
   deserializeVector<T>(cls: Deserializable<T>): Array<T> {
     const length = this.deserializeUleb128AsU32();
+    if (length > MAX_DESERIALIZE_VECTOR_LENGTH) {
+      throw new Error(`Vector length ${length} exceeds maximum allowed length of ${MAX_DESERIALIZE_VECTOR_LENGTH}`);
+    }
     const vector = new Array<T>();
     for (let i = 0; i < length; i += 1) {
       vector.push(this.deserialize(cls));

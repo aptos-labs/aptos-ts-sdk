@@ -10,7 +10,7 @@ import { PrivateKey } from "../core/crypto/privateKey.js";
 import { Hex } from "../core/hex.js";
 import { EphemeralPublicKeyVariant, HexInput } from "../types/index.js";
 import { Deserializer, Serializable, Serializer } from "../bcs/index.js";
-import { floorToWholeHour, nowInSeconds } from "../utils/helpers.js";
+import { floorToWholeHour, nowInSeconds, u64ToNumberSafe } from "../utils/helpers.js";
 
 const TWO_WEEKS_IN_SECONDS = 1_209_600;
 
@@ -42,8 +42,20 @@ export class EphemeralKeyPair extends Serializable {
   readonly expiryDateSecs: number;
 
   /**
-   * The value passed to the IdP when the user authenticates.  It consists of a hash of the
-   * ephemeral public key, expiry date, and blinder.
+   * The value passed to the IdP when the user authenticates. It consists of a
+   * hash of the ephemeral public key, expiry date, and blinder.
+   *
+   * SECURITY: This value is NOT secret. It is sent to the IdP in the OIDC
+   * redirect URL, embedded in the returned JWT, and packed into the proof
+   * inputs sent to the prover service. The `clear()` lifecycle hook does
+   * NOT zero this field — it is an immutable JS string and JavaScript
+   * provides no API to overwrite string memory. A memory-read attacker who
+   * dumps the process after `clear()` could correlate the surviving `nonce`
+   * against IdP logs or on-chain activity. This is acceptable given that
+   * the nonce was always public to begin with; it just means the privacy
+   * benefit of `clear()` does not extend to unlinking the (already public)
+   * nonce from any later forensic snapshot.
+   *
    * @group Implementation
    * @category Account (On-Chain Model)
    */
@@ -122,11 +134,22 @@ export class EphemeralKeyPair extends Serializable {
   }
 
   /**
-   * Clears the ephemeral private key from memory by overwriting it with random bytes.
-   * After calling this method, the ephemeral key pair can no longer be used for signing.
+   * Overwrites the ephemeral private key and blinder byte buffers with random
+   * bytes and then zeros. After calling this method the key pair can no
+   * longer sign transactions.
    *
-   * Note: Due to JavaScript's memory management, this cannot guarantee complete removal of
-   * sensitive data from memory, but it significantly reduces the window of exposure.
+   * SECURITY: This is a best-effort window-narrowing tool, NOT a true
+   * zeroization guarantee. See `Ed25519PrivateKey.clear()` for the full
+   * enumeration of JavaScript-level limits (immutable string copies, noble
+   * `BigInt` intermediates, JIT register/stack residue, GC-relocated
+   * copies).
+   *
+   * SPECIFIC TO `EphemeralKeyPair`: the `nonce` field is NOT cleared by
+   * this method. It is the OIDC nonce — already public (it appears in the
+   * IdP redirect URL, the returned JWT, and the proof inputs) — and is
+   * stored as an immutable JS string that the language provides no API to
+   * overwrite. See the `nonce` field JSDoc for the narrow
+   * forensic-correlation consequence.
    *
    * @group Implementation
    * @category Account (On-Chain Model)
@@ -199,7 +222,11 @@ export class EphemeralKeyPair extends Serializable {
     }
     const expiryDateSecs = deserializer.deserializeU64();
     const blinder = deserializer.deserializeFixedBytes(31);
-    return new EphemeralKeyPair({ privateKey, expiryDateSecs: Number(expiryDateSecs), blinder });
+    return new EphemeralKeyPair({
+      privateKey,
+      expiryDateSecs: u64ToNumberSafe(expiryDateSecs, "EphemeralKeyPair.expiryDateSecs"),
+      blinder,
+    });
   }
 
   /**

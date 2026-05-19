@@ -185,6 +185,50 @@ describe("Secp256k1PrivateKey", () => {
     expect(key).toBeInstanceOf(Secp256k1PrivateKey);
     expect(key.toString()).toEqual(privateKey);
   });
+
+  describe("signBytes / signText (unambiguous API)", () => {
+    it("signBytes signs exact bytes; verifyBytes round-trips", () => {
+      const privateKey = Secp256k1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      const bytes = new Uint8Array([0xde, 0xad, 0xbe, 0xef]);
+      const sig = privateKey.signBytes(bytes);
+      expect(publicKey.verifyBytes({ message: bytes, signature: sig })).toBe(true);
+    });
+
+    it("signText UTF-8-encodes the string; verifyText round-trips", () => {
+      const privateKey = Secp256k1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      const sig = privateKey.signText("hello");
+      expect(publicKey.verifyText({ message: "hello", signature: sig })).toBe(true);
+    });
+
+    it('signText("cafe") differs from signBytes([0xCA, 0xFE]) — no hex heuristic', () => {
+      const privateKey = Secp256k1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      const sigText = privateKey.signText("cafe");
+      const sigHexBytes = privateKey.signBytes(new Uint8Array([0xca, 0xfe]));
+      // ECDSA signatures are non-deterministic, so we don't compare bytes;
+      // verification cross-checks are the right way to confirm the bytes were
+      // different.
+      expect(publicKey.verifyBytes({ message: new Uint8Array([0xca, 0xfe]), signature: sigText })).toBe(false);
+      expect(publicKey.verifyText({ message: "cafe", signature: sigHexBytes })).toBe(false);
+    });
+
+    it("legacy sign(HexInput) still produces a signature that verifyBytes accepts", () => {
+      const privateKey = Secp256k1PrivateKey.generate();
+      const publicKey = privateKey.publicKey();
+      // Bare hex "cafe" via legacy heuristic → 2 bytes [0xCA, 0xFE].
+      const legacySig = privateKey.sign("cafe");
+      expect(publicKey.verifyBytes({ message: new Uint8Array([0xca, 0xfe]), signature: legacySig })).toBe(true);
+    });
+
+    it("signBytes / signText throw after clear()", () => {
+      const privateKey = Secp256k1PrivateKey.generate();
+      privateKey.clear();
+      expect(() => privateKey.signBytes(new Uint8Array([1, 2, 3]))).toThrow(/cleared from memory/);
+      expect(() => privateKey.signText("hello")).toThrow(/cleared from memory/);
+    });
+  });
 });
 
 describe("Secp256k1Signature", () => {

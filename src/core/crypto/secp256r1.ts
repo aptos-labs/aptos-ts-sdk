@@ -15,6 +15,8 @@ import { PublicKey, VerifySignatureAsyncArgs } from "./publicKey.js";
 import { PrivateKey } from "./privateKey.js";
 import { Signature } from "./signature.js";
 import { AuthenticationKey } from "../authenticationKey.js";
+import { convertSigningMessage } from "./utils.js";
+import { TEXT_ENCODER } from "../../utils/const.js";
 
 /**
  * Represents a Secp256r1 ECDSA public key.
@@ -102,9 +104,50 @@ export class Secp256r1PublicKey extends PublicKey {
   }
 
   /**
+   * Verifies a signature against the exact bytes of `message`. This is the
+   * unambiguous form — the input is interpreted as raw bytes regardless of
+   * what they encode. Pair with {@link Secp256r1PrivateKey.signBytes}.
+   *
+   * The message is SHA3-256 hashed before verification (matching the
+   * Aptos-side Secp256r1 signing convention), and the signature is required
+   * to be in canonical low-S form for malleability resistance.
+   *
+   * @param args - The arguments for verification.
+   * @param args.message - The exact bytes that were signed.
+   * @param args.signature - The signature to verify.
+   * @group Implementation
+   * @category Serialization
+   */
+  verifyBytes(args: { message: Uint8Array; signature: Signature }): boolean {
+    const { message, signature } = args;
+    const sha3Message = sha3_256(message);
+    return p256.verify(signature.toUint8Array(), sha3Message, this.toUint8Array(), { prehash: false, lowS: true });
+  }
+
+  /**
+   * Verifies a signature against the UTF-8 encoding of `message`. The input
+   * is always treated as text — there is no hex/text heuristic. Pair with
+   * {@link Secp256r1PrivateKey.signText}.
+   *
+   * @param args - The arguments for verification.
+   * @param args.message - The text that was signed.
+   * @param args.signature - The signature to verify.
+   * @group Implementation
+   * @category Serialization
+   */
+  verifyText(args: { message: string; signature: Signature }): boolean {
+    return this.verifyBytes({ message: TEXT_ENCODER.encode(args.message), signature: args.signature });
+  }
+
+  /**
    * Verifies a Secp256r1 signature against the public key.
    *
-   * This function checks the validity of a signature for a given message.
+   * @deprecated The polymorphic `message: HexInput` input is ambiguous — a
+   * bare even-length string of hex characters (e.g., `"cafe"`) is verified
+   * against the 2 bytes `[0xCA, 0xFE]`, not 4 UTF-8 text bytes. Use
+   * {@link verifyBytes} for `Uint8Array` input or {@link verifyText} for
+   * `string` input; both are unambiguous. See
+   * {@link convertSigningMessage} for the full legacy rule.
    *
    * @param args - The arguments for verifying the signature.
    * @param args.message - The message that was signed.
@@ -114,12 +157,9 @@ export class Secp256r1PublicKey extends PublicKey {
    */
   verifySignature(args: { message: HexInput; signature: Signature }): boolean {
     const { message, signature } = args;
-
-    const msgHex = Hex.fromHexInput(message).toUint8Array();
-    const sha3Message = sha3_256(msgHex);
-    const rawSignature = signature.toUint8Array();
-
-    return p256.verify(rawSignature, sha3Message, this.toUint8Array(), { prehash: false });
+    const messageToVerify = convertSigningMessage(message);
+    const msgBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
+    return this.verifyBytes({ message: msgBytes, signature });
   }
 
   /**
@@ -243,6 +283,12 @@ export class Secp256r1PrivateKey extends PrivateKey {
   private readonly key: Hex;
 
   /**
+   * Whether the key has been cleared from memory.
+   * @private
+   */
+  private cleared: boolean = false;
+
+  /**
    * Create a new PrivateKey instance from a Uint8Array or String.
    *
    * [Read about AIP-80](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md)
@@ -268,47 +314,106 @@ export class Secp256r1PrivateKey extends PrivateKey {
    * Get the private key in bytes (Uint8Array).
    *
    * @returns
+   * @throws Error if the private key has been cleared from memory.
    * @group Implementation
    * @category Serialization
    */
   toUint8Array(): Uint8Array {
+    this.ensureNotCleared();
     return this.key.toUint8Array();
   }
 
   /**
    * Get the private key as a string representation.
    *
+   * SECURITY: This produces an immutable JS string containing the key
+   * material. Strings cannot be zeroed by `clear()` (see the `clear()`
+   * JSDoc for the four classes of unreachable copies). Avoid calling this
+   * method on long-lived `Secp256r1PrivateKey` instances in processes
+   * where memory hygiene matters; prefer `toUint8Array()`, which returns
+   * a clearable `Uint8Array`.
+   *
    * @returns string representation of the private key
+   * @throws Error if the private key has been cleared from memory.
    * @group Implementation
    * @category Serialization
    */
   toString(): string {
+    this.ensureNotCleared();
     return PrivateKey.formatPrivateKey(this.key.toString(), PrivateKeyVariants.Secp256r1);
   }
 
   /**
    * Get the private key as a hex string with the 0x prefix.
    *
+   * SECURITY: Same caveat as `toString()` — produces an immutable JS string
+   * containing the key material; cannot be zeroed by `clear()`.
+   *
    * @returns string representation of the private key.
+   * @throws Error if the private key has been cleared from memory.
    */
   toHexString(): string {
+    this.ensureNotCleared();
     return this.key.toString();
+  }
+
+  /**
+   * Sign exactly the bytes of `message`. The input is interpreted as raw
+   * bytes regardless of what they encode. Pair with
+   * {@link Secp256r1PublicKey.verifyBytes}.
+   *
+   * The message is SHA3-256 hashed before signing (matching the Aptos-side
+   * Secp256r1 signing convention).
+   *
+   * @param message - The exact bytes to sign.
+   * @returns The generated signature for the provided bytes.
+   * @throws Error if the private key has been cleared from memory.
+   * @group Implementation
+   * @category Serialization
+   */
+  signBytes(message: Uint8Array): Secp256r1Signature {
+    this.ensureNotCleared();
+    const sha3Message = sha3_256(message);
+    const signature = p256.sign(sha3Message, this.key.toUint8Array(), { prehash: false });
+    return new Secp256r1Signature(signature);
+  }
+
+  /**
+   * Sign the UTF-8 encoding of `message`. The input is always treated as
+   * text — there is no hex/text heuristic. Pair with
+   * {@link Secp256r1PublicKey.verifyText}.
+   *
+   * @param message - The text to sign.
+   * @returns The generated signature for the UTF-8 bytes of the provided text.
+   * @throws Error if the private key has been cleared from memory.
+   * @group Implementation
+   * @category Serialization
+   */
+  signText(message: string): Secp256r1Signature {
+    return this.signBytes(TEXT_ENCODER.encode(message));
   }
 
   /**
    * Sign the given message with the private key.
    * This function generates a cryptographic signature for the provided message.
    *
+   * @deprecated The polymorphic `message: HexInput` input is ambiguous — a
+   * bare even-length string of hex characters (e.g., `"cafe"`) is signed
+   * as the 2 bytes `[0xCA, 0xFE]`, not 4 UTF-8 text bytes. Use
+   * {@link signBytes} for `Uint8Array` input or {@link signText} for
+   * `string` input; both are unambiguous. See
+   * {@link convertSigningMessage} for the full legacy rule.
+   *
    * @param message - A message in HexInput format to be signed.
    * @returns Signature - The generated signature for the provided message.
+   * @throws Error if the private key has been cleared from memory.
    * @group Implementation
    * @category Serialization
    */
   sign(message: HexInput): Secp256r1Signature {
-    const msgHex = Hex.fromHexInput(message);
-    const sha3Message = sha3_256(msgHex.toUint8Array());
-    const signature = p256.sign(sha3Message, this.key.toUint8Array(), { prehash: false });
-    return new Secp256r1Signature(signature);
+    const messageToSign = convertSigningMessage(message);
+    const msgBytes = Hex.fromHexInput(messageToSign).toUint8Array();
+    return this.signBytes(msgBytes);
   }
 
   /**
@@ -352,12 +457,60 @@ export class Secp256r1PrivateKey extends PrivateKey {
    * Derive the Secp256r1PublicKey from this private key.
    *
    * @returns Secp256r1PublicKey The derived public key.
+   * @throws Error if the private key has been cleared from memory.
    * @group Implementation
    * @category Serialization
    */
   publicKey(): Secp256r1PublicKey {
+    this.ensureNotCleared();
     const bytes = p256.getPublicKey(this.key.toUint8Array(), false);
     return new Secp256r1PublicKey(bytes);
+  }
+
+  /**
+   * Throws if the key has already been cleared.
+   * @private
+   */
+  private ensureNotCleared(): void {
+    if (this.cleared) {
+      throw new Error("Private key has been cleared from memory and can no longer be used");
+    }
+  }
+
+  /**
+   * Overwrites the underlying private-key byte buffer with random bytes and
+   * then zeros. After calling this method the key can no longer sign or
+   * derive a public key.
+   *
+   * SECURITY: This is a best-effort window-narrowing tool, NOT a true
+   * zeroization guarantee. See `Ed25519PrivateKey.clear()` for the full
+   * enumeration of JavaScript-level limits (immutable string copies, noble
+   * `BigInt` intermediates, JIT register/stack residue, GC-relocated
+   * copies). For Secp256r1 specifically, non-extractable `crypto.subtle`
+   * P-256 keys are universally supported across modern runtimes and are
+   * the architecturally-correct path for callers who need real memory
+   * hygiene; consider that alternative for new code.
+   *
+   * @group Implementation
+   * @category Serialization
+   */
+  clear(): void {
+    if (!this.cleared) {
+      const keyBytes = this.key.toUint8Array();
+      // Multiple overwrite passes for consistency with the other private-key classes.
+      crypto.getRandomValues(keyBytes);
+      keyBytes.fill(0xff);
+      crypto.getRandomValues(keyBytes);
+      keyBytes.fill(0);
+      this.cleared = true;
+    }
+  }
+
+  /**
+   * Returns whether `clear()` has been called.
+   */
+  isCleared(): boolean {
+    return this.cleared;
   }
 }
 

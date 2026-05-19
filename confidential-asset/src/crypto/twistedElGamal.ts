@@ -122,8 +122,7 @@ export class TwistedElGamal {
       // Try 32-bit (~12ms with TBSGS-k32)
       return await solveDiscreteLog(pk, 32);
     } catch (e) {
-      console.error("Decryption failed:", e);
-      throw new TypeError("Decryption failed. Value may be out of 32-bit range.");
+      throw new TypeError("Decryption failed. Value may be out of 32-bit range.", { cause: e });
     }
   }
 

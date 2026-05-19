@@ -6,6 +6,9 @@ For changes to the main Aptos TypeScript SDK (`@aptos-labs/ts-sdk`), see the [ro
 
 # Unreleased
 
+## Added
+
+- `TwistedEd25519PrivateKey.clear()` and `isCleared()` mirror the lifecycle hooks on the main SDK's `Ed25519PrivateKey` / `Secp256k1PrivateKey`. After `clear()` is called, the underlying byte buffer of the `Hex` wrapper is overwritten and subsequent calls to `publicKey()`, `toUint8Array()`, `toString()`, and `toStringWithoutPrefix()` throw. **SECURITY NOTE:** as documented on the new JSDoc, this cannot fully zeroize the key in JavaScript — any `toString()` output already produced is an immutable JS string, and noble-curves / `ed25519modN` operations may have produced `BigInt` intermediates that also can't be wiped. Treat `clear()` as a best-effort window-narrowing tool, not a true zeroization guarantee.
 ## Breaking
 
 - **Confidential-asset decryption-key derivation now uses a domain-separated signing message.** The plaintext `TwistedEd25519PrivateKey.decryptionKeyDerivationMessage` constant has been **removed**. Callers must now use `TwistedEd25519PrivateKey.getDecryptionKeySigningMessage(network)`, which returns the 32-byte signing message `sha3_256("APTOS_CONFIDENTIAL_ASSETS::DK_DERIVATION::" || network)`. `network` is any `Network` value from `@aptos-labs/ts-sdk` (e.g. `Network.MAINNET`); the underlying enum string is what gets hashed. The previous plaintext message lacked any domain separation (no protocol tag, no chain binding, no envelope), so any other signing surface producing an Ed25519 signature over those exact bytes would recover the decryption key. New `TwistedEd25519PrivateKey.DK_DERIVATION_DOMAIN_PREFIX` constant exported alongside.
@@ -25,6 +28,7 @@ For changes to the main Aptos TypeScript SDK (`@aptos-labs/ts-sdk`), see the [ro
 
 ## Fixed
 
+- `TwistedElGamal.decryptAmount` no longer calls `console.error` on the caught discrete-log failure before re-throwing. The underlying error is now attached as `error.cause` on the thrown `TypeError`, so legitimate debug flows keep full diagnostic context but production log aggregators / crash reporters don't capture the raw error unconditionally.
 - Fix CI browser test job for `@aptos-labs/confidential-asset`:
   - `vitest.browser.config.mts` `include`/`exclude` patterns updated from `*.test.ts` to `*.test.{ts,mts}`. The unit tests live in `.test.mts` files, so vitest was finding zero tests and exiting with code 1 (the `pnpm test:browser` step in `.github/actions/run-confidential-asset-tests`).
   - `import { RistrettoPoint }` was a value-position import of a type-only export in three source files (`crypto/twistedElGamal.ts`, `crypto/confidentialKeyRotation.ts`, `crypto/bsgs.ts`) and one re-export (`crypto/index.ts`). Node-mode vite/esbuild silently elides such imports when only used in type positions, but browser-mode vite serves modules over HTTP and ESM strictly requires the named export to exist at runtime, producing `SyntaxError: The requested module '/src/crypto/ristrettoPoint.ts' does not provide an export named 'RistrettoPoint'`. Fixed by switching all four to `import type` / `export type`.

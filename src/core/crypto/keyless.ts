@@ -28,6 +28,7 @@ import {
   PatchedJWKsResponse,
 } from "../../types/keyless.js";
 import { AptosConfig } from "../../api/aptosConfig.js";
+import { u64ToNumberSafe } from "../../utils/helpers.js";
 import { getAptosFullNode } from "../../client/index.js";
 import { memoizeAsync } from "../../utils/memoize.js";
 import { AccountAddress, AccountAddressInput } from "../accountAddress.js";
@@ -295,6 +296,14 @@ export class KeylessPublicKey extends AccountPublicKey {
    * Creates a KeylessPublicKey instance from a JWT and a pepper value.
    * This function is useful for generating a public key that can be used for authentication based on the provided JWT claims and pepper.
    *
+   * SECURITY: `jwtDecode` is a decode-only library — it does NOT verify the
+   * JWT signature. The cryptographic binding between the JWT and the user's
+   * identity is enforced on-chain by the keyless verifier (which validates
+   * the JWT signature against the JWK set published on-chain). Callers MUST
+   * therefore obtain `jwt` directly from a trusted IdP redirect/OAuth flow;
+   * do not accept arbitrary user-supplied JWT strings here, since a tampered
+   * JWT will derive a different account address than the chain expects.
+   *
    * @param args - The arguments for creating the KeylessPublicKey.
    * @param args.jwt - The JSON Web Token to decode.
    * @param args.pepper - The pepper value used in the key creation process.
@@ -305,6 +314,7 @@ export class KeylessPublicKey extends AccountPublicKey {
    */
   static fromJwtAndPepper(args: { jwt: string; pepper: HexInput; uidKey?: string }): KeylessPublicKey {
     const { jwt, pepper, uidKey = "sub" } = args;
+    // SECURITY: signature is not verified here — see method-level JSDoc.
     const jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
     if (typeof jwtPayload.iss !== "string") {
       throw new Error("iss was not found");
@@ -652,7 +662,7 @@ export class KeylessSignature extends Signature {
     const ephemeralSignature = EphemeralSignature.deserialize(deserializer);
     return new KeylessSignature({
       jwtHeader,
-      expiryDateSecs: Number(expiryDateSecs),
+      expiryDateSecs: u64ToNumberSafe(expiryDateSecs, "KeylessSignature.expiryDateSecs"),
       ephemeralCertificate,
       ephemeralPublicKey,
       ephemeralSignature,
@@ -1116,7 +1126,7 @@ export class ZeroKnowledgeSig extends Signature {
 
   static deserialize(deserializer: Deserializer): ZeroKnowledgeSig {
     const proof = ZkProof.deserialize(deserializer);
-    const expHorizonSecs = Number(deserializer.deserializeU64());
+    const expHorizonSecs = u64ToNumberSafe(deserializer.deserializeU64(), "ZeroKnowledgeSig.expHorizonSecs");
     const extraField = deserializer.deserializeOption("string");
     const overrideAudVal = deserializer.deserializeOption("string");
     const trainingWheelsSignature = deserializer.deserializeOption(EphemeralSignature);
@@ -1228,7 +1238,9 @@ export class KeylessConfiguration {
         gammaAbcG1: res.gamma_abc_g1,
         gammaG2: res.gamma_g2,
       }),
-      maxExpHorizonSecs: Number(config.max_exp_horizon_secs),
+      // Chain config returns u64 as a decimal string; widen → safe-narrow so
+      // a malformed/exotic value throws rather than silently truncates.
+      maxExpHorizonSecs: u64ToNumberSafe(BigInt(config.max_exp_horizon_secs), "KeylessConfiguration.maxExpHorizonSecs"),
       trainingWheelsPubkey: config.training_wheels_pubkey.vec[0],
       maxExtraFieldBytes: config.max_extra_field_bytes,
       maxJwtHeaderB64Bytes: config.max_jwt_header_b64_bytes,
@@ -1457,6 +1469,12 @@ export async function getKeylessConfig(args: {
 /**
  * Parses a JWT and returns the 'iss', 'aud', and 'uid' values.
  *
+ * SECURITY: This function decodes claims without verifying the JWT signature.
+ * The keyless on-chain verifier is the authority that binds a JWT to its IdP;
+ * the SDK only uses these claims to derive the keyless account address and
+ * package the JWT for the prover service. Callers must source `jwt` from a
+ * trusted IdP redirect flow.
+ *
  * @param args - The arguments for parsing the JWT.
  * @param args.jwt - The JWT to parse.
  * @param args.uidKey - The key to use for the 'uid' value; defaults to 'sub'.
@@ -1470,6 +1488,7 @@ export function getIssAudAndUidVal(args: { jwt: string; uidKey?: string }): {
   const { jwt, uidKey = "sub" } = args;
   let jwtPayload: JwtPayload & { [key: string]: string };
   try {
+    // SECURITY: signature is not verified here — see function-level JSDoc.
     jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
   } catch {
     throw KeylessError.fromErrorType({

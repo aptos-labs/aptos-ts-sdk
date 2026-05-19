@@ -361,6 +361,15 @@ type AptosApiErrorOpts = {
  * @param statusText - The message associated with the response status.
  * @param data - The response data returned from the API.
  * @param request - The original AptosRequest that triggered the error.
+ *
+ * SECURITY: `Error.message` is sanitized for `AptosApiType.PEPPER` and
+ * `AptosApiType.PROVER` so that response bodies (which can contain JWT claims
+ * or pepper-derived material) don't leak into default log/crash sinks. The
+ * `data` field, however, ALWAYS holds the raw response body — including for
+ * those sensitive API types — so callers that log or serialize
+ * `AptosApiError.data` (e.g., `JSON.stringify(error)`, Sentry's automatic
+ * field capture, custom structured loggers) must treat it accordingly. If
+ * you only need a human-readable summary, prefer `error.message`.
  */
 export class AptosApiError extends Error {
   readonly url: string;
@@ -369,6 +378,16 @@ export class AptosApiError extends Error {
 
   readonly statusText: string;
 
+  /**
+   * The raw response body returned by the API.
+   *
+   * SECURITY: For `AptosApiType.PEPPER` and `AptosApiType.PROVER`, this can
+   * contain sensitive keyless-flow material (JWT claims, pepper-derived
+   * state). It is NOT redacted here — only `Error.message` is. Treat
+   * `error.data` as sensitive when handling errors from those API types,
+   * especially before passing the error to a structured logger or crash
+   * reporter.
+   */
   readonly data: any;
 
   readonly request: AptosRequest;
@@ -404,6 +423,13 @@ export class AptosApiError extends Error {
  * @param {AptosRequest} opts.aptosRequest - The original request made to the Aptos API.
  * @param {AptosResponse} opts.aptosResponse - The response received from the Aptos API.
  */
+// API types whose response bodies may contain keyless-account material (JWT
+// claims, pepper-derived state). For these we exclude the body from the error
+// message — including from the structured-error branch — so nothing about
+// the response payload reaches the default Error.message sink. Callers that
+// need the full body can still read it from `AptosApiError.data`.
+const SENSITIVE_BODY_API_TYPES: ReadonlySet<AptosApiType> = new Set([AptosApiType.PEPPER, AptosApiType.PROVER]);
+
 function deriveErrorMessage({ apiType, aptosRequest, aptosResponse }: AptosApiErrorOpts): string {
   // extract the W3C trace_id from the response headers if it exists. Some services set this in the response, and it's useful for debugging.
   // See https://www.w3.org/TR/trace-context/#relationship-between-the-headers .
@@ -413,6 +439,17 @@ function deriveErrorMessage({ apiType, aptosRequest, aptosResponse }: AptosApiEr
   const errorPrelude: string = `Request to [${apiType}]: ${aptosRequest.method} ${
     aptosResponse.url ?? aptosRequest.url
   } ${traceIdString}failed with`;
+
+  // For sensitive API types, redact the response body in every branch below.
+  // Doing this up-front rather than per-branch ensures a Pepper/Prover
+  // response that happens to match the `{ message, error_code }` shape (or
+  // some future well-known shape) can't slip a payload through into
+  // Error.message. The full body remains on AptosApiError.data for callers
+  // that explicitly need it.
+  const isSensitive = SENSITIVE_BODY_API_TYPES.has(apiType);
+  if (isSensitive) {
+    return `${errorPrelude} status: ${aptosResponse.statusText}(code:${aptosResponse.status}) (response body redacted for ${apiType})`;
+  }
 
   // handle graphql responses from indexer api and extract the error message of the first error
   if (apiType === AptosApiType.INDEXER && aptosResponse.data?.errors?.[0]?.message != null) {

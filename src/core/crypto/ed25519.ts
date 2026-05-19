@@ -11,6 +11,7 @@ import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSee
 import { PrivateKey } from "./privateKey.js";
 import { AccountPublicKey, PublicKey, VerifySignatureArgs, VerifySignatureAsyncArgs } from "./publicKey.js";
 import { Signature } from "./signature.js";
+import { TEXT_ENCODER } from "../../utils/const.js";
 import { convertSigningMessage } from "./utils.js";
 
 /**
@@ -98,7 +99,51 @@ export class Ed25519PublicKey extends AccountPublicKey {
   // region AccountPublicKey
 
   /**
+   * Verifies a signature against the exact bytes of `message`. This is the
+   * unambiguous form — the input is interpreted as raw bytes regardless of
+   * what they encode. Pair with {@link Ed25519PrivateKey.signBytes}.
+   *
+   * Performs an Ed25519 malleability check (rejects non-canonical S values)
+   * before delegating to the underlying curve verifier.
+   *
+   * @param args - The arguments for verification.
+   * @param args.message - The exact bytes that were signed.
+   * @param args.signature - The signature to verify.
+   * @group Implementation
+   * @category Serialization
+   */
+  verifyBytes(args: { message: Uint8Array; signature: Signature }): boolean {
+    const { message, signature } = args;
+    if (!isCanonicalEd25519Signature(signature)) {
+      return false;
+    }
+    return ed25519.verify(signature.toUint8Array(), message, this.key.toUint8Array());
+  }
+
+  /**
+   * Verifies a signature against the UTF-8 encoding of `message`. The input
+   * is always treated as text — there is no hex/text heuristic. Pair with
+   * {@link Ed25519PrivateKey.signText}.
+   *
+   * @param args - The arguments for verification.
+   * @param args.message - The text that was signed.
+   * @param args.signature - The signature to verify.
+   * @group Implementation
+   * @category Serialization
+   */
+  verifyText(args: { message: string; signature: Signature }): boolean {
+    return this.verifyBytes({ message: TEXT_ENCODER.encode(args.message), signature: args.signature });
+  }
+
+  /**
    * Verifies a signed message using a public key.
+   *
+   * @deprecated The polymorphic `message: HexInput` input is ambiguous — a
+   * bare even-length string of hex characters (e.g., `"cafe"`) is
+   * interpreted as the 2 bytes `[0xCA, 0xFE]`, not as 4 UTF-8 text bytes.
+   * Use {@link verifyBytes} for `Uint8Array` input or {@link verifyText}
+   * for `string` input; both are unambiguous. See
+   * {@link convertSigningMessage} for the full legacy rule.
    *
    * @param args - The arguments for verification.
    * @param args.message - A signed message as a Hex string or Uint8Array.
@@ -108,16 +153,9 @@ export class Ed25519PublicKey extends AccountPublicKey {
    */
   verifySignature(args: VerifySignatureArgs): boolean {
     const { message, signature } = args;
-    // Verify malleability
-    if (!isCanonicalEd25519Signature(signature)) {
-      return false;
-    }
-
     const messageToVerify = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
-    const signatureBytes = signature.toUint8Array();
-    const publicKeyBytes = this.key.toUint8Array();
-    return ed25519.verify(signatureBytes, messageBytes, publicKeyBytes);
+    return this.verifyBytes({ message: messageBytes, signature });
   }
 
   /**
@@ -362,11 +400,40 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   }
 
   /**
-   * Clears the private key from memory by overwriting it with random bytes.
-   * After calling this method, the private key can no longer be used for signing or deriving public keys.
+   * Overwrites the underlying private-key byte buffer with random bytes and
+   * then zeros. After calling this method the key can no longer sign or
+   * derive a public key.
    *
-   * Note: Due to JavaScript's memory management, this cannot guarantee complete removal of
-   * sensitive data from memory, but it significantly reduces the window of exposure.
+   * SECURITY: This is a best-effort window-narrowing tool, NOT a true
+   * zeroization guarantee. In JavaScript, four classes of copies cannot be
+   * reached from user code and so survive `clear()`:
+   *
+   *   1. **JS string copies.** Any value previously produced by `toString()`,
+   *      `toHexString()`, or `bcsToHex().toString()` is an immutable string
+   *      in the heap. The language provides no API to overwrite string
+   *      memory; it is reclaimed only when GC collects it.
+   *   2. **noble-curves internals.** The sign path inside `@noble/curves`
+   *      expands the private key into scalar `BigInt` field elements, which
+   *      are also immutable in V8/JSC/Hermes. Even if noble explicitly zeroed
+   *      its own byte copies after use, the `BigInt` intermediates persist.
+   *   3. **JIT register / stack residue.** The engine may have held key
+   *      bytes in CPU registers or on the engine stack during a sign call.
+   *      There is no JS-visible way to scrub those.
+   *   4. **GC-relocated copies.** Generational GCs (V8, JSC) copy live
+   *      objects between heap regions during minor/major collections. The
+   *      `Uint8Array` we zeroed may have stale copies sitting in survivor
+   *      space until the next cycle reclaims them.
+   *
+   * This method zeros the SDK's own `Uint8Array` (the most reachable
+   * copy), but downstream consumers should treat it as a hardening signal,
+   * not a guarantee. If you need real key-material hygiene, prefer
+   * non-extractable `crypto.subtle` keys (where the underlying algorithm
+   * is supported by the host runtime), a WASM-backed crypto library, or
+   * hardware-backed keys (passkeys / secure enclave / HSM).
+   *
+   * To minimize the size of the unreachable-copy set, avoid calling
+   * `toString()` / `toHexString()` on private keys at all in long-lived
+   * processes — the byte form is what gets cleared.
    *
    * @group Implementation
    * @category Serialization
@@ -413,8 +480,47 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   }
 
   /**
+   * Sign exactly the bytes of `message`. The input is interpreted as raw
+   * bytes regardless of what they encode. Pair with
+   * {@link Ed25519PublicKey.verifyBytes}.
+   *
+   * @param message - The exact bytes to sign.
+   * @returns A digital signature for the provided bytes.
+   * @throws Error if the private key has been cleared from memory.
+   * @group Implementation
+   * @category Serialization
+   */
+  signBytes(message: Uint8Array): Ed25519Signature {
+    this.ensureNotCleared();
+    const signatureBytes = ed25519.sign(message, this.signingKey.toUint8Array());
+    return new Ed25519Signature(signatureBytes);
+  }
+
+  /**
+   * Sign the UTF-8 encoding of `message`. The input is always treated as
+   * text — there is no hex/text heuristic. Pair with
+   * {@link Ed25519PublicKey.verifyText}.
+   *
+   * @param message - The text to sign.
+   * @returns A digital signature for the UTF-8 bytes of the provided text.
+   * @throws Error if the private key has been cleared from memory.
+   * @group Implementation
+   * @category Serialization
+   */
+  signText(message: string): Ed25519Signature {
+    return this.signBytes(TEXT_ENCODER.encode(message));
+  }
+
+  /**
    * Sign the given message with the private key.
    * This function generates a digital signature for the specified message, ensuring its authenticity and integrity.
+   *
+   * @deprecated The polymorphic `message: HexInput` input is ambiguous — a
+   * bare even-length string of hex characters (e.g., `"cafe"`) is signed
+   * as the 2 bytes `[0xCA, 0xFE]`, not as 4 UTF-8 text bytes. Use
+   * {@link signBytes} for `Uint8Array` input or {@link signText} for
+   * `string` input; both are unambiguous. See
+   * {@link convertSigningMessage} for the full legacy rule.
    *
    * @param message - A message as a string or Uint8Array in HexInput format.
    * @returns A digital signature for the provided message.
@@ -423,11 +529,9 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    * @category Serialization
    */
   sign(message: HexInput): Ed25519Signature {
-    this.ensureNotCleared();
     const messageToSign = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToSign).toUint8Array();
-    const signatureBytes = ed25519.sign(messageBytes, this.signingKey.toUint8Array());
-    return new Ed25519Signature(signatureBytes);
+    return this.signBytes(messageBytes);
   }
 
   /**
@@ -446,6 +550,13 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   /**
    * Get the private key as a hex string with the 0x prefix.
    *
+   * SECURITY: This produces an immutable JS string containing the key
+   * material in hex. Strings cannot be zeroed by `clear()` (see the
+   * `clear()` JSDoc for the four classes of unreachable copies). Avoid
+   * calling this method on long-lived `Ed25519PrivateKey` instances in
+   * processes where memory hygiene matters; prefer `toUint8Array()`,
+   * which returns a clearable `Uint8Array`.
+   *
    * @returns string representation of the private key.
    * @throws Error if the private key has been cleared from memory.
    * @group Implementation
@@ -459,6 +570,9 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   /**
    * Get the private key as a hex string with the 0x prefix.
    *
+   * SECURITY: Same caveat as `toString()` — the returned string is an
+   * immutable JS heap allocation that `clear()` cannot zero.
+   *
    * @returns string representation of the private key.
    * @throws Error if the private key has been cleared from memory.
    */
@@ -471,6 +585,9 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    * Get the private key as a AIP-80 compliant hex string.
    *
    * [Read about AIP-80](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md)
+   *
+   * SECURITY: Same caveat as `toString()` — produces an immutable JS string
+   * containing the key material; cannot be zeroed by `clear()`.
    *
    * @returns AIP-80 compliant string representation of the private key.
    * @throws Error if the private key has been cleared from memory.
