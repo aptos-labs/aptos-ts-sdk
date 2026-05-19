@@ -83,6 +83,7 @@ import { Hex } from "../core/hex.js";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types.js";
 import { getTableItem } from "./table.js";
 import { APTOS_COIN } from "../utils/index.js";
+import { memoizeAsync } from "../utils/memoize.js";
 import { AptosApiError } from "../errors/index.js";
 import { Deserializer, U8, MoveVector } from "../bcs/index.js";
 import { generateTransaction } from "./transactionSubmission.js";
@@ -379,6 +380,30 @@ export async function lookupOriginalAccountAddress(args: {
 
     throw err;
   }
+}
+
+/**
+ * Fetches the on-chain `authentication_key` for an account address and memoizes it for ~1 hour,
+ * keyed by `(network or fullnode URL, address)`. Used by the encrypted-transaction builder to
+ * derive auth keys when the caller does not pass them explicitly. Callers that just rotated their
+ * key and need an immediate fresh read should pass the auth key explicitly instead of relying on
+ * this cache.
+ */
+export async function fetchAndCacheAuthKeyForAddress(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: AccountAddressInput;
+}): Promise<AuthenticationKey> {
+  const { aptosConfig, accountAddress } = args;
+  const addr = AccountAddress.from(accountAddress).toString();
+  const cacheKey = `auth-key-${aptosConfig.fullnode ?? aptosConfig.network}-${addr}`;
+  return memoizeAsync(
+    async () => {
+      const info = await getInfoUtil({ aptosConfig, accountAddress: addr });
+      return new AuthenticationKey({ data: info.authentication_key });
+    },
+    cacheKey,
+    60 * 60 * 1000,
+  )();
 }
 
 /**

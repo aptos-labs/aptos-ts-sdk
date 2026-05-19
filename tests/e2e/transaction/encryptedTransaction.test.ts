@@ -45,11 +45,11 @@ const SKIP_ENCRYPTED_TESTS_REASON =
  */
 const ENCRYPTED_E2E_DEFAULT_MAX_GAS = 600_000;
 
-/** Required for `options.encrypted` builds: must match the authenticator that will sign the transaction. */
+/** For `options.encrypted` builds: pass `senderAuthenticationKey` to skip the on-chain fetch (must match the authenticator that will sign the transaction). */
 function encryptedBuildOptions(account: Account, extra: Record<string, unknown> = {}) {
   return {
     encrypted: true as const,
-    authenticationKey: account.publicKey,
+    senderAuthenticationKey: account.publicKey.authKey(),
     gasUnitPrice: BigInt(MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE),
     maxGasAmount: ENCRYPTED_E2E_DEFAULT_MAX_GAS,
     ...extra,

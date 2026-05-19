@@ -4,7 +4,7 @@
 import { AptosConfig } from "../../api/aptosConfig.js";
 import { AccountAddress, AccountAddressInput } from "../../core/index.js";
 import { AuthenticationKey } from "../../core/authenticationKey.js";
-import { AccountPublicKey } from "../../core/crypto/index.js";
+import { fetchAndCacheAuthKeyForAddress } from "../../internal/account.js";
 import { fetchAndCacheEncryptionKey } from "../../internal/encryptionKey.js";
 import {
   ClaimedEntryFunction,
@@ -103,76 +103,81 @@ function resolveClaimedEntryFun(args: {
   return undefined;
 }
 
-function resolveAuthKey(input: HexInput | AccountPublicKey): AuthenticationKey {
-  if (input instanceof AccountPublicKey) {
-    return input.authKey();
+function resolveAuthKey(input: AuthenticationKey | HexInput): AuthenticationKey {
+  if (input instanceof AuthenticationKey) {
+    return input;
   }
   return new AuthenticationKey({ data: input });
 }
 
 /**
- * Validates auth-key options and assembles `(address, authenticationKey)` pairs in
- * `TransactionAuthenticator::all_signer_auth_keys` order: sender, secondaries, fee payer last.
+ * Assembles `(address, authenticationKey)` pairs in `TransactionAuthenticator::all_signer_auth_keys` order
+ * (sender, secondaries, fee payer last). Auth keys not supplied in `options` are fetched from chain via
+ * `fetchAndCacheAuthKeyForAddress`, which caches per `(network, address)` for ~1 hour.
  */
-function buildSignerAuthKeys(args: {
+async function buildSignerAuthKeys(args: {
+  aptosConfig: AptosConfig;
   sender: AccountAddress;
   options: InputGenerateTransactionOptions;
   feePayerAddress?: AccountAddressInput;
   secondarySignerAddresses?: AccountAddressInput[];
-}): { sender: SignerAuthKeyPair; additional: SignerAuthKeyPair[] | undefined } {
-  const { sender, options, feePayerAddress, secondarySignerAddresses } = args;
+}): Promise<{ sender: SignerAuthKeyPair; additional: SignerAuthKeyPair[] | undefined }> {
+  const { aptosConfig, sender, options, feePayerAddress, secondarySignerAddresses } = args;
 
-  if (options.authenticationKey === undefined) {
-    throw new Error(
-      "options.authenticationKey is required when options.encrypted is true. " +
-        "Pass the sender's AccountPublicKey or a raw 32-byte auth key hex string.",
-    );
-  }
   const secondaryAddrs = secondarySignerAddresses ?? [];
-  const secondaryAuthHex = options.secondarySignerAuthenticationKeys;
-  if (secondaryAddrs.length > 0) {
-    if (!secondaryAuthHex || secondaryAuthHex.length !== secondaryAddrs.length) {
-      throw new Error(
-        "Encrypted multi-agent transactions require options.secondarySignerAuthenticationKeys with one entry per secondarySignerAddresses entry, in the same order. " +
-          "Each entry may be an AccountPublicKey or a raw 32-byte auth key hex string.",
-      );
-    }
-  } else if (secondaryAuthHex !== undefined && secondaryAuthHex.length > 0) {
+  const secondaryAuthInputs = options.secondarySignerAuthenticationKeys;
+  if (secondaryAddrs.length === 0 && secondaryAuthInputs !== undefined && secondaryAuthInputs.length > 0) {
     throw new Error(
       "options.secondarySignerAuthenticationKeys was set but no secondarySignerAddresses were provided to generateRawTransaction.",
+    );
+  }
+  if (
+    secondaryAddrs.length > 0 &&
+    secondaryAuthInputs !== undefined &&
+    secondaryAuthInputs.length !== secondaryAddrs.length
+  ) {
+    throw new Error(
+      "Encrypted multi-agent transactions require options.secondarySignerAuthenticationKeys (when provided) to have one entry per secondarySignerAddresses entry, in the same order. " +
+        "Leave individual entries undefined to fetch them from chain.",
     );
   }
 
   const feePayerAddr = feePayerAddress !== undefined ? AccountAddress.from(feePayerAddress) : undefined;
   const hasNonZeroFeePayer = feePayerAddr !== undefined && !feePayerAddr.equals(AccountAddress.ZERO);
-  if (hasNonZeroFeePayer && options.feePayerAuthenticationKey === undefined) {
-    throw new Error(
-      "options.feePayerAuthenticationKey is required when options.encrypted is true and feePayerAddress is a non-zero sponsor. " +
-        "Must match the fee payer authenticator; AAD order is sender, then secondaries, then fee payer (aptos-core `all_signer_auth_keys`).",
-    );
-  }
   if (options.feePayerAuthenticationKey !== undefined && !hasNonZeroFeePayer) {
     throw new Error(
       "options.feePayerAuthenticationKey was set but feePayerAddress is missing or the zero address (no on-chain fee payer for AAD).",
     );
   }
 
-  const senderPair: SignerAuthKeyPair = {
-    address: sender,
-    authenticationKey: resolveAuthKey(options.authenticationKey),
+  const resolveFor = async (
+    address: AccountAddress,
+    input: AuthenticationKey | HexInput | undefined,
+  ): Promise<AuthenticationKey> => {
+    if (input !== undefined) {
+      return resolveAuthKey(input);
+    }
+    return fetchAndCacheAuthKeyForAddress({ aptosConfig, accountAddress: address });
   };
-  const additional: SignerAuthKeyPair[] =
-    secondaryAddrs.length > 0 && secondaryAuthHex
-      ? secondaryAddrs.map((addr, i) => ({
-          address: AccountAddress.from(addr),
-          authenticationKey: resolveAuthKey(secondaryAuthHex[i]!),
-        }))
-      : [];
-  if (hasNonZeroFeePayer && options.feePayerAuthenticationKey !== undefined) {
-    additional.push({
-      address: feePayerAddr,
-      authenticationKey: resolveAuthKey(options.feePayerAuthenticationKey),
-    });
+
+  const secondaryPairsPromise = Promise.all(
+    secondaryAddrs.map(async (addr, i) => {
+      const address = AccountAddress.from(addr);
+      const authenticationKey = await resolveFor(address, secondaryAuthInputs?.[i]);
+      return { address, authenticationKey };
+    }),
+  );
+
+  const [senderAuthKey, secondaryPairs, feePayerAuthKey] = await Promise.all([
+    resolveFor(sender, options.senderAuthenticationKey),
+    secondaryPairsPromise,
+    hasNonZeroFeePayer ? resolveFor(feePayerAddr, options.feePayerAuthenticationKey) : Promise.resolve(undefined),
+  ]);
+
+  const senderPair: SignerAuthKeyPair = { address: sender, authenticationKey: senderAuthKey };
+  const additional: SignerAuthKeyPair[] = [...secondaryPairs];
+  if (hasNonZeroFeePayer && feePayerAuthKey !== undefined) {
+    additional.push({ address: feePayerAddr, authenticationKey: feePayerAuthKey });
   }
   return { sender: senderPair, additional: additional.length > 0 ? additional : undefined };
 }
@@ -197,7 +202,8 @@ export async function buildEncryptedPayload(args: {
     args;
 
   const senderAddr = AccountAddress.from(sender);
-  const { sender: senderPair, additional } = buildSignerAuthKeys({
+  const { sender: senderPair, additional } = await buildSignerAuthKeys({
+    aptosConfig,
     sender: senderAddr,
     options,
     feePayerAddress,
