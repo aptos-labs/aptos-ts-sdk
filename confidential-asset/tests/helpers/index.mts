@@ -117,7 +117,8 @@ export const getTestConfidentialAccount = (account?: Ed25519Account) => {
 
   if (!account) return TwistedEd25519PrivateKey.generate();
 
-  const signature = account.sign(TwistedEd25519PrivateKey.decryptionKeyDerivationMessage);
+  const signingMessage = TwistedEd25519PrivateKey.getDecryptionKeySigningMessage(APTOS_NETWORK);
+  const signature = account.sign(signingMessage);
 
   return TwistedEd25519PrivateKey.fromSignature(signature);
 };

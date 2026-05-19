@@ -57,7 +57,7 @@ describe("encrypted transaction gas floor", () => {
       payload,
       options: {
         encrypted: true,
-        authenticationKey: VALID_AUTH_KEY,
+        senderAuthenticationKey: VALID_AUTH_KEY,
         gasUnitPrice: 50,
         accountSequenceNumber: 0,
       },
@@ -72,7 +72,7 @@ describe("encrypted transaction gas floor", () => {
       payload,
       options: {
         encrypted: true,
-        authenticationKey: VALID_AUTH_KEY,
+        senderAuthenticationKey: VALID_AUTH_KEY,
         gasUnitPrice: 300,
         accountSequenceNumber: 0,
       },

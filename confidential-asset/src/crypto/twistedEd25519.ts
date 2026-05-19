@@ -3,6 +3,8 @@
 
 import { ed25519, ristretto255 } from "@noble/curves/ed25519.js";
 import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/utils.js";
+import { sha3_256 } from "@noble/hashes/sha3.js";
+import { utf8ToBytes } from "@noble/hashes/utils.js";
 import {
   CKDPriv,
   deriveKey,
@@ -13,6 +15,7 @@ import {
   HexInput,
   isValidHardenedPath,
   mnemonicToSeed,
+  Network,
   Serializable,
   Serializer,
   splitPath,
@@ -172,7 +175,27 @@ export class TwistedEd25519PrivateKey extends Serializable {
     return TwistedEd25519PrivateKey.fromDerivationPathInner(path, mnemonicToSeed(mnemonics));
   }
 
-  static decryptionKeyDerivationMessage = "Sign this message to derive decryption key from your private key";
+  /**
+   * Domain-separation prefix for the decryption-key derivation signing message.
+   */
+  static readonly DK_DERIVATION_DOMAIN_PREFIX = "APTOS_CONFIDENTIAL_ASSETS::DK_DERIVATION::";
+
+  /**
+   * Returns the 32-byte signing message a wallet must sign with the user's Ed25519
+   * private key to derive a confidential-asset decryption key for the given network.
+   *
+   *   signing_message = sha3_256("APTOS_CONFIDENTIAL_ASSETS::DK_DERIVATION::" || network)
+   *
+   * The resulting Ed25519 signature is then passed to {@link fromSignature} to obtain
+   * the {@link TwistedEd25519PrivateKey}.
+   *
+   * @param network a {@link Network} value (e.g. `Network.MAINNET`). The underlying
+   *   string literal is what gets hashed into the signing message; renaming any
+   *   {@link Network} member would make previously derived keys unreachable.
+   */
+  static getDecryptionKeySigningMessage(network: Network): Uint8Array {
+    return sha3_256(utf8ToBytes(TwistedEd25519PrivateKey.DK_DERIVATION_DOMAIN_PREFIX + network));
+  }
 
   static fromSignature(signature: Ed25519Signature): TwistedEd25519PrivateKey {
     const scalarLE = bytesToNumberLE(signature.toUint8Array());
