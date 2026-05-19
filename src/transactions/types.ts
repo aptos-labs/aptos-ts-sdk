@@ -19,8 +19,8 @@ import {
   U8,
 } from "../bcs/serializable/movePrimitives.js";
 import { FixedBytes } from "../bcs/serializable/fixedBytes.js";
-import { AccountAddress, AccountAddressInput } from "../core/index.js";
-import { AccountPublicKey, PublicKey } from "../core/crypto/index.js";
+import { AccountAddress, AccountAddressInput, AuthenticationKey } from "../core/index.js";
+import { PublicKey } from "../core/crypto/index.js";
 import {
   MultiAgentRawTransaction,
   FeePayerRawTransaction,
@@ -182,23 +182,27 @@ export type InputEncryptedTransactionBuildOptions = {
    */
   encrypted?: boolean;
   /**
-   * Authentication key for the primary sender. Required when `encrypted` is true.
-   * Accept either an `AccountPublicKey` (auth key is derived automatically via `.authKey()`) or a raw 32-byte hex
-   * string. Must match the on-chain authenticator identity (aptos-core `PayloadAssociatedData::V1.signer_auth_keys`).
+   * Authentication key for the primary sender. Optional: when omitted (and `encrypted` is true), the SDK fetches
+   * the sender's `authentication_key` from the fullnode and caches it for ~1 hour. Pass it explicitly to skip the
+   * lookup (useful right after a key rotation). Accepts an `AuthenticationKey` or a raw 32-byte hex string /
+   * `Uint8Array`. Must match the on-chain authenticator identity (aptos-core
+   * `PayloadAssociatedData::V1.signer_auth_keys`).
    */
-  authenticationKey?: HexInput | AccountPublicKey;
+  senderAuthenticationKey?: AuthenticationKey | HexInput;
   /**
    * For encrypted **multi-agent** transactions: each secondary signer's authentication key, in the same order
-   * as `secondarySignerAddresses` on the transaction build input. Accepts `AccountPublicKey` or raw 32-byte hex.
+   * as `secondarySignerAddresses` on the transaction build input. Any entry left undefined (or the entire array
+   * omitted) will be fetched from chain and cached. Accepts `AuthenticationKey` or a raw 32-byte hex string /
+   * `Uint8Array`.
    */
-  secondarySignerAuthenticationKeys?: (HexInput | AccountPublicKey)[];
+  secondarySignerAuthenticationKeys?: (AuthenticationKey | HexInput | undefined)[];
   /**
-   * For encrypted **fee-payer** transactions: the fee payer's authentication key. Required when `encrypted` is true
-   * and `feePayerAddress` is set to a **non-zero** sponsor address. Appended **last** in AAD `signer_auth_keys`,
-   * matching aptos-core `TransactionAuthenticator::all_signer_auth_keys` (after sender and secondaries).
-   * Accepts `AccountPublicKey` or raw 32-byte hex.
+   * For encrypted **fee-payer** transactions: the fee payer's authentication key. Optional when `feePayerAddress`
+   * is a **non-zero** sponsor — omitted values are fetched from chain and cached. Appended **last** in AAD
+   * `signer_auth_keys`, matching aptos-core `TransactionAuthenticator::all_signer_auth_keys` (after sender and
+   * secondaries). Accepts `AuthenticationKey` or a raw 32-byte hex string / `Uint8Array`.
    */
-  feePayerAuthenticationKey?: HexInput | AccountPublicKey;
+  feePayerAuthenticationKey?: AuthenticationKey | HexInput;
   /**
    * Overrides `claimed_entry_fun` for encrypted transactions when a fee payer is set, the payload is multisig, or the
    * payload is `TransactionInnerPayload` with a multisig address in `TransactionExtraConfigV1`.

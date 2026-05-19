@@ -7,6 +7,11 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 ## Added
 
 - CI uploads unit test coverage to Codecov (`codecov.yaml` via `.github/actions/run-codecov`, `pnpm test:coverage:unit`). Uploads use the Codecov `unit` flag; Vitest coverage is scoped to `src/**/*.ts` (excluding generated GraphQL queries and indexer types) so metrics reflect SDK sources. Repository owners should enable the Codecov GitHub app and optionally set `CODECOV_TOKEN` for uploads.
+- Encrypted transactions: when `options.senderAuthenticationKey` (and `options.feePayerAuthenticationKey` / `options.secondarySignerAuthenticationKeys[i]`) is omitted, the SDK now fetches the corresponding `authentication_key` from the fullnode and memoizes it per `(network, address)` for ~1 hour. Pass the auth key explicitly to skip the lookup (e.g. immediately after a key rotation).
+
+## Changed
+
+- **Encrypted transactions (breaking)**: renamed `options.authenticationKey` → `options.senderAuthenticationKey` in `InputEncryptedTransactionBuildOptions` for clarity and parity with `feePayerAuthenticationKey` / `secondarySignerAuthenticationKeys`. Narrowed the accepted input type for all three fields to `AuthenticationKey | string | Uint8Array` (an explicit `AuthenticationKey` instance is now the preferred input; callers previously passing `AccountPublicKey` should call `.authKey()` themselves). All three fields are now genuinely optional — omitted entries are fetched and cached from chain.
 
 # 7.0.1 (2026-05-14)
 
