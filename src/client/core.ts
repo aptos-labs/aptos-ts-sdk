@@ -40,6 +40,12 @@ import { AptosApiError } from "../errors/index.js";
 export async function request<Req, Res>(options: ClientRequest<Req>, client: Client): Promise<ClientResponse<Res>> {
   const { url, method, body, contentType, params, overrides, originMethod } = options;
   const headers: Record<string, string | AnyNumber | boolean | undefined> = {
+    // Workaround: undici's HTTP/2 dispatcher (used by @aptos-labs/aptos-client when
+    // allowH2 is on) does not auto-decompress response bodies, so a `content-encoding: br`
+    // response decodes to raw brotli bytes and our JSON parse silently falls back to a
+    // string. Opt out of compression by default; callers can re-enable it by passing
+    // their own `accept-encoding` in `clientConfig.HEADERS`.
+    "accept-encoding": "identity",
     ...overrides?.HEADERS,
     "x-aptos-client": `aptos-typescript-sdk/${VERSION}; platform=${getRuntimePlatformTag()}`,
     "content-type": contentType ?? MimeType.JSON,
