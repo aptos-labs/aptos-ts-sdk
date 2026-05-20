@@ -21,6 +21,15 @@ coverage:
 ignore:
   - "src/internal/queries/**"
   - "src/types/generated/**"
+  # Node-only CLI surface, covered by `examples/` integration suites.
+  - "src/cli/**"
+  # Bundler shim; no runtime behavior.
+  - "src/utils/normalizeBundle.ts"
+  # Long-running event-loop driver covered behaviorally by the e2e suite.
+  - "src/transactions/management/asyncQueue.ts"
+  # Re-export barrel and version constant.
+  - "src/index.ts"
+  - "src/version.ts"
   - "tests/**"
   - "examples/**"
   - "confidential-asset/**"
