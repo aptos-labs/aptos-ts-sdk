@@ -6,6 +6,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Added
 
+- CI uploads bundle stats for `dist/` to Codecov via `@codecov/bundle-analyzer` (`codecov.yaml` → `.github/actions/run-codecov-bundle`). The SDK is tsc-built with no bundler, so the standalone analyzer is used to produce bundle reports under the `@aptos-labs/ts-sdk` bundle name. Runs as a parallel job alongside the existing coverage upload; both share the `CODECOV_TOKEN` secret.
 - Unambiguous signing/verification API split across `Ed25519`, `Secp256k1`, and `Secp256r1`:
   - `signBytes(message: Uint8Array)` and `signText(message: string)` on each `PrivateKey` class. `signBytes` signs exactly the provided bytes; `signText` UTF-8-encodes the string before signing. No hex/text heuristic — the input type determines the interpretation unambiguously.
   - `verifyBytes({ message: Uint8Array, signature })` and `verifyText({ message: string, signature })` on each `PublicKey` class, mirroring the sign side.
