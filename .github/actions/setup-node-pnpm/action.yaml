@@ -19,5 +19,9 @@ runs:
       run: echo "${GITHUB_WORKSPACE}/node_modules/.bin" >> "${GITHUB_PATH}"
       shell: bash
 
+    - name: Allow first-party @aptos-labs/* packages through safe-chain age check
+      shell: bash
+      run: echo "SAFE_CHAIN_MINIMUM_PACKAGE_AGE_EXCLUSIONS=@aptos-labs/*" >> "${GITHUB_ENV}"
+
     - name: Setup AikidoSec Safe Chain
       uses: aptos-labs/actions/aikidosec-safe-chain@528ef7ad9427a8c0720ea3eea790a9190d6e377d # pin@main
