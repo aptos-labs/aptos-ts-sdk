@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Add `variants` field to `MoveStruct` now that the ABI fully describes enums.
+
 ## Added
 
 - CI uploads bundle stats for `dist/` to Codecov via `@codecov/bundle-analyzer` (`codecov.yaml` → `.github/actions/run-codecov-bundle`). The SDK is tsc-built with no bundler, so the standalone analyzer is used to produce bundle reports under the `@aptos-labs/ts-sdk` bundle name. Runs as a parallel job alongside the existing coverage upload; both share the `CODECOV_TOKEN` secret.
