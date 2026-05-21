@@ -19,7 +19,17 @@ export default defineConfig({
       include: ["src/**/*.ts"],
       reporter: ["text", "lcov"],
       reportsDirectory: "./coverage",
-      exclude: ["tests/**", "src/internal/queries/**", "src/types/generated/**"],
+      exclude: [
+        "tests/**",
+        // Keep this list in lockstep with vitest.config.ts.
+        "src/internal/queries/**",
+        "src/types/generated/**",
+        "src/cli/**",
+        "src/utils/normalizeBundle.ts",
+        "src/transactions/management/asyncQueue.ts",
+        "src/index.ts",
+        "src/version.ts",
+      ],
     },
   },
   resolve: {

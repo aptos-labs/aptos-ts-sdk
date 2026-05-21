@@ -998,17 +998,27 @@ async function doesAccountExistAtAddress(args: {
   }
 }
 
-const rotateAuthKeyAbi: EntryFunctionABI = {
-  typeParameters: [],
-  parameters: [
-    new TypeTagU8(),
-    TypeTagVector.u8(),
-    new TypeTagU8(),
-    TypeTagVector.u8(),
-    TypeTagVector.u8(),
-    TypeTagVector.u8(),
-  ],
-};
+// Lazy: instantiating TypeTagU8 at module-init time creates an ESM circular
+// import (structEnumParser → internal/account → transactions/index → typeTag)
+// where TypeTagU8 may not yet be a constructor when this file evaluates.
+// Building the ABI on first use sidesteps the order dependency.
+let _rotateAuthKeyAbi: EntryFunctionABI | undefined;
+function rotateAuthKeyAbi(): EntryFunctionABI {
+  if (!_rotateAuthKeyAbi) {
+    _rotateAuthKeyAbi = {
+      typeParameters: [],
+      parameters: [
+        new TypeTagU8(),
+        TypeTagVector.u8(),
+        new TypeTagU8(),
+        TypeTagVector.u8(),
+        TypeTagVector.u8(),
+        TypeTagVector.u8(),
+      ],
+    };
+  }
+  return _rotateAuthKeyAbi;
+}
 
 /**
  * Rotates the authentication key for a given account.
@@ -1105,16 +1115,22 @@ async function rotateAuthKeyWithChallenge(
         MoveVector.U8(proofSignedByCurrentKey.toUint8Array()),
         MoveVector.U8(proofSignedByNewKey.toUint8Array()),
       ],
-      abi: rotateAuthKeyAbi,
+      abi: rotateAuthKeyAbi(),
     },
     options,
   });
 }
 
-const rotateAuthKeyUnverifiedAbi: EntryFunctionABI = {
-  typeParameters: [],
-  parameters: [new TypeTagU8(), TypeTagVector.u8()],
-};
+let _rotateAuthKeyUnverifiedAbi: EntryFunctionABI | undefined;
+function rotateAuthKeyUnverifiedAbi(): EntryFunctionABI {
+  if (!_rotateAuthKeyUnverifiedAbi) {
+    _rotateAuthKeyUnverifiedAbi = {
+      typeParameters: [],
+      parameters: [new TypeTagU8(), TypeTagVector.u8()],
+    };
+  }
+  return _rotateAuthKeyUnverifiedAbi;
+}
 
 /**
  * Rotates the authentication key for a given account without verifying the new key.
@@ -1145,7 +1161,7 @@ export async function rotateAuthKeyUnverified(args: {
         new U8(accountPublicKeyToSigningScheme(toNewPublicKey)), // to scheme
         MoveVector.U8(accountPublicKeyToBaseAccountPublicKey(toNewPublicKey).toUint8Array()),
       ],
-      abi: rotateAuthKeyUnverifiedAbi,
+      abi: rotateAuthKeyUnverifiedAbi(),
     },
     options,
   });

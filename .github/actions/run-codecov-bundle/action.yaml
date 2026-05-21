@@ -1,0 +1,29 @@
+name: "Bundle analysis and Codecov upload"
+description: |
+  Install dependencies, build the SDK, and upload bundle stats for `dist/`
+  to Codecov via @codecov/bundle-analyzer. The SDK is tsc-built (no bundler),
+  so the standalone analyzer is the appropriate fit.
+
+inputs:
+  codecov-token:
+    description: Optional Codecov token (tokenless OIDC uploads work for many public repos).
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/setup-node-pnpm
+    - run: pnpm install --frozen-lockfile
+      shell: bash
+    - name: Build SDK
+      run: pnpm build
+      shell: bash
+    - name: Upload bundle stats to Codecov
+      env:
+        CODECOV_TOKEN: ${{ inputs.codecov-token }}
+      run: |
+        npx --yes @codecov/bundle-analyzer@2.0.1 ./dist \
+          --bundle-name=@aptos-labs/ts-sdk \
+          --upload-token="${CODECOV_TOKEN}"
+      shell: bash

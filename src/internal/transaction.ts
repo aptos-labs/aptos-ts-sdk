@@ -200,6 +200,16 @@ export async function waitForTransaction(args: {
   let backoffIntervalMs = 200;
   const backoffMultiplier = 1.5;
 
+  // A response is "settled" when the fullnode has populated the execution result.
+  // There is a window where `type` flips to a committed variant (e.g. User) before
+  // `success`/`vm_status` are filled in — during that window we must keep polling,
+  // not treat the partial response as a failure.
+  function isUnsettled(txn: TransactionResponse | undefined): boolean {
+    if (txn === undefined) return true;
+    if (txn.type === TransactionResponseType.Pending) return true;
+    return (txn as { success?: boolean }).success === undefined;
+  }
+
   /**
    * Handles API errors by throwing the last error or a timeout error for a failed transaction.
    *
@@ -223,7 +233,7 @@ export async function waitForTransaction(args: {
   // check to see if the txn is already on the blockchain
   try {
     lastTxn = await getTransactionByHash({ aptosConfig, transactionHash });
-    isPending = lastTxn.type === TransactionResponseType.Pending;
+    isPending = isUnsettled(lastTxn);
   } catch (e) {
     handleAPIError(e);
   }
@@ -233,7 +243,7 @@ export async function waitForTransaction(args: {
     const startTime = Date.now();
     try {
       lastTxn = await longWaitForTransaction({ aptosConfig, transactionHash });
-      isPending = lastTxn.type === TransactionResponseType.Pending;
+      isPending = isUnsettled(lastTxn);
     } catch (e) {
       handleAPIError(e);
     }
@@ -248,7 +258,7 @@ export async function waitForTransaction(args: {
     try {
       lastTxn = await getTransactionByHash({ aptosConfig, transactionHash });
 
-      isPending = lastTxn.type === TransactionResponseType.Pending;
+      isPending = isUnsettled(lastTxn);
 
       if (!isPending) {
         break;
@@ -277,6 +287,15 @@ export async function waitForTransaction(args: {
   if (lastTxn.type === TransactionResponseType.Pending) {
     throw new WaitForTransactionError(
       `Transaction ${transactionHash} timed out in pending state after ${timeoutSecs} seconds`,
+      lastTxn,
+    );
+  }
+  // If we exited the loop with a committed-shaped response that hasn't been
+  // fully populated yet (success/vm_status still undefined), this is the
+  // indexer-lag race — surface it as a timeout, not as a failed transaction.
+  if ((lastTxn as { success?: boolean }).success === undefined) {
+    throw new WaitForTransactionError(
+      `Transaction ${transactionHash} did not finish indexing within ${timeoutSecs} seconds`,
       lastTxn,
     );
   }
