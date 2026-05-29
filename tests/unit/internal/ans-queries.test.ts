@@ -22,7 +22,7 @@ import { AptosConfig } from "../../../src/api/aptosConfig.js";
 import { Network } from "../../../src/utils/apiEndpoints.js";
 import { AccountAddress } from "../../../src/core/index.js";
 import { ExpirationStatus } from "../../../src/types/index.js";
-import { createMockClient, expectRequest } from "../../helpers/mockClient.js";
+import { createMockClient } from "../../helpers/mockClient.js";
 
 vi.mock("../../../src/internal/view.js", () => ({
   view: vi.fn(),
