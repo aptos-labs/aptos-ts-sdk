@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Fixed
+
+- Added npm repository metadata so package consumers can discover the source repository from the published package.
+
 # 7.1.0 (2026-05-21)
 
 ## Added

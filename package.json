@@ -9,6 +9,10 @@
   "bugs": {
     "url": "https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aptos-labs/aptos-ts-sdk.git"
+  },
   "homepage": "https://aptos-labs.github.io/aptos-ts-sdk/",
   "type": "module",
   "sideEffects": false,
