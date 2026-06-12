@@ -2,7 +2,11 @@
   "name": "@aptos-labs/ts-sdk",
   "description": "Aptos TypeScript SDK",
   "packageManager": "pnpm@10.30.3",
-  "license": "Apache-2.0",
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aptos-labs/aptos-ts-sdk.git"
+  },
   "engines": {
     "node": ">=22.0.0"
   },
