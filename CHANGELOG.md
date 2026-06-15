@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Changed
+
+- Add `LICENSE` files to example and project packages so their `license: "SEE LICENSE IN LICENSE"` metadata correctly references the Innovation-Enabling Source Code License.
+
 # 7.1.0 (2026-05-21)
 
 ## Added
