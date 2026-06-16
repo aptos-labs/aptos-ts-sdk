@@ -12,14 +12,12 @@ For changes to the main Aptos TypeScript SDK (`@aptos-labs/ts-sdk`), see the [ro
 - Upgrade TypeScript to `^7.0.2`.
 - Update dependencies within current majors: `@noble/{curves,hashes}` to `^2.3.0`, `@aptos-labs/confidential-asset-bindings` to `^1.1.2`, `@aptos-labs/ts-sdk` to `^7.3.0`, Vitest/`@vitest/*` to `^4.1.10`, Playwright to `^1.62.1`, and Vite to `^7.3.6`. Refresh pnpm overrides (`esbuild`, `postcss`, `undici`, `uuid`, `picomatch`, `brace-expansion`, `yauzl`, `js-yaml`) to patched releases.
 - Align pnpm `minimumReleaseAge` (48 hours) with Aikido Safe Chain's default minimum package age, excluding `@aptos-labs/*`, `baseline-browser-mapping`, and `caniuse-lite`.
+- Upgrade the package to pnpm 11.20.0 and migrate dependency overrides to pnpm 11's `pnpm-workspace.yaml` format.
+- **Requires `@aptos-labs/ts-sdk` v7.3+.** Peer dependency narrowed from `^5.2.1 || ^6.3.1 || ^7.0.0` to `^7.3.0`. v7.3.0 adds `aptos.keyless.getPepperBase`, which the keyless decryption-key derivation (`TwistedEd25519PrivateKey.fromPepperBase`) pairs with. Upgrade your `@aptos-labs/ts-sdk` dependency to `^7.3.0` before upgrading this package.
 
 ## Added
 
 - `TwistedEd25519PrivateKey.clear()` and `isCleared()` mirror the lifecycle hooks on the main SDK's `Ed25519PrivateKey` / `Secp256k1PrivateKey`. After `clear()` is called, the underlying byte buffer of the `Hex` wrapper is overwritten and subsequent calls to `publicKey()`, `toUint8Array()`, `toString()`, and `toStringWithoutPrefix()` throw. **SECURITY NOTE:** as documented on the new JSDoc, this cannot fully zeroize the key in JavaScript — any `toString()` output already produced is an immutable JS string, and noble-curves / `ed25519modN` operations may have produced `BigInt` intermediates that also can't be wiped. Treat `clear()` as a best-effort window-narrowing tool, not a true zeroization guarantee.
-
-## Changed
-
-- Upgrade the package to pnpm 11.20.0 and migrate dependency overrides to pnpm 11's `pnpm-workspace.yaml` format.
 
 ## Breaking
 
