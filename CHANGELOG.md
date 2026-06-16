@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Fixed
+
+- Restore HD key derivation utilities (`HARDENED_OFFSET`, `mnemonicToSeed`, `deriveKey`, `CKDPriv`, `splitPath`, `isValidHardenedPath`, `DerivedKeys`) to the main barrel export. These were public API in v5/v6 but were accidentally dropped from `src/core/crypto/index.ts` in the v7 tsc migration (PR #885) when they were grouped with keyless/poseidon utilities. Unlike those, `hdKey.ts` has no poseidon-lite dependency and was already pulled in transitively via `ed25519.ts` and `secp256k1.ts`.
+
 # 7.1.0 (2026-05-21)
 
 ## Added
