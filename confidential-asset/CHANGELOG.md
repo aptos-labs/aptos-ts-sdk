@@ -6,6 +6,10 @@ For changes to the main Aptos TypeScript SDK (`@aptos-labs/ts-sdk`), see the [ro
 
 # Unreleased
 
+## Changed
+
+- **Requires `@aptos-labs/ts-sdk` v7.2+.** Peer dependency narrowed from `^5.2.1 || ^6.3.1 || ^7.0.0` to `^7.2.0`. v7.2.0 adds `aptos.keyless.getPepperBase`, which the keyless decryption-key derivation (`TwistedEd25519PrivateKey.fromPepperBase`) pairs with. Upgrade your `@aptos-labs/ts-sdk` dependency to `^7.2.0` before upgrading this package.
+
 ## Added
 
 - `TwistedEd25519PrivateKey.clear()` and `isCleared()` mirror the lifecycle hooks on the main SDK's `Ed25519PrivateKey` / `Secp256k1PrivateKey`. After `clear()` is called, the underlying byte buffer of the `Hex` wrapper is overwritten and subsequent calls to `publicKey()`, `toUint8Array()`, `toString()`, and `toStringWithoutPrefix()` throw. **SECURITY NOTE:** as documented on the new JSDoc, this cannot fully zeroize the key in JavaScript — any `toString()` output already produced is an immutable JS string, and noble-curves / `ed25519modN` operations may have produced `BigInt` intermediates that also can't be wiped. Treat `clear()` as a best-effort window-narrowing tool, not a true zeroization guarantee.

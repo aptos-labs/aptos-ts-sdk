@@ -26,6 +26,9 @@ importers:
       '@aptos-labs/confidential-asset-bindings':
         specifier: ^1.1.1
         version: 1.1.1(expo@55.0.11)(react-native@0.84.1(@babel/core@7.29.7)(react@19.2.4))(react@19.2.4)
+      '@noble/ciphers':
+        specifier: ^2.2.0
+        version: 2.2.0
       '@noble/curves':
         specifier: ^2.2.0
         version: 2.2.0
@@ -34,8 +37,8 @@ importers:
         version: 2.2.0
     devDependencies:
       '@aptos-labs/ts-sdk':
-        specifier: ^7.1.3
-        version: 7.1.3
+        specifier: ^7.2.0
+        version: 7.2.0
       '@biomejs/biome':
         specifier: 2.4.6
         version: 2.4.6
@@ -84,8 +87,8 @@ packages:
       react: '*'
       react-native: '*'
 
-  '@aptos-labs/ts-sdk@7.1.3':
-    resolution: {integrity: sha512-5178Uj7+78cDQeUAuZKnk+bQhkuxEIRBnLHwhAQpCLKcqgkYOL0+luINPj85Wn944PYGEx8wo6mIq1+zbFjiAg==}
+  '@aptos-labs/ts-sdk@7.2.0':
+    resolution: {integrity: sha512-XlMyyUCuMnpjvVsxN3CiShWAeHw2spTV+j4xqE1os3FXr2b9ufxiEnXGJVug3eZfAEGWhreIFuqj6i+fzC1dQA==}
     engines: {node: '>=22.0.0'}
 
   '@babel/code-frame@7.10.4':
@@ -3330,7 +3333,7 @@ snapshots:
       react: 19.2.4
       react-native: 0.84.1(@babel/core@7.29.7)(react@19.2.4)
 
-  '@aptos-labs/ts-sdk@7.1.3':
+  '@aptos-labs/ts-sdk@7.2.0':
     dependencies:
       '@aptos-labs/aptos-cli': 3.0.0
       '@aptos-labs/aptos-client': 4.1.0
