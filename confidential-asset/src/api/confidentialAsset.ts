@@ -8,17 +8,26 @@ import {
   AnyNumber,
   AptosConfig,
   CommittedTransactionResponse,
+  Ed25519PrivateKey,
   InputGenerateTransactionOptions,
   LedgerVersionArg,
   SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
-import { ConfidentialNormalization, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../crypto/index.js";
+import {
+  ConfidentialNormalization,
+  decryptDecryptionKey,
+  encryptDecryptionKey,
+  TwistedEd25519PrivateKey,
+  TwistedEd25519PublicKey,
+} from "../crypto/index.js";
 import { clearBalanceCache, clearEncryptionKeyCache, getEncryptionKeyCacheKey, setCache } from "../utils/memoize.js";
 import {
   ConfidentialAssetTransactionBuilder,
   ConfidentialBalance,
+  encryptedDkExists,
   getBalance,
   getEffectiveAuditorHint,
+  getEncryptedDk,
   getEncryptionKey,
   hasUserRegistered,
   isBalanceNormalized,
@@ -572,6 +581,168 @@ export class ConfidentialAsset {
     const newBalance = new ConfidentialBalance(confidentialNormalization.normalizedEncryptedAvailableBalance, pending);
     setCache(`${signer.accountAddress}-balance-for-${tokenAddress}-${this.client().config.network}`, newBalance);
     return committedTransaction;
+  }
+
+  /**
+   * Register a confidential balance AND back up an encryption of the decryption key (DK) on-chain in
+   * one transaction. For a keyless account that is ALREADY a 1-of-2 multi-key (keyless + Ed25519
+   * backup). The DK is encrypted under the Ed25519 backup key so it can later be recovered via
+   * {@link recoverDecryptionKeyFromBackup}.
+   *
+   * This is a write-once operation: it aborts on-chain if an encrypted DK already exists. Register
+   * additional asset types afterwards with {@link registerBalance}, reusing the backed-up DK.
+   *
+   * SECURITY: wallets must forbid dapps from requesting signatures over this transaction — a
+   * malicious dapp could otherwise lock a user out of confidentiality for an asset type.
+   *
+   * @param args.signer - The multi-key account (keyless + backup) that signs and sends
+   * @param args.keylessPublicKey - The keyless public key as raw bytes, e.g.
+   *   `keylessAccount.getAnyPublicKey().toUint8Array()`
+   * @param args.backupPrivateKey - The Ed25519 backup private key (its public key is registered
+   *   on-chain and its seed encrypts the DK). Must be a legacy Ed25519 key.
+   * @param args.tokenAddress - The token address of the asset to register the balance for
+   * @param args.decryptionKey - The confidential-asset DK to register and back up
+   * @param args.withFeePayer - Whether to use the fee payer for the transaction
+   * @param args.options - Optional transaction options
+   * @returns A committed transaction response
+   * @throws {Error} If an encrypted DK already exists for the account
+   */
+  async registerBalanceAndEncryptDk(args: {
+    signer: Account;
+    keylessPublicKey: Uint8Array;
+    backupPrivateKey: Ed25519PrivateKey;
+    tokenAddress: AccountAddressInput;
+    decryptionKey: TwistedEd25519PrivateKey;
+    withFeePayer?: boolean;
+    options?: InputGenerateTransactionOptions;
+  }): Promise<CommittedTransactionResponse> {
+    const {
+      signer,
+      keylessPublicKey,
+      backupPrivateKey,
+      decryptionKey,
+      withFeePayer = this.withFeePayer,
+      ...rest
+    } = args;
+
+    // Pre-flight: register_ek_and_encrypt_dk aborts if an encrypted DK already exists. Surface a
+    // clear SDK error instead of an opaque Move abort (best-effort; racy with concurrent txns).
+    if (await this.encryptedDkExists({ accountAddress: signer.accountAddress })) {
+      throw new Error(
+        "An encrypted DK already exists for this account; use registerBalance to register additional asset types.",
+      );
+    }
+
+    const dkCiphertext = encryptDecryptionKey({ backupPrivateKey, decryptionKey });
+
+    const transaction = await this.transaction.registerBalanceAndEncryptDk({
+      ...rest,
+      sender: signer.accountAddress,
+      decryptionKey,
+      keylessPublicKey,
+      backupPublicKey: backupPrivateKey.publicKey().toUint8Array(),
+      dkCiphertext,
+      withFeePayer,
+    });
+    return this.submitTxn({ signer, transaction });
+  }
+
+  /**
+   * Install or rotate an Ed25519 backup key on a keyless account AND re-encrypt the DK on-chain in
+   * one transaction.
+   *
+   * SECURITY: wallets must forbid dapps from requesting signatures over this transaction — it
+   * rotates the account's backup key, which an attacker could abuse.
+   *
+   * @param args.signer - The keyless account that signs and sends (also the account being modified)
+   * @param args.keylessPublicKey - The keyless public key as raw bytes, e.g.
+   *   `keylessAccount.getAnyPublicKey().toUint8Array()`
+   * @param args.backupPrivateKey - The (new) Ed25519 backup private key to install/rotate to. Must
+   *   be a legacy Ed25519 key.
+   * @param args.decryptionKey - The DK to re-encrypt under the (new) backup key
+   * @param args.withFeePayer - Whether to use the fee payer for the transaction
+   * @param args.options - Optional transaction options
+   * @returns A committed transaction response
+   */
+  async upsertEd25519BackupKeyAndEncryptDk(args: {
+    signer: Account;
+    keylessPublicKey: Uint8Array;
+    backupPrivateKey: Ed25519PrivateKey;
+    decryptionKey: TwistedEd25519PrivateKey;
+    withFeePayer?: boolean;
+    options?: InputGenerateTransactionOptions;
+  }): Promise<CommittedTransactionResponse> {
+    const {
+      signer,
+      keylessPublicKey,
+      backupPrivateKey,
+      decryptionKey,
+      withFeePayer = this.withFeePayer,
+      ...rest
+    } = args;
+
+    const dkCiphertext = encryptDecryptionKey({ backupPrivateKey, decryptionKey });
+
+    const transaction = await this.transaction.upsertEd25519BackupKeyAndEncryptDk({
+      ...rest,
+      sender: signer.accountAddress,
+      keylessPublicKey,
+      backupPrivateKey,
+      dkCiphertext,
+      withFeePayer,
+    });
+    return this.submitTxn({ signer, transaction });
+  }
+
+  /**
+   * Check whether an encrypted decryption key (DK) is backed up on-chain for an account.
+   *
+   * @param args.accountAddress - The account address to check
+   * @param args.options - Optional ledger version for the view call
+   * @returns A boolean indicating whether an encrypted DK exists
+   */
+  async encryptedDkExists(args: { accountAddress: AccountAddressInput; options?: LedgerVersionArg }): Promise<boolean> {
+    return encryptedDkExists({ client: this.client(), ...args });
+  }
+
+  /**
+   * Read the on-chain encrypted decryption key (DK) ciphertext for an account.
+   *
+   * @param args.accountAddress - The account address whose encrypted DK to read
+   * @param args.options - Optional ledger version for the view call
+   * @returns The raw ciphertext bytes, or `undefined` if no encrypted DK is stored
+   */
+  async getEncryptedDk(args: {
+    accountAddress: AccountAddressInput;
+    options?: LedgerVersionArg;
+  }): Promise<Uint8Array | undefined> {
+    return getEncryptedDk({ client: this.client(), ...args });
+  }
+
+  /**
+   * Recover a confidential-asset decryption key (DK) by reading the on-chain encrypted DK and
+   * decrypting it with the Ed25519 backup key. Use this when the keyless-derived DK is unavailable
+   * (e.g. the user lost their OIDC session) but the backup key is held.
+   *
+   * @param args.accountAddress - The account whose encrypted DK to recover
+   * @param args.backupPrivateKey - The Ed25519 backup private key
+   * @param args.options - Optional ledger version for the view call
+   * @returns The recovered DK
+   * @throws {Error} If no encrypted DK exists, or decryption fails (wrong backup key / tampering)
+   */
+  async recoverDecryptionKeyFromBackup(args: {
+    accountAddress: AccountAddressInput;
+    backupPrivateKey: Ed25519PrivateKey;
+    options?: LedgerVersionArg;
+  }): Promise<TwistedEd25519PrivateKey> {
+    const ciphertext = await this.getEncryptedDk({
+      accountAddress: args.accountAddress,
+      options: args.options,
+    });
+    if (ciphertext === undefined) {
+      throw new Error(`No encrypted DK is backed up on-chain for account ${AccountAddress.from(args.accountAddress)}`);
+    }
+    return decryptDecryptionKey({ backupPrivateKey: args.backupPrivateKey, ciphertext });
   }
 
   private async submitTxn(args: { signer: Account; transaction: SimpleTransaction }) {

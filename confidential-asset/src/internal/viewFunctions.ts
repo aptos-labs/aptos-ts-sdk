@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountAddressInput, Aptos, LedgerVersionArg } from "@aptos-labs/ts-sdk";
+import { AccountAddressInput, Aptos, Hex, LedgerVersionArg } from "@aptos-labs/ts-sdk";
 import {
   TwistedEd25519PrivateKey,
   TwistedEd25519PublicKey,
@@ -15,7 +15,12 @@ import {
   memoizeAsync,
   setCache,
 } from "../utils/memoize.js";
-import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS, MODULE_NAME } from "../consts.js";
+import {
+  ACCOUNT_MODULE_NAME,
+  DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS,
+  FRAMEWORK_MODULE_ADDRESS,
+  MODULE_NAME,
+} from "../consts.js";
 
 type ViewFunctionParams = {
   client: Aptos;
@@ -336,4 +341,84 @@ export async function getEncryptionKey(
     1000 * 60 * 60, // 1-hour cache duration
     useCachedValue,
   )();
+}
+
+/**
+ * Parameters for the per-account encrypted-DK view functions. Unlike {@link ViewFunctionParams},
+ * the encrypted DK is per-account (not per-token) and lives in the framework `account` module, so
+ * there is no `tokenAddress` and no configurable `moduleAddress`.
+ */
+type EncryptedDkViewParams = {
+  client: Aptos;
+  accountAddress: AccountAddressInput;
+  options?: LedgerVersionArg;
+};
+
+/**
+ * Defensive shape of the Move enum `account::EncryptedDK { V1 { ciphertext: vector<u8> } }` as
+ * decoded by the node's view endpoint. The node typically flattens a single-variant enum's fields
+ * onto the object (`{ ciphertext }`, matching how `EffectiveAuditorConfig::V1` is decoded
+ * elsewhere), but we also tolerate a variant-tagged or nested shape across node versions.
+ */
+type EncryptedDkResponse =
+  | { ciphertext: string }
+  | { __variant__?: string; ciphertext: string }
+  | { V1: { ciphertext: string } };
+
+function extractEncryptedDkCiphertext(resp: EncryptedDkResponse): string {
+  if ("ciphertext" in resp && typeof resp.ciphertext === "string") {
+    return resp.ciphertext;
+  }
+  if ("V1" in resp && resp.V1 && typeof resp.V1.ciphertext === "string") {
+    return resp.V1.ciphertext;
+  }
+  throw new Error(`Unexpected EncryptedDK view response shape: ${JSON.stringify(resp)}`);
+}
+
+/**
+ * Check whether an encrypted decryption key (DK) is backed up on-chain for the given account.
+ *
+ * Calls `0x1::account::encrypted_dk_exists`. Use this as a gate before {@link getEncryptedDk}, which
+ * aborts when no DK is present.
+ *
+ * @param args.client - The Aptos client instance
+ * @param args.accountAddress - The account address to check
+ * @param args.options - Optional ledger version for the view call
+ * @returns A boolean indicating whether an encrypted DK exists for the account
+ */
+export async function encryptedDkExists(args: EncryptedDkViewParams): Promise<boolean> {
+  const [exists] = await args.client.view<[boolean]>({
+    options: args.options,
+    payload: {
+      function: `${FRAMEWORK_MODULE_ADDRESS}::${ACCOUNT_MODULE_NAME}::encrypted_dk_exists`,
+      functionArguments: [args.accountAddress],
+    },
+  });
+  return exists;
+}
+
+/**
+ * Read the on-chain encrypted decryption key (DK) ciphertext for an account.
+ *
+ * Calls `0x1::account::encrypted_dk_exists` first and returns `undefined` if no DK is backed up
+ * (the underlying `get_encrypted_dk` view aborts in that case). Decrypt the returned bytes with the
+ * account's Ed25519 backup key via `decryptDecryptionKey` to recover the DK.
+ *
+ * @param args.client - The Aptos client instance
+ * @param args.accountAddress - The account address whose encrypted DK to read
+ * @param args.options - Optional ledger version for the view call
+ * @returns The raw `nonce(24) || inner` ciphertext bytes, or `undefined` if none is stored
+ */
+export async function getEncryptedDk(args: EncryptedDkViewParams): Promise<Uint8Array | undefined> {
+  if (!(await encryptedDkExists(args))) {
+    return undefined;
+  }
+  const [resp] = await args.client.view<[EncryptedDkResponse]>({
+    options: args.options,
+    payload: {
+      function: `${FRAMEWORK_MODULE_ADDRESS}::${ACCOUNT_MODULE_NAME}::get_encrypted_dk`,
+      functionArguments: [args.accountAddress],
+    },
+  });
+  return Hex.fromHexInput(extractEncryptedDkCiphertext(resp)).toUint8Array();
 }

@@ -7,8 +7,10 @@ import {
   AnyNumber,
   Aptos,
   AptosConfig,
+  Ed25519PrivateKey,
   InputGenerateTransactionOptions,
   LedgerVersionArg,
+  RotationProofChallenge,
   SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
 import {
@@ -20,7 +22,13 @@ import {
   TwistedEd25519PrivateKey,
 } from "../crypto/index.js";
 import { proveRegistration } from "../crypto/sigmaProtocolRegistration.js";
-import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS, MODULE_NAME } from "../consts.js";
+import {
+  ACCOUNT_MODULE_NAME,
+  DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS,
+  FRAMEWORK_MODULE_ADDRESS,
+  KEYLESS_ACCOUNT_MODULE_NAME,
+  MODULE_NAME,
+} from "../consts.js";
 import { getBalance, getEncryptionKey, isBalanceNormalized, isIncomingTransfersPaused } from "./viewFunctions.js";
 
 /**
@@ -605,6 +613,144 @@ export class ConfidentialAssetTransactionBuilder {
       tokenAddress,
       withFeePayer,
       options,
+    });
+  }
+
+  /**
+   * Register a confidential balance AND back up an encryption of the decryption key (DK) on-chain in
+   * a single transaction. Calls `0x1::keyless_account::register_ek_and_encrypt_dk`.
+   *
+   * The account MUST already be authorized by a 1-of-2 multi-key (keyless + Ed25519 backup); the
+   * on-chain function verifies this. It can only be called once per account — subsequent EK
+   * registrations for other asset types must go through {@link registerBalance} (`register_raw`),
+   * reusing the same backed-up DK.
+   *
+   * The keyless/backup public keys and DK ciphertext are accepted as raw bytes; build them with
+   * `new AnyPublicKey(keylessPublicKey).toUint8Array()`, `backupPublicKey.toUint8Array()`, and
+   * `encryptDecryptionKey(...)` respectively (the {@link ConfidentialAsset} API method derives these
+   * for you).
+   *
+   * @param args.sender - The (multi-key) account address registering the balance
+   * @param args.tokenAddress - The token address of the asset to register the balance for
+   * @param args.decryptionKey - The DK whose EK is registered and whose ciphertext is stored
+   * @param args.keylessPublicKey - BCS bytes of `AnyPublicKey(keylessPublicKey)`
+   * @param args.backupPublicKey - Raw 32-byte Ed25519 backup public key
+   * @param args.dkCiphertext - The encrypted DK from `encryptDecryptionKey(...)`
+   * @param args.withFeePayer - Whether to use the fee payer for the transaction
+   * @param args.options - Optional transaction options
+   * @returns A SimpleTransaction to register the balance and back up the DK
+   */
+  async registerBalanceAndEncryptDk(args: {
+    sender: AccountAddressInput;
+    tokenAddress: AccountAddressInput;
+    decryptionKey: TwistedEd25519PrivateKey;
+    keylessPublicKey: Uint8Array;
+    backupPublicKey: Uint8Array;
+    dkCiphertext: Uint8Array;
+    withFeePayer?: boolean;
+    options?: InputGenerateTransactionOptions;
+  }): Promise<SimpleTransaction> {
+    const { sender, tokenAddress, decryptionKey, keylessPublicKey, backupPublicKey, dkCiphertext } = args;
+
+    // Resolve addresses to 32-byte arrays
+    const senderAddr = AccountAddress.from(sender);
+    const tokenAddr = AccountAddress.from(tokenAddress);
+
+    // Get chain ID for domain separation
+    const chainId = await this.getChainId();
+
+    // Generate the registration sigma proof (identical to registerBalance / register_raw)
+    const sigmaProof = proveRegistration({
+      dk: decryptionKey,
+      senderAddress: senderAddr.toUint8Array(),
+      tokenAddress: tokenAddr.toUint8Array(),
+      chainId,
+    });
+
+    return this.client.transaction.build.simple({
+      ...args,
+      data: {
+        function: `${FRAMEWORK_MODULE_ADDRESS}::${KEYLESS_ACCOUNT_MODULE_NAME}::register_ek_and_encrypt_dk`,
+        functionArguments: [
+          keylessPublicKey,
+          backupPublicKey,
+          tokenAddress, // asset_type: Object<Metadata> is passed as a value (address) argument
+          decryptionKey.publicKey().toUint8Array(),
+          sigmaProof.commitment,
+          sigmaProof.response,
+          dkCiphertext,
+        ],
+      },
+    });
+  }
+
+  /**
+   * Build the `backup_key_proof` for installing/rotating an Ed25519 backup key on a keyless account.
+   *
+   * This is a raw 64-byte Ed25519 signature by the BACKUP key over a `0x1::account::RotationProofChallenge`
+   * whose `new_public_key` is the raw Ed25519 backup public key (matching the on-chain
+   * `upsert_ed25519_backup_key_on_keyless_account` logic). The challenge binds the account's current
+   * sequence number and authentication key, so it must be built right before submission.
+   *
+   * @param args.accountAddress - The keyless account address being modified
+   * @param args.backupPrivateKey - The Ed25519 backup private key (signs the challenge)
+   * @returns The raw 64-byte Ed25519 signature
+   */
+  async buildBackupKeyProof(args: {
+    accountAddress: AccountAddressInput;
+    backupPrivateKey: Ed25519PrivateKey;
+  }): Promise<Uint8Array> {
+    const { accountAddress, backupPrivateKey } = args;
+    const info = await this.client.getAccountInfo({ accountAddress });
+
+    const challenge = new RotationProofChallenge({
+      sequenceNumber: BigInt(info.sequence_number),
+      originator: AccountAddress.from(accountAddress),
+      currentAuthKey: AccountAddress.from(info.authentication_key),
+      newPublicKey: backupPrivateKey.publicKey(),
+    });
+
+    const proof = backupPrivateKey.sign(challenge.bcsToBytes()).toUint8Array();
+    if (proof.length !== 64) {
+      // Defense in depth: the Move verifier expects a raw 64-byte Ed25519 signature.
+      throw new Error(`Expected a 64-byte Ed25519 backup-key proof, got ${proof.length} bytes`);
+    }
+    return proof;
+  }
+
+  /**
+   * Install or rotate an Ed25519 backup key on a keyless account AND re-encrypt the DK on-chain in a
+   * single transaction. Calls `0x1::account::upsert_ed25519_backup_key_and_encrypt_dk`.
+   *
+   * Derives the raw backup public key and the `backup_key_proof` from `backupPrivateKey`.
+   *
+   * @param args.sender - The keyless account address being modified (also the signer)
+   * @param args.keylessPublicKey - BCS bytes of `AnyPublicKey(keylessPublicKey)`
+   * @param args.backupPrivateKey - The Ed25519 backup private key to install/rotate to
+   * @param args.dkCiphertext - The DK re-encrypted under the (new) backup key, from `encryptDecryptionKey(...)`
+   * @param args.withFeePayer - Whether to use the fee payer for the transaction
+   * @param args.options - Optional transaction options
+   * @returns A SimpleTransaction to upsert the backup key and re-encrypt the DK
+   */
+  async upsertEd25519BackupKeyAndEncryptDk(args: {
+    sender: AccountAddressInput;
+    keylessPublicKey: Uint8Array;
+    backupPrivateKey: Ed25519PrivateKey;
+    dkCiphertext: Uint8Array;
+    withFeePayer?: boolean;
+    options?: InputGenerateTransactionOptions;
+  }): Promise<SimpleTransaction> {
+    const { sender, keylessPublicKey, backupPrivateKey, dkCiphertext } = args;
+
+    const backupPublicKey = backupPrivateKey.publicKey().toUint8Array();
+    const backupKeyProof = await this.buildBackupKeyProof({ accountAddress: sender, backupPrivateKey });
+
+    return this.client.transaction.build.simple({
+      ...args,
+      data: {
+        function: `${FRAMEWORK_MODULE_ADDRESS}::${ACCOUNT_MODULE_NAME}::upsert_ed25519_backup_key_and_encrypt_dk`,
+        functionArguments: [keylessPublicKey, backupPublicKey, backupKeyProof, dkCiphertext],
+      },
     });
   }
 }
