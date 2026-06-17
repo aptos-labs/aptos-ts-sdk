@@ -34,6 +34,7 @@ export {
   Groth16ProofAndStatement,
   ZkProof,
   KeylessConfiguration,
+  getKeylessConfig,
 } from "../core/crypto/keyless.js";
 export { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless.js";
 export { EphemeralPublicKey, EphemeralSignature } from "../core/crypto/ephemeral.js";
