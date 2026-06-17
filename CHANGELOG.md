@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 7.1.2 (2026-06-17)
+
 # 7.1.1 (2026-06-16)
 
 ## Fixed
