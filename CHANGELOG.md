@@ -6,6 +6,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # 7.1.2 (2026-06-17)
 
+## Fixed
+
+- Export `getKeylessConfig` from the `@aptos-labs/ts-sdk/keyless` sub-path. It was dropped from the public API in v7.0.0 when the keyless/poseidon modules were removed from the main crypto barrel to reduce bundle size; the `./keyless` sub-path already existed for this purpose but was missing the export (PR #915).
+
 # 7.1.1 (2026-06-16)
 
 ## Fixed
