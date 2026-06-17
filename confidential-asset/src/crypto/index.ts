@@ -1,5 +1,6 @@
 export * from "./twistedEd25519.js";
 export * from "./twistedElGamal.js";
+export * from "./dkEncryption.js";
 export * from "./bsgs.js";
 export * from "./chunkedAmount.js";
 export * from "./encryptedAmount.js";
