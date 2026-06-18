@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Test Aptos TypeScript SDK in real browsers using Playwright",
   "type": "module",
-  "license": "Apache-2.0",
+  "license": "SEE LICENSE IN LICENSE",
   "packageManager": "pnpm@10.30.3",
   "scripts": {
     "test": "playwright test",
