@@ -9,6 +9,22 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add `LICENSE` files to example and project packages so their `license: "SEE LICENSE IN LICENSE"` metadata correctly references the Innovation-Enabling Source Code License.
 - Include `LICENSE` in published package `files` lists and add `check-license` CI/prepublish validation so npm tarballs always ship the license text.
 
+## Fixed
+
+- Skip the `installs jwks for a firebase iss` e2e test. It installs the Firebase issuer's live JWK set fetched from Google's shared `securetoken@system.gserviceaccount.com` endpoint, which now publishes 5 RSA keys. The resulting `0x1::jwks::update_federated_jwk_set` resource serializes to ~2158 bytes, exceeding the on-chain `MAX_FEDERATED_JWKS_SIZE_BYTES` limit of 2 KiB and aborting with `EFEDERATED_JWKS_TOO_LARGE`. The test depends on the live endpoint, so it is skipped until the key set fits within the on-chain budget (or the SDK handles oversized sets explicitly).
+
+# 7.1.2 (2026-06-17)
+
+## Fixed
+
+- Export `getKeylessConfig` from the `@aptos-labs/ts-sdk/keyless` sub-path. It was dropped from the public API in v7.0.0 when the keyless/poseidon modules were removed from the main crypto barrel to reduce bundle size; the `./keyless` sub-path already existed for this purpose but was missing the export (PR #915).
+
+# 7.1.1 (2026-06-16)
+
+## Fixed
+
+- Restore HD key derivation utilities (`HARDENED_OFFSET`, `mnemonicToSeed`, `deriveKey`, `CKDPriv`, `splitPath`, `isValidHardenedPath`, `DerivedKeys`) to the main barrel export. These were public API in v5/v6 but were accidentally dropped from `src/core/crypto/index.ts` in the v7 tsc migration (PR #885) when they were grouped with keyless/poseidon utilities. Unlike those, `hdKey.ts` has no poseidon-lite dependency and was already pulled in transitively via `ed25519.ts` and `secp256k1.ts`.
+
 # 7.1.0 (2026-05-21)
 
 ## Added
