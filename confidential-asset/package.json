@@ -2,7 +2,7 @@
   "name": "@aptos-labs/confidential-asset",
   "description": "Aptos Confidential Assets SDK",
   "packageManager": "pnpm@10.30.3",
-  "license": "Apache-2.0",
+  "license": "SEE LICENSE IN LICENSE",
   "engines": {
     "node": ">=22.0.0"
   },
@@ -27,12 +27,13 @@
   },
   "files": [
     "dist",
-    "src"
+    "src",
+    "LICENSE"
   ],
   "scripts": {
     "build:clean": "rm -rf dist",
     "build": "pnpm build:clean && tsc -p tsconfig.build.json",
-    "prepublishOnly": "pnpm run build",
+    "prepublishOnly": "pnpm run build && pnpm run check-license",
     "_fmt": "biome format",
     "fmt": "biome format --write",
     "format": "pnpm fmt",
@@ -41,7 +42,7 @@
     "test": "vitest run",
     "test:browser": "vitest run --config vitest.browser.config.mts",
     "e2e-test": "vitest run tests/e2e",
-    "indexer-codegen": "graphql-codegen --config ./src/indexer/codegen.yaml",
+    "check-license": "sh ../scripts/checkLicense.sh .",
     "publish-zeta": "pnpm build && npm publish --tag zeta"
   },
   "peerDependencies": {
