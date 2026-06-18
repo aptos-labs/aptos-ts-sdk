@@ -7,6 +7,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 ## Changed
 
 - Add `LICENSE` files to example and project packages so their `license: "SEE LICENSE IN LICENSE"` metadata correctly references the Innovation-Enabling Source Code License.
+- Include `LICENSE` in published package `files` lists and add `check-license` CI/prepublish validation so npm tarballs always ship the license text.
 
 # 7.1.0 (2026-05-21)
 

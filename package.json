@@ -93,12 +93,13 @@
   },
   "files": [
     "dist",
-    "src"
+    "src",
+    "LICENSE"
   ],
   "scripts": {
     "build:clean": "rm -rf dist",
     "build": "pnpm build:clean && tsc -p tsconfig.build.json",
-    "prepublishOnly": "pnpm run build",
+    "prepublishOnly": "pnpm run build && pnpm run check-license",
     "_fmt": "biome format",
     "fmt": "biome format --write",
     "format": "pnpm fmt",
@@ -112,6 +113,7 @@
     "indexer-codegen": "graphql-codegen --config ./src/types/codegen.yaml && pnpm fmt",
     "doc": "scripts/generateDocs.sh",
     "check-version": "scripts/checkVersion.sh",
+    "check-license": "sh scripts/checkLicense.sh . && sh scripts/checkLicense.sh confidential-asset",
     "update-version": "scripts/updateVersion.sh && pnpm doc",
     "spec": "pnpm build && pnpm _spec",
     "_spec": "cucumber-js -p default"
