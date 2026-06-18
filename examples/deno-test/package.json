@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Test Aptos TypeScript SDK with Deno runtime",
   "type": "module",
-  "license": "Apache-2.0",
+  "license": "SEE LICENSE IN LICENSE",
   "engines": {
     "deno": "^2.0.0"
   },
