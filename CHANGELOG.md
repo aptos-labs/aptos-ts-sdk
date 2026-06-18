@@ -11,6 +11,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Fixed
 
+- Resolve the CodeQL "Unsafe shell command constructed from library input" alert for the Move/LocalNode CLI helpers. The existing `assertSafeCliArg` validation rejected shell metacharacters but ran in a separate function, so CodeQL still tracked library input into the `spawn(..., { shell: true })` call used on Windows. CLI arguments are now both validated and scrubbed via `sanitizeCliArg`/`sanitizeCliArgs` (a `String.prototype.replace` chain covering every shell metacharacter) before being passed to `spawn`. Validation continues to throw on unsafe input, so the scrub is a runtime no-op; the validation blocklist now also covers `#`, `[`, and `]`.
 - Skip the `installs jwks for a firebase iss` e2e test. It installs the Firebase issuer's live JWK set fetched from Google's shared `securetoken@system.gserviceaccount.com` endpoint, which now publishes 5 RSA keys. The resulting `0x1::jwks::update_federated_jwk_set` resource serializes to ~2158 bytes, exceeding the on-chain `MAX_FEDERATED_JWKS_SIZE_BYTES` limit of 2 KiB and aborting with `EFEDERATED_JWKS_TOO_LARGE`. The test depends on the live endpoint, so it is skipped until the key set fits within the on-chain budget (or the SDK handles oversized sets explicitly).
 
 # 7.1.2 (2026-06-17)
