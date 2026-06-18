@@ -144,7 +144,7 @@ describe("StructEnumArgumentParser parseNumber / parseNumberBigInt errors", () =
       "Invalid u8 value: abc",
     );
     await expect(parser.encodeStructArgument(tag(`${MODULE_ID}::U8Field`), { n: true })).rejects.toThrow(
-      "Expected number or string for u8",
+      "Expected number or string for u8, got boolean",
     );
   });
 
@@ -154,7 +154,7 @@ describe("StructEnumArgumentParser parseNumber / parseNumberBigInt errors", () =
       "Invalid u64 value: 1x2",
     );
     await expect(parser.encodeStructArgument(tag(`${MODULE_ID}::U64Field`), { n: true })).rejects.toThrow(
-      "Expected number, bigint, or string for u64",
+      "Expected number, bigint, or string for u64, got boolean",
     );
   });
 });
