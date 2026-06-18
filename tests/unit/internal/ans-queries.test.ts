@@ -51,7 +51,7 @@ const mockedView = view as MockedFunction<typeof view>;
 const mockedGenerateTransaction = generateTransaction as MockedFunction<typeof generateTransaction>;
 
 const GRACE_SECONDS = 30 * 24 * 60 * 60;
-// 30 minutes in the future, in seconds (the contract works in epoch seconds for get_expiration).
+// One year in the future, in seconds (the contract works in epoch seconds for get_expiration).
 const FUTURE_EXPIRATION_SECONDS = Math.round((Date.now() + 1000 * 60 * 60 * 24 * 365) / 1000);
 
 const config = new AptosConfig({ network: Network.MAINNET });

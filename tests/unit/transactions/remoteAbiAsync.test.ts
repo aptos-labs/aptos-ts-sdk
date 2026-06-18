@@ -446,8 +446,10 @@ describe("remoteAbi ABI fetchers (mocked fullnode)", () => {
     await expect(fetchViewFunctionAbi(ADDR, "mod_e", "missing", mock.config)).rejects.toThrow(
       "Could not find view function ABI",
     );
+    // Tolerate the article in the source message ("a"/"an") so a future
+    // grammar fix in fetchViewFunctionAbi doesn't break this assertion.
     await expect(fetchViewFunctionAbi(ADDR, "mod_e", "do_thing", mock.config)).rejects.toThrow(
-      "is not an view function",
+      /is not an? view function/,
     );
   });
 

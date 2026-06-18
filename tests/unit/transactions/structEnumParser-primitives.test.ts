@@ -129,7 +129,7 @@ describe("StructEnumArgumentParser encodeValueByType primitives", () => {
     expect(result.bcsToBytes()).toEqual(expected.toUint8Array());
   });
 
-  it("throws on a non-boolean for a bool field and an unsupported type", async () => {
+  it("throws on an unsupported field type (signer)", async () => {
     const parser = buildParser();
     await expect(parser.encodeStructArgument(tag(`${MODULE_ID}::SignerHolder`), { sig: "x" })).rejects.toThrow(
       "Unsupported type: signer",
