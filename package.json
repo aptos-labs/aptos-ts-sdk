@@ -106,6 +106,7 @@
     "lint": "biome lint",
     "check": "biome check",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "unit-test": "vitest run --config vitest.config.unit.ts",
     "test:coverage:unit": "vitest run --coverage --config vitest.config.unit.ts",
     "e2e-test": "vitest run tests/e2e",
