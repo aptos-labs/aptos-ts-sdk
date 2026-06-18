@@ -68,6 +68,10 @@ export function assertSafeCliArgs(args: ReadonlyArray<string>): void {
  * metacharacter as a sanitizer barrier; a `RegExp.test`-based guard in a
  * separate function is not enough to break the tracked data flow.
  *
+ * The chain strips every character that {@link UNSAFE_SHELL_CHARS}/
+ * {@link assertSafeCliArg} reject, so the scrub is a complete superset of the
+ * validation blocklist rather than only the subset CodeQL requires.
+ *
  * @returns the validated argument with shell metacharacters removed.
  * @throws Error if `arg` contains any unsafe shell character.
  */
@@ -75,18 +79,26 @@ export function sanitizeCliArg(arg: string): string {
   assertSafeCliArg(arg);
   return arg
     .replace(/&/g, "")
+    .replace(/\|/g, "")
+    .replace(/;/g, "")
+    .replace(/</g, "")
+    .replace(/>/g, "")
     .replace(/`/g, "")
     .replace(/\$/g, "")
-    .replace(/\|/g, "")
-    .replace(/>/g, "")
-    .replace(/</g, "")
-    .replace(/#/g, "")
-    .replace(/;/g, "")
     .replace(/\(/g, "")
     .replace(/\)/g, "")
     .replace(/\[/g, "")
     .replace(/\]/g, "")
-    .replace(/\n/g, "");
+    .replace(/#/g, "")
+    .replace(/"/g, "")
+    .replace(/'/g, "")
+    .replace(/\^/g, "")
+    .replace(/!/g, "")
+    .replace(/\*/g, "")
+    .replace(/\?/g, "")
+    .replace(/%/g, "")
+    .replace(/\n/g, "")
+    .replace(/\r/g, "");
 }
 
 /**
