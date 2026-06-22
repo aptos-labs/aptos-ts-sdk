@@ -40,6 +40,13 @@ import { FederatedKeylessPublicKey } from "./federatedKeyless.js";
 import { generateSigningMessage } from "../../transactions/transactionBuilder/signingMessage.js";
 import { WeierstrassPoint } from "@noble/curves/abstract/weierstrass.js";
 import { Fp2 } from "@noble/curves/abstract/tower.js";
+// Register keyless variants with the AnyPublicKey/AnySignature registry. This lives
+// next to the primitive definitions so that importing any keyless primitive (e.g.
+// `KeylessPublicKey`/`KeylessSignature`) triggers registration — not only importing an
+// account class. It is kept from being tree-shaken away via the `sideEffects` allowlist
+// in package.json. Without it, deserializing a keyless AnyPublicKey/AnySignature in a
+// bundled (tree-shaken) build throws "Unknown variant index for AnyPublicKey: 3".
+import "./keylessRegistration.js";
 
 /**
  * @group Implementation

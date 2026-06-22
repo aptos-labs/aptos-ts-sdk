@@ -16,6 +16,10 @@ import {
 } from "./keyless.js";
 import { AptosConfig } from "../../api/aptosConfig.js";
 import { Signature } from "../index.js";
+// Register keyless variants so that importing `FederatedKeylessPublicKey` directly
+// triggers registration without relying on the keyless.ts cross-import. Kept from being
+// tree-shaken away via the `sideEffects` allowlist in package.json. See keyless.ts.
+import "./keylessRegistration.js";
 
 /**
  * Represents the FederatedKeylessPublicKey public key
