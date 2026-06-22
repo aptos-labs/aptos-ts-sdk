@@ -106,6 +106,36 @@ function collectStaticExternals(entryRelPath) {
   return externals;
 }
 
+/**
+ * Walk the static transitive import graph from `entryRelPath` and report whether
+ * `targetRelPath` (also relative to dist/) is reached. Used to assert that a
+ * required side-effect module (e.g. keyless variant registration) stays wired into
+ * an entry point's static graph.
+ */
+function staticGraphReaches(entryRelPath, targetRelPath) {
+  const target = join(distDir, targetRelPath);
+  const visited = new Set();
+  const stack = [join(distDir, entryRelPath)];
+
+  while (stack.length > 0) {
+    const file = stack.pop();
+    if (visited.has(file)) continue;
+    visited.add(file);
+    if (file === target) return true;
+    if (!existsSync(file)) continue;
+
+    const source = readFileSync(file, "utf-8");
+    for (const spec of parseStaticSpecifiers(source)) {
+      const resolved = resolveSpecifier(file, spec);
+      if (resolved !== null && !visited.has(resolved)) {
+        stack.push(resolved);
+      }
+    }
+  }
+
+  return false;
+}
+
 // 1. Verify all export entry points exist
 const entryPoints = [
   [".", "index.js"],
@@ -190,6 +220,51 @@ check(
   "index.js does not re-export functions/",
   !fileContains("index.js", 'from "./functions'),
   "functions are sub-path only",
+);
+
+// 5. Keyless variant registration must survive tree-shaking.
+//
+//    Keyless support registers its AnyPublicKey/AnySignature deserializers via the
+//    side-effect-only module `core/crypto/keylessRegistration.js`. If the package is
+//    marked entirely `sideEffects: false`, a bundler is free to drop the bare import
+//    to that module, leaving keyless deserialization to throw at runtime
+//    ("Unknown variant index for AnyPublicKey: 3"). Guard against that regressing:
+//      a) package.json#sideEffects keeps keylessRegistration.js side-effectful, and
+//      b) the module is imported from the keyless primitives (so importing
+//         KeylessPublicKey / FederatedKeylessPublicKey alone triggers registration),
+//         not just from an account class.
+console.log("\n--- Keyless registration retention ---");
+
+const pkg = JSON.parse(readFileSync(join(import.meta.dirname, "../../package.json"), "utf-8"));
+const sideEffects = pkg.sideEffects;
+const registrationMarkedSideEffectful =
+  Array.isArray(sideEffects) && sideEffects.some((p) => typeof p === "string" && p.includes("keylessRegistration"));
+check(
+  "package.json#sideEffects retains keylessRegistration.js",
+  registrationMarkedSideEffectful,
+  Array.isArray(sideEffects)
+    ? `sideEffects = ${JSON.stringify(sideEffects)}`
+    : `sideEffects = ${JSON.stringify(sideEffects)} (must be an array listing keylessRegistration.js, not false)`,
+);
+
+const REGISTRATION = "core/crypto/keylessRegistration.js";
+check("keylessRegistration.js exists", fileExists(REGISTRATION));
+
+// Importing a keyless primitive directly must drag in the registration side effect.
+check(
+  "core/crypto/keyless.js imports keylessRegistration.js",
+  fileContains("core/crypto/keyless.js", "keylessRegistration.js"),
+);
+check(
+  "core/crypto/federatedKeyless.js imports keylessRegistration.js",
+  fileContains("core/crypto/federatedKeyless.js", "keylessRegistration.js"),
+);
+
+// The /keyless sub-path entry must statically reach registration so any consumer of
+// it (KeylessAccount, KeylessPublicKey, FederatedKeylessPublicKey, …) gets it.
+check(
+  "functions/keyless.js statically reaches keylessRegistration.js",
+  staticGraphReaches("functions/keyless.js", REGISTRATION),
 );
 
 if (!allPassed) {

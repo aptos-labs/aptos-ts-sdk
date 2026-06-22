@@ -15,7 +15,9 @@
   },
   "homepage": "https://aptos-labs.github.io/aptos-ts-sdk/",
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": [
+    "**/keylessRegistration.js"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -106,6 +108,7 @@
     "lint": "biome lint",
     "check": "biome check",
     "test": "vitest run",
+    "test:tree-shaking": "node tests/bundle-size/check-tree-shaking.mjs",
     "test:coverage": "vitest run --coverage",
     "unit-test": "vitest run --config vitest.config.unit.ts",
     "test:coverage:unit": "vitest run --coverage --config vitest.config.unit.ts",
