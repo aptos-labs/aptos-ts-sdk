@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Added
+
+- `aptos.keyless.getPepperBase(...)` fetches a keyless account's `pepper_base` (the 48-byte VUF signature / compressed BLS12-381 G1 point from which the final pepper is derived) from the pepper service's `signature` endpoint. Unlike `getPepper` (which returns the 31-byte derived pepper), `pepper_base` is independent of the ephemeral key and the derivation path, making it a stable per-identity seed. It is the seed for the confidential-asset keyless decryption-key derivation (`@aptos-labs/confidential-asset`'s `TwistedEd25519PrivateKey.fromPepperBase`); deriving from `pepper_base` rather than the final pepper ensures a leaked pepper cannot recover the decryption key.
+
 ## Changed
 
 - Update pinned GitHub Actions to the latest releases older than 3 days: `actions/checkout` v7.0.0, `pnpm/action-setup` v6.0.9, `actions/upload-artifact` v7.0.1, `nick-fields/retry` v4.0.0, `codecov/codecov-action` v5.5.5, and `aptos-labs/actions/aikidosec-safe-chain` (main). `actions/setup-node` v6.4.0, `oven-sh/setup-bun` v2.2.0, and `denoland/setup-deno` v2.0.4 were already current.
