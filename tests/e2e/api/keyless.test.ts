@@ -62,9 +62,7 @@ export const TEST_FEDERATED_JWT_TOKENS = [
 
 const KEYLESS_TEST_TIMEOUT = 12000;
 
-// Skipped: keyless e2e depends on the localnet keyless prover (port 8081) and is flaky
-// under CI load; re-enable when the localnet + prover stack is stable in the test runner.
-describe.skip("keyless api", () => {
+describe("keyless api", () => {
   const ephemeralKeyPair = EPHEMERAL_KEY_PAIR;
   const { aptos } = getAptosClient();
   const jwkAccount = Account.generate();

@@ -108,8 +108,7 @@ describe("verifySignatureAsync", () => {
       ).toEqual(true);
     });
 
-    // Skipped with keyless e2e: needs on-chain keyless configuration via the local prover.
-    it.skip("signs a message with a 2 of 4 multikey scheme with keyless account and throws error with failure reason", async () => {
+    it("signs a message with a 2 of 4 multikey scheme with keyless account and throws error with failure reason", async () => {
       const invalidProofKeylessAccount = KeylessAccount.create({
         jwt: keylessTestObject.JWT,
         pepper: keylessTestObject.pepper,
