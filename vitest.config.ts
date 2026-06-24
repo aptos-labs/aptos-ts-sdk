@@ -5,12 +5,15 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/**
+ * Default Vitest config (unit + e2e combined). Prefer `pnpm test`, which runs
+ * unit tests in parallel and localnet e2e tests sequentially via separate configs.
+ */
 export default defineConfig({
   test: {
     globals: true,
     environment: "node",
     setupFiles: [path.resolve(__dirname, "tests/setupDotenv.ts")],
-    globalSetup: [path.resolve(__dirname, "tests/preTest.ts")],
     include: ["tests/**/*.test.ts"],
     exclude: ["dist/**", "examples/**", "confidential-asset/**"],
     coverage: {
