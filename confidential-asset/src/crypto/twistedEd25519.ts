@@ -4,7 +4,8 @@
 import { ed25519, ristretto255 } from "@noble/curves/ed25519.js";
 import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/utils.js";
 import { sha3_256 } from "@noble/hashes/sha3.js";
-import { utf8ToBytes } from "@noble/hashes/utils.js";
+import { sha512 } from "@noble/hashes/sha2.js";
+import { concatBytes, utf8ToBytes } from "@noble/hashes/utils.js";
 import {
   CKDPriv,
   deriveKey,
@@ -201,6 +202,53 @@ export class TwistedEd25519PrivateKey extends Serializable {
     const scalarLE = bytesToNumberLE(signature.toUint8Array());
     const invertModScalarLE = ed25519modN(scalarLE);
     const key = numberToBytesLE(invertModScalarLE, 32);
+
+    return new TwistedEd25519PrivateKey(key);
+  }
+
+  /**
+   * Byte length of a keyless `pepper_base` (a compressed BLS12-381 G1 point).
+   */
+  static readonly PEPPER_BASE_LENGTH = 48;
+
+  /**
+   * Domain-separation string for deriving a decryption key from a keyless account's `pepper_base`.
+   * MUST byte-for-byte match the Petra/reference implementation.
+   */
+  static readonly PEPPER_DK_DERIVATION_DOMAIN = "APTOS_CONFIDENTIAL_ASSETS::PEPPER_DK_DERIVATION::v1";
+
+  /**
+   * Derives a confidential-asset decryption key (DK) for a KEYLESS account from its `pepper_base`.
+   *
+   * Keyless accounts cannot use {@link fromSignature}: their signing key is a rotating per-session
+   * ephemeral key, so the signature — and thus the derived DK — would change every session. Instead the DK
+   * is derived from the `pepper_base` (the 48-byte VUF signature obtained via
+   * `aptos.keyless.getPepperBase`), which is deterministic per OIDC identity and independent of the
+   * ephemeral key and the derivation path.
+   *
+   * `pepper_base` is the seed (not the final 31-byte pepper) on purpose: the pepper is a one-way hash of
+   * `pepper_base`, so a leaked pepper cannot recover the DK.
+   *
+   *   DK = LE_bytes( LE( SHA-512( utf8(PEPPER_DK_DERIVATION_DOMAIN) || pepper_base ) ) mod l, 32 )
+   *
+   * This mirrors {@link fromSignature}'s tail (reduce a 64-byte value mod the Ed25519 order, little-endian),
+   * substituting the signature for a domain-separated hash of `pepper_base`.
+   *
+   * @param pepperBase - The 48-byte `pepper_base` from `aptos.keyless.getPepperBase`.
+   * @returns The derived TwistedEd25519PrivateKey (decryption key).
+   */
+  static fromPepperBase(pepperBase: HexInput): TwistedEd25519PrivateKey {
+    const pepperBaseBytes = Hex.fromHexInput(pepperBase).toUint8Array();
+    if (pepperBaseBytes.length !== TwistedEd25519PrivateKey.PEPPER_BASE_LENGTH) {
+      throw new Error(
+        `pepper_base length should be ${TwistedEd25519PrivateKey.PEPPER_BASE_LENGTH} bytes, got ${pepperBaseBytes.length}`,
+      );
+    }
+    const digest = sha512(
+      concatBytes(utf8ToBytes(TwistedEd25519PrivateKey.PEPPER_DK_DERIVATION_DOMAIN), pepperBaseBytes),
+    );
+    const scalarLE = ed25519modN(bytesToNumberLE(digest));
+    const key = numberToBytesLE(scalarLE, 32);
 
     return new TwistedEd25519PrivateKey(key);
   }
