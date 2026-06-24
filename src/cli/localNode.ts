@@ -105,7 +105,7 @@ export class LocalNode {
 
     const currentPlatform = platform();
     const spawnConfig = {
-      env: { ...process.env, ENABLE_KEYLESS_DEFAULT: "1" },
+      env: { ...process.env, ENABLE_KEYLESS_DEFAULT: process.env.ENABLE_KEYLESS_DEFAULT ?? "1" },
       ...(currentPlatform === "win32" && { shell: true }),
     };
 
