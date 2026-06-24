@@ -43,3 +43,43 @@ describe("TwistedEd25519PrivateKey.getDecryptionKeySigningMessage", () => {
     expect(new Set(messages).size).toBe(messages.length);
   });
 });
+
+describe("TwistedEd25519PrivateKey.fromPepperBase", () => {
+  // 48-byte pepper_base = [0,1,...,47]
+  const PEPPER_BASE_HEX =
+    "0x000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f";
+  // Known-answer vector pinning the scheme (SHA-512(utf8(DOMAIN) || pepper_base) mod l, little-endian).
+  // MUST match the Petra/reference implementation byte-for-byte.
+  const EXPECTED_DK_HEX = "0x8dc90fb1c1383fd9d5041329ec128758da8fed0980e502dc9cf1709222005f06";
+
+  it("pins the domain-separation string and pepper_base length", () => {
+    expect(TwistedEd25519PrivateKey.PEPPER_DK_DERIVATION_DOMAIN).toBe(
+      "APTOS_CONFIDENTIAL_ASSETS::PEPPER_DK_DERIVATION::v1",
+    );
+    expect(TwistedEd25519PrivateKey.PEPPER_BASE_LENGTH).toBe(48);
+  });
+
+  it("matches the known-answer vector and is deterministic", () => {
+    const dk1 = TwistedEd25519PrivateKey.fromPepperBase(PEPPER_BASE_HEX);
+    const dk2 = TwistedEd25519PrivateKey.fromPepperBase(PEPPER_BASE_HEX);
+    expect(dk1.toString()).toBe(EXPECTED_DK_HEX);
+    expect(dk2.toString()).toBe(EXPECTED_DK_HEX);
+  });
+
+  it("accepts a Uint8Array and derives a usable key", () => {
+    const dk = TwistedEd25519PrivateKey.fromPepperBase(Hex.fromHexInput(PEPPER_BASE_HEX).toUint8Array());
+    expect(dk.toString()).toBe(EXPECTED_DK_HEX);
+    expect(() => dk.publicKey()).not.toThrow();
+  });
+
+  it("rejects a pepper_base that is not 48 bytes", () => {
+    expect(() => TwistedEd25519PrivateKey.fromPepperBase(new Uint8Array(31))).toThrow(/48 bytes/);
+    expect(() => TwistedEd25519PrivateKey.fromPepperBase(new Uint8Array(64))).toThrow(/48 bytes/);
+  });
+
+  it("produces distinct DKs for distinct pepper_base values", () => {
+    const a = TwistedEd25519PrivateKey.fromPepperBase(new Uint8Array(48).fill(1));
+    const b = TwistedEd25519PrivateKey.fromPepperBase(new Uint8Array(48).fill(2));
+    expect(a.toString()).not.toBe(b.toString());
+  });
+});
