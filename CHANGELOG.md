@@ -4,13 +4,22 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 7.1.3 (2026-06-23)
+
 ## Changed
 
+- Coverage-to-85 initiative completed (see `docs/superpowers/specs/2026-05-20-coverage-to-85-design.md`): combined `unit + e2e` coverage raised from a baseline of 83.19% statements / 72.49% branches / 90.44% functions / 83.19% lines to ≥ 85% on all four v8 metrics, and the `vitest.config.ts` thresholds were lifted from 80 to 85 to lock it in. New mocked-client / offline unit tests added for the highest-uncovered-branch modules:
+  - `transactions/transactionBuilder/remoteAbi.ts`: the async conversion mirror (`checkOrConvertArgumentWithABI` / `parseArgAsync`), `checkType` for every BCS argument type, the `convertArgument` / `convertArgumentWithABI` wrappers, `standardizeTypeTags`, the ABI fetchers (`fetchModuleAbi`, `fetchFunctionAbi`, `fetchEntryFunctionAbi`, `fetchViewFunctionAbi`, `fetchMoveFunctionAbi`, `fetchModuleAbiWithStructs`), and the struct/enum async encoding path.
+  - `transactions/transactionBuilder/structEnumParser.ts`: `StructEnumArgumentParser` struct/enum/Option/vector/generic encoding (offline via `preloadModules`), every validation-error branch, and `MoveStructArgument` / `MoveEnumArgument` serialization.
+  - `internal/ans.ts`: view-backed reads, indexer GraphQL queries, and `registerName` domain/subdomain branches; `api/ans.ts` delegation.
+  - `core/crypto/deserializationUtils.ts` (`deserializePublicKey` / `deserializeSignature`), `core/crypto/multiKey.ts` verify/`getIndex` branches, and `account/AccountUtils.ts` typed-`fromHex` guards.
 - Add `LICENSE` files to example and project packages so their `license: "SEE LICENSE IN LICENSE"` metadata correctly references the Innovation-Enabling Source Code License.
 - Include `LICENSE` in published package `files` lists and add `check-license` CI/prepublish validation so npm tarballs always ship the license text.
 
 ## Fixed
 
+- Keyless support is no longer tree-shaken out of bundled builds. `package.json` declared `"sideEffects": false`, which let bundlers (Rollup/Vite/webpack/esbuild) drop the bare `import "../core/crypto/keylessRegistration.js"` that registers the keyless and federated-keyless `AnyPublicKey`/`AnySignature` deserializers. Deserializing a keyless key (directly, or via a `MultiKey` that contains one) then threw `Unknown variant index for AnyPublicKey: 3` in production builds, while working in Node/Vitest where nothing is tree-shaken. Fixed by (a) marking `keylessRegistration.js` as side-effectful in `package.json#sideEffects` so the import survives tree-shaking, and (b) importing the registration from the primitive-defining modules (`core/crypto/keyless.ts` and `core/crypto/federatedKeyless.ts`) so that importing `KeylessPublicKey`/`KeylessSignature`/`FederatedKeylessPublicKey` alone — not just an account class — triggers registration. A regression check in `tests/bundle-size/check-tree-shaking.mjs` (now run in the build CI job via `pnpm test:tree-shaking`) asserts the side-effect stays wired into the `/keyless` entry point.
+- Resolve the CodeQL "Unsafe shell command constructed from library input" alert for the Move/LocalNode CLI helpers. The existing `assertSafeCliArg` validation rejected shell metacharacters but ran in a separate function, so CodeQL still tracked library input into the `spawn(..., { shell: true })` call used on Windows. CLI arguments are now both validated and scrubbed via `sanitizeCliArg`/`sanitizeCliArgs` (a `String.prototype.replace` chain covering every shell metacharacter) before being passed to `spawn`. Validation continues to throw on unsafe input, so the scrub is a runtime no-op; the validation blocklist now also covers `#`, `[`, and `]`.
 - Skip the `installs jwks for a firebase iss` e2e test. It installs the Firebase issuer's live JWK set fetched from Google's shared `securetoken@system.gserviceaccount.com` endpoint, which now publishes 5 RSA keys. The resulting `0x1::jwks::update_federated_jwk_set` resource serializes to ~2158 bytes, exceeding the on-chain `MAX_FEDERATED_JWKS_SIZE_BYTES` limit of 2 KiB and aborting with `EFEDERATED_JWKS_TOO_LARGE`. The test depends on the live endpoint, so it is skipped until the key set fits within the on-chain budget (or the SDK handles oversized sets explicitly).
 
 # 7.1.2 (2026-06-17)

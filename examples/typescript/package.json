@@ -52,14 +52,17 @@
   },
   "devDependencies": {
     "@types/readline-sync": "1.4.8",
-    "@types/superagent": "^8.1.9",
-    "@types/node": "^22.19.17",
-    "typescript": "^6.0.2",
-    "tsx": "^4.21.0"
+    "@types/superagent": "^8.1.10",
+    "@types/node": "^22.20.0",
+    "typescript": "^6.0.3",
+    "tsx": "^4.22.4"
   },
   "pnpm": {
     "overrides": {
-      "picomatch@^4": "^4.0.4"
+      "form-data@^4": "^4.0.6",
+      "picomatch@^4": "^4.0.4",
+      "qs@^6": "^6.15.2",
+      "shell-quote@^1": "^1.8.4"
     }
   }
 }

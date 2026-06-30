@@ -7,6 +7,6 @@ runs:
   steps:
     - uses: ./.github/actions/setup-node-pnpm
 
-    # Run package install, build, and license checks
-    - run: pnpm install --frozen-lockfile && pnpm build && pnpm check-license
+    # Run package install, build, license checks, and tree-shaking verification
+    - run: pnpm install --frozen-lockfile && pnpm build && pnpm check-license && pnpm test:tree-shaking
       shell: bash

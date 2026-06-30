@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, expect, it } from "vitest";
-import { assertSafeCliArg, assertSafeCliArgs } from "../../src/cli/spawnArgs.js";
+import { assertSafeCliArg, assertSafeCliArgs, sanitizeCliArg, sanitizeCliArgs } from "../../src/cli/spawnArgs.js";
 
 describe("assertSafeCliArg", () => {
   it("accepts typical CLI argument shapes", () => {
@@ -40,6 +40,9 @@ describe("assertSafeCliArg", () => {
     ["glob question", "foo?"],
     ["cmd.exe env-var expansion", "foo%USERPROFILE%bar"],
     ["cmd.exe single percent", "foo%bar"],
+    ["hash", "foo#bar"],
+    ["open bracket", "foo[bar"],
+    ["close bracket", "foo]bar"],
   ])("rejects shell metacharacter (%s)", (_label, arg) => {
     expect(() => assertSafeCliArg(arg)).toThrow(/shell/);
   });
@@ -57,5 +60,41 @@ describe("assertSafeCliArgs", () => {
 
   it("rejects when any element is unsafe", () => {
     expect(() => assertSafeCliArgs(["aptos", "node", "& calc.exe"])).toThrow(/shell/);
+  });
+});
+
+describe("sanitizeCliArg", () => {
+  it("returns safe args unchanged", () => {
+    const safe = [
+      "--assume-yes",
+      "--gas-unit-price=10",
+      "--named-addresses",
+      "alice=0x123,bob=0x456",
+      "/abs/path/to/package",
+      "C:\\Program\\Files\\package",
+      "0xdeadbeef",
+      "node",
+      "run-localnet",
+      "",
+    ];
+    for (const arg of safe) {
+      expect(sanitizeCliArg(arg)).toBe(arg);
+    }
+  });
+
+  it("throws on unsafe args rather than silently scrubbing them", () => {
+    expect(() => sanitizeCliArg("foo & calc.exe")).toThrow(/shell/);
+    expect(() => sanitizeCliArg("foo#bar")).toThrow(/shell/);
+  });
+});
+
+describe("sanitizeCliArgs", () => {
+  it("returns an array of safe args unchanged", () => {
+    const args = ["aptos", "node", "run-localnet", "--assume-yes"];
+    expect(sanitizeCliArgs(args)).toEqual(args);
+  });
+
+  it("throws when any element is unsafe", () => {
+    expect(() => sanitizeCliArgs(["aptos", "node", "& calc.exe"])).toThrow(/shell/);
   });
 });
