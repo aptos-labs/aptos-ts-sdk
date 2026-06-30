@@ -4,7 +4,10 @@
 import { describe, expect, test } from "vitest";
 import { Deserializer } from "../../../src/bcs/deserializer";
 import { AccountAddress } from "../../../src/core";
-import { convertPayloadToInnerPayload } from "../../../src/transactions/transactionBuilder/transactionBuilder";
+import {
+  convertPayloadToInnerPayload,
+  generateTransactionPayload,
+} from "../../../src/transactions/transactionBuilder/transactionBuilder";
 import {
   EntryFunction,
   MultiSig,
@@ -53,5 +56,44 @@ describe("MultiSigTransactionPayload BCS (aptos-core multisig.rs parity)", () =>
     const v1 = inner as TransactionInnerPayloadV1;
     expect(v1.executable).toBeInstanceOf(TransactionExecutableScript);
     expect((v1.executable as TransactionExecutableScript).script.bytecode).toEqual(script.bytecode);
+  });
+});
+
+describe("generateTransactionPayload with InputMultiSigScriptData", () => {
+  test("returns TransactionPayloadMultiSig when multisigAddress is provided with bytecode", async () => {
+    const bytecode = new Uint8Array([0xca, 0xfe]);
+    const multisigAddress = AccountAddress.ONE;
+    const result = await generateTransactionPayload({ bytecode, functionArguments: [], multisigAddress });
+    expect(result).toBeInstanceOf(TransactionPayloadMultiSig);
+    const ms = result as TransactionPayloadMultiSig;
+    expect(ms.multiSig.multisig_address).toEqual(multisigAddress);
+    expect(ms.multiSig.transaction_payload?.transaction_payload).toBeInstanceOf(Script);
+    const script = ms.multiSig.transaction_payload?.transaction_payload as Script;
+    expect(script.bytecode).toEqual(bytecode);
+  });
+
+  test("wrapping does not include a plain TransactionPayloadScript — the script is nested inside multisig", async () => {
+    const result = await generateTransactionPayload({
+      bytecode: new Uint8Array([0x01]),
+      functionArguments: [],
+      multisigAddress: AccountAddress.ONE,
+    });
+    // Must be the multisig wrapper, not the bare script payload
+    expect(result).toBeInstanceOf(TransactionPayloadMultiSig);
+    expect(result).not.toBeInstanceOf(Script);
+    // The script lives one level deeper, inside MultiSigTransactionPayload
+    const inner = (result as TransactionPayloadMultiSig).multiSig.transaction_payload?.transaction_payload;
+    expect(inner).toBeInstanceOf(Script);
+  });
+
+  test("BCS round-trip for multisig script payload", async () => {
+    const bytecode = new Uint8Array([0xde, 0xad, 0xbe, 0xef]);
+    const multisigAddress = AccountAddress.TWO;
+    const result = await generateTransactionPayload({ bytecode, functionArguments: [], multisigAddress });
+    const bytes = result.bcsToBytes();
+    const restored = TransactionPayloadMultiSig.load(new Deserializer(bytes.slice(1)));
+    expect(restored.multiSig.transaction_payload?.transaction_payload).toBeInstanceOf(Script);
+    const script = restored.multiSig.transaction_payload?.transaction_payload as Script;
+    expect(script.bytecode).toEqual(bytecode);
   });
 });

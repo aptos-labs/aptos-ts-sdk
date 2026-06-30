@@ -16,6 +16,7 @@ import {
   isUserTransactionResponse,
   Ed25519PrivateKey,
   InputEntryFunctionData,
+  InputScriptData,
 } from "../../../src/index.js";
 import { EphemeralKeyPair } from "../../../src/account/EphemeralKeyPair.js";
 import { generateTransactionPayload } from "../../../src/transactions/transactionBuilder/transactionBuilder.js";
@@ -133,6 +134,36 @@ export async function createMultisigTransaction(
     multisigAddress,
     function: multisigEntryFunction.function,
     functionArguments: multisigEntryFunction.functionArguments,
+    aptosConfig: config,
+  });
+  const createMultisigTx = await aptos.transaction.build.simple({
+    sender: owner.accountAddress,
+    data: {
+      function: "0x1::multisig_account::create_transaction",
+      functionArguments: [multisigAddress, transactionPayload.multiSig.transaction_payload!.bcsToBytes()],
+    },
+  });
+
+  const createMultisigTxAuthenticator = aptos.transaction.sign({ signer: owner, transaction: createMultisigTx });
+
+  const createMultisigTxResponse = await aptos.transaction.submit.simple({
+    senderAuthenticator: createMultisigTxAuthenticator,
+    transaction: createMultisigTx,
+  });
+  await aptos.waitForTransaction({ transactionHash: createMultisigTxResponse.hash });
+}
+
+export async function createMultisigScriptTransaction(
+  owner: Account,
+  multisigAddress: string,
+  scriptData: InputScriptData,
+) {
+  const { aptos, config } = getAptosClient();
+  const transactionPayload = await generateTransactionPayload({
+    multisigAddress,
+    bytecode: scriptData.bytecode,
+    typeArguments: scriptData.typeArguments,
+    functionArguments: scriptData.functionArguments,
     aptosConfig: config,
   });
   const createMultisigTx = await aptos.transaction.build.simple({

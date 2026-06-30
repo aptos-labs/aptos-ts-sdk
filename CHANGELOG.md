@@ -8,6 +8,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Changed
 
+- Run localnet e2e tests sequentially (`vitest.config.e2e.ts` with `maxWorkers: 1` and `fileParallelism: false`); `pnpm test` now runs unit tests in parallel, then e2e tests one file at a time against the shared localnet.
 - Coverage-to-85 initiative completed (see `docs/superpowers/specs/2026-05-20-coverage-to-85-design.md`): combined `unit + e2e` coverage raised from a baseline of 83.19% statements / 72.49% branches / 90.44% functions / 83.19% lines to ≥ 85% on all four v8 metrics, and the `vitest.config.ts` thresholds were lifted from 80 to 85 to lock it in. New mocked-client / offline unit tests added for the highest-uncovered-branch modules:
   - `transactions/transactionBuilder/remoteAbi.ts`: the async conversion mirror (`checkOrConvertArgumentWithABI` / `parseArgAsync`), `checkType` for every BCS argument type, the `convertArgument` / `convertArgumentWithABI` wrappers, `standardizeTypeTags`, the ABI fetchers (`fetchModuleAbi`, `fetchFunctionAbi`, `fetchEntryFunctionAbi`, `fetchViewFunctionAbi`, `fetchMoveFunctionAbi`, `fetchModuleAbiWithStructs`), and the struct/enum async encoding path.
   - `transactions/transactionBuilder/structEnumParser.ts`: `StructEnumArgumentParser` struct/enum/Option/vector/generic encoding (offline via `preloadModules`), every validation-error branch, and `MoveStructArgument` / `MoveEnumArgument` serialization.
