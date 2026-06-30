@@ -1,0 +1,53 @@
+name: "Publish to npm"
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Validate release tag format
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if ! echo "$TAG" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$'; then
+            echo "::error::Release tag '$TAG' does not match pattern vMAJOR.MINOR.PATCH[-prerelease]"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v6
+
+      - name: Verify package.json version matches tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          PKG_VERSION="v$(jq -r .version package.json)"
+          if [ "$PKG_VERSION" != "$TAG" ]; then
+            echo "::error::package.json version ($PKG_VERSION) does not match release tag ($TAG)"
+            exit 1
+          fi
+
+      - uses: ./.github/actions/setup-node-pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      # Upgrade npm to work around the scoped-package OIDC bug in Node's bundled
+      # npm (https://github.com/npm/cli/issues/8678). Without this, publishing a
+      # scoped package via trusted publishing fails with E404.
+      - name: Upgrade npm for OIDC trusted publishing
+        run: npm install -g npm@latest
+
+      - name: Publish to npm with provenance
+        run: npm publish --provenance --access public
