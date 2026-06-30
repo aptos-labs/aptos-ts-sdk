@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 7.1.3 (2026-06-23)
+
 ## Changed
 
 - Coverage-to-85 initiative completed (see `docs/superpowers/specs/2026-05-20-coverage-to-85-design.md`): combined `unit + e2e` coverage raised from a baseline of 83.19% statements / 72.49% branches / 90.44% functions / 83.19% lines to ≥ 85% on all four v8 metrics, and the `vitest.config.ts` thresholds were lifted from 80 to 85 to lock it in. New mocked-client / offline unit tests added for the highest-uncovered-branch modules:

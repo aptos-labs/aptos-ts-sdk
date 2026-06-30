@@ -22,7 +22,8 @@
   },
   "pnpm": {
     "overrides": {
-      "picomatch@^4": "^4.0.4"
+      "picomatch@^4": "^4.0.4",
+      "shell-quote@^1": "^1.8.4"
     }
   }
 }
