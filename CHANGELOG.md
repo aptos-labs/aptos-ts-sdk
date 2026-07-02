@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Changed
+
+- Update pinned GitHub Actions to the latest releases older than 3 days: `actions/checkout` v7.0.0, `pnpm/action-setup` v6.0.9, `actions/upload-artifact` v7.0.1, `nick-fields/retry` v4.0.0, `codecov/codecov-action` v5.5.5, and `aptos-labs/actions/aikidosec-safe-chain` (main). `actions/setup-node` v6.4.0, `oven-sh/setup-bun` v2.2.0, and `denoland/setup-deno` v2.0.4 were already current.
+
 # 7.1.3 (2026-06-23)
 
 ## Changed

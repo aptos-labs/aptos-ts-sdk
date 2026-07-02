@@ -8,7 +8,7 @@ runs:
     - uses: ./.github/actions/setup-node-pnpm
 
     # Install Bun
-    - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # pin@v2
+    - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # pin@v2.2.0
       with:
         bun-version: latest
 
@@ -36,7 +36,7 @@ runs:
       shell: bash
 
     # Run the Bun tests
-    - uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # pin@v3
+    - uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # pin@v4.0.0
       name: bun-sdk-tests
       env:
         TMPDIR: ${{ runner.temp }}

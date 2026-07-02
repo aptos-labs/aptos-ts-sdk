@@ -37,7 +37,7 @@ runs:
       shell: bash
 
     # Run the Deno tests
-    - uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # pin@v3
+    - uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # pin@v4.0.0
       name: deno-sdk-tests
       env:
         TMPDIR: ${{ runner.temp }}
