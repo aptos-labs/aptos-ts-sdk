@@ -33,7 +33,7 @@ runs:
       shell: bash
 
     # Run the typescript examples
-    - uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # pin@v3
+    - uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # pin@v4.0.0
       name: sdk-pnpm-examples
       env:
         # This is important, it ensures that the tempdir we create for cloning the ANS
@@ -55,7 +55,7 @@ runs:
         echo "::endgroup::"
 
     # Run the javascript examples
-    - uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # pin@v3
+    - uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # pin@v4.0.0
       name: sdk-pnpm-examples
       env:
         # This is important, it ensures that the tempdir we create for cloning the ANS
