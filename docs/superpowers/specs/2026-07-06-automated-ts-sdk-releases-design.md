@@ -141,25 +141,33 @@ jobs:
     steps:
       - uses: actions/checkout@<pinned>
       - uses: ./.github/actions/setup-node-pnpm
-      - run: npm install -g npm@latest      # ensure npm >= 11.5.1 for OIDC trusted publishing
       - name: Route by tag + guard version
         # Parse github.event.release.tag_name:
         #   ts-sdk-vX.Y.Z             -> dir = .                (package @aptos-labs/ts-sdk)
         #   confidential-asset-vX.Y.Z -> dir = confidential-asset
         # Assert the X.Y.Z in the tag === version in that dir's package.json; fail on mismatch.
+        # Any other tag prefix (e.g. legacy `vX.Y.Z`) -> exit 0 without publishing.
       - run: pnpm install --frozen-lockfile
       - name: Publish
-        run: npm publish --provenance --access public   # in the routed dir
+        run: pnpm publish --provenance --no-git-checks   # in the routed dir
 ```
 
 **Routing:** a single job inspects `github.event.release.tag_name`. Prefix `confidential-asset-v`
 → publish from `confidential-asset/`; prefix `ts-sdk-v` → publish from repo root. Any other tag
-prefix → the job no-ops (not a package release).
+prefix (including the **legacy `vX.Y.Z` tags**) → the job no-ops (not a package release). Because
+the workflow triggers only on `release: published` (never on tag push) and routes solely on these
+two prefixes, the existing `v7.0.0`-style tags cannot trigger a publish.
 
-**Publish tooling:** the actual publish uses the **npm CLI** (`npm publish`), not `pnpm publish`,
-to guarantee OIDC trusted-publishing support (needs npm ≥ 11.5.1). Install and build still use
-pnpm via the existing `setup-node-pnpm` action. `prepublishOnly` (build + check-license) runs
-automatically on `npm publish`.
+**Publish tooling:** the publish uses **pnpm** (`pnpm publish --provenance --no-git-checks`) to
+match the rest of the repo's tooling. This requires a pnpm version that supports OIDC trusted
+publishing (pnpm ≥ 10.13; repo pins `pnpm@10.30.3`, which satisfies this — the implementation must
+verify OIDC trusted publishing actually works with the pinned pnpm; if it does not, first try
+pinning a newer pnpm in the workflow, and only if pnpm still cannot do OIDC trusted publishing fall
+back to the **npm CLI** (`npm install -g npm@latest && npm publish --provenance --access public`)
+for the publish step alone — install/build stay on pnpm).
+`--no-git-checks` is needed because the tag checkout is a detached HEAD. Install and build use pnpm
+via the existing `setup-node-pnpm` action. `prepublishOnly` (build + check-license) runs
+automatically on `pnpm publish`.
 
 **Version guard:** the workflow refuses to publish if the tag version does not match the target
 `package.json` version — prevents publishing a mismatched or stale tree.
