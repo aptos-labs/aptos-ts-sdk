@@ -11,6 +11,7 @@ import { ZeroKnowledgeSig } from "../core/crypto/keyless.js";
 import {
   deriveKeylessAccount,
   getPepper,
+  getPepperBase,
   getProof,
   updateFederatedKeylessJwkSetTransaction,
 } from "../internal/keyless.js";
@@ -91,6 +92,34 @@ export class Keyless {
     derivationPath?: string;
   }): Promise<Uint8Array> {
     return getPepper({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Fetches the `pepper_base` from the Aptos pepper service API.
+   *
+   * The `pepper_base` is the VUF signature from which the final pepper is derived — a 48-byte compressed
+   * BLS12-381 G1 point. It is deterministic for a given OIDC identity and independent of the ephemeral key
+   * and derivation path, making it a stable seed for deriving a confidential-asset decryption key (DK) via
+   * `@aptos-labs/confidential-asset`'s `TwistedEd25519PrivateKey.fromPepperBase`. Deriving the DK from
+   * `pepper_base` (rather than the final pepper, which is a one-way hash of it) ensures a leaked pepper does
+   * not compromise confidentiality.
+   *
+   * @param args - The arguments for fetching the pepper base.
+   * @param args.jwt - JWT token.
+   * @param args.ephemeralKeyPair - The EphemeralKeyPair used to generate the nonce in the JWT token.
+   * @param args.uidKey - An optional key in the JWT token to use to set the uidVal in the IdCommitment.
+   * @param args.derivationPath - A derivation path used for creating multiple accounts per user via the
+   * BIP-44 standard. Note: `pepper_base` itself does not depend on the derivation path.
+   * @returns The `pepper_base` as a Uint8Array of length 48.
+   * @group Keyless
+   */
+  async getPepperBase(args: {
+    jwt: string;
+    ephemeralKeyPair: EphemeralKeyPair;
+    uidKey?: string;
+    derivationPath?: string;
+  }): Promise<Uint8Array> {
+    return getPepperBase({ aptosConfig: this.config, ...args });
   }
 
   /**

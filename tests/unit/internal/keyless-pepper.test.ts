@@ -12,7 +12,7 @@ import { createMockClient, expectRequest } from "../../helpers/mockClient.js";
 import { Network } from "../../../src/utils/apiEndpoints.js";
 import { EphemeralKeyPair } from "../../../src/account/EphemeralKeyPair.js";
 import { Ed25519PrivateKey } from "../../../src/core/crypto/ed25519.js";
-import { getPepper, getProof } from "../../../src/internal/keyless.js";
+import { getPepper, getPepperBase, getProof } from "../../../src/internal/keyless.js";
 
 function makeEphemeral(): EphemeralKeyPair {
   const sk = new Ed25519PrivateKey(new Uint8Array(32).fill(0x33));
@@ -70,6 +70,58 @@ describe("internal/keyless.getPepper", () => {
     mock.enqueue({ data: { pepper: `0x${"00".repeat(31)}` } });
 
     await getPepper({
+      aptosConfig: mock.config,
+      jwt: "x",
+      ephemeralKeyPair: makeEphemeral(),
+      uidKey: "email",
+      derivationPath: "m/44'/637'/0'/0'",
+    });
+
+    const body = mock.requests[0]?.body as { uid_key: string; derivation_path: string };
+    expect(body.uid_key).toBe("email");
+    expect(body.derivation_path).toBe("m/44'/637'/0'/0'");
+  });
+});
+
+describe("internal/keyless.getPepperBase", () => {
+  const mockOpts = { network: Network.DEVNET as const, pepper: "https://pepper.example/v0" };
+
+  it("POSTs to the `signature` endpoint and returns the 48-byte pepper_base", async () => {
+    const mock = createMockClient(mockOpts);
+    // 48-byte pepper_base (compressed BLS12-381 G1 point length).
+    const signatureHex = `0x${"cd".repeat(48)}`;
+    mock.enqueue({ data: { signature: signatureHex } });
+
+    const pepperBase = await getPepperBase({
+      aptosConfig: mock.config,
+      jwt: "ignored-here-because-no-decoding-happens",
+      ephemeralKeyPair: makeEphemeral(),
+    });
+
+    expect(pepperBase).toBeInstanceOf(Uint8Array);
+    expect(pepperBase.length).toBe(48);
+
+    const body = mock.requests[0]?.body as {
+      jwt_b64: string;
+      epk: string;
+      exp_date_secs: number;
+      epk_blinder: string;
+      uid_key: string;
+      derivation_path: undefined | string;
+    };
+    expect(body.jwt_b64).toBe("ignored-here-because-no-decoding-happens");
+    expect(body.uid_key).toBe("sub"); // default
+    expect(body.epk).toMatch(/^[0-9a-f]+$/i);
+    expect(typeof body.exp_date_secs).toBe("number");
+
+    expectRequest(mock.requests[0], { method: "POST", originMethod: "getPepperBase", urlIncludes: "signature" });
+  });
+
+  it("forwards a custom uidKey and derivationPath", async () => {
+    const mock = createMockClient(mockOpts);
+    mock.enqueue({ data: { signature: `0x${"00".repeat(48)}` } });
+
+    await getPepperBase({
       aptosConfig: mock.config,
       jwt: "x",
       ephemeralKeyPair: makeEphemeral(),

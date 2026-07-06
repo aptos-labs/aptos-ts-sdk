@@ -7,13 +7,13 @@ runs:
   using: composite
   steps:
     - name: Setup Node
-      uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # pin@v6
+      uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # pin@v6.4.0
       with:
         node-version-file: .node-version
         registry-url: "https://registry.npmjs.org"
 
     - name: Setup pnpm
-      uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # pin@v4
+      uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # pin@v6.0.9
 
     - name: Add local package binaries to PATH
       run: echo "${GITHUB_WORKSPACE}/node_modules/.bin" >> "${GITHUB_PATH}"
@@ -24,4 +24,4 @@ runs:
       run: echo "SAFE_CHAIN_MINIMUM_PACKAGE_AGE_EXCLUSIONS=@aptos-labs/*" >> "${GITHUB_ENV}"
 
     - name: Setup AikidoSec Safe Chain
-      uses: aptos-labs/actions/aikidosec-safe-chain@528ef7ad9427a8c0720ea3eea790a9190d6e377d # pin@main
+      uses: aptos-labs/actions/aikidosec-safe-chain@fdd3a3a628c840d5c35086a87e9cc3141b635505 # pin@main

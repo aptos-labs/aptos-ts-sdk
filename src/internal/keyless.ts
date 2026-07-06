@@ -27,7 +27,13 @@ import { Account } from "../account/index.js";
 import { EphemeralKeyPair } from "../account/EphemeralKeyPair.js";
 import { KeylessAccount } from "../account/KeylessAccount.js";
 import { ProofFetchCallback } from "../account/AbstractKeylessAccount.js";
-import { PepperFetchRequest, PepperFetchResponse, ProverRequest, ProverResponse } from "../types/keyless.js";
+import {
+  PepperFetchRequest,
+  PepperFetchResponse,
+  ProverRequest,
+  ProverResponse,
+  SignatureFetchResponse,
+} from "../types/keyless.js";
 import { lookupOriginalAccountAddress } from "./account.js";
 import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless.js";
 import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount.js";
@@ -74,6 +80,52 @@ export async function getPepper(args: {
     overrides: { WITH_CREDENTIALS: false },
   });
   return Hex.fromHexInput(data.pepper).toUint8Array();
+}
+
+/**
+ * Retrieves the `pepper_base` for an account — the VUF signature from which the final pepper is derived.
+ *
+ * Unlike {@link getPepper} (which hits the pepper service `fetch` endpoint and returns the 31-byte derived
+ * pepper), this hits the `signature` endpoint and returns the raw 48-byte `pepper_base` (a compressed
+ * BLS12-381 G1 point). `pepper_base` is deterministic for a given OIDC identity, independent of the ephemeral
+ * key and of the derivation path, which makes it a stable seed for deriving a confidential-asset decryption
+ * key (see `@aptos-labs/confidential-asset`'s `TwistedEd25519PrivateKey.fromPepperBase`). Deriving secrets
+ * from `pepper_base` rather than the final pepper also ensures a leaked pepper does not compromise them.
+ *
+ * @param args - The arguments required to fetch the pepper base.
+ * @param args.aptosConfig - The configuration object for Aptos.
+ * @param args.jwt - The JSON Web Token used for authentication.
+ * @param args.ephemeralKeyPair - The ephemeral key pair used for the operation.
+ * @param args.uidKey - An optional unique identifier key (defaults to "sub").
+ * @param args.derivationPath - An optional derivation path for the key.
+ * @returns A Uint8Array containing the 48-byte `pepper_base`.
+ * @group Implementation
+ */
+export async function getPepperBase(args: {
+  aptosConfig: AptosConfig;
+  jwt: string;
+  ephemeralKeyPair: EphemeralKeyPair;
+  uidKey?: string;
+  derivationPath?: string;
+}): Promise<Uint8Array> {
+  const { aptosConfig, jwt, ephemeralKeyPair, uidKey = "sub", derivationPath } = args;
+
+  const body = {
+    jwt_b64: jwt,
+    epk: ephemeralKeyPair.getPublicKey().bcsToHex().toStringWithoutPrefix(),
+    exp_date_secs: ephemeralKeyPair.expiryDateSecs,
+    epk_blinder: Hex.fromHexInput(ephemeralKeyPair.blinder).toStringWithoutPrefix(),
+    uid_key: uidKey,
+    derivation_path: derivationPath,
+  };
+  const { data } = await postAptosPepperService<PepperFetchRequest, SignatureFetchResponse>({
+    aptosConfig,
+    path: "signature",
+    body,
+    originMethod: "getPepperBase",
+    overrides: { WITH_CREDENTIALS: false },
+  });
+  return Hex.fromHexInput(data.signature).toUint8Array();
 }
 
 /**
