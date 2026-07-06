@@ -6,8 +6,16 @@ on:
 permissions:
   contents: read
 
+# Serialize publishes for the same release tag so two runs can't race on the
+# same version; never cancel an in-flight publish (killing it mid-push is worse
+# than letting it finish). Different package tags still publish independently.
+concurrency:
+  group: publish-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
 jobs:
   publish:
+    name: Publish package to NPM
     runs-on: ubuntu-latest
     environment: npm-publish
     permissions:
