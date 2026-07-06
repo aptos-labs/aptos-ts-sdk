@@ -46,6 +46,14 @@ export type PepperFetchRequest = {
 export type PepperFetchResponse = { pepper: string; address: string };
 
 /**
+ * The response from the pepper service `signature` endpoint, containing the VUF signature — i.e. the
+ * 48-byte `pepper_base` (compressed BLS12-381 G1 point) from which the final pepper is derived.
+ * @group Implementation
+ * @category Types
+ */
+export type SignatureFetchResponse = { signature: string };
+
+/**
  * The response for keyless configuration containing the maximum committed EPK bytes.
  * @group Implementation
  * @category Types
