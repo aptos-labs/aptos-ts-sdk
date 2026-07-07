@@ -1,0 +1,66 @@
+name: "Publish to NPM"
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+# Serialize publishes for the same release tag so two runs can't race on the
+# same version; never cancel an in-flight publish (killing it mid-push is worse
+# than letting it finish). Different package tags still publish independently.
+concurrency:
+  group: publish-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish package to NPM
+    runs-on: ubuntu-latest
+    environment: npm-publish
+    permissions:
+      id-token: write # OIDC trusted publishing + provenance
+      contents: read
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # pin@v7.0.0
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-node-pnpm
+      - name: Resolve package and verify version matches tag
+        id: resolve
+        shell: bash
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          if [[ "$TAG" == ts-sdk-v* ]]; then
+            dir="."
+            version="${TAG#ts-sdk-v}"
+          elif [[ "$TAG" == confidential-asset-v* ]]; then
+            dir="confidential-asset"
+            version="${TAG#confidential-asset-v}"
+          else
+            echo "Tag '$TAG' is not a package release tag; skipping publish."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          pkg_version="$(node -p "require('./${dir}/package.json').version")"
+          if [[ "$version" != "$pkg_version" ]]; then
+            echo "Tag version ($version) != ${dir}/package.json version ($pkg_version)" >&2
+            exit 1
+          fi
+          echo "dir=$dir" >> "$GITHUB_OUTPUT"
+          echo "publish=true" >> "$GITHUB_OUTPUT"
+      - name: Install dependencies
+        if: steps.resolve.outputs.publish == 'true'
+        run: pnpm install --frozen-lockfile
+      # OIDC trusted publishing requires a one-time Trusted Publisher config on
+      # npmjs.com for each package (repo aptos-labs/aptos-ts-sdk, workflow
+      # publish.yaml, environment npm-publish). See CONTRIBUTING.md. No NPM_TOKEN
+      # secret is used. If the first release fails auth, verify the pinned pnpm
+      # performs OIDC trusted publishing; otherwise fall back to the npm CLI
+      # (npm i -g npm@latest && npm publish --provenance --access public).
+      - name: Publish to NPM (OIDC trusted publishing + provenance)
+        if: steps.resolve.outputs.publish == 'true'
+        working-directory: ${{ steps.resolve.outputs.dir }}
+        run: pnpm publish --provenance --no-git-checks

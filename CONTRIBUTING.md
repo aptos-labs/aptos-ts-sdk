@@ -151,35 +151,61 @@ necessary information and instructions to reproduce your issue.
 
 ## Releasing a new version
 
-### Create a release PR
+Releases are automated. The mechanical work is done by `scripts/prepareRelease.mjs`, and publishing
+to NPM is done by `.github/workflows/publish.yaml` when a GitHub Release is published. **Do not run
+`npm publish` by hand.**
 
-Simply update the version in `package.json` and `pnpm update-version` will take care of the rest. This will create a new
-version everywhere in the code, and generate documentation accordingly. Ensure you check out a new branch before running
-these commands.
+Agents can drive the whole flow via the release skill (`.claude/skills/release-ts-sdk/SKILL.md`, or
+the Cursor rule `.cursor/rules/release-ts-sdk.mdc`). To do it manually, follow the steps below.
 
-```bash
-git checkout "bump_version"
-// update version in `package.json`
-// update CHANGELOG.md
-pnpm update-version
-```
+Two packages release independently, each with its own version, changelog, and tag prefix:
 
-Then push the branch and create a new PR. Once the PR is approved, merge it into the main branch and pull locally.
+- `@aptos-labs/ts-sdk` (repo root) — tags `ts-sdk-vX.Y.Z`
+- `@aptos-labs/confidential-asset` (`confidential-asset/`) — tags `confidential-asset-vX.Y.Z`
 
-### Publish to NPM
+### 1. Prepare the release PR
 
-After you pulled latest main, it is recommended to first do a dry-run to make sure we are publishing only the files we need to. To do that run:
+First make sure the target changelog's `# Unreleased` section lists the changes being released
+(the prep script refuses an empty section). Then:
 
 ```bash
-npm publish --dry-run
+git checkout -b release/ts-sdk-v7.3.0
+# Bumps package.json, stamps the changelog with today's date, and (ts-sdk only)
+# syncs src/version.ts + regenerates docs:
+node scripts/prepareRelease.mjs --package ts-sdk --bump minor   # or --bump major|patch
+pnpm check
+pnpm check-version    # ts-sdk only
+git commit -am "chore: release ts-sdk v7.3.0"
+git push -u origin release/ts-sdk-v7.3.0
+gh pr create --fill
 ```
 
-This command gives us a preview of what we will be releasing to NPM, make sure it does not include hidden files or anything we dont want to publish. Also, compare the package size and the total files with what is on [npm](https://www.npmjs.com/package/@aptos-labs/ts-sdk) and validate it is reasonable.
+For `confidential-asset`, pass `--package confidential-asset` (it has no `src/version.ts` or docs,
+so only its `package.json` and `CHANGELOG.md` change). For a **major** release, also add an upgrade
+guide (`upgrade-guides/UPGRADE_GUIDE_X.Y.Z.md`) and reference it in the changelog. Get the PR
+approved and merge it into `main`.
 
-Then, when we are ready to publish to NPM, simply run:
+### 2. Tag and release
+
+After the PR is on `main` and you have pulled latest:
 
 ```bash
-npm publish
+git checkout main && git pull --ff-only
+git tag -a ts-sdk-v7.3.0 -m "ts-sdk v7.3.0"
+git push origin ts-sdk-v7.3.0
+gh release create ts-sdk-v7.3.0 --title "ts-sdk v7.3.0" --notes "<changelog section>"
 ```
 
-This command will build the SDK and publish it to NPM registry
+Publishing the GitHub Release triggers `publish.yaml`, which verifies the tag version matches
+`package.json`, then publishes to NPM with provenance. The publish waits for a one-click approval on
+the protected `npm-publish` environment.
+
+### One-time setup (repo admin)
+
+Before the first automated release, an admin must configure:
+
+1. **npmjs.com → each package → Settings → Trusted Publisher:** provider GitHub Actions, repository
+   `aptos-labs/aptos-ts-sdk`, workflow `publish.yaml`, environment `npm-publish`. Do this for both
+   `@aptos-labs/ts-sdk` and `@aptos-labs/confidential-asset`.
+2. **GitHub → repo Settings → Environments → `npm-publish`:** add required reviewers so publishing
+   pauses for approval.

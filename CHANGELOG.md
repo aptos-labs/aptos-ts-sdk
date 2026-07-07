@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Added
+
+- Automated release tooling: `scripts/prepareRelease.mjs` bumps a package's version and stamps its changelog, a two-phase release skill/Cursor rule (`.claude/skills/release-ts-sdk/`, `.cursor/rules/release-ts-sdk.mdc`) drives the version-bump PR and the tag + GitHub Release, and `.github/workflows/publish.yaml` publishes `@aptos-labs/ts-sdk` and `@aptos-labs/confidential-asset` to NPM with provenance via OIDC trusted publishing when a GitHub Release is published. See `CONTRIBUTING.md` and `docs/superpowers/specs/2026-07-06-automated-ts-sdk-releases-design.md`.
+
 ## Changed
 
 - Add offline/mocked-client unit tests raising coverage of previously-untested modules: `internal/faucet.ts` (`fundAccount`), `client/get.ts` pagination helpers (`getAptosFullNode`, `getAptosPepperService`, `paginateWithCursor`, `paginateWithObfuscatedCursor`, `getPageWithObfuscatedCursor`), `core/crypto/abstraction.ts` (`AbstractPublicKey`/`AbstractSignature`), `account/AbstractedAccount.ts`, `account/keylessSigner.ts` (`isKeylessSigner`), `api/account/abstraction.ts` (`AccountAbstraction`), `api/transactionSubmission/sign.ts` (`Sign`), `api/utils.ts` (`waitForIndexerOnVersion`), and `SimpleTransaction` BCS round trips in `transactions/instances`.
