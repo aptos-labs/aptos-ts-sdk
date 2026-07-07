@@ -3,11 +3,19 @@ import {
   computeNextVersion,
   getUnreleasedSection,
   hasUnreleasedContent,
+  isPlainSemver,
   isStrictlyGreater,
   parseArgs,
   setPackageVersion,
   stampChangelog,
 } from "../../scripts/prepareRelease.mjs";
+
+describe("isPlainSemver", () => {
+  it("accepts plain X.Y.Z", () => expect(isPlainSemver("7.3.0")).toBe(true));
+  it("rejects two-part version", () => expect(isPlainSemver("7.3")).toBe(false));
+  it("rejects prerelease suffix", () => expect(isPlainSemver("7.3.0-beta.1")).toBe(false));
+  it("rejects non-numeric", () => expect(isPlainSemver("v7.3.0")).toBe(false));
+});
 
 describe("computeNextVersion", () => {
   it("bumps patch", () => expect(computeNextVersion("7.2.0", "patch")).toBe("7.2.1"));

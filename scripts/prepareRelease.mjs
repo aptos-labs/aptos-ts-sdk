@@ -7,6 +7,15 @@ import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 /**
+ * True iff `version` is a plain `X.Y.Z` semver (no prerelease/build suffix).
+ * @param {string} version
+ * @returns {boolean}
+ */
+export function isPlainSemver(version) {
+  return /^\d+\.\d+\.\d+$/.test(version);
+}
+
+/**
  * Compute the next semver from a plain `X.Y.Z` current version.
  * @param {string} current
  * @param {"major"|"minor"|"patch"} bump
@@ -155,6 +164,13 @@ function main() {
   const pkgJsonText = readFileSync(cfg.pkgJsonPath, "utf8");
   const current = JSON.parse(pkgJsonText).version;
   const next = version ?? computeNextVersion(current, bump);
+
+  // `computeNextVersion` always returns plain semver, but an explicit
+  // `--version` is unchecked until here — reject a malformed value before it is
+  // written into package.json / the changelog.
+  if (!isPlainSemver(next)) {
+    throw new Error(`--version must be plain semver X.Y.Z: ${next}`);
+  }
 
   if (!isStrictlyGreater(next, current)) {
     throw new Error(`new version ${next} is not greater than current ${current}`);
