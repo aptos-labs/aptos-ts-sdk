@@ -117,6 +117,34 @@ describe("AccountSequenceNumber", () => {
       expect(results).toEqual([0n, 1n, 2n, 3n]);
       expect(mockedGetInfo).toHaveBeenCalledTimes(2);
     });
+
+    it("waits while another caller holds the lock", async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      mockedGetInfo.mockResolvedValue(accountInfo("0"));
+      const asn = makeAsn(account, { sleepTime: 10 });
+      asn.lock = true;
+
+      const pending = asn.nextSequenceNumber();
+      await vi.advanceTimersByTimeAsync(15);
+      asn.lock = false;
+
+      await expect(pending).resolves.toBe(0n);
+      vi.useRealTimers();
+    });
+
+    it("logs and returns the default sequence number when initialization fails", async () => {
+      const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+      mockedGetInfo.mockRejectedValue(new Error("network down"));
+      const asn = makeAsn(account);
+
+      await expect(asn.nextSequenceNumber()).resolves.toBe(0n);
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        "error in getting next sequence number for this account",
+        expect.any(Error),
+      );
+      errorSpy.mockRestore();
+    });
   });
 
   describe("synchronize", () => {

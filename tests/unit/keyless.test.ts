@@ -72,5 +72,32 @@ describe("Keyless", () => {
         }),
       ).toBe(true);
     });
+
+    it("fromBytes round-trips a serialized keyless account", () => {
+      const account = KeylessAccount.create({
+        jwt: keylessTestObject.JWT,
+        pepper: keylessTestObject.pepper,
+        ephemeralKeyPair: keylessTestObject.ephemeralKeyPair,
+        proof: keylessTestObject.proof,
+      });
+      const bytes = account.bcsToBytes();
+      const restored = KeylessAccount.fromBytes(bytes);
+      expect(restored.publicKey.toString()).toBe(account.publicKey.toString());
+      expect(restored.accountAddress.toString()).toBe(account.accountAddress.toString());
+    });
+
+    it("create rejects providing both verificationKey and verificationKeyHash", () => {
+      const verificationKeyHash = keylessTestConfig.verificationKey.hash();
+      expect(() =>
+        KeylessAccount.create({
+          jwt: keylessTestObject.JWT,
+          pepper: keylessTestObject.pepper,
+          ephemeralKeyPair: keylessTestObject.ephemeralKeyPair,
+          proof: keylessTestObject.proof,
+          verificationKey: keylessTestConfig.verificationKey,
+          verificationKeyHash,
+        }),
+      ).toThrow("Cannot provide both verificationKey and verificationKeyHash");
+    });
   });
 });

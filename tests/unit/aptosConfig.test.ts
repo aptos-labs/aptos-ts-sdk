@@ -8,6 +8,8 @@ import {
   NetworkToFaucetAPI,
   NetworkToNodeAPI,
   NetworkToIndexerAPI,
+  NetworkToPepperAPI,
+  NetworkToProverAPI,
   AptosApiType,
 } from "../../src/index.js";
 
@@ -97,5 +99,33 @@ describe("aptos config", () => {
     expect(aptosConfig.faucetConfig).toStrictEqual({ HEADERS: { faucet: "header" }, AUTH_TOKEN: "auth-token" });
     expect(aptosConfig.indexerConfig).toStrictEqual({ HEADERS: { indexer: "header" } });
     expect(aptosConfig.fullnodeConfig).toStrictEqual({ HEADERS: { fullnode: "header" } });
+  });
+
+  test("it resolves pepper and prover URLs for known networks", () => {
+    const aptosConfig = new AptosConfig({ network: Network.TESTNET });
+    expect(aptosConfig.getRequestUrl(AptosApiType.PEPPER)).toBe(NetworkToPepperAPI[Network.TESTNET]);
+    expect(aptosConfig.getRequestUrl(AptosApiType.PROVER)).toBe(NetworkToProverAPI[Network.TESTNET]);
+    expect(aptosConfig.isPepperServiceRequest(NetworkToPepperAPI[Network.TESTNET])).toBe(true);
+    expect(aptosConfig.isProverServiceRequest(NetworkToProverAPI[Network.TESTNET])).toBe(true);
+    expect(aptosConfig.isPepperServiceRequest("https://unknown.example")).toBe(false);
+  });
+
+  test("custom network requires explicit pepper and prover URLs", () => {
+    const aptosConfig = new AptosConfig({ network: Network.CUSTOM });
+    expect(() => aptosConfig.getRequestUrl(AptosApiType.PEPPER)).toThrow(/custom pepper service url/);
+    expect(() => aptosConfig.getRequestUrl(AptosApiType.PROVER)).toThrow(/custom prover service url/);
+
+    const withServices = new AptosConfig({
+      network: Network.CUSTOM,
+      pepper: "https://pepper.custom",
+      prover: "https://prover.custom",
+    });
+    expect(withServices.getRequestUrl(AptosApiType.PEPPER)).toBe("https://pepper.custom");
+    expect(withServices.getRequestUrl(AptosApiType.PROVER)).toBe("https://prover.custom");
+  });
+
+  test("getRequestUrl throws for unsupported api types", () => {
+    const aptosConfig = new AptosConfig({ network: Network.LOCAL });
+    expect(() => aptosConfig.getRequestUrl("unknown" as AptosApiType)).toThrow(/apiType unknown is not supported/);
   });
 });

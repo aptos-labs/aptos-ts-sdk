@@ -15,7 +15,12 @@ import { Ed25519PrivateKey } from "../../../src/core/crypto/ed25519.js";
 import { ChainId } from "../../../src/transactions/instances/chainId.js";
 import { ModuleId } from "../../../src/transactions/instances/moduleId.js";
 import { Identifier } from "../../../src/transactions/instances/identifier.js";
-import { RawTransaction } from "../../../src/transactions/instances/rawTransaction.js";
+import {
+  RawTransaction,
+  RawTransactionWithData,
+  MultiAgentRawTransaction,
+  FeePayerRawTransaction,
+} from "../../../src/transactions/instances/rawTransaction.js";
 import { MultiAgentTransaction } from "../../../src/transactions/instances/multiAgentTransaction.js";
 import { SimpleTransaction } from "../../../src/transactions/instances/simpleTransaction.js";
 import { RotationProofChallenge } from "../../../src/transactions/instances/rotationProofChallenge.js";
@@ -103,6 +108,44 @@ describe("transactions/instances — BCS round trips", () => {
       b.serialize(sb);
 
       expect(Array.from(sa.toUint8Array())).toEqual(Array.from(sb.toUint8Array()));
+    });
+  });
+
+  describe("RawTransactionWithData", () => {
+    it("round-trips MultiAgentRawTransaction with secondary signers", () => {
+      const raw = makeRawTransaction(11n);
+      const original = new MultiAgentRawTransaction(raw, [recipient, sponsor]);
+
+      const restored = roundTrip(original, RawTransactionWithData.deserialize);
+
+      expect(restored).toBeInstanceOf(MultiAgentRawTransaction);
+      const multi = restored as MultiAgentRawTransaction;
+      expect(multi.secondary_signer_addresses.map((a) => a.toString())).toEqual([
+        recipient.toString(),
+        sponsor.toString(),
+      ]);
+      expect(multi.raw_txn.sequence_number).toBe(11n);
+    });
+
+    it("round-trips FeePayerRawTransaction with fee payer and secondary signers", () => {
+      const raw = makeRawTransaction(15n);
+      const original = new FeePayerRawTransaction(raw, [recipient], sponsor);
+
+      const restored = roundTrip(original, RawTransactionWithData.deserialize);
+
+      expect(restored).toBeInstanceOf(FeePayerRawTransaction);
+      const feePayer = restored as FeePayerRawTransaction;
+      expect(feePayer.fee_payer_address.toString()).toBe(sponsor.toString());
+      expect(feePayer.secondary_signer_addresses).toHaveLength(1);
+      expect(feePayer.raw_txn.sequence_number).toBe(15n);
+    });
+
+    it("throws for unknown RawTransactionWithData variant indices", () => {
+      const serializer = new Serializer();
+      serializer.serializeU32AsUleb128(99);
+      expect(() => RawTransactionWithData.deserialize(new Deserializer(serializer.toUint8Array()))).toThrow(
+        /Unknown variant index for RawTransactionWithData/,
+      );
     });
   });
 

@@ -142,5 +142,18 @@ describe("updateFederatedKeylessJwkSetTransaction — JWKS URL validation", () =
         expect(message).toContain("ECONNREFUSED");
       }
     });
+
+    it("formats non-Error fetch rejections without leaking the full JWKS URL", async () => {
+      vi.spyOn(globalThis, "fetch").mockRejectedValue("offline");
+
+      await expect(
+        updateFederatedKeylessJwkSetTransaction({
+          aptosConfig,
+          sender,
+          iss: "https://example.com",
+          jwksUrl: "https://example.com/jwks.json",
+        }),
+      ).rejects.toThrow(/error unknown - offline/);
+    });
   });
 });

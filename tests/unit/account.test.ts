@@ -22,6 +22,8 @@ import {
 } from "../../src/index.js";
 import { KeylessAccount } from "../../src/account/KeylessAccount.js";
 import { MultiEd25519Account } from "../../src/account/MultiEd25519Account.js";
+import { AptosConfig } from "../../src/api/aptosConfig.js";
+import { Network } from "../../src/utils/apiEndpoints.js";
 
 import {
   ed25519,
@@ -60,6 +62,16 @@ describe("Account", () => {
     });
   });
   describe("fromPrivateKeyAndAddress", () => {
+    it("delegates to fromPrivateKey", () => {
+      const { privateKey: privateKeyBytes, address } = ed25519;
+      const privateKey = new Ed25519PrivateKey(privateKeyBytes);
+      const accountAddress = AccountAddress.from(address);
+      const viaAlias = Account.fromPrivateKeyAndAddress({ privateKey, address: accountAddress, legacy: true });
+      const direct = Account.fromPrivateKey({ privateKey, address: accountAddress, legacy: true });
+      expect(viaAlias.accountAddress.toString()).toBe(direct.accountAddress.toString());
+      expect(viaAlias.publicKey.toString()).toBe(direct.publicKey.toString());
+    });
+
     it("derives the correct account from a legacy ed25519 private key", () => {
       const { privateKey: privateKeyBytes, publicKey, address } = ed25519;
       const privateKey = new Ed25519PrivateKey(privateKeyBytes);
@@ -331,5 +343,20 @@ describe("Account", () => {
     const publicKey = new Ed25519PublicKey(publicKeyBytes);
     const authKey = publicKey.authKey();
     expect(authKey.derivedAddress().toString()).toBe(address);
+    expect(Account.authKey({ publicKey }).toString()).toBe(authKey.toString());
+  });
+
+  it("verifySignature and verifySignatureAsync delegate to the account public key", async () => {
+    const account = Account.generate();
+    const message = "0xabcd";
+    const signature = account.sign(message);
+    expect(account.verifySignature({ message, signature })).toBe(true);
+    await expect(
+      account.verifySignatureAsync({
+        aptosConfig: new AptosConfig({ network: Network.LOCAL }),
+        message,
+        signature,
+      }),
+    ).resolves.toBe(true);
   });
 });
