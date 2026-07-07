@@ -15,7 +15,7 @@
     "url": "git+https://github.com/aptos-labs/aptos-ts-sdk.git",
     "directory": "confidential-asset"
   },
-  "version": "2.1.0",
+  "version": "2.2.0",
   "type": "module",
   "sideEffects": false,
   "exports": {
