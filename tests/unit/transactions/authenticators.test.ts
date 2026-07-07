@@ -17,6 +17,8 @@ import {
   AccountAuthenticatorMultiKey,
   AccountAuthenticatorNoAccountAuthenticator,
   AccountAuthenticatorSingleKey,
+  AccountAuthenticatorAbstraction,
+  AccountAbstractionMessage,
 } from "../../../src/transactions/authenticator/account.js";
 import {
   TransactionAuthenticator,
@@ -209,6 +211,48 @@ describe("transactions/authenticator/transaction — variant round trips", () =>
     const a = new TransactionAuthenticatorEd25519(publicKey, signature);
     const b = new TransactionAuthenticatorEd25519(publicKey, signature);
     expect(Array.from(roundTripBytes(a))).toEqual(Array.from(roundTripBytes(b)));
+  });
+});
+
+describe("transactions/authenticator/account — abstraction variant", () => {
+  const functionInfo = "0x1::account::authenticate";
+  const digest = new Uint8Array([1, 2, 3, 4]);
+  const signature = new Uint8Array([9, 9, 9]);
+
+  it("V1 abstraction authenticator round-trips without account identity", () => {
+    const original = new AccountAuthenticatorAbstraction(functionInfo, digest, signature);
+    const restored = AccountAuthenticator.deserialize(new Deserializer(roundTripBytes(original)));
+
+    expect(restored).toBeInstanceOf(AccountAuthenticatorAbstraction);
+    const r = restored as AccountAuthenticatorAbstraction;
+    expect(r.functionInfo).toBe(functionInfo);
+    expect(r.abstractionSignature).toEqual(signature);
+    expect(r.accountIdentity).toBeUndefined();
+  });
+
+  it("DerivableV1 abstraction authenticator round-trips with account identity", () => {
+    const identity = new Uint8Array([7, 7]);
+    const original = new AccountAuthenticatorAbstraction(functionInfo, digest, signature, identity);
+    const restored = AccountAuthenticator.deserialize(new Deserializer(roundTripBytes(original)));
+
+    expect(restored).toBeInstanceOf(AccountAuthenticatorAbstraction);
+    const r = restored as AccountAuthenticatorAbstraction;
+    expect(r.accountIdentity).toEqual(identity);
+  });
+
+  it("rejects invalid function info at construction", () => {
+    expect(() => new AccountAuthenticatorAbstraction("not-a-function", digest, signature)).toThrow(
+      /Invalid function info/,
+    );
+  });
+
+  it("AccountAbstractionMessage round-trips", () => {
+    const original = new AccountAbstractionMessage(digest, functionInfo);
+    const s = new Serializer();
+    original.serialize(s);
+    const restored = AccountAbstractionMessage.deserialize(new Deserializer(s.toUint8Array()));
+    expect(restored.functionInfo).toBe(functionInfo);
+    expect(restored.originalSigningMessage.toUint8Array()).toEqual(digest);
   });
 });
 

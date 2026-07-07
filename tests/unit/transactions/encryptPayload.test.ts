@@ -5,7 +5,7 @@ import { vi, describe, test, expect, beforeEach, type MockedFunction } from "vit
 import { AptosConfig, Network } from "../../../src";
 import { AccountAddress, AuthenticationKey } from "../../../src/core";
 import { EntryFunction, TransactionPayloadEntryFunction } from "../../../src/transactions/instances/transactionPayload";
-import { PayloadAssociatedData } from "../../../src/transactions/instances/encryptedPayload";
+import { ClaimedEntryFunction, PayloadAssociatedData } from "../../../src/transactions/instances/encryptedPayload";
 import { buildEncryptedPayload } from "../../../src/transactions/transactionBuilder/encryptPayload";
 import { fetchAndCacheEncryptionKey } from "../../../src/internal/encryptionKey";
 import * as accountModule from "../../../src/internal/account";
@@ -190,6 +190,24 @@ describe("buildEncryptedPayload input validation", () => {
         },
       }),
     ).rejects.toThrow("feePayerAddress is missing or the zero address");
+  });
+
+  test("accepts a ClaimedEntryFunction instance in options", async () => {
+    mockFetch.mockResolvedValue({ key: { encrypt: vi.fn().mockReturnValue({}) }, epoch: 1n } as any);
+    const claim = ClaimedEntryFunction.fromEntryFunction(EntryFunction.build("0x1::aptos_account", "transfer", [], []));
+    const result = await buildEncryptedPayload({
+      aptosConfig: config,
+      sender,
+      payload: makePayload(),
+      feePayerAddress: AccountAddress.TWO,
+      options: {
+        encrypted: true,
+        senderAuthenticationKey: VALID_AUTH_KEY,
+        feePayerAuthenticationKey: VALID_AUTH_KEY,
+        claimedEntryFunction: claim,
+      },
+    });
+    expect(result.claimedEntryFunction?.moduleId.name.identifier).toBe("aptos_account");
   });
 
   test("throws when claimedEntryFunction module does not match the entry function", async () => {

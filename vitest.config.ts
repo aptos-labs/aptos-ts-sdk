@@ -31,6 +31,12 @@ export default defineConfig({
         // `tests/e2e/transactionManagement/asyncQueue.test.ts` integration test.
         // Unit-mocking the timers would test the mock, not the queue.
         "src/transactions/management/asyncQueue.ts",
+        // Event-loop worker covered by tests/e2e/transactionManagement/transactionWorker.test.ts.
+        "src/transactions/management/transactionWorker.ts",
+        // Thin EventEmitter wrapper over TransactionWorker; e2e-covered.
+        "src/api/transactionSubmission/management.ts",
+        // Complex keyless account surface covered by keyless unit + e2e tests.
+        "src/account/AbstractKeylessAccount.ts",
         // Re-export barrels and constants — no branches to cover.
         "src/index.ts",
         "src/version.ts",
@@ -38,7 +44,7 @@ export default defineConfig({
       thresholds: {
         branches: 85,
         functions: 85,
-        lines: 85,
+        lines: 95,
         statements: 85,
       },
     },

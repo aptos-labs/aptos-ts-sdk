@@ -28,6 +28,7 @@ vi.mock("../../../src/internal/fungibleAsset.js", () => ({
   getFungibleAssetActivities: vi.fn(),
   getCurrentFungibleAssetBalances: vi.fn(),
   transferFungibleAsset: vi.fn(),
+  transferFungibleAssetBetweenStores: vi.fn(),
 }));
 vi.mock("../../../src/api/utils.js", () => ({
   waitForIndexerOnVersion: vi.fn(),
@@ -47,6 +48,7 @@ import {
   getFungibleAssetActivities,
   getCurrentFungibleAssetBalances,
   transferFungibleAsset,
+  transferFungibleAssetBetweenStores,
 } from "../../../src/internal/fungibleAsset.js";
 import { waitForIndexerOnVersion } from "../../../src/api/utils.js";
 
@@ -67,6 +69,9 @@ const m = {
     typeof getCurrentFungibleAssetBalances
   >,
   transferFungibleAsset: transferFungibleAsset as MockedFunction<typeof transferFungibleAsset>,
+  transferFungibleAssetBetweenStores: transferFungibleAssetBetweenStores as MockedFunction<
+    typeof transferFungibleAssetBetweenStores
+  >,
   waitForIndexerOnVersion: waitForIndexerOnVersion as MockedFunction<typeof waitForIndexerOnVersion>,
 };
 
@@ -221,5 +226,56 @@ describe("api/FungibleAsset", () => {
     // This wrapper is a pure transaction builder — no waitForIndexerOnVersion
     // call is expected.
     expect(m.waitForIndexerOnVersion).not.toHaveBeenCalled();
+  });
+
+  it("getFungibleAssetMetadataByAssetType filters metadata by asset_type", async () => {
+    const item = { asset_type: "0x1::aptos_coin::AptosCoin" } as never;
+    m.getFungibleAssetMetadata.mockResolvedValue([item]);
+
+    const result = await fa.getFungibleAssetMetadataByAssetType({
+      assetType: "0x1::aptos_coin::AptosCoin",
+      minimumLedgerVersion: 2n,
+    });
+
+    expect(result).toBe(item);
+    expect(m.getFungibleAssetMetadata).toHaveBeenCalledWith({
+      aptosConfig: config,
+      options: { where: { asset_type: { _eq: "0x1::aptos_coin::AptosCoin" } } },
+    });
+  });
+
+  it("getFungibleAssetMetadataByCreatorAddress filters by creator_address", async () => {
+    const creator = Account.generate().accountAddress;
+    m.getFungibleAssetMetadata.mockResolvedValue([] as never);
+
+    await fa.getFungibleAssetMetadataByCreatorAddress({ creatorAddress: creator, minimumLedgerVersion: 3n });
+
+    expect(m.getFungibleAssetMetadata).toHaveBeenCalledWith({
+      aptosConfig: config,
+      options: { where: { creator_address: { _eq: creator.toString() } } },
+    });
+  });
+
+  it("transferFungibleAssetBetweenStores forwards store addresses to the internal builder", async () => {
+    m.transferFungibleAssetBetweenStores.mockResolvedValue("TXN2" as never);
+    const sender = Account.generate();
+    const fromStore = Account.generate().accountAddress;
+    const toStore = Account.generate().accountAddress;
+
+    const result = await fa.transferFungibleAssetBetweenStores({
+      sender,
+      fromStore,
+      toStore,
+      amount: 7,
+    });
+
+    expect(result).toBe("TXN2");
+    expect(m.transferFungibleAssetBetweenStores).toHaveBeenCalledWith({
+      aptosConfig: config,
+      sender,
+      fromStore,
+      toStore,
+      amount: 7,
+    });
   });
 });

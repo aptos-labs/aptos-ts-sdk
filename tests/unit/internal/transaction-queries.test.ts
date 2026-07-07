@@ -6,7 +6,7 @@
  * waitForTransaction has its own dedicated test (waitForTransactionRace.test.ts).
  */
 
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createMockClient, expectRequest } from "../../helpers/mockClient.js";
 import { clearMemoizeCache } from "../../../src/utils/memoize.js";
 import { AptosApiError } from "../../../src/errors/index.js";
@@ -18,8 +18,11 @@ import {
   longWaitForTransaction,
   getBlockByVersion,
   getBlockByHeight,
+  getTransactions,
+  waitForIndexer,
 } from "../../../src/internal/transaction.js";
 import { TransactionResponseType, type TransactionResponse } from "../../../src/types/index.js";
+import { ProcessorType } from "../../../src/utils/const.js";
 
 const gasEstimate = (
   overrides: Partial<{
@@ -140,6 +143,68 @@ describe("internal/transaction — basic queries", () => {
       await expect(isTransactionPending({ aptosConfig: mock.config, transactionHash: "0xabc" })).rejects.toBeInstanceOf(
         AptosApiError,
       );
+    });
+  });
+
+  describe("getTransactions", () => {
+    it("paginates the transactions endpoint with offset and limit", async () => {
+      const mock = createMockClient();
+      mock.enqueue({ data: [userTxn({ version: "1" }), userTxn({ version: "2", hash: "0x2" })] });
+
+      const txns = await getTransactions({ aptosConfig: mock.config, options: { offset: 10, limit: 2 } });
+
+      expect(txns).toHaveLength(2);
+      expect(txns[0].version).toBe("1");
+      expectRequest(mock.requests[0], {
+        method: "GET",
+        originMethod: "getTransactions",
+        urlIncludes: "/transactions",
+      });
+      expect(mock.requests[0]?.params).toMatchObject({ limit: 2 });
+      expect(txns[1].hash).toBe("0x2");
+    });
+  });
+
+  describe("waitForIndexer", () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("resolves when the indexer last success version meets the minimum", async () => {
+      const mock = createMockClient();
+      mock.enqueue({
+        data: { data: { processor_status: [{ processor: "default_processor", last_success_version: "500" }] } },
+      });
+
+      await expect(waitForIndexer({ aptosConfig: mock.config, minimumLedgerVersion: 400 })).resolves.toBeUndefined();
+    });
+
+    it("uses a specific processor type when provided", async () => {
+      const mock = createMockClient();
+      mock.enqueue({
+        data: { data: { processor_status: [{ processor: ProcessorType.DEFAULT, last_success_version: "88" }] } },
+      });
+
+      await waitForIndexer({
+        aptosConfig: mock.config,
+        minimumLedgerVersion: 80,
+        processorType: ProcessorType.DEFAULT,
+      });
+
+      const body = mock.requests[0]?.body as { variables?: { where_condition?: unknown } };
+      expect(body.variables?.where_condition).toEqual({ processor: { _eq: ProcessorType.DEFAULT } });
+    });
+
+    it("throws after the 3 second timeout when the indexer never catches up", async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      const mock = createMockClient();
+      mock.setDefault({
+        data: { data: { processor_status: [{ processor: "default_processor", last_success_version: "1" }] } },
+      });
+
+      const pending = waitForIndexer({ aptosConfig: mock.config, minimumLedgerVersion: 9999 });
+      await vi.advanceTimersByTimeAsync(3100);
+      await expect(pending).rejects.toThrow(/waitForLastSuccessIndexerVersionSync timeout/);
     });
   });
 

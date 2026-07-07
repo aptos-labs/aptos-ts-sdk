@@ -18,13 +18,17 @@ import {
   getResourceFallible,
   getAccountTokensCount,
   getAccountOwnedTokens,
+  getAccountOwnedTokensFromCollectionAddress,
+  getAccountCollectionsWithOwnedTokens,
   getAccountTransactionsCount,
   getAccountCoinsData,
   getAccountCoinsCount,
+  getAccountCoinAmount,
   getBalance,
   getAccountOwnedObjects,
   fetchAndCacheAuthKeyForAddress,
 } from "../../../src/internal/account.js";
+import { APTOS_COIN } from "../../../src/utils/const.js";
 
 const ACCOUNT = "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
 const long = (a: string) => AccountAddress.from(a).toStringLong();
@@ -279,6 +283,168 @@ describe("internal/account — indexer queries", () => {
 
       await expect(getAccountCoinsCount({ aptosConfig: mock.config, accountAddress: ACCOUNT })).rejects.toThrow(
         /Failed to get the count of account coins/,
+      );
+    });
+  });
+
+  describe("getAccountOwnedTokensFromCollectionAddress", () => {
+    it("filters by owner, collection id, and amount > 0", async () => {
+      const mock = createMockClient();
+      const collection = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+      const rows = [{ token_data_id: "0x1", amount: "1" }];
+      mock.enqueue({ data: { data: { current_token_ownerships_v2: rows } } });
+
+      const result = await getAccountOwnedTokensFromCollectionAddress({
+        aptosConfig: mock.config,
+        accountAddress: ACCOUNT,
+        collectionAddress: collection,
+        options: { tokenStandard: "v2", limit: 3 },
+      });
+
+      expect(result).toEqual(rows);
+      const body = mock.requests[0]?.body as {
+        variables: {
+          where_condition: {
+            owner_address: { _eq: string };
+            current_token_data: { collection_id: { _eq: string } };
+            token_standard?: { _eq: string };
+          };
+          limit: number;
+        };
+      };
+      expect(body.variables.where_condition.owner_address._eq).toBe(long(ACCOUNT));
+      expect(body.variables.where_condition.current_token_data.collection_id._eq).toBe(long(collection));
+      expect(body.variables.where_condition.token_standard).toEqual({ _eq: "v2" });
+      expect(body.variables.limit).toBe(3);
+    });
+  });
+
+  describe("getAccountCollectionsWithOwnedTokens", () => {
+    it("returns collection rows and forwards tokenStandard filter", async () => {
+      const mock = createMockClient();
+      const rows = [{ collection_id: "0x1", collection_name: "c" }];
+      mock.enqueue({ data: { data: { current_collection_ownership_v2_view: rows } } });
+
+      const result = await getAccountCollectionsWithOwnedTokens({
+        aptosConfig: mock.config,
+        accountAddress: ACCOUNT,
+        options: { tokenStandard: "v1" },
+      });
+
+      expect(result).toEqual(rows);
+      const body = mock.requests[0]?.body as {
+        variables: {
+          where_condition: { current_collection?: { token_standard: { _eq: string } } };
+        };
+      };
+      expect(body.variables.where_condition.current_collection?.token_standard).toEqual({ _eq: "v1" });
+    });
+  });
+
+  describe("getBalance", () => {
+    it("GETs accounts/<addr>/balance/<asset> and parses the numeric response", async () => {
+      const mock = createMockClient();
+      mock.enqueue({ data: 42 });
+
+      const balance = await getBalance({
+        aptosConfig: mock.config,
+        accountAddress: ACCOUNT,
+        asset: APTOS_COIN,
+      });
+
+      expect(balance).toBe(42);
+      expectRequest(mock.requests[0], {
+        method: "GET",
+        originMethod: "getBalance",
+        urlIncludes: "/balance/",
+      });
+    });
+  });
+
+  describe("getAccountCoinAmount", () => {
+    it("maps APTOS_COIN to the 0xA FA address and returns the first balance", async () => {
+      const mock = createMockClient();
+      mock.enqueue({
+        data: {
+          data: {
+            current_fungible_asset_balances: [{ asset_type: "0x1::aptos_coin::AptosCoin", amount: 77 }],
+          },
+        },
+      });
+
+      const amount = await getAccountCoinAmount({
+        aptosConfig: mock.config,
+        accountAddress: ACCOUNT,
+        coinType: APTOS_COIN,
+      });
+
+      expect(amount).toBe(77);
+      const body = mock.requests[0]?.body as {
+        variables: { where_condition: { asset_type: { _in: string[] } } };
+      };
+      expect(body.variables.where_condition.asset_type._in).toContain(APTOS_COIN);
+    });
+
+    it("returns 0 when no balance rows are returned", async () => {
+      const mock = createMockClient();
+      mock.enqueue({ data: { data: { current_fungible_asset_balances: [] } } });
+
+      const amount = await getAccountCoinAmount({
+        aptosConfig: mock.config,
+        accountAddress: ACCOUNT,
+        faMetadataAddress: AccountAddress.A,
+      });
+
+      expect(amount).toBe(0);
+    });
+
+    it("maps a non-APT coin type to a derived object FA address", async () => {
+      const mock = createMockClient();
+      mock.enqueue({
+        data: {
+          data: {
+            current_fungible_asset_balances: [{ asset_type: "0xface::coin::FakeCoin", amount: 9 }],
+          },
+        },
+      });
+
+      const amount = await getAccountCoinAmount({
+        aptosConfig: mock.config,
+        accountAddress: ACCOUNT,
+        coinType: "0xface::coin::FakeCoin",
+      });
+
+      expect(amount).toBe(9);
+    });
+
+    it("uses explicit faMetadataAddress when both coinType and faMetadataAddress are provided", async () => {
+      const mock = createMockClient();
+      mock.enqueue({
+        data: {
+          data: {
+            current_fungible_asset_balances: [{ asset_type: "0x1::aptos_coin::AptosCoin", amount: 5 }],
+          },
+        },
+      });
+
+      const amount = await getAccountCoinAmount({
+        aptosConfig: mock.config,
+        accountAddress: ACCOUNT,
+        coinType: APTOS_COIN,
+        faMetadataAddress: AccountAddress.A,
+      });
+
+      expect(amount).toBe(5);
+      const body = mock.requests[0]?.body as {
+        variables: { where_condition: { asset_type: { _in: string[] } } };
+      };
+      expect(body.variables.where_condition.asset_type._in).toHaveLength(2);
+    });
+
+    it("throws when neither coinType nor faMetadataAddress is provided", async () => {
+      const mock = createMockClient();
+      await expect(getAccountCoinAmount({ aptosConfig: mock.config, accountAddress: ACCOUNT })).rejects.toThrow(
+        /Either coinType, fungibleAssetAddress, or both must be provided/,
       );
     });
   });

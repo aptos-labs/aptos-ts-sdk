@@ -131,6 +131,29 @@ describe("MultiEd25519PublicKey", () => {
   });
 });
 
+describe("MultiEd25519PublicKey validation", () => {
+  it("rejects too few or too many public keys", () => {
+    const pk = new Ed25519PublicKey(new Uint8Array(32).fill(1));
+    expect(() => new MultiEd25519PublicKey({ publicKeys: [pk], threshold: 1 })).toThrow(/between 2 and/);
+    const tooMany = Array.from({ length: 33 }, () => new Ed25519PublicKey(new Uint8Array(32).fill(2)));
+    expect(() => new MultiEd25519PublicKey({ publicKeys: tooMany, threshold: 2 })).toThrow(/between 2 and/);
+  });
+
+  it("rejects invalid threshold values", () => {
+    const pks = [new Ed25519PublicKey(new Uint8Array(32).fill(1)), new Ed25519PublicKey(new Uint8Array(32).fill(2))];
+    expect(() => new MultiEd25519PublicKey({ publicKeys: pks, threshold: 0 })).toThrow(/Threshold must be between/);
+    expect(() => new MultiEd25519PublicKey({ publicKeys: pks, threshold: 3 })).toThrow(/Threshold must be between/);
+  });
+
+  it("deserializeWithoutLength reconstructs the same public key", () => {
+    const pks = multiEd25519PkTestObject.public_keys.map((hex) => new Ed25519PublicKey(hex));
+    const original = new MultiEd25519PublicKey({ publicKeys: pks, threshold: multiEd25519PkTestObject.threshold });
+    const restored = MultiEd25519PublicKey.deserializeWithoutLength(new Deserializer(original.toUint8Array()));
+    expect(restored.threshold).toBe(original.threshold);
+    expect(restored.toString()).toBe(original.toString());
+  });
+});
+
 describe("MultiEd25519Signature", () => {
   it("should serializes to bytes correctly", async () => {
     const edSigsArray = [];
@@ -177,9 +200,36 @@ describe("MultiEd25519Signature", () => {
     }).toThrow("Cannot have a signature larger than 31.");
   });
 
-  it("should throws exception when creating a bitmap with duplicate bits", async () => {
+  it("should throws exception when creating a bitmap with unsorted bits", async () => {
     expect(() => {
-      MultiEd25519Signature.createBitmap({ bits: [2, 2] });
-    }).toThrow("Duplicate bits detected.");
+      MultiEd25519Signature.createBitmap({ bits: [2, 1] });
+    }).toThrow("The bits need to be sorted in ascending order.");
+  });
+
+  it("rejects bitmaps with the wrong byte length", () => {
+    expect(
+      () =>
+        new MultiEd25519Signature({
+          signatures: [new Ed25519Signature(new Uint8Array(64))],
+          bitmap: new Uint8Array(3),
+        }),
+    ).toThrow(/bitmap.*length should be/);
+  });
+
+  it("rejects more than the maximum supported signatures", () => {
+    const signatures = Array.from({ length: 33 }, () => new Ed25519Signature(new Uint8Array(64)));
+    expect(() => new MultiEd25519Signature({ signatures, bitmap: [0] })).toThrow(/cannot be greater than/);
+  });
+
+  it("verifySignature throws when bitmap and signature counts mismatch", () => {
+    const pks = multiEd25519PkTestObject.public_keys.map((hex) => new Ed25519PublicKey(hex));
+    const multiPub = new MultiEd25519PublicKey({ publicKeys: pks, threshold: 2 });
+    const sig = new MultiEd25519Signature({
+      signatures: [new Ed25519Signature(new Uint8Array(64))],
+      bitmap: [0, 1],
+    });
+    expect(() => multiPub.verifySignature({ message: "0x00", signature: sig })).toThrow(
+      /Bitmap and signatures length mismatch/,
+    );
   });
 });

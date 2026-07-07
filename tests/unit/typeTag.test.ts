@@ -21,6 +21,8 @@ import {
   TypeTagI128,
   TypeTagI256,
   TypeTagVector,
+  TypeTagGeneric,
+  TypeTagReference,
   Deserializer,
   Serializer,
   parseTypeTag,
@@ -38,6 +40,7 @@ describe("Deserialize TypeTags", () => {
     const serializer = new Serializer();
     const tag = new TypeTagBool();
     expect(tag.isPrimitive()).toBe(true);
+    expect(tag.isBool()).toBe(true);
 
     tag.serialize(serializer);
 
@@ -48,6 +51,7 @@ describe("Deserialize TypeTags", () => {
     const serializer = new Serializer();
     const tag = new TypeTagU8();
     expect(tag.isPrimitive()).toBe(true);
+    expect(tag.isU8()).toBe(true);
 
     tag.serialize(serializer);
 
@@ -78,6 +82,7 @@ describe("Deserialize TypeTags", () => {
     const serializer = new Serializer();
     const tag = new TypeTagU64();
     expect(tag.isPrimitive()).toBe(true);
+    expect(tag.isU64()).toBe(true);
 
     tag.serialize(serializer);
 
@@ -192,6 +197,7 @@ describe("Deserialize TypeTags", () => {
     const serializer = new Serializer();
     const tag = new TypeTagAddress();
     expect(tag.isPrimitive()).toBe(true);
+    expect(tag.isAddress()).toBe(true);
 
     tag.serialize(serializer);
 
@@ -201,10 +207,78 @@ describe("Deserialize TypeTags", () => {
   test("deserializes a TypeTagSigner correctly", () => {
     const serializer = new Serializer();
     const tag = new TypeTagSigner();
+    expect(tag.isSigner()).toBe(true);
 
     tag.serialize(serializer);
 
     expect(TypeTag.deserialize(new Deserializer(serializer.toUint8Array()))).toBeInstanceOf(TypeTagSigner);
+  });
+
+  test("deserializes TypeTagGeneric for ABI type parameters", () => {
+    const serializer = new Serializer();
+    const tag = new TypeTagGeneric(3);
+    expect(tag.toString()).toBe("T3");
+    expect(tag.isGeneric()).toBe(true);
+
+    tag.serialize(serializer);
+    const restored = TypeTag.deserialize(new Deserializer(serializer.toUint8Array()));
+    expect(restored.isGeneric()).toBe(true);
+    if (!restored.isGeneric()) throw new Error("expected generic");
+    expect(restored.value).toBe(3);
+  });
+
+  test("rejects negative generic type parameter indices", () => {
+    expect(() => new TypeTagGeneric(-1)).toThrow(/cannot be negative/);
+  });
+
+  test("loads TypeTagReference via static load", () => {
+    const serializer = new Serializer();
+    new TypeTagSigner().serialize(serializer);
+
+    const restored = TypeTagReference.load(new Deserializer(serializer.toUint8Array()));
+    expect(restored.value.isSigner()).toBe(true);
+    expect(restored.toString()).toBe("&signer");
+  });
+
+  test("parses reference type tags from Move syntax", () => {
+    const tag = parseTypeTag("&signer");
+    expect(tag).toBeInstanceOf(TypeTagReference);
+    const ref = tag as TypeTagReference;
+    expect(ref.value.isSigner()).toBe(true);
+    expect(ref.toString()).toBe("&signer");
+  });
+
+  test("TypeTagReference serialize writes the reference variant tag", () => {
+    const ref = new TypeTagReference(new TypeTagSigner());
+    const serializer = new Serializer();
+    ref.serialize(serializer);
+    expect(serializer.toUint8Array().length).toBeGreaterThan(0);
+    expect(ref.toString()).toBe("&signer");
+  });
+
+  test("primitive type tags expose stable Move syntax via toString", () => {
+    expect(new TypeTagBool().toString()).toBe("bool");
+    expect(new TypeTagU128().toString()).toBe("u128");
+    expect(new TypeTagAddress().toString()).toBe("address");
+  });
+
+  test("TypeTagStruct toString includes generic type arguments", () => {
+    const parsed = parseTypeTag("0x1::some_module::SomeResource");
+    if (!parsed.isStruct()) {
+      throw new Error("Expected a struct type tag");
+    }
+    const tag = new TypeTagStruct(
+      new StructTag(parsed.value.address, parsed.value.moduleName, parsed.value.name, [new TypeTagU8()]),
+    );
+    expect(tag.toString()).toBe("0x1::some_module::SomeResource<u8>");
+  });
+
+  test("throws when deserializing an unknown TypeTag variant index", () => {
+    const serializer = new Serializer();
+    serializer.serializeU32AsUleb128(100);
+    expect(() => TypeTag.deserialize(new Deserializer(serializer.toUint8Array()))).toThrow(
+      /Unknown variant index for TypeTag/,
+    );
   });
 
   test("deserializes a TypeTagVector correctly", () => {

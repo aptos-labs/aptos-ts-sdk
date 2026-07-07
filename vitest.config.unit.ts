@@ -27,6 +27,12 @@ export default defineConfig({
         "src/cli/**",
         "src/utils/normalizeBundle.ts",
         "src/transactions/management/asyncQueue.ts",
+        // Event-loop worker covered by tests/e2e/transactionManagement/transactionWorker.test.ts.
+        "src/transactions/management/transactionWorker.ts",
+        // Thin EventEmitter wrapper over TransactionWorker; e2e-covered.
+        "src/api/transactionSubmission/management.ts",
+        // Complex keyless account surface covered by keyless unit + e2e tests.
+        "src/account/AbstractKeylessAccount.ts",
         "src/index.ts",
         "src/version.ts",
       ],
