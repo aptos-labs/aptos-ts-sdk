@@ -17,6 +17,7 @@ import { ModuleId } from "../../../src/transactions/instances/moduleId.js";
 import { Identifier } from "../../../src/transactions/instances/identifier.js";
 import { RawTransaction } from "../../../src/transactions/instances/rawTransaction.js";
 import { MultiAgentTransaction } from "../../../src/transactions/instances/multiAgentTransaction.js";
+import { SimpleTransaction } from "../../../src/transactions/instances/simpleTransaction.js";
 import { RotationProofChallenge } from "../../../src/transactions/instances/rotationProofChallenge.js";
 import {
   EntryFunction,
@@ -45,6 +46,27 @@ function makeRawTransaction(seq: bigint = 1n): RawTransaction {
 }
 
 describe("transactions/instances — BCS round trips", () => {
+  describe("SimpleTransaction", () => {
+    it("round-trips without a fee payer (boolean tag 0)", () => {
+      const original = new SimpleTransaction(makeRawTransaction(3n));
+
+      const restored = roundTrip(original, SimpleTransaction.deserialize);
+
+      expect(restored.feePayerAddress).toBeUndefined();
+      expect(restored.rawTransaction.sequence_number).toBe(3n);
+      expect(restored.secondarySignerAddresses).toBeUndefined();
+    });
+
+    it("round-trips with a fee payer (boolean tag 1)", () => {
+      const original = new SimpleTransaction(makeRawTransaction(8n), sponsor);
+
+      const restored = roundTrip(original, SimpleTransaction.deserialize);
+
+      expect(restored.feePayerAddress?.toString()).toBe(sponsor.toString());
+      expect(restored.rawTransaction.sequence_number).toBe(8n);
+    });
+  });
+
   describe("MultiAgentTransaction", () => {
     it("round-trips with one secondary signer and no fee payer (boolean tag 0)", async () => {
       const raw = makeRawTransaction();
