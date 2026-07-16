@@ -5,8 +5,110 @@ import { describe, expect, it } from "vitest";
 import { createMockClient } from "../../helpers/mockClient.js";
 import { Account } from "../../../src/account/Account.js";
 import { getAccountsForPublicKey } from "../../../src/internal/account.js";
+import { SigningSchemeInput } from "../../../src/types/index.js";
 
 describe("internal/account.getAccountsForPublicKey", () => {
+  it("does not query owned objects when the account resource exists", async () => {
+    const mock = createMockClient();
+    const account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
+    const authKeyHex = account.accountAddress.toString();
+
+    mock.setResponder((req) => {
+      if (req.method === "GET" && req.url?.includes("/transactions")) {
+        return { data: [] };
+      }
+      if (req.method === "GET" && req.url?.includes("/resource/0x1::account::Account")) {
+        return {
+          data: {
+            type: "0x1::account::Account",
+            data: { sequence_number: "0", authentication_key: authKeyHex },
+          },
+        };
+      }
+      if (req.method === "POST" && req.body && typeof req.body === "object" && "query" in req.body) {
+        const body = req.body as { query?: string };
+        if (body.query?.includes("current_objects")) {
+          return {
+            data: {
+              errors: [
+                {
+                  message: "Request Timed Out: Upstream took longer than 10000ms to respond",
+                  extensions: { code: "408" },
+                },
+              ],
+            },
+          };
+        }
+        if (body.query?.includes("public_key_auth_keys")) {
+          return { data: { data: { public_key_auth_keys: [] } } };
+        }
+        if (body.query?.includes("auth_key_account_addresses")) {
+          return { data: { data: { auth_key_account_addresses: [] } } };
+        }
+      }
+      return { data: {} };
+    });
+
+    const result = await getAccountsForPublicKey({
+      aptosConfig: mock.config,
+      publicKey: account.publicKey,
+    });
+
+    expect(result).toHaveLength(1);
+    expect(result[0].accountAddress.toString()).toBe(account.accountAddress.toString());
+    expect(
+      mock.requests.some((req) => req.body !== undefined && JSON.stringify(req.body).includes("current_objects")),
+    ).toBe(false);
+  });
+
+  it("queries owned objects to detect a light account when the account resource is absent", async () => {
+    const mock = createMockClient();
+    const account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
+
+    mock.setResponder((req) => {
+      if (req.method === "GET" && req.url?.includes("/transactions")) {
+        return { data: [] };
+      }
+      if (req.method === "GET" && req.url?.includes("/resource/0x1::account::Account")) {
+        return {
+          status: 404,
+          statusText: "Not Found",
+          data: { message: "resource not found", error_code: "resource_not_found" },
+        };
+      }
+      if (req.method === "POST" && req.body && typeof req.body === "object" && "query" in req.body) {
+        const body = req.body as { query?: string };
+        if (body.query?.includes("current_objects")) {
+          return {
+            data: {
+              data: {
+                current_objects: [{ object_address: "0x1" }],
+              },
+            },
+          };
+        }
+        if (body.query?.includes("public_key_auth_keys")) {
+          return { data: { data: { public_key_auth_keys: [] } } };
+        }
+        if (body.query?.includes("auth_key_account_addresses")) {
+          return { data: { data: { auth_key_account_addresses: [] } } };
+        }
+      }
+      return { data: {} };
+    });
+
+    const result = await getAccountsForPublicKey({
+      aptosConfig: mock.config,
+      publicKey: account.publicKey,
+    });
+
+    expect(result).toHaveLength(1);
+    expect(result[0].accountAddress.toString()).toBe(account.accountAddress.toString());
+    expect(
+      mock.requests.some((req) => req.body !== undefined && JSON.stringify(req.body).includes("current_objects")),
+    ).toBe(true);
+  });
+
   it("returns the default account when the auth-key address exists on-chain", async () => {
     const mock = createMockClient();
     const account = Account.generate();
