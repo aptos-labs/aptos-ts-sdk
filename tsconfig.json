@@ -15,7 +15,9 @@
     "noImplicitAny": true,
     "skipLibCheck": true,
     "outDir": "./dist",
-    "rootDir": "./src",
+    // rootDir is "." here so editor/typecheck can include tests and vitest config.
+    // Production emit sets rootDir to "./src" in tsconfig.build.json.
+    "rootDir": ".",
     "types": ["node", "vitest/globals"]
   },
   "include": ["src", "tests", "vitest.config.ts"]

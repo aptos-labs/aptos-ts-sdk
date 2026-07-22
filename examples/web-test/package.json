@@ -16,7 +16,7 @@
     "@types/node": "^22.20.0",
     "@playwright/test": "^1.61.1",
     "vite": "^7.3.5",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "pnpm": {
     "overrides": {

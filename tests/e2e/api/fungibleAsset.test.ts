@@ -33,7 +33,9 @@ describe("FungibleAsset", () => {
     let data = await aptos.getFungibleAssetMetadataByCreatorAddress({
       creatorAddress: "0x0000000000000000000000000000000000000000000000000000000000000001",
     });
-    expect(data[1].asset_type).toEqual(APTOS_FA);
+    // Creator 0x1 publishes both the FA metadata object (0xa) and the paired coin type.
+    // Ordering is not guaranteed by the indexer, so assert by asset_type presence.
+    expect(data.map((item) => item.asset_type).sort()).toEqual([APTOS_FA, APTOS_COIN].sort());
 
     // fetch by something that doesn't exist
     data = await aptos.getFungibleAssetMetadataByCreatorAddress({ creatorAddress: "0xc" });

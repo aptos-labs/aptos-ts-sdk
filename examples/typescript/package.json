@@ -54,7 +54,7 @@
     "@types/readline-sync": "1.4.8",
     "@types/superagent": "^8.1.10",
     "@types/node": "^22.20.0",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "tsx": "^4.22.4"
   },
   "pnpm": {
