@@ -23,7 +23,12 @@ runs:
       env:
         CODECOV_TOKEN: ${{ inputs.codecov-token }}
       run: |
+        if [ -z "${CODECOV_TOKEN}" ]; then
+          echo "::notice::CODECOV_TOKEN is unavailable (expected on Dependabot and fork PRs); skipping bundle upload."
+          exit 0
+        fi
         npx --yes @codecov/bundle-analyzer@2.0.1 ./dist \
           --bundle-name=@aptos-labs/ts-sdk \
-          --upload-token="${CODECOV_TOKEN}"
+          --upload-token="${CODECOV_TOKEN}" \
+          || echo "::warning::Codecov bundle upload failed; not failing the build."
       shell: bash
