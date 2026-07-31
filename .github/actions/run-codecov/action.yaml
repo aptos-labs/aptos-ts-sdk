@@ -17,7 +17,10 @@ runs:
     - name: Unit tests with coverage
       run: pnpm run test:coverage:unit
       shell: bash
+    # Dependabot and fork PRs do not receive repo secrets, so the token is empty
+    # there and the upload would fail on protected branches. Skip instead.
     - name: Upload coverage to Codecov
+      if: inputs.codecov-token != ''
       uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # pin@v5.5.5
       with:
         token: ${{ inputs.codecov-token }}
