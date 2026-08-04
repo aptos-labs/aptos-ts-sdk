@@ -9,6 +9,11 @@ For changes to the main Aptos TypeScript SDK (`@aptos-labs/ts-sdk`), see the [ro
 ## Added
 
 - `TwistedEd25519PrivateKey.clear()` and `isCleared()` mirror the lifecycle hooks on the main SDK's `Ed25519PrivateKey` / `Secp256k1PrivateKey`. After `clear()` is called, the underlying byte buffer of the `Hex` wrapper is overwritten and subsequent calls to `publicKey()`, `toUint8Array()`, `toString()`, and `toStringWithoutPrefix()` throw. **SECURITY NOTE:** as documented on the new JSDoc, this cannot fully zeroize the key in JavaScript — any `toString()` output already produced is an immutable JS string, and noble-curves / `ed25519modN` operations may have produced `BigInt` intermediates that also can't be wiped. Treat `clear()` as a best-effort window-narrowing tool, not a true zeroization guarantee.
+
+## Changed
+
+- Upgrade the package to pnpm 11.20.0 and migrate dependency overrides to pnpm 11's `pnpm-workspace.yaml` format.
+
 ## Breaking
 
 - **Confidential-asset decryption-key derivation now uses a domain-separated signing message.** The plaintext `TwistedEd25519PrivateKey.decryptionKeyDerivationMessage` constant has been **removed**. Callers must now use `TwistedEd25519PrivateKey.getDecryptionKeySigningMessage(network)`, which returns the 32-byte signing message `sha3_256("APTOS_CONFIDENTIAL_ASSETS::DK_DERIVATION::" || network)`. `network` is any `Network` value from `@aptos-labs/ts-sdk` (e.g. `Network.MAINNET`); the underlying enum string is what gets hashed. The previous plaintext message lacked any domain separation (no protocol tag, no chain binding, no envelope), so any other signing surface producing an Ed25519 signature over those exact bytes would recover the decryption key. New `TwistedEd25519PrivateKey.DK_DERIVATION_DOMAIN_PREFIX` constant exported alongside.

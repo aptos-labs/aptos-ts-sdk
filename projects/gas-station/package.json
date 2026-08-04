@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "packageManager": "pnpm@10.30.3",
+  "packageManager": "pnpm@11.20.0",
   "scripts": {
     "build": "tsc --noEmit",
     "start-server": "tsx src/server.ts",
@@ -25,16 +25,5 @@
     "@types/node": "^22.20.0",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"
-  },
-  "pnpm": {
-    "overrides": {
-      "minimatch@^9": "^9.0.7",
-      "qs@^6": "^6.15.2",
-      "glob@^10": "^10.5.0",
-      "rollup@^4": "^4.59.0",
-      "picomatch@^4": "^4.0.4",
-      "path-to-regexp@^8": "^8.4.0",
-      "form-data": "^4.0.6"
-    }
   }
 }

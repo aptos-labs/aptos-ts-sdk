@@ -4,7 +4,7 @@
   "description": "Test Aptos TypeScript SDK in real browsers using Playwright",
   "type": "module",
   "license": "SEE LICENSE IN LICENSE",
-  "packageManager": "pnpm@10.30.3",
+  "packageManager": "pnpm@11.20.0",
   "scripts": {
     "test": "playwright test",
     "test:headed": "playwright test --headed"
@@ -17,11 +17,5 @@
     "@playwright/test": "^1.61.1",
     "vite": "^7.3.5",
     "typescript": "^6.0.3"
-  },
-  "pnpm": {
-    "overrides": {
-      "postcss": "^8.5.10",
-      "esbuild": "^0.28.1"
-    }
   }
 }
