@@ -359,3 +359,32 @@ describe("Secp256r1Signature", () => {
     expect(signature.toString()).toEqual(singleSignerSecp256r1.signatureHex);
   });
 });
+
+describe("WebAuthnSignature", () => {
+  it("round-trips signature, authenticator data, and client data JSON through BCS", async () => {
+    const { WebAuthnSignature } = await import("../../src/core/crypto/secp256r1.js");
+    const original = new WebAuthnSignature(
+      new Uint8Array(64).fill(0xaa),
+      new Uint8Array([0x01, 0x02, 0x03]),
+      new TextEncoder().encode('{"type":"webauthn.get"}'),
+    );
+
+    const serializer = new Serializer();
+    original.serialize(serializer);
+    const restored = WebAuthnSignature.deserialize(new Deserializer(serializer.toUint8Array()));
+
+    expect(restored.signature.toString()).toBe(original.signature.toString());
+    expect(restored.authenticatorData.toString()).toBe(original.authenticatorData.toString());
+    expect(restored.clientDataJSON.toString()).toBe(original.clientDataJSON.toString());
+    expect(restored.bcsToHex().toString()).toBe(original.bcsToHex().toString());
+  });
+
+  it("throws when deserializing an unknown WebAuthnSignature variant id", async () => {
+    const { WebAuthnSignature } = await import("../../src/core/crypto/secp256r1.js");
+    const serializer = new Serializer();
+    serializer.serializeU32AsUleb128(1);
+    expect(() => WebAuthnSignature.deserialize(new Deserializer(serializer.toUint8Array()))).toThrow(
+      /Invalid id for WebAuthnSignature/,
+    );
+  });
+});

@@ -190,8 +190,9 @@ describe("abstraction api", () => {
       });
     });
 
-    // disable permission delegation write until it is fixed in prologue
-    describe("enable permissioned delegation and send a transaction with permissions", () => {
+    // Permissioned signers were removed from the Move framework (aptos-core#20198).
+    // Keep the SDK helper for now, but skip on-chain coverage until a replacement ships.
+    describe.skip("enable permissioned delegation and send a transaction with permissions", () => {
       const alice = Ed25519Account.generate();
       const bob = Ed25519Account.generate();
       const recipient = Ed25519Account.generate();

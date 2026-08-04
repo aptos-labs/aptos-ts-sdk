@@ -25,6 +25,13 @@ import {
   setDigitalAssetDescriptionTransaction,
   setDigitalAssetNameTransaction,
   setDigitalAssetURITransaction,
+  createCollectionTransaction,
+  mintDigitalAssetTransaction,
+  mintSoulBoundTransaction,
+  addDigitalAssetPropertyTransaction,
+  removeDigitalAssetPropertyTransaction,
+  updateDigitalAssetPropertyTransaction,
+  updateDigitalAssetTypedPropertyTransaction,
 } from "../../../src/internal/digitalAsset.js";
 import { generateTransaction } from "../../../src/internal/transactionSubmission.js";
 
@@ -155,6 +162,106 @@ describe("internal/digitalAsset transaction wrappers", () => {
 
       const data = mockedGenerateTransaction.mock.calls[0][0].data as { functionArguments: unknown[] };
       expect(data.functionArguments).toHaveLength(2);
+    });
+  });
+
+  describe("collection + mint wrappers", () => {
+    it("createCollectionTransaction forwards collection options", async () => {
+      await createCollectionTransaction({
+        aptosConfig,
+        creator: sender,
+        name: "c",
+        description: "d",
+        uri: "u",
+      });
+      const data = mockedGenerateTransaction.mock.calls[0][0].data as { function: string };
+      expect(data.function).toContain("create_collection");
+    });
+
+    it("mintDigitalAssetTransaction forwards collection + metadata", async () => {
+      await mintDigitalAssetTransaction({
+        aptosConfig,
+        creator: sender,
+        collection: "my-col",
+        description: "d",
+        name: "n",
+        uri: "u",
+      });
+      const data = mockedGenerateTransaction.mock.calls[0][0].data as { function: string };
+      expect(data.function).toContain("mint");
+    });
+
+    it("mintSoulBoundTransaction includes the recipient address", async () => {
+      await mintSoulBoundTransaction({
+        aptosConfig,
+        account: sender,
+        collection: "my-col",
+        description: "d",
+        name: "n",
+        uri: "u",
+        recipient,
+      });
+      const data = mockedGenerateTransaction.mock.calls[0][0].data as { functionArguments: unknown[] };
+      expect(data.functionArguments.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  describe("property mutation wrappers", () => {
+    it("addDigitalAssetPropertyTransaction forwards key/type/value", async () => {
+      await addDigitalAssetPropertyTransaction({
+        aptosConfig,
+        creator: sender,
+        digitalAssetAddress: digitalAsset,
+        propertyKey: "k",
+        propertyType: "STRING",
+        propertyValue: "v",
+      });
+      expect(mockedGenerateTransaction).toHaveBeenCalled();
+    });
+
+    it("removeDigitalAssetPropertyTransaction forwards the property key", async () => {
+      await removeDigitalAssetPropertyTransaction({
+        aptosConfig,
+        creator: sender,
+        digitalAssetAddress: digitalAsset,
+        propertyKey: "k",
+      });
+      expect(mockedGenerateTransaction).toHaveBeenCalled();
+    });
+
+    it("updateDigitalAssetPropertyTransaction forwards updated value", async () => {
+      await updateDigitalAssetPropertyTransaction({
+        aptosConfig,
+        creator: sender,
+        digitalAssetAddress: digitalAsset,
+        propertyKey: "k",
+        propertyType: "STRING",
+        propertyValue: "v2",
+      });
+      expect(mockedGenerateTransaction).toHaveBeenCalled();
+    });
+
+    it("updateDigitalAssetTypedPropertyTransaction targets update_typed_property with type args", async () => {
+      await updateDigitalAssetTypedPropertyTransaction({
+        aptosConfig,
+        creator: sender,
+        digitalAssetAddress: digitalAsset,
+        propertyKey: "level",
+        propertyType: "U64",
+        propertyValue: 42,
+        digitalAssetType: "0x4::token::Token",
+      });
+
+      expect(mockedGenerateTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sender: sender.accountAddress,
+          data: expect.objectContaining({
+            function: "0x4::aptos_token::update_typed_property",
+            typeArguments: ["0x4::token::Token", "u64"],
+            functionArguments: [digitalAsset, expect.anything(), 42],
+          }),
+        }),
+      );
     });
   });
 });

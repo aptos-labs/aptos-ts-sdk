@@ -1,0 +1,33 @@
+---
+description: Release @aptos-labs/ts-sdk or @aptos-labs/confidential-asset — version bump, changelog stamp, release PR, then tag + GitHub Release that triggers NPM publish.
+alwaysApply: false
+---
+
+# Releasing the Aptos TypeScript SDK
+
+Follow the same procedure as the Claude skill in @.claude/skills/release-ts-sdk/SKILL.md.
+All mechanical work is delegated to @scripts/prepareRelease.mjs; publishing is done by CI
+(@.github/workflows/publish.yaml) on GitHub Release — never publish by hand.
+
+Packages (independent versions):
+- `@aptos-labs/ts-sdk` (root) — tag prefix `ts-sdk-v`
+- `@aptos-labs/confidential-asset` (`confidential-asset/`) — tag prefix `confidential-asset-v`
+
+## Phase 1 — release PR
+1. Confirm package + bump type (`major`/`minor`/`patch`) with the maintainer.
+2. Ensure the target `# Unreleased` changelog section is populated (the script refuses if empty).
+3. `git checkout -b release/<pkg>-v<newVersion>`
+4. `node scripts/prepareRelease.mjs --package <pkg> --bump <type>`
+5. `pnpm check` (and `pnpm check-version` for ts-sdk); review `git diff`.
+6. `git commit -am "chore: release <pkg> v<newVersion>"`, push, `gh pr create --fill`.
+7. Ask the maintainer to review + merge, then re-run for Phase 2.
+
+## Phase 2 — tag + release (after merge)
+1. `git checkout main && git pull --ff-only`; confirm clean tree + version present.
+2. `git tag -a <pkg>-v<version> -m "<pkg> v<version>"` (refuse if it already exists).
+3. `git push origin <pkg>-v<version>`
+4. `gh release create <pkg>-v<version> --title "<pkg> v<version>" --notes-file <notes>`
+   using that version's changelog section as the notes.
+5. Report the Actions run URL; publishing waits on the `npm-publish` environment approval.
+
+Never run `npm publish` / `pnpm publish` locally. Never tag a dirty tree or non-`main` branch.

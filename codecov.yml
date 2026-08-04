@@ -27,6 +27,12 @@ ignore:
   - "src/utils/normalizeBundle.ts"
   # Long-running event-loop driver covered behaviorally by the e2e suite.
   - "src/transactions/management/asyncQueue.ts"
+  # Transaction worker queue covered by tests/e2e/transactionManagement/transactionWorker.test.ts.
+  - "src/transactions/management/transactionWorker.ts"
+  # EventEmitter wrapper over TransactionWorker; e2e-covered.
+  - "src/api/transactionSubmission/management.ts"
+  # Keyless account implementation covered by keyless unit + e2e suites.
+  - "src/account/AbstractKeylessAccount.ts"
   # Re-export barrel and version constant.
   - "src/index.ts"
   - "src/version.ts"

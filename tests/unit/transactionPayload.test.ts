@@ -115,6 +115,29 @@ describe("MultiSigTransactionPayload", () => {
     expect(msPayload.multiSig.transaction_payload?.transaction_payload).toBeInstanceOf(Script);
   });
 
+  test("round-trips MultiSig without an on-chain payload", () => {
+    const multisigAddress = AccountAddress.from("0x000000000000000000000000000000000000000000000000000000000000beef");
+    const multisig = new MultiSig(multisigAddress);
+    const txPayload = new TransactionPayloadMultiSig(multisig);
+
+    const ser = new Serializer();
+    txPayload.serialize(ser);
+    const deserialized = TransactionPayload.deserialize(new Deserializer(ser.toUint8Array()));
+
+    expect(deserialized).toBeInstanceOf(TransactionPayloadMultiSig);
+    const ms = (deserialized as TransactionPayloadMultiSig).multiSig;
+    expect(ms.multisig_address.toString()).toBe(multisigAddress.toString());
+    expect(ms.transaction_payload).toBeUndefined();
+  });
+
+  test("throws when deserializing an unknown MultiSigTransactionPayload variant", () => {
+    const serializer = new Serializer();
+    serializer.serializeU32AsUleb128(99);
+    expect(() => MultiSigTransactionPayload.deserialize(new Deserializer(serializer.toUint8Array()))).toThrow(
+      /Unknown MultisigTransactionPayload variant/,
+    );
+  });
+
   test("building an orderless multisig script payload", () => {
     const script = new Script(new Uint8Array([0xbe, 0xef]), [], []);
     const payload = new TransactionInnerPayloadV1(

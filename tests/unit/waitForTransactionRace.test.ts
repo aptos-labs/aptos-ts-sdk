@@ -7,6 +7,8 @@ import { AptosConfig } from "../../src/api/aptosConfig.js";
 import { Network } from "../../src/utils/apiEndpoints.js";
 import { TransactionResponseType, type TransactionResponse } from "../../src/types/index.js";
 import { getAptosFullNode } from "../../src/client/index.js";
+import { AptosApiError } from "../../src/errors/index.js";
+import { AptosApiType } from "../../src/utils/const.js";
 
 vi.mock("../../src/client", () => ({
   getAptosFullNode: vi.fn(),
@@ -139,5 +141,135 @@ describe("waitForTransaction — indexer-lag race (Bug 1)", () => {
     });
 
     expect((res as { success: boolean }).success).toBe(false);
+  });
+
+  test("rethrows non-AptosApiError from the initial fetch immediately", async () => {
+    mockedFetch.mockRejectedValueOnce(new TypeError("network down"));
+
+    await expect(waitForTransaction({ aptosConfig, transactionHash, options: { timeoutSecs: 5 } })).rejects.toThrow(
+      /network down/,
+    );
+  });
+
+  test("rethrows 4xx AptosApiError without polling", async () => {
+    mockedFetch.mockRejectedValueOnce(
+      new AptosApiError({
+        apiType: AptosApiType.FULLNODE,
+        aptosRequest: { url: "http://test/v1/transactions/by_hash/0xabc", method: "GET" },
+        aptosResponse: {
+          data: { message: "bad request", error_code: "invalid_input" },
+          status: 400,
+          statusText: "Bad Request",
+          url: "http://test/v1/transactions/by_hash/0xabc",
+          headers: {},
+        },
+      }),
+    );
+
+    await expect(
+      waitForTransaction({ aptosConfig, transactionHash, options: { timeoutSecs: 5 } }),
+    ).rejects.toBeInstanceOf(AptosApiError);
+    expect(mockedFetch).toHaveBeenCalledTimes(1);
+  });
+
+  test("retries after a 404 AptosApiError on the initial fetch, then resolves", async () => {
+    mockedFetch
+      .mockRejectedValueOnce(
+        new AptosApiError({
+          apiType: AptosApiType.FULLNODE,
+          aptosRequest: { url: "http://test/v1/transactions/by_hash/0xabc", method: "GET" },
+          aptosResponse: {
+            data: { message: "not found", error_code: "transaction_not_found" },
+            status: 404,
+            statusText: "Not Found",
+            url: "http://test/v1/transactions/by_hash/0xabc",
+            headers: {},
+          },
+        }),
+      )
+      .mockResolvedValueOnce({ data: settledTxn() } as any);
+
+    const res = await waitForTransaction({
+      aptosConfig,
+      transactionHash,
+      options: { timeoutSecs: 5 },
+    });
+
+    expect((res as { success: boolean }).success).toBe(true);
+    expect(mockedFetch).toHaveBeenCalledTimes(2);
+  });
+
+  test("retries when polling hits a 404 AptosApiError before settling", async () => {
+    mockedFetch
+      .mockResolvedValueOnce({ data: unsettledTxn() } as any)
+      .mockRejectedValueOnce(
+        new AptosApiError({
+          apiType: AptosApiType.FULLNODE,
+          aptosRequest: { url: "http://test/v1/transactions/by_hash/0xabc", method: "GET" },
+          aptosResponse: {
+            data: { message: "not found", error_code: "transaction_not_found" },
+            status: 404,
+            statusText: "Not Found",
+            url: "http://test/v1/transactions/by_hash/0xabc",
+            headers: {},
+          },
+        }),
+      )
+      .mockResolvedValueOnce({ data: settledTxn() } as any);
+
+    const res = await waitForTransaction({
+      aptosConfig,
+      transactionHash,
+      options: { timeoutSecs: 5 },
+    });
+
+    expect((res as { success: boolean }).success).toBe(true);
+    expect(mockedFetch).toHaveBeenCalledTimes(3);
+  });
+
+  test("continues when longWaitForTransaction returns a 404 AptosApiError", async () => {
+    mockedFetch
+      .mockResolvedValueOnce({ data: pendingTxn() } as any)
+      .mockRejectedValueOnce(
+        new AptosApiError({
+          apiType: AptosApiType.FULLNODE,
+          aptosRequest: { url: "http://test/v1/transactions/wait_by_hash/0xabc", method: "GET" },
+          aptosResponse: {
+            data: { message: "not found", error_code: "transaction_not_found" },
+            status: 404,
+            statusText: "Not Found",
+            url: "http://test/v1/transactions/wait_by_hash/0xabc",
+            headers: {},
+          },
+        }),
+      )
+      .mockResolvedValueOnce({ data: settledTxn() } as any);
+
+    const res = await waitForTransaction({
+      aptosConfig,
+      transactionHash,
+      options: { timeoutSecs: 10 },
+    });
+
+    expect((res as { success: boolean }).success).toBe(true);
+  });
+
+  test("throws the last AptosApiError when polling times out without a transaction body", async () => {
+    const apiError = new AptosApiError({
+      apiType: AptosApiType.FULLNODE,
+      aptosRequest: { url: "http://test/v1/transactions/by_hash/0xabc", method: "GET" },
+      aptosResponse: {
+        data: { message: "not found", error_code: "transaction_not_found" },
+        status: 404,
+        statusText: "Not Found",
+        url: "http://test/v1/transactions/by_hash/0xabc",
+        headers: {},
+      },
+    });
+    mockedFetch.mockRejectedValue(apiError);
+
+    await expect(waitForTransaction({ aptosConfig, transactionHash, options: { timeoutSecs: 0.2 } })).rejects.toBe(
+      apiError,
+    );
   });
 });

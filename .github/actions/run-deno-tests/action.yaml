@@ -55,5 +55,5 @@ runs:
       if: failure()
       run: |
         echo "::group::Local testnet logs"
-        cat ${{ runner.temp }}/local-testnet-logs.txt
+        cat "${{ runner.temp }}/local-testnet-logs.txt" 2>/dev/null || echo "(no local testnet logs found)"
         echo "::endgroup::"

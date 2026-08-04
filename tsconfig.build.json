@@ -1,6 +1,8 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    // Keep dist/ mirroring src/ (not workspace root).
+    "rootDir": "./src",
     // Scope ambient types for the production build to prevent accidental type
     // leaks in emitted .d.ts files:
     //   - Drops `vitest/globals` so test-runner types (`expect`, `describe`,

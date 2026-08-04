@@ -46,6 +46,13 @@ describe("memoize: cache management", () => {
     it("rejects an empty key for memoizeAsync as well", () => {
       expect(() => memoizeAsync(async () => 0, "")).toThrow(/non-empty string/);
     });
+
+    it("accepts cache keys with namespace prefixes", () => {
+      clearMemoizeCache();
+      const fn = memoize(() => 42, "ledger-info-test");
+      expect(fn()).toBe(42);
+      expect(getMemoizeCacheSize()).toBe(1);
+    });
   });
 
   describe("LRU eviction (sync)", () => {

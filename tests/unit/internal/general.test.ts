@@ -8,6 +8,7 @@ import {
   getProcessorStatuses,
   getProcessorStatus,
   getIndexerLastSuccessVersion,
+  getChainTopUserTransactions,
   queryIndexer,
 } from "../../../src/internal/general.js";
 import { clearMemoizeCache } from "../../../src/utils/memoize.js";
@@ -116,6 +117,19 @@ describe("internal/general (mocked client)", () => {
           query: { query: "query { x }" },
         }),
       ).rejects.toBeInstanceOf(AptosApiError);
+    });
+  });
+
+  describe("getChainTopUserTransactions", () => {
+    it("returns user_transactions from the indexer", async () => {
+      const mock = createMockClient();
+      const transactions = [{ version: "42" }];
+      mock.enqueue({ data: { data: { user_transactions: transactions } } });
+
+      const result = await getChainTopUserTransactions({ aptosConfig: mock.config, limit: 3 });
+
+      expect(result).toEqual(transactions);
+      expectRequest(mock.requests[0], { method: "POST", originMethod: "getChainTopUserTransactions" });
     });
   });
 
