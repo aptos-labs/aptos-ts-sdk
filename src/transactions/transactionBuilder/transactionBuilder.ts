@@ -65,6 +65,7 @@ import {
   InputGenerateSingleSignerRawTransactionArgs,
   InputGenerateTransactionOptions,
   InputScriptData,
+  InputMultiSigScriptData,
   InputSimulateTransactionData,
   InputMultiSigDataWithRemoteABI,
   InputEntryFunctionDataWithRemoteABI,
@@ -107,6 +108,11 @@ import { buildEncryptedPayload } from "./encryptPayload.js";
  *
  * @returns TransactionPayload - The generated transaction payload, which can be of type TransactionPayloadScript,
  * TransactionPayloadMultiSig, or TransactionPayloadEntryFunction.
+ * @group Implementation
+ * @category Transactions
+ */
+export async function generateTransactionPayload(args: InputMultiSigScriptData): Promise<TransactionPayloadMultiSig>;
+/**
  * @group Implementation
  * @category Transactions
  */
