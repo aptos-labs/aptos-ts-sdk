@@ -1,0 +1,15 @@
+autoInstallPeers: true
+strictPeerDependencies: false
+
+allowBuilds:
+  esbuild: true
+
+overrides:
+  shell-quote@^1: ^1.8.4
+  ws@^8: ^8.21.0
+  linkify-it: ^5.0.1
+  brace-expansion@^5: 5.0.6
+  markdown-it: ^14.2.0
+  js-yaml@^4: ^4.2.0
+  esbuild: ^0.28.1
+  "@babel/core": ^7.29.6

@@ -1,7 +1,7 @@
 {
   "name": "@aptos-labs/ts-sdk",
   "description": "Aptos TypeScript SDK",
-  "packageManager": "pnpm@10.30.3",
+  "packageManager": "pnpm@11.20.0",
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
@@ -154,18 +154,6 @@
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "vite": "^7.3.5",
     "vitest": "^4.1.4"
-  },
-  "pnpm": {
-    "overrides": {
-      "shell-quote@^1": "^1.8.4",
-      "ws@^8": "^8.21.0",
-      "linkify-it": "^5.0.1",
-      "brace-expansion@^5": "5.0.6",
-      "markdown-it": "^14.2.0",
-      "js-yaml@^4": "^4.2.0",
-      "esbuild": "^0.28.1",
-      "@babel/core": "^7.29.6"
-    }
   },
   "version": "7.2.0"
 }
