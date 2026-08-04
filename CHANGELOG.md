@@ -4,15 +4,20 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Fixed
+
+- **CI stability**: Fixed three intermittent CI failures affecting Dependabot PRs and test runs:
+  1. **safe-chain blocking transitive deps** — Added `baseline-browser-mapping` and `caniuse-lite` to `SAFE_CHAIN_MINIMUM_PACKAGE_AGE_EXCLUSIONS` in `setup-node-pnpm` action. These packages are republished frequently by browserslist and were causing ~36% Confidential Asset test failure rate when Dependabot refreshed lockfiles.
+  2. **Codecov upload failures on Dependabot** — Added conditional skip logic to codecov-action and bundle-analyzer when `CODECOV_TOKEN` is unavailable (expected on Dependabot and fork PRs where repo secrets are not accessible). This eliminated spurious 33% Codecov failure rate while preserving uploads on main branch and authenticated PRs.
+  3. **Missing testnet log file masking real errors** — Made `cat` of local testnet logs graceful (`2>/dev/null || echo`) across all test actions so that missing logs don't fail the failure-handling step. This was hiding the actual safe-chain/Codecov errors behind spurious `cat: no such file` exit codes.
+
 ## Added
 
+- `generateTransactionPayload` TypeScript overload for `InputMultiSigScriptData` (returns `TransactionPayloadMultiSig`), plus unit coverage for multisig script payloads. Localnet e2e for create/execute is skipped for now: indexing `MultisigTransactionPayload::Script` panics the current CLI indexer processor and takes down the shared localnet.
 - Automated release tooling: `scripts/prepareRelease.mjs` bumps a package's version and stamps its changelog, a two-phase release skill/Cursor rule (`.claude/skills/release-ts-sdk/`, `.cursor/rules/release-ts-sdk.mdc`) drives the version-bump PR and the tag + GitHub Release, and `.github/workflows/publish.yaml` publishes `@aptos-labs/ts-sdk` and `@aptos-labs/confidential-asset` to NPM with provenance via OIDC trusted publishing when a GitHub Release is published. See `CONTRIBUTING.md` and `docs/superpowers/specs/2026-07-06-automated-ts-sdk-releases-design.md`.
 
 ## Changed
 
-- Run localnet e2e tests sequentially (`vitest.config.e2e.ts` with `maxWorkers: 1` and `fileParallelism: false`); `pnpm test` now runs unit tests in parallel, then e2e tests one file at a time against the shared localnet.
-- Default `vitest.config.ts` only includes `tests/unit/**` (excludes e2e) so a bare `vitest run` cannot hit localnet without `globalSetup`.
-- Temporarily skip keyless e2e (and related network-dependent keyless cases) — the suite is long and destabilizes the shared localnet under CI.
 - Upgrade to TypeScript 7.0 (`tsc` 7.0.2). The root package keeps the TypeScript 6.0 programmatic API via `@typescript/typescript6` (aliased as `typescript`) for tools such as TypeDoc that still require it, and installs the native TypeScript 7 compiler as `@typescript/native` so `tsc` / `pnpm build` use 7.0. Examples and other packages that only invoke the CLI depend on `typescript@^7.0.2` directly. Align `tsconfig.json` `rootDir` with the confidential-asset package (`.` for editor/typecheck of `src` + `tests`; `./src` only in `tsconfig.build.json`) so full-project `tsc --noEmit` succeeds under TypeScript 6/7.
 
 - Adapt localnet e2e coverage to recent Aptos framework changes: skip the permissioned-delegation e2e (feature removed in aptos-core#20198), assert fungible-asset creator metadata by asset type rather than indexer row order, retarget table e2e tests away from the empty AptosCoin CoinInfo supply aggregator toward the genesis TypeInfo→FA metadata table, and pin account-abstraction example Move deps to `mainnet` so `SmartTable` compiles against current CLI.
@@ -20,13 +25,6 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Raise unit test line coverage threshold from 90% to 95% (`vitest.config.ts`) and add mocked-client unit tests across API wrappers, keyless/federated JWKS flows, `MultiKeyAccount`, transaction submission helpers, client `aptosRequest` error paths, type guards, and encrypted-payload claim handling. Tests assert forwarded arguments, parsed results, and error types/messages rather than smoke-only execution.
 
 - Add offline/mocked-client unit tests raising coverage of previously-untested modules: `internal/faucet.ts` (`fundAccount`), `client/get.ts` pagination helpers (`getAptosFullNode`, `getAptosPepperService`, `paginateWithCursor`, `paginateWithObfuscatedCursor`, `getPageWithObfuscatedCursor`), `core/crypto/abstraction.ts` (`AbstractPublicKey`/`AbstractSignature`), `account/AbstractedAccount.ts`, `account/keylessSigner.ts` (`isKeylessSigner`), `api/account/abstraction.ts` (`AccountAbstraction`), `api/transactionSubmission/sign.ts` (`Sign`), `api/utils.ts` (`waitForIndexerOnVersion`), and `SimpleTransaction` BCS round trips in `transactions/instances`.
-
-## Fixed
-
-- **CI stability**: Fixed three intermittent CI failures affecting Dependabot PRs and test runs:
-  1. **safe-chain blocking transitive deps** — Added `baseline-browser-mapping` and `caniuse-lite` to `SAFE_CHAIN_MINIMUM_PACKAGE_AGE_EXCLUSIONS` in `setup-node-pnpm` action. These packages are republished frequently by browserslist and were causing ~36% Confidential Asset test failure rate when Dependabot refreshed lockfiles.
-  2. **Codecov upload failures on Dependabot** — Added conditional skip logic to codecov-action and bundle-analyzer when `CODECOV_TOKEN` is unavailable (expected on Dependabot and fork PRs where repo secrets are not accessible). This eliminated spurious 33% Codecov failure rate while preserving uploads on main branch and authenticated PRs.
-  3. **Missing testnet log file masking real errors** — Made `cat` of local testnet logs graceful (`2>/dev/null || echo`) across all test actions so that missing logs don't fail the failure-handling step. This was hiding the actual safe-chain/Codecov errors behind spurious `cat: no such file` exit codes.
 
 # 7.2.0 (2026-07-06)
 
