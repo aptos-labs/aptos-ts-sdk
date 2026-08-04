@@ -2,7 +2,7 @@ autoInstallPeers: true
 strictPeerDependencies: false
 
 allowBuilds:
-  esbuild: false
+  esbuild: true
 
 overrides:
   shell-quote@^1: ^1.8.4

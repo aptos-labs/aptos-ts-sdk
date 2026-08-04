@@ -1,3 +1,6 @@
+allowBuilds:
+  esbuild: true
+
 overrides:
   "@aptos-labs/aptos-client": ^4.1.0
   glob@^10: ^10.5.0

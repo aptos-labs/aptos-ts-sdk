@@ -1,6 +1,9 @@
 autoInstallPeers: true
 strictPeerDependencies: false
 
+allowBuilds:
+  esbuild: true
+
 overrides:
   form-data@^4: ^4.0.6
   picomatch@^4: ^4.0.4
