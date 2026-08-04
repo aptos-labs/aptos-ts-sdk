@@ -158,13 +158,13 @@ export async function createMultisigScriptTransaction(
   multisigAddress: string,
   scriptData: InputScriptData,
 ) {
-  const { aptos, config } = getAptosClient();
+  const { aptos } = getAptosClient();
+  // Script / multisig-script payloads are built offline — no remote ABI / aptosConfig.
   const transactionPayload = await generateTransactionPayload({
     multisigAddress,
     bytecode: scriptData.bytecode,
     typeArguments: scriptData.typeArguments,
     functionArguments: scriptData.functionArguments,
-    aptosConfig: config,
   });
   const createMultisigTx = await aptos.transaction.build.simple({
     sender: owner.accountAddress,

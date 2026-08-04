@@ -25,8 +25,9 @@ runs:
         TMPDIR: ${{ runner.temp }}
       with:
         max_attempts: 3
-        timeout_minutes: 25
-        # This runs all the tests, both unit and e2e.
+        # Serial localnet e2e is slower than the old parallel mix; leave headroom for retries.
+        timeout_minutes: 40
+        # Unit tests (parallel) then localnet e2e (sequential).
         command: pnpm run test
 
     - name: Print local testnet logs on failure

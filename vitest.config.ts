@@ -6,16 +6,20 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * Default Vitest config (unit + e2e combined). Prefer `pnpm test`, which runs
- * unit tests in parallel and localnet e2e tests sequentially via separate configs.
+ * Default Vitest config for offline / unit-style runs.
+ *
+ * Localnet e2e lives in `vitest.config.e2e.ts` and is excluded here so a bare
+ * `vitest run` does not try to hit a node that was never started. Prefer
+ * `pnpm test` (unit parallel, then e2e sequential) or `pnpm unit-test` /
+ * `pnpm e2e-test` directly.
  */
 export default defineConfig({
   test: {
     globals: true,
     environment: "node",
     setupFiles: [path.resolve(__dirname, "tests/setupDotenv.ts")],
-    include: ["tests/**/*.test.ts"],
-    exclude: ["dist/**", "examples/**", "confidential-asset/**"],
+    include: ["tests/unit/**/*.test.ts"],
+    exclude: ["dist/**", "examples/**", "confidential-asset/**", "tests/e2e/**"],
     coverage: {
       provider: "v8",
       include: ["src/**/*.ts"],

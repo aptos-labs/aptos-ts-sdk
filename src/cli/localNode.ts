@@ -1,4 +1,6 @@
 import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
+import { appendFileSync } from "node:fs";
+import { join } from "node:path";
 import kill from "tree-kill";
 import { platform } from "node:os";
 
@@ -111,13 +113,25 @@ export class LocalNode {
 
     this.process = spawn(cliCommand, cliArgs, spawnConfig);
 
-    this.process.stdout?.on("data", (data: any) => {
+    // CI prints `${{ runner.temp }}/local-testnet-logs.txt` on failure (TMPDIR).
+    const logPath = process.env.TMPDIR ? join(process.env.TMPDIR, "local-testnet-logs.txt") : undefined;
+
+    const handleOutput = (data: any) => {
       const str = data.toString();
-      // Print local node output log
       if (this.showStdout) {
         console.log(str);
       }
-    });
+      if (logPath) {
+        try {
+          appendFileSync(logPath, str);
+        } catch {
+          // Best-effort logging only — never fail the node start on log I/O.
+        }
+      }
+    };
+
+    this.process.stdout?.on("data", handleOutput);
+    this.process.stderr?.on("data", handleOutput);
   }
 
   /**
