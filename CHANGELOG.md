@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 7.3.0 (2026-08-05)
+
 ## Fixed
 
 - **CI stability**: Fixed three intermittent CI failures affecting Dependabot PRs and test runs:
