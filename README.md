@@ -76,6 +76,23 @@ const modules = await aptos.getAccountModules({ accountAddress: "0x123" });
 const tokens = await aptos.getAccountOwnedTokens({ accountAddress: "0x123" });
 ```
 
+#### Reading pruned history
+
+Public fullnodes only retain a rolling window of recent history. Reads outside that window fail with `410 Gone` and an
+`archival_endpoint` naming a node that still holds the data. The SDK retries those reads against that endpoint and
+returns the result transparently, so historical queries keep working without any code change.
+
+Credentials are only sent to the archival endpoint when it is on the same site as the node you configured, since that
+endpoint is chosen by the node rather than by you. To disable the retry:
+
+```ts
+const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET, archivalFallback: false }));
+```
+
+> Note: `getTransactionByHash` is not covered. A pruned node cannot tell a pruned transaction from one that never
+> existed, so it answers `404` with no archival hint. Use `getTransactionByVersion` for historical lookups, or point
+> `fullnode` at an archival endpoint directly.
+
 ### Account management (default to Ed25519)
 
 > Note: We introduce a Single Sender authentication (as introduced in [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263)). Generating an account defaults to Legacy Ed25519 authentication with the option to use the Single Sender unified authentication.
