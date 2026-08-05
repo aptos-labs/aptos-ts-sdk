@@ -346,6 +346,12 @@ export type AptosSettings = {
   readonly transactionGenerationConfig?: TransactionGenerationConfig;
 
   readonly pluginSettings?: PluginSettings;
+
+  /**
+   * Whether reads of pruned history are retried against the archival endpoint the node advertises.
+   * Defaults to `true`.
+   */
+  readonly archivalFallback?: boolean;
 };
 
 /**

@@ -125,6 +125,17 @@ export class AptosConfig {
   private pluginConfig?: PluginConfig;
 
   /**
+   * Whether reads of pruned history are retried against the archival endpoint the node advertises in its
+   * `410 Gone` response. Defaults to `true`.
+   *
+   * The retry happens once, only for requests that would otherwise throw. Credentials are sent to the
+   * archival endpoint only when it is on the same site as the node, since the node chooses that URL.
+   *
+   * @group Client
+   */
+  readonly archivalFallback: boolean;
+
+  /**
    * Initializes an instance of the Aptos client with the specified settings.
    * This allows users to configure various aspects of the client, such as network and endpoints.
    *
@@ -140,6 +151,8 @@ export class AptosConfig {
    * @param settings.fullnodeConfig - Additional configuration for the fullnode.
    * @param settings.indexerConfig - Additional configuration for the indexer.
    * @param settings.faucetConfig - Additional configuration for the faucet.
+   * @param settings.archivalFallback - Whether to retry pruned reads against the node's archival endpoint,
+   * defaults to `true`.
    *
    * @example
    * ```typescript
@@ -190,6 +203,7 @@ export class AptosConfig {
     this.indexerConfig = settings?.indexerConfig ?? {};
     this.faucetConfig = settings?.faucetConfig ?? {};
     this.transactionGenerationConfig = settings?.transactionGenerationConfig ?? {};
+    this.archivalFallback = settings?.archivalFallback ?? true;
     this.pluginConfig = settings?.pluginSettings
       ? {
           ...settings.pluginSettings,

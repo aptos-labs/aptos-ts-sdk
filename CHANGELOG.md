@@ -250,6 +250,13 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # 6.2.0 (2026-03-22)
 
+## Added
+
+- Retry reads of pruned history against the archival endpoint the node advertises in its `410 Gone` response, so
+  historical Node API reads keep working as fullnodes move to a rolling history window. Enabled by default; opt out
+  with `new AptosConfig({ ..., archivalFallback: false })`. Credentials are only forwarded to the archival endpoint
+  when it is on the same site as the configured node.
+
 ## Fixed
 
 - Fix `@noble/curves` v2.x import in `external_signing` example (use `.js` extension for subpath exports)
