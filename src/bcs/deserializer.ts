@@ -527,9 +527,11 @@ export class Deserializer {
     // Maximum 5 bytes for uleb128-encoded u32 (7 bits per byte, 5*7=35 bits > 32 bits needed)
     const MAX_ULEB128_BYTES = 5;
     let bytesRead = 0;
+    let lastByte = 0;
 
     while (bytesRead < MAX_ULEB128_BYTES) {
       const byte = this.deserializeU8();
+      lastByte = byte;
       bytesRead += 1;
 
       value |= BigInt(byte & 0x7f) << BigInt(shift);
@@ -546,9 +548,11 @@ export class Deserializer {
       shift += 7;
     }
 
-    // If we read MAX_ULEB128_BYTES and the last byte had continuation bit set, it's malformed
-    if (bytesRead === MAX_ULEB128_BYTES && value > MAX_U32_NUMBER) {
-      throw new Error("Overflow while parsing uleb128-encoded uint32 value");
+    // If we read MAX_ULEB128_BYTES and the last byte still had its continuation
+    // bit set, another byte is signaled that a u32 cannot hold, so the encoding
+    // is malformed. This also rejects non-canonical zero-padded encodings.
+    if (bytesRead === MAX_ULEB128_BYTES && (lastByte & 0x80) !== 0) {
+      throw new Error("Malformed uleb128 encoding for uint32 value");
     }
 
     return Number(value);
