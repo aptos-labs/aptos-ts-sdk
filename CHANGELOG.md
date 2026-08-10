@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 7.3.0 (2026-08-05)
+
 ## Fixed
 
 - **CI stability**: Fixed three intermittent CI failures affecting Dependabot PRs and test runs:
@@ -15,6 +17,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - `generateTransactionPayload` TypeScript overload for `InputMultiSigScriptData` (returns `TransactionPayloadMultiSig`), plus unit coverage for multisig script payloads. Localnet e2e for create/execute is skipped for now: indexing `MultisigTransactionPayload::Script` panics the current CLI indexer processor and takes down the shared localnet.
 - Automated release tooling: `scripts/prepareRelease.mjs` bumps a package's version and stamps its changelog, a two-phase release skill/Cursor rule (`.claude/skills/release-ts-sdk/`, `.cursor/rules/release-ts-sdk.mdc`) drives the version-bump PR and the tag + GitHub Release, and `.github/workflows/publish.yaml` publishes `@aptos-labs/ts-sdk` and `@aptos-labs/confidential-asset` to NPM with provenance via OIDC trusted publishing when a GitHub Release is published. See `CONTRIBUTING.md` and `docs/superpowers/specs/2026-07-06-automated-ts-sdk-releases-design.md`.
+- Retry reads of pruned history against the archival endpoint the node advertises in its `410 Gone` response, so historical Node API reads keep working as fullnodes move to a rolling history window. Enabled by default; opt out with `new AptosConfig({ ..., archivalFallback: false })`. Credentials are only forwarded to the archival endpoint when it is on the same site as the configured node.
 
 ## Changed
 
@@ -249,13 +252,6 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add MultiEd25519 (K-of-N Ed25519) transfer example (`examples/typescript/multi_ed25519_transfer.ts`)
 
 # 6.2.0 (2026-03-22)
-
-## Added
-
-- Retry reads of pruned history against the archival endpoint the node advertises in its `410 Gone` response, so
-  historical Node API reads keep working as fullnodes move to a rolling history window. Enabled by default; opt out
-  with `new AptosConfig({ ..., archivalFallback: false })`. Credentials are only forwarded to the archival endpoint
-  when it is on the same site as the configured node.
 
 ## Fixed
 
