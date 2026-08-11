@@ -8,6 +8,7 @@ For changes to the main Aptos TypeScript SDK (`@aptos-labs/ts-sdk`), see the [ro
 
 ## Changed
 
+- Upgrade the package-manager pin to pnpm `11.21.0`.
 - Upgrade TypeScript to `^7.0.2`.
 
 ## Added
