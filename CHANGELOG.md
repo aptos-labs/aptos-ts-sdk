@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Changed
+
+- Upgrade repository package-manager pins to pnpm `11.21.0` and update dependency overrides for patched `brace-expansion`, `immutable`, `js-yaml`, `linkify-it`, `nanoid`, and `postcss` releases, eliminating known audit vulnerabilities.
+
 # 7.3.0 (2026-08-05)
 
 ## Fixed

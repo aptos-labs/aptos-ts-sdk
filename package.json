@@ -1,7 +1,7 @@
 {
   "name": "@aptos-labs/ts-sdk",
   "description": "Aptos TypeScript SDK",
-  "packageManager": "pnpm@11.20.0",
+  "packageManager": "pnpm@11.21.0",
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",

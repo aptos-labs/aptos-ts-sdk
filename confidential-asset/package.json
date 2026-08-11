@@ -1,7 +1,7 @@
 {
   "name": "@aptos-labs/confidential-asset",
   "description": "Aptos Confidential Assets SDK",
-  "packageManager": "pnpm@11.20.0",
+  "packageManager": "pnpm@11.21.0",
   "license": "SEE LICENSE IN LICENSE",
   "engines": {
     "node": ">=22.0.0"
