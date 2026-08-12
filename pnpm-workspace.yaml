@@ -5,14 +5,14 @@ allowBuilds:
   esbuild: true
 
 overrides:
-  shell-quote@^1: ^1.8.4
-  ws@^8: ^8.21.0
+  shell-quote@^1: ^1.10.0
+  ws@^8: ^8.21.3
   linkify-it: ^5.0.2
   brace-expansion@^5: 5.0.9
-  markdown-it: ^14.2.0
+  markdown-it: ^14.3.0
   js-yaml@^4: ^4.3.1
-  immutable: ^5.1.8
-  postcss: ^8.5.23
-  nanoid@^3: ^3.3.17
-  esbuild: ^0.28.1
-  "@babel/core": ^7.29.6
+  immutable: ^5.1.9
+  postcss: ^8.5.26
+  nanoid@^3: ^3.3.18
+  esbuild: ^0.28.2
+  "@babel/core": ^7.29.7

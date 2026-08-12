@@ -2,5 +2,5 @@ autoInstallPeers: true
 strictPeerDependencies: false
 
 overrides:
-  picomatch@^4: ^4.0.4
-  shell-quote@^1: ^1.8.4
+  picomatch@^4: ^4.0.5
+  shell-quote@^1: ^1.10.0
