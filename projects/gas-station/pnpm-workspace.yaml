@@ -1,3 +1,10 @@
+# 48 hours; matches Aikido Safe Chain's default minimum package age.
+minimumReleaseAge: 2880
+minimumReleaseAgeExclude:
+  - "@aptos-labs/*"
+  - baseline-browser-mapping
+  - caniuse-lite
+
 allowBuilds:
   esbuild: true
 

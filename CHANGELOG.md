@@ -8,6 +8,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Upgrade repository package-manager pins to pnpm `11.21.0` and update dependency overrides for patched `brace-expansion`, `immutable`, `js-yaml`, `linkify-it`, `nanoid`, and `postcss` releases, eliminating known audit vulnerabilities.
 - Update dependencies within current majors: `@noble/{ciphers,curves,hashes}` and `@scure/{bip32,bip39}` to `2.3.0`, Vitest to `4.1.10`, Vite to `7.3.6`, TypeDoc to `0.28.20`, GraphQL to `16.14.2`, Cucumber to `12.9.0`, and related codegen/dev tooling. Refresh pnpm overrides (`esbuild`, `ws`, `postcss`, `nanoid`, `markdown-it`, `immutable`, `shell-quote`, `@babel/core`) to patched releases. Pin GitHub Actions to the latest releases older than 3 days: `actions/checkout` v7.0.1, `actions/setup-node` v6.5.0, `pnpm/action-setup` v6.0.10, and `denoland/setup-deno` v2.0.5.
+- Align pnpm `minimumReleaseAge` (48 hours) with Aikido Safe Chain's default minimum package age, excluding `@aptos-labs/*`, `baseline-browser-mapping`, and `caniuse-lite`. Add a lockfile for `examples/deno-test` and use `--frozen-lockfile` in example CI installs so installs cannot resolve packages younger than 48 hours.
 
 # 7.3.0 (2026-08-05)
 

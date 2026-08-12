@@ -46,7 +46,7 @@ runs:
         timeout_minutes: 15
         command: |
           cd examples/bun-test
-          bun install
+          bun install --frozen-lockfile
           bun run test:all
 
     - name: Print local testnet logs on failure
