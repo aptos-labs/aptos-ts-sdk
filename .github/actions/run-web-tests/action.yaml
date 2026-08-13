@@ -34,7 +34,7 @@ runs:
     # Install web test dependencies and Playwright browsers
     - run: |
         cd examples/web-test
-        pnpm install
+        pnpm install --frozen-lockfile
         pnpm exec playwright install --with-deps chromium
       shell: bash
 

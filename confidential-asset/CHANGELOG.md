@@ -10,6 +10,8 @@ For changes to the main Aptos TypeScript SDK (`@aptos-labs/ts-sdk`), see the [ro
 
 - Upgrade the package-manager pin to pnpm `11.21.0`.
 - Upgrade TypeScript to `^7.0.2`.
+- Update dependencies within current majors: `@noble/{curves,hashes}` to `^2.3.0`, `@aptos-labs/confidential-asset-bindings` to `^1.1.2`, `@aptos-labs/ts-sdk` to `^7.3.0`, Vitest/`@vitest/*` to `^4.1.10`, Playwright to `^1.62.1`, and Vite to `^7.3.6`. Refresh pnpm overrides (`esbuild`, `postcss`, `undici`, `uuid`, `picomatch`, `brace-expansion`, `yauzl`, `js-yaml`) to patched releases.
+- Align pnpm `minimumReleaseAge` (48 hours) with Aikido Safe Chain's default minimum package age, excluding `@aptos-labs/*`, `baseline-browser-mapping`, and `caniuse-lite`.
 
 ## Added
 

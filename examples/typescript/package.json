@@ -44,17 +44,17 @@
   "author": "",
   "dependencies": {
     "@aptos-labs/ts-sdk": "link:../..",
-    "@noble/curves": "2.2.0",
-    "@noble/hashes": "^2.2.0",
+    "@noble/curves": "2.3.0",
+    "@noble/hashes": "^2.3.0",
     "npm-run-all2": "8.0.4",
     "readline-sync": "1.4.10",
     "superagent": "10.3.0"
   },
   "devDependencies": {
     "@types/readline-sync": "1.4.8",
-    "@types/superagent": "^8.1.10",
-    "@types/node": "^22.20.0",
+    "@types/superagent": "^8.1.11",
+    "@types/node": "^22.20.1",
     "typescript": "^7.0.2",
-    "tsx": "^4.22.4"
+    "tsx": "^4.23.11"
   }
 }

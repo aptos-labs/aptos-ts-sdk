@@ -1,6 +1,13 @@
 autoInstallPeers: true
 strictPeerDependencies: false
 
+# 48 hours; matches Aikido Safe Chain's default minimum package age.
+minimumReleaseAge: 2880
+minimumReleaseAgeExclude:
+  - "@aptos-labs/*"
+  - baseline-browser-mapping
+  - caniuse-lite
+
 overrides:
-  picomatch@^4: ^4.0.4
-  shell-quote@^1: ^1.8.4
+  picomatch@^4: ^4.0.5
+  shell-quote@^1: ^1.10.0

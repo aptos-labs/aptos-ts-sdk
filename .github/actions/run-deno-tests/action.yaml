@@ -8,7 +8,7 @@ runs:
     - uses: ./.github/actions/setup-node-pnpm
 
     # Install Deno
-    - uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282 # pin@v2.0.4
+    - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # pin@v2.0.5
       with:
         deno-version: v2.x
 
@@ -47,7 +47,7 @@ runs:
         timeout_minutes: 15
         command: |
           cd examples/deno-test
-          pnpm install
+          pnpm install --frozen-lockfile
           deno task test:all
 
     - name: Print local testnet logs on failure
