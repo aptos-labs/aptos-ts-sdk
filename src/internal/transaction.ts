@@ -23,7 +23,7 @@ import {
   CommittedTransactionResponse,
   Block,
 } from "../types/index.js";
-import { DEFAULT_TXN_TIMEOUT_SEC, ProcessorType } from "../utils/const.js";
+import { DEFAULT_INDEXER_SYNC_TIMEOUT_SEC, DEFAULT_TXN_TIMEOUT_SEC, ProcessorType } from "../utils/const.js";
 import { sleep } from "../utils/helpers.js";
 import { memoizeAsync } from "../utils/memoize.js";
 import { getIndexerLastSuccessVersion, getProcessorStatus } from "./general.js";
@@ -313,29 +313,34 @@ export async function waitForTransaction(args: {
 }
 
 /**
- * Waits for the indexer to sync up to the specified ledger version. The timeout is 3 seconds.
+ * Waits for the indexer to sync up to the specified ledger version.
  *
  * @param args - The arguments for the function.
  * @param args.aptosConfig - The configuration object for Aptos.
  * @param args.minimumLedgerVersion - The minimum ledger version that the indexer should sync to.
  * @param args.processorType - (Optional) The type of processor to check the last success version from.
+ * @param args.timeoutMilliseconds - (Optional) How long to wait before throwing. Defaults to 10 seconds.
  * @group Implementation
  */
 export async function waitForIndexer(args: {
   aptosConfig: AptosConfig;
   minimumLedgerVersion: AnyNumber;
   processorType?: ProcessorType;
+  timeoutMilliseconds?: number;
 }): Promise<void> {
   const { aptosConfig, processorType } = args;
   const minimumLedgerVersion = BigInt(args.minimumLedgerVersion);
-  const timeoutMilliseconds = 3000; // 3 seconds
+  const timeoutMilliseconds = args.timeoutMilliseconds ?? DEFAULT_INDEXER_SYNC_TIMEOUT_SEC * 1000;
   const startTime = Date.now();
   let indexerVersion = BigInt(-1);
 
   while (indexerVersion < minimumLedgerVersion) {
     // check for timeout
     if (Date.now() - startTime > timeoutMilliseconds) {
-      throw new Error("waitForLastSuccessIndexerVersionSync timeout");
+      throw new Error(
+        `waitForLastSuccessIndexerVersionSync timeout after ${timeoutMilliseconds}ms: indexer at version ${indexerVersion}, needed ${minimumLedgerVersion}. ` +
+          `If this is a faucet/fundAccount call, you can skip the wait with { waitForIndexer: false }.`,
+      );
     }
 
     if (processorType === undefined) {

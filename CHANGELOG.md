@@ -4,6 +4,12 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Fixed
+
+- **Indexer sync timeout**: Increased the default `waitForIndexer` timeout from 3s to 10s (`DEFAULT_INDEXER_SYNC_TIMEOUT_SEC`) so brief processor lag on localnet and public networks no longer throws `waitForLastSuccessIndexerVersionSync timeout`. The error now includes the current and target versions, and callers can pass `timeoutMilliseconds` for a custom budget.
+- **Account discovery**: `doesAccountExistAtAddress` now checks the `0x1::account::Account` resource first and skips the indexer `current_objects` query when the resource exists. A slow or timed-out owned-object query no longer fails discovery for standard accounts (light accounts without a resource still use the owned-object fallback).
+- **E2E reliability**: Account derivation and indexer-backed account queries now wait on `minimumLedgerVersion` after the relevant transaction. Transaction worker tests use isolated accounts, await `push`, and poll for the committed sequence number instead of a fixed sleep. Keyless e2e installs the federated test JWK from a local fixture instead of fetching GitHub on every test.
+
 ## Changed
 
 - Upgrade repository package-manager pins to pnpm `11.21.0` and update dependency overrides for patched `brace-expansion`, `immutable`, `js-yaml`, `linkify-it`, `nanoid`, and `postcss` releases, eliminating known audit vulnerabilities.

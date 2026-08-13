@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, ProofFetchStatus, ZkpVariant } from "../../../src/index.js";
+import { Account, ProofFetchStatus, ZkpVariant, MoveVector } from "../../../src/index.js";
 import { KeylessAccount } from "../../../src/account/KeylessAccount.js";
 import { FederatedKeylessAccount } from "../../../src/account/FederatedKeylessAccount.js";
 import { Groth16Zkp, ZeroKnowledgeSig, ZkProof } from "../../../src/core/crypto/keyless.js";
@@ -60,12 +60,43 @@ export const TEST_FEDERATED_JWT_TOKENS = [
   "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0LmZlZGVyYXRlZC5vaWRjLnByb3ZpZGVyIiwiYXVkIjoidGVzdC1rZXlsZXNzLWRhcHAiLCJzdWIiOiJ0ZXN0LXVzZXItMTkiLCJlbWFpbCI6InRlc3RAYXB0b3NsYWJzLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpYXQiOjk4NzY1NDMyMDksImV4cCI6OTg3NjU0MzIxMCwibm9uY2UiOiIxOTY0MzY5ODg2MTI2NTU2NzgwNDkwOTkxMzEzMDUwNzI0NzgxNDUyNjkxMzU3MDIyODMxNjQxNzM3Nzk2NTEwNTY4MTc5NjE3MzA5OCJ9.xYHVyi1BCZB5szBOS4xbDtORAreaTiDmYfR8l3mmApQgLuAzkv4fPGuClLEitD9rrh1hVQ1tgYqk05cXKA_al6vEa8maxduPd-Q41Yp4Ji3-CU-MgQYqtZNyWPxv9dvMxCat_BCs8z1tZ9g1d7fLGs2G5-IgDhlNhmsmCanLxUUDijPtjvA6xZfRqR4lzS2MtyzPO7dMS7YZFV47O2Rl4CHhDOBPHqplJ1I_T26zurvuZWxT3vOy4qm863dPqRli4UNMTAxGfUB2xn8j36SyhqYzfYuOXjHnTgHsxP3yHY2vg6ttnscoU-Ue4HN6ICeAgnUUXdDpoaPan4qO1OLunA",
 ];
 
-const KEYLESS_TEST_TIMEOUT = 12000;
+const KEYLESS_TEST_TIMEOUT = 60_000;
+
+/** Aptos core `secure_test_jwk.json` — installed on-chain without fetching GitHub. */
+const SECURE_TEST_RSA_JWK = {
+  kid: "test-rsa",
+  alg: "RS256",
+  e: "AQAB",
+  n: "y5Efs1ZzisLLKCARSvTztgWj5JFP3778dZWt-od78fmOZFxem3a_aYbOXSJToRp862do0PxJ4PDMpmqwV5f7KplFI6NswQV-WPufQH8IaHXZtuPdCjPOcHybcDiLkO12d0dG6iZQUzypjAJf63APcadio-4JDNWlGC5_Ow_XQ9lIY71kTMiT9lkCCd0ZxqEifGtnJe5xSoZoaMRKrvlOw-R6iVjLUtPAk5hyUX95LDKxwAR-oshnj7gmATejga2EvH9ozdn3M8Go11PSDa04OQxPcA25OoDTfxLvT28LRpSXrbmUWZ-O_lGtDl3ZAtjIguYGEobTk4N11eRssC95Cw",
+};
 
 describe("keyless api", () => {
   const ephemeralKeyPair = EPHEMERAL_KEY_PAIR;
   const { aptos } = getAptosClient();
   const jwkAccount = Account.generate();
+
+  async function installFederatedJwks(args: {
+    sender: Account;
+    iss: string;
+    keys: Array<{ kid: string; alg: string; e: string; n: string }>;
+  }) {
+    const { sender, iss, keys } = args;
+    const jwkTransaction = await aptos.transaction.build.simple({
+      sender: sender.accountAddress,
+      data: {
+        function: "0x1::jwks::update_federated_jwk_set",
+        functionArguments: [
+          iss,
+          MoveVector.MoveString(keys.map((key) => key.kid)),
+          MoveVector.MoveString(keys.map((key) => key.alg)),
+          MoveVector.MoveString(keys.map((key) => key.e)),
+          MoveVector.MoveString(keys.map((key) => key.n)),
+        ],
+      },
+    });
+    const committedJwkTxn = await aptos.signAndSubmitTransaction({ signer: sender, transaction: jwkTransaction });
+    await aptos.waitForTransaction({ transactionHash: committedJwkTxn.hash });
+  }
 
   beforeEach(async () => {
     // Clear the memoize cache to ensure fresh JWK lookups after installing new JWKs
@@ -74,13 +105,11 @@ describe("keyless api", () => {
       accountAddress: jwkAccount.accountAddress,
       amount: FUND_AMOUNT,
     });
-    const jwkTransaction = await aptos.updateFederatedKeylessJwkSetTransaction({
+    await installFederatedJwks({
       sender: jwkAccount,
       iss: "test.federated.oidc.provider",
-      jwksUrl: "https://github.com/aptos-labs/aptos-core/raw/main/types/src/jwks/rsa/secure_test_jwk.json",
+      keys: [SECURE_TEST_RSA_JWK],
     });
-    const committedJwkTxn = await aptos.signAndSubmitTransaction({ signer: jwkAccount, transaction: jwkTransaction });
-    await aptos.waitForTransaction({ transactionHash: committedJwkTxn.hash });
   });
 
   test(
@@ -156,14 +185,12 @@ describe("keyless api", () => {
       });
       const recipient = Account.generate();
 
-      // Now rotate the JWKs
-      const jwkTransaction = await aptos.updateFederatedKeylessJwkSetTransaction({
+      // Now rotate the JWKs to a different kid so the original JWT's kid is no longer installed.
+      await installFederatedJwks({
         sender: jwkAccount,
         iss: "test.federated.oidc.provider",
-        jwksUrl: "https://dev-qtdgjv22jh0v1k7g.us.auth0.com/.well-known/jwks.json",
+        keys: [{ ...SECURE_TEST_RSA_JWK, kid: "test-rsa-rotated" }],
       });
-      const committedJwkTxn = await aptos.signAndSubmitTransaction({ signer: jwkAccount, transaction: jwkTransaction });
-      await aptos.waitForTransaction({ transactionHash: committedJwkTxn.hash });
 
       await expect(simpleCoinTransactionHelper(aptos, account, recipient)).rejects.toThrow(
         "JWK with kid 'test-rsa' for issuer 'test.federated.oidc.provider' not found",

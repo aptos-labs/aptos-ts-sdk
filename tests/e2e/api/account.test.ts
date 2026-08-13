@@ -18,6 +18,7 @@ import {
 } from "../../../src/index.js";
 import { getAptosClient } from "../helper.js";
 import { simpleCoinTransactionHeler } from "../transaction/helper.js";
+import { longTestTimeout } from "../../unit/helper.js";
 
 describe("account api", () => {
   const FUND_AMOUNT = 1_000_000_000;
@@ -229,6 +230,7 @@ describe("account api", () => {
       await aptos.waitForTransaction({ transactionHash: response.hash });
       const accountTransactionsCount = await aptos.getAccountTransactionsCount({
         accountAddress: senderAccount.accountAddress,
+        minimumLedgerVersion: BigInt(response.version),
       });
       expect(accountTransactionsCount).toBe(1);
     });
@@ -245,6 +247,7 @@ describe("account api", () => {
       await aptos.waitForTransaction({ transactionHash: fundTxn.hash });
       const accountCoinData = await aptos.getAccountCoinsData({
         accountAddress: senderAccount.accountAddress,
+        minimumLedgerVersion: BigInt(fundTxn.version),
       });
       expect(accountCoinData[0].amount).toBe(FUND_AMOUNT);
       expect(accountCoinData[0].asset_type).toBe("0x1::aptos_coin::AptosCoin");
@@ -262,6 +265,7 @@ describe("account api", () => {
       await aptos.waitForTransaction({ transactionHash: fundTxn.hash });
       const accountCoinsCount = await aptos.getAccountCoinsCount({
         accountAddress: senderAccount.accountAddress,
+        minimumLedgerVersion: BigInt(fundTxn.version),
       });
       expect(accountCoinsCount).toBe(1);
     });
@@ -417,27 +421,48 @@ describe("account api", () => {
       });
       const aptos = new Aptos(config);
 
-      test("single sender ed25519", async () => {
-        const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
-        await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100 });
+      test(
+        "single sender ed25519",
+        async () => {
+          const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
+          const fundTxn = await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100 });
 
-        const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
-        expect(derivedAccount.accountAddress.equals(account.accountAddress)).toEqual(true);
-      }, 15000);
-      test("single sender secp256k1", async () => {
-        const account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
-        await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100 });
+          const derivedAccount = await aptos.deriveAccountFromPrivateKey({
+            privateKey: account.privateKey,
+            minimumLedgerVersion: BigInt(fundTxn.version),
+          });
+          expect(derivedAccount.accountAddress.equals(account.accountAddress)).toEqual(true);
+        },
+        longTestTimeout,
+      );
+      test(
+        "single sender secp256k1",
+        async () => {
+          const account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
+          const fundTxn = await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100 });
 
-        const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
-        expect(derivedAccount).toStrictEqual(account);
-      });
-      test("legacy ed25519", async () => {
-        const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
-        await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100 });
+          const derivedAccount = await aptos.deriveAccountFromPrivateKey({
+            privateKey: account.privateKey,
+            minimumLedgerVersion: BigInt(fundTxn.version),
+          });
+          expect(derivedAccount).toStrictEqual(account);
+        },
+        longTestTimeout,
+      );
+      test(
+        "legacy ed25519",
+        async () => {
+          const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+          const fundTxn = await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100 });
 
-        const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
-        expect(derivedAccount).toStrictEqual(account);
-      });
+          const derivedAccount = await aptos.deriveAccountFromPrivateKey({
+            privateKey: account.privateKey,
+            minimumLedgerVersion: BigInt(fundTxn.version),
+          });
+          expect(derivedAccount).toStrictEqual(account);
+        },
+        longTestTimeout,
+      );
       test("fails when account not created/funded and throwIfNoAccountFound is true", async () => {
         const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
 
@@ -460,146 +485,162 @@ describe("account api", () => {
   });
 
   describe("Key Rotation", () => {
-    test("it should rotate ed25519 to ed25519 auth key correctly", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+    test(
+      "it should rotate ed25519 to ed25519 auth key correctly",
+      async () => {
+        const config = new AptosConfig({ network: Network.LOCAL });
+        const aptos = new Aptos(config);
 
-      // Current Account
-      const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
-      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
+        // Current Account
+        const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+        await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
 
-      // account that holds the new key
-      const rotateToPrivateKey = Ed25519PrivateKey.generate();
+        // account that holds the new key
+        const rotateToPrivateKey = Ed25519PrivateKey.generate();
 
-      // Rotate the key
-      const txn = await aptos.rotateAuthKey({ fromAccount: account, toNewPrivateKey: rotateToPrivateKey });
-      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account, transaction: txn });
-      const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+        // Rotate the key
+        const txn = await aptos.rotateAuthKey({ fromAccount: account, toNewPrivateKey: rotateToPrivateKey });
+        const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account, transaction: txn });
+        const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
-      // lookup original account address
-      const lookupAccountAddress = await aptos.lookupOriginalAccountAddress({
-        authenticationKey: rotateToPrivateKey.publicKey().authKey().derivedAddress(),
-        minimumLedgerVersion: BigInt(response.version),
-      });
+        // lookup original account address
+        const lookupAccountAddress = await aptos.lookupOriginalAccountAddress({
+          authenticationKey: rotateToPrivateKey.publicKey().authKey().derivedAddress(),
+          minimumLedgerVersion: BigInt(response.version),
+        });
 
-      // Check if the lookup account address is the same as the original account address
-      expect(lookupAccountAddress).toStrictEqual(account.accountAddress);
+        // Check if the lookup account address is the same as the original account address
+        expect(lookupAccountAddress).toStrictEqual(account.accountAddress);
 
-      const rotatedAccount = Account.fromPrivateKey({
-        privateKey: rotateToPrivateKey,
-        address: account.accountAddress,
-      });
-      await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
-    }, 10000);
+        const rotatedAccount = Account.fromPrivateKey({
+          privateKey: rotateToPrivateKey,
+          address: account.accountAddress,
+        });
+        await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
+      },
+      longTestTimeout,
+    );
 
-    test("it should rotate ed25519 to multi-ed25519 auth key correctly", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+    test(
+      "it should rotate ed25519 to multi-ed25519 auth key correctly",
+      async () => {
+        const config = new AptosConfig({ network: Network.LOCAL });
+        const aptos = new Aptos(config);
 
-      // Current Account
-      const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
-      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
+        // Current Account
+        const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+        await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
 
-      const mk1 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
-      const mk2 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
-      const multiEdAccount = new MultiEd25519Account({
-        publicKey: new MultiEd25519PublicKey({
+        const mk1 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+        const mk2 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+        const multiEdAccount = new MultiEd25519Account({
+          publicKey: new MultiEd25519PublicKey({
+            publicKeys: [mk1.publicKey, mk2.publicKey],
+            threshold: 1,
+          }),
+          signers: [mk1.privateKey],
+        });
+
+        // Rotate the key
+        const txn = await aptos.rotateAuthKey({ fromAccount: account, toAccount: multiEdAccount });
+        const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account, transaction: txn });
+        await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+
+        const accountInfo = await aptos.account.getAccountInfo({
+          accountAddress: account.accountAddress,
+        });
+        expect(accountInfo.authentication_key).toEqual(multiEdAccount.publicKey.authKey().toString());
+
+        const rotatedAccount = new MultiEd25519Account({
+          publicKey: new MultiEd25519PublicKey({
+            publicKeys: [mk1.publicKey, mk2.publicKey],
+            threshold: 1,
+          }),
+          signers: [mk1.privateKey],
+          address: account.accountAddress,
+        });
+        await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
+      },
+      longTestTimeout,
+    );
+
+    test(
+      "it should rotate ed25519 to multikey auth key correctly",
+      async () => {
+        const config = new AptosConfig({ network: Network.LOCAL });
+        const aptos = new Aptos(config);
+
+        // Current Account
+        const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+        await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
+
+        const mk1 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+        const mk2 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+        const multiKeyAccount = MultiKeyAccount.fromPublicKeysAndSigners({
           publicKeys: [mk1.publicKey, mk2.publicKey],
-          threshold: 1,
-        }),
-        signers: [mk1.privateKey],
-      });
+          signaturesRequired: 1,
+          signers: [mk1],
+        });
 
-      // Rotate the key
-      const txn = await aptos.rotateAuthKey({ fromAccount: account, toAccount: multiEdAccount });
-      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account, transaction: txn });
-      await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+        // Rotate the key
+        const txn = await aptos.rotateAuthKeyUnverified({
+          fromAccount: account,
+          toNewPublicKey: multiKeyAccount.publicKey,
+        });
+        const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account, transaction: txn });
+        await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
-      const accountInfo = await aptos.account.getAccountInfo({
-        accountAddress: account.accountAddress,
-      });
-      expect(accountInfo.authentication_key).toEqual(multiEdAccount.publicKey.authKey().toString());
+        const accountInfo = await aptos.account.getAccountInfo({
+          accountAddress: account.accountAddress,
+        });
+        expect(accountInfo.authentication_key).toEqual(multiKeyAccount.publicKey.authKey().toString());
 
-      const rotatedAccount = new MultiEd25519Account({
-        publicKey: new MultiEd25519PublicKey({
+        const rotatedAccount = MultiKeyAccount.fromPublicKeysAndSigners({
+          address: account.accountAddress,
           publicKeys: [mk1.publicKey, mk2.publicKey],
-          threshold: 1,
-        }),
-        signers: [mk1.privateKey],
-        address: account.accountAddress,
-      });
-      await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
-    }, 10000);
+          signaturesRequired: 1,
+          signers: [mk1],
+        });
+        await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
+      },
+      longTestTimeout,
+    );
 
-    test("it should rotate ed25519 to multikey auth key correctly", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+    test(
+      "it should rotate ed25519 to unverified auth key correctly",
+      async () => {
+        const config = new AptosConfig({ network: Network.LOCAL });
+        const aptos = new Aptos(config);
 
-      // Current Account
-      const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
-      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
+        // Current Account
+        const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+        await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
 
-      const mk1 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
-      const mk2 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
-      const multiKeyAccount = MultiKeyAccount.fromPublicKeysAndSigners({
-        publicKeys: [mk1.publicKey, mk2.publicKey],
-        signaturesRequired: 1,
-        signers: [mk1],
-      });
+        // account that holds the new key
+        const newAccount = Account.generate();
+        const newAuthKey = newAccount.publicKey.authKey();
 
-      // Rotate the key
-      const txn = await aptos.rotateAuthKeyUnverified({
-        fromAccount: account,
-        toNewPublicKey: multiKeyAccount.publicKey,
-      });
-      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account, transaction: txn });
-      await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+        // Rotate the key
+        const txn = await aptos.rotateAuthKeyUnverified({
+          fromAccount: account,
+          toNewPublicKey: newAccount.publicKey,
+        });
+        const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account, transaction: txn });
+        await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
-      const accountInfo = await aptos.account.getAccountInfo({
-        accountAddress: account.accountAddress,
-      });
-      expect(accountInfo.authentication_key).toEqual(multiKeyAccount.publicKey.authKey().toString());
+        const accountInfo = await aptos.account.getAccountInfo({
+          accountAddress: account.accountAddress,
+        });
+        expect(accountInfo.authentication_key).toEqual(newAuthKey.toString());
 
-      const rotatedAccount = MultiKeyAccount.fromPublicKeysAndSigners({
-        address: account.accountAddress,
-        publicKeys: [mk1.publicKey, mk2.publicKey],
-        signaturesRequired: 1,
-        signers: [mk1],
-      });
-      await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
-    }, 10000);
-
-    test("it should rotate ed25519 to unverified auth key correctly", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-
-      // Current Account
-      const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
-      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
-
-      // account that holds the new key
-      const newAccount = Account.generate();
-      const newAuthKey = newAccount.publicKey.authKey();
-
-      // Rotate the key
-      const txn = await aptos.rotateAuthKeyUnverified({
-        fromAccount: account,
-        toNewPublicKey: newAccount.publicKey,
-      });
-      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account, transaction: txn });
-      await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
-
-      const accountInfo = await aptos.account.getAccountInfo({
-        accountAddress: account.accountAddress,
-      });
-      expect(accountInfo.authentication_key).toEqual(newAuthKey.toString());
-
-      const rotatedAccount = Account.fromPrivateKey({
-        privateKey: newAccount.privateKey,
-        address: newAccount.accountAddress,
-      });
-      await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
-    }, 10000);
+        const rotatedAccount = Account.fromPrivateKey({
+          privateKey: newAccount.privateKey,
+          address: newAccount.accountAddress,
+        });
+        await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
+      },
+      longTestTimeout,
+    );
   });
 
   describe("Account Derivation APIs", () => {
@@ -613,7 +654,7 @@ describe("account api", () => {
         accountAddress: minterAccount.accountAddress,
         amount: FUND_AMOUNT * 100,
       });
-    }, 10000);
+    }, longTestTimeout);
 
     const checkAccountsMatch = (
       accounts: { accountAddress: AccountAddress }[],
@@ -645,209 +686,257 @@ describe("account api", () => {
       return await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
     }
 
-    test("it derives accounts correctly", async () => {
-      const account1 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
-      const account2 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
-      const account3 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
-      const multiKeyAccount = MultiKeyAccount.fromPublicKeysAndSigners({
-        publicKeys: [account1.publicKey, account2.publicKey, account3.publicKey],
-        signaturesRequired: 1,
-        signers: [account3],
-      });
-      const multiEdAccount = new MultiEd25519Account({
-        publicKey: new MultiEd25519PublicKey({
-          publicKeys: [account3.publicKey, account1.publicKey],
-          threshold: 1,
-        }),
-        signers: [account3.privateKey],
-      });
-      const multiEdAccountTwoSigners = new MultiEd25519Account({
-        publicKey: new MultiEd25519PublicKey({
+    test(
+      "it derives accounts correctly",
+      async () => {
+        const account1 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+        const account2 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+        const account3 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+        const multiKeyAccount = MultiKeyAccount.fromPublicKeysAndSigners({
           publicKeys: [account1.publicKey, account2.publicKey, account3.publicKey],
-          threshold: 2,
-        }),
-        signers: [account1.privateKey, account2.privateKey],
-      });
-      for (const account of [account1, account2, account3, multiKeyAccount, multiEdAccount, multiEdAccountTwoSigners]) {
-        await createAccount(account);
-      }
-      // Rotate account2 to account1's auth key, skipping verification.
-      const rotateTxn = await aptos.rotateAuthKeyUnverified({
-        fromAccount: account2,
-        toNewPublicKey: account1.publicKey,
-      });
-      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account2, transaction: rotateTxn });
-      await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+          signaturesRequired: 1,
+          signers: [account3],
+        });
+        const multiEdAccount = new MultiEd25519Account({
+          publicKey: new MultiEd25519PublicKey({
+            publicKeys: [account3.publicKey, account1.publicKey],
+            threshold: 1,
+          }),
+          signers: [account3.privateKey],
+        });
+        const multiEdAccountTwoSigners = new MultiEd25519Account({
+          publicKey: new MultiEd25519PublicKey({
+            publicKeys: [account1.publicKey, account2.publicKey, account3.publicKey],
+            threshold: 2,
+          }),
+          signers: [account1.privateKey, account2.privateKey],
+        });
+        let lastTxn: CommittedTransactionResponse | undefined;
+        for (const account of [
+          account1,
+          account2,
+          account3,
+          multiKeyAccount,
+          multiEdAccount,
+          multiEdAccountTwoSigners,
+        ]) {
+          lastTxn = await createAccount(account);
+        }
+        // Rotate account2 to account1's auth key, skipping verification.
+        const rotateTxn = await aptos.rotateAuthKeyUnverified({
+          fromAccount: account2,
+          toNewPublicKey: account1.publicKey,
+        });
+        const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account2, transaction: rotateTxn });
+        lastTxn = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
-      // Send noop txns for the multikey accounts with account3 as the signer. These accounts
-      // are not verified as owned by account1.
-      await sendNoopTxn(multiKeyAccount);
-      await sendNoopTxn(multiEdAccount);
-      await sendNoopTxn(multiEdAccountTwoSigners);
-      let accounts = await aptos.deriveOwnedAccountsFromSigner({ signer: account1 });
-      expect(accounts.length).toBe(1);
-      expect(accounts[0].accountAddress.equals(account1.accountAddress)).toEqual(true);
+        // Send noop txns for the multikey accounts with account3 as the signer. These accounts
+        // are not verified as owned by account1.
+        await sendNoopTxn(multiKeyAccount);
+        await sendNoopTxn(multiEdAccount);
+        lastTxn = await sendNoopTxn(multiEdAccountTwoSigners);
+        let accounts = await aptos.deriveOwnedAccountsFromSigner({
+          signer: account1,
+          minimumLedgerVersion: BigInt(lastTxn.version),
+        });
+        expect(accounts.length).toBe(1);
+        expect(accounts[0].accountAddress.equals(account1.accountAddress)).toEqual(true);
 
-      // Include unverified accounts.
-      accounts = await aptos.deriveOwnedAccountsFromSigner({
-        signer: account1,
-        options: {
-          includeUnverified: true,
-        },
-      });
-      checkAccountsMatch(accounts, [multiEdAccount, multiKeyAccount, account2, account1]);
+        // Include unverified accounts.
+        accounts = await aptos.deriveOwnedAccountsFromSigner({
+          signer: account1,
+          minimumLedgerVersion: BigInt(lastTxn.version),
+          options: {
+            includeUnverified: true,
+          },
+        });
+        checkAccountsMatch(accounts, [multiEdAccount, multiKeyAccount, account2, account1]);
 
-      // Send txn with multiKeyAccount and account2 from the derived accounts. This will mark them as verified and
-      // be returned even when includeUnverified is false (default).
-      await sendNoopTxn(accounts[1]);
-      const { version } = await sendNoopTxn(accounts[2]);
+        // Send txn with multiKeyAccount and account2 from the derived accounts. This will mark them as verified and
+        // be returned even when includeUnverified is false (default).
+        await sendNoopTxn(accounts[1]);
+        lastTxn = await sendNoopTxn(accounts[2]);
 
-      accounts = await aptos.deriveOwnedAccountsFromSigner({
-        signer: account1,
-        minimumLedgerVersion: BigInt(version),
-        options: {
-          includeUnverified: false,
-        },
-      });
-      checkAccountsMatch(accounts, [account2, multiKeyAccount, account1]);
+        accounts = await aptos.deriveOwnedAccountsFromSigner({
+          signer: account1,
+          minimumLedgerVersion: BigInt(lastTxn.version),
+          options: {
+            includeUnverified: false,
+          },
+        });
+        checkAccountsMatch(accounts, [account2, multiKeyAccount, account1]);
 
-      // Send txn with account1 which will change the ordering
-      await sendNoopTxn(account1);
+        // Send txn with account1 which will change the ordering
+        lastTxn = await sendNoopTxn(account1);
 
-      accounts = await aptos.deriveOwnedAccountsFromSigner({ signer: account1 });
-      checkAccountsMatch(accounts, [account1, account2, multiKeyAccount]);
+        accounts = await aptos.deriveOwnedAccountsFromSigner({
+          signer: account1,
+          minimumLedgerVersion: BigInt(lastTxn.version),
+        });
+        checkAccountsMatch(accounts, [account1, account2, multiKeyAccount]);
 
-      // Check the noMultiKey works.
-      accounts = await aptos.deriveOwnedAccountsFromSigner({ signer: account1, options: { noMultiKey: true } });
-      checkAccountsMatch(accounts, [account1, account2]);
-    }, 20000);
+        // Check the noMultiKey works.
+        accounts = await aptos.deriveOwnedAccountsFromSigner({
+          signer: account1,
+          minimumLedgerVersion: BigInt(lastTxn.version),
+          options: { noMultiKey: true },
+        });
+        checkAccountsMatch(accounts, [account1, account2]);
+      },
+      longTestTimeout,
+    );
 
-    test("it derives account that has been rotated", async () => {
-      const account1 = Account.generate({ scheme: SigningSchemeInput.Ed25519 });
-      const account2 = Account.generate({ scheme: SigningSchemeInput.Ed25519 });
+    test(
+      "it derives account that has been rotated",
+      async () => {
+        const account1 = Account.generate({ scheme: SigningSchemeInput.Ed25519 });
+        const account2 = Account.generate({ scheme: SigningSchemeInput.Ed25519 });
 
-      for (const account of [account1, account2]) {
-        await createAccount(account);
-      }
+        let lastTxn: CommittedTransactionResponse | undefined;
+        for (const account of [account1, account2]) {
+          lastTxn = await createAccount(account);
+        }
 
-      let accounts = await aptos.deriveOwnedAccountsFromSigner({ signer: account1 });
-      expect(accounts.length).toBe(1);
-      expect(accounts[0].accountAddress.equals(account1.accountAddress)).toEqual(true);
+        let accounts = await aptos.deriveOwnedAccountsFromSigner({
+          signer: account1,
+          minimumLedgerVersion: BigInt(lastTxn!.version),
+        });
+        expect(accounts.length).toBe(1);
+        expect(accounts[0].accountAddress.equals(account1.accountAddress)).toEqual(true);
 
-      // Verified rotation. Should be derivable immediately.
-      const rotateTxn = await aptos.rotateAuthKey({
-        fromAccount: account2,
-        toNewPrivateKey: account1.privateKey,
-      });
-      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account2, transaction: rotateTxn });
-      const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+        // Verified rotation. Should be derivable immediately.
+        const rotateTxn = await aptos.rotateAuthKey({
+          fromAccount: account2,
+          toNewPrivateKey: account1.privateKey,
+        });
+        const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account2, transaction: rotateTxn });
+        const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
-      accounts = await aptos.deriveOwnedAccountsFromSigner({
-        signer: account1,
-        minimumLedgerVersion: BigInt(response.version),
-      });
-      expect(accounts.length).toBe(2);
-      expect(accounts[0].accountAddress.equals(account2.accountAddress)).toEqual(true);
-      expect(accounts[1].accountAddress.equals(account1.accountAddress)).toEqual(true);
-    }, 20000);
+        accounts = await aptos.deriveOwnedAccountsFromSigner({
+          signer: account1,
+          minimumLedgerVersion: BigInt(response.version),
+        });
+        expect(accounts.length).toBe(2);
+        expect(accounts[0].accountAddress.equals(account2.accountAddress)).toEqual(true);
+        expect(accounts[1].accountAddress.equals(account1.accountAddress)).toEqual(true);
+      },
+      longTestTimeout,
+    );
 
-    test("it returns both legacy and single-signer accounts by default for ed25519", async () => {
-      const key = Ed25519PrivateKey.generate();
-      const legacyAccount = Account.fromPrivateKey({
-        privateKey: key,
-        legacy: true,
-      });
-      const singleSignerAccount = Account.fromPrivateKey({
-        privateKey: key,
-        legacy: false,
-      });
-      let txn: CommittedTransactionResponse;
-      const defaultAccounts = [legacyAccount, singleSignerAccount];
-      for (const account of [legacyAccount, singleSignerAccount]) {
-        txn = await createAccount(account);
-      }
+    test(
+      "it returns both legacy and single-signer accounts by default for ed25519",
+      async () => {
+        const key = Ed25519PrivateKey.generate();
+        const legacyAccount = Account.fromPrivateKey({
+          privateKey: key,
+          legacy: true,
+        });
+        const singleSignerAccount = Account.fromPrivateKey({
+          privateKey: key,
+          legacy: false,
+        });
+        let txn: CommittedTransactionResponse;
+        const defaultAccounts = [legacyAccount, singleSignerAccount];
+        for (const account of [legacyAccount, singleSignerAccount]) {
+          txn = await createAccount(account);
+        }
 
-      const accounts = await aptos.deriveOwnedAccountsFromSigner({
-        signer: key,
-        minimumLedgerVersion: Number(txn!.version),
-      });
-      checkAccountsMatch(accounts, defaultAccounts.reverse());
-    }, 20000);
+        const accounts = await aptos.deriveOwnedAccountsFromSigner({
+          signer: key,
+          minimumLedgerVersion: BigInt(txn!.version),
+        });
+        checkAccountsMatch(accounts, defaultAccounts.reverse());
+      },
+      longTestTimeout,
+    );
 
-    test("it doesn't return default account if it is rotated", async () => {
-      const account1 = Account.generate({ scheme: SigningSchemeInput.Ed25519 });
-      const account2 = Account.generate({ scheme: SigningSchemeInput.Ed25519 });
+    test(
+      "it doesn't return default account if it is rotated",
+      async () => {
+        const account1 = Account.generate({ scheme: SigningSchemeInput.Ed25519 });
+        const account2 = Account.generate({ scheme: SigningSchemeInput.Ed25519 });
 
-      for (const account of [account1, account2]) {
-        await createAccount(account);
-      }
+        let lastTxn: CommittedTransactionResponse | undefined;
+        for (const account of [account1, account2]) {
+          lastTxn = await createAccount(account);
+        }
 
-      let accounts = await aptos.deriveOwnedAccountsFromSigner({ signer: account1 });
-      expect(accounts.length).toBe(1);
-      expect(accounts[0].accountAddress.equals(account1.accountAddress)).toEqual(true);
+        let accounts = await aptos.deriveOwnedAccountsFromSigner({
+          signer: account1,
+          minimumLedgerVersion: BigInt(lastTxn!.version),
+        });
+        expect(accounts.length).toBe(1);
+        expect(accounts[0].accountAddress.equals(account1.accountAddress)).toEqual(true);
 
-      // Verified rotation. Should be derivable immediately.
-      const rotateTxn = await aptos.rotateAuthKey({
-        fromAccount: account1,
-        toNewPrivateKey: Ed25519PrivateKey.generate(),
-      });
-      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account1, transaction: rotateTxn });
-      const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+        // Verified rotation. Should be derivable immediately.
+        const rotateTxn = await aptos.rotateAuthKey({
+          fromAccount: account1,
+          toNewPrivateKey: Ed25519PrivateKey.generate(),
+        });
+        const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account1, transaction: rotateTxn });
+        const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
-      accounts = await aptos.deriveOwnedAccountsFromSigner({
-        signer: account1,
-        minimumLedgerVersion: BigInt(response.version),
-      });
-      expect(accounts.length).toBe(0);
-    }, 20000);
+        accounts = await aptos.deriveOwnedAccountsFromSigner({
+          signer: account1,
+          minimumLedgerVersion: BigInt(response.version),
+        });
+        expect(accounts.length).toBe(0);
+      },
+      longTestTimeout,
+    );
 
-    test("getAccountsFromPublicKey returns accounts", async () => {
-      const account1 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
-      const account2 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
-      const account3 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
-      const multiKeyAccount = MultiKeyAccount.fromPublicKeysAndSigners({
-        publicKeys: [account1.publicKey, account2.publicKey, account3.publicKey],
-        signaturesRequired: 2,
-        signers: [account3, account2],
-      });
-      const multiEdAccount = new MultiEd25519Account({
-        publicKey: new MultiEd25519PublicKey({
-          publicKeys: [account3.publicKey, account1.publicKey],
-          threshold: 2,
-        }),
-        signers: [account3.privateKey, account1.privateKey],
-      });
-      for (const account of [account1, account2, account3, multiKeyAccount, multiEdAccount]) {
-        await createAccount(account);
-      }
-      // Rotate account2 to account1's auth key, skipping verification.
-      const rotateTxn = await aptos.rotateAuthKeyUnverified({
-        fromAccount: account2,
-        toNewPublicKey: account1.publicKey,
-      });
-      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account2, transaction: rotateTxn });
-      await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+    test(
+      "getAccountsFromPublicKey returns accounts",
+      async () => {
+        const account1 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+        const account2 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+        const account3 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+        const multiKeyAccount = MultiKeyAccount.fromPublicKeysAndSigners({
+          publicKeys: [account1.publicKey, account2.publicKey, account3.publicKey],
+          signaturesRequired: 2,
+          signers: [account3, account2],
+        });
+        const multiEdAccount = new MultiEd25519Account({
+          publicKey: new MultiEd25519PublicKey({
+            publicKeys: [account3.publicKey, account1.publicKey],
+            threshold: 2,
+          }),
+          signers: [account3.privateKey, account1.privateKey],
+        });
+        for (const account of [account1, account2, account3, multiKeyAccount, multiEdAccount]) {
+          await createAccount(account);
+        }
+        // Rotate account2 to account1's auth key, skipping verification.
+        const rotateTxn = await aptos.rotateAuthKeyUnverified({
+          fromAccount: account2,
+          toNewPublicKey: account1.publicKey,
+        });
+        const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account2, transaction: rotateTxn });
+        await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
-      // Send noop txns for the multikey accounts
-      // The multiEdAccount has account1 as a signer.
-      await sendNoopTxn(multiKeyAccount);
-      const { version } = await sendNoopTxn(multiEdAccount);
+        // Send noop txns for the multikey accounts
+        // The multiEdAccount has account1 as a signer.
+        await sendNoopTxn(multiKeyAccount);
+        const { version } = await sendNoopTxn(multiEdAccount);
 
-      let accounts = await aptos.getAccountsForPublicKey({
-        publicKey: account1.publicKey,
-        minimumLedgerVersion: BigInt(version),
-      });
-      expect(accounts.length).toBe(2);
-      checkAccountsMatch(accounts, [multiEdAccount, account1]);
+        let accounts = await aptos.getAccountsForPublicKey({
+          publicKey: account1.publicKey,
+          minimumLedgerVersion: BigInt(version),
+        });
+        expect(accounts.length).toBe(2);
+        checkAccountsMatch(accounts, [multiEdAccount, account1]);
 
-      // Check that the multiKeyAccount is not included.
-      accounts = await aptos.getAccountsForPublicKey({
-        publicKey: account1.publicKey,
-        options: {
-          includeUnverified: true,
-        },
-      });
-      checkAccountsMatch(accounts, [multiEdAccount, multiKeyAccount, account2, account1]);
-    }, 20000);
+        // Check that the multiKeyAccount is not included.
+        accounts = await aptos.getAccountsForPublicKey({
+          publicKey: account1.publicKey,
+          minimumLedgerVersion: BigInt(version),
+          options: {
+            includeUnverified: true,
+          },
+        });
+        checkAccountsMatch(accounts, [multiEdAccount, multiKeyAccount, account2, account1]);
+      },
+      longTestTimeout,
+    );
   });
 });
