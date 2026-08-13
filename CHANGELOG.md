@@ -35,6 +35,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Add offline/mocked-client unit tests raising coverage of previously-untested modules: `internal/faucet.ts` (`fundAccount`), `client/get.ts` pagination helpers (`getAptosFullNode`, `getAptosPepperService`, `paginateWithCursor`, `paginateWithObfuscatedCursor`, `getPageWithObfuscatedCursor`), `core/crypto/abstraction.ts` (`AbstractPublicKey`/`AbstractSignature`), `account/AbstractedAccount.ts`, `account/keylessSigner.ts` (`isKeylessSigner`), `api/account/abstraction.ts` (`AccountAbstraction`), `api/transactionSubmission/sign.ts` (`Sign`), `api/utils.ts` (`waitForIndexerOnVersion`), and `SimpleTransaction` BCS round trips in `transactions/instances`.
 
+## Fixed
+
+- Avoid failing account discovery for standard accounts when the owned-objects indexer query times out by only querying owned objects when the account resource is absent. Resource-less light-account detection continues to use the owned-objects fallback.
+
 # 7.2.0 (2026-07-06)
 
 ## Added

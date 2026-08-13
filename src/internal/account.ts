@@ -951,26 +951,25 @@ async function doesAccountExistAtAddress(args: {
 }): Promise<boolean> {
   const { aptosConfig, accountAddress, options } = args;
   try {
-    // Get the account resources and the balance of the account.  We need to check both because
-    // an account resource can exist with 0 balance and a balance can exist without an account resource (light accounts).
-    const [accountResource, ownedObjects] = await Promise.all([
-      getResourceFallible<{ authentication_key: string }>({
-        aptosConfig,
-        accountAddress,
-        resourceType: "0x1::account::Account",
-      }),
-      getAccountOwnedObjects({
+    const accountResource = await getResourceFallible<{ authentication_key: string }>({
+      aptosConfig,
+      accountAddress,
+      resourceType: "0x1::account::Account",
+    });
+
+    // An account resource is sufficient to prove that the account exists. Only query owned objects
+    // when the resource is absent, because light accounts can exist without an account resource.
+    if (!accountResource) {
+      const ownedObjects = await getAccountOwnedObjects({
         aptosConfig,
         accountAddress,
         options: {
           limit: 1,
         },
-      }),
-    ]);
-
-    // If the account resource is not found and the balance is 0, then the account does not exist.
-    if (!accountResource && ownedObjects.length === 0) {
-      return false;
+      });
+      if (ownedObjects.length === 0) {
+        return false;
+      }
     }
 
     // If no auth key is provided as an argument, return true.
