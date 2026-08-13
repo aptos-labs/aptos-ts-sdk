@@ -951,48 +951,41 @@ async function doesAccountExistAtAddress(args: {
 }): Promise<boolean> {
   const { aptosConfig, accountAddress, options } = args;
   try {
-    // Get the account resources and the balance of the account.  We need to check both because
-    // an account resource can exist with 0 balance and a balance can exist without an account resource (light accounts).
-    const [accountResource, ownedObjects] = await Promise.all([
-      getResourceFallible<{ authentication_key: string }>({
-        aptosConfig,
-        accountAddress,
-        resourceType: "0x1::account::Account",
-      }),
-      getAccountOwnedObjects({
-        aptosConfig,
-        accountAddress,
-        options: {
-          limit: 1,
-        },
-      }),
-    ]);
+    // Check the account resource first. For standard accounts this is sufficient proof of
+    // existence, and querying owned objects in parallel used to fail the whole check when
+    // the indexer `current_objects` query timed out.
+    const accountResource = await getResourceFallible<{ authentication_key: string }>({
+      aptosConfig,
+      accountAddress,
+      resourceType: "0x1::account::Account",
+    });
 
-    // If the account resource is not found and the balance is 0, then the account does not exist.
-    if (!accountResource && ownedObjects.length === 0) {
+    if (accountResource) {
+      if (!options?.withAuthKey) {
+        return true;
+      }
+      return accountResource.authentication_key === options.withAuthKey.toString();
+    }
+
+    // No account resource: still treat light accounts (objects but no resource) as existing.
+    const ownedObjects = await getAccountOwnedObjects({
+      aptosConfig,
+      accountAddress,
+      options: {
+        limit: 1,
+      },
+    });
+
+    if (ownedObjects.length === 0) {
       return false;
     }
 
-    // If no auth key is provided as an argument, return true.
     if (!options?.withAuthKey) {
       return true;
     }
 
-    // Get the auth key from the account resource if it exists. If the account resource does not exist,
-    // then the auth key is the account address by default.
-    let authKey;
-    if (accountResource) {
-      authKey = accountResource.authentication_key;
-    } else {
-      authKey = accountAddress.toStringLong();
-    }
-
-    if (authKey !== options.withAuthKey.toString()) {
-      return false;
-    }
-
-    // Else the account exists and the auth key matches.
-    return true;
+    // Light accounts have no resource, so the auth key is the account address by convention.
+    return accountAddress.toStringLong() === options.withAuthKey.toString();
   } catch (error: any) {
     throw new Error(`Error while checking if account exists at ${accountAddress.toString()}: ${error}`);
   }

@@ -197,7 +197,3 @@ Docker is pre-installed and the daemon is running. The Docker socket at `/var/ru
 ### Build Before Testing Examples
 
 Examples under `examples/` link to the root SDK via `link:../..`. Always run `pnpm build` in the repo root before working with examples.
-
-### Known Flaky Test
-
-`tests/e2e/api/account.test.ts` — the "it doesn't return default account if it is rotated" test can fail intermittently due to timing on the local testnet. This is a pre-existing issue, not an environment problem.

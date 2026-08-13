@@ -1,4 +1,5 @@
 import { Aptos, AptosConfig, AptosSettings, Network, NetworkToNetworkName } from "../../src/index.js";
+import { sleep } from "../../src/utils/helpers.js";
 
 /**
  * Use this function whenever you want an Aptos client.
@@ -29,4 +30,24 @@ export function getAptosClient(additionalConfig?: AptosSettings): { aptos: Aptos
   });
   const aptos = new Aptos(config);
   return { aptos, config };
+}
+
+/**
+ * Polls until `predicate` returns true or `timeoutMs` elapses.
+ * Prefer this over a fixed `setTimeout` in e2e tests so assertions wait for
+ * on-chain/indexer state instead of racing a wall-clock delay.
+ */
+export async function waitUntil(
+  predicate: () => Promise<boolean>,
+  options?: { timeoutMs?: number; intervalMs?: number; timeoutMessage?: string },
+): Promise<void> {
+  const timeoutMs = options?.timeoutMs ?? 60_000;
+  const intervalMs = options?.intervalMs ?? 250;
+  const start = Date.now();
+  while (!(await predicate())) {
+    if (Date.now() - start >= timeoutMs) {
+      throw new Error(options?.timeoutMessage ?? `Condition not met within ${timeoutMs}ms`);
+    }
+    await sleep(intervalMs);
+  }
 }

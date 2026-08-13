@@ -22,7 +22,7 @@ import {
   waitForIndexer,
 } from "../../../src/internal/transaction.js";
 import { TransactionResponseType, type TransactionResponse } from "../../../src/types/index.js";
-import { ProcessorType } from "../../../src/utils/const.js";
+import { DEFAULT_INDEXER_SYNC_TIMEOUT_SEC, ProcessorType } from "../../../src/utils/const.js";
 
 const gasEstimate = (
   overrides: Partial<{
@@ -195,16 +195,36 @@ describe("internal/transaction — basic queries", () => {
       expect(body.variables?.where_condition).toEqual({ processor: { _eq: ProcessorType.DEFAULT } });
     });
 
-    it("throws after the 3 second timeout when the indexer never catches up", async () => {
+    it("throws after the default indexer sync timeout when the indexer never catches up", async () => {
       vi.useFakeTimers({ shouldAdvanceTime: true });
       const mock = createMockClient();
       mock.setDefault({
         data: { data: { processor_status: [{ processor: "default_processor", last_success_version: "1" }] } },
       });
 
-      const pending = waitForIndexer({ aptosConfig: mock.config, minimumLedgerVersion: 9999 });
-      await vi.advanceTimersByTimeAsync(3100);
-      await expect(pending).rejects.toThrow(/waitForLastSuccessIndexerVersionSync timeout/);
+      const assertion = expect(
+        waitForIndexer({ aptosConfig: mock.config, minimumLedgerVersion: 9999 }),
+      ).rejects.toThrow(/waitForLastSuccessIndexerVersionSync timeout after 10000ms/);
+      await vi.advanceTimersByTimeAsync(DEFAULT_INDEXER_SYNC_TIMEOUT_SEC * 1000 + 100);
+      await assertion;
+    });
+
+    it("honors a custom timeoutMilliseconds", async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      const mock = createMockClient();
+      mock.setDefault({
+        data: { data: { processor_status: [{ processor: "default_processor", last_success_version: "1" }] } },
+      });
+
+      const assertion = expect(
+        waitForIndexer({
+          aptosConfig: mock.config,
+          minimumLedgerVersion: 9999,
+          timeoutMilliseconds: 500,
+        }),
+      ).rejects.toThrow(/waitForLastSuccessIndexerVersionSync timeout after 500ms/);
+      await vi.advanceTimersByTimeAsync(600);
+      await assertion;
     });
   });
 
