@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 7.3.1 (2026-08-13)
+
 ## Fixed
 
 - **Indexer sync timeout**: Increased the default `waitForIndexer` timeout from 3s to 10s (`DEFAULT_INDEXER_SYNC_TIMEOUT_SEC`) so brief processor lag on localnet and public networks no longer throws `waitForLastSuccessIndexerVersionSync timeout`. The error now includes the current and target versions, and callers can pass `timeoutMilliseconds` for a custom budget.
