@@ -12,14 +12,18 @@ For changes to the main Aptos TypeScript SDK (`@aptos-labs/ts-sdk`), see the [ro
 - Upgrade TypeScript to `^7.0.2`.
 - Update dependencies within current majors: `@noble/{curves,hashes}` to `^2.3.0`, `@aptos-labs/confidential-asset-bindings` to `^1.1.2`, `@aptos-labs/ts-sdk` to `^7.3.0`, Vitest/`@vitest/*` to `^4.1.10`, Playwright to `^1.62.1`, and Vite to `^7.3.6`. Refresh pnpm overrides (`esbuild`, `postcss`, `undici`, `uuid`, `picomatch`, `brace-expansion`, `yauzl`, `js-yaml`) to patched releases.
 - Align pnpm `minimumReleaseAge` (48 hours) with Aikido Safe Chain's default minimum package age, excluding `@aptos-labs/*`, `baseline-browser-mapping`, and `caniuse-lite`.
+- Upgrade the package to pnpm 11.20.0 and migrate dependency overrides to pnpm 11's `pnpm-workspace.yaml` format.
+- **Requires `@aptos-labs/ts-sdk` v7.3+.** Peer dependency narrowed from `^5.2.1 || ^6.3.1 || ^7.0.0` to `^7.3.0`. v7.3.0 adds `aptos.keyless.getPepperBase`, which the keyless decryption-key derivation (`TwistedEd25519PrivateKey.fromPepperBase`) pairs with. Upgrade your `@aptos-labs/ts-sdk` dependency to `^7.3.0` before upgrading this package.
 
 ## Added
 
+- `TwistedEd25519PrivateKey.fromPepperBase(pepperBase)` derives a **keyless** account's confidential-asset decryption key (DK) from its 48-byte `pepper_base` (fetched via the main SDK's `aptos.keyless.getPepperBase`). Keyless accounts can't use `fromSignature` (their per-session ephemeral signing key would yield a different DK each session); `pepper_base` is a stable per-identity seed. The DK is keyed on `pepper_base` rather than the final pepper so a leaked pepper can't recover it. Scheme: `DK = LE(SHA-512(utf8("APTOS_CONFIDENTIAL_ASSETS::PEPPER_DK_DERIVATION::v1") || pepper_base)) mod l`, mirroring the `fromSignature` reduction. New `PEPPER_DK_DERIVATION_DOMAIN` / `PEPPER_BASE_LENGTH` constants exported alongside. Requires `@aptos-labs/ts-sdk` with `getPepperBase`.
+- **Keyless decryption-key (DK) on-chain backup (aptos-core PR #19458).** Support for backing up a confidential-asset DK on-chain so keyless wallet users can recover it from an Ed25519 backup key.
+  - `encryptDecryptionKey` / `decryptDecryptionKey`: an IND-CCA AEAD (HKDF-SHA512 → XChaCha20-Poly1305, keyed on the Ed25519 backup key's 32-byte seed) that produces / consumes the opaque `dk_ciphertext` stored on-chain. `deriveDkAeadKey` and the `DK_AEAD_SALT` / `DK_AEAD_INFO` constants are exported for known-answer testing. The byte layout matches the Petra/Rust reference implementation. Adds a `@noble/ciphers` (`^2.2.0`) dependency.
+  - View wrappers `ConfidentialAsset.encryptedDkExists` / `getEncryptedDk` (over the framework `0x1::account::encrypted_dk_exists` / `get_encrypted_dk`); `getEncryptedDk` gates on existence and returns `undefined` when no DK is stored.
+  - Transaction builders `ConfidentialAssetTransactionBuilder.registerBalanceAndEncryptDk` (`0x1::keyless_account::register_ek_and_encrypt_dk`) and `upsertEd25519BackupKeyAndEncryptDk` (`0x1::account::upsert_ed25519_backup_key_and_encrypt_dk`), plus a `buildBackupKeyProof` helper that builds the `RotationProofChallenge` signature.
+  - High-level `ConfidentialAsset.registerBalanceAndEncryptDk` / `upsertEd25519BackupKeyAndEncryptDk` (encrypt + build + sign + submit) and `recoverDecryptionKeyFromBackup` (read the on-chain ciphertext and decrypt with the backup key). The high-level API takes the keyless public key as raw bytes and the backup key as an `Ed25519PrivateKey` to avoid coupling to keyless/multikey account classes. **SECURITY:** wallets must forbid dapps from requesting signatures over these key-rotation / DK-backup transactions.
 - `TwistedEd25519PrivateKey.clear()` and `isCleared()` mirror the lifecycle hooks on the main SDK's `Ed25519PrivateKey` / `Secp256k1PrivateKey`. After `clear()` is called, the underlying byte buffer of the `Hex` wrapper is overwritten and subsequent calls to `publicKey()`, `toUint8Array()`, `toString()`, and `toStringWithoutPrefix()` throw. **SECURITY NOTE:** as documented on the new JSDoc, this cannot fully zeroize the key in JavaScript — any `toString()` output already produced is an immutable JS string, and noble-curves / `ed25519modN` operations may have produced `BigInt` intermediates that also can't be wiped. Treat `clear()` as a best-effort window-narrowing tool, not a true zeroization guarantee.
-
-## Changed
-
-- Upgrade the package to pnpm 11.20.0 and migrate dependency overrides to pnpm 11's `pnpm-workspace.yaml` format.
 
 ## Breaking
 

@@ -15,7 +15,7 @@
     "url": "git+https://github.com/aptos-labs/aptos-ts-sdk.git",
     "directory": "confidential-asset"
   },
-  "version": "2.0.0",
+  "version": "2.3.0",
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -46,10 +46,11 @@
     "publish-zeta": "pnpm build && npm publish --tag zeta"
   },
   "peerDependencies": {
-    "@aptos-labs/ts-sdk": "^5.2.1 || ^6.3.1 || ^7.0.0"
+    "@aptos-labs/ts-sdk": "^7.3.0"
   },
   "dependencies": {
     "@aptos-labs/confidential-asset-bindings": "^1.1.2",
+    "@noble/ciphers": "^2.2.0",
     "@noble/curves": "^2.3.0",
     "@noble/hashes": "^2.3.0"
   },
