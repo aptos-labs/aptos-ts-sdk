@@ -8,6 +8,7 @@ For changes to the main Aptos TypeScript SDK (`@aptos-labs/ts-sdk`), see the [ro
 
 ## Changed
 
+- Update dependencies within current majors: `@noble/{ciphers,curves,hashes}` to `^2.4.0`, Vitest/`@vitest/*` to `^4.1.11`, Playwright to `^1.63.0`, Biome to `2.5.12`, and pnpm to `11.26.0`. Refresh pnpm overrides (`js-yaml` `3.15.2`/`4.3.2`, `postcss` `8.5.28`, `undici` `7.29.1`, `uuid` `14.0.2`, `picomatch` `4.0.7`, `@xmldom/xmldom` `0.8.15`, `file-type` `21.3.4`) to patched releases.
 - Upgrade the package-manager pin to pnpm `11.21.0`.
 - Upgrade TypeScript to `^7.0.2`.
 - Update dependencies within current majors: `@noble/{curves,hashes}` to `^2.3.0`, `@aptos-labs/confidential-asset-bindings` to `^1.1.2`, `@aptos-labs/ts-sdk` to `^7.3.0`, Vitest/`@vitest/*` to `^4.1.10`, Playwright to `^1.62.1`, and Vite to `^7.3.6`. Refresh pnpm overrides (`esbuild`, `postcss`, `undici`, `uuid`, `picomatch`, `brace-expansion`, `yauzl`, `js-yaml`) to patched releases.

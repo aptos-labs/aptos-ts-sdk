@@ -53,7 +53,7 @@ describe("internal/view.view (BCS payload)", () => {
       originMethod: "view",
       params: { ledger_version: 100 },
     });
-    expect(viewReq?.body).toBeInstanceOf(Uint8Array);
-    expect((viewReq?.body as Uint8Array).length).toBeGreaterThan(0);
+    expect(viewReq!.body).toBeInstanceOf(Uint8Array);
+    expect((viewReq!.body as Uint8Array).length).toBeGreaterThan(0);
   });
 });

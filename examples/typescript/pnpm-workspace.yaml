@@ -13,6 +13,6 @@ allowBuilds:
 
 overrides:
   form-data@^4: ^4.0.6
-  picomatch@^4: ^4.0.5
-  qs@^6: ^6.15.3
+  picomatch@^4: ^4.0.7
+  qs@^6: ^6.16.0
   shell-quote@^1: ^1.10.0

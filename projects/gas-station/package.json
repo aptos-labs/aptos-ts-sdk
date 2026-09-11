@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "packageManager": "pnpm@11.21.0",
+  "packageManager": "pnpm@11.26.0",
   "scripts": {
     "build": "tsc --noEmit",
     "start-server": "tsx src/server.ts",
@@ -16,14 +16,14 @@
     "node": ">=22.0.0"
   },
   "dependencies": {
-    "axios": "1.19.0",
+    "axios": "1.20.0",
     "express": "^5.2.1"
   },
   "devDependencies": {
     "@aptos-labs/ts-sdk": "^7.3.0",
     "@types/express": "^5.0.6",
     "@types/node": "^22.20.1",
-    "tsx": "^4.23.11",
+    "tsx": "^4.23.13",
     "typescript": "^7.0.2"
   }
 }
