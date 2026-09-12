@@ -487,8 +487,8 @@ export type PluginSettings = Omit<PluginConfig, "IGNORE_TRANSACTION_SUBMITTER">;
  * const myGasStationClient = new MyGasStationClient(network);
  * const config = new AptosConfig({
  *   network,
- *   pluginConfig: {
- *     transactionSubmitter: myGasStationClient,
+ *   pluginSettings: {
+ *     TRANSACTION_SUBMITTER: myGasStationClient,
  *   },
  * });
  * const aptos = new Aptos(config);
