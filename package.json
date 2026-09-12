@@ -1,7 +1,7 @@
 {
   "name": "@aptos-labs/ts-sdk",
   "description": "Aptos TypeScript SDK",
-  "packageManager": "pnpm@11.21.0",
+  "packageManager": "pnpm@11.26.0",
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
@@ -125,18 +125,18 @@
   "dependencies": {
     "@aptos-labs/aptos-cli": "^3.0.0",
     "@aptos-labs/aptos-client": "^4.1.0",
-    "@noble/ciphers": "2.3.0",
-    "@noble/curves": "2.3.0",
-    "@noble/hashes": "2.3.0",
-    "@scure/bip32": "^2.3.0",
-    "@scure/bip39": "^2.3.0",
+    "@noble/ciphers": "2.4.0",
+    "@noble/curves": "2.4.0",
+    "@noble/hashes": "2.4.0",
+    "@scure/bip32": "^2.4.0",
+    "@scure/bip39": "^2.4.0",
     "eventemitter3": "^5.0.4",
     "jwt-decode": "^4.0.0",
     "poseidon-lite": "^0.3.0"
   },
   "devDependencies": {
     "@babel/traverse": "^7.29.8",
-    "@biomejs/biome": "2.4.6",
+    "@biomejs/biome": "2.5.12",
     "@cucumber/cucumber": "^12.9.0",
     "@graphql-codegen/cli": "^6.3.1",
     "@graphql-codegen/import-types-preset": "^4.0.1",
@@ -145,7 +145,7 @@
     "@graphql-codegen/typescript-operations": "^5.1.0",
     "@types/node": "^22.20.1",
     "@typescript/native": "npm:typescript@^7.0.2",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/coverage-v8": "^4.1.11",
     "graphql": "^16.14.2",
     "graphql-request": "^7.4.0",
     "tree-kill": "^1.2.2",
@@ -153,7 +153,7 @@
     "typedoc-plugin-missing-exports": "^4.1.4",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "vite": "^7.3.6",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   },
   "version": "7.3.1"
 }

@@ -192,7 +192,7 @@ describe("internal/ans indexer-backed reads", () => {
 
     expect(names).toHaveLength(2);
     expect(total).toBe(2);
-    const where = (mock.requests[0]?.body as any).variables.where_condition;
+    const where = (mock.requests[0]!.body as any).variables.where_condition;
     expect(where.owner_address).toEqual({ _eq: AccountAddress.ONE.toString() });
     expect(typeof where.expiration_timestamp._gte).toBe("string");
   });
@@ -202,7 +202,7 @@ describe("internal/ans indexer-backed reads", () => {
     enqueueNames(mock, [rawName()]);
 
     await getAccountDomains({ aptosConfig: mock.config, accountAddress: AccountAddress.ONE });
-    const where = (mock.requests[0]?.body as any).variables.where_condition;
+    const where = (mock.requests[0]!.body as any).variables.where_condition;
     expect(where.subdomain).toEqual({ _eq: "" });
     expect(where.owner_address).toEqual({ _eq: AccountAddress.ONE.toString() });
   });
@@ -213,7 +213,7 @@ describe("internal/ans indexer-backed reads", () => {
 
     const { names } = await getAccountSubdomains({ aptosConfig: mock.config, accountAddress: AccountAddress.ONE });
     expect(names[0].subdomain).toBe("bob");
-    const where = (mock.requests[0]?.body as any).variables.where_condition;
+    const where = (mock.requests[0]!.body as any).variables.where_condition;
     expect(where.subdomain).toEqual({ _neq: "" });
   });
 
@@ -222,7 +222,7 @@ describe("internal/ans indexer-backed reads", () => {
     enqueueNames(mock, [rawName({ subdomain: "bob" })]);
 
     await getDomainSubdomains({ aptosConfig: mock.config, domain: "alice" });
-    const where = (mock.requests[0]?.body as any).variables.where_condition;
+    const where = (mock.requests[0]!.body as any).variables.where_condition;
     expect(where.domain).toEqual({ _eq: "alice" });
     expect(where.subdomain).toEqual({ _neq: "" });
   });
@@ -235,7 +235,7 @@ describe("internal/ans indexer-backed reads", () => {
       accountAddress: AccountAddress.ONE,
       options: { where: { token_standard: { _eq: "v2" } } },
     });
-    const where = (mock.requests[0]?.body as any).variables.where_condition;
+    const where = (mock.requests[0]!.body as any).variables.where_condition;
     expect(where.token_standard).toEqual({ _eq: "v2" });
   });
 });

@@ -104,22 +104,12 @@ describe("remoteAbi parseArgAsync numeric rejections", () => {
   const config = createMockClient().config;
   const reject = (type: string) => checkOrConvertArgumentWithABI(false as any, parseTypeTag(type), 0, [], config);
 
-  it.each([
-    "u8",
-    "u16",
-    "u32",
-    "u64",
-    "u128",
-    "u256",
-    "i8",
-    "i16",
-    "i32",
-    "i64",
-    "i128",
-    "i256",
-  ])("rejects a boolean for %s", async (type) => {
-    await expect(reject(type)).rejects.toThrow("Type mismatch for argument 0");
-  });
+  it.each(["u8", "u16", "u32", "u64", "u128", "u256", "i8", "i16", "i32", "i64", "i128", "i256"])(
+    "rejects a boolean for %s",
+    async (type) => {
+      await expect(reject(type)).rejects.toThrow("Type mismatch for argument 0");
+    },
+  );
 
   it("rejects a non-string/non-wrapper for an object param", async () => {
     await expect(reject("0x1::object::Object<u8>")).rejects.toThrow("string | AccountAddress");
