@@ -31,7 +31,7 @@ export class Build {
    *
    * @example
    * ```typescript
-   * import { Account, Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
    *
    * async function runExample() {
    *     // Create a configuration for the Aptos client
@@ -67,7 +67,7 @@ export class Build {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Account, Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
    *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
