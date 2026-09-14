@@ -1,0 +1,624 @@
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
+import { AptosConfig } from "../api/aptosConfig.js";
+import { MoveOption, MoveString, MoveVector } from "../bcs/serializable/moveStructs.js";
+import {
+  Bool,
+  I128,
+  I16,
+  I256,
+  I32,
+  I64,
+  I8,
+  U128,
+  U16,
+  U256,
+  U32,
+  U64,
+  U8,
+} from "../bcs/serializable/movePrimitives.js";
+import { FixedBytes } from "../bcs/serializable/fixedBytes.js";
+import { AccountAddress, AccountAddressInput, AuthenticationKey } from "../core/index.js";
+import { PublicKey } from "../core/crypto/index.js";
+import {
+  MultiAgentRawTransaction,
+  FeePayerRawTransaction,
+  RawTransaction,
+  TransactionPayloadEntryFunction,
+  TransactionPayloadMultiSig,
+  TransactionPayloadScript,
+  TransactionInnerPayload,
+  TransactionPayloadEncryptedPayload,
+} from "./instances/index.js";
+import {
+  AnyNumber,
+  HexInput,
+  MoveFunctionGenericTypeParam,
+  MoveFunctionId,
+  MoveModuleId,
+  MoveStructId,
+  MoveValue,
+  TransactionSubmitter,
+} from "../types/index.js";
+import type { ClaimedEntryFunction } from "./instances/encryptedPayload.js";
+import { TypeTag } from "./typeTag/index.js";
+import { AccountAuthenticator } from "./authenticator/account.js";
+import { SimpleTransaction } from "./instances/simpleTransaction.js";
+import { MultiAgentTransaction } from "./instances/multiAgentTransaction.js";
+import { Serialized } from "../bcs/index.js";
+import type { MoveStructArgument, MoveEnumArgument } from "./transactionBuilder/structEnumParser.js";
+
+/**
+ * Entry function arguments for building a raw transaction using remote ABI, supporting various data types including primitives and arrays.
+ * @group Implementation
+ * @category Transactions
+ */
+export type SimpleEntryFunctionArgumentTypes =
+  | boolean
+  | number
+  | bigint
+  | string
+  | null // To support optional empty
+  | undefined // To support optional empty
+  | Uint8Array
+  | ArrayBuffer
+  | Array<SimpleEntryFunctionArgumentTypes | EntryFunctionArgumentTypes>;
+
+/**
+ * Entry function arguments for building a raw transaction using BCS serialized arguments.
+ * @group Implementation
+ * @category Transactions
+ */
+export type EntryFunctionArgumentTypes =
+  | Bool
+  | U8
+  | U16
+  | U32
+  | U64
+  | U128
+  | U256
+  | I8
+  | I16
+  | I32
+  | I64
+  | I128
+  | I256
+  | AccountAddress
+  | MoveVector<EntryFunctionArgumentTypes>
+  | MoveOption<EntryFunctionArgumentTypes>
+  | MoveString
+  | MoveStructArgument
+  | MoveEnumArgument
+  | FixedBytes;
+
+/**
+ * Script function arguments for building raw transactions using BCS serialized arguments.
+ * @group Implementation
+ * @category Transactions
+ */
+export type ScriptFunctionArgumentTypes =
+  | Bool
+  | U8
+  | U16
+  | U32
+  | U64
+  | U128
+  | U256
+  | I8
+  | I16
+  | I32
+  | I64
+  | I128
+  | I256
+  | AccountAddress
+  | MoveVector<ScriptFunctionArgumentTypes>
+  | MoveString
+  | FixedBytes
+  | Serialized;
+
+/**
+ * Inputs for Entry functions, view functions, and scripts, which can be a string representation of various types including
+ * primitive types, vectors, and structured types.
+ *
+ *  *
+ * This can be a string version of the type argument such as:
+ * - u8
+ * - u16
+ * - u32
+ * - u64
+ * - u128
+ * - u256
+ * - i8
+ * - i16
+ * - i32
+ * - i64
+ * - i128
+ * - i256
+ * - bool
+ * - address
+ * - signer
+ * - vector<Type>
+ * - address::module::struct
+ * - address::module::struct<Type1, Type2>
+ * @group Implementation
+ * @category Transactions
+ */
+export type TypeArgument = TypeTag | string;
+
+/**
+ * Holds all return interfaces for generating different transaction types.
+ * @group Implementation
+ * @category Transactions
+ */
+export type AnyRawTransactionInstance = RawTransaction | MultiAgentRawTransaction | FeePayerRawTransaction;
+
+// TRANSACTION GENERATION TYPES //
+
+/**
+ * Optional options to set when generating a transaction, including a maximum gas amount.
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputGenerateTransactionOptions =
+  | InputGenerateSequenceNumberTransactionOptions
+  | InputGenerateOrderlessTransactionOptions;
+
+/**
+ * Plain-object override for {@link ClaimedEntryFunction} when building encrypted transactions.
+ */
+export type InputClaimedEntryFunction = {
+  module: MoveModuleId;
+  functionName?: string;
+};
+
+/**
+ * Options for building encrypted transactions (combined with sequence- or orderless-specific fields).
+ */
+export type InputEncryptedTransactionBuildOptions = {
+  /**
+   * When true, the transaction payload will be encrypted before submission.
+   * Requires the node to support encrypted transactions (encryption key present in ledger info).
+   */
+  encrypted?: boolean;
+  /**
+   * Authentication key for the primary sender. Optional: when omitted (and `encrypted` is true), the SDK fetches
+   * the sender's `authentication_key` from the fullnode and caches it for ~1 hour. Pass it explicitly to skip the
+   * lookup (useful right after a key rotation). Accepts an `AuthenticationKey` or a raw 32-byte hex string /
+   * `Uint8Array`. Must match the on-chain authenticator identity (aptos-core
+   * `PayloadAssociatedData::V1.signer_auth_keys`).
+   */
+  senderAuthenticationKey?: AuthenticationKey | HexInput;
+  /**
+   * For encrypted **multi-agent** transactions: each secondary signer's authentication key, in the same order
+   * as `secondarySignerAddresses` on the transaction build input. Any entry left undefined (or the entire array
+   * omitted) will be fetched from chain and cached. Accepts `AuthenticationKey` or a raw 32-byte hex string /
+   * `Uint8Array`.
+   */
+  secondarySignerAuthenticationKeys?: (AuthenticationKey | HexInput | undefined)[];
+  /**
+   * For encrypted **fee-payer** transactions: the fee payer's authentication key. Optional when `feePayerAddress`
+   * is a **non-zero** sponsor — omitted values are fetched from chain and cached. Appended **last** in AAD
+   * `signer_auth_keys`, matching aptos-core `TransactionAuthenticator::all_signer_auth_keys` (after sender and
+   * secondaries). Accepts `AuthenticationKey` or a raw 32-byte hex string / `Uint8Array`.
+   */
+  feePayerAuthenticationKey?: AuthenticationKey | HexInput;
+  /**
+   * Overrides `claimed_entry_fun` for encrypted transactions when a fee payer is set, the payload is multisig, or the
+   * payload is `TransactionInnerPayload` with a multisig address in `TransactionExtraConfigV1`.
+   * Ignored for plain encrypted single-signer transactions (none of the above).
+   */
+  claimedEntryFunction?: ClaimedEntryFunction | InputClaimedEntryFunction;
+};
+
+/**
+ * Input options for generating a transaction that requires an account sequence number, which is the default method.
+ */
+export type InputGenerateSequenceNumberTransactionOptions = {
+  maxGasAmount?: number;
+  gasUnitPrice?: number;
+  expireTimestamp?: number;
+  accountSequenceNumber?: AnyNumber;
+  replayProtectionNonce?: undefined;
+} & InputEncryptedTransactionBuildOptions;
+
+/**
+ * Input options for generating a transaction using the orderless method, which does not require an account sequence number.
+ */
+export type InputGenerateOrderlessTransactionOptions = {
+  maxGasAmount?: number;
+  gasUnitPrice?: number;
+  expireTimestamp?: number;
+  accountSequenceNumber?: undefined;
+  replayProtectionNonce: AnyNumber;
+} & InputEncryptedTransactionBuildOptions;
+
+/**
+ * The transaction payload type generated from the `generateTransactionPayload()` function, which can be an entry function,
+ * script, or multi-signature payload.
+ * @group Implementation
+ * @category Transactions
+ */
+export type AnyTransactionPayloadInstance =
+  | TransactionPayloadEntryFunction
+  | TransactionPayloadScript
+  | TransactionPayloadMultiSig
+  | TransactionInnerPayload
+  | TransactionPayloadEncryptedPayload;
+
+/**
+ * The data needed to generate a transaction payload for Entry Function, Script, or Multi Sig types.
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputGenerateTransactionPayloadData =
+  | InputEntryFunctionData
+  | InputScriptData
+  | InputMultiSigData
+  | InputMultiSigScriptData;
+
+/**
+ * The payload for generating a transaction, which can be either script data, entry function data with remote ABI, or
+ * multi-signature data.
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputGenerateTransactionPayloadDataWithRemoteABI =
+  | InputScriptData
+  | InputMultiSigScriptData
+  | InputEntryFunctionDataWithRemoteABI
+  | InputMultiSigDataWithRemoteABI;
+
+/**
+ * The data needed to generate an Entry Function payload.
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputEntryFunctionData = {
+  function: MoveFunctionId;
+  typeArguments?: Array<TypeArgument>;
+  functionArguments?: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
+  abi?: EntryFunctionABI;
+};
+
+/**
+ * The payload for generating a transaction, which can be either an entry function or a multi-signature transaction.
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputGenerateTransactionPayloadDataWithABI = InputEntryFunctionDataWithABI | InputMultiSigDataWithABI;
+
+/**
+ * The input data for an entry function, including its associated ABI.
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputEntryFunctionDataWithABI = Omit<InputEntryFunctionData, "abi"> & {
+  abi: EntryFunctionABI;
+  aptosConfig?: AptosConfig;
+};
+
+/**
+ * The data needed to generate a Multi Sig payload, including the multisig address.
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputMultiSigDataWithABI = {
+  multisigAddress: AccountAddressInput;
+} & InputEntryFunctionDataWithABI;
+
+/**
+ * Combines input function data with Aptos configuration for remote ABI interactions.
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputEntryFunctionDataWithRemoteABI = InputEntryFunctionData & { aptosConfig: AptosConfig };
+/**
+ * The data needed to generate a Multi Sig payload
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputMultiSigData = {
+  multisigAddress: AccountAddressInput;
+} & InputEntryFunctionData;
+
+/**
+ * The data needed to generate a Multi Sig payload, including the multisig address.
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputMultiSigDataWithRemoteABI = {
+  multisigAddress: AccountAddressInput;
+} & InputEntryFunctionDataWithRemoteABI;
+
+/**
+ * The data needed to generate a Script payload.
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputScriptData = {
+  bytecode: HexInput;
+  typeArguments?: Array<TypeArgument>;
+  functionArguments: Array<ScriptFunctionArgumentTypes>;
+};
+
+/**
+ * The data needed to generate a Multi Sig payload with a Script.
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputMultiSigScriptData = {
+  multisigAddress: AccountAddressInput;
+} & InputScriptData;
+
+/**
+ * The data needed to generate a View Function payload.
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputViewFunctionData = {
+  function: MoveFunctionId;
+  typeArguments?: Array<TypeArgument>;
+  functionArguments?: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
+  abi?: ViewFunctionABI;
+};
+
+/**
+ * The data needed to generate a View Function payload in JSON format.
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputViewFunctionJsonData = {
+  function: MoveFunctionId;
+  typeArguments?: Array<MoveStructId>;
+  functionArguments?: Array<MoveValue>;
+};
+
+/**
+ * The payload sent to the fullnode for a JSON view request.
+ * @group Implementation
+ * @category Transactions
+ */
+export type ViewFunctionJsonPayload = {
+  function: MoveFunctionId;
+  typeArguments: Array<MoveStructId>;
+  functionArguments: Array<MoveValue>;
+};
+
+/**
+ * Data required to create a view function payload and retrieve the remote ABI, including Aptos configuration.
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputViewFunctionDataWithRemoteABI = InputViewFunctionData & { aptosConfig: AptosConfig };
+
+/**
+ * Data needed to generate a view function, including the fetched ABI.
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputViewFunctionDataWithABI = InputViewFunctionData & {
+  abi: ViewFunctionABI;
+  aptosConfig?: AptosConfig;
+};
+
+/**
+ * Data needed for a generic function ABI, applicable to both view and entry functions.
+ * @group Implementation
+ * @category Transactions
+ */
+export type FunctionABI = {
+  typeParameters: Array<MoveFunctionGenericTypeParam>;
+  parameters: Array<TypeTag>;
+};
+
+/**
+ * Interface for an Entry function's ABI, enabling type checking and input conversion for ABI-based transaction submissions.
+ * @group Implementation
+ * @category Transactions
+ */
+export type EntryFunctionABI = FunctionABI & {
+  signers?: number;
+};
+
+/**
+ * Interface for a view function's ABI, providing type checking and input conversion for ABI-based transaction submissions.
+ * @group Implementation
+ * @category Transactions
+ */
+export type ViewFunctionABI = FunctionABI & {
+  returnTypes: Array<TypeTag>;
+};
+
+/**
+ * Arguments for generating a single signer raw transaction, used in the transaction builder flow.
+ *
+ * @param aptosConfig - Configuration settings for Aptos.
+ * @param sender - The address of the sender.
+ * @param payload - The transaction payload.
+ * @param options - Optional transaction generation options.
+ * @param feePayerAddress - Optional address of the fee payer.
+ * @group Implementation
+ * @category Transactions
+ */
+export interface InputGenerateSingleSignerRawTransactionArgs {
+  aptosConfig: AptosConfig;
+  sender: AccountAddressInput;
+  payload: AnyTransactionPayloadInstance;
+  options?: InputGenerateTransactionOptions;
+  feePayerAddress?: AccountAddressInput;
+}
+
+/**
+ * Arguments for generating a multi-agent transaction, used in the `generateTransaction()` method of the transaction builder flow.
+ *
+ * @param aptosConfig - Configuration settings for Aptos.
+ * @param sender - The address of the transaction sender.
+ * @param payload - The transaction payload.
+ * @param secondarySignerAddresses - List of secondary signer addresses.
+ * @param options - Optional settings for transaction generation.
+ * @param feePayerAddress - Optional address of the fee payer.
+ * @group Implementation
+ * @category Transactions
+ */
+export interface InputGenerateMultiAgentRawTransactionArgs {
+  aptosConfig: AptosConfig;
+  sender: AccountAddressInput;
+  payload: AnyTransactionPayloadInstance;
+  secondarySignerAddresses: AccountAddressInput[];
+  options?: InputGenerateTransactionOptions;
+  feePayerAddress?: AccountAddressInput;
+}
+
+/**
+ * A unified type for generating various transaction types.
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputGenerateRawTransactionArgs =
+  | InputGenerateSingleSignerRawTransactionArgs
+  | InputGenerateMultiAgentRawTransactionArgs;
+
+/**
+ * Unified type that holds all the return interfaces when generating different transaction types
+ * @group Implementation
+ * @category Transactions
+ */
+export type AnyRawTransaction = SimpleTransaction | MultiAgentTransaction;
+
+// TRANSACTION SIMULATION TYPES //
+
+/**
+ * The data required to simulate a transaction, typically generated by `generateTransaction()`.
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputSimulateTransactionData = {
+  /**
+   * The transaction to simulate, probably generated by `generateTransaction()`.
+   * Encrypted payloads (`options.encrypted` when building) are not supported: simulation throws
+   * before the request is sent; simulate a plaintext build of the same entry function instead.
+   * @group Implementation
+   * @category Transactions
+   */
+  transaction: AnyRawTransaction;
+  /**
+   * For a single signer transaction
+   * @group Implementation
+   * @category Transactions
+   * This is optional and can be undefined to skip the public/auth key check during the transaction simulation.
+   */
+  signerPublicKey?: PublicKey;
+  /**
+   * For a fee payer or multi-agent transaction that requires additional signers in
+   * @group Implementation
+   * @category Transactions
+   */
+  secondarySignersPublicKeys?: Array<PublicKey | undefined>;
+  /**
+   * For a fee payer transaction (aka Sponsored Transaction)
+   * @group Implementation
+   * @category Transactions
+   */
+  feePayerPublicKey?: PublicKey;
+  options?: InputSimulateTransactionOptions;
+};
+
+/**
+ * Options for simulating a transaction input, including whether to estimate the gas unit price.
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputSimulateTransactionOptions = {
+  estimateGasUnitPrice?: boolean;
+  estimateMaxGasAmount?: boolean;
+  estimatePrioritizedGasUnitPrice?: boolean;
+};
+
+// USER INPUT TYPES //
+
+/**
+ * Holds user input data for generating a single signer transaction.
+ *
+ * @param sender - The address of the account sending the transaction.
+ * @param data - The payload data for the transaction.
+ * @param options - Optional transaction options.
+ * @param withFeePayer - Indicates if the fee payer is included.
+ * @param secondarySignerAddresses - Addresses for any secondary signers (not used in single signer transactions).
+ * @group Implementation
+ * @category Transactions
+ */
+export interface InputGenerateSingleSignerRawTransactionData {
+  sender: AccountAddressInput;
+  data: InputGenerateTransactionPayloadData;
+  options?: InputGenerateTransactionOptions;
+  withFeePayer?: boolean;
+  secondarySignerAddresses?: undefined;
+}
+
+/**
+ * Holds user data input for generating a multi-agent transaction.
+ *
+ * @param sender - The address of the primary sender.
+ * @param data - The payload data for the transaction.
+ * @param secondarySignerAddresses - An array of addresses for secondary signers.
+ * @param options - Optional transaction options.
+ * @param withFeePayer - Indicates if a fee payer is included.
+ * @group Implementation
+ * @category Transactions
+ */
+export interface InputGenerateMultiAgentRawTransactionData {
+  sender: AccountAddressInput;
+  data: InputGenerateTransactionPayloadData;
+  secondarySignerAddresses: AccountAddressInput[];
+  options?: InputGenerateTransactionOptions;
+  withFeePayer?: boolean;
+}
+
+/**
+ * Unified type holding user data input interfaces for generating various transaction types.
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputGenerateTransactionData =
+  | InputGenerateSingleSignerRawTransactionData
+  | InputGenerateMultiAgentRawTransactionData;
+
+interface InputSubmitTransactionDataInner {
+  transaction: AnyRawTransaction;
+  senderAuthenticator: AccountAuthenticator;
+  feePayerAuthenticator?: AccountAuthenticator;
+  additionalSignersAuthenticators?: Array<AccountAuthenticator>;
+}
+
+export interface InputTransactionPluginData {
+  /**
+   * Additional parameters that will be passed to the transaction submitter plugin if
+   * configured.
+   */
+  pluginParams?: Record<string, any>;
+
+  /**
+   * You can set this to override the configured transaction submitter (if any).
+   * Conversely you can set this to null to ignore any configured transaction submitter.
+   */
+  transactionSubmitter?: TransactionSubmitter | null;
+}
+
+/**
+ * Holds user data input for submitting a transaction.
+ *
+ * @param transaction - The raw transaction data.
+ * @param senderAuthenticator - The authenticator for the sender's account.
+ * @param feePayerAuthenticator - Optional authenticator for the fee payer's account.
+ * @param additionalSignersAuthenticators - Optional array of authenticators for
+ * additional signers.
+ * @param pluginParams - Additional parameters that will be passed to the transaction
+ * submitter plugin if configured.
+ * @param transactionSubmitter - You can set this to override the configured transaction
+ * submitter (if any). Conversely you can set this to null to ignore any configured
+ * transaction submitter.
+ * @group Implementation
+ * @category Transactions
+ */
+export type InputSubmitTransactionData = InputSubmitTransactionDataInner & InputTransactionPluginData;

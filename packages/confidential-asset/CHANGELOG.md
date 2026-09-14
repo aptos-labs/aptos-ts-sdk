@@ -1,0 +1,73 @@
+# Aptos Confidential Asset SDK Changelog
+
+All notable changes to `@aptos-labs/confidential-asset` will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+
+For changes to the main Aptos TypeScript SDK (`@aptos-labs/ts-sdk`), see its [CHANGELOG.md](../ts-sdk/CHANGELOG.md).
+
+# Unreleased
+
+## Changed
+
+- Integrate the relocated package into the pnpm/Turbo workspace, including repository metadata, CI, release, publishing, coverage, and documentation paths.
+- Complete migration CI coverage by validating the package's production build and packaged license and by preventing cached formatting, lint, check, and license results.
+- Update dependencies within current majors: `@noble/{ciphers,curves,hashes}` to `^2.4.0`, Vitest/`@vitest/*` to `^4.1.11`, Playwright to `^1.63.0`, Biome to `2.5.12`, and pnpm to `11.26.0`. Refresh pnpm overrides (`js-yaml` `3.15.2`/`4.3.2`, `postcss` `8.5.28`, `undici` `7.29.1`, `uuid` `14.0.2`, `picomatch` `4.0.7`, `@xmldom/xmldom` `0.8.15`, `file-type` `21.3.4`) to patched releases.
+- Upgrade the package-manager pin to pnpm `11.21.0`.
+- Upgrade TypeScript to `^7.0.2`.
+- Update dependencies within current majors: `@noble/{curves,hashes}` to `^2.3.0`, `@aptos-labs/confidential-asset-bindings` to `^1.1.2`, `@aptos-labs/ts-sdk` to `^7.3.0`, Vitest/`@vitest/*` to `^4.1.10`, Playwright to `^1.62.1`, and Vite to `^7.3.6`. Refresh pnpm overrides (`esbuild`, `postcss`, `undici`, `uuid`, `picomatch`, `brace-expansion`, `yauzl`, `js-yaml`) to patched releases.
+- Align pnpm `minimumReleaseAge` (48 hours) with Aikido Safe Chain's default minimum package age, excluding `@aptos-labs/*`, `baseline-browser-mapping`, and `caniuse-lite`.
+- Upgrade the package to pnpm 11.20.0 and migrate dependency overrides to pnpm 11's `pnpm-workspace.yaml` format.
+- **Requires `@aptos-labs/ts-sdk` v7.3+.** Peer dependency narrowed from `^5.2.1 || ^6.3.1 || ^7.0.0` to `^7.3.0`. v7.3.0 adds `aptos.keyless.getPepperBase`, which the keyless decryption-key derivation (`TwistedEd25519PrivateKey.fromPepperBase`) pairs with. Upgrade your `@aptos-labs/ts-sdk` dependency to `^7.3.0` before upgrading this package.
+
+## Added
+
+- `TwistedEd25519PrivateKey.fromPepperBase(pepperBase)` derives a **keyless** account's confidential-asset decryption key (DK) from its 48-byte `pepper_base` (fetched via the main SDK's `aptos.keyless.getPepperBase`). Keyless accounts can't use `fromSignature` (their per-session ephemeral signing key would yield a different DK each session); `pepper_base` is a stable per-identity seed. The DK is keyed on `pepper_base` rather than the final pepper so a leaked pepper can't recover it. Scheme: `DK = LE(SHA-512(utf8("APTOS_CONFIDENTIAL_ASSETS::PEPPER_DK_DERIVATION::v1") || pepper_base)) mod l`, mirroring the `fromSignature` reduction. New `PEPPER_DK_DERIVATION_DOMAIN` / `PEPPER_BASE_LENGTH` constants exported alongside. Requires `@aptos-labs/ts-sdk` with `getPepperBase`.
+- **Keyless decryption-key (DK) on-chain backup (aptos-core PR #19458).** Support for backing up a confidential-asset DK on-chain so keyless wallet users can recover it from an Ed25519 backup key.
+  - `encryptDecryptionKey` / `decryptDecryptionKey`: an IND-CCA AEAD (HKDF-SHA512 → XChaCha20-Poly1305, keyed on the Ed25519 backup key's 32-byte seed) that produces / consumes the opaque `dk_ciphertext` stored on-chain. `deriveDkAeadKey` and the `DK_AEAD_SALT` / `DK_AEAD_INFO` constants are exported for known-answer testing. The byte layout matches the Petra/Rust reference implementation. Adds a `@noble/ciphers` (`^2.2.0`) dependency.
+  - View wrappers `ConfidentialAsset.encryptedDkExists` / `getEncryptedDk` (over the framework `0x1::account::encrypted_dk_exists` / `get_encrypted_dk`); `getEncryptedDk` gates on existence and returns `undefined` when no DK is stored.
+  - Transaction builders `ConfidentialAssetTransactionBuilder.registerBalanceAndEncryptDk` (`0x1::keyless_account::register_ek_and_encrypt_dk`) and `upsertEd25519BackupKeyAndEncryptDk` (`0x1::account::upsert_ed25519_backup_key_and_encrypt_dk`), plus a `buildBackupKeyProof` helper that builds the `RotationProofChallenge` signature.
+  - High-level `ConfidentialAsset.registerBalanceAndEncryptDk` / `upsertEd25519BackupKeyAndEncryptDk` (encrypt + build + sign + submit) and `recoverDecryptionKeyFromBackup` (read the on-chain ciphertext and decrypt with the backup key). The high-level API takes the keyless public key as raw bytes and the backup key as an `Ed25519PrivateKey` to avoid coupling to keyless/multikey account classes. **SECURITY:** wallets must forbid dapps from requesting signatures over these key-rotation / DK-backup transactions.
+- `TwistedEd25519PrivateKey.clear()` and `isCleared()` mirror the lifecycle hooks on the main SDK's `Ed25519PrivateKey` / `Secp256k1PrivateKey`. After `clear()` is called, the underlying byte buffer of the `Hex` wrapper is overwritten and subsequent calls to `publicKey()`, `toUint8Array()`, `toString()`, and `toStringWithoutPrefix()` throw. **SECURITY NOTE:** as documented on the new JSDoc, this cannot fully zeroize the key in JavaScript — any `toString()` output already produced is an immutable JS string, and noble-curves / `ed25519modN` operations may have produced `BigInt` intermediates that also can't be wiped. Treat `clear()` as a best-effort window-narrowing tool, not a true zeroization guarantee.
+
+## Breaking
+
+- **Confidential-asset decryption-key derivation now uses a domain-separated signing message.** The plaintext `TwistedEd25519PrivateKey.decryptionKeyDerivationMessage` constant has been **removed**. Callers must now use `TwistedEd25519PrivateKey.getDecryptionKeySigningMessage(network)`, which returns the 32-byte signing message `sha3_256("APTOS_CONFIDENTIAL_ASSETS::DK_DERIVATION::" || network)`. `network` is any `Network` value from `@aptos-labs/ts-sdk` (e.g. `Network.MAINNET`); the underlying enum string is what gets hashed. The previous plaintext message lacked any domain separation (no protocol tag, no chain binding, no envelope), so any other signing surface producing an Ed25519 signature over those exact bytes would recover the decryption key. New `TwistedEd25519PrivateKey.DK_DERIVATION_DOMAIN_PREFIX` constant exported alongside.
+
+  **Migration.** Any pre-existing decryption keys derived under the old plaintext message will not be reproducible by this SDK after upgrade; users holding balances under such keys must rotate to a new key derived under the new scheme via `ConfidentialAssetTransactionBuilder.rotateEncryptionKey` *before* upgrading the SDK in their toolchain. Pseudocode:
+
+  ```ts
+  // OLD (removed):
+  const sig = account.sign(TwistedEd25519PrivateKey.decryptionKeyDerivationMessage);
+  const dk = TwistedEd25519PrivateKey.fromSignature(sig);
+
+  // NEW:
+  const msg = TwistedEd25519PrivateKey.getDecryptionKeySigningMessage(Network.MAINNET);
+  const sig = account.sign(msg);
+  const dk = TwistedEd25519PrivateKey.fromSignature(sig);
+  ```
+
+## Fixed
+
+- Override transitive `image-size@1.2.1` (pulled in via Metro/Expo) with `image-size-next@1.2.2` to address CVE-2025-71329 (infinite loop on zero-size JXL/HEIF/JP2 boxes) and CVE-2025-71330 (infinite loop on zero-length ICNS entries). Upstream `image-size` is archived and has no patched 1.x/2.x release.
+- Declare the GraphQL code-generation runtime and peer packages as development dependencies so clean workspace builds can compile the generated indexer client without relying on dependencies hoisted from the pre-migration root package.
+- Declare the Aptos CLI as a development dependency so the package's shared localnet test setup resolves the correct `aptos` binary after the workspace relocation.
+- `TwistedElGamal.decryptAmount` no longer calls `console.error` on the caught discrete-log failure before re-throwing. The underlying error is now attached as `error.cause` on the thrown `TypeError`, so legitimate debug flows keep full diagnostic context but production log aggregators / crash reporters don't capture the raw error unconditionally.
+- Fix CI browser test job for `@aptos-labs/confidential-asset`:
+  - `vitest.browser.config.mts` `include`/`exclude` patterns updated from `*.test.ts` to `*.test.{ts,mts}`. The unit tests live in `.test.mts` files, so vitest was finding zero tests and exiting with code 1 (the `pnpm test:browser` step in `.github/actions/run-confidential-asset-tests`).
+  - `import { RistrettoPoint }` was a value-position import of a type-only export in three source files (`crypto/twistedElGamal.ts`, `crypto/confidentialKeyRotation.ts`, `crypto/bsgs.ts`) and one re-export (`crypto/index.ts`). Node-mode vite/esbuild silently elides such imports when only used in type positions, but browser-mode vite serves modules over HTTP and ESM strictly requires the named export to exist at runtime, producing `SyntaxError: The requested module '/src/crypto/ristrettoPoint.ts' does not provide an export named 'RistrettoPoint'`. Fixed by switching all four to `import type` / `export type`.
+- Address PR review (#888) feedback on cryptographic helpers:
+  - `TwistedElGamal.encryptWithPK` and `TwistedElGamal.encryptWithNoRandomness` now actually reject out-of-range scalars. The previous validation used `amount < 0n && amount > n`, which is impossible (no value can be both negative and larger than the curve order), so all inputs silently passed the check. Now uses `amount < 0n || amount >= n` (and the same fix is applied to the `random` parameter).
+  - `ed25519GenRandom` now rejects `rand === n` (was only rejecting `rand > n`), so the rejection-sampling loop guarantees the documented `[0, n)` range.
+  - `TwistedElGamal.calculateCiphertextMG` dropped the unnecessary `ristretto255.Point.fromAffine(C)` / `fromAffine(D)` round-trip; `C` and `D` are already `RistrettoPoint` instances and are now multiplied/subtracted directly. Same arithmetic, fewer field inversions.
+  - `getBalance` (in `internal/viewFunctions.ts`) no longer wraps every error in a generic `new Error(`Failed to get balance: ${e}`)`. The previous wrapper was a regression that erased the original error type (e.g. `AptosApiError`) and stack trace; the `try/catch` was a no-op `throw error;` before that, so it has been removed entirely and original errors are propagated unchanged.
+- Fix package build to be ESM-only and align with the main SDK:
+  - Add `"type": "module"` so `tsc` (with `module: nodenext`) emits ESM instead of falling back to CJS.
+  - Fix `exports`/`main`/`module` paths: previously pointed to nonexistent `dist/common/index.js` and `dist/esm/index.mjs`; now a single `dist/index.js` (ESM) with `dist/index.d.ts` types.
+  - Set `rootDir: "./src"` in `tsconfig.build.json` so output lands at `dist/...` instead of `dist/src/...`.
+  - Bump `engines.node` from `>=20.0.0` to `>=22.0.0` to match the main SDK.
+  - Add `lint`, `check`, `fmt`, `_fmt`, `format`, and `prepublishOnly` scripts (Biome-driven, sharing the repo's `biome.json`).
+  - Add `repository` field to `package.json` (with `directory: "confidential-asset"`).
+  - Drop unused dev dependencies: `@swc/cli`, `@swc/core`, `tslib`, `tsc-alias`, `tsx`. Add `@biomejs/biome`.
+  - Remove orphaned `postbuild.cjs` (referenced nonexistent `dist/cjs` / `dist/esm` / `dist/types` paths and was not invoked by any script).
+  - Remove stale compiled `vitest.config.js` / `vitest.config.js.map` artifacts from the package root.
+  - Add explicit `.js` extensions to relative imports under `src/indexer/` (and regenerated `src/indexer/generated/`) so `nodenext` ESM resolution accepts them.
+  - Fix `tsconfig.json` `include` to reference `vitest.config.ts` (the file that exists) rather than `vitest.config.mts`.

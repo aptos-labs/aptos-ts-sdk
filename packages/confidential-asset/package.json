@@ -1,0 +1,71 @@
+{
+  "name": "@aptos-labs/confidential-asset",
+  "description": "Aptos Confidential Assets SDK",
+  "license": "SEE LICENSE IN LICENSE",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "bugs": {
+    "url": "https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose"
+  },
+  "homepage": "https://aptos-labs.github.io/aptos-ts-sdk/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aptos-labs/aptos-ts-sdk.git",
+    "directory": "packages/confidential-asset"
+  },
+  "version": "2.3.0",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build:clean": "rm -rf dist",
+    "build": "pnpm build:clean && tsc -p tsconfig.build.json",
+    "prepublishOnly": "pnpm run build && pnpm run check-license",
+    "_fmt": "biome format",
+    "fmt": "biome format --write",
+    "format": "pnpm fmt",
+    "lint": "biome lint",
+    "check": "biome check",
+    "test": "vitest run",
+    "test:browser": "vitest run --config vitest.browser.config.mts",
+    "e2e-test": "vitest run tests/e2e",
+    "check-license": "sh ../../scripts/checkLicense.sh .",
+    "publish-zeta": "pnpm build && npm publish --tag zeta"
+  },
+  "peerDependencies": {
+    "@aptos-labs/ts-sdk": "^7.3.0"
+  },
+  "dependencies": {
+    "@aptos-labs/confidential-asset-bindings": "^1.1.2",
+    "@noble/ciphers": "^2.4.0",
+    "@noble/curves": "^2.4.0",
+    "@noble/hashes": "^2.4.0"
+  },
+  "devDependencies": {
+    "@aptos-labs/aptos-cli": "^3.0.0",
+    "@aptos-labs/ts-sdk": "workspace:^7.3.0",
+    "@biomejs/biome": "2.5.12",
+    "@types/node": "^22.20.1",
+    "@vitest/browser": "^4.1.11",
+    "@vitest/browser-playwright": "^4.1.11",
+    "@vitest/coverage-v8": "^4.1.11",
+    "graphql": "^16.14.2",
+    "graphql-request": "^7.4.0",
+    "playwright": "^1.63.0",
+    "typescript": "^7.0.2",
+    "vite": "^7.3.6",
+    "vitest": "^4.1.11"
+  }
+}

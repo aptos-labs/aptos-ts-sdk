@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Test Aptos TypeScript SDK with Deno runtime",
   "type": "module",
-  "license": "Apache-2.0",
+  "packageManager": "pnpm@11.26.0",
+  "license": "SEE LICENSE IN LICENSE",
   "engines": {
     "deno": "^2.0.0"
   },
@@ -12,9 +13,9 @@
     "test:all": "deno task test:all"
   },
   "dependencies": {
-    "@aptos-labs/ts-sdk": "file:../.."
+    "@aptos-labs/ts-sdk": "file:../../packages/ts-sdk"
   },
   "devDependencies": {
-    "typescript": "^6.0.2"
+    "typescript": "^7.0.2"
   }
 }

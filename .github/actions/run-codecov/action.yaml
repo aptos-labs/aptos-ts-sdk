@@ -1,0 +1,30 @@
+name: "Unit test coverage and Codecov upload"
+description: |
+  Install dependencies, run Vitest unit tests with coverage, and upload lcov to Codecov.
+
+inputs:
+  codecov-token:
+    description: Optional Codecov token (tokenless uploads work for many public repos).
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/setup-node-pnpm
+    - run: pnpm install --frozen-lockfile
+      shell: bash
+    - name: Unit tests with coverage
+      run: pnpm turbo run test:coverage:unit --filter=@aptos-labs/ts-sdk
+      shell: bash
+    # Dependabot and fork PRs do not receive repo secrets, so the token is empty
+    # there and the upload would fail on protected branches. Skip instead.
+    - name: Upload coverage to Codecov
+      if: inputs.codecov-token != ''
+      uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # pin@v5.5.5
+      with:
+        token: ${{ inputs.codecov-token }}
+        files: packages/ts-sdk/coverage/lcov.info
+        flags: unit
+        name: unit
+        fail_ci_if_error: false

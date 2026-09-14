@@ -12,11 +12,11 @@ runs:
     - run: pnpm install --frozen-lockfile
       shell: bash
     # Build the SDK for use in the examples
-    - run: pnpm build
+    - run: pnpm turbo run build --filter=@aptos-labs/ts-sdk
       shell: bash
 
     # Run a local testnet in the background.
-    - run: pnpm exec aptos node run-local-testnet --force-restart --assume-yes --with-indexer-api --log-to-stdout >& ${{ runner.temp }}/local-testnet-logs.txt &
+    - run: pnpm --filter @aptos-labs/ts-sdk exec aptos node run-local-testnet --force-restart --assume-yes --with-indexer-api --log-to-stdout >& ${{ runner.temp }}/local-testnet-logs.txt &
       shell: bash
 
     # Wait for the local testnet to be ready by hitting the readiness endpoint.
@@ -34,12 +34,12 @@ runs:
     # Install web test dependencies and Playwright browsers
     - run: |
         cd examples/web-test
-        pnpm install
+        pnpm install --frozen-lockfile
         pnpm exec playwright install --with-deps chromium
       shell: bash
 
     # Run the browser tests
-    - uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # pin@v3
+    - uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # pin@v4.0.0
       name: browser-sdk-tests
       env:
         TMPDIR: ${{ runner.temp }}
@@ -56,11 +56,11 @@ runs:
       if: failure()
       run: |
         echo "::group::Local testnet logs"
-        cat ${{ runner.temp }}/local-testnet-logs.txt
+        cat "${{ runner.temp }}/local-testnet-logs.txt" 2>/dev/null || echo "(no local testnet logs found)"
         echo "::endgroup::"
 
     - name: Upload Playwright report on failure
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # pin@v4
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # pin@v7.0.1
       if: failure()
       with:
         name: playwright-report

@@ -1,0 +1,44 @@
+# https://docs.codecov.com/docs/codecov-yaml
+#
+# CI uploads only the `unit` flag (Vitest unit suite); e2e / localnet coverage
+# is not included. Coverage is informational only — status checks post so
+# trends are visible per PR but do not block merges. To turn enforcement on,
+# drop `informational: true` and set a numeric `target` (e.g. `target: 80%`)
+# or `target: auto` (no regressions vs. base).
+
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true
+
+# Keep the ignore list in sync with `coverage.exclude` in `packages/ts-sdk/vitest.config.ts`.
+# Generated code and the separate confidential-asset package would otherwise
+# inflate the denominator with files the unit suite is not responsible for.
+ignore:
+  - "packages/ts-sdk/src/internal/queries/**"
+  - "packages/ts-sdk/src/types/generated/**"
+  # Node-only CLI surface, covered by `examples/` integration suites.
+  - "packages/ts-sdk/src/cli/**"
+  # Bundler shim; no runtime behavior.
+  - "packages/ts-sdk/src/utils/normalizeBundle.ts"
+  # Long-running event-loop driver covered behaviorally by the e2e suite.
+  - "packages/ts-sdk/src/transactions/management/asyncQueue.ts"
+  # Transaction worker queue covered by packages/ts-sdk/tests/e2e/transactionManagement/transactionWorker.test.ts.
+  - "packages/ts-sdk/src/transactions/management/transactionWorker.ts"
+  # EventEmitter wrapper over TransactionWorker; e2e-covered.
+  - "packages/ts-sdk/src/api/transactionSubmission/management.ts"
+  # Keyless account implementation covered by keyless unit + e2e suites.
+  - "packages/ts-sdk/src/account/AbstractKeylessAccount.ts"
+  # Re-export barrel and version constant.
+  - "packages/ts-sdk/src/index.ts"
+  - "packages/ts-sdk/src/version.ts"
+  - "packages/ts-sdk/tests/**"
+  - "examples/**"
+  - "packages/confidential-asset/**"
+  - "projects/**"
+  - "packages/ts-sdk/dist/**"
+  - "docs/**"

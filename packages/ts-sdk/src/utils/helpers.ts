@@ -1,0 +1,399 @@
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
+import { MoveFunctionId, MoveStructId } from "../types/index.js";
+import { AccountAddress } from "../core/accountAddress.js";
+import { createObjectAddress } from "../core/account/utils/address.js";
+import { TEXT_ENCODER } from "./const.js";
+
+/**
+ * Maximum bigint value that can be losslessly converted to a JS `number`.
+ * Equal to `BigInt(Number.MAX_SAFE_INTEGER)` (2^53 - 1).
+ */
+const MAX_SAFE_U64 = BigInt(Number.MAX_SAFE_INTEGER);
+
+/**
+ * Narrows a u64 (`bigint`) into a JS `number` with an explicit safety check.
+ *
+ * The `deserializeU64` reader returns `bigint`, but several keyless code
+ * paths historically narrowed the value with `Number(value)` to fit existing
+ * `number`-typed fields (expiry timestamps, expiry horizons). For values
+ * larger than `Number.MAX_SAFE_INTEGER` (~9 × 10^15), `Number(bigint)`
+ * silently loses precision — comparisons against `Date.now() / 1000` then
+ * return wrong results.
+ *
+ * Real-world expiry values are far below the unsafe range (year ~285 million
+ * AD as a Unix timestamp), so this check is effectively a guard against
+ * corrupted or malicious BCS data rather than a precision concern in normal
+ * operation. Throwing is correct behavior at the BCS/JSON boundary.
+ */
+export function u64ToNumberSafe(value: bigint, fieldName: string): number {
+  if (value < 0n) {
+    throw new RangeError(`${fieldName} is negative (${value}); expected an unsigned u64`);
+  }
+  if (value > MAX_SAFE_U64) {
+    throw new RangeError(
+      `${fieldName} (${value}) exceeds Number.MAX_SAFE_INTEGER (${MAX_SAFE_U64}); refusing to silently lose precision`,
+    );
+  }
+  return Number(value);
+}
+
+/**
+ * Checks if the current runtime environment is Bun.
+ * This is useful for detecting Bun-specific compatibility issues.
+ *
+ * @returns true if running in Bun, false otherwise.
+ * @group Implementation
+ * @category Utils
+ */
+export function isBun(): boolean {
+  try {
+    // Bun exposes a global `Bun` object.
+    return typeof globalThis !== "undefined" && "Bun" in globalThis;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Read an environment variable in a runtime-agnostic way. Returns `undefined` when
+ * `process.env` is not available (browsers, some bundlers) or the variable is unset.
+ *
+ * @group Implementation
+ * @category Utils
+ */
+export function getEnvVar(name: string): string | undefined {
+  return typeof process !== "undefined" ? process.env?.[name] : undefined;
+}
+
+/**
+ * Logs a warning message to the console only in development environments.
+ * This function helps reduce information leakage in production while maintaining
+ * helpful warnings during development.
+ *
+ * @param message - The warning message to log.
+ * @group Implementation
+ * @category Utils
+ */
+export function warnIfDevelopment(message: string): void {
+  // Check common environment variables to determine if we're in development
+  // This works in Node.js, bundlers like webpack/vite, and most build systems
+  const isDevelopment =
+    typeof process !== "undefined" &&
+    process.env &&
+    (process.env.NODE_ENV === "development" ||
+      process.env.NODE_ENV === "test" ||
+      process.env.APTOS_SDK_WARNINGS === "true");
+
+  if (isDevelopment) {
+    console.warn(message);
+  }
+}
+
+/**
+ * Sleep for the specified amount of time in milliseconds.
+ * This function can be used to introduce delays in asynchronous operations.
+ *
+ * @param timeMs - The time in milliseconds to sleep.
+ * @group Implementation
+ * @category Utils
+ */
+export async function sleep(timeMs: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, timeMs);
+  });
+}
+
+/**
+ * Get the error message from an unknown error.
+ *
+ * @param error The error to get the message from
+ * @returns The error message
+ * @group Implementation
+ * @category Utils
+ */
+export function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * @group Implementation
+ * @category Utils
+ */
+export const nowInSeconds = () => Math.floor(Date.now() / 1000);
+
+/**
+ * Floors the given timestamp to the nearest whole hour.
+ * This function is useful for normalizing timestamps to hourly intervals.
+ *
+ * @param timestampInSeconds - The timestamp in seconds to be floored.
+ * @group Implementation
+ * @category Utils
+ */
+export function floorToWholeHour(timestampInSeconds: number): number {
+  const date = new Date(timestampInSeconds * 1000);
+  // Reset minutes and seconds to zero
+  date.setMinutes(0);
+  date.setSeconds(0);
+  date.setMilliseconds(0);
+  return Math.floor(date.getTime() / 1000);
+}
+
+/**
+ * Decodes a base64 URL-encoded string into its original form.
+ * This function is useful for converting base64 URL-encoded data back to a readable format.
+ *
+ * @param base64Url - The base64 URL-encoded string to decode.
+ * @returns The decoded string.
+ * @group Implementation
+ * @category Utils
+ */
+export function base64UrlDecode(base64Url: string): string {
+  // Decode the bytes, then interpret as UTF-8. `atob` alone returns a Latin-1 binary
+  // string which corrupts any non-ASCII characters in JWT headers/payloads.
+  return new TextDecoder("utf-8").decode(base64UrlToBytes(base64Url));
+}
+
+/**
+ * Encode a string or byte array as a base64url string (RFC 4648 §5) with no padding.
+ *
+ * @param input - The data to encode. Strings are interpreted as UTF-8.
+ * @returns The base64url-encoded string.
+ * @group Implementation
+ * @category Utils
+ */
+export function base64UrlEncode(input: string | Uint8Array): string {
+  const bytes = typeof input === "string" ? TEXT_ENCODER.encode(input) : input;
+  // btoa requires a Latin-1 string. Build it in chunks of 8 KiB so we avoid
+  // `String.fromCharCode(...hugeArray)` call-stack overflows while still
+  // keeping conversion linear-time (concatenating per-byte is O(n^2) in many
+  // engines).
+  const CHUNK = 0x8000;
+  let binary = "";
+  if (bytes.length <= CHUNK) {
+    binary = String.fromCharCode.apply(null, bytes as unknown as number[]);
+  } else {
+    const parts: string[] = [];
+    for (let i = 0; i < bytes.length; i += CHUNK) {
+      const chunk = bytes.subarray(i, i + CHUNK);
+      parts.push(String.fromCharCode.apply(null, chunk as unknown as number[]));
+    }
+    binary = parts.join("");
+  }
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+export function base64UrlToBytes(base64Url: string): Uint8Array {
+  // Convert base64url to standard base64, then decode with universal atob.
+  // Standard base64 encodes 3 bytes as 4 chars, so the decoded input length
+  // must be a multiple of 4 — pad with `=` based on `length % 4`.
+  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64 + "===".substring(0, (4 - (base64.length % 4)) % 4);
+  const binary = atob(padded);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+/**
+ * Amount is represented in the smallest unit format on chain, this function converts
+ * a human-readable amount format to the smallest unit format
+ * @example
+ * human-readable amount format: 500
+ * on chain amount format when decimal is 8: 50000000000
+ *
+ * @param value The value in human-readable format
+ * @param decimal The token decimal
+ * @returns The value in the smallest units
+ * @group Implementation
+ * @category Utils
+ */
+export const convertAmountFromHumanReadableToOnChain = (value: number, decimal: number) => value * 10 ** decimal;
+
+/**
+ * Amount is represented in the smallest unit format on chain, this function converts
+ * the smallest unit format to a human-readable amount format
+ * @example
+ * human-readable amount format: 500
+ * on chain amount format when decimal is 8: 50000000000
+ *
+ * @param value The value in human-readable format
+ * @param decimal The token decimal
+ * @returns The value in the smallest units
+ * @group Implementation
+ * @category Utils
+ */
+export const convertAmountFromOnChainToHumanReadable = (value: number, decimal: number) => value / 10 ** decimal;
+
+/**
+ * Convert a hex string to an ascii string with the `0x` prefix.
+ *
+ * `0x6170746f735f636f696e` --> `aptos_coin`
+ *
+ * @param hex The hex string to convert (e.g. `0x6170746f735f636f696e`)
+ * @returns The ascii string
+ * @group Implementation
+ * @category Utils
+ */
+const hexToAscii = (hex: string) => {
+  let str = "";
+  for (let n = 2; n < hex.length; n += 2) {
+    str += String.fromCharCode(parseInt(hex.substring(n, n + 2), 16));
+  }
+  return str;
+};
+
+/**
+ * Convert an encoded struct to a MoveStructId.
+ *
+ * @example
+ * const structObj = {
+ *   account_address: "0x1",
+ *   module_name: "0x6170746f735f636f696e",
+ *   struct_name: "0x4170746f73436f696e",
+ * };
+ * // structId is "0x1::aptos_coin::AptosCoin"
+ * const structId = parseEncodedStruct(structObj);
+ *
+ * @param structObj The struct with account_address, module_name, and struct_name properties
+ * @returns The MoveStructId
+ * @group Implementation
+ * @category Utils
+ */
+export const parseEncodedStruct = (structObj: {
+  account_address: string;
+  module_name: string;
+  struct_name: string;
+}): MoveStructId => {
+  const { account_address, module_name, struct_name } = structObj;
+  const moduleName = hexToAscii(module_name);
+  const structName = hexToAscii(struct_name);
+  return `${account_address}::${moduleName}::${structName}`;
+};
+
+/**
+ * Determines whether the given object is an encoded struct type with the following properties:
+ * - account_address: string
+ * - module_name: string
+ * - struct_name: string
+ *
+ * @param structObj The object to check
+ * @returns Whether the object is an encoded struct type
+ * @group Implementation
+ * @category Utils
+ */
+export const isEncodedStruct = (
+  structObj: any,
+): structObj is {
+  account_address: string;
+  module_name: string;
+  struct_name: string;
+} =>
+  typeof structObj === "object" &&
+  !Array.isArray(structObj) &&
+  structObj !== null &&
+  "account_address" in structObj &&
+  "module_name" in structObj &&
+  "struct_name" in structObj &&
+  typeof structObj.account_address === "string" &&
+  typeof structObj.module_name === "string" &&
+  typeof structObj.struct_name === "string";
+
+/**
+ * Splits a function identifier into its constituent parts: module address, module name, and function name.
+ * This function helps in validating and extracting details from a function identifier string.
+ *
+ * @param functionArg - The function identifier string in the format "moduleAddress::moduleName::functionName".
+ * @returns An object containing the module address, module name, and function name.
+ * @throws Error if the function identifier does not contain exactly three parts.
+ * @group Implementation
+ * @category Transactions
+ */
+export function getFunctionParts(functionArg: MoveFunctionId) {
+  const funcNameParts = functionArg.split("::");
+  if (funcNameParts.length !== 3) {
+    throw new Error(`Invalid function ${functionArg}`);
+  }
+  const moduleAddress = funcNameParts[0];
+  const moduleName = funcNameParts[1];
+  const functionName = funcNameParts[2];
+  return { moduleAddress, moduleName, functionName };
+}
+
+/**
+ * Validates the provided function information.
+ *
+ * @param functionInfo - The function information to validate.
+ * @returns Whether the function information is valid.
+ * @group Implementation
+ * @category Utils
+ */
+export function isValidFunctionInfo(functionInfo: string): boolean {
+  const parts = functionInfo.split("::");
+  return parts.length === 3 && AccountAddress.isValid({ input: parts[0] }).valid;
+}
+
+/**
+ * Truncates the provided wallet address at the middle with an ellipsis.
+ *
+ * @param address - The wallet address to truncate.
+ * @param start - The number of characters to show at the beginning of the address.
+ * @param end - The number of characters to show at the end of the address.
+ * @returns The truncated address.
+ * @group Implementation
+ * @category Utils
+ */
+export function truncateAddress(address: string, start: number = 6, end: number = 5) {
+  return `${address.slice(0, start)}...${address.slice(-end)}`;
+}
+
+/**
+ * Constants for metadata address calculation
+ */
+const APTOS_COIN_TYPE_STR = "0x1::aptos_coin::AptosCoin";
+
+/**
+ * Helper function to standardize Move type string by converting all addresses to short form,
+ * including addresses within nested type parameters
+ */
+function standardizeMoveTypeString(input: string): string {
+  // Regular expression to match addresses in the type string, including those within type parameters
+  // This regex matches "0x" followed by hex digits, handling both standalone addresses and those within <>
+  const addressRegex = /0x[0-9a-fA-F]+/g;
+
+  return input.replace(addressRegex, (match) =>
+    // Use AccountAddress to handle the address
+    AccountAddress.from(match, { maxMissingChars: 63 }).toStringShort(),
+  );
+}
+
+/**
+ * Calculates the paired FA metadata address for a given coin type.
+ * This function is tolerant of various address formats in the coin type string,
+ * including complex nested types.
+ *
+ * @example
+ * // All these formats are valid and will produce the same result:
+ * pairedFaMetadataAddress("0x1::aptos_coin::AptosCoin")  // simple form
+ * pairedFaMetadataAddress("0x0000000000000000000000000000000000000000000000000000000000000001::aptos_coin::AptosCoin")  // long form
+ * pairedFaMetadataAddress("0x00001::aptos_coin::AptosCoin")  // with leading zeros
+ * pairedFaMetadataAddress("0x1::coin::Coin<0x1412::a::struct<0x0001::aptos_coin::AptosCoin>>")  // nested type parameters
+ *
+ * @param coinType - The coin type string in any of these formats:
+ *   - Short form address: "0x1::aptos_coin::AptosCoin"
+ *   - Long form address: "0x0000000000000000000000000000000000000000000000000000000000000001::aptos_coin::AptosCoin"
+ *   - With leading zeros: "0x00001::aptos_coin::AptosCoin"
+ *   - With nested types: "0x1::coin::Coin<0x1412::a::struct<0x0001::aptos_coin::AptosCoin>>"
+ * @returns The calculated metadata address as an AccountAddress instance
+ */
+export function pairedFaMetadataAddress(coinType: `0x${string}::${string}::${string}`): AccountAddress {
+  // Standardize the coin type string to handle any address format
+  const standardizedMoveTypeName = standardizeMoveTypeString(coinType);
+
+  return standardizedMoveTypeName === APTOS_COIN_TYPE_STR
+    ? AccountAddress.A
+    : createObjectAddress(AccountAddress.A, standardizedMoveTypeName);
+}

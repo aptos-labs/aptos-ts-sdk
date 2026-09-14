@@ -8,7 +8,7 @@ runs:
     - uses: ./.github/actions/setup-node-pnpm
 
     # Install Bun
-    - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # pin@v2
+    - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # pin@v2.2.0
       with:
         bun-version: latest
 
@@ -17,11 +17,11 @@ runs:
     - run: pnpm install --frozen-lockfile
       shell: bash
     # Build the SDK for use in the examples
-    - run: pnpm build
+    - run: pnpm turbo run build --filter=@aptos-labs/ts-sdk
       shell: bash
 
     # Run a local testnet in the background.
-    - run: pnpm exec aptos node run-local-testnet --force-restart --assume-yes --with-indexer-api --log-to-stdout >& ${{ runner.temp }}/local-testnet-logs.txt &
+    - run: pnpm --filter @aptos-labs/ts-sdk exec aptos node run-local-testnet --force-restart --assume-yes --with-indexer-api --log-to-stdout >& ${{ runner.temp }}/local-testnet-logs.txt &
       shell: bash
 
     # Wait for the local testnet to be ready by hitting the readiness endpoint.
@@ -36,7 +36,7 @@ runs:
       shell: bash
 
     # Run the Bun tests
-    - uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # pin@v3
+    - uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # pin@v4.0.0
       name: bun-sdk-tests
       env:
         TMPDIR: ${{ runner.temp }}
@@ -46,7 +46,7 @@ runs:
         timeout_minutes: 15
         command: |
           cd examples/bun-test
-          bun install
+          bun install --frozen-lockfile
           bun run test:all
 
     - name: Print local testnet logs on failure
@@ -54,6 +54,6 @@ runs:
       if: failure()
       run: |
         echo "::group::Local testnet logs"
-        cat ${{ runner.temp }}/local-testnet-logs.txt
+        cat "${{ runner.temp }}/local-testnet-logs.txt" 2>/dev/null || echo "(no local testnet logs found)"
         echo "::endgroup::"
 

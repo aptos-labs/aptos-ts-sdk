@@ -1,5 +1,10 @@
 #!/bin/sh
 
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+REPO_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+PACKAGE_DIR="$REPO_ROOT/packages/ts-sdk"
+DOCS_DIR="$REPO_ROOT/docs"
+
 # Default to experimental if no label given, label must be set to stable explicitly
 if [ -n "$1" ]; then
   LABEL=$1;
@@ -11,29 +16,30 @@ fi
 # References the Github repo directly
 echo "Generating docs for version $npm_package_version";
 
-if [ -d "docs/@aptos-labs/ts-sdk-$npm_package_version" ]; then
+if [ -d "$DOCS_DIR/@aptos-labs/ts-sdk-$npm_package_version" ]; then
   echo "WARNING! Docs folder already exists, overwriting docs for version $npm_package_version";
 fi
 
-# `npx typedoc src/index.ts` generates the typedoc docs for this SDK using the proper formatting.
+# `pnpm exec typedoc src/index.ts` generates the typedoc docs for this SDK using the proper formatting.
 #
 # Explanation of each flag:
 # --options typedoc.json - Loads options from the typedoc.json configuration file
-# --out "docs/@aptos-labs/ts-sdk-$npm_package_version" - Specifies the output directory for the generated documentation, 
+# --out "$DOCS_DIR/@aptos-labs/ts-sdk-$npm_package_version" - Specifies the output directory for the generated documentation,
 #   dynamically including the current npm package version in the path using the $npm_package_version variable
 # --plugin typedoc-plugin-missing-exports - Includes the plugin to include private code in the generated docs (needed to show the reference docs for the Aptos mixin implementation details)
 # --cleanOutputDir - Clears the output directory before generating new documentation
 # --excludeInternal - Excludes internal symbols from the generated documentation (symbols marked with @internal in comments)
 # --includeVersion - Includes the version of the package in the generated documentation
-# --skipErrorChecking - TODO: Remove this flag when no longer needed. This avoids the docs build failing due to compiler errors in the tests folder. 
-npx typedoc src/index.ts --options typedoc.json --out "docs/@aptos-labs/ts-sdk-$npm_package_version" --plugin typedoc-plugin-missing-exports --internalModule PrivateCode --cleanOutputDir --excludeInternal --includeVersion --skipErrorChecking
+# --skipErrorChecking - TODO: Remove this flag when no longer needed. This avoids the docs build failing due to compiler errors in the tests folder.
+cd "$PACKAGE_DIR" || exit 1
+pnpm exec typedoc src/index.ts --options typedoc.json --out "$DOCS_DIR/@aptos-labs/ts-sdk-$npm_package_version" --plugin typedoc-plugin-missing-exports --internalModule PrivateCode --cleanOutputDir --excludeInternal --includeVersion --skipErrorChecking
 
 
 # Update the main page
-INDEX_FILE='docs/index.md';
+INDEX_FILE="$DOCS_DIR/index.md";
 
 # Get line of the SDK if the version is already there
-LINE=$(sed -n "/.*$npm_package_version.*/{=;q;}" $INDEX_FILE);
+LINE=$(sed -n "/.*$npm_package_version.*/{=;q;}" "$INDEX_FILE");
 
 # If it already exists, we can skip adding it to the file
 if [ -n "$LINE" ]; then
@@ -48,13 +54,13 @@ else
   # Add in the middle line the new version.
   # TODO: Make this more stable / a different way of generating that isn't just inserting a line
   {
-    head -n $FIRST_LINE $INDEX_FILE;
+    head -n "$FIRST_LINE" "$INDEX_FILE";
     echo "- [$LABEL - @aptos-labs/ts-sdk-$npm_package_version](@aptos-labs/ts-sdk-$npm_package_version)";
-    tail -n +$NEXT_LINE $INDEX_FILE;
-  } > $INDEX_FILE.tmp && mv $INDEX_FILE.tmp $INDEX_FILE
+    tail -n +"$NEXT_LINE" "$INDEX_FILE";
+  } > "$INDEX_FILE.tmp" && mv "$INDEX_FILE.tmp" "$INDEX_FILE"
 fi
 
 # Now update the redirect
-REDIRECT_FILE='docs/@aptos-labs/ts-sdk-latest/index.md';
-$(sed -i.bak "s/redirect_to:.*/redirect_to: \/@aptos-labs\/ts-sdk-${npm_package_version}/" $REDIRECT_FILE)
+REDIRECT_FILE="$DOCS_DIR/@aptos-labs/ts-sdk-latest/index.md";
+sed -i.bak "s/redirect_to:.*/redirect_to: \/@aptos-labs\/ts-sdk-${npm_package_version}/" "$REDIRECT_FILE"
 echo "Updated redirect $REDIRECT_FILE with version $npm_package_version for latest";

@@ -1,0 +1,651 @@
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
+import { sha3_256 } from "@noble/hashes/sha3.js";
+import { secp256k1 } from "@noble/curves/secp256k1.js";
+import { HDKey } from "@scure/bip32";
+import { Serializable, Deserializer, Serializer } from "../../bcs/index.js";
+import { Hex } from "../hex.js";
+import { HexInput, PrivateKeyVariants } from "../../types/index.js";
+import { isValidBIP44Path, mnemonicToSeed } from "./hdKey.js";
+import { PrivateKey } from "./privateKey.js";
+import { PublicKey } from "./publicKey.js";
+import { Signature } from "./signature.js";
+import { convertSigningMessage } from "./utils.js";
+import { TEXT_ENCODER } from "../../utils/const.js";
+import { AptosConfig } from "../../api/aptosConfig.js";
+
+/**
+ * Represents a Secp256k1 ECDSA public key.
+ *
+ * @extends PublicKey
+ * @property LENGTH - The length of the Secp256k1 public key in bytes.
+ * @group Implementation
+ * @category Serialization
+ */
+export class Secp256k1PublicKey extends PublicKey {
+  // Secp256k1 ecdsa public keys contain a prefix indicating compression and two 32-byte coordinates.
+  static readonly LENGTH: number = 65;
+
+  // If it's compressed, it is only 33 bytes
+  static readonly COMPRESSED_LENGTH: number = 33;
+
+  // Hex value of the public key
+  private readonly key: Hex;
+
+  // Identifier to distinguish from Secp256k1PublicKey
+  public readonly keyType: string = "secp256k1";
+
+  /**
+   * Create a new PublicKey instance from a HexInput, which can be a string or Uint8Array.
+   * This constructor validates the length of the provided signature data.
+   *
+   * @param hexInput - A HexInput (string or Uint8Array) representing the signature data.
+   * @throws Error if the length of the signature data is not equal to Secp256k1Signature.LENGTH.
+   * @group Implementation
+   * @category Serialization
+   */
+  constructor(hexInput: HexInput) {
+    super();
+
+    const hex = Hex.fromHexInput(hexInput);
+    const { length } = hex.toUint8Array();
+    if (length === Secp256k1PublicKey.LENGTH) {
+      this.key = hex;
+    } else if (length === Secp256k1PublicKey.COMPRESSED_LENGTH) {
+      const point = secp256k1.Point.fromBytes(hex.toUint8Array());
+      this.key = Hex.fromHexInput(point.toBytes(false));
+    } else {
+      throw new Error(
+        `PublicKey length should be ${Secp256k1PublicKey.LENGTH} or ${Secp256k1PublicKey.COMPRESSED_LENGTH}, received ${length}`,
+      );
+    }
+  }
+
+  // region PublicKey
+  /**
+   * Verifies a signature against the exact bytes of `message`. This is the
+   * unambiguous form — the input is interpreted as raw bytes regardless of
+   * what they encode. Pair with {@link Secp256k1PrivateKey.signBytes}.
+   *
+   * The message is SHA3-256 hashed before verification (matching the
+   * Aptos-side Secp256k1 signing convention), and the signature is required
+   * to be in canonical low-S form for malleability resistance.
+   *
+   * @param args - The arguments for verification.
+   * @param args.message - The exact bytes that were signed.
+   * @param args.signature - The signature to verify.
+   * @group Implementation
+   * @category Serialization
+   */
+  verifyBytes(args: { message: Uint8Array; signature: Secp256k1Signature }): boolean {
+    const { message, signature } = args;
+    const messageSha3Bytes = sha3_256(message);
+    return secp256k1.verify(signature.toUint8Array(), messageSha3Bytes, this.key.toUint8Array(), {
+      lowS: true,
+      prehash: false,
+    });
+  }
+
+  /**
+   * Verifies a signature against the UTF-8 encoding of `message`. The input
+   * is always treated as text — there is no hex/text heuristic. Pair with
+   * {@link Secp256k1PrivateKey.signText}.
+   *
+   * @param args - The arguments for verification.
+   * @param args.message - The text that was signed.
+   * @param args.signature - The signature to verify.
+   * @group Implementation
+   * @category Serialization
+   */
+  verifyText(args: { message: string; signature: Secp256k1Signature }): boolean {
+    return this.verifyBytes({ message: TEXT_ENCODER.encode(args.message), signature: args.signature });
+  }
+
+  /**
+   * Verifies a Secp256k1 signature against the public key.
+   *
+   * @deprecated The polymorphic `message: HexInput` input is ambiguous — a
+   * bare even-length string of hex characters (e.g., `"cafe"`) is verified
+   * against the 2 bytes `[0xCA, 0xFE]`, not 4 UTF-8 text bytes. Use
+   * {@link verifyBytes} for `Uint8Array` input or {@link verifyText} for
+   * `string` input; both are unambiguous. See
+   * {@link convertSigningMessage} for the full legacy rule.
+   *
+   * @param args - The arguments for verifying the signature.
+   * @param args.message - The message that was signed.
+   * @param args.signature - The signature to verify against the public key.
+   * @group Implementation
+   * @category Serialization
+   */
+  verifySignature(args: { message: HexInput; signature: Secp256k1Signature }): boolean {
+    const { message, signature } = args;
+    const messageToVerify = convertSigningMessage(message);
+    const messageBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
+    return this.verifyBytes({ message: messageBytes, signature });
+  }
+
+  /**
+   * Note: Secp256k1Signatures can be verified syncronously.
+   *
+   * Verifies the provided signature against the given message.
+   * This function helps ensure the integrity and authenticity of the message by confirming that the signature is valid.
+   *
+   * @param args - The arguments for signature verification.
+   * @param args.aptosConfig - The configuration object for connecting to the Aptos network
+   * @param args.message - The message that was signed.
+   * @param args.signature - The signature to verify, which must be an instance of Secp256k1Signature.
+   * @returns A boolean indicating whether the signature is valid for the given message.
+   * @group Implementation
+   * @category Serialization
+   */
+  async verifySignatureAsync(args: {
+    aptosConfig: AptosConfig;
+    message: HexInput;
+    signature: Secp256k1Signature;
+  }): Promise<boolean> {
+    return this.verifySignature(args);
+  }
+
+  /**
+   * Get the data as a Uint8Array representation.
+   *
+   * @returns Uint8Array representation of the data.
+   * @group Implementation
+   * @category Serialization
+   */
+  toUint8Array(): Uint8Array {
+    return this.key.toUint8Array();
+  }
+
+  // endregion
+
+  // region Serializable
+
+  /**
+   * Serializes the data into a byte array using the provided serializer.
+   * This function is essential for converting data into a format suitable for transmission or storage.
+   *
+   * @param serializer - The serializer instance used to convert the data.
+   * @group Implementation
+   * @category Serialization
+   */
+  serialize(serializer: Serializer): void {
+    serializer.serializeBytes(this.key.toUint8Array());
+  }
+
+  /**
+   * Deserializes a Secp256k1Signature from the provided deserializer.
+   * This function allows you to reconstruct a Secp256k1Signature object from its serialized byte representation.
+   *
+   * @param deserializer - The deserializer instance used to read the serialized data.
+   * @group Implementation
+   * @category Serialization
+   */
+
+  deserialize(deserializer: Deserializer) {
+    const hex = deserializer.deserializeBytes();
+    return new Secp256k1Signature(hex);
+  }
+
+  static deserialize(deserializer: Deserializer): Secp256k1PublicKey {
+    const bytes = deserializer.deserializeBytes();
+    return new Secp256k1PublicKey(bytes);
+  }
+
+  // endregion
+
+  /**
+   * Determine if the provided public key is an instance of Secp256k1PublicKey.
+   *
+   * @deprecated use `instanceof Secp256k1PublicKey` instead
+   * @param publicKey - The public key to check.
+   * @group Implementation
+   * @category Serialization
+   */
+  static isPublicKey(publicKey: PublicKey): publicKey is Secp256k1PublicKey {
+    return publicKey instanceof Secp256k1PublicKey;
+  }
+
+  /**
+   * Determines if the provided public key is a valid instance of a Secp256k1 public key.
+   * This function checks for the presence of a "key" property and validates the length of the key data.
+   *
+   * @param publicKey - The public key to validate.
+   * @returns A boolean indicating whether the public key is a valid Secp256k1 public key.
+   * @group Implementation
+   * @category Serialization
+   */
+  static isInstance(publicKey: PublicKey): publicKey is Secp256k1PublicKey {
+    return (
+      "key" in publicKey &&
+      typeof publicKey.key === "object" &&
+      publicKey.key !== null &&
+      "data" in publicKey.key &&
+      typeof publicKey.key.data === "object" &&
+      publicKey.key.data !== null &&
+      "length" in publicKey.key.data &&
+      publicKey.key?.data?.length === Secp256k1PublicKey.LENGTH &&
+      "keyType" in publicKey &&
+      typeof publicKey === "object" &&
+      publicKey.keyType === "secp256k1"
+    );
+  }
+}
+
+/**
+ * Represents a Secp256k1 ECDSA private key, providing functionality to create, sign messages,
+ * derive public keys, and serialize/deserialize the key.
+ * @group Implementation
+ * @category Serialization
+ */
+export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
+  /**
+   * Length of Secp256k1 ecdsa private key
+   * @group Implementation
+   * @category Serialization
+   */
+  static readonly LENGTH: number = 32;
+
+  /**
+   * The private key bytes
+   * @private
+   * @group Implementation
+   * @category Serialization
+   */
+  private key: Hex;
+
+  /**
+   * Whether the key has been cleared from memory
+   * @private
+   */
+  private cleared: boolean = false;
+
+  // region Constructors
+
+  /**
+   * Create a new PrivateKey instance from a Uint8Array or String.
+   *
+   * [Read about AIP-80](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md)
+   *
+   * @param hexInput A HexInput (string or Uint8Array)
+   * @param strict If true, private key must AIP-80 compliant.
+   * @group Implementation
+   * @category Serialization
+   */
+  constructor(hexInput: HexInput, strict?: boolean) {
+    super();
+
+    const privateKeyHex = PrivateKey.parseHexInput(hexInput, PrivateKeyVariants.Secp256k1, strict);
+    if (privateKeyHex.toUint8Array().length !== Secp256k1PrivateKey.LENGTH) {
+      throw new Error(`PrivateKey length should be ${Secp256k1PrivateKey.LENGTH}`);
+    }
+
+    this.key = privateKeyHex;
+  }
+
+  /**
+   * Generate a new random private key.
+   *
+   * @returns Secp256k1PrivateKey - A newly generated Secp256k1 private key.
+   * @group Implementation
+   * @category Serialization
+   */
+  static generate(): Secp256k1PrivateKey {
+    const hexInput = secp256k1.utils.randomSecretKey();
+    return new Secp256k1PrivateKey(hexInput, false);
+  }
+
+  /**
+   * Derives a private key from a mnemonic seed phrase using a specified BIP44 path.
+   *
+   * @param path - The BIP44 path to derive the key from.
+   * @param mnemonics - The mnemonic seed phrase used for key generation.
+   *
+   * @returns The generated private key.
+   *
+   * @throws Error if the provided path is not a valid BIP44 path.
+   * @group Implementation
+   * @category Serialization
+   */
+  static fromDerivationPath(path: string, mnemonics: string): Secp256k1PrivateKey {
+    if (!isValidBIP44Path(path)) {
+      throw new Error(`Invalid derivation path ${path}`);
+    }
+    return Secp256k1PrivateKey.fromDerivationPathInner(path, mnemonicToSeed(mnemonics));
+  }
+
+  /**
+   * Derives a private key from a specified BIP44 path using a given seed.
+   * This function is essential for generating keys that follow the hierarchical deterministic (HD) wallet structure.
+   *
+   * @param path - The BIP44 path used for key derivation.
+   * @param seed - The seed phrase created by the mnemonics, represented as a Uint8Array.
+   * @returns The generated private key as an instance of Secp256k1PrivateKey.
+   * @throws Error if the derived private key is invalid.
+   * @group Implementation
+   * @category Serialization
+   */
+  private static fromDerivationPathInner(path: string, seed: Uint8Array): Secp256k1PrivateKey {
+    const { privateKey } = HDKey.fromMasterSeed(seed).derive(path);
+    // library returns privateKey as Uint8Array | null
+    if (privateKey === null) {
+      throw new Error("Invalid key");
+    }
+
+    return new Secp256k1PrivateKey(privateKey, false);
+  }
+
+  // endregion
+
+  // region PrivateKey
+
+  /**
+   * Checks if the key has been cleared and throws an error if so.
+   * @private
+   */
+  private ensureNotCleared(): void {
+    if (this.cleared) {
+      throw new Error("Private key has been cleared from memory and can no longer be used");
+    }
+  }
+
+  /**
+   * Overwrites the underlying private-key byte buffer with random bytes and
+   * then zeros. After calling this method the key can no longer sign or
+   * derive a public key.
+   *
+   * SECURITY: This is a best-effort window-narrowing tool, NOT a true
+   * zeroization guarantee. In JavaScript, four classes of copies cannot be
+   * reached from user code and so survive `clear()`:
+   *
+   *   1. **JS string copies.** Any value previously produced by `toString()`,
+   *      `toHexString()`, or `bcsToHex().toString()` is an immutable string
+   *      in the heap. The language provides no API to overwrite string
+   *      memory; it is reclaimed only when GC collects it.
+   *   2. **noble-curves internals.** The sign path inside `@noble/curves`
+   *      expands the private key into scalar `BigInt` field elements, which
+   *      are also immutable. Even if noble explicitly zeroed its own byte
+   *      copies after use, the `BigInt` intermediates persist.
+   *   3. **JIT register / stack residue.** The engine may have held key
+   *      bytes in CPU registers or on the engine stack during a sign call.
+   *      There is no JS-visible way to scrub those.
+   *   4. **GC-relocated copies.** Generational GCs (V8, JSC) copy live
+   *      objects between heap regions during minor/major collections. The
+   *      `Uint8Array` we zeroed may have stale copies sitting in survivor
+   *      space until the next cycle reclaims them.
+   *
+   * This method zeros the SDK's own `Uint8Array` (the most reachable
+   * copy), but downstream consumers should treat it as a hardening signal,
+   * not a guarantee. If you need real key-material hygiene, prefer a
+   * WASM-backed secp256k1 implementation that exposes explicit
+   * `memzero`, or hardware-backed keys (HSM / TPM / secure enclave).
+   * Note that `crypto.subtle` does NOT support secp256k1 on any major
+   * runtime, so non-extractable WebCrypto keys are not available for
+   * this curve.
+   *
+   * To minimize the size of the unreachable-copy set, avoid calling
+   * `toString()` / `toHexString()` on private keys at all in long-lived
+   * processes — the byte form is what gets cleared.
+   *
+   * @group Implementation
+   * @category Serialization
+   */
+  clear(): void {
+    if (!this.cleared) {
+      const keyBytes = this.key.toUint8Array();
+      // Multiple overwrite passes for better security
+      // Pass 1: Random data
+      crypto.getRandomValues(keyBytes);
+      // Pass 2: Ones pattern (0xFF)
+      keyBytes.fill(0xff);
+      // Pass 3: Random data again
+      crypto.getRandomValues(keyBytes);
+      // Pass 4: Zeros pattern (final state)
+      keyBytes.fill(0);
+      this.cleared = true;
+    }
+  }
+
+  /**
+   * Returns whether the private key has been cleared from memory.
+   *
+   * @returns true if the key has been cleared, false otherwise
+   * @group Implementation
+   * @category Serialization
+   */
+  isCleared(): boolean {
+    return this.cleared;
+  }
+
+  /**
+   * Sign exactly the bytes of `message`. The input is interpreted as raw
+   * bytes regardless of what they encode. Pair with
+   * {@link Secp256k1PublicKey.verifyBytes}.
+   *
+   * The message is SHA3-256 hashed before signing (matching the Aptos-side
+   * Secp256k1 signing convention), and the produced signature is in
+   * canonical low-S form for malleability resistance.
+   *
+   * @param message - The exact bytes to sign.
+   * @returns The generated signature for the provided bytes.
+   * @throws Error if the private key has been cleared from memory.
+   * @group Implementation
+   * @category Serialization
+   */
+  signBytes(message: Uint8Array): Secp256k1Signature {
+    this.ensureNotCleared();
+    const messageHashBytes = sha3_256(message);
+    const signature = secp256k1.sign(messageHashBytes, this.key.toUint8Array(), { lowS: true, prehash: false });
+    return new Secp256k1Signature(signature);
+  }
+
+  /**
+   * Sign the UTF-8 encoding of `message`. The input is always treated as
+   * text — there is no hex/text heuristic. Pair with
+   * {@link Secp256k1PublicKey.verifyText}.
+   *
+   * @param message - The text to sign.
+   * @returns The generated signature for the UTF-8 bytes of the provided text.
+   * @throws Error if the private key has been cleared from memory.
+   * @group Implementation
+   * @category Serialization
+   */
+  signText(message: string): Secp256k1Signature {
+    return this.signBytes(TEXT_ENCODER.encode(message));
+  }
+
+  /**
+   * Sign the given message with the private key.
+   * This function generates a cryptographic signature for the provided message, ensuring the signature is canonical and non-malleable.
+   *
+   * @deprecated The polymorphic `message: HexInput` input is ambiguous — a
+   * bare even-length string of hex characters (e.g., `"cafe"`) is signed
+   * as the 2 bytes `[0xCA, 0xFE]`, not 4 UTF-8 text bytes. Use
+   * {@link signBytes} for `Uint8Array` input or {@link signText} for
+   * `string` input; both are unambiguous. See
+   * {@link convertSigningMessage} for the full legacy rule.
+   *
+   * @param message - A message in HexInput format to be signed.
+   * @returns Signature - The generated signature for the provided message.
+   * @throws Error if the private key has been cleared from memory.
+   * @group Implementation
+   * @category Serialization
+   */
+  sign(message: HexInput): Secp256k1Signature {
+    const messageToSign = convertSigningMessage(message);
+    const messageBytes = Hex.fromHexInput(messageToSign).toUint8Array();
+    return this.signBytes(messageBytes);
+  }
+
+  /**
+   * Derive the Secp256k1PublicKey from this private key.
+   *
+   * @returns Secp256k1PublicKey The derived public key.
+   * @throws Error if the private key has been cleared from memory.
+   * @group Implementation
+   * @category Serialization
+   */
+  publicKey(): Secp256k1PublicKey {
+    this.ensureNotCleared();
+    const bytes = secp256k1.getPublicKey(this.key.toUint8Array(), false);
+    return new Secp256k1PublicKey(bytes);
+  }
+
+  /**
+   * Get the private key in bytes (Uint8Array).
+   *
+   * @returns Uint8Array representation of the private key
+   * @throws Error if the private key has been cleared from memory.
+   * @group Implementation
+   * @category Serialization
+   */
+  toUint8Array(): Uint8Array {
+    this.ensureNotCleared();
+    return this.key.toUint8Array();
+  }
+
+  /**
+   * Get the private key as a string representation.
+   *
+   * SECURITY: This produces an immutable JS string containing the key
+   * material in hex. Strings cannot be zeroed by `clear()` (see the
+   * `clear()` JSDoc for the four classes of unreachable copies). Avoid
+   * calling this method on long-lived `Secp256k1PrivateKey` instances in
+   * processes where memory hygiene matters; prefer `toUint8Array()`,
+   * which returns a clearable `Uint8Array`.
+   *
+   * @returns string representation of the private key
+   * @throws Error if the private key has been cleared from memory.
+   * @group Implementation
+   * @category Serialization
+   */
+  toString(): string {
+    this.ensureNotCleared();
+    return this.toAIP80String();
+  }
+
+  /**
+   * Get the private key as a hex string with the 0x prefix.
+   *
+   * SECURITY: Same caveat as `toString()` — the returned string is an
+   * immutable JS heap allocation that `clear()` cannot zero.
+   *
+   * @returns string representation of the private key.
+   * @throws Error if the private key has been cleared from memory.
+   */
+  toHexString(): string {
+    this.ensureNotCleared();
+    return this.key.toString();
+  }
+
+  /**
+   * Get the private key as a AIP-80 compliant hex string.
+   *
+   * [Read about AIP-80](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md)
+   *
+   * SECURITY: Same caveat as `toString()` — produces an immutable JS string
+   * containing the key material; cannot be zeroed by `clear()`.
+   *
+   * @returns AIP-80 compliant string representation of the private key.
+   * @throws Error if the private key has been cleared from memory.
+   */
+  toAIP80String(): string {
+    this.ensureNotCleared();
+    return PrivateKey.formatPrivateKey(this.key.toString(), PrivateKeyVariants.Secp256k1);
+  }
+
+  // endregion
+
+  // region Serializable
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeBytes(this.toUint8Array());
+  }
+
+  static deserialize(deserializer: Deserializer): Secp256k1PrivateKey {
+    const bytes = deserializer.deserializeBytes();
+    return new Secp256k1PrivateKey(bytes, false);
+  }
+
+  // endregion
+
+  /**
+   * Determines if the provided private key is an instance of Secp256k1PrivateKey.
+   *
+   * @param privateKey - The private key to be checked.
+   *
+   * @deprecated use `instanceof Secp256k1PrivateKey` instead
+   * @group Implementation
+   * @category Serialization
+   */
+  static isPrivateKey(privateKey: PrivateKey): privateKey is Secp256k1PrivateKey {
+    return privateKey instanceof Secp256k1PrivateKey;
+  }
+}
+
+/**
+ * Represents a signature of a message signed using a Secp256k1 ECDSA private key.
+ *
+ * @group Implementation
+ * @category Serialization
+ */
+export class Secp256k1Signature extends Signature {
+  /**
+   * Secp256k1 ecdsa signatures are 256-bit.
+   * @group Implementation
+   * @category Serialization
+   */
+  static readonly LENGTH = 64;
+
+  /**
+   * The signature bytes
+   * @private
+   * @group Implementation
+   * @category Serialization
+   */
+  private readonly data: Hex;
+
+  // region Constructors
+
+  /**
+   * Create a new Signature instance from a Uint8Array or String.
+   *
+   * @param hexInput A HexInput (string or Uint8Array)
+   * @group Implementation
+   * @category Serialization
+   */
+  constructor(hexInput: HexInput) {
+    super();
+    const data = Hex.fromHexInput(hexInput);
+    if (data.toUint8Array().length !== Secp256k1Signature.LENGTH) {
+      throw new Error(
+        `Signature length should be ${Secp256k1Signature.LENGTH}, received ${data.toUint8Array().length}`,
+      );
+    }
+    this.data = data;
+  }
+
+  // endregion
+
+  // region Signature
+
+  toUint8Array(): Uint8Array {
+    return this.data.toUint8Array();
+  }
+
+  // endregion
+
+  // region Serializable
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeBytes(this.data.toUint8Array());
+  }
+
+  static deserialize(deserializer: Deserializer): Secp256k1Signature {
+    const hex = deserializer.deserializeBytes();
+    return new Secp256k1Signature(hex);
+  }
+
+  // endregion
+}

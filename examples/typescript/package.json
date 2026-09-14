@@ -4,8 +4,8 @@
   "description": "",
   "main": "simple_transfer.ts",
   "type": "module",
-  "packageManager": "pnpm@10.30.3",
-  "license": "Apache-2.0",
+  "packageManager": "pnpm@11.26.0",
+  "license": "SEE LICENSE IN LICENSE",
   "engines": {
     "node": ">=22.0.0"
   },
@@ -43,23 +43,18 @@
   "keywords": [],
   "author": "",
   "dependencies": {
-    "@aptos-labs/ts-sdk": "link:../..",
-    "@noble/curves": "2.2.0",
-    "@noble/hashes": "^2.2.0",
+    "@aptos-labs/ts-sdk": "link:../../packages/ts-sdk",
+    "@noble/curves": "2.4.0",
+    "@noble/hashes": "^2.4.0",
     "npm-run-all2": "8.0.4",
     "readline-sync": "1.4.10",
     "superagent": "10.3.0"
   },
   "devDependencies": {
     "@types/readline-sync": "1.4.8",
-    "@types/superagent": "^8.1.9",
-    "@types/node": "^22.19.17",
-    "typescript": "^6.0.2",
-    "tsx": "^4.21.0"
-  },
-  "pnpm": {
-    "overrides": {
-      "picomatch@^4": "^4.0.4"
-    }
+    "@types/superagent": "^8.1.11",
+    "@types/node": "^22.20.1",
+    "typescript": "^7.0.2",
+    "tsx": "^4.23.13"
   }
 }

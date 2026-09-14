@@ -3,19 +3,19 @@
   "version": "1.0.0",
   "description": "Test Aptos TypeScript SDK in real browsers using Playwright",
   "type": "module",
-  "license": "Apache-2.0",
-  "packageManager": "pnpm@10.30.3",
+  "license": "SEE LICENSE IN LICENSE",
+  "packageManager": "pnpm@11.26.0",
   "scripts": {
     "test": "playwright test",
     "test:headed": "playwright test --headed"
   },
   "dependencies": {
-    "@aptos-labs/ts-sdk": "link:../.."
+    "@aptos-labs/ts-sdk": "link:../../packages/ts-sdk"
   },
   "devDependencies": {
-    "@types/node": "^22.19.17",
-    "@playwright/test": "^1.59.1",
-    "vite": "^7.3.2",
-    "typescript": "^6.0.2"
+    "@types/node": "^22.20.1",
+    "@playwright/test": "^1.63.0",
+    "vite": "^7.3.6",
+    "typescript": "^7.0.2"
   }
 }

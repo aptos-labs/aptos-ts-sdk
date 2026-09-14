@@ -1,0 +1,981 @@
+# Aptos TypeScript SDK Changelog
+
+All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+
+# Unreleased
+
+## Changed
+
+- Convert the repository to a pnpm/Turbo monorepo, relocating `@aptos-labs/ts-sdk` and `@aptos-labs/confidential-asset` under `packages/`, centralizing dependency installation and task orchestration, and reserving the `packages/payments-sdk` convention for a future payments SDK.
+- Complete the monorepo migration validation: cover root tooling with Biome, run structural checks in required CI, avoid cached validation results, report repository-relative coverage paths, and correct package metadata and test documentation.
+- Update dependencies within current majors: `@noble/{ciphers,curves,hashes}` and `@scure/{bip32,bip39}` to `2.4.0` (noble 2.4 security hardening), Vitest/`@vitest/coverage-v8` to `4.1.11` (path-traversal advisory), Biome to `2.5.12`, and pnpm to `11.26.0`. Refresh pnpm overrides (`js-yaml` `4.3.2`, `postcss` `8.5.28`, `markdown-it` `14.3.1`) to patched releases. Pin `pnpm/action-setup` to v6.1.0 (latest older than 3 days).
+
+# 7.3.1 (2026-08-13)
+
+## Fixed
+
+- **Indexer sync timeout**: Increased the default `waitForIndexer` timeout from 3s to 10s (`DEFAULT_INDEXER_SYNC_TIMEOUT_SEC`) so brief processor lag on localnet and public networks no longer throws `waitForLastSuccessIndexerVersionSync timeout`. The error now includes the current and target versions, and callers can pass `timeoutMilliseconds` for a custom budget.
+- **Account discovery**: `doesAccountExistAtAddress` now checks the `0x1::account::Account` resource first and skips the indexer `current_objects` query when the resource exists. A slow or timed-out owned-object query no longer fails discovery for standard accounts (light accounts without a resource still use the owned-object fallback).
+- **E2E reliability**: Account derivation and indexer-backed account queries now wait on `minimumLedgerVersion` after the relevant transaction. Transaction worker tests use isolated accounts, await `push`, and poll for the committed sequence number instead of a fixed sleep. Keyless e2e installs the federated test JWK from a local fixture instead of fetching GitHub on every test.
+
+## Changed
+
+- Upgrade repository package-manager pins to pnpm `11.21.0` and update dependency overrides for patched `brace-expansion`, `immutable`, `js-yaml`, `linkify-it`, `nanoid`, and `postcss` releases, eliminating known audit vulnerabilities.
+- Update dependencies within current majors: `@noble/{ciphers,curves,hashes}` and `@scure/{bip32,bip39}` to `2.3.0`, Vitest to `4.1.10`, Vite to `7.3.6`, TypeDoc to `0.28.20`, GraphQL to `16.14.2`, Cucumber to `12.9.0`, and related codegen/dev tooling. Refresh pnpm overrides (`esbuild`, `ws`, `postcss`, `nanoid`, `markdown-it`, `immutable`, `shell-quote`, `@babel/core`) to patched releases. Pin GitHub Actions to the latest releases older than 3 days: `actions/checkout` v7.0.1, `actions/setup-node` v6.5.0, `pnpm/action-setup` v6.0.10, and `denoland/setup-deno` v2.0.5.
+- Align pnpm `minimumReleaseAge` (48 hours) with Aikido Safe Chain's default minimum package age, excluding `@aptos-labs/*`, `baseline-browser-mapping`, and `caniuse-lite`. Add a lockfile for `examples/deno-test` and use `--frozen-lockfile` in example CI installs so installs cannot resolve packages younger than 48 hours.
+
+# 7.3.0 (2026-08-05)
+
+## Fixed
+
+- **CI stability**: Fixed three intermittent CI failures affecting Dependabot PRs and test runs:
+  1. **safe-chain blocking transitive deps** — Added `baseline-browser-mapping` and `caniuse-lite` to `SAFE_CHAIN_MINIMUM_PACKAGE_AGE_EXCLUSIONS` in `setup-node-pnpm` action. These packages are republished frequently by browserslist and were causing ~36% Confidential Asset test failure rate when Dependabot refreshed lockfiles.
+  2. **Codecov upload failures on Dependabot** — Added conditional skip logic to codecov-action and bundle-analyzer when `CODECOV_TOKEN` is unavailable (expected on Dependabot and fork PRs where repo secrets are not accessible). This eliminated spurious 33% Codecov failure rate while preserving uploads on main branch and authenticated PRs.
+  3. **Missing testnet log file masking real errors** — Made `cat` of local testnet logs graceful (`2>/dev/null || echo`) across all test actions so that missing logs don't fail the failure-handling step. This was hiding the actual safe-chain/Codecov errors behind spurious `cat: no such file` exit codes.
+
+## Added
+
+- `generateTransactionPayload` TypeScript overload for `InputMultiSigScriptData` (returns `TransactionPayloadMultiSig`), plus unit coverage for multisig script payloads. Localnet e2e for create/execute is skipped for now: indexing `MultisigTransactionPayload::Script` panics the current CLI indexer processor and takes down the shared localnet.
+- Automated release tooling: `scripts/prepareRelease.mjs` bumps a package's version and stamps its changelog, a two-phase release skill/Cursor rule (`.claude/skills/release-ts-sdk/`, `.cursor/rules/release-ts-sdk.mdc`) drives the version-bump PR and the tag + GitHub Release, and `.github/workflows/publish.yaml` publishes `@aptos-labs/ts-sdk` and `@aptos-labs/confidential-asset` to NPM with provenance via OIDC trusted publishing when a GitHub Release is published. See `CONTRIBUTING.md` and `docs/superpowers/specs/2026-07-06-automated-ts-sdk-releases-design.md`.
+- Retry reads of pruned history against the archival endpoint the node advertises in its `410 Gone` response, so historical Node API reads keep working as fullnodes move to a rolling history window. Enabled by default; opt out with `new AptosConfig({ ..., archivalFallback: false })`. Credentials are only forwarded to the archival endpoint when it is on the same site as the configured node.
+
+## Changed
+
+- Upgrade to TypeScript 7.0 (`tsc` 7.0.2). The root package keeps the TypeScript 6.0 programmatic API via `@typescript/typescript6` (aliased as `typescript`) for tools such as TypeDoc that still require it, and installs the native TypeScript 7 compiler as `@typescript/native` so `tsc` / `pnpm build` use 7.0. Examples and other packages that only invoke the CLI depend on `typescript@^7.0.2` directly. Align `tsconfig.json` `rootDir` with the confidential-asset package (`.` for editor/typecheck of `src` + `tests`; `./src` only in `tsconfig.build.json`) so full-project `tsc --noEmit` succeeds under TypeScript 6/7.
+
+- Adapt localnet e2e coverage to recent Aptos framework changes: skip the permissioned-delegation e2e (feature removed in aptos-core#20198), assert fungible-asset creator metadata by asset type rather than indexer row order, retarget table e2e tests away from the empty AptosCoin CoinInfo supply aggregator toward the genesis TypeInfo→FA metadata table, and pin account-abstraction example Move deps to `mainnet` so `SmartTable` compiles against current CLI.
+
+- Raise unit test line coverage threshold from 90% to 95% (`vitest.config.ts`) and add mocked-client unit tests across API wrappers, keyless/federated JWKS flows, `MultiKeyAccount`, transaction submission helpers, client `aptosRequest` error paths, type guards, and encrypted-payload claim handling. Tests assert forwarded arguments, parsed results, and error types/messages rather than smoke-only execution.
+
+- Add offline/mocked-client unit tests raising coverage of previously-untested modules: `internal/faucet.ts` (`fundAccount`), `client/get.ts` pagination helpers (`getAptosFullNode`, `getAptosPepperService`, `paginateWithCursor`, `paginateWithObfuscatedCursor`, `getPageWithObfuscatedCursor`), `core/crypto/abstraction.ts` (`AbstractPublicKey`/`AbstractSignature`), `account/AbstractedAccount.ts`, `account/keylessSigner.ts` (`isKeylessSigner`), `api/account/abstraction.ts` (`AccountAbstraction`), `api/transactionSubmission/sign.ts` (`Sign`), `api/utils.ts` (`waitForIndexerOnVersion`), and `SimpleTransaction` BCS round trips in `transactions/instances`.
+
+# 7.2.0 (2026-07-06)
+
+## Added
+
+- `aptos.keyless.getPepperBase(...)` fetches a keyless account's `pepper_base` (the 48-byte VUF signature / compressed BLS12-381 G1 point from which the final pepper is derived) from the pepper service's `signature` endpoint. Unlike `getPepper` (which returns the 31-byte derived pepper), `pepper_base` is independent of the ephemeral key and the derivation path, making it a stable per-identity seed. It is the seed for the confidential-asset keyless decryption-key derivation (`@aptos-labs/confidential-asset`'s `TwistedEd25519PrivateKey.fromPepperBase`); deriving from `pepper_base` rather than the final pepper ensures a leaked pepper cannot recover the decryption key.
+
+## Changed
+
+- Upgrade all repository packages to pnpm 11.20.0 and migrate pnpm configuration from `package.json` and `.npmrc` files to pnpm 11's `pnpm-workspace.yaml` format.
+- Update pinned GitHub Actions to the latest releases older than 3 days: `actions/checkout` v7.0.0, `pnpm/action-setup` v6.0.9, `actions/upload-artifact` v7.0.1, `nick-fields/retry` v4.0.0, `codecov/codecov-action` v5.5.5, and `aptos-labs/actions/aikidosec-safe-chain` (main). `actions/setup-node` v6.4.0, `oven-sh/setup-bun` v2.2.0, and `denoland/setup-deno` v2.0.4 were already current.
+
+# 7.1.3 (2026-06-23)
+
+## Changed
+
+- Coverage-to-85 initiative completed (see `docs/superpowers/specs/2026-05-20-coverage-to-85-design.md`): combined `unit + e2e` coverage raised from a baseline of 83.19% statements / 72.49% branches / 90.44% functions / 83.19% lines to ≥ 85% on all four v8 metrics, and the `vitest.config.ts` thresholds were lifted from 80 to 85 to lock it in. New mocked-client / offline unit tests added for the highest-uncovered-branch modules:
+  - `transactions/transactionBuilder/remoteAbi.ts`: the async conversion mirror (`checkOrConvertArgumentWithABI` / `parseArgAsync`), `checkType` for every BCS argument type, the `convertArgument` / `convertArgumentWithABI` wrappers, `standardizeTypeTags`, the ABI fetchers (`fetchModuleAbi`, `fetchFunctionAbi`, `fetchEntryFunctionAbi`, `fetchViewFunctionAbi`, `fetchMoveFunctionAbi`, `fetchModuleAbiWithStructs`), and the struct/enum async encoding path.
+  - `transactions/transactionBuilder/structEnumParser.ts`: `StructEnumArgumentParser` struct/enum/Option/vector/generic encoding (offline via `preloadModules`), every validation-error branch, and `MoveStructArgument` / `MoveEnumArgument` serialization.
+  - `internal/ans.ts`: view-backed reads, indexer GraphQL queries, and `registerName` domain/subdomain branches; `api/ans.ts` delegation.
+  - `core/crypto/deserializationUtils.ts` (`deserializePublicKey` / `deserializeSignature`), `core/crypto/multiKey.ts` verify/`getIndex` branches, and `account/AccountUtils.ts` typed-`fromHex` guards.
+- Add `LICENSE` files to example and project packages so their `license: "SEE LICENSE IN LICENSE"` metadata correctly references the Innovation-Enabling Source Code License.
+- Include `LICENSE` in published package `files` lists and add `check-license` CI/prepublish validation so npm tarballs always ship the license text.
+
+## Fixed
+
+- Keyless support is no longer tree-shaken out of bundled builds. `package.json` declared `"sideEffects": false`, which let bundlers (Rollup/Vite/webpack/esbuild) drop the bare `import "../core/crypto/keylessRegistration.js"` that registers the keyless and federated-keyless `AnyPublicKey`/`AnySignature` deserializers. Deserializing a keyless key (directly, or via a `MultiKey` that contains one) then threw `Unknown variant index for AnyPublicKey: 3` in production builds, while working in Node/Vitest where nothing is tree-shaken. Fixed by (a) marking `keylessRegistration.js` as side-effectful in `package.json#sideEffects` so the import survives tree-shaking, and (b) importing the registration from the primitive-defining modules (`core/crypto/keyless.ts` and `core/crypto/federatedKeyless.ts`) so that importing `KeylessPublicKey`/`KeylessSignature`/`FederatedKeylessPublicKey` alone — not just an account class — triggers registration. A regression check in `tests/bundle-size/check-tree-shaking.mjs` (now run in the build CI job via `pnpm test:tree-shaking`) asserts the side-effect stays wired into the `/keyless` entry point.
+- Resolve the CodeQL "Unsafe shell command constructed from library input" alert for the Move/LocalNode CLI helpers. The existing `assertSafeCliArg` validation rejected shell metacharacters but ran in a separate function, so CodeQL still tracked library input into the `spawn(..., { shell: true })` call used on Windows. CLI arguments are now both validated and scrubbed via `sanitizeCliArg`/`sanitizeCliArgs` (a `String.prototype.replace` chain covering every shell metacharacter) before being passed to `spawn`. Validation continues to throw on unsafe input, so the scrub is a runtime no-op; the validation blocklist now also covers `#`, `[`, and `]`.
+- Skip the `installs jwks for a firebase iss` e2e test. It installs the Firebase issuer's live JWK set fetched from Google's shared `securetoken@system.gserviceaccount.com` endpoint, which now publishes 5 RSA keys. The resulting `0x1::jwks::update_federated_jwk_set` resource serializes to ~2158 bytes, exceeding the on-chain `MAX_FEDERATED_JWKS_SIZE_BYTES` limit of 2 KiB and aborting with `EFEDERATED_JWKS_TOO_LARGE`. The test depends on the live endpoint, so it is skipped until the key set fits within the on-chain budget (or the SDK handles oversized sets explicitly).
+
+# 7.1.2 (2026-06-17)
+
+## Fixed
+
+- Export `getKeylessConfig` from the `@aptos-labs/ts-sdk/keyless` sub-path. It was dropped from the public API in v7.0.0 when the keyless/poseidon modules were removed from the main crypto barrel to reduce bundle size; the `./keyless` sub-path already existed for this purpose but was missing the export (PR #915).
+
+# 7.1.1 (2026-06-16)
+
+## Fixed
+
+- Restore HD key derivation utilities (`HARDENED_OFFSET`, `mnemonicToSeed`, `deriveKey`, `CKDPriv`, `splitPath`, `isValidHardenedPath`, `DerivedKeys`) to the main barrel export. These were public API in v5/v6 but were accidentally dropped from `src/core/crypto/index.ts` in the v7 tsc migration (PR #885) when they were grouped with keyless/poseidon utilities. Unlike those, `hdKey.ts` has no poseidon-lite dependency and was already pulled in transitively via `ed25519.ts` and `secp256k1.ts`.
+
+# 7.1.0 (2026-05-21)
+
+## Added
+
+- CI uploads bundle stats for `dist/` to Codecov via `@codecov/bundle-analyzer` (`codecov.yaml` → `.github/actions/run-codecov-bundle`). The SDK is tsc-built with no bundler, so the standalone analyzer is used to produce bundle reports under the `@aptos-labs/ts-sdk` bundle name. Runs as a parallel job alongside the existing coverage upload; both share the `CODECOV_TOKEN` secret.
+- Unambiguous signing/verification API split across `Ed25519`, `Secp256k1`, and `Secp256r1`:
+  - `signBytes(message: Uint8Array)` and `signText(message: string)` on each `PrivateKey` class. `signBytes` signs exactly the provided bytes; `signText` UTF-8-encodes the string before signing. No hex/text heuristic — the input type determines the interpretation unambiguously.
+  - `verifyBytes({ message: Uint8Array, signature })` and `verifyText({ message: string, signature })` on each `PublicKey` class, mirroring the sign side.
+  - These pair as `signBytes` ↔ `verifyBytes` and `signText` ↔ `verifyText`. Prefer these over the legacy polymorphic methods for any new code.
+- `Secp256r1PrivateKey.clear()` and `isCleared()` mirror the lifecycle hooks already present on `Ed25519PrivateKey` and `Secp256k1PrivateKey`. After `clear()` is called, the underlying byte buffer is overwritten and subsequent calls to `toUint8Array()`, `toString()`, `toHexString()`, `publicKey()`, and `sign()` throw. Same JavaScript-level limits as the other classes (see `clear()` JSDoc) — best-effort window-narrowing, not a true zeroization guarantee.
+
+## Changed
+
+- Testing infrastructure for the coverage-to-85 initiative (see `docs/superpowers/specs/2026-05-20-coverage-to-85-design.md`):
+  - New `tests/helpers/mockClient.ts` lets unit tests inject a recording `Client.provider` into `AptosConfig` and assert both the outgoing request shape (URL, method, body, headers, params) and the parsed response from `src/client/core.ts`. Both halves are required for every new test under this initiative — the rule prevents future regressions in either request shape or response parsing.
+  - Coverage exclusions in `vitest.config.ts`, `vitest.config.unit.ts`, and `codecov.yml` extended (with justification comments) to cover `src/cli/**` (Node-only CLI surface, covered by `examples/`), `src/utils/normalizeBundle.ts` (bundler shim), `src/transactions/management/asyncQueue.ts` (long-running event loop covered behaviorally by e2e), and `src/{index,version}.ts` (re-export barrel and version constant).
+  - First example unit test under this pattern: `tests/unit/internal/general.test.ts` covers `getLedgerInfo`, `queryIndexer`, `getProcessorStatus(es)`, and `getIndexerLastSuccessVersion`, including the GraphQL-errors envelope and fullnode 4xx error paths through `aptosRequest`.
+  - Phase 1 batch of mocked-client unit tests: `tests/unit/internal/{table,staking,object,encryptionKey,view,coin,abstraction}.test.ts` cover the previously-untested branches in those modules. Address normalization (`AccountAddress.from(...).toStringLong()`) is asserted on every indexer call that passes one. Thin-wrapper modules (`coin.transferCoinTransaction`, `abstraction.*`) test their plumbing by mocking `generateTransaction` directly so the wrapper's own behavior is the only thing under test.
+- Mocked-client unit tests for `src/internal/{ans,account,transaction}.ts`:
+  - `ans.ts` pure helpers: `isValidANSSegment` (13 boundary cases including emoji rejection), `isValidANSName` (bare, subdomain, `.apt` suffix stripping, segment validation, multi-segment rejection), `getANSExpirationStatus` (Active / InGracePeriod / Expired across TLD-only, subdomain-with-Independent-policy, subdomain-with-FollowsDomain).
+  - `account.ts` REST + indexer queries: `getResource` / `getResourceFallible` (null-on-`resource_not_found`-404, rethrow on other 404s and 5xx), `getBalance` (parseInt of body), `getAccountTokensCount` (cjs-friendly aggregate fallback), `getAccountOwnedTokens` (tokenStandard filter on/off), `getAccountTransactionsCount`, `getAccountCoinsData` (where merging), `getAccountCoinsCount` (throws when aggregate missing — opposite of the count fallback in other functions), `getAccountOwnedObjects`, `fetchAndCacheAuthKeyForAddress` (happy path, account_not_found fallback returns the address itself as the auth key, non-404 rethrows, per-network cache hit).
+  - `transaction.ts` queries: `getGasPriceEstimation` (5-minute memoize), `getTransactionByVersion`, `getTransactionByHash`, `isTransactionPending` (Pending = true, User-committed = false, 404 = true, 5xx rethrows), `longWaitForTransaction`, `getBlockByVersion` / `getBlockByHeight` with `with_transactions` param forwarding.
+- BCS round-trip unit tests for `transactions/authenticator/{account,transaction}.ts` (`tests/unit/transactions/authenticators.test.ts`): each authenticator variant (Ed25519, SingleKey, MultiKey, NoAccountAuthenticator on the account side; Ed25519, SingleSender, MultiAgent, FeePayer on the transaction side) serializes through `TransactionAuthenticator.deserialize` / `AccountAuthenticator.deserialize`, the returned subclass is asserted with `toBeInstanceOf`, and field equality is verified. Both deserialize switch statements have a default-branch unknown-variant test. Includes a Secp256k1 SingleKey/SingleSender cross-cutting round-trip.
+- Unit tests for the top-level `Aptos` class (`tests/unit/api/aptos.test.ts`): config storage, default-config fallback, every sub-module getter (`account`, `coin`, `faucet`, `staking`, `transaction`, `table`, `keyless`, `object`, `general`, `digitalAsset`, `fungibleAsset`, `ans`) returns the right subclass and is memoized, mixin propagation makes sub-module methods callable directly on the `Aptos` instance, `setIgnoreTransactionSubmitter(true|false)` toggles `AptosConfig.getTransactionSubmitter()` round-trip.
+- Unit tests for `Staking`, `Table`, and `FungibleAsset` API wrappers (`tests/unit/api/staking-table-fa.test.ts`): each method forwards args + `aptosConfig`. The indexer-wait boundary is pinned per method — `Staking.getNumberOfDelegators*` waits, `Table.getTableItem` does NOT wait (fullnode REST), `Table.getTableItemsData/Metadata` waits, `FungibleAsset.getFungibleAssetMetadata` waits, `FungibleAsset.transferFungibleAsset` does NOT (pure builder).
+- Unit tests for the API-layer wrapper classes (`tests/unit/api/general.test.ts`, `tests/unit/api/wrappers.test.ts`): `General` (11 tests covering every public method forwarding into `internal/general.ts`, `internal/transaction.ts`, and `internal/view.ts`), `Coin`, `AptosObject`, and `Faucet` (9 tests). Each wrapper test asserts that the internal function is called with `{ aptosConfig: this.config, ...args }` so any future regression that drops the spread or fails to inject `this.config` is caught. `Faucet.fundAccount` explicitly verifies the `waitForIndexer` opt-out branch (default = wait, `false` = skip, `true` = wait).
+- Unit tests for `internal/digitalAsset.ts` transaction wrappers (`tests/unit/internal/digitalAsset-transactions.test.ts`): `transferDigitalAssetTransaction` (default vs custom asset type, address normalization), `burnDigitalAssetTransaction`, `freeze` / `unfreezeDigitalAssetTransferTransaction`, and `setDigitalAssetDescription` / `setDigitalAssetName` / `setDigitalAssetURITransaction`. `generateTransaction` is `vi.mock`'d so each test asserts the exact target function and positional argument layout.
+- Unit tests for `internal/keyless.ts` (`tests/unit/internal/keyless-pepper.test.ts`): `getPepper` request shape (jwt_b64, epk hex, exp_date_secs, epk_blinder, uid_key default of "sub", derivationPath forwarding) and `getProof`'s three pre-network validation paths (pepper-length, missing-iat, ephemeral-keypair-too-long-lived). Each pre-network failure also asserts that `mock.requests.length === 0` — proves the guard fires before the prover is hit.
+- Unit tests for `internal/ans.ts` transaction wrappers (`tests/unit/internal/ans-transactions.test.ts`): `setPrimaryName` (set + clear branches), `setTargetAddress` and `clearTargetAddress` (subdomain vs bare-domain arg layout — note that `clearTargetAddress` uses `?? null` so bare domains get explicit `null`, not `undefined`, in the arg array), `renewDomain` (happy path + subdomain rejection + multi-year rejection guard).
+- Unit tests for `transactions/transactionBuilder/helpers.ts` (`tests/unit/transactions/builderHelpers.test.ts`): 52 tests covering every type-guard (`isBool`, `isString`, `isNumber`, `isBcsBool`/`U8`–`U256`/`I8`–`I256`/`Address`/`String`/`FixedBytes`), the empty-option guard, `isLargeNumber`, `convertNumber` (number / numeric-string / empty-string explicit fallback / bigint / null / boolean), `isScriptDataInput` discriminator, `throwTypeMismatch` message format, and `findFirstNonSignerArg` for signer-prefix layouts.
+- Unit tests for `transactions/internal/transactionSubmission.ts` helpers (`tests/unit/transactions/transactionSubmission-helpers.test.ts`): `getSigningMessage` returns non-empty bytes that differ when `sequence_number` changes (replay-protection invariant), `signTransaction` returns a BCS-round-trippable `AccountAuthenticator`, `signAsFeePayer` throws on non-fee-payer transactions and otherwise mutates `feePayerAddress` to the signer's address, `assertSimulatableTransaction` returns silently for entry-function payloads and the documented error message contains both "encrypted" and "plaintext".
+- Unit tests for `transactions/management/accountSequenceNumber.ts` (`tests/unit/transactions/accountSequenceNumber.test.ts`): `initialize` primes both numbers from chain, `update` refreshes only `lastUncommittedNumber`, `nextSequenceNumber` increments locally without re-fetching when under the in-flight cap and calls `update` when it hits the cap, `synchronize` returns immediately when in-sync and polls otherwise. `getInfo` is `vi.mock`'d so the test isolates the sequence-number state machine.
+- BCS round-trip unit tests in `tests/unit/transactions/instances.test.ts`: covers `MultiAgentTransaction` (no-fee-payer + with-fee-payer + multiple secondary signers + determinism for identical inputs), `RotationProofChallenge` (well-known `0x1::account::RotationProofChallenge` constants + serialization framing), and `TransactionPayload.deserialize` variant routing for `EntryFunction` and `Script` payloads plus the unknown-variant error path. Every test serializes, deserializes, and compares fields — bytes-level determinism is pinned at least once per type.
+- Additional mocked-client unit tests under the coverage-to-85 initiative: `tests/unit/internal/{fungibleAsset,digitalAsset}.test.ts` cover the indexer-query halves of both modules (metadata/activities/balances for fungible; data/ownership/owned-list/activity + 5 collection-lookup variants for digital). Long-form address normalization, `token_standard` filter forwarding, and pagination/orderBy plumbing are asserted on every call. The `transferFungibleAsset(BetweenStores)` wrappers are unit-tested via `vi.mock` of `generateTransaction` so the test isolates the wrapper's own argument plumbing.
+- `src/internal/account.ts`: converted the two top-level `EntryFunctionABI` constants (`rotateAuthKeyAbi`, `rotateAuthKeyUnverifiedAbi`) to lazy getters. They previously instantiated `new TypeTagU8()` at module-eval time, which deadlocked an ESM circular import (`structEnumParser` → `internal/account` → `transactions/index` → `typeTag/index`) and meant any unit test that imported `src/internal/{view,coin,abstraction}.ts` in isolation crashed with `TypeError: TypeTagU8 is not a constructor`. Behaviorally unchanged at runtime — the ABIs are still constructed once and cached, just on first use instead of at import.
+- `Secp256r1PrivateKey.sign` and `Secp256r1PublicKey.verifySignature` now flow string inputs through `convertSigningMessage`, matching `Ed25519` and `Secp256k1` behavior. Practical effect: a non-hex string like `"hello"` is now accepted and encoded as UTF-8 (previously threw via `Hex.fromHexInput`). Bare even-length hex strings continue to be treated as hex bytes, and `Uint8Array` inputs are unchanged. This is a backwards-compatible behavior expansion — no existing valid inputs change meaning.
+- Coverage thresholds in `vitest.config.ts` raised from `branches: 40, functions/lines/statements: 50` to `80` for all four metrics. New unit-test files target previously-uncovered branches in `src/utils/{helpers,memoize}.ts`, `src/core/crypto/{utils,ephemeral,singleKey}.ts`, `src/core/crypto/encryption/{symmetric,ciphertext}.ts` (constructor validation paths), `src/account/EphemeralKeyPair.ts`, and `src/transactions/transactionBuilder/signingMessage.ts`. The combined unit + e2e run is expected to meet the new gate; CI is authoritative.
+- Bumped `@aptos-labs/aptos-client` to `^4.1.0`, which fixes the upstream HTTP/2 + brotli bug where compressed response bodies were returned undecoded (causing JSON parsing to silently fall back to a raw-bytes string, so e.g. `info.authentication_key` came back `undefined` on devnet). With the upstream fix in place, the SDK no longer forces `accept-encoding: identity` by default — compression negotiation is restored to the underlying client's defaults, and HTTP/2 plus brotli/gzip now work end-to-end. Callers that previously relied on identity encoding can still opt back in via `clientConfig.HEADERS`.
+- CI: the shared `setup-node-pnpm` composite action now sets `SAFE_CHAIN_MINIMUM_PACKAGE_AGE_EXCLUSIONS=@aptos-labs/*`, so freshly-published first-party packages (such as `@aptos-labs/aptos-client@4.1.0`) are not blocked by safe-chain's 48-hour minimum-age guard. Malware scanning still applies; only the publication-age check is bypassed, and only for the `@aptos-labs/*` scope. Every workflow that uses the composite action inherits the exclusion automatically.
+
+## Deprecated
+
+- CI uploads unit test coverage to Codecov (`codecov.yaml` via `.github/actions/run-codecov`, `pnpm test:coverage:unit`). Uploads use the Codecov `unit` flag; Vitest coverage is scoped to `src/**/*.ts` (excluding generated GraphQL queries and indexer types) so metrics reflect SDK sources. Repository owners should enable the Codecov GitHub app and optionally set `CODECOV_TOKEN` for uploads.
+- `Secp256r1PrivateKey.clear()` and `isCleared()` mirror the lifecycle hooks already present on `Ed25519PrivateKey` and `Secp256k1PrivateKey`. After `clear()` is called, the underlying byte buffer is overwritten and subsequent calls to `toUint8Array()`, `toString()`, `toHexString()`, `publicKey()`, and `sign()` throw. Same JavaScript-level limits as the other classes (see `clear()` JSDoc) — best-effort window-narrowing, not a true zeroization guarantee.
+- `Ed25519PrivateKey.sign`, `Secp256k1PrivateKey.sign`, `Secp256r1PrivateKey.sign`, `Ed25519PublicKey.verifySignature`, `Secp256k1PublicKey.verifySignature`, and `Secp256r1PublicKey.verifySignature` are now `@deprecated`. The polymorphic `message: HexInput` input is silently ambiguous — a bare even-length hex string (e.g., `"cafe"`) is interpreted as the 2 bytes `[0xCA, 0xFE]`, not as 4 UTF-8 text bytes. The deprecated methods continue to work exactly as before for backwards compatibility; they now internally delegate to `signBytes` / `verifyBytes` after running the legacy `convertSigningMessage` heuristic.
+
+## Fixed
+
+- `waitForTransaction` no longer throws `FailedTransactionError` when the fullnode returns a committed-shaped response whose `success`/`vm_status` haven't been populated yet. Against fast-throughput fullnodes (notably devnet), there's a window where a transaction's `type` flips off `Pending` before the execution result is filled in; the previous code interpreted that partial response as a failure (`Transaction <hash> failed with an error: undefined`), even though the on-chain transaction succeeded. Polling now continues until either the response is fully populated or the timeout elapses, at which point a `WaitForTransactionError` clearly indicates an indexing timeout rather than a fake failure. Surfaced via `aptos.fundAccount` against devnet.
+- `AptosApiError.message` for `AptosApiType.PEPPER` and `AptosApiType.PROVER` is now redacted in **every** branch of `deriveErrorMessage`, not only the generic catch-all. The previous implementation placed the sensitive-type check after the well-known `{ message, error_code }` structured-error branch, so a Pepper/Prover response in that shape would still be serialized into `Error.message`. The sensitive-type check now runs first and short-circuits before any body-serializing branch can fire. The full body remains accessible via `AptosApiError.data` (still annotated as sensitive in its JSDoc).
+- u64 → number narrowing at the BCS/JSON boundaries in keyless deserialization paths (`EphemeralKeyPair.deserialize`, `KeylessSignature.deserialize`, `ZeroKnowledgeSig.deserialize`, `KeylessConfiguration.create`) now uses a new `u64ToNumberSafe(value, fieldName)` helper that throws `RangeError` if the value exceeds `Number.MAX_SAFE_INTEGER` (2^53 - 1) instead of silently truncating. Real-world expiry timestamps and horizons are far below the unsafe range, so this is effectively a guard against corrupted or malicious BCS data rather than a behavior change for normal inputs.
+- `updateFederatedKeylessJwkSetTransaction` now validates the JWKS response shape at runtime before building the on-chain transaction. Previously the response was cast to `JWKS` via `as` with no runtime check, so a malformed payload would throw a confusing `TypeError: Cannot read properties of ... 'map'`, and a hostile or buggy IdP could return an unbounded `keys` array that would be packed into the chain transaction. The validator confirms the response is an object with a non-empty `keys` array of at most 32 entries, each entry being an object whose `kid`, `alg`, `e`, and `n` fields are strings.
+- `poseidonHash` now rejects empty input arrays with a descriptive error (`"poseidonHash requires between 1 and 16 inputs, got 0"`). Previously `poseidonHash([])` evaluated `numInputsToPoseidonFunc[-1]` and threw `TypeError: undefined is not a function`, which gave no hint about the actual constraint. No SDK call path produces an empty array, but the function is exported and third-party callers could hit this.
+- `updateFederatedKeylessJwkSetTransaction` now requires the JWKS URL to use `https:` and rejects malformed URLs before any network call. Without this guard, a caller-supplied `iss` or `jwksUrl` could direct the SDK's `fetch` to cloud-metadata endpoints (e.g., `http://169.254.169.254/...`), internal services, or non-network schemes like `file:` / `data:` — a classic SSRF. The on-chain federated-JWKS update is a privileged operation, so it now refuses to source key material over an untrusted transport.
+- `assertSafeCliArg` now rejects `%` in CLI arguments. On Windows with `shell: true`, `cmd.exe` performs environment-variable expansion on `%VAR%` patterns — a `%USERPROFILE%`-style payload in `extraArgs` would resolve to the running user's home directory at the shell layer, bypassing the previous metacharacter blocklist.
+- `Secp256r1PublicKey.verifySignature` now enforces canonical low-S form (matches `Secp256k1PublicKey.verifySignature` and aligns with on-chain verifier expectations). Previously accepted both low-S and high-S signatures, which could cause SDK-validated signatures to be rejected by the chain.
+- Poseidon length-validation error messages no longer stringify the input `Uint8Array` (which yielded its full byte content) — they now report `bytes.length`, avoiding leakage of caller-supplied data (e.g., JWT claim values) into logs and crash reporters.
+- `Deserializer.deserializeVector` now rejects vector lengths beyond `(1 << 31) - 1`. Without the cap, a crafted BCS blob with a maximal ULEB128 length prefix would cause the deserializer to loop billions of times before the inner read-bounds check tripped — effectively a CPU-exhaustion DoS for any consumer of untrusted BCS data.
+- `AptosApiError.message` for `AptosApiType.PEPPER` and `AptosApiType.PROVER` no longer embeds the raw response body. Pepper- and prover-service responses can include JWT claims or pepper-derived state; the raw body remains accessible via `AptosApiError.data` for callers that need it, but it's kept out of the default `Error.message` (and therefore out of generic crash reporters / log aggregators).
+- `updateFederatedKeylessJwkSetTransaction` JWKS-fetch errors now report only the origin (scheme + host + port) of the JWKS URL, not the full URL. This avoids leaking `iss`-derived path segments or tenant identifiers from enterprise IdP setups into logs.
+- `LocalNode.start` and `Move.runCommand` now reject shell metacharacters in CLI arguments before invoking `spawn`. Windows requires `shell: true` to launch `.cmd` shims (CVE-2024-27980 mitigation), which previously meant characters like `&`, `|`, `;`, `` ` ``, `$`, `(`, `)`, `<`, `>`, `^`, `!`, `*`, `?`, quotes, and newlines in caller-supplied `extraArgs` / `extraArguments` could be interpreted by `cmd.exe` and trigger command injection. The new validator (`assertSafeCliArg` / `assertSafeCliArgs`, exported from `@aptos-labs/ts-sdk/cli`) is applied on all platforms for consistency.
+
+## Documentation
+
+- Document the silent hex/text discrimination heuristic in `convertSigningMessage` and on every curve's `sign()` / `verifySignature()` JSDoc. A bare even-length string of hex characters (e.g., `"cafe"`) is interpreted as the 2 bytes `[0xCA, 0xFE]`, not as the 4 UTF-8 bytes of the text — this is silent and has caught callers off-guard, so the JSDoc now spells out the rule and recommends `Uint8Array` for unambiguous behavior. The heuristic itself is preserved because changing it would silently re-interpret bytes signed by existing dApps and wallets with no migration path.
+- Replace the brief "this cannot guarantee complete removal" disclaimer on `Ed25519PrivateKey.clear()`, `Secp256k1PrivateKey.clear()`, and `EphemeralKeyPair.clear()` with an honest enumeration of the four classes of unreachable copies (JS string copies from `toString()` / `toHexString()` / `bcsToHex()`, noble-curves `BigInt` scalar intermediates, JIT register / stack residue, GC-relocated copies in survivor heap spaces). Adds `SECURITY:` JSDoc notes on the string-producing methods (`toString()`, `toHexString()`, `toAIP80String()`) of `Ed25519PrivateKey`, `Secp256k1PrivateKey`, and `Secp256r1PrivateKey` explaining that the returned string cannot be cleared. Points callers toward `toUint8Array()` (clearable) and notes the architectural alternatives (non-extractable WebCrypto keys for Ed25519, WASM-backed crypto for secp256k1, hardware-backed keys) for cases where real key-material hygiene matters.
+- Document on `EphemeralKeyPair.nonce` that the field is NOT secret (it appears in the OIDC redirect URL, the returned JWT, and the prover-service inputs) and is NOT zeroed by `clear()` (it is an immutable JS string with no API to overwrite). Calls out the narrow forensic-correlation consequence so callers know what privacy property `clear()` does and doesn't provide for this field.
+- Document on `AptosApiError` (both class-level JSDoc and the `data` field JSDoc) that `error.data` always retains the raw response body — including for `AptosApiType.PEPPER` and `AptosApiType.PROVER` — even though `error.message` is redacted for those API types. Callers that log or serialize `AptosApiError.data` (Sentry auto-capture, structured loggers, `JSON.stringify`) need to treat it as sensitive for keyless-flow errors.
+- Document that `jwt-decode` performs no signature verification at the SDK layer. The cryptographic binding between a JWT and its IdP is enforced on-chain by the keyless verifier; the SDK only decodes claims to derive the account address and pass the JWT through to the prover service. Added explicit `SECURITY:` notes on `KeylessPublicKey.fromJwtAndPepper`, `getIssAudAndUidVal`, the `getProof` flow in `src/internal/keyless.ts`, and `AbstractKeylessAccount.checkKeylessAccountValidity` so future contributors don't mistakenly assume client-side verification is happening.
+- Encrypted transactions: when `options.senderAuthenticationKey` (and `options.feePayerAuthenticationKey` / `options.secondarySignerAuthenticationKeys[i]`) is omitted, the SDK now fetches the corresponding `authentication_key` from the fullnode and memoizes it per `(network, address)` for ~1 hour. If the address has no `0x1::account::Account` resource on chain (a not-yet-created or light account), the SDK uses the address bytes as the auth key, matching the chain's account-creation convention — this enables fee-payer-sponsored encrypted transactions where the sender hasn't been created yet. Pass the auth key explicitly to skip the lookup (e.g. immediately after a key rotation).
+
+## Changed
+
+- **Encrypted transactions (breaking)**: renamed `options.authenticationKey` → `options.senderAuthenticationKey` in `InputEncryptedTransactionBuildOptions` for clarity and parity with `feePayerAuthenticationKey` / `secondarySignerAuthenticationKeys`. Narrowed the accepted input type for all three fields to `AuthenticationKey | string | Uint8Array` (an explicit `AuthenticationKey` instance is now the preferred input; callers previously passing `AccountPublicKey` should call `.authKey()` themselves). All three fields are now genuinely optional — omitted entries are fetched and cached from chain.
+
+# 7.0.1 (2026-05-14)
+
+## Fixed
+
+- Encrypted transactions built with `withFeePayer: true` (deferred gas-station sponsor) now correctly include `claimedEntryFunction` in the payload so the eventual fee payer can inspect which module/function they are sponsoring without decrypting the payload.
+
+# 7.0.0 (2026-05-11)
+
+## Added
+
+- Add support for script payloads in multisig transactions. `MultiSigTransactionPayload` now accepts both `EntryFunction` and `Script` payloads, and the new `InputMultiSigScriptData` type allows building multisig transactions with script bytecode. This aligns with the upstream `MultisigTransactionPayload::Script` variant added in aptos-core.
+- `x-aptos-client` request header now includes the runtime platform (and engine version where cheaply available) for telemetry. Examples: `aptos-typescript-sdk/<version>; platform=node/22.12.0`, `platform=bun/1.1.38`, `platform=deno/2.1.4`, `platform=browser`, `platform=react-native`, `platform=unknown`. Runtime detection is internal — not exported from the SDK public API.
+- **Tree-shakeable standalone function API** — all SDK operations available as standalone functions (`getLedgerInfo`, `getBalance`, `transferCoinTransaction`, etc.) that accept `{ aptosConfig, ...args }`.
+- **Sub-path exports** — import from `@aptos-labs/ts-sdk/account`, `@aptos-labs/ts-sdk/transaction`, `@aptos-labs/ts-sdk/keyless`, etc. for minimal bundle sizes.
+- **`sideEffects: false`** in package.json for bundler tree-shaking.
+- **Variant registry pattern** for `AnyPublicKey`/`AnySignature` — keyless variants register at runtime, removing compile-time poseidon dependency from core crypto.
+- **Encrypted transaction payloads** — pass `options: { encrypted: true, authenticationKey }` to `build.simple()`, `build.multiAgent()`, or `build.sponsorship()` to encrypt the executable payload with the node's per-epoch BLS12-381 batch IBE key before submission.
+  - `authenticationKey` accepts an `AccountPublicKey` (auth key derived automatically) or a raw 32-byte hex string. Multi-agent builds also accept `secondarySignerAuthenticationKeys`; sponsored builds accept `feePayerAuthenticationKey`.
+  - Gas unit price is floored at `MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE` (200) to cover validator decryption cost.
+  - Simulating an encrypted payload throws a clear error; simulate the plaintext version first.
+  - Keyless signers are rejected at signing time (signature mutability breaks payload binding).
+  - Multisig payloads are structured correctly on the SDK side but currently rejected by the server; pending fullnode support.
+  - New exports: `EncryptionKey`, `DecryptedPlaintext`, `PayloadAssociatedData`, `ClaimedEntryFunction`, `MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE`.
+  - Ledger info gains optional `encryption_key`; `TransactionPayloadResponse` gains `EncryptedTransactionPayloadResponse`.
+  - Devnet e2e tests: `pnpm e2e-encrypted`.
+
+## Breaking
+
+- ESM-only output; removed CommonJS `"require"` exports. Node.js 22+ required.
+  - Migration: Update imports from `require()` to `import` syntax
+  - See: `upgrade-guides/UPGRADE_GUIDE_7.0.0.md`
+- **Namespace classes available from sub-paths** — `import { General, AptosConfig } from "@aptos-labs/ts-sdk/general"` for tree-shakeable usage with autocomplete. The `Aptos` class remains available but is not tree-shakeable.
+- **Plain `tsc` build** — replaced tsup bundler with plain TypeScript compiler. Output is unbundled, unminified ESM with 1:1 file mapping. `nodenext` module resolution.
+- **Removed `js-base64` dependency** — replaced with native `atob`/`btoa` (universal across all runtimes).
+- **Keyless imports moved** — `KeylessAccount`, `FederatedKeylessAccount`, `EphemeralKeyPair`, poseidon utilities, and keyless crypto types are no longer exported from the main entry. Import from sub-paths or direct file paths.
+- **HD Key and deserialization utils moved** — no longer in the crypto barrel. Import directly from their files.
+- **`generateSignedTransactionForSimulation` is now async** — callers must `await` it.
+  - See: `upgrade-guides/UPGRADE_GUIDE_7.0.0.md`
+- Rename `AccountSequenceNumber.lastUncommintedNumber` → `lastUncommittedNumber` (typo fix).
+- **`AuthenticationKey` BCS wire format changed** — `serialize()` now emits ULEB128 length-prefixed bytes (`serializeBytes`) instead of raw fixed bytes (`serializeFixedBytes`), matching the Rust `serde_bytes`-derived `AuthenticationKey::serialize`. This is required for encrypted-transaction `PayloadAssociatedData` AAD bytes to match what the node verifies — without the prefix, the per-payload `Id = hash(vk || BCS(AAD))` diverges from the server and every encrypted submission is rejected. Affects any caller that BCS-encodes an `AuthenticationKey` directly (e.g., `authKey.bcsToBytes()`, `authKey.bcsToHex()`); persisted/transmitted BCS bytes now carry a 1-byte `0x20` length prefix before the 32 payload bytes. `toString()` continues to return the raw 32-byte hex address (overridden) so existing string-equality checks against the REST `authentication_key` field and indexer GraphQL filters keep working.
+
+## Changed
+
+- Skip staking API e2e tests (`tests/e2e/api/staking.test.ts` via `describe.skip`): they query live mainnet/devnet indexers and assume specific on-chain staking state, so remote API errors (for example indexer 5xx) and changing pool data make CI unreliable.
+- Introduce `MultiSigTransactionPayloadVariants` for multisig inner payload BCS tags and consolidate bytecode handling in `buildTransactionPayload`.
+- Upgraded `@noble/curves` and `@noble/hashes` to 2.x (ESM-only).
+- Remove `dotenv` usage from all TypeScript/JavaScript examples. Node 22+ users can rely on the built-in `node --env-file=.env` flag (or `tsx --env-file=.env`) when a `.env` file is needed; the examples default to devnet and don't require one.
+- `AnsName` now reports nullable indexer fields honestly instead of fabricating placeholder values. `domain`, `token_standard`, and `is_primary` are typed as optional (`string | undefined` / `AnsTokenStandard | undefined` / `boolean | undefined`), and `sanitizeANSName` passes them through as `undefined` rather than defaulting to `"N/A"`, `"v2"`, `false`, or `""`. Consumers that previously relied on these fields always being present should handle the `undefined` case (or filter the row out as bad indexer data).
+- `AccountAbstraction.addAuthenticationFunctionTransaction`, `removeAuthenticationFunctionTransaction`, and `disableAccountAbstractionTransaction` now type their `authenticationFunction` parameter as `MoveFunctionId` instead of `string`. `MoveFunctionId` is a string alias, so string literals still compile; callers passing a typed `string` variable may need to retype it (or cast) to satisfy the tightened signature. Updated the `hello_world_authenticator_account_abstraction.ts` and `public_key_authenticator_account_abstraction.ts` examples accordingly — they now annotate `authenticationFunction` as `MoveFunctionId` and call `.toString()` on the account address so the template literal type resolves correctly.
+- Batch-encryption curve deserialization: `bytesToG2` requires prime-order subgroup points (`isTorsionFree` after `fromBytes`), matching aptos-core `ts-batch-encrypt`.
+- Orderless transaction replay-protection sequence number: `generateRawTransaction` now sets `sequence_number = u64::MAX` (via `MAX_U64_BIG_INT`) when `replayProtectionNonce` is provided, matching the on-chain `RawTransaction::replay_protector` contract. Previously it set `0xdeadbeefn`, which was an arbitrary sentinel that happened to be ignored by the server. No caller-visible API change; the wire bytes for orderless transactions differ.
+
+## Fixed
+
+- Fix Windows compatibility when using `aptos move` CLI helpers (e.g. `aptos move compile`). The previous implementation attempted to spawn `npx.cmd` directly without `shell: true`, which is rejected by Node.js ≥20.12.2+ due to security restrictions on executing `.cmd`/`.bat` shims. Now correctly passes `{ shell: true }` on Windows (consistent with `LocalNode`).
+- **Encrypted transactions:** Enforce minimum gas unit price of 200 Octas/gas-unit when `options.encrypted` is true. The aptos-core gas schedule (`RELEASE_V1_45`, `encrypted_txn_min_price_per_gas_unit = 200`) requires encrypted transactions to pay 2× the network base minimum (100) to cover validator decryption cost. If the gas unit price is below 200, `generateRawTransaction` bumps the effective price to 200. When `options.gasUnitPrice` is explicitly set below the floor, a `console.warn` is emitted; when the estimated price falls below the floor, the bump is silent. Callers who explicitly set a higher price are unaffected. New export: `MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE = 200` from `src/utils/const.ts`.
+- **Encrypted transactions:** `signAndSubmitTransaction` now throws before submission if the signer or fee payer is a keyless or federated keyless account and the transaction payload is encrypted. Encrypted transactions cannot use keyless signers because signature malleability breaks payload binding (server-enforced in aptos-core `83daaf1ad4`). Detection is duck-typed via `isKeylessSigner`, so a `MultiKeyAccount` that wraps a keyless inner signer is not currently caught by this guard — submission will still fail server-side.
+- **Types:** `decryption_failure_reason` in `EncryptedTransactionPayloadResponse` is annotated as "not yet surfaced by the REST API" — the field is optional and safe to ignore in current responses.
+- `projects/gas-station` example: `/signAndSubmit` now returns a string `error` message in its 500 JSON response instead of the raw error object. `JSON.stringify`-ing an `Error` produces `{}` (because its standard properties are non-enumerable), so the previous response was effectively `{"error":{}}`. Now formats the message safely (`error instanceof Error ? error.message : String(error)`) so clients get a useful diagnostic without the example leaking internal error shape.
+- Pin GitHub Actions workflow dependencies to immutable commit SHAs, disable persisted checkout credentials for CI jobs, and remove mutable global package installs from runtime test workflows.
+- Fix `aptos.transaction.getBlockByHeight({ options: { withTransactions: true } })` / `getBlockByVersion` crashing with `TypeError: Cannot use 'in' operator to search for 'version' in undefined` on blocks whose `transactions` array is empty. `fillBlockTransactions` now guards `lastTxn` before the `in` check.
+- Fix `aptos.account.accountExists` (`doesAccountExistAtAddress`) on accounts with many resources: the old path fetched the full resource list and scanned it for `0x1::account::Account`, which is slow and can fail for large or sparse accounts. Replaced with a single fallible resource fetch (new internal `getResourceFallible` helper) that treats 404 as "not found". Only affects internal callers; the public API is unchanged.
+- `aptos.ans.*` queries no longer throw on indexer rows with missing fields. `sanitizeANSName` drops its non-null assertions and passes nullable indexer fields through as `undefined` instead of crashing. See the `Breaking` section for the `AnsName` type change.
+- `@aptos-labs/ts-sdk/account` sub-path no longer transitively imports `poseidon-lite`. `src/internal/account.ts` now uses the lightweight `isKeylessSigner` duck-type check for detection and lazy-loads `KeylessAccount` / `FederatedKeylessAccount` via dynamic `import()` only when constructing derived keyless accounts. The `tests/bundle-size/check-tree-shaking.mjs` test was rewritten to walk the full transitive static-import graph (previously a shallow grep on a pure re-export file, which produced a false-pass).
+- Scope `tsconfig.build.json` `types` to `["node"]` only, dropping the inherited `vitest/globals`. Prevents Vitest test globals (`expect`, `describe`, `vi`, `beforeEach`, etc.) from leaking into published `.d.ts` files. Non-CLI source files that need Node-only globals (e.g. `process.env`) must continue to use explicit structural types — see `TEXT_ENCODER` in `src/utils/const.ts` for the pattern.
+- Fix `fullnodeConfig.HEADERS` not being forwarded in paginated fullnode requests (`getAccountModules`, `getAccountResources`). Pagination helpers now route through `getAptosFullNode` so custom headers (e.g. `Authorization`) are included consistently. (#872)
+- Fix `base64UrlDecode` to decode bytes as UTF-8 via `TextDecoder`. Previously returned a Latin-1 binary string from `atob`, corrupting non-ASCII characters in JWT headers/payloads.
+- Fix `base64UrlToBytes` padding: base64 padding is based on `length % 4` (not `% 3`). The previous formula under-padded 2-byte-remainder inputs and corrupted inputs like RSA JWK moduli whose length `% 4 == 2` (common in keyless/JWKS flows). Added regression tests in `tests/unit/helpers.test.ts`.
+- Add `base64UrlEncode` helper and consolidate duplicated base64url encoders in `keyless.ts` and e2e tests.
+- Add `getEnvVar` helper for runtime-agnostic `process.env` access; simplifies `LOCAL_ANS_ACCOUNT_*` guards.
+- Consolidate `TextEncoder` instantiation to a shared `TEXT_ENCODER` constant across BCS, poseidon, signing, transaction builder, and HD key paths.
+- Fix "hex formatas a string" typo in `Serializable.toString()` JSDoc.
+- Regenerate `examples/typescript/pnpm-lock.yaml` to include the recently added `@noble/hashes` dependency so `pnpm install --frozen-lockfile` succeeds in CI.
+- Prevent `@types/node` type leak in emitted `.d.ts`: `TEXT_ENCODER` now has an explicit structural type (`{ encode(input: string): Uint8Array }`) so consumers without `@types/node` (browsers, Deno, React Native) don't hit `Cannot find name 'util'` when compiling against the SDK.
+- Fix `examples/typescript` build: split `EphemeralKeyPair` imports to `@aptos-labs/ts-sdk/keyless`, update `@noble/hashes/sha3` to `@noble/hashes/sha3.js` (noble v2 exports), add explicit `"types": ["node"]` to the example `tsconfig.json`, and use `??` (instead of `||`) when reading `process.env.APTOS_NETWORK` so it type-checks under strict null checks.
+- Encrypted transaction builds with multisig inner **script** payload: `payloadToExecutable` now maps `Script` to `TransactionExecutableScript`, consistent with the orderless `convertPayloadToInnerPayload` path.
+- Encrypted transaction crypto (`src/core/crypto/encryption/`): ESM `nodenext` import specifiers, `@noble/ciphers` 2.x with `.js` subpaths, and `@noble/curves` 2.x (`bls12_381.G1.hashToCurve`, `bls12_381.fields.Fr`, `ed25519.utils.randomSecretKey`). `fetchAndCacheEncryptionKey` returns `{ key, epoch }` with **`epoch` as `bigint`** for BCS `encryption_epoch`.
+- [Transactions] Address PR review feedback on struct/enum argument support:
+  - Fix double ULEB128 length prefix in `StructEnumArgumentParser.encodeVector()` for the `vector<u8>` string special case (`serializeBytes` already writes the length, so the explicit `serializeU32AsUleb128` was producing invalid BCS).
+  - Substitute generic type parameters in enum variant payload types so generic enums (e.g. `Some(T0)`) encode against the instantiated type instead of failing on `TypeTagGeneric`.
+  - Recognize `MoveStructArgument` / `MoveEnumArgument` in `isEncodedEntryFunctionArgument()` and accept them (along with `FixedBytes`) for custom `TypeTagStruct` parameters in `checkType()`, so pre-encoded struct/enum arguments work end-to-end.
+  - Mirror the synchronous `Option<T>` auto-wrapping behavior in the async `checkOrConvertArgumentWithABI()` path.
+  - Propagate `options` (and `moduleAbi`) through generic / vector / JSON-string recursive conversion calls in both sync and async paths so flags like `allowUnknownStructs` are not dropped.
+  - Improve error formatting in `StructEnumArgumentParser.fetchModule()` (avoid `[object Object]` from string-interpolating the caught error) and update the `aptosConfig`-required error to mention `MoveStructArgument` / `MoveEnumArgument` as the preferred pre-encoded types.
+  - Fix `ModuleAbiBundle.referencedStructModules` doc comment to match the actual `address::module` key format.
+  - Make `MoveStructArgument` / `MoveEnumArgument` a `import type` in `src/transactions/types.ts` to avoid pulling `structEnumParser` into the module graph for purely type-level uses.
+
+# 6.3.0 (2026-03-22)
+
+## Fixed
+
+- Fix `serializeAsBytes is not a function` error when wallet extensions (e.g. Petra) bundle an older SDK and serialize v6 transaction objects. Added `serializeEntryFunctionBytesCompat()` helper with runtime fallback to the pre-v6 `bcsToBytes()` + `serializeBytes()` pattern (DVR-143)
+- Fix simple function arguments for `Vector<Option<T>>` types: BCS-encoded values (e.g. `AccountAddress.ONE`) passed as elements of `vector<Option<address>>` are now automatically wrapped in `MoveOption` instead of throwing a type mismatch error
+- Resolve moderate security advisories in `confidential-assets` dev tooling by pinning transitive `file-type` and `yauzl` (via `@swc/cli` → `@xhmikosr/downloader`) to patched releases
+- Remove hardcoded `maxGasAmount: 2000` from e2e tests (Account Derivation APIs, WebAuthn submission) that caused `MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS` failures after the on-chain minimum gas increase
+- Add troubleshooting section to CONTRIBUTING.md for `ERR_WORKER_OUT_OF_MEMORY` build failures on low-RAM systems
+- Fix quickstart and example code that used deprecated `getAccountResource` with `CoinStore` to check balances; replaced with `getAccountAPTAmount` which works after the FungibleAsset migration
+- Update `simple_transfer` examples (TypeScript, TypeScript ESM, JavaScript) and `multi_agent_transfer` to use `getAccountAPTAmount` instead of `0x1::coin::balance` view function
+- Update `simple_transfer` and JavaScript examples to use `0x1::aptos_account::transfer` instead of `0x1::coin::transfer`
+
+## Added
+
+- Add e2e tests for external signer flow (build → getSigningMessage → sign externally → submit) to verify the flow works correctly with the latest SDK version
+- Add standalone `verifySignature` and `verifySignatureAsync` utility functions that verify a signature against any supported public key type (Ed25519, Secp256k1, MultiEd25519, MultiKey, Keyless) without requiring callers to know the key type in advance
+- Add MultiKey (K-of-N mixed key types) transfer example (`examples/typescript/multikey_transfer.ts`)
+- Add MultiEd25519 (K-of-N Ed25519) transfer example (`examples/typescript/multi_ed25519_transfer.ts`)
+
+# 6.2.0 (2026-03-22)
+
+## Fixed
+
+- Fix `@noble/curves` v2.x import in `external_signing` example (use `.js` extension for subpath exports)
+- Revert `@aptos-labs/confidential-asset-wasm-bindings` to `^0.0.2` due to incompatible API changes in v0.0.3
+
+## Changed
+
+- Remove usage of Buffer.from and replace with TextEncoder or js-base64 for greater compatibility
+- Update dependencies for examples, gas station, and confidential assets packages
+- Increase max gas amount default to 2000000
+- Migrate from ESLint + Prettier to Biome for linting and formatting, providing ~37x faster lint and ~42x faster format checks
+- Replace `pnpm lint` (ESLint), `pnpm fmt` (Prettier) with Biome equivalents; add `pnpm check` for combined lint+format
+- Remove all obsolete `eslint-disable` comments
+- Migrate test framework from Jest to Vitest for the main SDK and confidential-assets packages
+  - Replace `jest`/`ts-jest`/`@types/jest` with `vitest`/`@vitest/coverage-v8`
+  - Migrate all Jest-specific APIs (`jest.fn`, `jest.mock`, `jest.spyOn`, etc.) to Vitest equivalents (`vi.fn`, `vi.mock`, `vi.spyOn`, etc.)
+  - Convert globalSetup/globalTeardown from CJS to TypeScript
+  - Update test commands: `pnpm test` now uses `vitest run`
+- Remove Discord, License, and bundlephobia badges from README.md and restructure documentation section to better reference aptos.dev for comprehensive guides and tutorials
+
+# 6.1.0 (2026-02-25)
+
+## Added
+
+- [Transactions] Add async variants of argument conversion functions (`convertArgumentWithABI`, `checkOrConvertArgumentWithABI`, `parseArgAsync`) to support fetching module ABIs for struct/enum argument encoding. Original synchronous functions remain unchanged for backwards compatibility.
+
+- Add JWK caching for keyless authentication with 5-minute TTL to improve performance
+- Add `clearMemoizeCache()` utility function for clearing the memoization cache
+- Add Bun runtime detection with `isBun()` utility function
+- Add warning at `AptosConfig` construction time when running in Bun without explicitly disabling HTTP/2 (Bun does not fully support HTTP/2, which is enabled by default)
+- Add Bun runtime CI tests to verify SDK compatibility with Bun
+- Add Deno runtime CI tests to verify SDK compatibility with Deno
+- Add web environment CI tests using Vitest + jsdom to verify browser compatibility
+- [Transactions] Add support for public copy structs and enums as transaction arguments via `MoveStructArgument`, `MoveEnumArgument`, and `StructEnumArgumentParser` classes
+  - Automatic type inference from function ABI
+  - Nested structs/enums support (up to 7 levels deep)
+  - Generic type parameter substitution (T0, T1, etc.)
+  - Support for all Move primitive types (bool, u8-u256, i8-i256, address)
+  - Special framework types (String, Object<T>, Option<T>)
+  - Option<T> dual format support (vector and enum formats)
+  - Module ABI caching for performance
+  - Comprehensive validation and error messages
+
+## Changed
+
+- Merge CLAUDE.md and AGENTS.md content, keeping both files with comprehensive AI agent guidance
+- Add upgrade guide requirement for breaking changes to AI agent documentation
+- Exclude `examples/` from ESLint in CI to avoid build dependency issues
+
+## Fixed
+
+- Fix security vulnerabilities in examples/ dependencies:
+  - Replace unmaintained `npm-run-all` with `npm-run-all2` in all examples (fixes HIGH minimatch ReDoS)
+  - Update `superagent` to 10.3.0 in typescript example (fixes HIGH qs DoS vulnerabilities)
+  - Update `tsup` to 8.5.1 and override `sucrase` to >=3.35.1 in typescript-esm example (fixes HIGH glob command injection)
+  - Override `diff` to >=4.0.4 in typescript-esm example (fixes LOW jsdiff DoS vulnerability)
+- Fix gas estimation regression where simulations with `estimateMaxGasAmount: true` could fail with `MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS` when the server's gas estimate fell below the network minimum. The SDK now retries without estimation in this case, using the transaction's original max gas amount ([#827](https://github.com/aptos-labs/aptos-ts-sdk/issues/827))
+- Enforce a minimum max gas amount (`MIN_MAX_GAS_AMOUNT = 2000`) when building transactions to prevent user-provided values from falling below the network's minimum transaction gas units
+- Remove `cdn_asset_uris` field from `getCollectionData` GraphQL query to fix compatibility with local testnet indexer which does not have this field
+- Fix security vulnerabilities in transitive dependencies via pnpm overrides:
+  - HIGH: `glob` command injection (override `sucrase` to 3.35.1)
+  - MODERATE: `lodash` prototype pollution (override to 4.17.23)
+  - MODERATE: `js-yaml` prototype pollution (override to 4.1.1)
+  - LOW: `diff` DoS vulnerability (override to 4.0.4)
+- Fix keyless e2e tests by clearing memoize cache before JWK installation to ensure fresh lookups
+- Fix memoize test cache keys to meet minimum length requirement
+- Fix HD key test to use bracket notation for accessing private methods
+- Correct eslint-disable rule name from `@typescript-eslint/dot-notation` to `dot-notation`
+
+# 6.0.0 (2026-01-29)
+
+> **Upgrade Guide**: See [UPGRADE_GUIDE_6.0.0.md](./upgrade-guides/UPGRADE_GUIDE_6.0.0.md) for detailed migration instructions.
+
+## Breaking Changes
+
+- [ANS] Refactor ANS API return types: `GetANSNameResponse` array type replaced with structured return objects `{ names: AnsName[]; total: number }` for methods `getAccountNames()`, `getAccountDomains()`, `getAccountSubdomains()`, and `getDomainSubdomains()`
+- [ANS] Replace `isActiveANSName()` boolean function with `getANSExpirationStatus()` which returns `ExpirationStatus` enum (Active, InGracePeriod, Expired) for more granular expiration status handling
+- [ANS] `getName()` now returns `AnsName | undefined` instead of `GetANSNameResponse[0] | undefined`
+- [ANS] Transaction-generating functions (`setTargetAddress`, `clearTargetAddress`, `setPrimaryName`, `registerName`, `renewDomain`) now return `{ transaction: SimpleTransaction; data: InputEntryFunctionData }` instead of just `SimpleTransaction` to support wallet adapter compatibility
+- [ANS] Transaction-generating functions now accept `sender: AccountAddressInput` instead of `sender: Account`, allowing more flexible input types (Account, AccountAddress, or string)
+
+## Added
+
+- Add `is_enum` field to `MoveStruct`.
+- Make `functionArguments` optional in entry function transactions
+- [ANS] Add `clearTargetAddress()` method to public ANS API for clearing target address associations
+- [ANS] Add `ExpirationStatus` enum with values: `Active`, `InGracePeriod`, and `Expired` for better expiration status tracking
+- [ANS] Add grace period support for ANS name expiration, allowing names to remain claimable by current owner during grace period
+- [ANS] Add `AnsName` interface extending `RawANSName` with enhanced fields:
+  - `expiration_status`: The current expiration status of the name
+  - `isInRenewablePeriod`: Whether the name is in the renewable period (includes leading time and grace period)
+- [ANS] Add `SubdomainExpirationPolicy` enum exported from types (moved from internal implementation)
+- [ANS] Add `AnsTokenStandard` type for tracking token standard version (v1/v2)
+
+# 5.2.1 (2026-01-12)
+
+- Fix signed integer type parsing support (i8, i16, i32, i64, i128, i256) in transaction arguments
+
+# 5.2.0 (2025-12-10)
+
+- Add `http2` as an optional parameter in `ClientConfig`
+
+# 5.1.6 (2025-12-06)
+
+- Remove orphaned `Event` mixin that was left over after the Indexer API event queries were removed in 4.0.0
+
+# 5.1.5 (2025-11-21)
+
+- Fix `getMultiKeysForPublicKey` to only return accounts that have a non-null account public key.
+
+# 5.1.4 (2025-11-13)
+
+- Add serialization for signed integers
+
+# 5.1.3 (2025-11-13)
+
+- Add signed integers
+
+# 5.1.2 (2025-11-11)
+
+- Remove unused dependency `form-data`
+- Add `createUserDerivedObjectAddress` function for creating user-derived object addresses from source and derive_from addresses
+- Add support for passing extra CLI arguments to `LocalNode` via the `extraArgs` constructor parameter
+- Update the default keyless endpoints for shelbynet config
+- Add `netna` network to `apiEndpoints.ts` and ANS configuration
+
+# 5.1.1 (2025-9-23)
+
+- Add `shelbynet` to `apiEndpoints.ts`
+
+# 5.1.0 (2025-9-23)
+
+- Add `Secp256r1 (P-256)` cryptographic support for `WebAuthn authentication`, including `Secp256r1PublicKey`, `Secp256r1PrivateKey`, and `WebAuthnSignature` classes with full BCS serialization support
+- Add `getBalance` method for retrieving account balance by coin type or FA metadata address
+- [`Deprecation`] Deprecate `getAccountCoinAmount` method in favor of the new `getBalance` API
+
+# 5.0.0 (2025-09-15)
+
+- Update dev dependencies for the SDK
+- [`Fix`] Changes `.at(0)` to `[0]` syntax for output of a view function
+- [`Breaking`] Updates the `rotateAuthKey` to return a `SimpleTransaction`. Additionally, it no longer will accept the `toAuthKey` parameter and `toAccount` will only accept `Ed25519Account` and `MultiEd25519Account`. Thus any key rotations using `rotateAuthKey` will be verified and indexed, thus accessible via the `getAccountsForPublicKey` and `deriveOwnedAccountsFromSigner`functions.
+- Adds a `rotateAuthKeyUnverified` function to support key rotations for auth schemes using the single signer/multi-key account signing scheme. It will generate a `SimpleTransaction` calling the `rotate_authentication_key_from_public_key` entry function. Accounts using `rotateAuthKeyUnverified` are accessible via the `getAccountsForPublicKey` and `deriveOwnedAccountsFromSigner` with `includeUnverified` set to `true`
+- [`Breaking`] Update AA and DAA signing message and renaming for
+- [`Breaking`] Remove `minimumLedgerVersion` property from `getAccountCoinAmount` as it is not used anymore
+
+# 4.0.0 (2025-07-31)
+
+- Remove Indexer API event queries. To migrate your events queries, follow the details in https://aptoslabs.notion.site/Indexer-Feature-Updates-Events-v1-table-deprecation-and-end-of-support-July-1st-1ec8b846eb7280ffa042c0d3d7f45633?source=copy_link.
+
+# 3.1.3 (2025-07-08)
+
+- Add a warning to Indexer API events queries that the endpoint will be deprecated by the end of July. To migrate your events queries, follow the details in https://aptoslabs.notion.site/Indexer-Feature-Updates-Events-v1-table-deprecation-and-end-of-support-July-1st-1ec8b846eb7280ffa042c0d3d7f45633?source=copy_link.
+
+# 3.1.2 (2025-07-01)
+
+- Support `Uint8Array` for parsing `AccountAddress` with remote ABI
+
+# 3.1.1 (2025-07-01)
+
+- Skip `validateFeePayerDataOnSubmission` if a custom txn submitter is provided.
+
+# 3.1.0 (2025-06-30)
+
+- Add account derivation APIs, `getAccountsForPublicKey` and `deriveOwnedAccountsFromSigner` which handle multi-key accounts and key rotations
+- Update the deprecated function deriveAccountFromPrivateKey to use the new account derivation API
+
+# 3.0.0 (2025-06-26)
+
+- Make the default max gas amount and exipry time from now values for transaction generation configurable.
+- Adds restriction on construction of a `MultiKey`s with more than 3 Keyless public keys when signature threshold is more than 3 as well. The limit on the number of keyless signatures is 3 so to prevent sending funds to accounts that are not accessible we add this safeguard.
+- Adds support for `OrderlessTransactions` which allow for submitting transactions with a nonce rather than a sequence number.
+- [`Breaking`] Change possible inputs to the `InputGenerateTransactionOptions` to include orderless
+- Adds support for setting a transaction submission plugin to override the default transaction submission behavior, e.g. to use a gas station instead.
+
+# 2.0.1 (2025-05-21)
+
+- Adds `deserializePublicKey` and `deserializeSignature` which takes in `HexInput` and will try all possible ways to deserialize so callers no longer need to derive a proper type before deserializing.
+
+# 2.0.0 (2025-05-06)
+
+- Remove `scriptComposer` api due to increase in the sdk bundle size, If you wish to continue using it, please use version 1.39.0: [https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.39.0](https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/1.39.0)
+- [`Breaking`] Ed25519 and Secp256k1 private keys will now default to the AIP-80 format when calling `toString()`.
+- [`Breaking`] Custom networks now need to set the `network` field in the client config to the correct network type. This is needed to reduce network calls.
+- Add info message if using `CUSTOM` network
+- Update `@aptos-labs/aptos-client` to version `2.0.0`
+
+# 1.39.0 (2025-05-05)
+
+- Add a `transferFungibleAssetBetweenStores` function to transfer Fungible Assets between any (primary or secondary) fungible stores.
+- Include an example file `transfer_between_fungible_stores.ts` which uses a new example Move module `secondary_store.move`.
+- Define the return type for `toUint8Array()` in the `SingleKey.ts` file to not break `tsc` build
+- Fix `deriveAccountFromPrivateKey` to use the "legacy" derivation path for Ed25519 keys first.
+- Deprecate `deriveAccountFromPrivateKey` as more inspection is needed from the user to determine the correct address.
+- Fix internal and example tests in regards to the change to zero state accounts
+
+# 1.38.0 (2025-04-02)
+
+- Adds and default implementation of `verifySignatureAsync` to `PublicKey`.
+- Implement derivable abstracted account
+- Fix: Reverts experimental binary view functions, which caused `Buffer is undefined` errors in browsers.
+
+# 1.37.1 (2025-03-24)
+
+- Upgrade min versions of @noble/curves and @noble/hashes to 1.6.0 and 1.5.0 respectively as they are required to use keyless signature verification.
+
+# 1.37.0 (2025-03-24)
+
+- Upgrade tsup to v8.4.0
+- Export the `crypto/abstraction.ts` file that includes the `AbstractSignature` and `AbstractPublicKey` classes.
+- Adds `verifySignatureAsync` to support signature verification that requires fetching chain state.
+- Adds support for keyless signature verification.
+- Implements signature verification for MultiKey.
+- Override @babel/runtime and @babel/helpers to use an updated version
+- Fix pagination of AccountResources and AccountModules
+- Add API for `getResourcesPage` and `getModulesPage` to support manual pagination
+- Added `pairedFaMetadataAddress` function to calculate the paired fungible asset metadata address for a given coin type, with enhanced support for various address formats (short form, long form, with leading zeros)
+
+# 1.36.0 (2025-03-14)
+
+- Upgrade rotateAuthKey API to allow for unverified auth key rotations.
+- Upgrade rotateAuthKey API to support Account types other than Ed25519.
+- Update simulation for MultiKeyAccount to use signatures of the same type as the corresponding public key.
+- Add `truncateAddress` helper function to truncate an address at the middle with an ellipsis.
+- Fix scriptComposer addBatchedCalls more typeArguments error
+- Add support for skipping struct type tag validation.
+- Add support for known enum structs: DelegationKey and RateLimiter.
+- Deprecated `fetchMoveFunctionAbi` and `convertCallArgument`
+- Bump `aptos-client` to 1.1.0
+
+# 1.35.0 (2025-02-11)
+
+- Add `MultiEd25519Account` to support the legacy MultiEd25519 authentication scheme.
+
+# 1.34.0 (2025-02-06)
+
+- Add new `scriptComposer` api in `transactionSubmission` api to allow SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.
+- Add support for vectors as string as a valid argument
+- Add `AbstractedAccount` class to support account abstraction with custom signers.
+- Add `aptos.abstraction` namespace to support account abstraction APIs. Notable functions are: `isAccountAbstractionEnabled`, `enableAccountAbstractionTransaction`, and `disableAccountAbstractionTransaction`.
+
+# 1.33.2 (2025-01-22)
+
+- [`Fix`] Fixes pagination for GetAccountModules and GetAccountResources. Also, adds more appropriate documentation on offset.
+- node now no longer supports older than v20
+- overriding cross spawn for patch
+- Add `AccountUtils` class to help with account serialization and deserialization
+- Add `SingleKeySigner` interface which adds the ability to get the `AnyPublicKey` from a `SingleKeyAccount`
+- We now throw an error earlier when you try to use the faucet with testnet or mainnet, rather than letting the call happen and then fail later.
+- Fix the keyless end-to-end test to properly wait for the account to be funded
+
+# 1.33.1 (2024-11-28)
+
+- Add `gasProfile` function to `Move` class to allow for gas profiling of Aptos Move functions
+- `PrivateKey.formatPrivateKey` now supports formatting AIP-80 strings
+- Removed strictness warnings for bytes AIP-80 private key parsing formatting.
+- Add accidentally deleted `deserializeOptionStr` and mark deprecated to unbreak Wallet Adapter
+
+# 1.33.0 (2024-11-13)
+
+- Allow optional provision of public keys in transaction simulation
+- Update the multisig v2 example to demonstrate a new way to pre-check a multisig payload before it is created on-chain
+
+# 1.32.1 (2024-11-11)
+
+- Add support for Firebase issuers in the `updateFederatedKeylessJwkSetTransaction` function
+
+# 1.32.0 (2024-11-08)
+
+- [`Breaking`] Updated `AccountAddress.fromString` and `AccountAddress.from` to only accept SHORT strings that are 60-64 characters long by default (with the exception of special addresses). This can be adjusted using `maxMissingChars` which is set to `4` by default. If you would like to keep the previous behavior, set `maxMissingChars` to `63` for relaxed parsing.
+- Add support for AIP-80 compliant private key imports and exports through `toAIP80String`
+- Add `PrivateKey` helpers for AIP-80: `PrivateKey.parseHexInput`, `PrivateKey.formatPrivateKey`, and `PrivateKey.AIP80_PREFIXES`.
+- Adds explicit error handling Keyless accounts using `KeylessError`. Handles JWK rotations and Verifying Key rotations.
+- Includes the address in the `AbstractKeylessAccount` serialization to prevent information loss for key rotated accounts.
+- [`Breaking`] Deprecate `serializeOptionStr` and `deserializeOptionStr` in favor of `serializeOption` and `deserializeOption`.
+- [`Breaking`] Renames `KeylessConfiguration.verficationKey` to `verificationKey`
+- Add a new `scriptComposer` api in transactionSubmission api to allower SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.
+
+# 1.31.0 (2024-10-24)
+
+- Bump `@aptos-labs/aptos-cli` to `1.0.2`
+- Fix the `Move` CLI command to correctly handle the success/error outputs
+
+# 1.30.0 (2024-10-21)
+
+- Add the `isPrimitive` function to `TypeTag`.
+- Add `showStdout` optional property to `Move` and `LocalNode` classes to control the output of the CLI commands
+- Add support for MultiKey's in transaction simulations
+- Adds default implementation for `toString` and `toStringWithoutPrefix` for `Serializable`
+- Bump `@aptos-labs/aptos-cli` to `1.0.1`
+
+# 1.29.1 (2024-10-09)
+
+- Fix the `FederatedKeylessAccount` constructor to derive the correct address.
+
+# 1.29.0 (2024-10-04)
+
+- Remove usage of Buffer.from and replace with TextEncoder for greater compatibility
+- Switch `getAccountCoinAmount` to use a `view` function for more up to date data
+- Add support for federated keyless accounts as defined in AIP-96
+- Add a `signAndSubmitAsFeePayer` function to the API to allow for submission by the fee payer.
+- Add an optional `feePayerAuthenticator` and `feePayer` parameter to `signAndSubmitTransaction` to support signing and submitting in one line.
+
+# 1.28.0 (2024-09-19)
+
+- Support `Serialized Type` to Script txn. Now can use vector<String> for example.
+- Add optional address parameter to MultiKeyAccount constructor.
+- Populate `coinType` for `getAccountCoinAmount` if only `faMetadataAddress` is provided.
+- [`Fix`] `getModuleEventsByEventType` will also account for EventHandle events.
+- [`Hot Fix`] change regex to find object address when using `createObjectAndPublishPackage` move function
+
+# 1.27.1 (2024-08-23)
+
+- [Security Fix] Bump `@aptos-labs/aptos-client` to version 0.1.1
+
+# 1.27.0 (2024-08-15)
+
+- Upgrade `@aptos-labs/aptos-cli` version to `0.2.0`
+- Update Indexer GraphQL schema
+- Add `convertAmountFromHumanReadableToOnChain` and `convertAmountFromOnChainToHumanReadable` helper methods
+- Export `helpers.ts` file
+- Add `remaining()` function to deserializer, to tell remaining byte size
+- Add BCS spec for testing purposes with Cucumber
+
+# 1.26.0 (2024-07-18)
+
+- Support `extraArguments` optional property on the cli Move commands
+- Update `fundWallet` check to be more explicit that `undefined` in `waitForIndexer` defaults to waiting.
+- [`Fix`] Fixes transactions simulations using an `AnyPublicKey` with a `KeylessPublicKey`
+
+# 1.25.0 (2024-07-17)
+
+- Change the `stop()` function on `LocalNode` to return a `Promise` so we can wait for the processes to be killed
+- Introduce `buildPublishPayload` CLI function to build a publication transaction payload and store it in a JSON output file
+
+# 1.24.0 (2024-07-12)
+
+- Make `fundAccount` to wait for the `fungible_asset_processor` indexer processor
+- Removed `instanceof` where input might come from other bundle
+
+# 1.23.0 (2024-07-09)
+
+- Adds a base implementation of verify signature for Keyless Accounts
+- [`Fix`] Support migrated coins in coin balance lookup indexer queries
+- Add support for BlockEpilogueTransaction
+- [`Fix`] Fixes a bug with ANS not returning subdomains with an expiration policy of 1 when the subdomain is expired but the parent domain is not.
+- Marked AptosApiError.constructor function as @internal and changed its signature
+- AptosApiError.message contains a more descriptive and more detailed error message to ease troubleshooting
+
+# 1.22.2 (2024-06-26)
+
+- Release an updated build to npm due to issues with latest release
+
+# 1.22.1 (2024-06-24)
+
+- Fix unit test of ts sdk.
+
+# 1.22.0 (2024-06-24)
+
+- Bump Aptos CLI version that will auto upgrade Aptos CLI to 0.1.9.
+
+# 1.21.0 (2024-06-21)
+
+- Export `core/account` folder and the functions: `createObjectAddress` `createResourceAddress` `createTokenAddress`
+- [`Fix`] Respect pagination arguments on `Events` queries
+- Add `createObjectAndPublishPackage`, `upgradeObjectPackage` and `runScript` to cli in ts.
+
+# 1.20.0 (2024-06-18)
+
+- Introduce `AptosObject` API for all Object queries
+- Add `getObjectDataByObjectAddress` API function to fetch an object data by the object address
+- [`Breaking`] `GetAccountOwnedObjectsResponse` type renamed to `GetObjectDataQueryResponse`
+- Add `getCollectionDataByCreatorAddressAndCollectionName` and `getCollectionDataByCreatorAddress` API queries
+- Add `PaginationArgs` argument to `getCollectionDataByCollectionId` API query
+- Mark `getCollectionData` API query as `@deprecated`
+- [`Fix`] `getAccountCollectionsWithOwnedTokens` no longer uses amount query
+
+# 1.19.0 (2024-06-11)
+
+- Add `getFungibleAssetMetadataByCreatorAddress` API function to fetch fungible asset metadata by the creator address
+- [`Fix`] Allow for empty array in MoveVector.U8
+- [`Fix`] Correctly type MoveOption when empty for some cases
+- [`Fix`] Add better error handling for empty string "" when used for a u8-u32 argument input type
+- [`Fix`] Always fetch latest git dependency when running move cli.
+
+# 1.18.1 (2024-06-05)
+
+- [`Fix`] Keyless transaction simulation now reports gas correctly
+- [`Fix`] Fix cli move commands when multiple `namedAddresses` are given
+
+# 1.18.0 (2024-06-03)
+
+- Adds Keyless Account support
+- Add `supply_v2` and `maximum_v2` scheme fields to `getFungibleAssetMetadata` query
+
+# 1.17.0 (2024-05-30)
+
+- TypeTag parsing now support references, uppercase types, and more complete error handling
+- Allow simple string inputs as type arguments in move scripts
+- [`Fix`] Block APIs will now pull all associated transactions in the block, not just the first `100`
+
+# 1.16.0 (2024-05-22)
+
+- Upgrade `@aptos-labs/aptos-cli` package to version `0.1.8`
+- [`Fix`] CLI scripts to be OS compatible with Mac, Linux and Windows
+- [`Fix`] Support generating transactions with loose types for SDK V1 backward compatibility
+
+# 1.15.0 (2024-05-21)
+
+- [`Breaking`] Removes private key from the Account class to support MultiKey accounts.
+- [`Breaking`] Removes the `sign` function from transactionBuilder.ts. Use `Account.signTransactionWithAuthenticator` instead.
+- Refactors the core/accounts folder to the top level
+- Separates the signing message functionality out of the transactionSubmission.ts file
+- Adds an Account implementation for MultiKey accounts
+- Upgrade `@aptos-labs/aptos-cli` package to version `0.1.7`
+- Introduce `table` function APIs
+- Add `getTableItemsData` and `getTableItemsMetadata` API queries
+- Add `decimal` prop back to `current_token_ownerships_v2.current_token_data` response
+
+# 1.14.0 (2024-05-09)
+
+- [`Fix`] fixed `transferFungibleAsset` function
+- Run all examples in CI
+- Introduce cli `Move` class that holds `move` related commands
+- Add common cli commands - `move.init()`, `move.compile()`, `move.test()`, `move.publish()`
+- [`Fix`] Fix `generateSigningMessage` to check type explicitly instead of using `instanceOf`
+- Remove `randomnet` from the known Network enum
+
+# 1.13.3 (2024-04-30)
+
+- Export `MultiAgentTransaction` class
+
+# 1.13.2 (2024-04-29)
+
+- [`Fix`] Fix `generateSignedTransaction` so that it works with object instances from different bundles
+- [`Fix`] Preventing undefined options from overriding fallbacks in `generateRawTransaction`
+- Use `@aptos-labs/aptos-cli` as a regular dependency
+
+# 1.13.1 (2024-04-23)
+
+- [`Fix`] Fixes Local ABI to use it locally rather than make an external network call
+- Performance improvements to transaction build times
+
+# 1.13.0 (2024-04-19)
+
+- [`Breaking`] Change ed25519 library to be `@noble/curves/ed25519`
+- Fix ed25519 signature verification to ensure for canonical signatures to prevent malleability
+- Include `x-aptos-typescript-sdk-origin-method` header on server request
+- Export `LocalNode` module using the module relative path
+- Change the `waitForTransaction` SDK API to try long poll
+
+# 1.12.2 (2024-04-10)
+
+- Revert export `LocalNode` module
+
+# 1.12.1 (2024-04-09)
+
+- Export `LocalNode` module
+
+# 1.12.0 (2024-04-08)
+
+- [`Breaking`] Change `getOwnerAddress` and `getTargetAddress` return type to `AccountAddress`
+- Add `message` input type verification on `sign` and `verifySignature` functions and convert it into a correct type if needed
+- [`Breaking`] Change `fromString` to `fromHexString` on `Hex` class
+- Introduce Serializable `SimpleTransaction` and `MultiAgentTransaction` modules
+- [`Breaking`] Change any generate transaction function to return `SimpleTransaction` or `MultiAgentTransaction` instance
+- Adds `getUserTransactionHash` which can generate a transaction hash after signing, but before submission
+- Add function to create resource address locally
+
+# 1.11.0 (2024-03-26)
+
+- Use indexer API via API Gateway
+- Add support to allow setting per-backend (fullnode, indexer, faucet) configuration
+- [`Breaking`] `AUTH_TOKEN` client config moved to be under `faucetConfig` property
+- Handle `Unauthorized` server error
+- Add function to create object address locally
+- Add function to create token object address locally
+- Add signers to entry function ABI for future signature count checking
+- [`Breaking`] Add type-safe view functions with ABI support
+- [`Fix`] ANS `getName` and `getDomainSubdomains` now appropriately ignores invalid and expired names
+
+# 1.10.0 (2024-03-11)
+
+- [`Deprecate`] IIFE build support
+- Use node API via API Gateway
+- [`Fix`] Filter `getCurrentDigitalAssetOwnership` where amount > 0
+
+# 1.9.1 (2024-02-28)
+
+- [`Fix`] Remove decimals field from `CurrentTokenOwnershipFields` gql fragment
+
+# 1.9.0 (2024-02-27)
+
+- Add `getCollectionByCollectionId` API
+- Changed `Account` into an abstract class, and defined strongly-typed specializations.
+
+# 1.8.0 (2024-02-24)
+
+- Add `decimals` field to token data queries
+- Add support for `validator_transaction` type introduced in 1.10
+- Add `getModuleEventsByEventType` API
+
+# 1.7.0 (2024-02-13)
+
+- Add ability to provide ABI to skip ABI fetch, and get roughly 50% performance improvement
+
+# 1.6.0 (2024-02-08)
+
+- Add optional `options` param to `getAccountEventsByCreationNumber` query for paginations and order by
+- Add more meaningful API error messages
+- Support automated account creation for sponsored transactions
+- Add randomnet to known networks
+
+# 1.5.1 (2024-01-24)
+
+- Move eventemitter3 to runtime dependency
+
+# 1.5.0 (2024-01-24)
+
+- Remove request URLs forward slash append
+- Add events to `TransactionWorker` module that dapps can listen to
+- Introduce `aptos.transaction.batch` namespace to handle batch transactions
+- Support `aptos.transaction.batch.forSingleAccount()` to send batch transactions for a single account
+- Label `aptos.batchTransactionsForSingleAccount()` as `deprecated` to prefer using `aptos.transaction.batch.forSingleAccount()`
+
+# 1.4.0 (2024-01-08)
+
+- Omit `"build" | "simulate" | "submit"` from `aptos` namespace
+- [`Breaking`] Change `sender` property type to `AccountAddressInput` in `transferCoinTransaction()`
+
+# 1.3.0 (2024-01-03)
+
+- [`Breaking`] Capitalize `TransactionPayloadMultiSig` type
+- Add support to Array value in digital asset property map
+- [`Breaking`] Change `maxGasAmount, gasUnitPrice and expireTimestamp` properties in `InputGenerateTransactionOptions` type to `number` type
+- Add `@aptos-labs/aptos-cli` npm package as a dev dependency
+- Implement a `LocalNode` module to run a local testnet with in the SDK environment
+- Use `LocalNode` module to spin up a local testnet pre running SDK tests
+- Update BigInt constants to be hardcoded rather than use Math.pow
+
+# 1.2.0 (2023-12-14)
+
+- Fixed examples to use wait on indexer rather than sleep
+- Fixed `waitOnIndexer` to wait on correct tables / remove duplicate or unnecessary waits on indexer
+- [`Breaking`] Changed output of `getIndexerLastSuccessVersion` to `bigint` from `number`
+- Update dependencies in the Typescript SDK to keep up with latest changes
+- Updated @aptos-labs/aptos-client dependency
+- [`Breaking`] Hex string inputs to `vector<u8>` entry function arguments will now be interpreted as a string instead of hex
+- String inputs to `vector<u8>` entry function arguments will now be interpreted as UTF-8 bytes
+- ArrayBuffer is now a possible input for `vector<u8>` entry function arguments
+
+## 1.1.0 (2023-12-11)
+
+- Add release automation, so version updates can be made with simply `pnpm update-version`
+- Rename custom request header to `aptos-typescript-sdk`
+- [`Breaking`] Rename `token` to `digitalAsset` and add digital asset built in transaction generation functions
+- [`Breaking`] change transaction submission builder flow namespace to be under a `transaction` namespace
+- [`Breaking`] Rename `SingleSignerTransaction` type to `SimpleTransaction`
+
+## 1.0.0 (2023-12-04)
+
+Release Stable version `1.0.0`
+
+## 0.0.8 (2023-11-29)
+
+- Respect `API_KEY` option in `clientConfig` when making indexer and/or fullnode queries
+- [`Added`] Added `waitForIndexer` function to wait for indexer to sync up with full node. All indexer query functions now accepts a new optional param `minimumLedgerVersion` to wait for indexer to sync up with the target processor.
+- Add `getSigningMessage` to allow users to sign transactions with external signers and other use cases
+- [`Breaking`] Changes ANS date usage to consistently use epoch timestamps represented in milliseconds.
+  - `getExpiration`: Previously returned seconds, now returns milliseconds
+  - `registerName`: Argument `expiration.expirationDate` was previously a `Date` object, now it is an epoch timestamp represented in milliseconds
+  - All query functions return epoch milliseconds instead of ISO date strings.
+- [`Breaking`] Flatten options for all functions to be a single level
+- Cleanup internal usage of casting
+- Export `AnyPublicKey` and `AnySignature` types
+- Add `transferFungibleAsset` function to easily generate a transaction to transfer a fungible asset from sender's primary store to recipient's primary store
+- [`Breaking`] `AccountAddress.fromRelaxed` is now `AccountAddress.from`, and a new `AccountAddress.fromStrict` has the old functionality.
+- Implement transaction management worker layer to manage transaction submission for a single account with a high throughput
+- [`Fixed`] Allow for Uint8Array to be passed as a `vector<u8>` argument on entry functions
+- [`Fixed`] Allow for raw vectors to be passed as arguments with encoded types within them for Remote ABI on entry functions e.g. [AccountAddress]
+
+## 0.0.7 (2023-11-16)
+
+- Adds additional ANS APIs
+  - Transactions
+    - setPrimaryName
+    - setTargetAddress
+    - registerName
+    - renew_domain
+  - Queries
+    - getPrimaryName
+    - getOwnerAddress
+    - getExpiration
+    - getTargetAddress
+    - getName
+    - getAccountNames
+    - getAccountDomains
+    - getAccountSubdomains
+    - getDomainSubdomains
+
+- [`Breaking`] Refactor transaction builder flow
+  - Each builder step is under a dedicated namespace - `aptos.build.transaction`, `aptos.sign.transaction`, `aptos.submit.transaction`
+  - Supports and implements 2 types of transactions - single signer as `aptos.*.transaction` and multi agent as `aptos.*.multiAgentTransaction`
+  - A boolean `withFeePayer` argument can be passed to any transaction `build` function to make it a Sponsor transaction
+  - Different functions `aptos.sign.transaction` to sign a transaction as a single signer and `aptos.sign.transactionAsFeePayer`to sign a transaction as a sponsor
+  - Return `InputSingleSignerTransaction` type changed to `SingleSignerTransaction` type
+  - Return `InputMultiAgentTransaction` type changed to `MultiAgentTransaction` type
+
+## 0.0.6 (2023-11-14)
+
+- [`Breaking`] Changed `ViewRequestData` to `InputViewRequestData`
+- Respect max gas amount value when generating a transaction
+- Added a clearer error message for when the typeTagParser encounters a possible generic TypeTag but generics are disallowed
+- Update all dependencies to the latest version
+- Added ability for providing own output types for view functions
+
+## 0.0.5 (2023-11-09)
+
+- [`Breaking`] Update and changed the flow of Fee payer transaction to be "Optional Fee Payer". A fee payer is now required to sign the transaction `asFeePayer`
+- `getAccountEventsByEventType` query uses new `indexed_type` indexed field to avoid rate limit
+- [`Breaking`] Rename `TOKEN` to `AUTH_TOKEN` for better visibility
+- Set the `AUTH_TOKEN` only for faucet queries
+
+## 0.0.4 (2023-11-03)
+
+- [`Breaking`] Changed all instances of `AccountAddress.fromHexInput` to `AccountAddress.from` to accept AccountAddress as well
+- [`Fixed`] Fixed a bug where an entry function with only signers would fail due to type tag parsing
+- [`Fixed`] REST API errors now properly give error messages in JSON rather than just `BadRequest`
+- All address inputs now also accept AccountAddress
+- Support derive account from private key `Account.fromPrivateKey()`
+- Derive account from derivation path secp256k1 support
+- Default Account generation to Legacy Ed25519
+- Remove unnecessary pre-emptive serialization of the field `rawTransaction: Uint8Array` by replacing it with the unserialized `rawTransaction: RawTransaction` class
+- ANS (Aptos Names Service) SDK initial support for creation and lookup of names
+- Initial Auth key rotation support
+
+## 0.0.3 (2023-10-31)
+
+- Remove MoveObject in favor of AccountAddress, use AccountAddress for Object inputs
+- Use revamped parseTypeTag function instead of StructTag.fromString()
+- Allow use of generics in parseTypeTag
+- Rename publishModuleTransaction to publishPackageTransaction and fix functionality accordingly
+- Added toString() for type tags, and reference placeholder type
+- Add ability to generate transactions with known ABI and remote ABI
+- Fix verify signature logic
+- Implement `MultiKey` support for multi authentication key
+
+## 0.0.2 (2023-10-25)
+
+- Build package before publishing\
+- Add `AccountAddress.ZERO` to support the frequent future use of an optional fee payer address
+
+## 0.0.1 (2023-10-25)
+
+- [`Breaking`] Changed all instances of `arguments` to `functionArguments` to avoid the reserved keyword in `strict` mode.
+- Support publish move module API function
+- Fix client config not being added to the request
+- Support to config a custom client instance
+- Changed all Regex based inputs requiring a `0x` to be optional. This is to allow for easier copy/pasting of addresses and keys.
+- Change GetAccountResource to take in a generic output type that matches the struct
+- Add support for Single Sender
+
+## 0.0.0 (2023-10-18)
+
+- Fetch data from chain
+- Fund account with APT coins
+- Proper formatting and parsing of account addresses as defined by [AIP-40](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-40.md)
+- Submit transactions
+  - Single signer
+  - Fee payer
+  - Multi agent
+  - With payloads
+    - Entry function
+    - Script
+    - Multisig
+- Simulate a transaction
+  - Single signer
+  - Fee payer
+  - Multi agent
+- Built in transaction generation
+  - Transfer coins
+  - Mint collection
+  - Mint nft
+- Keys management
+  - ED25519
+  - Secp256k1 - to go in next devnet release
+  - Generate new keys
+  - Derive from existing private key
+  - Derive from mnemonics path
+  - Derive from private key and address (for account that has it's key rotated)
+  - Sign
+  - Verify signature
+- BCS support
+  - Move sub-classes to easily serialize and deserialize Move types
+  - Unified Argument class for entry function and script payload argument types
+  - Full nested serialization/deserialization support
+- Examples (both typescript and javascript)
+  - Simple transfer transaction example
+  - Transfer transaction example using built in transferCoinTransaction
+  - Fee payer (aka sponsored) transaction example
+  - Multi agent transaction example
+  - Mint collection and nft
+- Local custom types (instead of generating types)
+- In depths type checking on compile time
+  - Typescript can infer the return type based on the argument being passed into `generateTransaction` function (singlesigner,multiagent,feepayer)
+  - Support for orderBy keys type checking for indexer queries

@@ -16,11 +16,11 @@ This SDK must work in **all** of the following runtimes:
 - **Bun**
 - **Deno**
 
-**Do not use Node-only APIs in `src/`.** This means:
+**Do not use Node-only APIs in `packages/ts-sdk/src/`.** This means:
 - No `Buffer` — use `Uint8Array`, `atob`/`btoa`, or `TextEncoder`/`TextDecoder`
 - No `node:` protocol imports (e.g., `node:events`, `node:crypto`, `node:fs`)
 - No `process.env` without guards
-- `src/cli/` is the only exception (Node-only by design)
+- `packages/ts-sdk/src/cli/` is the only exception (Node-only by design)
 
 Runtime-specific tests exist in `examples/web-test/` (Playwright), `examples/bun-test/`, and `examples/deno-test/`, with corresponding CI workflows. React Native is supported but not CI-tested — browser tests cover the same API surface (requires RN 0.74+ for Hermes `TextEncoder`/`crypto.getRandomValues` support).
 
@@ -28,13 +28,13 @@ Runtime-specific tests exist in `examples/web-test/` (Playwright), `examples/bun
 
 ```bash
 pnpm install              # Install dependencies (CI uses --frozen-lockfile)
-pnpm build                # Build ESM output to dist/
+pnpm build                # Build workspace packages
 pnpm fmt                  # Format code with Biome
 pnpm _fmt                 # Check formatting without writing (what CI runs)
 pnpm lint                 # Run Biome linter
 pnpm check                # Run Biome check (lint + format)
 pnpm test                 # Run all tests (unit + e2e)
-vitest run <file>         # Run a specific test file (e.g., vitest run keyless.test.ts)
+pnpm --filter @aptos-labs/ts-sdk exec vitest run <file> # Run a specific SDK test file
 pnpm doc                  # Generate TypeDoc documentation
 pnpm check-version        # Verify version consistency across files
 pnpm update-version       # Bump version everywhere + regenerate docs
@@ -48,8 +48,8 @@ Before every commit:
 1. **Check code**: Run `pnpm check` to run Biome (lint + format)
 2. **Format code**: Run `pnpm fmt` to auto-format with Biome
 3. **Update the appropriate CHANGELOG**: Add a descriptive entry under the appropriate section (Added, Changed, Fixed, etc.).
-   - Changes to `@aptos-labs/ts-sdk` (everything under `src/`, `tests/`, root configs, examples, docs tooling, etc.) → root [`CHANGELOG.md`](./CHANGELOG.md).
-   - Changes to `@aptos-labs/confidential-asset` (everything under `confidential-asset/`) → [`confidential-asset/CHANGELOG.md`](./confidential-asset/CHANGELOG.md).
+   - Changes to `@aptos-labs/ts-sdk` (everything under `packages/ts-sdk/`, root configs, examples, docs tooling, etc.) → [`packages/ts-sdk/CHANGELOG.md`](./packages/ts-sdk/CHANGELOG.md).
+   - Changes to `@aptos-labs/confidential-asset` (everything under `packages/confidential-asset/`) → [`packages/confidential-asset/CHANGELOG.md`](./packages/confidential-asset/CHANGELOG.md).
    - If a single commit touches both packages, add an entry to **each** changelog rather than mixing concerns.
 4. **Write descriptive commit messages**: Commits should clearly explain what changed and why. For confidential-asset–only commits, prefix the subject with `[confidential-asset]` to match existing history.
 
@@ -57,14 +57,14 @@ Before every commit:
 
 - **Docker required**: Tests start a local Aptos node via `aptos node run-localnet` which requires Docker
 - **Port 8070**: Local testnet uses this port; check for conflicts if tests fail
-- Vitest globalSetup (`tests/preTest.ts`) starts the node, its teardown stops it
+- Vitest globalSetup (`packages/ts-sdk/tests/preTest.ts`) starts the node, its teardown stops it
 - If Docker mount errors occur, try setting `TMPDIR` to a normal filesystem path
 
 ## Architecture
 
 ### Main Entry Point
 
-The `Aptos` class (`src/api/aptos.ts`) is the primary user-facing interface. It aggregates domain-specific functionality through composition:
+The `Aptos` class (`packages/ts-sdk/src/api/aptos.ts`) is the primary user-facing interface. It aggregates domain-specific functionality through composition:
 
 ```typescript
 const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
@@ -75,14 +75,14 @@ const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
 
 | Directory | Purpose |
 |-----------|---------|
-| `src/api/` | High-level API surface - account, transaction, coin, digital assets, fungible assets, keyless, staking, ANS |
-| `src/account/` | Account implementations - Ed25519, Secp256k1, MultiKey, Keyless, Abstracted accounts |
-| `src/core/` | Cryptographic primitives - key types, signatures, authentication keys |
-| `src/transactions/` | Transaction building, authenticators, type tags |
-| `src/bcs/` | Binary Canonical Serialization (serializer/deserializer) |
-| `src/types/` | TypeScript types and generated GraphQL indexer types |
-| `src/client/` | HTTP client implementations |
-| `src/internal/` | Internal query implementations (queries directory is generated) |
+| `packages/ts-sdk/src/api/` | High-level API surface - account, transaction, coin, digital assets, fungible assets, keyless, staking, ANS |
+| `packages/ts-sdk/src/account/` | Account implementations - Ed25519, Secp256k1, MultiKey, Keyless, Abstracted accounts |
+| `packages/ts-sdk/src/core/` | Cryptographic primitives - key types, signatures, authentication keys |
+| `packages/ts-sdk/src/transactions/` | Transaction building, authenticators, type tags |
+| `packages/ts-sdk/src/bcs/` | Binary Canonical Serialization (serializer/deserializer) |
+| `packages/ts-sdk/src/types/` | TypeScript types and generated GraphQL indexer types |
+| `packages/ts-sdk/src/client/` | HTTP client implementations |
+| `packages/ts-sdk/src/internal/` | Internal query implementations (queries directory is generated) |
 
 ### Key Patterns
 
@@ -92,19 +92,19 @@ const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
 
 ## Generated Code (Do Not Hand-Edit)
 
-- `src/types/generated/` - GraphQL types from `pnpm indexer-codegen`
-- `src/internal/queries/` - Generated query implementations
+- `packages/ts-sdk/src/types/generated/` - GraphQL types from `pnpm indexer-codegen`
+- `packages/ts-sdk/src/internal/queries/` - Generated query implementations
 - `docs/` - Versioned TypeDoc output from `pnpm doc`
 
 ## Related Packages
 
-- `examples/` - TypeScript/JS examples using linked SDK (`link:../..`)
-- `confidential-asset/` - Separate confidential asset SDK package (with its own [`CHANGELOG.md`](./confidential-asset/CHANGELOG.md))
+- `examples/` - Standalone examples using `packages/ts-sdk/`
+- `packages/confidential-asset/` - Separate confidential asset SDK package (with its own [`CHANGELOG.md`](./packages/confidential-asset/CHANGELOG.md))
 - `projects/` - Demo projects (gas station)
 
 ## Version Management
 
-Versions must match across `package.json`, `src/version.ts`, and `docs/`. Use `pnpm update-version` rather than manual edits. CI runs `pnpm check-version` to enforce consistency.
+TS SDK versions must match across `packages/ts-sdk/package.json`, `packages/ts-sdk/src/version.ts`, and `docs/`. Use `pnpm update-version` rather than manual edits. CI runs `pnpm check-version` to enforce consistency.
 
 ### Breaking Changes
 
@@ -112,5 +112,5 @@ When releasing a new version with breaking changes:
 
 1. Create an upgrade guide at `upgrade-guides/UPGRADE_GUIDE_X.Y.Z.md`
 2. Document all breaking changes with before/after code examples
-3. Reference the upgrade guide in the appropriate changelog under the version heading — root [`CHANGELOG.md`](./CHANGELOG.md) for `@aptos-labs/ts-sdk` releases, [`confidential-asset/CHANGELOG.md`](./confidential-asset/CHANGELOG.md) for `@aptos-labs/confidential-asset` releases.
+3. Reference the upgrade guide in the appropriate changelog under the version heading — [`packages/ts-sdk/CHANGELOG.md`](./packages/ts-sdk/CHANGELOG.md) for `@aptos-labs/ts-sdk` releases, [`packages/confidential-asset/CHANGELOG.md`](./packages/confidential-asset/CHANGELOG.md) for `@aptos-labs/confidential-asset` releases.
 

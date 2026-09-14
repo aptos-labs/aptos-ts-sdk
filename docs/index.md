@@ -9,13 +9,14 @@ redirect_from:
 This is a repository of all Aptos TypeScript SDK documentation by version.
 
 - [Latest](@aptos-labs/ts-sdk-latest)
-- [Stable - @aptos-labs/ts-sdk-7.0.1](@aptos-labs/ts-sdk-7.0.1)
-- [Stable - @aptos-labs/ts-sdk-7.0.0](@aptos-labs/ts-sdk-7.0.0)
+- [Stable - @aptos-labs/ts-sdk-7.3.1](@aptos-labs/ts-sdk-7.3.1)
+- [Stable - @aptos-labs/ts-sdk-7.3.0](@aptos-labs/ts-sdk-7.3.0)
+- [Stable - @aptos-labs/ts-sdk-7.2.0](@aptos-labs/ts-sdk-7.2.0)
+- [Stable - @aptos-labs/ts-sdk-7.1.3](@aptos-labs/ts-sdk-7.1.3)
+- [Stable - @aptos-labs/ts-sdk-7.1.2](@aptos-labs/ts-sdk-7.1.2)
+- [Stable - @aptos-labs/ts-sdk-7.1.1](@aptos-labs/ts-sdk-7.1.1)
+- [Stable - @aptos-labs/ts-sdk-7.1.0](@aptos-labs/ts-sdk-7.1.0)
 - [Stable - @aptos-labs/ts-sdk-6.3.1](@aptos-labs/ts-sdk-6.3.1)
-- [Stable - @aptos-labs/ts-sdk-6.3.0](@aptos-labs/ts-sdk-6.3.0)
-- [Stable - @aptos-labs/ts-sdk-6.2.0](@aptos-labs/ts-sdk-6.2.0)
-- [Stable - @aptos-labs/ts-sdk-6.1.0](@aptos-labs/ts-sdk-6.1.0)
-- [Stable - @aptos-labs/ts-sdk-6.0.0](@aptos-labs/ts-sdk-6.0.0)
 - [Stable - @aptos-labs/ts-sdk-5.2.1](@aptos-labs/ts-sdk-5.2.1)
 
 ## Github Repo

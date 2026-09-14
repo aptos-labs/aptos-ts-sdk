@@ -8,7 +8,7 @@ runs:
     - uses: ./.github/actions/setup-node-pnpm
 
     # Install Deno
-    - uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282 # pin@v2.0.4
+    - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # pin@v2.0.5
       with:
         deno-version: v2.x
 
@@ -17,11 +17,11 @@ runs:
     - run: pnpm install --frozen-lockfile
       shell: bash
     # Build the SDK for use in the examples
-    - run: pnpm build
+    - run: pnpm turbo run build --filter=@aptos-labs/ts-sdk
       shell: bash
 
     # Run a local testnet in the background.
-    - run: pnpm exec aptos node run-local-testnet --force-restart --assume-yes --with-indexer-api --log-to-stdout >& ${{ runner.temp }}/local-testnet-logs.txt &
+    - run: pnpm --filter @aptos-labs/ts-sdk exec aptos node run-local-testnet --force-restart --assume-yes --with-indexer-api --log-to-stdout >& ${{ runner.temp }}/local-testnet-logs.txt &
       shell: bash
 
     # Wait for the local testnet to be ready by hitting the readiness endpoint.
@@ -37,7 +37,7 @@ runs:
       shell: bash
 
     # Run the Deno tests
-    - uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # pin@v3
+    - uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # pin@v4.0.0
       name: deno-sdk-tests
       env:
         TMPDIR: ${{ runner.temp }}
@@ -47,7 +47,7 @@ runs:
         timeout_minutes: 15
         command: |
           cd examples/deno-test
-          pnpm install
+          pnpm install --frozen-lockfile
           deno task test:all
 
     - name: Print local testnet logs on failure
@@ -55,5 +55,5 @@ runs:
       if: failure()
       run: |
         echo "::group::Local testnet logs"
-        cat ${{ runner.temp }}/local-testnet-logs.txt
+        cat "${{ runner.temp }}/local-testnet-logs.txt" 2>/dev/null || echo "(no local testnet logs found)"
         echo "::endgroup::"

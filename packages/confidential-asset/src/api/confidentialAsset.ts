@@ -1,0 +1,811 @@
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
+import {
+  Account,
+  AccountAddress,
+  AccountAddressInput,
+  AnyNumber,
+  AptosConfig,
+  CommittedTransactionResponse,
+  Ed25519PrivateKey,
+  InputGenerateTransactionOptions,
+  LedgerVersionArg,
+  SimpleTransaction,
+} from "@aptos-labs/ts-sdk";
+import {
+  ConfidentialNormalization,
+  decryptDecryptionKey,
+  encryptDecryptionKey,
+  TwistedEd25519PrivateKey,
+  TwistedEd25519PublicKey,
+} from "../crypto/index.js";
+import { clearBalanceCache, clearEncryptionKeyCache, getEncryptionKeyCacheKey, setCache } from "../utils/memoize.js";
+import {
+  ConfidentialAssetTransactionBuilder,
+  ConfidentialBalance,
+  encryptedDkExists,
+  getBalance,
+  getEffectiveAuditorHint,
+  getEncryptedDk,
+  getEncryptionKey,
+  hasUserRegistered,
+  isBalanceNormalized,
+  isEmergencyPaused,
+  isIncomingTransfersPaused,
+} from "../internal/index.js";
+
+// Constants
+import { DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS } from "../consts.js";
+
+// Indexer
+import {
+  type ConfidentialAssetActivity,
+  getConfidentialAssetActivities,
+  type GetConfidentialAssetActivitiesArgs,
+} from "../indexer/index.js";
+
+// Base param types
+type ConfidentialAssetSubmissionParams = {
+  signer: Account;
+  tokenAddress: AccountAddressInput;
+  withFeePayer?: boolean;
+  options?: InputGenerateTransactionOptions;
+};
+
+type RegisterBalanceParams = ConfidentialAssetSubmissionParams & {
+  decryptionKey: TwistedEd25519PrivateKey;
+};
+
+type DepositParams = ConfidentialAssetSubmissionParams & {
+  amount: AnyNumber;
+  recipient?: AccountAddressInput;
+};
+
+type RolloverParams = ConfidentialAssetSubmissionParams & {
+  senderDecryptionKey?: TwistedEd25519PrivateKey;
+  withPauseIncoming?: boolean;
+};
+
+type RotateKeyParams = ConfidentialAssetSubmissionParams & {
+  senderDecryptionKey: TwistedEd25519PrivateKey;
+  newSenderDecryptionKey: TwistedEd25519PrivateKey;
+};
+
+type NormalizeBalanceParams = ConfidentialAssetSubmissionParams & {
+  senderDecryptionKey: TwistedEd25519PrivateKey;
+};
+
+/**
+ * A class to handle confidential balance operations
+ *
+ * TODO: Add key caching to avoid fetching the same key multiple times
+ */
+export class ConfidentialAsset {
+  transaction: ConfidentialAssetTransactionBuilder;
+  withFeePayer: boolean;
+  constructor(args: { config: AptosConfig; confidentialAssetModuleAddress?: string; withFeePayer?: boolean }) {
+    const { confidentialAssetModuleAddress = DEFAULT_CONFIDENTIAL_COIN_MODULE_ADDRESS } = args;
+    const config = args.config;
+    this.transaction = new ConfidentialAssetTransactionBuilder(config, confidentialAssetModuleAddress);
+    this.withFeePayer = args.withFeePayer ?? false;
+  }
+
+  private client() {
+    return this.transaction.client;
+  }
+
+  private moduleAddress() {
+    return this.transaction.confidentialAssetModuleAddress;
+  }
+
+  async getBalance(args: {
+    accountAddress: AccountAddressInput;
+    tokenAddress: AccountAddressInput;
+    decryptionKey: TwistedEd25519PrivateKey;
+    useCachedValue?: boolean;
+    options?: LedgerVersionArg;
+  }): Promise<ConfidentialBalance> {
+    return getBalance({
+      client: this.client(),
+      moduleAddress: this.moduleAddress(),
+      ...args,
+    });
+  }
+
+  /**
+   * Register a confidential balance for an account
+   *
+   * @param args.signer - The address of the sender of the transaction
+   * @param args.tokenAddress - The token address of the asset to register the balance for
+   * @param args.decryptionKey - The decryption key for which the corresponding encryption key will be used registered for the balance
+   * @param args.withFeePayer - Whether to use the fee payer for the transaction
+   * @param args.options - Optional transaction options
+   * @returns A SimpleTransaction to register the balance
+   */
+  async registerBalance(args: RegisterBalanceParams): Promise<CommittedTransactionResponse> {
+    const { signer, withFeePayer = this.withFeePayer, ...rest } = args;
+    const tx = await this.transaction.registerBalance({ ...rest, sender: signer.accountAddress, withFeePayer });
+    return this.submitTxn({ signer, transaction: tx });
+  }
+
+  /**
+   * Deposit an amount from a non-confidential asset balance into a confidential asset balance.
+   *
+   * This can be used by an account to convert their own non-confidential asset balance into a confidential asset balance if they have
+   * already registered a balance for the token.
+   *
+   * @param args.signer - The account that will sign the transaction
+   * @param args.tokenAddress - The token address of the asset to deposit to
+   * @param args.amount - The amount to deposit
+   * @param args.recipient - The account address to deposit to. This is the senders address if not set.
+   * @param args.withFeePayer - Whether to use the fee payer for the transaction
+   * @param args.options - Optional transaction options
+   * @returns A SimpleTransaction to deposit the amount
+   */
+  async deposit(args: DepositParams): Promise<CommittedTransactionResponse> {
+    const { signer, withFeePayer = this.withFeePayer, ...rest } = args;
+    const tx = await this.transaction.deposit({ ...rest, sender: signer.accountAddress, withFeePayer });
+    const result = await this.submitTxn({ signer, transaction: tx });
+    clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
+    return result;
+  }
+
+  /**
+   * Withdraw an amount from a confidential asset balance.
+   *
+   * This can be used by an account to convert their own confidential asset balance into a non-confidential asset balance.
+   *
+   * @param args.signer - The account that will sign the transaction
+   * @param args.senderDecryptionKey - The decryption key of the sender
+   * @param args.tokenAddress - The token address of the asset to withdraw from
+   * @param args.amount - The amount to withdraw
+   * @param args.recipient - The account address to withdraw to. This is the signer's address if not set
+   * @param args.withFeePayer - Whether to use the fee payer for the transaction
+   * @param args.options - Optional transaction options
+   * @returns A single transaction response, or array of responses if using pending balance
+   * @throws {Error} If the amount to withdraw is greater than the available balance
+   */
+  async withdraw(
+    args: ConfidentialAssetSubmissionParams & {
+      senderDecryptionKey: TwistedEd25519PrivateKey;
+      amount: AnyNumber;
+      recipient?: AccountAddressInput;
+    },
+  ): Promise<CommittedTransactionResponse> {
+    const { signer, withFeePayer = this.withFeePayer, ...rest } = args;
+
+    const transaction = await this.transaction.withdraw({ ...rest, sender: signer.accountAddress, withFeePayer });
+    const result = await this.submitTxn({
+      signer,
+      transaction,
+    });
+    clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
+    return result;
+  }
+
+  async withdrawWithTotalBalance(
+    args: ConfidentialAssetSubmissionParams & {
+      senderDecryptionKey: TwistedEd25519PrivateKey;
+      amount: AnyNumber;
+      recipient?: AccountAddressInput;
+    },
+  ): Promise<CommittedTransactionResponse[]> {
+    const { signer, withFeePayer = this.withFeePayer, ...rest } = args;
+
+    const results: CommittedTransactionResponse[] = [];
+
+    const committedRolloverTxs = await this.checkSufficientBalanceAndRolloverIfNeeded({
+      ...args,
+    });
+    results.push(...committedRolloverTxs);
+
+    const tx = await this.transaction.withdraw({ ...rest, sender: signer.accountAddress, withFeePayer });
+    results.push(
+      await this.submitTxn({
+        signer,
+        transaction: tx,
+      }),
+    );
+    clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
+    return results;
+  }
+
+  /**
+   * Rollover an account's pending balance for an asset into the available balance.
+   *
+   * @param args.signer - The address of the sender of the transaction
+   * @param args.tokenAddress - The token address of the asset to roll over
+   * @param args.withPauseIncoming - Whether to pause incoming transfers after rolling over. Default is false.
+   * @param args.checkNormalized - Whether to check if the balance is normalized before rolling over. Default is true.
+   * @param args.withFeePayer - Whether to use the fee payer for the transaction
+   * @returns A SimpleTransaction to roll over the balance
+   * @throws {Error} If the balance is not normalized before rolling over, unless checkNormalized is false.
+   */
+  async rolloverPendingBalance(args: RolloverParams): Promise<CommittedTransactionResponse[]> {
+    const { signer, withFeePayer = this.withFeePayer, ...rest } = args;
+    const results: CommittedTransactionResponse[] = [];
+    const isNormalized = await this.isBalanceNormalized({
+      accountAddress: signer.accountAddress,
+      tokenAddress: args.tokenAddress,
+    });
+    if (!isNormalized) {
+      if (!args.senderDecryptionKey) {
+        throw new Error(
+          "Rollover failed. Available balance is not normalized and no sender decryption key was provided.",
+        );
+      }
+      const commitedNormalizeTx = await this.normalizeBalance({
+        senderDecryptionKey: args.senderDecryptionKey,
+        ...args,
+      });
+      results.push(commitedNormalizeTx);
+    }
+    const transaction = await this.transaction.rolloverPendingBalance({
+      ...rest,
+      sender: signer.accountAddress,
+      withFeePayer,
+    });
+    const committedRolloverTx = await this.submitTxn({
+      signer,
+      transaction,
+    });
+    clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
+    results.push(committedRolloverTx);
+    return results;
+  }
+
+  /**
+   * Get the encryption key for the asset auditor for a given token address.
+   *
+   * @param args.tokenAddress - The token address of the asset to get the auditor for
+   * @param args.options.ledgerVersion - The ledger version to use for the view call
+   * @returns The encryption key for the asset auditor or undefined if no auditor is set
+   */
+  async getAssetAuditorEncryptionKey(args: {
+    tokenAddress: AccountAddressInput;
+    options?: LedgerVersionArg;
+  }): Promise<TwistedEd25519PublicKey | undefined> {
+    return this.transaction.getAssetAuditorEncryptionKey(args);
+  }
+
+  /**
+   * Transfer an amount from a confidential asset balance to a recipient.
+   *
+   * This can be used by an account to transfer their own confidential asset balance to a recipient.
+   *
+   * @param args.signer - The account that will sign the transaction
+   * @param args.recipient - The address of the recipient
+   * @param args.tokenAddress - The token address of the asset to transfer
+   * @param args.amount - The amount to transfer
+   * @param args.senderDecryptionKey - The decryption key of the sender
+   * @param args.additionalAuditorEncryptionKeys - Optional additional auditor encryption keys
+   * @param args.withFeePayer - Whether to use the fee payer for the transaction
+   * @param args.options - Optional transaction options
+   * @param args.signAndSubmitCallback - Optional callback for custom transaction submission
+   * @returns A single transaction response, or array of responses if using pending balance
+   * @throws {Error} If the recipient's encryption key cannot be found
+   * @throws {Error} If the amount to transfer is greater than the available balance
+   */
+  async transfer(
+    args: ConfidentialAssetSubmissionParams & {
+      recipient: AccountAddressInput;
+      amount: AnyNumber;
+      senderDecryptionKey: TwistedEd25519PrivateKey;
+      additionalAuditorEncryptionKeys?: TwistedEd25519PublicKey[];
+      memo?: Uint8Array;
+    },
+  ): Promise<CommittedTransactionResponse> {
+    const { signer, withFeePayer = this.withFeePayer, ...rest } = args;
+
+    const transaction = await this.transaction.transfer({ ...rest, sender: signer.accountAddress, withFeePayer });
+    const result = await this.submitTxn({
+      signer,
+      transaction,
+    });
+    clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
+    return result;
+  }
+
+  async transferWithTotalBalance(
+    args: ConfidentialAssetSubmissionParams & {
+      recipient: AccountAddressInput;
+      amount: AnyNumber;
+      senderDecryptionKey: TwistedEd25519PrivateKey;
+      additionalAuditorEncryptionKeys?: TwistedEd25519PublicKey[];
+      memo?: Uint8Array;
+    },
+  ): Promise<CommittedTransactionResponse[]> {
+    const { signer, withFeePayer = this.withFeePayer, ...rest } = args;
+    const results: CommittedTransactionResponse[] = [];
+
+    const committedRolloverTxs = await this.checkSufficientBalanceAndRolloverIfNeeded({
+      ...args,
+    });
+    results.push(...committedRolloverTxs);
+    const transaction = await this.transaction.transfer({ ...rest, sender: signer.accountAddress, withFeePayer });
+
+    results.push(
+      await this.submitTxn({
+        signer,
+        transaction,
+      }),
+    );
+    clearBalanceCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
+    return results;
+  }
+
+  /**
+   * Check if a user's incoming transfers are paused.
+   *
+   * A user's incoming transfers would likely be paused if they plan to rotate their encryption key after a rollover. Rotating the encryption key requires
+   * the pending balance to be empty so a user may want to pause incoming transfers to prevent others from transferring into their pending balance
+   * which would interfere with the rotation, as it would require a user to rollover their pending balance.
+   *
+   * @param args.accountAddress - The account address to check
+   * @param args.tokenAddress - The token address of the asset to check
+   * @param args.options.ledgerVersion - The ledger version to use for the view call
+   * @returns A boolean indicating if the user's incoming transfers are paused
+   * @throws {AptosApiError} If there is no registered confidential balance for token address on the account
+   */
+  async isIncomingTransfersPaused(args: {
+    accountAddress: AccountAddressInput;
+    tokenAddress: AccountAddressInput;
+    options?: LedgerVersionArg;
+  }): Promise<boolean> {
+    return isIncomingTransfersPaused({
+      client: this.client(),
+      moduleAddress: this.moduleAddress(),
+      ...args,
+    });
+  }
+
+  /**
+   * Rotate the encryption key for a confidential asset balance.
+   *
+   * This will check if the pending balance is empty and roll it over if needed. It also checks if incoming
+   * transfers are paused and will unpause them if necessary.
+   *
+   * @param args.signer - The account that will sign the transaction
+   * @param args.senderDecryptionKey - The current decryption key
+   * @param args.newSenderDecryptionKey - The new decryption key to rotate to
+   * @param args.tokenAddress - The token address of the asset
+   * @param args.withFeePayer - Whether to use the fee payer for the transaction
+   * @param args.options - Optional transaction options
+   * @returns Array of transaction responses (may include rollover transactions)
+   * @throws {Error} If the pending balance is not empty and cannot be rolled over
+   */
+  async rotateEncryptionKey(args: RotateKeyParams): Promise<CommittedTransactionResponse[]> {
+    const {
+      signer,
+      senderDecryptionKey,
+      newSenderDecryptionKey,
+      tokenAddress,
+      withFeePayer = this.withFeePayer,
+      options,
+    } = args;
+    const results: CommittedTransactionResponse[] = [];
+
+    const balance = await this.getBalance({
+      accountAddress: signer.accountAddress,
+      tokenAddress,
+      decryptionKey: senderDecryptionKey,
+    });
+
+    // The on-chain rotate_encryption_key_raw requires incoming transfers to be paused.
+    // If pending > 0, rollover + pause handles both. If pending == 0, we still need to pause.
+    const isPaused = await this.isIncomingTransfersPaused({
+      accountAddress: signer.accountAddress,
+      tokenAddress,
+    });
+    if (balance.pendingBalance() > 0n || !isPaused) {
+      const rolloverTxs = await this.rolloverPendingBalance({
+        ...args,
+        withPauseIncoming: true,
+      });
+      results.push(...rolloverTxs);
+    }
+    const transaction = await this.transaction.rotateEncryptionKey({
+      ...args,
+      withFeePayer,
+      sender: signer.accountAddress,
+      options,
+    });
+    results.push(
+      await this.submitTxn({
+        signer,
+        transaction,
+      }),
+    );
+    clearEncryptionKeyCache(signer.accountAddress, args.tokenAddress, this.client().config.network);
+    setCache(
+      getEncryptionKeyCacheKey(signer.accountAddress, args.tokenAddress, this.client().config.network),
+      newSenderDecryptionKey,
+    );
+    return results;
+  }
+
+  /**
+   * Check if a user has registered a confidential asset balance for a particular token.
+   *
+   * @param args.accountAddress - The account address to check
+   * @param args.tokenAddress - The token address of the asset to check
+   * @param args.options.ledgerVersion - The ledger version to use for the view call
+   * @returns A boolean indicating if the user has registered a confidential asset balance
+   */
+  async hasUserRegistered(args: {
+    accountAddress: AccountAddressInput;
+    tokenAddress: AccountAddressInput;
+    options?: LedgerVersionArg;
+  }): Promise<boolean> {
+    return hasUserRegistered({
+      client: this.client(),
+      moduleAddress: this.moduleAddress(),
+      ...args,
+    });
+  }
+
+  /**
+   * Check if a user's balance is normalized.
+   *
+   * This can be used to check if a user's balance is normalized for a given token address.
+   *
+   * @param args.accountAddress - The account address to check
+   * @param args.tokenAddress - The token address of the asset to check
+   * @param args.options.ledgerVersion - The ledger version to use for the view call
+   * @returns A boolean indicating if the user's balance is normalized
+   * @throws {AptosApiError} If the there is no registered confidential balance for token address on the account
+   */
+  async isBalanceNormalized(args: {
+    accountAddress: AccountAddressInput;
+    tokenAddress: AccountAddressInput;
+    options?: LedgerVersionArg;
+  }): Promise<boolean> {
+    return isBalanceNormalized({
+      client: this.client(),
+      moduleAddress: this.moduleAddress(),
+      ...args,
+    });
+  }
+
+  /**
+   * Get the encryption key for an account for a given token.
+   *
+   * @param args.accountAddress - The account address to get the encryption key for
+   * @param args.tokenAddress - The token address of the asset
+   * @param args.options - Optional ledger version for the view call
+   * @returns The encryption key as a TwistedEd25519PublicKey
+   * @throws {Error} If the encryption key cannot be found
+   */
+  async getEncryptionKey(args: {
+    accountAddress: AccountAddressInput;
+    tokenAddress: AccountAddressInput;
+    options?: LedgerVersionArg;
+  }): Promise<TwistedEd25519PublicKey> {
+    return getEncryptionKey({
+      client: this.client(),
+      moduleAddress: this.moduleAddress(),
+      ...args,
+    });
+  }
+
+  /**
+   * Get the effective auditor hint for a user's confidential store.
+   * Indicates which auditor (global vs asset-specific) and epoch the balance ciphertext is encrypted for.
+   *
+   * @param args.accountAddress - The account address to query
+   * @param args.tokenAddress - The token address of the asset
+   * @param args.options - Optional ledger version for the view call
+   * @returns The auditor hint, or undefined if no auditor hint is set
+   */
+  async getEffectiveAuditorHint(args: {
+    accountAddress: AccountAddressInput;
+    tokenAddress: AccountAddressInput;
+    options?: LedgerVersionArg;
+  }): Promise<{ isGlobal: boolean; epoch: bigint } | undefined> {
+    return getEffectiveAuditorHint({
+      client: this.client(),
+      moduleAddress: this.moduleAddress(),
+      ...args,
+    });
+  }
+
+  /**
+   * Check if the confidential asset module is emergency-paused by governance.
+   * When paused, all user operations (deposit, withdraw, transfer, rollover, etc.) are blocked.
+   *
+   * @param args.options - Optional ledger version for the view call
+   * @returns A boolean indicating if all user operations are paused
+   */
+  async isEmergencyPaused(args?: { options?: LedgerVersionArg }): Promise<boolean> {
+    return isEmergencyPaused({
+      client: this.client(),
+      moduleAddress: this.moduleAddress(),
+      ...args,
+    });
+  }
+
+  /**
+   * Normalize a user's balance.
+   *
+   * This can be used to normalize a user's balance for a given token address.
+   *
+   * @param args.signer - The account that will sign the transaction
+   * @param args.senderDecryptionKey - The decryption key of the sender
+   * @param args.tokenAddress - The token address of the asset to normalize
+   * @param args.withFeePayer - Whether to use the fee payer for the transaction
+   * @param args.options - Optional transaction options
+   * @returns A committed transaction response
+   * @throws {Error} If normalization fails
+   */
+  async normalizeBalance(args: NormalizeBalanceParams): Promise<CommittedTransactionResponse> {
+    const { signer, senderDecryptionKey, tokenAddress, withFeePayer = this.withFeePayer, options } = args;
+    const { available, pending } = await this.getBalance({
+      accountAddress: signer.accountAddress,
+      tokenAddress,
+      decryptionKey: senderDecryptionKey,
+      useCachedValue: true,
+    });
+
+    // Resolve addresses to 32-byte arrays
+    const senderAddr = AccountAddress.from(signer.accountAddress);
+    const tokenAddr = AccountAddress.from(tokenAddress);
+
+    // Get chain ID for domain separation
+    const chainId = await this.transaction.getChainId();
+
+    // Get the auditor public key for the token
+    const effectiveAuditorPubKey = await this.getAssetAuditorEncryptionKey({ tokenAddress });
+
+    const confidentialNormalization = await ConfidentialNormalization.create({
+      decryptionKey: senderDecryptionKey,
+      unnormalizedAvailableBalance: available,
+      senderAddress: senderAddr.toUint8Array(),
+      tokenAddress: tokenAddr.toUint8Array(),
+      chainId,
+      auditorEncryptionKey: effectiveAuditorPubKey,
+    });
+
+    const transaction = await confidentialNormalization.createTransaction({
+      client: this.client(),
+      sender: signer.accountAddress,
+      confidentialAssetModuleAddress: this.transaction.confidentialAssetModuleAddress,
+      tokenAddress,
+      withFeePayer,
+      options,
+    });
+    const committedTransaction = await this.submitTxn({
+      signer,
+      transaction,
+    });
+    const newBalance = new ConfidentialBalance(confidentialNormalization.normalizedEncryptedAvailableBalance, pending);
+    setCache(`${signer.accountAddress}-balance-for-${tokenAddress}-${this.client().config.network}`, newBalance);
+    return committedTransaction;
+  }
+
+  /**
+   * Register a confidential balance AND back up an encryption of the decryption key (DK) on-chain in
+   * one transaction. For a keyless account that is ALREADY a 1-of-2 multi-key (keyless + Ed25519
+   * backup). The DK is encrypted under the Ed25519 backup key so it can later be recovered via
+   * {@link recoverDecryptionKeyFromBackup}.
+   *
+   * This is a write-once operation: it aborts on-chain if an encrypted DK already exists. Register
+   * additional asset types afterwards with {@link registerBalance}, reusing the backed-up DK.
+   *
+   * SECURITY: wallets must forbid dapps from requesting signatures over this transaction — a
+   * malicious dapp could otherwise lock a user out of confidentiality for an asset type.
+   *
+   * @param args.signer - The multi-key account (keyless + backup) that signs and sends
+   * @param args.keylessPublicKey - The keyless public key as raw bytes, e.g.
+   *   `keylessAccount.getAnyPublicKey().toUint8Array()`
+   * @param args.backupPrivateKey - The Ed25519 backup private key (its public key is registered
+   *   on-chain and its seed encrypts the DK). Must be a legacy Ed25519 key.
+   * @param args.tokenAddress - The token address of the asset to register the balance for
+   * @param args.decryptionKey - The confidential-asset DK to register and back up
+   * @param args.withFeePayer - Whether to use the fee payer for the transaction
+   * @param args.options - Optional transaction options
+   * @returns A committed transaction response
+   * @throws {Error} If an encrypted DK already exists for the account
+   */
+  async registerBalanceAndEncryptDk(args: {
+    signer: Account;
+    keylessPublicKey: Uint8Array;
+    backupPrivateKey: Ed25519PrivateKey;
+    tokenAddress: AccountAddressInput;
+    decryptionKey: TwistedEd25519PrivateKey;
+    withFeePayer?: boolean;
+    options?: InputGenerateTransactionOptions;
+  }): Promise<CommittedTransactionResponse> {
+    const {
+      signer,
+      keylessPublicKey,
+      backupPrivateKey,
+      decryptionKey,
+      withFeePayer = this.withFeePayer,
+      ...rest
+    } = args;
+
+    // Pre-flight: register_ek_and_encrypt_dk aborts if an encrypted DK already exists. Surface a
+    // clear SDK error instead of an opaque Move abort (best-effort; racy with concurrent txns).
+    if (await this.encryptedDkExists({ accountAddress: signer.accountAddress })) {
+      throw new Error(
+        "An encrypted DK already exists for this account; use registerBalance to register additional asset types.",
+      );
+    }
+
+    const dkCiphertext = encryptDecryptionKey({ backupPrivateKey, decryptionKey });
+
+    const transaction = await this.transaction.registerBalanceAndEncryptDk({
+      ...rest,
+      sender: signer.accountAddress,
+      decryptionKey,
+      keylessPublicKey,
+      backupPublicKey: backupPrivateKey.publicKey().toUint8Array(),
+      dkCiphertext,
+      withFeePayer,
+    });
+    return this.submitTxn({ signer, transaction });
+  }
+
+  /**
+   * Install or rotate an Ed25519 backup key on a keyless account AND re-encrypt the DK on-chain in
+   * one transaction.
+   *
+   * SECURITY: wallets must forbid dapps from requesting signatures over this transaction — it
+   * rotates the account's backup key, which an attacker could abuse.
+   *
+   * @param args.signer - The keyless account that signs and sends (also the account being modified)
+   * @param args.keylessPublicKey - The keyless public key as raw bytes, e.g.
+   *   `keylessAccount.getAnyPublicKey().toUint8Array()`
+   * @param args.backupPrivateKey - The (new) Ed25519 backup private key to install/rotate to. Must
+   *   be a legacy Ed25519 key.
+   * @param args.decryptionKey - The DK to re-encrypt under the (new) backup key
+   * @param args.withFeePayer - Whether to use the fee payer for the transaction
+   * @param args.options - Optional transaction options
+   * @returns A committed transaction response
+   */
+  async upsertEd25519BackupKeyAndEncryptDk(args: {
+    signer: Account;
+    keylessPublicKey: Uint8Array;
+    backupPrivateKey: Ed25519PrivateKey;
+    decryptionKey: TwistedEd25519PrivateKey;
+    withFeePayer?: boolean;
+    options?: InputGenerateTransactionOptions;
+  }): Promise<CommittedTransactionResponse> {
+    const {
+      signer,
+      keylessPublicKey,
+      backupPrivateKey,
+      decryptionKey,
+      withFeePayer = this.withFeePayer,
+      ...rest
+    } = args;
+
+    const dkCiphertext = encryptDecryptionKey({ backupPrivateKey, decryptionKey });
+
+    const transaction = await this.transaction.upsertEd25519BackupKeyAndEncryptDk({
+      ...rest,
+      sender: signer.accountAddress,
+      keylessPublicKey,
+      backupPrivateKey,
+      dkCiphertext,
+      withFeePayer,
+    });
+    return this.submitTxn({ signer, transaction });
+  }
+
+  /**
+   * Check whether an encrypted decryption key (DK) is backed up on-chain for an account.
+   *
+   * @param args.accountAddress - The account address to check
+   * @param args.options - Optional ledger version for the view call
+   * @returns A boolean indicating whether an encrypted DK exists
+   */
+  async encryptedDkExists(args: { accountAddress: AccountAddressInput; options?: LedgerVersionArg }): Promise<boolean> {
+    return encryptedDkExists({ client: this.client(), ...args });
+  }
+
+  /**
+   * Read the on-chain encrypted decryption key (DK) ciphertext for an account.
+   *
+   * @param args.accountAddress - The account address whose encrypted DK to read
+   * @param args.options - Optional ledger version for the view call
+   * @returns The raw ciphertext bytes, or `undefined` if no encrypted DK is stored
+   */
+  async getEncryptedDk(args: {
+    accountAddress: AccountAddressInput;
+    options?: LedgerVersionArg;
+  }): Promise<Uint8Array | undefined> {
+    return getEncryptedDk({ client: this.client(), ...args });
+  }
+
+  /**
+   * Recover a confidential-asset decryption key (DK) by reading the on-chain encrypted DK and
+   * decrypting it with the Ed25519 backup key. Use this when the keyless-derived DK is unavailable
+   * (e.g. the user lost their OIDC session) but the backup key is held.
+   *
+   * @param args.accountAddress - The account whose encrypted DK to recover
+   * @param args.backupPrivateKey - The Ed25519 backup private key
+   * @param args.options - Optional ledger version for the view call
+   * @returns The recovered DK
+   * @throws {Error} If no encrypted DK exists, or decryption fails (wrong backup key / tampering)
+   */
+  async recoverDecryptionKeyFromBackup(args: {
+    accountAddress: AccountAddressInput;
+    backupPrivateKey: Ed25519PrivateKey;
+    options?: LedgerVersionArg;
+  }): Promise<TwistedEd25519PrivateKey> {
+    const ciphertext = await this.getEncryptedDk({
+      accountAddress: args.accountAddress,
+      options: args.options,
+    });
+    if (ciphertext === undefined) {
+      throw new Error(`No encrypted DK is backed up on-chain for account ${AccountAddress.from(args.accountAddress)}`);
+    }
+    return decryptDecryptionKey({ backupPrivateKey: args.backupPrivateKey, ciphertext });
+  }
+
+  private async submitTxn(args: { signer: Account; transaction: SimpleTransaction }) {
+    const { signer, transaction } = args;
+    if (this.withFeePayer && !transaction.feePayerAddress) {
+      throw new Error(
+        "Fee payer is enabled but transaction has no fee payer address. Please set the fee payer address.",
+      );
+    }
+    const senderAuthenticator = signer.signTransactionWithAuthenticator(transaction);
+
+    const pendingTxResponse = await this.client().transaction.submit.simple({
+      transaction,
+      senderAuthenticator,
+    });
+    const transactionHash = pendingTxResponse.hash;
+    return await this.client().waitForTransaction({
+      transactionHash,
+      options: {
+        checkSuccess: true,
+      },
+    });
+  }
+
+  /**
+   * Query confidential asset activities from the indexer.
+   *
+   * @example
+   * ```ts
+   * const activities = await ca.getActivities({
+   *   where: { owner_address: { _eq: alice.accountAddress.toStringLong() } },
+   *   orderBy: [{ transaction_version: "desc" }],
+   *   limit: 20,
+   * });
+   * ```
+   */
+  async getActivities(args?: GetConfidentialAssetActivitiesArgs): Promise<ConfidentialAssetActivity[]> {
+    return getConfidentialAssetActivities(this.client(), args);
+  }
+
+  private async checkSufficientBalanceAndRolloverIfNeeded(
+    args: ConfidentialAssetSubmissionParams & {
+      amount: AnyNumber;
+      senderDecryptionKey: TwistedEd25519PrivateKey;
+    },
+  ): Promise<CommittedTransactionResponse[]> {
+    const results: CommittedTransactionResponse[] = [];
+    const balance = await this.getBalance({
+      accountAddress: args.signer.accountAddress,
+      tokenAddress: args.tokenAddress,
+      decryptionKey: args.senderDecryptionKey,
+    });
+    if (balance.availableBalance() < BigInt(args.amount)) {
+      if (balance.availableBalance() + balance.pendingBalance() < BigInt(args.amount)) {
+        throw new Error(
+          `Insufficient balance. Pending balance - ${balance.pendingBalance().toString()}, Available balance - ${balance.availableBalance().toString()}`,
+        );
+      }
+      const committedRolloverTx = await this.rolloverPendingBalance({
+        ...args,
+      });
+      results.push(...committedRolloverTx);
+    }
+    return results;
+  }
+}
