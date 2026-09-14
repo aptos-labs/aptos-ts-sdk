@@ -58,7 +58,6 @@ describe("internal/keyless pepper services", () => {
       ephemeralPublicKey: EPHEMERAL_KEY_PAIR.getPublicKey().bcsToHex().toString(),
       expiryDateSecs: EPHEMERAL_KEY_PAIR.expiryDateSecs,
       blinder: EPHEMERAL_KEY_PAIR.blinder,
-      uidKey: "email",
       derivationPath: "m/44'/637'/0'/0'/0'",
     });
 
@@ -70,7 +69,7 @@ describe("internal/keyless pepper services", () => {
       epk: EPHEMERAL_KEY_PAIR.getPublicKey().bcsToHex().toStringWithoutPrefix(),
       exp_date_secs: EPHEMERAL_KEY_PAIR.expiryDateSecs,
       epk_blinder: Hex.fromHexInput(EPHEMERAL_KEY_PAIR.blinder).toStringWithoutPrefix(),
-      uid_key: "email",
+      uid_key: "sub",
       derivation_path: "m/44'/637'/0'/0'/0'",
     });
     expectRequest(pepperReq!, { method: "POST", urlIncludes: "fetch" });
