@@ -203,7 +203,7 @@ describe("Hierarchical Deterministic Key (hdkey)", () => {
     slhDsaSha2128s.forEach(({ seed, vectors }) => {
       vectors.forEach(({ chain, private: privateKey }) => {
         it(`should generate correct key pair for ${chain}`, () => {
-          // eslint-disable-next-line @typescript-eslint/dot-notation
+          // biome-ignore lint/complexity/useLiteralKeys: bracket notation required for private method access in tests
           const key = SlhDsaSha2128sPrivateKey["fromDerivationPathInner"](chain, seed.toUint8Array());
           expect(key.toHexString()).toBe(`0x${privateKey}`);
         });

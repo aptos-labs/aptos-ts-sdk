@@ -23,6 +23,7 @@ import {
   Hex,
   base64UrlEncode,
 } from "../../../src/index.js";
+import "../../../src/slh-dsa-sha2-128s.js";
 import { p256 } from "@noble/curves/nist.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { sha3_256 } from "@noble/hashes/sha3.js";
