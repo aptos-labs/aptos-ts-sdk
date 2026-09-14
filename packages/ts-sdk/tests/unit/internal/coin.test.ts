@@ -119,9 +119,11 @@ describe("internal/coin.transferCoinTransaction", () => {
       sender: sender.accountAddress,
       recipient: recipient.accountAddress,
       amount: 1n,
+      withFeePayer: true,
       options,
     });
 
+    expect(mockedGenerateTransaction.mock.calls[0][0].withFeePayer).toBe(true);
     expect(mockedGenerateTransaction.mock.calls[0][0].options).toBe(options);
   });
 });
