@@ -116,19 +116,19 @@ const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 /**
  * Per-package release configuration.
- * `runsUpdateVersion` is true only for ts-sdk (it owns src/version.ts + docs).
+ * `runsUpdateVersion` is true only for ts-sdk (it owns packages/ts-sdk/src/version.ts + root docs).
  */
 const PACKAGES = {
   "ts-sdk": {
     tagPrefix: "ts-sdk",
-    pkgJsonPath: join(REPO_ROOT, "package.json"),
-    changelogPath: join(REPO_ROOT, "CHANGELOG.md"),
+    pkgJsonPath: join(REPO_ROOT, "packages", "ts-sdk", "package.json"),
+    changelogPath: join(REPO_ROOT, "packages", "ts-sdk", "CHANGELOG.md"),
     runsUpdateVersion: true,
   },
   "confidential-asset": {
     tagPrefix: "confidential-asset",
-    pkgJsonPath: join(REPO_ROOT, "confidential-asset", "package.json"),
-    changelogPath: join(REPO_ROOT, "confidential-asset", "CHANGELOG.md"),
+    pkgJsonPath: join(REPO_ROOT, "packages", "confidential-asset", "package.json"),
+    changelogPath: join(REPO_ROOT, "packages", "confidential-asset", "CHANGELOG.md"),
     runsUpdateVersion: false,
   },
 };
@@ -191,9 +191,12 @@ function main() {
   writeFileSync(cfg.changelogPath, stampChangelog(changelogText, next, dateStr));
 
   if (cfg.runsUpdateVersion) {
-    // `pnpm update-version` re-reads package.json, so $npm_package_version is
-    // the version we just wrote; it syncs src/version.ts and regenerates docs.
-    execSync("pnpm update-version", { cwd: REPO_ROOT, stdio: "inherit" });
+    // The package command re-reads package.json, so $npm_package_version is the
+    // version we just wrote; it syncs packages/ts-sdk/src/version.ts and regenerates root docs.
+    execSync("pnpm --filter @aptos-labs/ts-sdk run update-version", {
+      cwd: REPO_ROOT,
+      stdio: "inherit",
+    });
   }
 
   const tag = `${cfg.tagPrefix}-v${next}`;

@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@aptos-labs/ts-sdk':
-        specifier: file:../..
-        version: file:../..
+        specifier: file:../../packages/ts-sdk
+        version: file:../../packages/ts-sdk
     devDependencies:
       typescript:
         specifier: ^7.0.2
@@ -29,8 +29,8 @@ packages:
     resolution: {integrity: sha512-QNr8OV3b6oZB+5LSh86wee9RbK+FAYCKh0wvu3epSf5JJnHezszpnAgtr3DJGBG6t00MJHaiu6VUbmujrl97iQ==}
     engines: {node: '>=22.0.0'}
 
-  '@aptos-labs/ts-sdk@file:../..':
-    resolution: {directory: ../.., type: directory}
+  '@aptos-labs/ts-sdk@file:../../packages/ts-sdk':
+    resolution: {directory: ../../packages/ts-sdk, type: directory}
     engines: {node: '>=22.0.0'}
 
   '@keyv/serialize@1.1.1':
@@ -297,7 +297,7 @@ snapshots:
     dependencies:
       got: 15.1.0
 
-  '@aptos-labs/ts-sdk@file:../..':
+  '@aptos-labs/ts-sdk@file:../../packages/ts-sdk':
     dependencies:
       '@aptos-labs/aptos-cli': 3.0.0
       '@aptos-labs/aptos-client': 4.1.0

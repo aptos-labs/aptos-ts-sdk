@@ -15,30 +15,30 @@ coverage:
       default:
         informational: true
 
-# Keep the ignore list in sync with `coverage.exclude` in `vitest.config.ts`.
+# Keep the ignore list in sync with `coverage.exclude` in `packages/ts-sdk/vitest.config.ts`.
 # Generated code and the separate confidential-asset package would otherwise
 # inflate the denominator with files the unit suite is not responsible for.
 ignore:
-  - "src/internal/queries/**"
-  - "src/types/generated/**"
+  - "packages/ts-sdk/src/internal/queries/**"
+  - "packages/ts-sdk/src/types/generated/**"
   # Node-only CLI surface, covered by `examples/` integration suites.
-  - "src/cli/**"
+  - "packages/ts-sdk/src/cli/**"
   # Bundler shim; no runtime behavior.
-  - "src/utils/normalizeBundle.ts"
+  - "packages/ts-sdk/src/utils/normalizeBundle.ts"
   # Long-running event-loop driver covered behaviorally by the e2e suite.
-  - "src/transactions/management/asyncQueue.ts"
-  # Transaction worker queue covered by tests/e2e/transactionManagement/transactionWorker.test.ts.
-  - "src/transactions/management/transactionWorker.ts"
+  - "packages/ts-sdk/src/transactions/management/asyncQueue.ts"
+  # Transaction worker queue covered by packages/ts-sdk/tests/e2e/transactionManagement/transactionWorker.test.ts.
+  - "packages/ts-sdk/src/transactions/management/transactionWorker.ts"
   # EventEmitter wrapper over TransactionWorker; e2e-covered.
-  - "src/api/transactionSubmission/management.ts"
+  - "packages/ts-sdk/src/api/transactionSubmission/management.ts"
   # Keyless account implementation covered by keyless unit + e2e suites.
-  - "src/account/AbstractKeylessAccount.ts"
+  - "packages/ts-sdk/src/account/AbstractKeylessAccount.ts"
   # Re-export barrel and version constant.
-  - "src/index.ts"
-  - "src/version.ts"
-  - "tests/**"
+  - "packages/ts-sdk/src/index.ts"
+  - "packages/ts-sdk/src/version.ts"
+  - "packages/ts-sdk/tests/**"
   - "examples/**"
-  - "confidential-asset/**"
+  - "packages/confidential-asset/**"
   - "projects/**"
-  - "dist/**"
+  - "packages/ts-sdk/dist/**"
   - "docs/**"

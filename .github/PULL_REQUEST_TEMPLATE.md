@@ -9,5 +9,5 @@
 
 ### Checklist
   - [ ] Have you ran `pnpm fmt`?
-  - [ ] Have you updated the `CHANGELOG.md`?
+  - [ ] Have you updated the appropriate package changelog: `packages/ts-sdk/CHANGELOG.md` or `packages/confidential-asset/CHANGELOG.md`?
   

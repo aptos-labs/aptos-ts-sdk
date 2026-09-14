@@ -7,8 +7,8 @@ description: Use when cutting a release of @aptos-labs/ts-sdk or @aptos-labs/con
 
 Two packages release independently:
 
-- `@aptos-labs/ts-sdk` (repo root) — tag prefix `ts-sdk-v`
-- `@aptos-labs/confidential-asset` (`confidential-asset/`) — tag prefix `confidential-asset-v`
+- `@aptos-labs/ts-sdk` (`packages/ts-sdk/`) — tag prefix `ts-sdk-v`
+- `@aptos-labs/confidential-asset` (`packages/confidential-asset/`) — tag prefix `confidential-asset-v`
 
 All mechanical work is done by `scripts/prepareRelease.mjs`. Publishing to NPM is done by
 `.github/workflows/publish.yaml` when a GitHub Release is published — never publish by hand.
@@ -25,15 +25,17 @@ All mechanical work is done by `scripts/prepareRelease.mjs`. Publishing to NPM i
 2. Ask the bump type: `major`, `minor`, or `patch`. For a **major** bump, remind the maintainer to
    write an upgrade guide at `upgrade-guides/UPGRADE_GUIDE_X.Y.Z.md` and reference it in the changelog.
 3. Determine the new version without mutating anything yet: read `version` from the package's
-   `package.json` (`.` for ts-sdk, `confidential-asset/` for confidential-asset) and apply the bump.
+   `package.json` (`packages/ts-sdk/` for ts-sdk, `packages/confidential-asset/` for
+   confidential-asset) and apply the bump.
 4. Create a release branch: `git checkout -b release/<pkg>-v<newVersion>`.
 5. Run the prep script:
    - `node scripts/prepareRelease.mjs --package <pkg> --bump <type>`
 6. Validate:
    - `pnpm check`
    - For `ts-sdk` only: `pnpm check-version`
-7. Review the diff with `git --no-pager diff`. Confirm: `package.json` version bumped, changelog
-   stamped with today's date, and (ts-sdk) `src/version.ts` + `docs/` updated.
+7. Review the diff with `git --no-pager diff`. Confirm: the target package's `package.json` version
+   bumped, its `CHANGELOG.md` stamped with today's date, and (ts-sdk)
+   `packages/ts-sdk/src/version.ts` + root `docs/` updated.
 8. Commit: `git commit -am "chore: release <pkg> v<newVersion>"`.
 9. Push and open a PR:
    - `git push -u origin release/<pkg>-v<newVersion>`
@@ -45,7 +47,8 @@ All mechanical work is done by `scripts/prepareRelease.mjs`. Publishing to NPM i
 1. `git checkout main && git pull --ff-only`.
 2. Verify the working tree is clean and the merged version is present:
    `node -p "require('./<pkgPath>/package.json').version"` matches the released version
-   (`<pkgPath>` is `.` for ts-sdk, `confidential-asset` for confidential-asset).
+   (`<pkgPath>` is `packages/ts-sdk` for ts-sdk, `packages/confidential-asset` for
+   confidential-asset).
 3. Compute the tag: `<pkg>-v<version>`.
 4. Refuse if the tag already exists: `git tag --list <tag>` must be empty.
 5. Create + push the tag:

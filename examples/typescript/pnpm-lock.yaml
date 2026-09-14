@@ -15,8 +15,8 @@ importers:
   .:
     dependencies:
       '@aptos-labs/ts-sdk':
-        specifier: link:../..
-        version: link:../..
+        specifier: link:../../packages/ts-sdk
+        version: link:../../packages/ts-sdk
       '@noble/curves':
         specifier: 2.4.0
         version: 2.4.0

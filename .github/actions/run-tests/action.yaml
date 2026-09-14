@@ -15,6 +15,9 @@ runs:
     - run: pnpm install --frozen-lockfile
       shell: bash
 
+    - run: pnpm test:repo
+      shell: bash
+
     # Run the TS SDK tests.
     - uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # pin@v4.0.0
       name: sdk-pnpm-test
@@ -27,7 +30,7 @@ runs:
         max_attempts: 3
         timeout_minutes: 25
         # This runs all the tests, both unit and e2e.
-        command: pnpm run test
+        command: pnpm turbo run test --filter=@aptos-labs/ts-sdk
 
     - name: Print local testnet logs on failure
       shell: bash

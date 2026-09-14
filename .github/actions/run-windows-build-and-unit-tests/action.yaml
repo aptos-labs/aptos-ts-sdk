@@ -10,8 +10,8 @@ runs:
     - run: pnpm install --frozen-lockfile
       shell: bash
 
-    - run: pnpm build
+    - run: pnpm turbo run build --filter=@aptos-labs/ts-sdk
       shell: bash
 
-    - run: pnpm unit-test
+    - run: pnpm turbo run unit-test --filter=@aptos-labs/ts-sdk
       shell: bash

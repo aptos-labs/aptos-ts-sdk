@@ -12,11 +12,11 @@ runs:
     - run: pnpm install --frozen-lockfile
       shell: bash
     # Build the SDk for use in the examples
-    - run: pnpm build
+    - run: pnpm turbo run build --filter=@aptos-labs/ts-sdk
       shell: bash
 
     # Run a local testnet in the background.
-    - run: pnpm exec aptos node run-local-testnet --force-restart --assume-yes --with-indexer-api --log-to-stdout >& ${{ runner.temp }}/local-testnet-logs.txt &
+    - run: pnpm --filter @aptos-labs/ts-sdk exec aptos node run-local-testnet --force-restart --assume-yes --with-indexer-api --log-to-stdout >& ${{ runner.temp }}/local-testnet-logs.txt &
       shell: bash
 
     # Wait for the local testnet to be ready by hitting the readiness endpoint.

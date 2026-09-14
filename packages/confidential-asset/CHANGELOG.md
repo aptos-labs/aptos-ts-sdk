@@ -2,12 +2,14 @@
 
 All notable changes to `@aptos-labs/confidential-asset` will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-For changes to the main Aptos TypeScript SDK (`@aptos-labs/ts-sdk`), see the [root CHANGELOG.md](../CHANGELOG.md).
+For changes to the main Aptos TypeScript SDK (`@aptos-labs/ts-sdk`), see its [CHANGELOG.md](../ts-sdk/CHANGELOG.md).
 
 # Unreleased
 
 ## Changed
 
+- Integrate the relocated package into the pnpm/Turbo workspace, including repository metadata, CI, release, publishing, coverage, and documentation paths.
+- Complete migration CI coverage by validating the package's production build and packaged license and by preventing cached formatting, lint, check, and license results.
 - Update dependencies within current majors: `@noble/{ciphers,curves,hashes}` to `^2.4.0`, Vitest/`@vitest/*` to `^4.1.11`, Playwright to `^1.63.0`, Biome to `2.5.12`, and pnpm to `11.26.0`. Refresh pnpm overrides (`js-yaml` `3.15.2`/`4.3.2`, `postcss` `8.5.28`, `undici` `7.29.1`, `uuid` `14.0.2`, `picomatch` `4.0.7`, `@xmldom/xmldom` `0.8.15`, `file-type` `21.3.4`) to patched releases.
 - Upgrade the package-manager pin to pnpm `11.21.0`.
 - Upgrade TypeScript to `^7.0.2`.
@@ -46,6 +48,8 @@ For changes to the main Aptos TypeScript SDK (`@aptos-labs/ts-sdk`), see the [ro
 ## Fixed
 
 - Override transitive `image-size@1.2.1` (pulled in via Metro/Expo) with `image-size-next@1.2.2` to address CVE-2025-71329 (infinite loop on zero-size JXL/HEIF/JP2 boxes) and CVE-2025-71330 (infinite loop on zero-length ICNS entries). Upstream `image-size` is archived and has no patched 1.x/2.x release.
+- Declare the GraphQL code-generation runtime and peer packages as development dependencies so clean workspace builds can compile the generated indexer client without relying on dependencies hoisted from the pre-migration root package.
+- Declare the Aptos CLI as a development dependency so the package's shared localnet test setup resolves the correct `aptos` binary after the workspace relocation.
 - `TwistedElGamal.decryptAmount` no longer calls `console.error` on the caught discrete-log failure before re-throwing. The underlying error is now attached as `error.cause` on the thrown `TypeError`, so legitimate debug flows keep full diagnostic context but production log aggregators / crash reporters don't capture the raw error unconditionally.
 - Fix CI browser test job for `@aptos-labs/confidential-asset`:
   - `vitest.browser.config.mts` `include`/`exclude` patterns updated from `*.test.ts` to `*.test.{ts,mts}`. The unit tests live in `.test.mts` files, so vitest was finding zero tests and exiting with code 1 (the `pnpm test:browser` step in `.github/actions/run-confidential-asset-tests`).

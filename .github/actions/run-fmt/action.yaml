@@ -7,6 +7,8 @@ runs:
   steps:
     - uses: ./.github/actions/setup-node-pnpm
 
-    # Verify that the format is correct (biome format without --write checks formatting)
-    - run: pnpm install --frozen-lockfile && pnpm _fmt
+    # Install once at the repository root, then check every workspace package.
+    - run: pnpm install --frozen-lockfile
+      shell: bash
+    - run: pnpm _fmt
       shell: bash

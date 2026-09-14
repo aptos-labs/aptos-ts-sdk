@@ -1,11 +1,16 @@
 #!/bin/sh
 
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+REPO_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+PACKAGE_DIR="$REPO_ROOT/packages/ts-sdk"
+DOCS_DIR="$REPO_ROOT/docs"
+
 echo "Version from package.json: $npm_package_version";
 
-# Check that the version in package.json matches the version in src/version.ts
-VERSION_FILE='src/version.ts'
+# Check that the version in package.json matches the version in packages/ts-sdk/src/version.ts
+VERSION_FILE="$PACKAGE_DIR/src/version.ts"
 echo "Checking $VERSION_FILE";
-VERSION_FROM_FILE=$(sed -n '/VERSION/p' $VERSION_FILE | sed 's/^.* \"//' | sed 's/\";.*$//');
+VERSION_FROM_FILE=$(sed -n '/VERSION/p' "$VERSION_FILE" | sed 's/^.* \"//' | sed 's/\";.*$//');
 
 if [ "$VERSION_FROM_FILE" != "$npm_package_version" ]; then
   echo "Versions don't match, NPM: $npm_package_version, $VERSION_FILE: $VERSION_FROM_FILE";
@@ -14,8 +19,8 @@ fi;
 
 # Check that the landing page on docs has the version
 echo "Checking docs main landing";
-DOCS_FILE='docs/index.md';
-DOC_LANDING=$(sed -n "/ts-sdk-$npm_package_version/p" $DOCS_FILE);
+DOCS_FILE="$DOCS_DIR/index.md";
+DOC_LANDING=$(sed -n "/ts-sdk-$npm_package_version/p" "$DOCS_FILE");
 
 
 if [ "$DOC_LANDING" = "" ]; then
@@ -23,7 +28,7 @@ if [ "$DOC_LANDING" = "" ]; then
   exit 1;
 fi
 
-DOC_FOLDER="docs/@aptos-labs/ts-sdk-$npm_package_version"
+DOC_FOLDER="$DOCS_DIR/@aptos-labs/ts-sdk-$npm_package_version"
 
 echo "Checking docs folder $DOC_FOLDER"
 if [ ! -d "$DOC_FOLDER" ]; then

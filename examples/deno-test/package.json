@@ -13,7 +13,7 @@
     "test:all": "deno task test:all"
   },
   "dependencies": {
-    "@aptos-labs/ts-sdk": "file:../.."
+    "@aptos-labs/ts-sdk": "file:../../packages/ts-sdk"
   },
   "devDependencies": {
     "typescript": "^7.0.2"

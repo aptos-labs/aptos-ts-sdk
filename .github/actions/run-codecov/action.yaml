@@ -15,7 +15,7 @@ runs:
     - run: pnpm install --frozen-lockfile
       shell: bash
     - name: Unit tests with coverage
-      run: pnpm run test:coverage:unit
+      run: pnpm turbo run test:coverage:unit --filter=@aptos-labs/ts-sdk
       shell: bash
     # Dependabot and fork PRs do not receive repo secrets, so the token is empty
     # there and the upload would fail on protected branches. Skip instead.
@@ -24,7 +24,7 @@ runs:
       uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # pin@v5.5.5
       with:
         token: ${{ inputs.codecov-token }}
-        files: coverage/lcov.info
+        files: packages/ts-sdk/coverage/lcov.info
         flags: unit
         name: unit
         fail_ci_if_error: false

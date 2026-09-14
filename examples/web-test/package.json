@@ -10,7 +10,7 @@
     "test:headed": "playwright test --headed"
   },
   "dependencies": {
-    "@aptos-labs/ts-sdk": "link:../.."
+    "@aptos-labs/ts-sdk": "link:../../packages/ts-sdk"
   },
   "devDependencies": {
     "@types/node": "^22.20.1",

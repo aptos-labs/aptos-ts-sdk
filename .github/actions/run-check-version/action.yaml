@@ -5,13 +5,10 @@ description: |
 runs:
   using: composite
   steps:
-    # Install node and pnpm.
-    - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # pin@v6.5.0
-      with:
-        node-version-file: .node-version
-        registry-url: "https://registry.npmjs.org"
-    - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # pin@v6.1.0
+    - uses: ./.github/actions/setup-node-pnpm
 
-    # Run version check
-    - run: pnpm check-version
+    # Install once at the repository root, then check the TS SDK version.
+    - run: pnpm install --frozen-lockfile
+      shell: bash
+    - run: pnpm turbo run check-version --filter=@aptos-labs/ts-sdk
       shell: bash

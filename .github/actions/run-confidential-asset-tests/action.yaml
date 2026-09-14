@@ -10,16 +10,16 @@ runs:
   steps:
     - uses: ./.github/actions/setup-node-pnpm
 
-    # Run package install at root. This sets up the parent vitest config.
+    # Install the workspace once at the repository root.
     - run: pnpm install --frozen-lockfile
       shell: bash
 
-    # Install the dependencies for the Confidential Asset tests
-    - run: cd confidential-asset && pnpm install --frozen-lockfile
+    # Expose the lockfile-installed Aptos CLI for tests' LocalNode setup.
+    - run: echo "$PWD/packages/ts-sdk/node_modules/.bin" >> "$GITHUB_PATH"
       shell: bash
 
-    # Expose the lockfile-installed Aptos CLI for tests' LocalNode setup.
-    - run: echo "$PWD/node_modules/.bin" >> "$GITHUB_PATH"
+    # Validate the production build and packaged license for this package.
+    - run: pnpm turbo run build check-license --filter=@aptos-labs/confidential-asset
       shell: bash
 
     # Run the Confidential Asset tests.
@@ -34,10 +34,10 @@ runs:
         max_attempts: 3
         timeout_minutes: 25
         # This runs all the tests, both unit and e2e.
-        command: cd confidential-asset && pnpm test
+        command: pnpm turbo run test --filter=@aptos-labs/confidential-asset
 
     # Install Playwright browser for browser tests
-    - run: cd confidential-asset && pnpm exec playwright install --with-deps chromium
+    - run: pnpm --filter @aptos-labs/confidential-asset exec playwright install --with-deps chromium
       shell: bash
 
     # Run the Confidential Asset browser tests (unit tests only, no localnet needed).
@@ -46,7 +46,7 @@ runs:
       with:
         max_attempts: 3
         timeout_minutes: 15
-        command: cd confidential-asset && pnpm test:browser
+        command: pnpm turbo run test:browser --filter=@aptos-labs/confidential-asset
 
     - name: Print local testnet logs on failure
       shell: bash
