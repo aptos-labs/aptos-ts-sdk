@@ -451,24 +451,23 @@ async function getTransactionTableItems(args: { aptosConfig: AptosConfig; transa
 
 async function getTableMetadataForHandles(args: { aptosConfig: AptosConfig; handles: string[] }) {
   const { aptosConfig, handles } = args;
-  const requests = [];
+  const tableMetadata = [];
 
   for (let offset = 0; offset < handles.length; offset += INDEXER_PAGE_SIZE) {
     const pageHandles = handles.slice(offset, offset + INDEXER_PAGE_SIZE);
-    requests.push(
-      getTableItemsMetadata({
-        aptosConfig,
-        options: {
-          where: {
-            handle: { _in: pageHandles },
-          },
-          limit: INDEXER_PAGE_SIZE,
+    const page = await getTableItemsMetadata({
+      aptosConfig,
+      options: {
+        where: {
+          handle: { _in: pageHandles },
         },
-      }),
-    );
+        limit: INDEXER_PAGE_SIZE,
+      },
+    });
+    tableMetadata.push(...page);
   }
 
-  return (await Promise.all(requests)).flat();
+  return tableMetadata;
 }
 
 /**
@@ -504,7 +503,7 @@ export async function enrichTransactionWithTableItemData<T extends CommittedTran
   const handles = [...new Set(missingTableItemChanges.map((change) => change.handle))];
   await waitForIndexer({
     aptosConfig,
-    minimumLedgerVersion: transaction.version,
+    minimumLedgerVersion: BigInt(transaction.version),
     processorType: ProcessorType.DEFAULT,
   });
 
