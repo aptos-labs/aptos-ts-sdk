@@ -6,6 +6,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Changed
 
+- Document the approved Turbo monorepo layout for relocating the TypeScript and confidential-asset SDKs under `packages/` while reserving `packages/payments-sdk` for a future payments SDK.
 - Update dependencies within current majors: `@noble/{ciphers,curves,hashes}` and `@scure/{bip32,bip39}` to `2.4.0` (noble 2.4 security hardening), Vitest/`@vitest/coverage-v8` to `4.1.11` (path-traversal advisory), Biome to `2.5.12`, and pnpm to `11.26.0`. Refresh pnpm overrides (`js-yaml` `4.3.2`, `postcss` `8.5.28`, `markdown-it` `14.3.1`) to patched releases. Pin `pnpm/action-setup` to v6.1.0 (latest older than 3 days).
 
 # 7.3.1 (2026-08-13)
