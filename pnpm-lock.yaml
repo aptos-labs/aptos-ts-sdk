@@ -29,6 +29,7 @@ overrides:
   brace-expansion@^2: ^2.1.4
   js-yaml@^3: ^3.15.2
   undici@^7: ^7.29.1
+  image-size: npm:image-size-next@1.2.2
 
 importers:
 
@@ -2851,8 +2852,8 @@ packages:
     resolution: {integrity: sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==}
     engines: {node: '>= 4'}
 
-  image-size@1.2.1:
-    resolution: {integrity: sha512-rH+46sQJ2dlwfjfhCyNx5thzrv+dtmBIhPHk0zgRUukHzZ/kRueTJXoYYsclBaKcSMBWuGbOFXtioLpzTb5euw==}
+  image-size-next@1.2.2:
+    resolution: {integrity: sha512-Pd3CJ2+Ifk2H2jWikkoz2BSZgnuF3Qsea4gQmj2gtiOtYpGWBl7elj8EXnFMiY5PaYNruTTLD0hQ0UWK7pz9xA==}
     engines: {node: '>=16.x'}
     hasBin: true
 
@@ -7517,7 +7518,7 @@ snapshots:
 
   ignore@5.3.2: {}
 
-  image-size@1.2.1:
+  image-size-next@1.2.2:
     dependencies:
       queue: 6.0.2
 
@@ -8181,7 +8182,7 @@ snapshots:
       flow-enums-runtime: 0.0.6
       graceful-fs: 4.2.11
       hermes-parser: 0.36.1
-      image-size: 1.2.1
+      image-size: image-size-next@1.2.2
       invariant: 2.2.4
       jest-worker: 29.7.0
       jsc-safe-url: 0.2.4
