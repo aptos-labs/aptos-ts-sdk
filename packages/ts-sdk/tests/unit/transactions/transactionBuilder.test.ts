@@ -12,7 +12,7 @@ import { Network } from "../../../src/utils/apiEndpoints.js";
 import { Account } from "../../../src/account/Account.js";
 import { Deserializer } from "../../../src/bcs/deserializer.js";
 import { Serializer } from "../../../src/bcs/serializer.js";
-import { Serialized } from "../../../src/bcs/serializable/moveStructs.js";
+import { MoveVector, Serialized } from "../../../src/bcs/serializable/moveStructs.js";
 import { AccountAddress } from "../../../src/core/index.js";
 import { Ed25519PrivateKey } from "../../../src/core/crypto/ed25519.js";
 import { Secp256k1PrivateKey } from "../../../src/core/crypto/secp256k1.js";
@@ -73,6 +73,56 @@ const sender = Account.generate();
 const COIN_TRANSFER_SCRIPT =
   "a11ceb0b060000000701000202020603080c04140405181a07321b084d2000000001040100010002030101000003040501000002010203060c0305010b0001090001090002060c0302050b000109000004636f696e04436f696e087769746864726177076465706f736974000000000000000000000000000000000000000000000000000000000000000101000001080b000b0138000c030b020b03380102";
 const VECTOR_U64_SCRIPT = new Uint8Array([0xa1, 0x1c, 0xeb, 0x0b, 6, 0, 0, 0, 1, 5, 0, 3, 1, 0x0a, 0x03, 0, 0, 1, 2]);
+const GENERIC_VECTOR_SCRIPT = new Uint8Array([
+  0xa1, 0x1c, 0xeb, 0x0b, 6, 0, 0, 0, 1, 5, 0, 5, 1, 0x0a, 0x09, 0, 0, 1, 0, 0, 1, 1, 2,
+]);
+
+function customStructScript(): Uint8Array {
+  const tables = [
+    { kind: 1, bytes: [0, 0] },
+    { kind: 2, bytes: [0, 1, 0, 0] },
+    { kind: 5, bytes: [1, 8, 0] },
+    { kind: 7, bytes: [1, "m".charCodeAt(0), 1, "S".charCodeAt(0)] },
+    { kind: 8, bytes: [...new Uint8Array(31), 1] },
+  ];
+  let offset = 0;
+  const headers = tables.flatMap(({ kind, bytes }) => {
+    const header = [kind, offset, bytes.length];
+    offset += bytes.length;
+    return header;
+  });
+  return new Uint8Array([
+    0xa1,
+    0x1c,
+    0xeb,
+    0x0b,
+    6,
+    0,
+    0,
+    0,
+    tables.length,
+    ...headers,
+    ...tables.flatMap(({ bytes }) => bytes),
+    0,
+    0,
+    0,
+    1,
+    2,
+  ]);
+}
+
+function serializeScriptArgument(payload: TransactionPayloadScript): {
+  bytes: Uint8Array;
+  argument: ReturnType<typeof deserializeFromScriptArgument>;
+} {
+  const serializer = new Serializer();
+  payload.script.args[0].serializeForScriptFunction(serializer);
+  const bytes = serializer.toUint8Array();
+  return {
+    bytes,
+    argument: deserializeFromScriptArgument(new Deserializer(bytes)),
+  };
+}
 
 function makeEntryPayload(): TransactionPayloadEntryFunction {
   const moduleId = new ModuleId(AccountAddress.ONE, new Identifier("aptos_account"));
@@ -293,6 +343,47 @@ describe("transactionBuilder/transactionBuilder", () => {
       const restored = TransactionPayload.deserialize(new Deserializer(payload.bcsToBytes()));
       expect(restored).toBeInstanceOf(TransactionPayloadScript);
       expect((restored as TransactionPayloadScript).script.args[0]).toBeInstanceOf(Serialized);
+    });
+
+    it.each([
+      ["array", [1, 2], new Uint8Array([4, 2, 1, 2])],
+      ["string", "hi", new Uint8Array([4, 2, 104, 105])],
+      ["Uint8Array", new Uint8Array([3, 4]), new Uint8Array([4, 2, 3, 4])],
+    ])("instantiates generic vector<u8> for the %s shorthand", async (_name, input, expectedBytes) => {
+      const payload = await generateTransactionPayload({
+        bytecode: GENERIC_VECTOR_SCRIPT,
+        typeArguments: ["u8"],
+        functionArguments: [input],
+      });
+
+      const { bytes, argument } = serializeScriptArgument(payload);
+      expect(bytes).toEqual(expectedBytes);
+      expect(argument).toBeInstanceOf(MoveVector);
+      expect(argument).not.toBeInstanceOf(Serialized);
+    });
+
+    it("instantiates a generic vector with non-native elements as Serialized BCS bytes", async () => {
+      const payload = await generateTransactionPayload({
+        bytecode: GENERIC_VECTOR_SCRIPT,
+        typeArguments: ["0x1::string::String"],
+        functionArguments: [["a", "b"]],
+      });
+
+      const { bytes, argument } = serializeScriptArgument(payload);
+      expect(bytes).toEqual(new Uint8Array([9, 5, 2, 1, 97, 1, 98]));
+      expect(argument).toBeInstanceOf(Serialized);
+    });
+
+    it("directs plain custom script structs to Serialized BCS bytes", async () => {
+      await expect(
+        generateTransactionPayload({
+          bytecode: customStructScript(),
+          typeArguments: [],
+          functionArguments: [{ field: 7 } as never],
+        }),
+      ).rejects.toThrow(
+        "Script custom struct/enum arguments must be passed as Serialized containing the BCS-encoded bytes",
+      );
     });
 
     it("validates parsed script argument counts", async () => {
