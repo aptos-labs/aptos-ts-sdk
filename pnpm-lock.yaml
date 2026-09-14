@@ -71,6 +71,12 @@ importers:
       '@vitest/coverage-v8':
         specifier: ^4.1.11
         version: 4.1.11(@vitest/browser@4.1.11)(vitest@4.1.11)
+      graphql:
+        specifier: ^16.14.2
+        version: 16.14.2
+      graphql-request:
+        specifier: ^7.4.0
+        version: 7.4.0(graphql@16.14.2)
       playwright:
         specifier: ^1.63.0
         version: 1.63.0

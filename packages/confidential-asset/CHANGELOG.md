@@ -47,6 +47,7 @@ For changes to the main Aptos TypeScript SDK (`@aptos-labs/ts-sdk`), see its [CH
 ## Fixed
 
 - Override transitive `image-size@1.2.1` (pulled in via Metro/Expo) with `image-size-next@1.2.2` to address CVE-2025-71329 (infinite loop on zero-size JXL/HEIF/JP2 boxes) and CVE-2025-71330 (infinite loop on zero-length ICNS entries). Upstream `image-size` is archived and has no patched 1.x/2.x release.
+- Declare the GraphQL code-generation runtime and peer packages as development dependencies so clean workspace builds can compile the generated indexer client without relying on dependencies hoisted from the pre-migration root package.
 - `TwistedElGamal.decryptAmount` no longer calls `console.error` on the caught discrete-log failure before re-throwing. The underlying error is now attached as `error.cause` on the thrown `TypeError`, so legitimate debug flows keep full diagnostic context but production log aggregators / crash reporters don't capture the raw error unconditionally.
 - Fix CI browser test job for `@aptos-labs/confidential-asset`:
   - `vitest.browser.config.mts` `include`/`exclude` patterns updated from `*.test.ts` to `*.test.{ts,mts}`. The unit tests live in `.test.mts` files, so vitest was finding zero tests and exiting with code 1 (the `pnpm test:browser` step in `.github/actions/run-confidential-asset-tests`).
