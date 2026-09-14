@@ -490,6 +490,7 @@ export class DigitalAsset {
    * @param args.description - The description of the collection.
    * @param args.name - The name of the collection.
    * @param args.uri - The URI to additional info about the collection.
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    * @param args.options - Optional parameters for generating the transaction.
    *
    * The parameters below are optional:
@@ -538,6 +539,7 @@ export class DigitalAsset {
       description: string;
       name: string;
       uri: string;
+      withFeePayer?: boolean;
       options?: InputGenerateTransactionOptions;
     } & CreateCollectionOptions,
   ): Promise<SimpleTransaction> {
@@ -556,6 +558,7 @@ export class DigitalAsset {
    * @param args.propertyKeys - Optional array of property keys for the digital asset.
    * @param args.propertyTypes - Optional array of property types for the digital asset.
    * @param args.propertyValues - Optional array of property values for the digital asset.
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    * @param args.options - Optional transaction generation options.
    *
    * @returns A SimpleTransaction that can be simulated or submitted to the chain.
@@ -592,6 +595,7 @@ export class DigitalAsset {
     propertyKeys?: Array<string>;
     propertyTypes?: Array<PropertyType>;
     propertyValues?: Array<PropertyValue>;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     return mintDigitalAssetTransaction({ aptosConfig: this.config, ...args });
@@ -606,6 +610,7 @@ export class DigitalAsset {
    * @param args.digitalAssetAddress The address of the digital asset being transferred.
    * @param args.recipient The account address of the recipient.
    * @param args.digitalAssetType Optional. The type of the digital asset, defaults to "0x4::token::Token".
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    * @param args.options Optional. Additional options for generating the transaction.
    *
    * @returns A SimpleTransaction that can be simulated or submitted to the chain.
@@ -636,6 +641,7 @@ export class DigitalAsset {
     digitalAssetAddress: AccountAddressInput;
     recipient: AccountAddress;
     digitalAssetType?: MoveStructId;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     return transferDigitalAssetTransaction({ aptosConfig: this.config, ...args });
@@ -655,6 +661,7 @@ export class DigitalAsset {
    * @param args.propertyKeys - The property keys for storing on-chain properties.
    * @param args.propertyTypes - The type of property values.
    * @param args.propertyValues - The property values to be stored on-chain.
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    * @param args.options - Additional options for generating the transaction.
    *
    * @returns A SimpleTransaction that can be simulated or submitted to the chain.
@@ -693,6 +700,7 @@ export class DigitalAsset {
     propertyKeys?: Array<string>;
     propertyTypes?: Array<PropertyType>;
     propertyValues?: Array<PropertyValue>;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     return mintSoulBoundTransaction({ aptosConfig: this.config, ...args });
@@ -705,6 +713,7 @@ export class DigitalAsset {
    * @param args.creator The creator account that is burning the digital asset.
    * @param args.digitalAssetAddress The address of the digital asset to be burned.
    * @param args.digitalAssetType Optional. The type of the digital asset being burned.
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    * @param args.options Optional. Additional options for generating the transaction.
    *
    * @returns A SimpleTransaction that can be simulated or submitted to the chain.
@@ -733,6 +742,7 @@ export class DigitalAsset {
     creator: Account;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }) {
     return burnDigitalAssetTransaction({ aptosConfig: this.config, ...args });
@@ -746,6 +756,7 @@ export class DigitalAsset {
    * @param args.creator The creator account initiating the freeze.
    * @param args.digitalAssetAddress The address of the digital asset to be frozen.
    * @param args.digitalAssetType Optional. The type of the digital asset being frozen.
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    * @param args.options Optional. Additional options for generating the transaction.
    *
    * @returns A SimpleTransaction that can be simulated or submitted to the chain.
@@ -774,6 +785,7 @@ export class DigitalAsset {
     creator: Account;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }) {
     return freezeDigitalAssetTransferTransaction({ aptosConfig: this.config, ...args });
@@ -787,6 +799,7 @@ export class DigitalAsset {
    * @param args.creator The creator account that is unfreezing the digital asset transfer.
    * @param args.digitalAssetAddress The address of the digital asset to unfreeze.
    * @param args.digitalAssetType Optional. The type of the digital asset being unfrozen.
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    * @param args.options Optional. Additional options for generating the transaction.
    *
    * @returns A SimpleTransaction that can be simulated or submitted to the chain.
@@ -816,6 +829,7 @@ export class DigitalAsset {
     creator: Account;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }) {
     return unfreezeDigitalAssetTransferTransaction({ aptosConfig: this.config, ...args });
@@ -829,6 +843,7 @@ export class DigitalAsset {
    * @param args.description The digital asset description to be set.
    * @param args.digitalAssetAddress The address of the digital asset.
    * @param args.digitalAssetType Optional. The type of the digital asset.
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    * @param args.options Optional. Additional options for generating the transaction.
    *
    * @returns A SimpleTransaction that can be simulated or submitted to the chain.
@@ -859,6 +874,7 @@ export class DigitalAsset {
     description: string;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }) {
     return setDigitalAssetDescriptionTransaction({ aptosConfig: this.config, ...args });
@@ -872,6 +888,7 @@ export class DigitalAsset {
    * @param args.name The desired name for the digital asset.
    * @param args.digitalAssetAddress The address of the digital asset.
    * @param args.digitalAssetType Optional. The type of the digital asset, represented as a Move struct ID.
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    * @param args.options Optional. Additional options for generating the transaction.
    *
    * @returns A SimpleTransaction that can be simulated or submitted to the blockchain.
@@ -905,6 +922,7 @@ export class DigitalAsset {
     name: string;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }) {
     return setDigitalAssetNameTransaction({ aptosConfig: this.config, ...args });
@@ -918,6 +936,7 @@ export class DigitalAsset {
    * @param args.uri The digital asset URI to be set.
    * @param args.digitalAssetAddress The address of the digital asset.
    * @param args.digitalAssetType Optional. The type of the digital asset.
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    * @param args.options Optional. Additional options for generating the transaction.
    * @returns A SimpleTransaction that can be simulated or submitted to the chain.
    *
@@ -947,6 +966,7 @@ export class DigitalAsset {
     uri: string;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }) {
     return setDigitalAssetURITransaction({ aptosConfig: this.config, ...args });
@@ -963,6 +983,7 @@ export class DigitalAsset {
    * @param args.propertyValue - The property value to be stored on-chain.
    * @param args.digitalAssetAddress - The digital asset address.
    * @param args.digitalAssetType - (Optional) The type of the digital asset.
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    * @param args.options - (Optional) Options for generating the transaction.
    * @returns A SimpleTransaction that can be simulated or submitted to the chain.
    *
@@ -996,6 +1017,7 @@ export class DigitalAsset {
     propertyValue: PropertyValue;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }) {
     return addDigitalAssetPropertyTransaction({ aptosConfig: this.config, ...args });
@@ -1012,6 +1034,7 @@ export class DigitalAsset {
    * @param args.propertyValue The property value to be stored on-chain.
    * @param args.digitalAssetAddress The digital asset address.
    * @param args.digitalAssetType Optional. The type of the digital asset.
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    * @param args.options Optional. Additional options for generating the transaction.
    *
    * @returns A SimpleTransaction that can be simulated or submitted to the chain.
@@ -1046,6 +1069,7 @@ export class DigitalAsset {
     propertyValue: PropertyValue;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }) {
     return removeDigitalAssetPropertyTransaction({ aptosConfig: this.config, ...args });
@@ -1061,6 +1085,7 @@ export class DigitalAsset {
    * @param args.propertyType The type of property value.
    * @param args.propertyValue The property value to be stored on-chain.
    * @param args.digitalAssetType Optional. The type of the digital asset.
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    * @param args.options Optional. Additional options for generating the transaction.
    *
    * @returns A SimpleTransaction that can be simulated or submitted to the chain.
@@ -1095,6 +1120,7 @@ export class DigitalAsset {
     propertyValue: PropertyValue;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }) {
     return updateDigitalAssetPropertyTransaction({ aptosConfig: this.config, ...args });
@@ -1112,6 +1138,7 @@ export class DigitalAsset {
    * @param args.propertyValue - The property value to be stored on-chain.
    * @param args.digitalAssetAddress - The digital asset address.
    * @param args.digitalAssetType - The optional type of the digital asset.
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    * @param args.options - Optional transaction generation options.
    *
    * @returns A SimpleTransaction that can be simulated or submitted to the chain.
@@ -1146,6 +1173,7 @@ export class DigitalAsset {
     propertyValue: PropertyValue;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }) {
     return addDigitalAssetTypedPropertyTransaction({ aptosConfig: this.config, ...args });
@@ -1162,6 +1190,7 @@ export class DigitalAsset {
    * @param args.propertyValue - The property value to be stored on-chain.
    * @param args.digitalAssetAddress - The digital asset address.
    * @param args.digitalAssetType - (Optional) The type of the digital asset.
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    * @param args.options - (Optional) Additional options for generating the transaction.
    *
    * @returns A SimpleTransaction that can be simulated or submitted to the chain.
@@ -1196,6 +1225,7 @@ export class DigitalAsset {
     propertyValue: PropertyValue;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }) {
     return updateDigitalAssetTypedPropertyTransaction({ aptosConfig: this.config, ...args });

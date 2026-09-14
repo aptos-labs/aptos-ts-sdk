@@ -319,6 +319,7 @@ const createCollectionAbi: EntryFunctionABI = {
  * @param args.description - A description of the collection.
  * @param args.name - The name of the collection.
  * @param args.uri - The URI associated with the collection.
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param args.options - Optional parameters for generating the transaction.
  * @param args.maxSupply - The maximum supply of tokens in the collection (optional).
  * @param args.mutableDescription - Indicates if the collection description can be changed (optional, defaults to true).
@@ -341,10 +342,11 @@ export async function createCollectionTransaction(
     description: string;
     name: string;
     uri: string;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   } & CreateCollectionOptions,
 ): Promise<SimpleTransaction> {
-  const { aptosConfig, options, creator } = args;
+  const { aptosConfig, creator, withFeePayer, options } = args;
   return generateTransaction({
     aptosConfig,
     sender: creator.accountAddress,
@@ -370,6 +372,7 @@ export async function createCollectionTransaction(
       ],
       abi: createCollectionAbi,
     },
+    withFeePayer,
     options,
   });
 }
@@ -572,6 +575,7 @@ const mintDigitalAssetAbi: EntryFunctionABI = {
  * @param [args.propertyKeys] - Optional array of property keys associated with the asset.
  * @param [args.propertyTypes] - Optional array of property types corresponding to the asset's properties.
  * @param [args.propertyValues] - Optional array of property values for the asset's properties.
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param [args.options] - Optional transaction generation options.
  * @group Implementation
  */
@@ -585,6 +589,7 @@ export async function mintDigitalAssetTransaction(args: {
   propertyKeys?: Array<string>;
   propertyTypes?: Array<PropertyType>;
   propertyValues?: Array<PropertyValue>;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
   const {
@@ -598,6 +603,7 @@ export async function mintDigitalAssetTransaction(args: {
     propertyKeys,
     propertyTypes,
     propertyValues,
+    withFeePayer,
   } = args;
   const convertedPropertyType = propertyTypes?.map((type) => PropertyTypeMap[type]);
   return generateTransaction({
@@ -625,6 +631,7 @@ export async function mintDigitalAssetTransaction(args: {
       ],
       abi: mintDigitalAssetAbi,
     },
+    withFeePayer,
     options,
   });
 }
@@ -644,6 +651,7 @@ const transferDigitalAssetAbi: EntryFunctionABI = {
  * @param args.digitalAssetAddress - The address of the digital asset being transferred.
  * @param args.recipient - The address of the account receiving the digital asset.
  * @param args.digitalAssetType - (Optional) The type of the digital asset being transferred.
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param args.options - (Optional) Additional options for generating the transaction.
  * @group Implementation
  */
@@ -653,9 +661,10 @@ export async function transferDigitalAssetTransaction(args: {
   digitalAssetAddress: AccountAddressInput;
   recipient: AccountAddressInput;
   digitalAssetType?: MoveStructId;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, sender, digitalAssetAddress, recipient, digitalAssetType, options } = args;
+  const { aptosConfig, sender, digitalAssetAddress, recipient, digitalAssetType, withFeePayer, options } = args;
   return generateTransaction({
     aptosConfig,
     sender: sender.accountAddress,
@@ -665,6 +674,7 @@ export async function transferDigitalAssetTransaction(args: {
       functionArguments: [AccountAddress.from(digitalAssetAddress), AccountAddress.from(recipient)],
       abi: transferDigitalAssetAbi,
     },
+    withFeePayer,
     options,
   });
 }
@@ -698,6 +708,7 @@ const mintSoulBoundAbi: EntryFunctionABI = {
  * @param [args.propertyKeys] - Optional array of property keys associated with the token.
  * @param [args.propertyTypes] - Optional array of property types corresponding to the property keys.
  * @param [args.propertyValues] - Optional array of property values that match the property keys and types.
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param [args.options] - Optional transaction generation options.
  * @throws Error if the counts of property keys, property types, and property values do not match.
  * @group Implementation
@@ -713,6 +724,7 @@ export async function mintSoulBoundTransaction(args: {
   propertyKeys?: Array<string>;
   propertyTypes?: Array<PropertyType>;
   propertyValues?: Array<PropertyValue>;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
   const {
@@ -726,6 +738,7 @@ export async function mintSoulBoundTransaction(args: {
     propertyKeys,
     propertyTypes,
     propertyValues,
+    withFeePayer,
     options,
   } = args;
   if (propertyKeys?.length !== propertyValues?.length) {
@@ -752,6 +765,7 @@ export async function mintSoulBoundTransaction(args: {
       ],
       abi: mintSoulBoundAbi,
     },
+    withFeePayer,
     options,
   });
 }
@@ -770,6 +784,7 @@ const burnDigitalAssetAbi: EntryFunctionABI = {
  * @param args.creator - The account that is initiating the burn transaction.
  * @param args.digitalAssetAddress - The address of the digital asset to be burned.
  * @param args.digitalAssetType - Optional; the type of the digital asset being burned.
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param args.options - Optional; additional options for generating the transaction.
  * @group Implementation
  */
@@ -778,9 +793,10 @@ export async function burnDigitalAssetTransaction(args: {
   creator: Account;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, creator, digitalAssetAddress, digitalAssetType, options } = args;
+  const { aptosConfig, creator, digitalAssetAddress, digitalAssetType, withFeePayer, options } = args;
   return generateTransaction({
     aptosConfig,
     sender: creator.accountAddress,
@@ -790,6 +806,7 @@ export async function burnDigitalAssetTransaction(args: {
       functionArguments: [AccountAddress.from(digitalAssetAddress)],
       abi: burnDigitalAssetAbi,
     },
+    withFeePayer,
     options,
   });
 }
@@ -808,6 +825,7 @@ const freezeDigitalAssetAbi: EntryFunctionABI = {
  * @param args.creator - The account that is creating the transaction.
  * @param args.digitalAssetAddress - The address of the digital asset to be frozen.
  * @param args.digitalAssetType - (Optional) The type of the digital asset as a Move struct ID.
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param args.options - (Optional) Additional options for generating the transaction.
  * @group Implementation
  */
@@ -816,9 +834,10 @@ export async function freezeDigitalAssetTransferTransaction(args: {
   creator: Account;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, creator, digitalAssetAddress, digitalAssetType, options } = args;
+  const { aptosConfig, creator, digitalAssetAddress, digitalAssetType, withFeePayer, options } = args;
   return generateTransaction({
     aptosConfig,
     sender: creator.accountAddress,
@@ -828,6 +847,7 @@ export async function freezeDigitalAssetTransferTransaction(args: {
       functionArguments: [digitalAssetAddress],
       abi: freezeDigitalAssetAbi,
     },
+    withFeePayer,
     options,
   });
 }
@@ -845,6 +865,7 @@ const unfreezeDigitalAssetAbi: EntryFunctionABI = {
  * @param args.creator - The account that is initiating the unfreeze transaction.
  * @param args.digitalAssetAddress - The address of the digital asset to be unfrozen.
  * @param args.digitalAssetType - (Optional) The type of the digital asset being unfrozen.
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param args.options - (Optional) Additional options for generating the transaction.
  * @group Implementation
  */
@@ -853,9 +874,10 @@ export async function unfreezeDigitalAssetTransferTransaction(args: {
   creator: Account;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, creator, digitalAssetAddress, digitalAssetType, options } = args;
+  const { aptosConfig, creator, digitalAssetAddress, digitalAssetType, withFeePayer, options } = args;
   return generateTransaction({
     aptosConfig,
     sender: creator.accountAddress,
@@ -865,6 +887,7 @@ export async function unfreezeDigitalAssetTransferTransaction(args: {
       functionArguments: [digitalAssetAddress],
       abi: unfreezeDigitalAssetAbi,
     },
+    withFeePayer,
     options,
   });
 }
@@ -883,6 +906,7 @@ const setDigitalAssetDescriptionAbi: EntryFunctionABI = {
  * @param args.description - The new description for the digital asset.
  * @param args.digitalAssetAddress - The address of the digital asset whose description is being set.
  * @param args.digitalAssetType - (Optional) The type of the digital asset.
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param args.options - (Optional) Additional options for generating the transaction.
  * @group Implementation
  */
@@ -892,9 +916,10 @@ export async function setDigitalAssetDescriptionTransaction(args: {
   description: string;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, creator, description, digitalAssetAddress, digitalAssetType, options } = args;
+  const { aptosConfig, creator, description, digitalAssetAddress, digitalAssetType, withFeePayer, options } = args;
   return generateTransaction({
     aptosConfig,
     sender: creator.accountAddress,
@@ -904,6 +929,7 @@ export async function setDigitalAssetDescriptionTransaction(args: {
       functionArguments: [AccountAddress.from(digitalAssetAddress), new MoveString(description)],
       abi: setDigitalAssetDescriptionAbi,
     },
+    withFeePayer,
     options,
   });
 }
@@ -923,6 +949,7 @@ const setDigitalAssetNameAbi: EntryFunctionABI = {
  * @param args.name - The new name to assign to the digital asset.
  * @param args.digitalAssetAddress - The address of the digital asset to update.
  * @param args.digitalAssetType - (Optional) The type of the digital asset, represented as a Move struct ID.
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param args.options - (Optional) Additional options for generating the transaction.
  * @group Implementation
  */
@@ -932,9 +959,10 @@ export async function setDigitalAssetNameTransaction(args: {
   name: string;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, creator, name, digitalAssetAddress, digitalAssetType, options } = args;
+  const { aptosConfig, creator, name, digitalAssetAddress, digitalAssetType, withFeePayer, options } = args;
   return generateTransaction({
     aptosConfig,
     sender: creator.accountAddress,
@@ -944,6 +972,7 @@ export async function setDigitalAssetNameTransaction(args: {
       functionArguments: [AccountAddress.from(digitalAssetAddress), new MoveString(name)],
       abi: setDigitalAssetNameAbi,
     },
+    withFeePayer,
     options,
   });
 }
@@ -962,6 +991,7 @@ const setDigitalAssetURIAbi: EntryFunctionABI = {
  * @param args.uri - The new URI to be set for the digital asset.
  * @param args.digitalAssetAddress - The address of the digital asset whose URI is being set.
  * @param args.digitalAssetType - The optional type of the digital asset; defaults to a predefined type if not provided.
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param args.options - Optional settings for generating the transaction.
  * @group Implementation
  */
@@ -971,9 +1001,10 @@ export async function setDigitalAssetURITransaction(args: {
   uri: string;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, creator, uri, digitalAssetAddress, digitalAssetType, options } = args;
+  const { aptosConfig, creator, uri, digitalAssetAddress, digitalAssetType, withFeePayer, options } = args;
   return generateTransaction({
     aptosConfig,
     sender: creator.accountAddress,
@@ -983,6 +1014,7 @@ export async function setDigitalAssetURITransaction(args: {
       functionArguments: [AccountAddress.from(digitalAssetAddress), new MoveString(uri)],
       abi: setDigitalAssetURIAbi,
     },
+    withFeePayer,
     options,
   });
 }
@@ -1009,6 +1041,7 @@ const addDigitalAssetPropertyAbi: EntryFunctionABI = {
  * @param args.propertyValue - The value of the property being added.
  * @param args.digitalAssetAddress - The address of the digital asset to which the property is being added.
  * @param args.digitalAssetType - The optional type of the digital asset.
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param args.options - Optional transaction generation options.
  * @group Implementation
  */
@@ -1020,6 +1053,7 @@ export async function addDigitalAssetPropertyTransaction(args: {
   propertyValue: PropertyValue;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
   const {
@@ -1030,6 +1064,7 @@ export async function addDigitalAssetPropertyTransaction(args: {
     propertyValue,
     digitalAssetAddress,
     digitalAssetType,
+    withFeePayer,
     options,
   } = args;
   return generateTransaction({
@@ -1046,6 +1081,7 @@ export async function addDigitalAssetPropertyTransaction(args: {
       ],
       abi: addDigitalAssetPropertyAbi,
     },
+    withFeePayer,
     options,
   });
 }
@@ -1065,6 +1101,7 @@ const removeDigitalAssetPropertyAbi: EntryFunctionABI = {
  * @param args.propertyKey - The key of the property to be removed.
  * @param args.digitalAssetAddress - The address of the digital asset from which the property will be removed.
  * @param args.digitalAssetType - The type of the digital asset (optional).
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param args.options - Additional options for generating the transaction (optional).
  * @group Implementation
  */
@@ -1074,9 +1111,10 @@ export async function removeDigitalAssetPropertyTransaction(args: {
   propertyKey: string;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, creator, propertyKey, digitalAssetAddress, digitalAssetType, options } = args;
+  const { aptosConfig, creator, propertyKey, digitalAssetAddress, digitalAssetType, withFeePayer, options } = args;
   return generateTransaction({
     aptosConfig,
     sender: creator.accountAddress,
@@ -1086,6 +1124,7 @@ export async function removeDigitalAssetPropertyTransaction(args: {
       functionArguments: [AccountAddress.from(digitalAssetAddress), new MoveString(propertyKey)],
       abi: removeDigitalAssetPropertyAbi,
     },
+    withFeePayer,
     options,
   });
 }
@@ -1112,6 +1151,7 @@ const updateDigitalAssetPropertyAbi: EntryFunctionABI = {
  * @param args.propertyValue - The new value for the property.
  * @param args.digitalAssetAddress - The address of the digital asset to update.
  * @param args.digitalAssetType - (Optional) The type of the digital asset.
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param args.options - (Optional) Additional options for generating the transaction.
  * @group Implementation
  */
@@ -1123,6 +1163,7 @@ export async function updateDigitalAssetPropertyTransaction(args: {
   propertyValue: PropertyValue;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
   const {
@@ -1133,6 +1174,7 @@ export async function updateDigitalAssetPropertyTransaction(args: {
     propertyValue,
     digitalAssetAddress,
     digitalAssetType,
+    withFeePayer,
     options,
   } = args;
   return generateTransaction({
@@ -1158,6 +1200,7 @@ export async function updateDigitalAssetPropertyTransaction(args: {
       ],
       abi: updateDigitalAssetPropertyAbi,
     },
+    withFeePayer,
     options,
   });
 }
@@ -1183,6 +1226,7 @@ const addDigitalAssetTypedPropertyAbi: EntryFunctionABI = {
  * @param args.propertyValue - The value of the property being added.
  * @param args.digitalAssetAddress - The address of the digital asset to which the property is being added.
  * @param args.digitalAssetType - (Optional) The type of the digital asset.
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param args.options - (Optional) Additional options for generating the transaction.
  * @group Implementation
  */
@@ -1194,6 +1238,7 @@ export async function addDigitalAssetTypedPropertyTransaction(args: {
   propertyValue: PropertyValue;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
   const {
@@ -1204,6 +1249,7 @@ export async function addDigitalAssetTypedPropertyTransaction(args: {
     propertyValue,
     digitalAssetAddress,
     digitalAssetType,
+    withFeePayer,
     options,
   } = args;
   return generateTransaction({
@@ -1215,6 +1261,7 @@ export async function addDigitalAssetTypedPropertyTransaction(args: {
       functionArguments: [AccountAddress.from(digitalAssetAddress), new MoveString(propertyKey), propertyValue],
       abi: addDigitalAssetTypedPropertyAbi,
     },
+    withFeePayer,
     options,
   });
 }
@@ -1239,6 +1286,7 @@ const updateDigitalAssetTypedPropertyAbi: EntryFunctionABI = {
  * @param args.propertyValue - The new value for the property.
  * @param args.digitalAssetAddress - The address of the digital asset to be updated.
  * @param args.digitalAssetType - Optional. The type of the digital asset, if not provided, defaults to the standard type.
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param args.options - Optional. Additional options for generating the transaction.
  * @group Implementation
  */
@@ -1250,6 +1298,7 @@ export async function updateDigitalAssetTypedPropertyTransaction(args: {
   propertyValue: PropertyValue;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
   const {
@@ -1260,6 +1309,7 @@ export async function updateDigitalAssetTypedPropertyTransaction(args: {
     propertyValue,
     digitalAssetAddress,
     digitalAssetType,
+    withFeePayer,
     options,
   } = args;
   return generateTransaction({
@@ -1271,6 +1321,7 @@ export async function updateDigitalAssetTypedPropertyTransaction(args: {
       functionArguments: [AccountAddress.from(digitalAssetAddress), new MoveString(propertyKey), propertyValue],
       abi: updateDigitalAssetTypedPropertyAbi,
     },
+    withFeePayer,
     options,
   });
 }
