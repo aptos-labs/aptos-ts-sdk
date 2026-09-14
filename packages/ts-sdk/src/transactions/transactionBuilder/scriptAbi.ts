@@ -216,17 +216,21 @@ class ScriptBytecodeReader {
     invalidScript(`ULEB128 encoding for ${label} continues after five bytes`);
   }
 
-  readUleb128Bytes(label: string, maxBytes: number): void {
-    for (let byteIndex = 0; byteIndex < maxBytes; byteIndex += 1) {
+  readUleb128U64(label: string): void {
+    for (let byteIndex = 0; byteIndex < 10; byteIndex += 1) {
       const byte = this.readU8(label);
+      const group = byte % 128;
+      if (byteIndex === 9 && group > 1) {
+        invalidScript(`${label} exceeds maximum u64`);
+      }
       if (byte < 128) {
-        if (byteIndex > 0 && byte === 0) {
+        if (byteIndex > 0 && group === 0) {
           invalidScript(`non-canonical ULEB128 encoding for ${label}`);
         }
         return;
       }
     }
-    invalidScript(`ULEB128 encoding for ${label} continues after ${maxBytes} bytes`);
+    invalidScript(`ULEB128 encoding for ${label} continues after ten bytes`);
   }
 
   readBytes(length: number, label: string): Uint8Array {
@@ -375,6 +379,9 @@ function parseIdentifiers(reader: ScriptBytecodeReader | undefined, version: num
   return parseEntries(reader, (entry) => {
     const length = entry.readUleb128("identifier length", TABLE_INDEX_MAX);
     const bytes = entry.readBytes(length, "identifier");
+    if (bytes.some((byte) => byte > 0x7f)) {
+      invalidScript("identifier bytes must be ASCII");
+    }
     let identifier: string;
     try {
       identifier = decoder.decode(bytes);
@@ -688,7 +695,10 @@ function parseConstants(reader: ScriptBytecodeReader | undefined, version: numbe
   });
 }
 
-function parseMetadata(reader: ScriptBytecodeReader | undefined): void {
+function parseMetadata(reader: ScriptBytecodeReader | undefined, version: number): void {
+  if (reader !== undefined && version < 5) {
+    invalidScript(`metadata tables are not supported in bytecode version ${version}`);
+  }
   parseEntries(reader, (entry) => {
     const keyLength = entry.readUleb128("metadata key length", 1023);
     entry.readBytes(keyLength, "metadata key");
@@ -869,14 +879,18 @@ function parseInstruction(
   }
   if (opcode === 0x58 || opcode === 0x59) {
     reader.readUleb128(`instruction ${instructionIndex} function index`, TABLE_INDEX_MAX);
-    reader.readUleb128Bytes(`instruction ${instructionIndex} closure mask`, 10);
+    reader.readUleb128U64(`instruction ${instructionIndex} closure mask`);
+    return;
+  }
+  if (opcode >= 0x0a && opcode <= 0x0e) {
+    reader.readUleb128(`instruction ${instructionIndex} local index`, 255);
     return;
   }
 
   const hasIndexOperand =
     (opcode >= 0x03 && opcode <= 0x05) ||
     opcode === 0x07 ||
-    (opcode >= 0x0a && opcode <= 0x13) ||
+    (opcode >= 0x0f && opcode <= 0x13) ||
     (opcode >= 0x29 && opcode <= 0x2d) ||
     (opcode >= 0x36 && opcode <= 0x3f) ||
     (opcode >= 0x41 && opcode <= 0x45) ||
@@ -1028,7 +1042,7 @@ export function parseScriptAbi(bytecode: HexInput): ScriptABI {
     tableReader(tableContents, headers, TableType.FunctionInstantiations),
   );
   const constantTypes = parseConstants(tableReader(tableContents, headers, TableType.ConstantPool), version);
-  parseMetadata(tableReader(tableContents, headers, TableType.Metadata));
+  parseMetadata(tableReader(tableContents, headers, TableType.Metadata), version);
 
   for (const moduleHandle of moduleHandles) {
     indexed(addresses, moduleHandle.address, "module handle address");

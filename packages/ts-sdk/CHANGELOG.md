@@ -20,6 +20,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Recursively instantiate generic script parameter types before plain-argument conversion, preserving direct `U8Vector` encoding for `vector<T>` instantiated with `u8` and `Serialized` encoding for non-native instantiations.
 - Structurally consume complete compiled-script bodies (including v8+ access specifiers and all v1-v10 instruction encodings), validate ABI-relevant references and Move identifiers, and reject truncated or trailing malformed bytecode.
+- Harden script ABI parsing with exact u64 closure-mask ULEB limits, u8 local-index bounds, byte-level ASCII identifier validation, and the version 5 metadata-table gate.
 - Report script-specific `Serialized` BCS guidance when plain custom struct or enum arguments cannot be converted offline.
 
 # 7.3.1 (2026-08-13)
