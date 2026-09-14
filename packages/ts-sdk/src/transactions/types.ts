@@ -503,10 +503,10 @@ export type InputSimulateTransactionData = {
    */
   transaction: AnyRawTransaction;
   /**
-   * For a single signer transaction
+   * The primary sender's public key. Omit it to skip the sender's public/authentication-key check during
+   * simulation.
    * @group Implementation
    * @category Transactions
-   * This is optional and can be undefined to skip the public/auth key check during the transaction simulation.
    */
   signerPublicKey?: PublicKey;
   /**
@@ -516,7 +516,8 @@ export type InputSimulateTransactionData = {
    */
   secondarySignersPublicKeys?: Array<PublicKey | undefined>;
   /**
-   * For a fee payer transaction (aka Sponsored Transaction)
+   * The public key for the fee payer in a sponsored transaction. Omit it to skip the fee payer's
+   * public/authentication-key check during simulation.
    * @group Implementation
    * @category Transactions
    */
