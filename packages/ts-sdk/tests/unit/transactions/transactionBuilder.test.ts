@@ -10,6 +10,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AptosConfig } from "../../../src/api/aptosConfig.js";
 import { Network } from "../../../src/utils/apiEndpoints.js";
 import { Account } from "../../../src/account/Account.js";
+import { Deserializer } from "../../../src/bcs/deserializer.js";
+import { Serializer } from "../../../src/bcs/serializer.js";
+import { Serialized } from "../../../src/bcs/serializable/moveStructs.js";
 import { AccountAddress } from "../../../src/core/index.js";
 import { Ed25519PrivateKey } from "../../../src/core/crypto/ed25519.js";
 import { Secp256k1PrivateKey } from "../../../src/core/crypto/secp256k1.js";
@@ -42,11 +45,13 @@ import {
   MultiSig,
   MultiSigTransactionPayload,
   Script,
+  TransactionPayload,
   TransactionPayloadEntryFunction,
   TransactionPayloadMultiSig,
   TransactionPayloadScript,
   TransactionExecutableEntryFunction,
   TransactionInnerPayloadV1,
+  deserializeFromScriptArgument,
 } from "../../../src/transactions/instances/transactionPayload.js";
 import {
   generateTransactionPayloadWithABI,
@@ -67,6 +72,7 @@ const aptosConfig = new AptosConfig({ network: Network.LOCAL });
 const sender = Account.generate();
 const COIN_TRANSFER_SCRIPT =
   "a11ceb0b060000000701000202020603080c04140405181a07321b084d2000000001040100010002030101000003040501000002010203060c0305010b0001090001090002060c0302050b000109000004636f696e04436f696e087769746864726177076465706f736974000000000000000000000000000000000000000000000000000000000000000101000001080b000b0138000c030b020b03380102";
+const VECTOR_U64_SCRIPT = new Uint8Array([0xa1, 0x1c, 0xeb, 0x0b, 6, 0, 0, 0, 1, 5, 0, 3, 1, 0x0a, 0x03, 0, 0, 1, 2]);
 
 function makeEntryPayload(): TransactionPayloadEntryFunction {
   const moduleId = new ModuleId(AccountAddress.ONE, new Identifier("aptos_account"));
@@ -270,6 +276,23 @@ describe("transactionBuilder/transactionBuilder", () => {
       });
       expect(payload.script.args[0]).toBe(amount);
       expect(payload.script.args[1]).toEqual(AccountAddress.ONE);
+    });
+
+    it("serializes a plain empty vector<u64> with the Serialized variant", async () => {
+      const payload = await generateTransactionPayload({
+        bytecode: VECTOR_U64_SCRIPT,
+        typeArguments: [],
+        functionArguments: [[]],
+      });
+
+      const argumentSerializer = new Serializer();
+      payload.script.args[0].serializeForScriptFunction(argumentSerializer);
+      const argument = deserializeFromScriptArgument(new Deserializer(argumentSerializer.toUint8Array()));
+      expect(argument).toBeInstanceOf(Serialized);
+
+      const restored = TransactionPayload.deserialize(new Deserializer(payload.bcsToBytes()));
+      expect(restored).toBeInstanceOf(TransactionPayloadScript);
+      expect((restored as TransactionPayloadScript).script.args[0]).toBeInstanceOf(Serialized);
     });
 
     it("validates parsed script argument counts", async () => {
