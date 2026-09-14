@@ -33,6 +33,7 @@ function minimalScript(
   abilities: number[] = [],
   version = 6,
   accessSpecifiers: number[] = [],
+  instructions: number[][] = [[2]],
 ): Uint8Array {
   return new Uint8Array([
     0xa1,
@@ -50,13 +51,12 @@ function minimalScript(
     ...uleb(mainSignature),
     ...(version >= 8 ? [accessSpecifiers.length === 0 ? 1 : 2, ...accessSpecifiers] : []),
     0,
-    1,
-    2,
+    ...uleb(instructions.length),
+    ...instructions.flat(),
   ]);
 }
 
-function identifierScript(identifier: string, version: number): Uint8Array {
-  const identifierBytes = Array.from(new TextEncoder().encode(identifier));
+function identifierBytesScript(identifierBytes: number[], version: number): Uint8Array {
   const tables = [
     { kind: 5, bytes: [0] },
     { kind: 7, bytes: [...uleb(identifierBytes.length), ...identifierBytes] },
@@ -79,6 +79,38 @@ function identifierScript(identifier: string, version: number): Uint8Array {
     0,
     0,
     ...(version >= 8 ? [1] : []),
+    0,
+    1,
+    2,
+  ]);
+}
+
+function identifierScript(identifier: string, version: number): Uint8Array {
+  return identifierBytesScript(Array.from(new TextEncoder().encode(identifier)), version);
+}
+
+function metadataScript(version: number): Uint8Array {
+  const tables = [
+    { kind: 5, bytes: [0] },
+    { kind: 0x10, bytes: [1, 0xaa, 1, 0xbb] },
+  ];
+  let offset = 0;
+  const headers = tables.flatMap(({ kind, bytes }) => {
+    const header = [kind, ...uleb(offset), ...uleb(bytes.length)];
+    offset += bytes.length;
+    return header;
+  });
+  return new Uint8Array([
+    0xa1,
+    0x1c,
+    0xeb,
+    0x0b,
+    ...versionBytes(version),
+    ...uleb(tables.length),
+    ...headers,
+    ...tables.flatMap(({ bytes }) => bytes),
+    0,
+    0,
     0,
     1,
     2,
@@ -162,6 +194,23 @@ describe("parseScriptAbi", () => {
     });
   });
 
+  it("enforces exact u64 closure-mask ULEB boundaries", () => {
+    const maximumU64 = [...new Array<number>(9).fill(0xff), 0x01];
+    expect(parseScriptAbi(minimalScript([0], 0, [], 8, [], [[0x58, 0, ...maximumU64]])).parameters).toEqual([]);
+
+    const overflowingU64 = [...new Array<number>(9).fill(0xff), 0x02];
+    expect(() => parseScriptAbi(minimalScript([0], 0, [], 8, [], [[0x58, 0, ...overflowingU64]]))).toThrow(
+      /closure mask.*u64|closure mask.*maximum|closure mask.*overflow/i,
+    );
+  });
+
+  it("enforces local-index ULEB boundaries", () => {
+    expect(parseScriptAbi(minimalScript([0], 0, [], 6, [], [[0x0a, ...uleb(255)]])).parameters).toEqual([]);
+    expect(() => parseScriptAbi(minimalScript([0], 0, [], 6, [], [[0x0a, ...uleb(256)]]))).toThrow(
+      /instruction 0 local index 256 exceeds maximum 255/i,
+    );
+  });
+
   it("rejects truncated and trailing script bodies", () => {
     const complete = minimalScript([0]);
     expect(() => parseScriptAbi(complete.slice(0, -1))).toThrow(/Invalid script bytecode.*end of input/i);
@@ -181,8 +230,15 @@ describe("parseScriptAbi", () => {
     expect(parseScriptAbi(identifierScript("<SELF>_12", 8)).parameters).toEqual([]);
     expect(parseScriptAbi(identifierScript("$compiler", 9)).parameters).toEqual([]);
     expect(() => parseScriptAbi(identifierScript("$compiler", 8))).toThrow(/\$.*version 8/i);
+    expect(() => parseScriptAbi(identifierBytesScript([0xef, 0xbb, 0xbf, 0x6d], 9))).toThrow(/identifier.*ASCII/i);
+    expect(() => parseScriptAbi(identifierBytesScript([0x6d, 0xc3, 0xa9], 9))).toThrow(/identifier.*ASCII/i);
     expect(() => parseScriptAbi(identifierScript("bad-name", 9))).toThrow(/invalid identifier/i);
     expect(() => parseScriptAbi(identifierScript("_", 9))).toThrow(/invalid identifier/i);
+  });
+
+  it("gates metadata tables at bytecode version 5", () => {
+    expect(() => parseScriptAbi(metadataScript(4))).toThrow(/metadata.*version 4/i);
+    expect(parseScriptAbi(metadataScript(5)).parameters).toEqual([]);
   });
 
   it("rejects malformed and unsupported binaries", () => {
