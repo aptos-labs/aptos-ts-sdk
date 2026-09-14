@@ -141,6 +141,7 @@ Expected: FAIL because `turbo.json` and `packages/ts-sdk/package.json` do not ex
 - Modify: `packages/ts-sdk/package.json`
 - Modify: `packages/confidential-asset/package.json`
 - Modify: `packages/confidential-asset/vitest.config.ts`
+- Modify: `examples/{typescript,javascript,web-test,bun-test,deno-test}/package.json`
 - Delete: `confidential-asset/pnpm-lock.yaml`
 - Delete: `confidential-asset/pnpm-workspace.yaml`
 
@@ -309,6 +310,8 @@ Update the TS SDK release test import to:
 
 Update package scripts so TS SDK docs/version/license helpers and confidential-asset license checks invoke `../../scripts/...`.
 
+Set the TypeScript, JavaScript, and web-test SDK dependency to `link:../../packages/ts-sdk`. Set the Bun and Deno SDK dependency to `file:../../packages/ts-sdk`. Their standalone lockfiles are regenerated in Task 3.
+
 - [ ] **Step 6: Regenerate the root lockfile**
 
 Run:
@@ -336,7 +339,7 @@ Run:
 ```bash
 pnpm fmt
 pnpm check
-git add package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json packages scripts/tests CHANGELOG.md
+git add package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json packages scripts/tests CHANGELOG.md examples/*/package.json
 git commit -m "chore: create Turbo workspace packages"
 git push -u origin greg/turbo-monorepo-b8b2
 ```
@@ -354,7 +357,6 @@ Expected: the workspace migration commit is pushed.
 - Modify: `scripts/prepareRelease.mjs`
 - Modify: `.github/workflows/publish.yaml`
 - Modify: `.github/actions/**/*.yaml`
-- Modify: `examples/{typescript,javascript,web-test,bun-test,deno-test}/package.json`
 - Modify: `examples/{typescript,javascript,web-test,bun-test,deno-test}/pnpm-lock.yaml`
 - Modify: `codecov.yml`
 - Modify: `README.md`
@@ -411,15 +413,15 @@ elif [[ "$TAG" == confidential-asset-v* ]]; then
 fi
 ```
 
-- [ ] **Step 3: Update standalone consumers and regenerate their lockfiles**
+- [ ] **Step 3: Regenerate standalone consumer lockfiles**
 
-Set TypeScript, JavaScript, and web-test dependencies to:
+Verify TypeScript, JavaScript, and web-test dependencies are:
 
 ```json
 "@aptos-labs/ts-sdk": "link:../../packages/ts-sdk"
 ```
 
-Set Bun and Deno dependencies to:
+Verify Bun and Deno dependencies are:
 
 ```json
 "@aptos-labs/ts-sdk": "file:../../packages/ts-sdk"
