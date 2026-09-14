@@ -16,6 +16,12 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Complete the monorepo migration validation: cover root tooling with Biome, run structural checks in required CI, avoid cached validation results, report repository-relative coverage paths, and correct package metadata and test documentation.
 - Update dependencies within current majors: `@noble/{ciphers,curves,hashes}` and `@scure/{bip32,bip39}` to `2.4.0` (noble 2.4 security hardening), Vitest/`@vitest/coverage-v8` to `4.1.11` (path-traversal advisory), Biome to `2.5.12`, and pnpm to `11.26.0`. Refresh pnpm overrides (`js-yaml` `4.3.2`, `postcss` `8.5.28`, `markdown-it` `14.3.1`) to patched releases. Pin `pnpm/action-setup` to v6.1.0 (latest older than 3 days).
 
+## Fixed
+
+- Recursively instantiate generic script parameter types before plain-argument conversion, preserving direct `U8Vector` encoding for `vector<T>` instantiated with `u8` and `Serialized` encoding for non-native instantiations.
+- Structurally consume complete compiled-script bodies (including v8+ access specifiers and all v1-v10 instruction encodings), validate ABI-relevant references and Move identifiers, and reject truncated or trailing malformed bytecode.
+- Report script-specific `Serialized` BCS guidance when plain custom struct or enum arguments cannot be converted offline.
+
 # 7.3.1 (2026-08-13)
 
 ## Fixed

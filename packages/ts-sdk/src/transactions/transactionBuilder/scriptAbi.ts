@@ -41,6 +41,9 @@ const TYPE_PARAMETER_INDEX_MAX = 65536;
 const SIGNATURE_SIZE_MAX = 255;
 const SIGNATURE_TOKEN_DEPTH_MAX = 256;
 const ABILITY_SET_MAX = 15;
+const ACCESS_SPECIFIER_COUNT_MAX = 64;
+const ATTRIBUTE_COUNT_MAX = 16;
+const BYTECODE_COUNT_MAX = 65535;
 
 // biome-ignore lint/suspicious/noConstEnum: Mirrors the bytecode format constants without emitting runtime objects.
 const enum TableType {
@@ -108,6 +111,27 @@ type StructHandle = {
   typeParameterCount: number;
 };
 
+type FunctionHandle = {
+  module: number;
+  name: number;
+  parameters: number;
+  returns: number;
+  typeParameterCount: number;
+  accessReferences: AccessReference[];
+};
+
+type FunctionInstantiation = {
+  handle: number;
+  typeParameters: number;
+};
+
+type AccessReference =
+  | { kind: "address"; index: number }
+  | { kind: "module"; index: number }
+  | { kind: "struct"; index: number }
+  | { kind: "signature"; index: number }
+  | { kind: "functionInstantiation"; index: number };
+
 type SignatureToken =
   | { kind: "bool" }
   | { kind: "u8" }
@@ -167,6 +191,11 @@ class ScriptBytecodeReader {
     return bytes[0] + bytes[1] * 256 + bytes[2] * 256 ** 2 + bytes[3] * 256 ** 3;
   }
 
+  readU16(label: string): number {
+    const bytes = this.readBytes(2, label);
+    return bytes[0] + bytes[1] * 256;
+  }
+
   readUleb128(label: string, max: number): number {
     let value = 0;
     for (let byteIndex = 0; byteIndex < 5; byteIndex += 1) {
@@ -185,6 +214,19 @@ class ScriptBytecodeReader {
       }
     }
     invalidScript(`ULEB128 encoding for ${label} continues after five bytes`);
+  }
+
+  readUleb128Bytes(label: string, maxBytes: number): void {
+    for (let byteIndex = 0; byteIndex < maxBytes; byteIndex += 1) {
+      const byte = this.readU8(label);
+      if (byte < 128) {
+        if (byteIndex > 0 && byte === 0) {
+          invalidScript(`non-canonical ULEB128 encoding for ${label}`);
+        }
+        return;
+      }
+    }
+    invalidScript(`ULEB128 encoding for ${label} continues after ${maxBytes} bytes`);
   }
 
   readBytes(length: number, label: string): Uint8Array {
@@ -295,16 +337,57 @@ function parseEntries<T>(reader: ScriptBytecodeReader | undefined, parse: (entry
   return entries;
 }
 
-function parseIdentifiers(reader: ScriptBytecodeReader | undefined): string[] {
+function isMoveIdentifierCharacter(character: string): boolean {
+  const code = character.charCodeAt(0);
+  return (
+    character === "_" ||
+    character === "$" ||
+    (code >= 48 && code <= 57) ||
+    (code >= 65 && code <= 90) ||
+    (code >= 97 && code <= 122)
+  );
+}
+
+/**
+ * Mirrors Move's bytecode-level identifier rules, including the legacy script self name and
+ * compiler-generated `<SELF>_N` names. `$` is reserved for compiler/runtime names and is only
+ * encoded by Aptos bytecode version 9 or newer.
+ */
+function isValidMoveIdentifier(identifier: string, version: number): boolean {
+  if (identifier === " ") return true;
+  if (identifier.startsWith("<SELF>_")) {
+    const suffix = identifier.slice(7);
+    return suffix.length > 0 && Array.from(suffix).every((character) => character >= "0" && character <= "9");
+  }
+  if (identifier.length === 0 || (version < 9 && identifier.includes("$"))) return false;
+
+  const characters = Array.from(identifier);
+  const first = characters[0];
+  const firstCode = first.charCodeAt(0);
+  const startsWithLetter = (firstCode >= 65 && firstCode <= 90) || (firstCode >= 97 && firstCode <= 122);
+  if (!startsWithLetter && first !== "_" && first !== "$") return false;
+  if ((first === "_" || first === "$") && characters.length === 1) return false;
+  return characters.slice(1).every(isMoveIdentifierCharacter);
+}
+
+function parseIdentifiers(reader: ScriptBytecodeReader | undefined, version: number): string[] {
   const decoder = new TextDecoder("utf-8", { fatal: true });
   return parseEntries(reader, (entry) => {
     const length = entry.readUleb128("identifier length", TABLE_INDEX_MAX);
     const bytes = entry.readBytes(length, "identifier");
+    let identifier: string;
     try {
-      return decoder.decode(bytes);
+      identifier = decoder.decode(bytes);
     } catch {
       invalidScript("identifier is not valid UTF-8");
     }
+    if (!isValidMoveIdentifier(identifier, version)) {
+      if (version < 9 && identifier.includes("$")) {
+        invalidScript(`$ in identifiers is not supported in bytecode version ${version}`);
+      }
+      invalidScript(`invalid identifier '${identifier}'`);
+    }
+    return identifier;
   });
 }
 
@@ -471,6 +554,149 @@ function parseSignatures(reader: ScriptBytecodeReader | undefined, version: numb
   });
 }
 
+function parseAccessSpecifiers(reader: ScriptBytecodeReader): AccessReference[] {
+  const option = reader.readU8("access specifier option");
+  if (option === 1) return [];
+  if (option !== 2) {
+    invalidScript(`unknown access specifier option ${option}`);
+  }
+
+  const references: AccessReference[] = [];
+  const count = reader.readUleb128("access specifier count", ACCESS_SPECIFIER_COUNT_MAX);
+  for (let index = 0; index < count; index += 1) {
+    const kind = reader.readU8(`access specifier ${index} kind`);
+    if (kind !== 1 && kind !== 2) {
+      invalidScript(`unknown access specifier kind ${kind}`);
+    }
+    const negated = reader.readU8(`access specifier ${index} negated flag`);
+    if (negated !== 1 && negated !== 2) {
+      invalidScript(`unknown access specifier boolean ${negated}`);
+    }
+
+    const resource = reader.readU8(`access specifier ${index} resource`);
+    switch (resource) {
+      case 1:
+        break;
+      case 2:
+        references.push({
+          kind: "address",
+          index: reader.readUleb128("access specifier address index", TABLE_INDEX_MAX),
+        });
+        break;
+      case 3:
+        references.push({
+          kind: "module",
+          index: reader.readUleb128("access specifier module index", TABLE_INDEX_MAX),
+        });
+        break;
+      case 4:
+        references.push({
+          kind: "struct",
+          index: reader.readUleb128("access specifier struct index", TABLE_INDEX_MAX),
+        });
+        break;
+      case 5:
+        references.push({
+          kind: "struct",
+          index: reader.readUleb128("access specifier struct index", TABLE_INDEX_MAX),
+        });
+        references.push({
+          kind: "signature",
+          index: reader.readUleb128("access specifier signature index", TABLE_INDEX_MAX),
+        });
+        break;
+      default:
+        invalidScript(`unknown access specifier resource ${resource}`);
+    }
+
+    const address = reader.readU8(`access specifier ${index} address`);
+    switch (address) {
+      case 1:
+        break;
+      case 2:
+        references.push({
+          kind: "address",
+          index: reader.readUleb128("access specifier literal address index", TABLE_INDEX_MAX),
+        });
+        break;
+      case 3: {
+        reader.readUleb128("access specifier parameter index", 255);
+        const functionOption = reader.readU8("access specifier function option");
+        if (functionOption === 2) {
+          references.push({
+            kind: "functionInstantiation",
+            index: reader.readUleb128("access specifier function instantiation index", TABLE_INDEX_MAX),
+          });
+        } else if (functionOption !== 1) {
+          invalidScript(`unknown access specifier function option ${functionOption}`);
+        }
+        break;
+      }
+      default:
+        invalidScript(`unknown access specifier address ${address}`);
+    }
+  }
+  return references;
+}
+
+function parseFunctionAttributes(reader: ScriptBytecodeReader, version: number): void {
+  if (version < 8) return;
+  const count = reader.readUleb128("function attribute count", ATTRIBUTE_COUNT_MAX);
+  for (let index = 0; index < count; index += 1) {
+    const attribute = reader.readU8(`function attribute ${index}`);
+    if (attribute < 1 || attribute > 9) {
+      invalidScript(`unknown function attribute ${attribute}`);
+    }
+    if (attribute >= 3 && version < 10) {
+      invalidScript(`function attribute ${attribute} is not supported in version ${version}`);
+    }
+    if (attribute === 4 || (attribute >= 6 && attribute <= 9)) {
+      reader.readU16(`function attribute ${index} operand`);
+    }
+  }
+}
+
+function parseFunctionHandles(reader: ScriptBytecodeReader | undefined, version: number): FunctionHandle[] {
+  return parseEntries(reader, (entry) => {
+    const module = entry.readUleb128("function handle module index", TABLE_INDEX_MAX);
+    const name = entry.readUleb128("function handle name index", TABLE_INDEX_MAX);
+    const parameters = entry.readUleb128("function handle parameter signature index", TABLE_INDEX_MAX);
+    const returns = entry.readUleb128("function handle return signature index", TABLE_INDEX_MAX);
+    const typeParameterCount = entry.readUleb128("function type parameter count", TYPE_PARAMETER_COUNT_MAX);
+    for (let index = 0; index < typeParameterCount; index += 1) {
+      readVersionedAbilitySet(entry, version, "functionTypeParameter");
+    }
+    const accessReferences = version >= 7 ? parseAccessSpecifiers(entry) : [];
+    parseFunctionAttributes(entry, version);
+    return { module, name, parameters, returns, typeParameterCount, accessReferences };
+  });
+}
+
+function parseFunctionInstantiations(reader: ScriptBytecodeReader | undefined): FunctionInstantiation[] {
+  return parseEntries(reader, (entry) => ({
+    handle: entry.readUleb128("function instantiation handle index", TABLE_INDEX_MAX),
+    typeParameters: entry.readUleb128("function instantiation signature index", TABLE_INDEX_MAX),
+  }));
+}
+
+function parseConstants(reader: ScriptBytecodeReader | undefined, version: number): SignatureToken[] {
+  return parseEntries(reader, (entry) => {
+    const type = parseSignatureToken(entry, version);
+    const byteLength = entry.readUleb128("constant byte length", TABLE_INDEX_MAX);
+    entry.readBytes(byteLength, "constant bytes");
+    return type;
+  });
+}
+
+function parseMetadata(reader: ScriptBytecodeReader | undefined): void {
+  parseEntries(reader, (entry) => {
+    const keyLength = entry.readUleb128("metadata key length", 1023);
+    entry.readBytes(keyLength, "metadata key");
+    const valueLength = entry.readUleb128("metadata value length", TABLE_INDEX_MAX);
+    entry.readBytes(valueLength, "metadata value");
+  });
+}
+
 function decodeAbilities(bits: number): MoveAbility[] {
   const abilities: MoveAbility[] = [];
   if ((bits & 1) !== 0) abilities.push(MoveAbility.COPY);
@@ -486,6 +712,193 @@ function indexed<T>(values: T[], index: number, label: string): T {
     invalidScript(`${label} index ${index} does not exist`);
   }
   return value;
+}
+
+function validateSignatureToken(
+  token: SignatureToken,
+  structHandles: StructHandle[],
+  moduleHandles: ModuleHandle[],
+  identifiers: string[],
+  addresses: Uint8Array[],
+  typeParameterCount?: number,
+): void {
+  switch (token.kind) {
+    case "vector":
+    case "reference":
+      validateSignatureToken(token.value, structHandles, moduleHandles, identifiers, addresses, typeParameterCount);
+      return;
+    case "struct": {
+      const structHandle = indexed(structHandles, token.index, "struct handle");
+      if (token.typeArguments.length !== structHandle.typeParameterCount) {
+        invalidScript(
+          `struct handle index ${token.index} expects ${structHandle.typeParameterCount} type arguments, received ${token.typeArguments.length}`,
+        );
+      }
+      const moduleHandle = indexed(moduleHandles, structHandle.module, "module handle");
+      indexed(addresses, moduleHandle.address, "address");
+      indexed(identifiers, moduleHandle.name, "identifier");
+      indexed(identifiers, structHandle.name, "identifier");
+      for (const argument of token.typeArguments) {
+        validateSignatureToken(argument, structHandles, moduleHandles, identifiers, addresses, typeParameterCount);
+      }
+      return;
+    }
+    case "typeParameter":
+      if (typeParameterCount !== undefined && token.index >= typeParameterCount) {
+        invalidScript(`type parameter index ${token.index} does not exist`);
+      }
+      return;
+    case "function":
+      for (const argument of token.arguments) {
+        validateSignatureToken(argument, structHandles, moduleHandles, identifiers, addresses, typeParameterCount);
+      }
+      for (const result of token.results) {
+        validateSignatureToken(result, structHandles, moduleHandles, identifiers, addresses, typeParameterCount);
+      }
+      return;
+    default:
+      return;
+  }
+}
+
+function validateSignature(
+  signature: SignatureToken[],
+  structHandles: StructHandle[],
+  moduleHandles: ModuleHandle[],
+  identifiers: string[],
+  addresses: Uint8Array[],
+  typeParameterCount?: number,
+): void {
+  for (const token of signature) {
+    validateSignatureToken(token, structHandles, moduleHandles, identifiers, addresses, typeParameterCount);
+  }
+}
+
+function validateAccessReferences(
+  references: AccessReference[],
+  addresses: Uint8Array[],
+  moduleHandles: ModuleHandle[],
+  structHandles: StructHandle[],
+  signatures: SignatureToken[][],
+  functionInstantiations: FunctionInstantiation[],
+): void {
+  for (const reference of references) {
+    switch (reference.kind) {
+      case "address":
+        indexed(addresses, reference.index, "access specifier address");
+        break;
+      case "module":
+        indexed(moduleHandles, reference.index, "access specifier module handle");
+        break;
+      case "struct":
+        indexed(structHandles, reference.index, "access specifier struct handle");
+        break;
+      case "signature":
+        indexed(signatures, reference.index, "access specifier signature");
+        break;
+      case "functionInstantiation":
+        indexed(functionInstantiations, reference.index, "access specifier function instantiation");
+        break;
+      default:
+        invalidScript("unknown access specifier reference");
+    }
+  }
+}
+
+function requireOpcodeVersion(opcode: number, version: number): void {
+  let minimum = 1;
+  if (opcode >= 0x40 && opcode <= 0x47) minimum = 4;
+  else if (opcode >= 0x48 && opcode <= 0x4d) minimum = 6;
+  else if (opcode >= 0x4e && opcode <= 0x57) minimum = 7;
+  else if (opcode >= 0x58 && opcode <= 0x5a) minimum = 8;
+  else if (opcode >= 0x5b && opcode <= 0x67) minimum = 9;
+  else if (opcode === 0x68) minimum = 10;
+  if (version < minimum) {
+    invalidScript(`opcode ${opcode} is not supported in bytecode version ${version}`);
+  }
+}
+
+/**
+ * Structurally consumes one instruction from bytecode versions 1-10.
+ *
+ * This is deliberately not a semantic bytecode verifier: it recognizes every instruction encoding
+ * and validates signature operands needed for ABI-safe parsing, but leaves stack, branch, local,
+ * and module-only table semantics to the Move verifier.
+ */
+function parseInstruction(
+  reader: ScriptBytecodeReader,
+  version: number,
+  signatures: SignatureToken[][],
+  instructionIndex: number,
+): void {
+  const opcode = reader.readU8(`instruction ${instructionIndex} opcode`);
+  if (opcode < 1 || opcode > 0x68) {
+    invalidScript(`unknown opcode ${opcode}`);
+  }
+  requireOpcodeVersion(opcode, version);
+
+  if (opcode === 0x31 || opcode === 0x5b) {
+    reader.readBytes(1, `instruction ${instructionIndex} operand`);
+    return;
+  }
+  if (opcode === 0x48 || opcode === 0x5c) {
+    reader.readBytes(2, `instruction ${instructionIndex} operand`);
+    return;
+  }
+  if (opcode === 0x49 || opcode === 0x5d) {
+    reader.readBytes(4, `instruction ${instructionIndex} operand`);
+    return;
+  }
+  if (opcode === 0x06 || opcode === 0x5e) {
+    reader.readBytes(8, `instruction ${instructionIndex} operand`);
+    return;
+  }
+  if (opcode === 0x32 || opcode === 0x5f) {
+    reader.readBytes(16, `instruction ${instructionIndex} operand`);
+    return;
+  }
+  if (opcode === 0x4a || opcode === 0x60) {
+    reader.readBytes(32, `instruction ${instructionIndex} operand`);
+    return;
+  }
+  if (opcode === 0x40 || opcode === 0x46) {
+    const signature = reader.readUleb128(`instruction ${instructionIndex} signature index`, TABLE_INDEX_MAX);
+    indexed(signatures, signature, "instruction signature");
+    reader.readBytes(8, `instruction ${instructionIndex} vector count`);
+    return;
+  }
+  if (opcode === 0x58 || opcode === 0x59) {
+    reader.readUleb128(`instruction ${instructionIndex} function index`, TABLE_INDEX_MAX);
+    reader.readUleb128Bytes(`instruction ${instructionIndex} closure mask`, 10);
+    return;
+  }
+
+  const hasIndexOperand =
+    (opcode >= 0x03 && opcode <= 0x05) ||
+    opcode === 0x07 ||
+    (opcode >= 0x0a && opcode <= 0x13) ||
+    (opcode >= 0x29 && opcode <= 0x2d) ||
+    (opcode >= 0x36 && opcode <= 0x3f) ||
+    (opcode >= 0x41 && opcode <= 0x45) ||
+    opcode === 0x47 ||
+    (opcode >= 0x4e && opcode <= 0x57) ||
+    opcode === 0x5a;
+  if (hasIndexOperand) {
+    const index = reader.readUleb128(`instruction ${instructionIndex} index`, TABLE_INDEX_MAX);
+    if ((opcode >= 0x41 && opcode <= 0x47) || opcode === 0x5a) {
+      indexed(signatures, index, "instruction signature");
+    }
+  }
+}
+
+function parseCodeUnit(reader: ScriptBytecodeReader, version: number, signatures: SignatureToken[][]): number {
+  const locals = reader.readUleb128("code unit locals signature index", TABLE_INDEX_MAX);
+  indexed(signatures, locals, "code unit locals signature");
+  const instructionCount = reader.readUleb128("instruction count", BYTECODE_COUNT_MAX);
+  for (let index = 0; index < instructionCount; index += 1) {
+    parseInstruction(reader, version, signatures, index);
+  }
+  return locals;
 }
 
 function resolveSignatureToken(
@@ -605,11 +1018,64 @@ export function parseScriptAbi(bytecode: HexInput): ScriptABI {
   const tableContents = reader.subReader(0, contentLength, "table contents");
   reader.readBytes(contentLength, "table contents");
 
-  const identifiers = parseIdentifiers(tableReader(tableContents, headers, TableType.Identifiers));
+  const identifiers = parseIdentifiers(tableReader(tableContents, headers, TableType.Identifiers), version);
   const addresses = parseAddresses(tableReader(tableContents, headers, TableType.AddressIdentifiers));
   const moduleHandles = parseModuleHandles(tableReader(tableContents, headers, TableType.ModuleHandles));
   const structHandles = parseStructHandles(tableReader(tableContents, headers, TableType.StructHandles), version);
   const signatures = parseSignatures(tableReader(tableContents, headers, TableType.Signatures), version);
+  const functionHandles = parseFunctionHandles(tableReader(tableContents, headers, TableType.FunctionHandles), version);
+  const functionInstantiations = parseFunctionInstantiations(
+    tableReader(tableContents, headers, TableType.FunctionInstantiations),
+  );
+  const constantTypes = parseConstants(tableReader(tableContents, headers, TableType.ConstantPool), version);
+  parseMetadata(tableReader(tableContents, headers, TableType.Metadata));
+
+  for (const moduleHandle of moduleHandles) {
+    indexed(addresses, moduleHandle.address, "module handle address");
+    indexed(identifiers, moduleHandle.name, "module handle identifier");
+  }
+  for (const structHandle of structHandles) {
+    indexed(moduleHandles, structHandle.module, "struct handle module");
+    indexed(identifiers, structHandle.name, "struct handle identifier");
+  }
+  for (const signature of signatures) {
+    validateSignature(signature, structHandles, moduleHandles, identifiers, addresses);
+  }
+  for (const type of constantTypes) {
+    validateSignatureToken(type, structHandles, moduleHandles, identifiers, addresses);
+  }
+  for (const functionHandle of functionHandles) {
+    indexed(moduleHandles, functionHandle.module, "function handle module");
+    indexed(identifiers, functionHandle.name, "function handle identifier");
+    validateSignature(
+      indexed(signatures, functionHandle.parameters, "function handle parameter signature"),
+      structHandles,
+      moduleHandles,
+      identifiers,
+      addresses,
+      functionHandle.typeParameterCount,
+    );
+    validateSignature(
+      indexed(signatures, functionHandle.returns, "function handle return signature"),
+      structHandles,
+      moduleHandles,
+      identifiers,
+      addresses,
+      functionHandle.typeParameterCount,
+    );
+    validateAccessReferences(
+      functionHandle.accessReferences,
+      addresses,
+      moduleHandles,
+      structHandles,
+      signatures,
+      functionInstantiations,
+    );
+  }
+  for (const instantiation of functionInstantiations) {
+    indexed(functionHandles, instantiation.handle, "function instantiation handle");
+    indexed(signatures, instantiation.typeParameters, "function instantiation signature");
+  }
 
   const typeParameterCount = reader.readUleb128("script type parameter count", TYPE_PARAMETER_COUNT_MAX);
   const typeParameters = Array.from({ length: typeParameterCount }, () => ({
@@ -617,6 +1083,39 @@ export function parseScriptAbi(bytecode: HexInput): ScriptABI {
   }));
   const parameterSignatureIndex = reader.readUleb128("parameter signature index", TABLE_INDEX_MAX);
   const parameterTokens = indexed(signatures, parameterSignatureIndex, "parameter signature");
+  const accessReferences = version >= 8 ? parseAccessSpecifiers(reader) : [];
+  const localsSignatureIndex = parseCodeUnit(reader, version, signatures);
+  if (reader.remaining !== 0) {
+    invalidScript(`${reader.remaining} trailing byte(s) after the code unit`);
+  }
+
+  validateAccessReferences(
+    accessReferences,
+    addresses,
+    moduleHandles,
+    structHandles,
+    signatures,
+    functionInstantiations,
+  );
+  validateSignature(parameterTokens, structHandles, moduleHandles, identifiers, addresses, typeParameterCount);
+  validateSignature(
+    indexed(signatures, localsSignatureIndex, "code unit locals signature"),
+    structHandles,
+    moduleHandles,
+    identifiers,
+    addresses,
+    typeParameterCount,
+  );
+  for (const instantiation of functionInstantiations) {
+    validateSignature(
+      indexed(signatures, instantiation.typeParameters, "function instantiation signature"),
+      structHandles,
+      moduleHandles,
+      identifiers,
+      addresses,
+      typeParameterCount,
+    );
+  }
 
   let signers = 0;
   while (signers < parameterTokens.length && isSignerToken(parameterTokens[signers])) {

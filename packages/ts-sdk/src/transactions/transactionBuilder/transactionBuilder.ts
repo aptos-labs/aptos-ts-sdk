@@ -57,7 +57,7 @@ import {
   TransactionPayloadScript,
 } from "../instances/index.js";
 import { SignedTransaction } from "../instances/signedTransaction.js";
-import { TypeTag } from "../typeTag/index.js";
+import { StructTag, TypeTag, TypeTagReference, TypeTagStruct, TypeTagVector } from "../typeTag/index.js";
 import {
   AnyRawTransaction,
   AnyTransactionPayloadInstance,
@@ -367,11 +367,36 @@ function isScriptFunctionArgument(
   );
 }
 
-function isNativeScriptArgumentType(type: TypeTag, typeArguments: Array<TypeTag>): boolean {
-  const resolvedType = type.isGeneric() ? typeArguments[type.value] : type;
-  if (resolvedType === undefined) return false;
-  if (resolvedType.isVector()) return resolvedType.value.isU8();
-  return resolvedType.isPrimitive() && !resolvedType.isSigner();
+function instantiateScriptType(type: TypeTag, typeArguments: Array<TypeTag>): TypeTag {
+  if (type.isGeneric()) {
+    const resolved = typeArguments[type.value];
+    if (resolved === undefined) {
+      throw new Error(`Generic argument ${type.toString()} is invalid for script parameter`);
+    }
+    return resolved;
+  }
+  if (type.isVector()) {
+    return new TypeTagVector(instantiateScriptType(type.value, typeArguments));
+  }
+  if (type instanceof TypeTagReference) {
+    return new TypeTagReference(instantiateScriptType(type.value, typeArguments));
+  }
+  if (type instanceof TypeTagStruct) {
+    return new TypeTagStruct(
+      new StructTag(
+        type.value.address,
+        type.value.moduleName,
+        type.value.name,
+        type.value.typeArgs.map((argument) => instantiateScriptType(argument, typeArguments)),
+      ),
+    );
+  }
+  return type;
+}
+
+function isNativeScriptArgumentType(type: TypeTag): boolean {
+  if (type.isVector()) return type.value.isU8();
+  return type.isPrimitive() && !type.isSigner();
 }
 
 function generateTransactionPayloadScript(args: InputScriptData): TransactionPayloadScript {
@@ -395,10 +420,23 @@ function generateTransactionPayloadScript(args: InputScriptData): TransactionPay
     );
   }
 
+  const parameterTypes = abi.parameters.map((parameter) => instantiateScriptType(parameter, typeArguments));
+  const instantiatedAbi = { ...abi, parameters: parameterTypes };
   const functionArguments = args.functionArguments.map((arg, index): ScriptFunctionArgumentTypes => {
     if (isScriptFunctionArgument(arg)) return arg;
-    const converted = convertArgument("script", abi, arg, index, typeArguments);
-    return isNativeScriptArgumentType(abi.parameters[index], typeArguments) && isScriptFunctionArgument(converted)
+    let converted: EntryFunctionArgumentTypes;
+    try {
+      converted = convertArgument("script", instantiatedAbi, arg, index, typeArguments);
+    } catch (error) {
+      if (error instanceof Error && error.message.startsWith("Struct/enum arguments require async conversion.")) {
+        throw new Error(
+          `Script custom struct/enum arguments must be passed as Serialized containing the BCS-encoded bytes. ` +
+            `Type: '${parameterTypes[index].toString()}', position: ${index}`,
+        );
+      }
+      throw error;
+    }
+    return isNativeScriptArgumentType(parameterTypes[index]) && isScriptFunctionArgument(converted)
       ? converted
       : new Serialized(converted.bcsToBytes());
   });
