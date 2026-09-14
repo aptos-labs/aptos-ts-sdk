@@ -369,24 +369,9 @@ function isScriptFunctionArgument(
 
 function isNativeScriptArgumentType(type: TypeTag, typeArguments: Array<TypeTag>): boolean {
   const resolvedType = type.isGeneric() ? typeArguments[type.value] : type;
-  return (
-    resolvedType !== undefined &&
-    (resolvedType.isBool() ||
-      resolvedType.isAddress() ||
-      resolvedType.isU8() ||
-      resolvedType.isU16() ||
-      resolvedType.isU32() ||
-      resolvedType.isU64() ||
-      resolvedType.isU128() ||
-      resolvedType.isU256() ||
-      resolvedType.isI8() ||
-      resolvedType.isI16() ||
-      resolvedType.isI32() ||
-      resolvedType.isI64() ||
-      resolvedType.isI128() ||
-      resolvedType.isI256() ||
-      (resolvedType.isVector() && resolvedType.value.isU8()))
-  );
+  if (resolvedType === undefined) return false;
+  if (resolvedType.isVector()) return resolvedType.value.isU8();
+  return resolvedType.isPrimitive() && !resolvedType.isSigner();
 }
 
 function generateTransactionPayloadScript(args: InputScriptData): TransactionPayloadScript {
