@@ -510,6 +510,7 @@ function getPackagePublishAbi(): EntryFunctionABI {
  * @param args.account - The address of the account sending the transaction.
  * @param args.metadataBytes - The metadata associated with the package, represented as hexadecimal input.
  * @param args.moduleBytecode - An array of module bytecode, each represented as hexadecimal input.
+ * @param args.withFeePayer - Whether to build a sponsored transaction.
  * @param args.options - Optional parameters for generating the transaction.
  * @group Implementation
  */
@@ -518,15 +519,17 @@ export async function publicPackageTransaction(args: {
   account: AccountAddressInput;
   metadataBytes: HexInput;
   moduleBytecode: Array<HexInput>;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, account, metadataBytes, moduleBytecode, options } = args;
+  const { aptosConfig, account, metadataBytes, moduleBytecode, withFeePayer, options } = args;
 
   const totalByteCode = moduleBytecode.map((bytecode) => MoveVector.U8(bytecode));
 
   return generateTransaction({
     aptosConfig,
     sender: AccountAddress.from(account),
+    withFeePayer,
     data: {
       function: "0x1::code::publish_package_txn",
       functionArguments: [MoveVector.U8(metadataBytes), new MoveVector(totalByteCode)],
