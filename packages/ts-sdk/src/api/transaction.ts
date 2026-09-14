@@ -305,9 +305,9 @@ export class Transaction {
    * ```
    * @group Transaction
    */
-  async enrichTransactionWithTableItemData(args: {
-    transaction: CommittedTransactionResponse;
-  }): Promise<CommittedTransactionResponse> {
+  async enrichTransactionWithTableItemData<T extends CommittedTransactionResponse>(args: {
+    transaction: T;
+  }): Promise<T> {
     return enrichTransactionWithTableItemData({
       aptosConfig: this.config,
       ...args,

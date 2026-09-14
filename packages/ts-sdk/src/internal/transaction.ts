@@ -423,6 +423,54 @@ function isTableItemChange(
   return isWriteTableItemChange(change) || isDeleteTableItemChange(change);
 }
 
+const INDEXER_PAGE_SIZE = 100;
+
+async function getTransactionTableItems(args: { aptosConfig: AptosConfig; transactionVersion: string }) {
+  const { aptosConfig, transactionVersion } = args;
+  const tableItems = [];
+
+  for (let offset = 0; ; offset += INDEXER_PAGE_SIZE) {
+    const page = await getTableItemsData({
+      aptosConfig,
+      options: {
+        where: {
+          transaction_version: { _eq: transactionVersion },
+        },
+        orderBy: [{ write_set_change_index: "asc" }],
+        offset,
+        limit: INDEXER_PAGE_SIZE,
+      },
+    });
+    tableItems.push(...page);
+
+    if (page.length < INDEXER_PAGE_SIZE) {
+      return tableItems;
+    }
+  }
+}
+
+async function getTableMetadataForHandles(args: { aptosConfig: AptosConfig; handles: string[] }) {
+  const { aptosConfig, handles } = args;
+  const requests = [];
+
+  for (let offset = 0; offset < handles.length; offset += INDEXER_PAGE_SIZE) {
+    const pageHandles = handles.slice(offset, offset + INDEXER_PAGE_SIZE);
+    requests.push(
+      getTableItemsMetadata({
+        aptosConfig,
+        options: {
+          where: {
+            handle: { _in: pageHandles },
+          },
+          limit: INDEXER_PAGE_SIZE,
+        },
+      }),
+    );
+  }
+
+  return (await Promise.all(requests)).flat();
+}
+
 /**
  * Populates missing decoded data on a committed transaction's table item changes.
  *
@@ -440,10 +488,10 @@ function isTableItemChange(
  * @returns The supplied transaction with available table item data populated.
  * @group Implementation
  */
-export async function enrichTransactionWithTableItemData(args: {
+export async function enrichTransactionWithTableItemData<T extends CommittedTransactionResponse>(args: {
   aptosConfig: AptosConfig;
-  transaction: CommittedTransactionResponse;
-}): Promise<CommittedTransactionResponse> {
+  transaction: T;
+}): Promise<T> {
   const { aptosConfig, transaction } = args;
   const missingTableItemChanges = transaction.changes
     .filter(isTableItemChange)
@@ -454,22 +502,20 @@ export async function enrichTransactionWithTableItemData(args: {
   }
 
   const handles = [...new Set(missingTableItemChanges.map((change) => change.handle))];
+  await waitForIndexer({
+    aptosConfig,
+    minimumLedgerVersion: transaction.version,
+    processorType: ProcessorType.DEFAULT,
+  });
+
   const [tableItems, tableMetadata] = await Promise.all([
-    getTableItemsData({
+    getTransactionTableItems({
       aptosConfig,
-      options: {
-        where: {
-          transaction_version: { _eq: transaction.version },
-        },
-      },
+      transactionVersion: transaction.version,
     }),
-    getTableItemsMetadata({
+    getTableMetadataForHandles({
       aptosConfig,
-      options: {
-        where: {
-          handle: { _in: handles },
-        },
-      },
+      handles,
     }),
   ]);
 
