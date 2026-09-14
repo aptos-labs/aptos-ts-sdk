@@ -46,6 +46,7 @@ export class Coin {
    * @param args.recipient The recipient account address.
    * @param args.amount The amount of coins to transfer.
    * @param args.coinType Optional. The coin struct type to transfer. Defaults to 0x1::aptos_coin::AptosCoin.
+   * @param args.withFeePayer Whether to build a fee-payer transaction.
    * @param args.options Optional. Additional options for generating the transaction.
    *
    * @returns SimpleTransaction
@@ -76,6 +77,7 @@ export class Coin {
     recipient: AccountAddressInput;
     amount: AnyNumber;
     coinType?: MoveStructId;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     return transferCoinTransaction({ aptosConfig: this.config, ...args });

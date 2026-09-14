@@ -438,6 +438,7 @@ export class Transaction {
    * @param args.account The publisher account.
    * @param args.metadataBytes The package metadata bytes.
    * @param args.moduleBytecode An array of the bytecode of each module in the package in compiler output order.
+   * @param args.withFeePayer Whether to build a sponsored transaction.
    * @param args.options Optional settings for generating the transaction.
    *
    * @returns A SimpleTransaction that can be simulated or submitted to the chain.
@@ -471,6 +472,7 @@ export class Transaction {
     account: AccountAddressInput;
     metadataBytes: HexInput;
     moduleBytecode: Array<HexInput>;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     return publicPackageTransaction({ aptosConfig: this.config, ...args });
@@ -484,6 +486,8 @@ export class Transaction {
    * @param args.fromAccount - The account from which the authentication key will be rotated.
    * @param args.toAccount - (Optional) The target account to rotate to. Required if not using toNewPrivateKey.
    * @param args.toNewPrivateKey - (Optional) The new private key to rotate to. Required if not using toAccount.
+   * @param args.withFeePayer - Whether to build a sponsored transaction.
+   * @param args.options - Optional settings for generating the transaction.
    *
    * @remarks
    * This function supports three modes of rotation:
@@ -515,6 +519,7 @@ export class Transaction {
   async rotateAuthKey(
     args: {
       fromAccount: Account;
+      withFeePayer?: boolean;
       options?: InputGenerateTransactionOptions;
     } & ({ toAccount: Ed25519Account | MultiEd25519Account } | { toNewPrivateKey: Ed25519PrivateKey }),
   ): Promise<SimpleTransaction> {
@@ -531,6 +536,8 @@ export class Transaction {
    * @param args - The arguments for rotating the authentication key.
    * @param args.fromAccount - The account from which the authentication key will be rotated.
    * @param args.toNewPublicKey - The new public key to rotate to.
+   * @param args.withFeePayer - Whether to build a sponsored transaction.
+   * @param args.options - Optional settings for generating the transaction.
    *
    * @returns A simple transaction object that can be submitted to the network.
    *
@@ -552,6 +559,7 @@ export class Transaction {
    */
   async rotateAuthKeyUnverified(args: {
     fromAccount: Account;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
     toNewPublicKey: AccountPublicKey;
   }): Promise<SimpleTransaction> {
