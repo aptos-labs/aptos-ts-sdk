@@ -158,6 +158,32 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
   }
 
   /**
+   * Emits the submission result as soon as the pending transaction settles.
+   * @private
+   */
+  private trackTransactionSubmission(
+    pendingTransaction: Promise<PendingTransactionResponse>,
+    sequenceNumber: bigint,
+  ): void {
+    pendingTransaction.then(
+      (transaction) => {
+        this.addToTransactionHistory(this.sentTransactions, [transaction.hash, sequenceNumber, null]);
+        this.emit(TransactionWorkerEventsEnum.TransactionSent, {
+          message: `transaction hash ${transaction.hash} has been committed to chain`,
+          transactionHash: transaction.hash,
+        });
+      },
+      (error) => {
+        this.addToTransactionHistory(this.sentTransactions, ["rejected", sequenceNumber, error]);
+        this.emit(TransactionWorkerEventsEnum.TransactionSendFailed, {
+          message: `failed to commit transaction ${this.sentTransactions.length} with error ${error}`,
+          error,
+        });
+      },
+    );
+  }
+
+  /**
    * Initializes a new instance of the class, providing a framework for receiving payloads to be processed.
    *
    * @param aptosConfig - A configuration object for Aptos.
@@ -211,6 +237,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
           transaction,
           signer: this.account,
         });
+        this.trackTransactionSubmission(pendingTransaction, sequenceNumber);
         await this.outstandingTransactions.enqueue([pendingTransaction, sequenceNumber]);
       }
     } catch (error: any) {
@@ -257,25 +284,8 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
           const sentTransaction = sentTransactions[i];
           sequenceNumber = sequenceNumbers[i];
           if (sentTransaction.status === promiseFulfilledStatus) {
-            // transaction sent to chain
-            this.addToTransactionHistory(this.sentTransactions, [sentTransaction.value.hash, sequenceNumber, null]);
             // check sent transaction execution
-            this.emit(TransactionWorkerEventsEnum.TransactionSent, {
-              message: `transaction hash ${sentTransaction.value.hash} has been committed to chain`,
-              transactionHash: sentTransaction.value.hash,
-            });
             await this.checkTransaction(sentTransaction, sequenceNumber);
-          } else {
-            // send transaction failed
-            this.addToTransactionHistory(this.sentTransactions, [
-              sentTransaction.status,
-              sequenceNumber,
-              sentTransaction.reason,
-            ]);
-            this.emit(TransactionWorkerEventsEnum.TransactionSendFailed, {
-              message: `failed to commit transaction ${this.sentTransactions.length} with error ${sentTransaction.reason}`,
-              error: sentTransaction.reason,
-            });
           }
         }
         this.emit(TransactionWorkerEventsEnum.ExecutionFinish, {
@@ -375,7 +385,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
   }
 
   /**
-   * Starts transaction submission and processing by executing all queued tasks concurrently.
+   * Starts transaction submission and processing by executing tasks from the queue until it is cancelled.
    *
    * @throws {Error} Throws an error if unable to start transaction batching.
    * @group Implementation
@@ -383,12 +393,10 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    */
   async run() {
     try {
-      const runningTasks: Promise<void>[] = [];
-      while (!this.taskQueue.isEmpty()) {
+      while (!this.taskQueue.isCancelled()) {
         const task = await this.taskQueue.dequeue();
-        runningTasks.push(task());
+        await task();
       }
-      await Promise.all(runningTasks);
     } catch (error: any) {
       throw new Error(`Unable to start transaction batching: ${error}`);
     }
