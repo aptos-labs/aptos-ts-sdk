@@ -412,7 +412,10 @@ git commit -m "feat(keyless): expose pepper address lookup"
 Run:
 
 ```bash
-pnpm --filter @aptos-labs/ts-sdk exec vitest run --config vitest.config.unit.ts tests/unit/internal/keyless-*.test.ts tests/unit/api/keyless-wrappers.test.ts
+(
+  cd packages/ts-sdk
+  pnpm exec vitest run --config vitest.config.unit.ts tests/unit/internal/keyless-*.test.ts tests/unit/api/keyless-wrappers.test.ts
+)
 ```
 
 Expected: all selected Keyless tests pass with zero failures.
