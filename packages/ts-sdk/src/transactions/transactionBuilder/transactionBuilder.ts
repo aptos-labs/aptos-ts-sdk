@@ -57,6 +57,7 @@ import {
   TransactionPayloadScript,
 } from "../instances/index.js";
 import { SignedTransaction } from "../instances/signedTransaction.js";
+import { TypeTag } from "../typeTag/index.js";
 import {
   AnyRawTransaction,
   AnyTransactionPayloadInstance,
@@ -366,6 +367,28 @@ function isScriptFunctionArgument(
   );
 }
 
+function isNativeScriptArgumentType(type: TypeTag, typeArguments: Array<TypeTag>): boolean {
+  const resolvedType = type.isGeneric() ? typeArguments[type.value] : type;
+  return (
+    resolvedType !== undefined &&
+    (resolvedType.isBool() ||
+      resolvedType.isAddress() ||
+      resolvedType.isU8() ||
+      resolvedType.isU16() ||
+      resolvedType.isU32() ||
+      resolvedType.isU64() ||
+      resolvedType.isU128() ||
+      resolvedType.isU256() ||
+      resolvedType.isI8() ||
+      resolvedType.isI16() ||
+      resolvedType.isI32() ||
+      resolvedType.isI64() ||
+      resolvedType.isI128() ||
+      resolvedType.isI256() ||
+      (resolvedType.isVector() && resolvedType.value.isU8()))
+  );
+}
+
 function generateTransactionPayloadScript(args: InputScriptData): TransactionPayloadScript {
   const typeArguments = standardizeTypeTags(args.typeArguments);
 
@@ -390,7 +413,9 @@ function generateTransactionPayloadScript(args: InputScriptData): TransactionPay
   const functionArguments = args.functionArguments.map((arg, index): ScriptFunctionArgumentTypes => {
     if (isScriptFunctionArgument(arg)) return arg;
     const converted = convertArgument("script", abi, arg, index, typeArguments);
-    return isScriptFunctionArgument(converted) ? converted : new Serialized(converted.bcsToBytes());
+    return isNativeScriptArgumentType(abi.parameters[index], typeArguments) && isScriptFunctionArgument(converted)
+      ? converted
+      : new Serialized(converted.bcsToBytes());
   });
 
   return new TransactionPayloadScript(
