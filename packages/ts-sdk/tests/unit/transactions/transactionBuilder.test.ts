@@ -17,6 +17,7 @@ import { KeylessPublicKey } from "../../../src/core/crypto/keyless.js";
 import { MultiKey } from "../../../src/core/crypto/multiKey.js";
 import { MultiEd25519PublicKey, MultiEd25519Signature } from "../../../src/core/crypto/multiEd25519.js";
 import { AnyPublicKey, AnySignature } from "../../../src/core/crypto/singleKey.js";
+import { U64 } from "../../../src/bcs/serializable/movePrimitives.js";
 import { AnyPublicKeyVariant } from "../../../src/types/types.js";
 import { keylessTestObject } from "../helper.js";
 import {
@@ -64,6 +65,8 @@ import { clearMemoizeCache } from "../../../src/utils/memoize.js";
 
 const aptosConfig = new AptosConfig({ network: Network.LOCAL });
 const sender = Account.generate();
+const COIN_TRANSFER_SCRIPT =
+  "a11ceb0b060000000701000202020603080c04140405181a07321b084d2000000001040100010002030101000003040501000002010203060c0305010b0001090001090002060c0302050b000109000004636f696e04436f696e087769746864726177076465706f736974000000000000000000000000000000000000000000000000000000000000000101000001080b000b0138000c030b020b03380102";
 
 function makeEntryPayload(): TransactionPayloadEntryFunction {
   const moduleId = new ModuleId(AccountAddress.ONE, new Identifier("aptos_account"));
@@ -235,6 +238,57 @@ describe("transactionBuilder/transactionBuilder", () => {
 
       expect(payload).toBeInstanceOf(TransactionPayloadScript);
     });
+
+    it("converts plain script arguments from the bytecode ABI", async () => {
+      const payload = await generateTransactionPayload({
+        bytecode: COIN_TRANSFER_SCRIPT,
+        typeArguments: ["0x1::aptos_coin::AptosCoin"],
+        functionArguments: [627, "0x1"],
+      });
+
+      expect(payload).toBeInstanceOf(TransactionPayloadScript);
+      expect(payload.script.args[0]).toEqual(new U64(627));
+      expect(payload.script.args[1]).toEqual(AccountAddress.ONE);
+    });
+
+    it("preserves wrapper-only script arguments without parsing", async () => {
+      const amount = new U64(627);
+      const payload = await generateTransactionPayload({
+        bytecode: "0x00",
+        typeArguments: [],
+        functionArguments: [amount],
+      });
+      expect(payload.script.args[0]).toBe(amount);
+    });
+
+    it("converts mixed plain and wrapper script arguments", async () => {
+      const amount = new U64(627);
+      const payload = await generateTransactionPayload({
+        bytecode: COIN_TRANSFER_SCRIPT,
+        typeArguments: ["0x1::aptos_coin::AptosCoin"],
+        functionArguments: [amount, "0x1"],
+      });
+      expect(payload.script.args[0]).toBe(amount);
+      expect(payload.script.args[1]).toEqual(AccountAddress.ONE);
+    });
+
+    it("validates parsed script argument counts", async () => {
+      await expect(
+        generateTransactionPayload({
+          bytecode: COIN_TRANSFER_SCRIPT,
+          typeArguments: [],
+          functionArguments: [627, "0x1"],
+        }),
+      ).rejects.toThrow(/Type argument count mismatch/);
+
+      await expect(
+        generateTransactionPayload({
+          bytecode: COIN_TRANSFER_SCRIPT,
+          typeArguments: ["0x1::aptos_coin::AptosCoin"],
+          functionArguments: [627],
+        }),
+      ).rejects.toThrow(/argument count mismatch/);
+    });
   });
 
   describe("generateTransactionPayload (multisig script)", () => {
@@ -247,6 +301,19 @@ describe("transactionBuilder/transactionBuilder", () => {
       });
 
       expect(payload).toBeInstanceOf(TransactionPayloadMultiSig);
+    });
+
+    it("converts plain arguments before wrapping a multisig script", async () => {
+      const payload = await generateTransactionPayload({
+        bytecode: COIN_TRANSFER_SCRIPT,
+        typeArguments: ["0x1::aptos_coin::AptosCoin"],
+        functionArguments: [627, "0x1"],
+        multisigAddress: AccountAddress.A,
+      });
+      expect(payload).toBeInstanceOf(TransactionPayloadMultiSig);
+      const script = payload.multiSig.transaction_payload?.transaction_payload;
+      expect(script).toBeInstanceOf(Script);
+      expect((script as Script).args[0]).toEqual(new U64(627));
     });
   });
 
