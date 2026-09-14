@@ -16,7 +16,8 @@
   "homepage": "https://aptos-labs.github.io/aptos-ts-sdk/",
   "type": "module",
   "sideEffects": [
-    "**/keylessRegistration.js"
+    "**/keylessRegistration.js",
+    "**/slhDsaSha2128s.js"
   ],
   "exports": {
     ".": {

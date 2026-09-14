@@ -9,7 +9,7 @@ import {
   Secp256k1PrivateKey,
   Signature,
 } from "../core/crypto/index.js";
-import { SlhDsaSha2128sPrivateKey } from "../core/crypto/slhDsaSha2128s.js";
+import { getSingleKeySchemeHandler } from "../core/crypto/singleKeySchemeRegistry.js";
 import type { Account } from "./Account.js";
 import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage.js";
 import { AnyRawTransaction } from "../transactions/types.js";
@@ -145,9 +145,16 @@ export class SingleKeyAccount implements Account, SingleKeySigner {
       case SigningSchemeInput.Secp256k1Ecdsa:
         privateKey = Secp256k1PrivateKey.generate();
         break;
-      case SigningSchemeInput.SlhDsaSha2128s:
-        privateKey = SlhDsaSha2128sPrivateKey.generate();
+      case SigningSchemeInput.SlhDsaSha2128s: {
+        const handler = getSingleKeySchemeHandler(scheme);
+        if (!handler) {
+          throw new Error(
+            "SLH-DSA-SHA2-128s support is not registered. Import @aptos-labs/ts-sdk/slh-dsa-sha2-128s before generating an account.",
+          );
+        }
+        privateKey = handler.generate();
         break;
+      }
       default:
         throw new Error(`Unsupported signature scheme ${scheme}`);
     }
@@ -177,9 +184,16 @@ export class SingleKeyAccount implements Account, SingleKeySigner {
       case SigningSchemeInput.Secp256k1Ecdsa:
         privateKey = Secp256k1PrivateKey.fromDerivationPath(path, mnemonic);
         break;
-      case SigningSchemeInput.SlhDsaSha2128s:
-        privateKey = SlhDsaSha2128sPrivateKey.fromDerivationPath(path, mnemonic);
+      case SigningSchemeInput.SlhDsaSha2128s: {
+        const handler = getSingleKeySchemeHandler(scheme);
+        if (!handler) {
+          throw new Error(
+            "SLH-DSA-SHA2-128s support is not registered. Import @aptos-labs/ts-sdk/slh-dsa-sha2-128s before deriving an account.",
+          );
+        }
+        privateKey = handler.fromDerivationPath(path, mnemonic);
         break;
+      }
       default:
         throw new Error(`Unsupported signature scheme ${scheme}`);
     }

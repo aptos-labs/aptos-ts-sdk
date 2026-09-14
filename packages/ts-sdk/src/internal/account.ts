@@ -77,7 +77,7 @@ import {
 } from "../types/generated/queries.js";
 import { Secp256k1PrivateKey } from "../core/crypto/secp256k1.js";
 import { Ed25519PrivateKey } from "../core/crypto/ed25519.js";
-import { SlhDsaSha2128sPrivateKey } from "../core/crypto/slhDsaSha2128s.js";
+import { isRegisteredSingleKeyPrivateKey } from "../core/crypto/singleKeySchemeRegistry.js";
 import { AuthenticationKey } from "../core/authenticationKey.js";
 import { createObjectAddress } from "../core/account/utils/address.js";
 import { Hex } from "../core/hex.js";
@@ -1261,7 +1261,11 @@ export async function deriveOwnedAccountsFromSigner(args: {
 }): Promise<Account[]> {
   const { aptosConfig, signer, options } = args;
 
-  if (signer instanceof Ed25519PrivateKey || signer instanceof Secp256k1PrivateKey) {
+  if (
+    signer instanceof Ed25519PrivateKey ||
+    signer instanceof Secp256k1PrivateKey ||
+    isRegisteredSingleKeyPrivateKey(signer)
+  ) {
     return deriveOwnedAccountsFromPrivateKey({ aptosConfig, privateKey: signer, options });
   }
 
@@ -1354,7 +1358,7 @@ async function deriveOwnedAccountsFromKeylessSigner(args: {
 
 async function deriveOwnedAccountsFromPrivateKey(args: {
   aptosConfig: AptosConfig;
-  privateKey: Ed25519PrivateKey | Secp256k1PrivateKey | SlhDsaSha2128sPrivateKey;
+  privateKey: PrivateKeyInput;
   options?: { includeUnverified?: boolean; noMultiKey?: boolean };
 }): Promise<Account[]> {
   const { aptosConfig, privateKey, options } = args;

@@ -9,7 +9,7 @@ import { AuthenticationKey } from "../authenticationKey.js";
 import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "./ed25519.js";
 import { AccountPublicKey, PublicKey } from "./publicKey.js";
 import { Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1.js";
-import { SlhDsaSha2128sPrivateKey, SlhDsaSha2128sPublicKey, SlhDsaSha2128sSignature } from "./slhDsaSha2128s.js";
+import type { SlhDsaSha2128sPrivateKey } from "./slhDsaSha2128s.js";
 import { Signature } from "./signature.js";
 import { AptosConfig } from "../../api/aptosConfig.js";
 import { Secp256r1PublicKey, WebAuthnSignature } from "./secp256r1.js";
@@ -69,8 +69,6 @@ export class AnyPublicKey extends AccountPublicKey {
       this.variant = AnyPublicKeyVariant.Secp256k1;
     } else if (publicKey instanceof Secp256r1PublicKey) {
       this.variant = AnyPublicKeyVariant.Secp256r1;
-    } else if (publicKey instanceof SlhDsaSha2128sPublicKey) {
-      this.variant = AnyPublicKeyVariant.SlhDsaSha2_128s;
     } else {
       // Check registered variants (e.g., keyless, federated keyless)
       const registeredVariant = detectPublicKeyVariant(publicKey);
@@ -205,9 +203,6 @@ export class AnyPublicKey extends AccountPublicKey {
       case AnyPublicKeyVariant.Secp256r1:
         publicKey = Secp256r1PublicKey.deserialize(deserializer);
         break;
-      case AnyPublicKeyVariant.SlhDsaSha2_128s:
-        publicKey = SlhDsaSha2128sPublicKey.deserialize(deserializer);
-        break;
       default: {
         // Check registered variant deserializers (e.g., keyless, federated keyless)
         const registeredDeserializer = getPublicKeyDeserializer(variantIndex);
@@ -217,7 +212,7 @@ export class AnyPublicKey extends AccountPublicKey {
         }
         throw new Error(
           `Unknown variant index for AnyPublicKey: ${variantIndex}. ` +
-            "If this is a keyless key, ensure keyless support is imported.",
+            "Ensure the corresponding optional signature-scheme module is imported.",
         );
       }
     }
@@ -302,8 +297,6 @@ export class AnySignature extends Signature {
       this.variant = AnySignatureVariant.Ed25519;
     } else if (signature instanceof Secp256k1Signature) {
       this.variant = AnySignatureVariant.Secp256k1;
-    } else if (signature instanceof SlhDsaSha2128sSignature) {
-      this.variant = AnySignatureVariant.SlhDsaSha2_128s;
     } else if (signature instanceof WebAuthnSignature) {
       this.variant = AnySignatureVariant.WebAuthn;
     } else {
@@ -349,9 +342,6 @@ export class AnySignature extends Signature {
       case AnySignatureVariant.Secp256k1:
         signature = Secp256k1Signature.deserialize(deserializer);
         break;
-      case AnySignatureVariant.SlhDsaSha2_128s:
-        signature = SlhDsaSha2128sSignature.deserialize(deserializer);
-        break;
       case AnySignatureVariant.WebAuthn:
         signature = WebAuthnSignature.deserialize(deserializer);
         break;
@@ -364,7 +354,7 @@ export class AnySignature extends Signature {
         }
         throw new Error(
           `Unknown variant index for AnySignature: ${variantIndex}. ` +
-            "If this is a keyless signature, ensure keyless support is imported.",
+            "Ensure the corresponding optional signature-scheme module is imported.",
         );
       }
     }

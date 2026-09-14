@@ -1,42 +1,24 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { slh_dsa_sha2_128s } from "@noble/post-quantum/slh-dsa.js";
 import { AptosConfig } from "../../api/aptosConfig.js";
 import { Deserializer, Serializable, Serializer } from "../../bcs/index.js";
-import { HexInput, PrivateKeyVariants } from "../../types/index.js";
+import {
+  AnyPublicKeyVariant,
+  AnySignatureVariant,
+  HexInput,
+  PrivateKeyVariants,
+  SigningSchemeInput,
+} from "../../types/index.js";
 import { Hex } from "../hex.js";
+import { registerPublicKeyVariant, registerSignatureVariant } from "./anyKeyRegistry.js";
 import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey.js";
 import { PrivateKey } from "./privateKey.js";
 import { PublicKey } from "./publicKey.js";
 import { Signature } from "./signature.js";
+import { registerSingleKeyScheme } from "./singleKeySchemeRegistry.js";
 import { convertSigningMessage } from "./utils.js";
-
-type SlhDsaSha2128sNobleModule = typeof import("@noble/post-quantum/slh-dsa.js");
-type SlhDsaSha2128sNobleImpl = SlhDsaSha2128sNobleModule["slh_dsa_sha2_128s"];
-
-let slhDsaSha2128sNobleImpl: SlhDsaSha2128sNobleImpl | undefined;
-
-/**
- * Lazily loads `@noble/post-quantum` so the default install graph does not need a
- * static dependency on it (optional install + friendlier bundling).
- */
-function loadSlhDsaSha2128sImpl(): SlhDsaSha2128sNobleImpl {
-  if (slhDsaSha2128sNobleImpl !== undefined) {
-    return slhDsaSha2128sNobleImpl;
-  }
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
-    const mod = require("@noble/post-quantum/slh-dsa.js") as SlhDsaSha2128sNobleModule;
-    slhDsaSha2128sNobleImpl = mod.slh_dsa_sha2_128s;
-    return slhDsaSha2128sNobleImpl;
-  } catch (cause) {
-    const err = new Error(
-      "SLH-DSA-SHA2-128s requires the optional dependency @noble/post-quantum. Install it with your package manager (for example: `pnpm add @noble/post-quantum`).",
-    );
-    (err as Error & { cause?: unknown }).cause = cause;
-    throw err;
-  }
-}
 
 /**
  * Represents a SLH-DSA-SHA2-128s public key.
@@ -108,7 +90,7 @@ export class SlhDsaSha2128sPublicKey extends PublicKey {
     const messageBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
     const signatureBytes = signature.toUint8Array();
     const publicKeyBytes = this.key.toUint8Array();
-    return loadSlhDsaSha2128sImpl().verify(signatureBytes, messageBytes, publicKeyBytes);
+    return slh_dsa_sha2_128s.verify(signatureBytes, messageBytes, publicKeyBytes);
   }
 
   /**
@@ -270,7 +252,7 @@ export class SlhDsaSha2128sPrivateKey extends Serializable implements PrivateKey
     this.threeSeeds = privateKeyHex;
     // Compute the secret key immediately from the three seeds
     const threeSeedsBytes = this.threeSeeds.toUint8Array();
-    const keys = loadSlhDsaSha2128sImpl().keygen(threeSeedsBytes);
+    const keys = slh_dsa_sha2_128s.keygen(threeSeedsBytes);
     this.secretKey = keys.secretKey;
   }
 
@@ -308,7 +290,7 @@ export class SlhDsaSha2128sPrivateKey extends Serializable implements PrivateKey
     const messageToSign = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToSign).toUint8Array();
     // Use the pre-computed secret key for fast signing
-    const signatureBytes = loadSlhDsaSha2128sImpl().sign(messageBytes, this.secretKey);
+    const signatureBytes = slh_dsa_sha2_128s.sign(messageBytes, this.secretKey);
     return new SlhDsaSha2128sSignature(signatureBytes);
   }
 
@@ -383,7 +365,7 @@ export class SlhDsaSha2128sPrivateKey extends Serializable implements PrivateKey
    */
   publicKey(): SlhDsaSha2128sPublicKey {
     // Use getPublicKey to extract the public key from the secret key
-    const publicKeyBytes = loadSlhDsaSha2128sImpl().getPublicKey(this.secretKey);
+    const publicKeyBytes = slh_dsa_sha2_128s.getPublicKey(this.secretKey);
     return new SlhDsaSha2128sPublicKey(publicKeyBytes);
   }
 
@@ -527,3 +509,22 @@ export class SlhDsaSha2128sSignature extends Signature {
 
   // endregion
 }
+
+registerPublicKeyVariant(
+  AnyPublicKeyVariant.SlhDsaSha2_128s,
+  (deserializer) => SlhDsaSha2128sPublicKey.deserialize(deserializer),
+  (key: PublicKey) => (key instanceof SlhDsaSha2128sPublicKey ? AnyPublicKeyVariant.SlhDsaSha2_128s : undefined),
+);
+
+registerSignatureVariant(
+  AnySignatureVariant.SlhDsaSha2_128s,
+  (deserializer) => SlhDsaSha2128sSignature.deserialize(deserializer),
+  (signature: Signature) =>
+    signature instanceof SlhDsaSha2128sSignature ? AnySignatureVariant.SlhDsaSha2_128s : undefined,
+);
+
+registerSingleKeyScheme(SigningSchemeInput.SlhDsaSha2128s, {
+  generate: () => SlhDsaSha2128sPrivateKey.generate(),
+  fromDerivationPath: (path, mnemonic) => SlhDsaSha2128sPrivateKey.fromDerivationPath(path, mnemonic),
+  isPrivateKey: (value): value is SlhDsaSha2128sPrivateKey => value instanceof SlhDsaSha2128sPrivateKey,
+});
