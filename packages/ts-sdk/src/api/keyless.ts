@@ -6,11 +6,12 @@ import { EphemeralKeyPair } from "../account/EphemeralKeyPair.js";
 import { KeylessAccount } from "../account/KeylessAccount.js";
 import { ProofFetchCallback } from "../account/AbstractKeylessAccount.js";
 import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount.js";
-import { AccountAddressInput } from "../core/accountAddress.js";
+import { AccountAddress, AccountAddressInput } from "../core/accountAddress.js";
 import { ZeroKnowledgeSig } from "../core/crypto/keyless.js";
 import {
   deriveKeylessAccount,
   getPepper,
+  getPepperAndAddress,
   getPepperBase,
   getProof,
   updateFederatedKeylessJwkSetTransaction,
@@ -92,6 +93,40 @@ export class Keyless {
     derivationPath?: string;
   }): Promise<Uint8Array> {
     return getPepper({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Fetches pepper bytes and the initial Keyless account address from public
+   * ephemeral key components.
+   *
+   * `ephemeralPublicKey` must contain the BCS-serialized ephemeral public key.
+   * The returned address is the initial address derived by the pepper service
+   * and does not reflect later authentication-key rotation.
+   *
+   * This lookup validates the JWT-to-EPK association but does not prove
+   * possession of the corresponding ephemeral private key. An off-chain
+   * authentication flow must additionally verify the client's signature over a
+   * fresh, replay-protected challenge.
+   *
+   * @param args - Public ephemeral key data committed into the JWT nonce.
+   * @param args.jwt - JWT issued for the Keyless session.
+   * @param args.ephemeralPublicKey - BCS-serialized ephemeral public key.
+   * @param args.expiryDateSecs - EPK expiration as a Unix timestamp in seconds.
+   * @param args.blinder - Blinder committed with the EPK and expiration.
+   * @param args.uidKey - JWT claim containing the user ID. Defaults to `"sub"`.
+   * @param args.derivationPath - Optional SLIP-0010 derivation path.
+   * @returns Pepper bytes and the initial Keyless account address.
+   * @group Keyless
+   */
+  async getPepperAndAddress(args: {
+    jwt: string;
+    ephemeralPublicKey: HexInput;
+    expiryDateSecs: number;
+    blinder: HexInput;
+    uidKey?: string;
+    derivationPath?: string;
+  }): Promise<{ pepper: Uint8Array; address: AccountAddress }> {
+    return getPepperAndAddress({ aptosConfig: this.config, ...args });
   }
 
   /**

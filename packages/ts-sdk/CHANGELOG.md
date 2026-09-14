@@ -6,7 +6,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Added
 
-- Document the approved design for a backward-compatible Keyless pepper API that accepts BCS-serialized ephemeral public data and returns both the derived pepper and initial account address for off-chain flows.
+- Add backward-compatible `getPepperAndAddress` Keyless APIs that accept BCS-serialized ephemeral public data and return both pepper bytes and the initial account address for off-chain flows; existing `getPepper` behavior remains unchanged.
 
 ## Changed
 
