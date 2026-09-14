@@ -375,7 +375,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
   }
 
   /**
-   * Starts transaction submission and processing by executing tasks from the queue until it is cancelled.
+   * Starts transaction submission and processing by executing all queued tasks concurrently.
    *
    * @throws {Error} Throws an error if unable to start transaction batching.
    * @group Implementation
@@ -383,10 +383,12 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    */
   async run() {
     try {
-      while (!this.taskQueue.isCancelled()) {
+      const runningTasks: Promise<void>[] = [];
+      while (!this.taskQueue.isEmpty()) {
         const task = await this.taskQueue.dequeue();
-        await task();
+        runningTasks.push(task());
       }
+      await Promise.all(runningTasks);
     } catch (error: any) {
       throw new Error(`Unable to start transaction batching: ${error}`);
     }
