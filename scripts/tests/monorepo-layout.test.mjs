@@ -82,12 +82,16 @@ test("standalone examples link to the relocated TypeScript SDK", async () => {
 
 test("required CI validates repository and confidential asset contracts", async () => {
   const sdkTestAction = await readFile(join(repoRoot, ".github/actions/run-tests/action.yaml"), "utf8");
+  const formatAction = await readFile(join(repoRoot, ".github/actions/run-fmt/action.yaml"), "utf8");
+  const lintAction = await readFile(join(repoRoot, ".github/actions/run-lint/action.yaml"), "utf8");
   const confidentialAssetAction = await readFile(
     join(repoRoot, ".github/actions/run-confidential-asset-tests/action.yaml"),
     "utf8",
   );
 
   assert.match(sdkTestAction, /run: pnpm test:repo/);
+  assert.match(formatAction, /run: pnpm _fmt\n/);
+  assert.match(lintAction, /run: pnpm lint\n/);
   assert.match(
     confidentialAssetAction,
     /run: pnpm turbo run build check-license --filter=@aptos-labs\/confidential-asset/,

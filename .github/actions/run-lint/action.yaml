@@ -10,5 +10,5 @@ runs:
     # Install once at the repository root, then lint every workspace package.
     - run: pnpm install --frozen-lockfile
       shell: bash
-    - run: pnpm turbo run lint
+    - run: pnpm lint
       shell: bash

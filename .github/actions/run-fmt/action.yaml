@@ -10,5 +10,5 @@ runs:
     # Install once at the repository root, then check every workspace package.
     - run: pnpm install --frozen-lockfile
       shell: bash
-    - run: pnpm turbo run _fmt
+    - run: pnpm _fmt
       shell: bash
