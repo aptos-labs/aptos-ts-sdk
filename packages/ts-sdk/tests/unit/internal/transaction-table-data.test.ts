@@ -10,6 +10,7 @@ import {
   type WriteSetChangeWriteTableItem,
   TransactionResponseType,
 } from "../../../src/types/index.js";
+import { ProcessorType } from "../../../src/utils/const.js";
 import { createMockClient, expectRequest, type MockClient, type RecordedRequest } from "../../helpers/mockClient.js";
 
 type EnrichTransactionWithTableItemData = (args: {
@@ -46,6 +47,22 @@ function tableDataRequest(mock: MockClient): RecordedRequest | undefined {
 
 function tableMetadataRequest(mock: MockClient): RecordedRequest | undefined {
   return mock.requests.find((request) => graphqlOperation(request).includes("getTableItemsMetadata"));
+}
+
+function syncedProcessorResponse() {
+  return {
+    data: {
+      data: {
+        processor_status: [
+          {
+            processor: ProcessorType.DEFAULT,
+            last_success_version: "563060087",
+            last_updated: "2026-09-14T00:00:00",
+          },
+        ],
+      },
+    },
+  };
 }
 
 describe("enrichTransactionWithTableItemData", () => {
@@ -97,6 +114,9 @@ describe("enrichTransactionWithTableItemData", () => {
 
     mock.setResponder((request) => {
       const operation = graphqlOperation(request);
+      if (operation.includes("getProcessorStatus")) {
+        return syncedProcessorResponse();
+      }
       if (operation.includes("getTableItemsData")) {
         return {
           data: {
@@ -156,7 +176,11 @@ describe("enrichTransactionWithTableItemData", () => {
     });
     expect((transaction.changes[4] as WriteSetChangeWriteTableItem).data).toBe(existingData);
 
-    expect(mock.requests).toHaveLength(2);
+    expect(mock.requests).toHaveLength(3);
+    expectRequest(mock.requests[0], { method: "POST", originMethod: "getProcessorStatus" });
+    expect((mock.requests[0]?.body as { variables: Record<string, unknown> } | undefined)?.variables).toMatchObject({
+      where_condition: { processor: { _eq: ProcessorType.DEFAULT } },
+    });
     const dataRequest = tableDataRequest(mock);
     const metadataRequest = tableMetadataRequest(mock);
     expectRequest(dataRequest, { method: "POST", originMethod: "getTableItemsData" });
@@ -204,11 +228,15 @@ describe("enrichTransactionWithTableItemData", () => {
       },
     ] as CommittedTransactionResponse["changes"]);
 
-    mock.setResponder((request) =>
-      graphqlOperation(request).includes("getTableItemsData")
+    mock.setResponder((request) => {
+      const operation = graphqlOperation(request);
+      if (operation.includes("getProcessorStatus")) {
+        return syncedProcessorResponse();
+      }
+      return operation.includes("getTableItemsData")
         ? { data: { data: { table_items: [] } } }
-        : { data: { data: { table_metadatas: [] } } },
-    );
+        : { data: { data: { table_metadatas: [] } } };
+    });
 
     await getEnrichmentFunction()({
       aptosConfig: mock.config,
@@ -216,5 +244,79 @@ describe("enrichTransactionWithTableItemData", () => {
     });
 
     expect((transaction.changes[0] as WriteSetChangeWriteTableItem).data).toBeNull();
+  });
+
+  it("paginates table items and metadata beyond the indexer page size", async () => {
+    const mock = createMockClient();
+    const transaction = committedTransaction(
+      Array.from({ length: 101 }, (_, index) => ({
+        type: "write_table_item",
+        state_key_hash: `0xstate_${index}`,
+        handle: `0xhandle_${index}`,
+        key: `0xkey_${index}`,
+        value: `0xvalue_${index}`,
+        data: null,
+      })) as CommittedTransactionResponse["changes"],
+    );
+
+    mock.setResponder((request) => {
+      const operation = graphqlOperation(request);
+      const variables = (request.body as { variables: Record<string, unknown> }).variables;
+      if (operation.includes("getProcessorStatus")) {
+        return syncedProcessorResponse();
+      }
+      if (operation.includes("getTableItemsData")) {
+        const offset = Number(variables.offset);
+        const length = offset === 0 ? 100 : 1;
+        return {
+          data: {
+            data: {
+              table_items: Array.from({ length }, (_, pageIndex) => {
+                const changeIndex = offset + pageIndex;
+                return {
+                  decoded_key: `key-${changeIndex}`,
+                  decoded_value: `value-${changeIndex}`,
+                  key: `0xkey_${changeIndex}`,
+                  table_handle: `0xhandle_${changeIndex}`,
+                  transaction_version: 563060087,
+                  write_set_change_index: changeIndex,
+                };
+              }),
+            },
+          },
+        };
+      }
+      if (operation.includes("getTableItemsMetadata")) {
+        const handles = (variables.where_condition as { handle: { _in: string[] } }).handle._in;
+        return {
+          data: {
+            data: {
+              table_metadatas: handles.map((handle) => ({
+                handle,
+                key_type: "address",
+                value_type: "u64",
+              })),
+            },
+          },
+        };
+      }
+      throw new Error(`Unexpected request: ${operation}`);
+    });
+
+    await getEnrichmentFunction()({
+      aptosConfig: mock.config,
+      transaction,
+    });
+
+    expect((transaction.changes[100] as WriteSetChangeWriteTableItem).data).toEqual({
+      key: "key-100",
+      key_type: "address",
+      value: "value-100",
+      value_type: "u64",
+    });
+    expect(mock.requests.filter((request) => graphqlOperation(request).includes("getTableItemsData"))).toHaveLength(2);
+    expect(mock.requests.filter((request) => graphqlOperation(request).includes("getTableItemsMetadata"))).toHaveLength(
+      2,
+    );
   });
 });
