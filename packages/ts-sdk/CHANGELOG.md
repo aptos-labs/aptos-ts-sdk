@@ -6,7 +6,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Fixed
 
-- Run transaction submission and processing tasks concurrently so worker events are emitted while a batch is still being submitted.
+- Emit transaction submission success and failure events as soon as each submission settles instead of waiting for the worker's processing phase.
 
 ## Changed
 

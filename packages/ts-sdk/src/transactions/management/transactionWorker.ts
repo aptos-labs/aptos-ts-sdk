@@ -165,7 +165,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
     pendingTransaction: Promise<PendingTransactionResponse>,
     sequenceNumber: bigint,
   ): void {
-    pendingTransaction.then(
+    const notification = pendingTransaction.then(
       (transaction) => {
         this.addToTransactionHistory(this.sentTransactions, [transaction.hash, sequenceNumber, null]);
         this.emit(TransactionWorkerEventsEnum.TransactionSent, {
@@ -181,6 +181,9 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
         });
       },
     );
+    // Event listeners are user-provided and must not create an unhandled rejection
+    // in this detached notification chain.
+    notification.catch(() => {});
   }
 
   /**
@@ -222,6 +225,8 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    * This function continues to submit transactions until there are no more to process.
    *
    * @throws {Error} Throws an error if the transaction submission fails.
+   * @event TransactionWorkerEventsEnum.TransactionSent - Emitted when a transaction is sent to the chain.
+   * @event TransactionWorkerEventsEnum.TransactionSendFailed - Emitted when a transaction fails to send.
    * @group Implementation
    * @category Transactions
    */
@@ -249,14 +254,11 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
   }
 
   /**
-   * Reads the outstanding transaction queue and submits the transactions to the chain.
-   * This function processes each transaction, checking their status and emitting events based on whether they were successfully
-   * sent or failed.
+   * Reads the outstanding transaction queue and checks each successfully submitted transaction's execution status.
    *
    * @throws {Error} Throws an error if the process execution fails.
-   * @event TransactionWorkerEventsEnum.TransactionSent - Emitted when a transaction has been successfully committed to the chain.
-   * @event TransactionWorkerEventsEnum.TransactionSendFailed - Emitted when a transaction fails to commit, along with the error
-   * reason.
+   * @event TransactionWorkerEventsEnum.TransactionExecuted - Emitted when a transaction executes successfully.
+   * @event TransactionWorkerEventsEnum.TransactionExecutionFailed - Emitted when a transaction fails during execution.
    * @event TransactionWorkerEventsEnum.ExecutionFinish - Emitted when the execution of transactions is complete.
    * @group Implementation
    * @category Transactions
