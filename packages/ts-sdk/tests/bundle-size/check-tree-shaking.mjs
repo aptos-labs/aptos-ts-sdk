@@ -17,6 +17,7 @@
 
 import { readFileSync, existsSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
 const distDir = join(import.meta.dirname, "../../dist");
 let allPassed = true;
@@ -148,6 +149,7 @@ const entryPoints = [
   ["./fungibleAsset", "functions/fungibleAsset.js"],
   ["./general", "functions/general.js"],
   ["./keyless", "functions/keyless.js"],
+  ["./slh-dsa-sha2-128s", "slh-dsa-sha2-128s.js"],
   ["./object", "functions/object.js"],
   ["./staking", "functions/staking.js"],
   ["./table", "functions/table.js"],
@@ -213,6 +215,54 @@ check(
   "functions/keyless.js DOES statically import poseidon-lite (walker sanity check)",
   [...keylessExternals].some((s) => s === "poseidon-lite" || s.startsWith("poseidon-lite/")),
 );
+
+// SLH-DSA should be isolated to its opt-in entry point. The main account entry
+// must not reach the optional dependency, while the SLH entry must load it with
+// a standard ESM import that works in every supported ESM runtime.
+console.log("\n--- SLH-DSA isolation ---");
+for (const entry of ["index.js", "functions/account.js", "core/crypto/index.js"]) {
+  const externals = collectStaticExternals(entry);
+  check(
+    `${entry} does not statically import @noble/post-quantum`,
+    ![...externals].some((s) => s === "@noble/post-quantum" || s.startsWith("@noble/post-quantum/")),
+  );
+}
+
+const slhExternals = collectStaticExternals("slh-dsa-sha2-128s.js");
+check(
+  "slh-dsa-sha2-128s.js DOES statically import @noble/post-quantum",
+  [...slhExternals].some((s) => s === "@noble/post-quantum" || s.startsWith("@noble/post-quantum/")),
+);
+
+const slhEntryUrl = pathToFileURL(join(distDir, "slh-dsa-sha2-128s.js")).href;
+const mainEntryUrl = pathToFileURL(join(distDir, "index.js")).href;
+try {
+  const slhEntry = await import(slhEntryUrl);
+  const privateKey = slhEntry.SlhDsaSha2128sPrivateKey.generate();
+  check("SLH-DSA key generation works from the built ESM entry", privateKey.toUint8Array().length === 48);
+} catch (error) {
+  check(
+    "SLH-DSA key generation works from the built ESM entry",
+    false,
+    error instanceof Error ? error.message : String(error),
+  );
+}
+
+try {
+  await import(slhEntryUrl);
+  const { Account, SigningSchemeInput } = await import(mainEntryUrl);
+  const account = Account.generate({ scheme: SigningSchemeInput.SlhDsaSha2128s });
+  check(
+    "SLH-DSA account generation works after importing the opt-in entry",
+    account.privateKey.toUint8Array().length === 48,
+  );
+} catch (error) {
+  check(
+    "SLH-DSA account generation works after importing the opt-in entry",
+    false,
+    error instanceof Error ? error.message : String(error),
+  );
+}
 
 // 4. Main barrel should not re-export functions (to avoid circular deps)
 console.log("\n--- Barrel structure ---");

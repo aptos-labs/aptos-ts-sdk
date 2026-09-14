@@ -4,6 +4,11 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Added
+
+- Add SLH-DSA-SHA2-128s as a supported signature scheme.
+- Export its primitives from `@aptos-labs/ts-sdk/slh-dsa-sha2-128s` so `@noble/post-quantum` remains optional and is loaded only by SLH code paths.
+
 ## Changed
 
 - Convert the repository to a pnpm/Turbo monorepo, relocating `@aptos-labs/ts-sdk` and `@aptos-labs/confidential-asset` under `packages/`, centralizing dependency installation and task orchestration, and reserving the `packages/payments-sdk` convention for a future payments SDK.
