@@ -18,11 +18,24 @@ Add an entry to the TypeScript SDK changelog describing the expanded example.
 
 ## Account Setup
 
-- Generate the initial Ed25519 account at runtime and fund only its address.
-- Generate three MultiEd25519 component keys at runtime and create a 2-of-3 public key. Construct the MultiEd25519 signer with two component private keys and the initial account address.
-- Construct the final Ed25519 signer from a constant private key and the initial account address. The constant must be labeled as public, example-only material that must never hold real funds.
+- Define deterministic, hard-coded private keys for the initial Ed25519 signer, three MultiEd25519 components, and the final Ed25519 signer.
+- Create a 2-of-3 MultiEd25519 public key and construct its signer with two component private keys and the initial Ed25519 account address.
+- Construct the final Ed25519 signer from its fixed private key and the same account address.
+- Label every embedded private key as public, example-only material that must never hold real funds.
 
 The account address remains unchanged throughout. Only its on-chain authentication key and signing requirements change.
+
+## Repeatable Preflight
+
+A verified rotation adds the target authentication key to the framework's one-to-one `OriginatingAddress` map. Reusing a fixed target key for a different random account would abort with `ENEW_AUTH_KEY_ALREADY_MAPPED`, so the example always uses the same deterministic account address and key set.
+
+After funding the account, inspect its current on-chain authentication key:
+
+- If it matches the initial Ed25519 key, begin the demonstration.
+- If it matches the MultiEd25519 or final Ed25519 key, use that deterministic signer to rotate back to the initial Ed25519 key before beginning.
+- If it matches none of the example's keys, stop with a descriptive error instead of submitting a transaction with the wrong signer.
+
+This preflight also recovers from a prior run interrupted after the first rotation. Resetting to the initial key removes any prior `OriginatingAddress` entry for the final key, making the main flow repeatable on persistent development networks.
 
 ## Rotation Flow
 
@@ -38,7 +51,7 @@ The first transaction is signed by the initial Ed25519 account and targets the M
 
 ## Output and Errors
 
-Log the stable account address, each signer type, expected authentication keys, and committed transaction hashes. Do not print private-key material.
+Log the stable account address, any preflight reset, each signer type, expected authentication keys, and committed transaction hashes. Do not print private-key material.
 
 Allow faucet, submission, and transaction-wait failures to surface. Authentication-key mismatches use explicit errors so an example run cannot report success after an incomplete rotation.
 
@@ -46,5 +59,5 @@ Allow faucet, submission, and transaction-wait failures to surface. Authenticati
 
 - Type-check the TypeScript examples.
 - Run formatting and lint checks.
-- Execute the example against the configured development network and confirm both transactions commit and both authentication-key assertions pass.
+- Execute the example twice against the same configured development network and confirm the second run resets the deterministic account before both requested rotations commit and all authentication-key assertions pass.
 
