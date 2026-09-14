@@ -54,6 +54,7 @@
     "@noble/hashes": "^2.4.0"
   },
   "devDependencies": {
+    "@aptos-labs/aptos-cli": "^3.0.0",
     "@aptos-labs/ts-sdk": "workspace:^7.3.0",
     "@biomejs/biome": "2.5.12",
     "@types/node": "^22.20.1",

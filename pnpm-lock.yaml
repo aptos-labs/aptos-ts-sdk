@@ -53,6 +53,9 @@ importers:
         specifier: ^2.4.0
         version: 2.4.0
     devDependencies:
+      '@aptos-labs/aptos-cli':
+        specifier: ^3.0.0
+        version: 3.0.0
       '@aptos-labs/ts-sdk':
         specifier: workspace:^7.3.0
         version: link:../ts-sdk
