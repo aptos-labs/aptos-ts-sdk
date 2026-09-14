@@ -15,13 +15,15 @@ export async function addAuthenticationFunctionTransaction(args: {
   aptosConfig: AptosConfig;
   sender: AccountAddressInput;
   authenticationFunction: MoveFunctionId;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, sender, authenticationFunction, options } = args;
+  const { aptosConfig, sender, authenticationFunction, withFeePayer, options } = args;
   const { moduleAddress, moduleName, functionName } = getFunctionParts(authenticationFunction);
   return generateTransaction({
     aptosConfig,
     sender,
+    withFeePayer,
     data: {
       function: "0x1::account_abstraction::add_authentication_function",
       typeArguments: [],
@@ -39,13 +41,15 @@ export async function removeAuthenticationFunctionTransaction(args: {
   aptosConfig: AptosConfig;
   sender: AccountAddressInput;
   authenticationFunction: MoveFunctionId;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }) {
-  const { aptosConfig, sender, authenticationFunction, options } = args;
+  const { aptosConfig, sender, authenticationFunction, withFeePayer, options } = args;
   const { moduleAddress, moduleName, functionName } = getFunctionParts(authenticationFunction);
   return generateTransaction({
     aptosConfig,
     sender,
+    withFeePayer,
     data: {
       function: "0x1::account_abstraction::remove_authentication_function",
       typeArguments: [],
@@ -62,12 +66,14 @@ export async function removeAuthenticationFunctionTransaction(args: {
 export async function removeDispatchableAuthenticatorTransaction(args: {
   aptosConfig: AptosConfig;
   sender: AccountAddressInput;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }) {
-  const { aptosConfig, sender, options } = args;
+  const { aptosConfig, sender, withFeePayer, options } = args;
   return generateTransaction({
     aptosConfig,
     sender,
+    withFeePayer,
     data: {
       function: "0x1::account_abstraction::remove_authenticator",
       typeArguments: [],
