@@ -34,6 +34,9 @@ importers:
 
   .:
     devDependencies:
+      '@biomejs/biome':
+        specifier: 2.5.12
+        version: 2.5.12
       turbo:
         specifier: ^2.10.12
         version: 2.10.12

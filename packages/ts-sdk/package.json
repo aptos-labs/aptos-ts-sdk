@@ -4,7 +4,8 @@
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aptos-labs/aptos-ts-sdk.git"
+    "url": "git+https://github.com/aptos-labs/aptos-ts-sdk.git",
+    "directory": "packages/ts-sdk"
   },
   "engines": {
     "node": ">=22.0.0"

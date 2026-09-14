@@ -9,6 +9,7 @@ For changes to the main Aptos TypeScript SDK (`@aptos-labs/ts-sdk`), see its [CH
 ## Changed
 
 - Integrate the relocated package into the pnpm/Turbo workspace, including repository metadata, CI, release, publishing, coverage, and documentation paths.
+- Complete migration CI coverage by validating the package's production build and packaged license and by preventing cached formatting, lint, check, and license results.
 - Update dependencies within current majors: `@noble/{ciphers,curves,hashes}` to `^2.4.0`, Vitest/`@vitest/*` to `^4.1.11`, Playwright to `^1.63.0`, Biome to `2.5.12`, and pnpm to `11.26.0`. Refresh pnpm overrides (`js-yaml` `3.15.2`/`4.3.2`, `postcss` `8.5.28`, `undici` `7.29.1`, `uuid` `14.0.2`, `picomatch` `4.0.7`, `@xmldom/xmldom` `0.8.15`, `file-type` `21.3.4`) to patched releases.
 - Upgrade the package-manager pin to pnpm `11.21.0`.
 - Upgrade TypeScript to `^7.0.2`.

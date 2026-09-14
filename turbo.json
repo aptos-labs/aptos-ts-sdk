@@ -5,12 +5,18 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
-    "_fmt": {},
+    "_fmt": {
+      "cache": false
+    },
     "fmt": {
       "cache": false
     },
-    "lint": {},
-    "check": {},
+    "lint": {
+      "cache": false
+    },
+    "check": {
+      "cache": false
+    },
     "test": {
       "dependsOn": ["^build"],
       "cache": false
@@ -46,8 +52,12 @@
       "dependsOn": ["build"],
       "cache": false
     },
-    "check-version": {},
-    "check-license": {},
+    "check-version": {
+      "cache": false
+    },
+    "check-license": {
+      "cache": false
+    },
     "update-version": {
       "cache": false
     },

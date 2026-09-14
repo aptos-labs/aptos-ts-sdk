@@ -15,6 +15,9 @@ runs:
     - run: pnpm install --frozen-lockfile
       shell: bash
 
+    - run: pnpm test:repo
+      shell: bash
+
     # Run the TS SDK tests.
     - uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # pin@v4.0.0
       name: sdk-pnpm-test

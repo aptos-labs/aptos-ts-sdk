@@ -9,7 +9,7 @@
     "ignoreUnknown": true,
     "includes": [
       "**",
-      "!src/types/generated",
+      "!packages/ts-sdk/src/types/generated",
       "!dist",
       "!node_modules",
       "!**/dist",

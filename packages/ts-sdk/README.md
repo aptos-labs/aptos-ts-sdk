@@ -178,39 +178,39 @@ const account = Account.fromDerivationPath({ path, mnemonic });
  * This example shows how to use the Aptos SDK to send a transaction.
  * Don't forget to install @aptos-labs/ts-sdk before running this example!
  */
- 
+
 import {
     Account,
     Aptos,
     AptosConfig,
     Network,
 } from "@aptos-labs/ts-sdk";
- 
+
 async function example() {
     console.log("This example will create two accounts (Alice and Bob) and send a transaction transferring APT to Bob's account.");
- 
+
     // 0. Setup the client and test accounts
     const config = new AptosConfig({ network: Network.TESTNET });
     const aptos = new Aptos(config);
- 
+
     let alice = Account.generate();
     let bob = Account.generate();
- 
+
     console.log("=== Addresses ===\n");
     console.log(`Alice's address is: ${alice.accountAddress}`);
     console.log(`Bob's address is: ${bob.accountAddress}`);
- 
+
     console.log("\n=== Funding accounts ===\n");
     await aptos.faucet.fundAccount({
         accountAddress: alice.accountAddress,
         amount: 100_000_000,
-    });  
+    });
     await aptos.faucet.fundAccount({
         accountAddress: bob.accountAddress,
         amount: 100,
     });
     console.log("Funded Alice and Bob's accounts!")
- 
+
     // 1. Build
     console.log("\n=== 1. Building the transaction ===\n");
     const transaction = await aptos.transaction.build.simple({
@@ -222,7 +222,7 @@ async function example() {
         },
     });
     console.log("Built the transaction!")
- 
+
     // 2. Simulate (Optional)
     console.log("\n === 2. Simulating Response (Optional) === \n")
     const [userTransactionResponse] = await aptos.transaction.simulate.simple({
@@ -230,7 +230,7 @@ async function example() {
         transaction,
     });
     console.log(userTransactionResponse)
- 
+
     // 3. Sign
     console.log("\n=== 3. Signing transaction ===\n");
     const senderAuthenticator = aptos.transaction.sign({
@@ -238,22 +238,22 @@ async function example() {
         transaction,
     });
     console.log("Signed the transaction!")
- 
+
     // 4. Submit
     console.log("\n=== 4. Submitting transaction ===\n");
     const submittedTransaction = await aptos.transaction.submit.simple({
         transaction,
         senderAuthenticator,
     });
- 
+
     console.log(`Submitted transaction hash: ${submittedTransaction.hash}`);
- 
+
     // 5. Wait for results
     console.log("\n=== 5. Waiting for result of transaction ===\n");
     const executedTransaction = await aptos.transaction.waitForTransaction({ transactionHash: submittedTransaction.hash });
     console.log(executedTransaction)
 };
- 
+
 example();
 ```
 
@@ -358,9 +358,9 @@ If neither of these describes what you would like to contribute, check out the [
 ## Running unit tests
 
 ```
-pnpm test                        # Run all tests (unit + e2e)
-vitest run tests/unit            # Run unit tests only
-vitest run keyless.test.ts       # Run a specific test file
+pnpm --filter @aptos-labs/ts-sdk test                                      # Run all tests (unit + e2e)
+pnpm --filter @aptos-labs/ts-sdk exec vitest run tests/unit                # Run unit tests only
+pnpm --filter @aptos-labs/ts-sdk exec vitest run tests/unit/keyless.test.ts # Run a specific test file
 ```
 
 [npm-image-version]: https://img.shields.io/npm/v/%40aptos-labs%2Fts-sdk.svg

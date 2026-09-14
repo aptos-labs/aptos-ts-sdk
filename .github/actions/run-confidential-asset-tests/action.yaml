@@ -18,6 +18,10 @@ runs:
     - run: echo "$PWD/packages/ts-sdk/node_modules/.bin" >> "$GITHUB_PATH"
       shell: bash
 
+    # Validate the production build and packaged license for this package.
+    - run: pnpm turbo run build check-license --filter=@aptos-labs/confidential-asset
+      shell: bash
+
     # Run the Confidential Asset tests.
     - uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # pin@v4.0.0
       name: confidential-asset-pnpm-test

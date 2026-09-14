@@ -130,4 +130,3 @@ The migration is complete when all of the following hold:
 7. `pnpm pack --dry-run` from each package contains its expected README, license, source, declarations, and JavaScript output.
 8. Version checks and release-preparation tests pass with the relocated files.
 9. The old package paths and package-local lockfiles/workspace files no longer remain.
-

@@ -7,11 +7,15 @@
   },
   "scripts": {
     "build": "turbo run build",
-    "_fmt": "turbo run _fmt",
-    "fmt": "turbo run fmt",
+    "_fmt": "pnpm _fmt:root && turbo run _fmt",
+    "_fmt:root": "biome format scripts package.json turbo.json biome.json",
+    "fmt": "pnpm fmt:root && turbo run fmt",
+    "fmt:root": "biome format --write scripts package.json turbo.json biome.json",
     "format": "pnpm fmt",
-    "lint": "turbo run lint",
-    "check": "turbo run check",
+    "lint": "pnpm lint:root && turbo run lint",
+    "lint:root": "biome lint scripts package.json turbo.json biome.json",
+    "check": "pnpm check:root && turbo run check",
+    "check:root": "biome check scripts package.json turbo.json biome.json",
     "test:repo": "node --test scripts/tests/monorepo-layout.test.mjs",
     "test": "pnpm test:repo && turbo run test --concurrency=1",
     "test:tree-shaking": "turbo run test:tree-shaking --filter=@aptos-labs/ts-sdk",
@@ -28,6 +32,7 @@
     "spec": "turbo run spec --filter=@aptos-labs/ts-sdk"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.12",
     "turbo": "^2.10.12"
   }
 }
