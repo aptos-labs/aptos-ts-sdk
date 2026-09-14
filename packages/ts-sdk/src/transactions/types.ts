@@ -503,7 +503,7 @@ export type InputSimulateTransactionData = {
    */
   transaction: AnyRawTransaction;
   /**
-   * The public key for a single-signer transaction. Omit it to skip the sender's public/authentication-key check during
+   * The primary sender's public key. Omit it to skip the sender's public/authentication-key check during
    * simulation.
    * @group Implementation
    * @category Transactions
