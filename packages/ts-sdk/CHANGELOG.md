@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Added
+
+- Document the approved design for a backward-compatible Keyless pepper API that accepts BCS-serialized ephemeral public data and returns both the derived pepper and initial account address for off-chain flows.
+
 ## Changed
 
 - Convert the repository to a pnpm/Turbo monorepo, relocating `@aptos-labs/ts-sdk` and `@aptos-labs/confidential-asset` under `packages/`, centralizing dependency installation and task orchestration, and reserving the `packages/payments-sdk` convention for a future payments SDK.
