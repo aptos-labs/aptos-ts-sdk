@@ -105,6 +105,19 @@ export interface SigmaProtocolStatement {
 // =============================================================================
 
 /**
+ * BCS-serialize `vector<Scalar>` matching Move's `ristretto255::Scalar { data: vector<u8> }`.
+ * Used to append σ into the β transcript (aptos-core #19711).
+ */
+function bcsSerializeScalars(scalars: Uint8Array[]): Uint8Array {
+  const serializer = new Serializer();
+  serializer.serializeU32AsUleb128(scalars.length);
+  for (const s of scalars) {
+    serializer.serializeBytes(s);
+  }
+  return serializer.toUint8Array();
+}
+
+/**
  * BCS-serializable `FiatShamirInputs` struct matching the Move definition:
  * ```move
  * struct FiatShamirInputs {
@@ -163,6 +176,16 @@ function scalarFromUniform64Bytes(hash: Uint8Array): bigint {
 /**
  * Compute the Fiat-Shamir challenge matching Move's `sigma_protocol_fiat_shamir::fiat_shamir`.
  *
+ * `e` is derived from the public transcript (domain separator, statement, commitment A, k)
+ * and MUST NOT depend on σ — the honest prover computes σ = α + e·w after e is fixed.
+ *
+ * `β` is the batching challenge for the aggregated verification MSM and MUST depend on σ
+ * (aptos-core #19711). Omitting σ from the β transcript lets a malicious prover choose σ
+ * after seeing β and cancel individual verification equations.
+ *
+ * The prover passes an empty `sigmas` vector (Move `prove` does the same) because it only
+ * needs `e`. The verifier MUST pass the proof's response scalars.
+ *
  * @param dst
  * @param typeName - The fully qualified Move type name of the phantom marker type `P` in `Statement<P>`.
  *   E.g., `"0x1::sigma_protocol_registration::Registration"`. Must match `type_info::type_name<P>()` on-chain.
@@ -171,6 +194,7 @@ function scalarFromUniform64Bytes(hash: Uint8Array): bigint {
  * @param stmt
  * @param compressedA
  * @param k
+ * @param sigmas - Prover response scalars. Empty during prove; the proof response during verify.
  */
 export function sigmaProtocolFiatShamir(
   dst: DomainSeparator,
@@ -178,6 +202,7 @@ export function sigmaProtocolFiatShamir(
   stmt: SigmaProtocolStatement,
   compressedA: Uint8Array[],
   k: number,
+  sigmas: Uint8Array[] = [],
 ): { e: bigint; betas: bigint[] } {
   const m = compressedA.length;
   if (m === 0) throw new Error("Proof commitment must not be empty");
@@ -189,14 +214,21 @@ export function sigmaProtocolFiatShamir(
   const seed = sha512(bytes);
 
   // e = scalar_from(SHA2-512(seed || 0x00))
+  // e MUST NOT depend on σ (the prover computes σ = α + e·w after e is derived).
   const eInput = new Uint8Array(seed.length + 1);
   eInput.set(seed);
   eInput[seed.length] = 0x00;
   const eHash = sha512(eInput);
 
-  // beta = scalar_from(SHA2-512(seed || 0x01))
-  eInput[seed.length] = 0x01;
-  const betaHash = sha512(eInput);
+  // beta = scalar_from(SHA2-512(seed || 0x01 || BCS(sigmas)))
+  // Matches Move: seed.append(bcs::to_bytes(sigmas)) after flipping the suffix to 0x01.
+  // Even an empty σ vector contributes its BCS length prefix (0x00).
+  const sigmaBytes = bcsSerializeScalars(sigmas);
+  const betaInput = new Uint8Array(seed.length + 1 + sigmaBytes.length);
+  betaInput.set(seed);
+  betaInput[seed.length] = 0x01;
+  betaInput.set(sigmaBytes, seed.length + 1);
+  const betaHash = sha512(betaInput);
 
   const e = scalarFromUniform64Bytes(eHash);
   const beta = scalarFromUniform64Bytes(betaHash);
@@ -248,7 +280,7 @@ export interface SigmaProtocolProof {
  *
  * Produces a proof (A, sigma) where:
  * - A = psi(alpha) for random alpha
- * - e = FiatShamir(dst, stmt, A, k)
+ * - e = FiatShamir(dst, stmt, A, k)  // σ omitted; e must not depend on σ
  * - sigma = alpha + e * w
  */
 export function sigmaProtocolProve(
@@ -269,8 +301,9 @@ export function sigmaProtocolProve(
   // Step 3: Compress A
   const compressedA = _A.map((p) => p.toBytes());
 
-  // Step 4: Derive challenge e via Fiat-Shamir
-  const { e } = sigmaProtocolFiatShamir(dst, typeName, stmt, compressedA, k);
+  // Step 4: Derive challenge e via Fiat-Shamir.
+  // Pass an empty σ vector to match Move `prove` — e must not depend on σ.
+  const { e } = sigmaProtocolFiatShamir(dst, typeName, stmt, compressedA, k, []);
 
   // Step 5: sigma_i = alpha_i + e * w_i  (mod l)
   const sigma = witness.map((w_i, i) => ed25519modN(alpha[i] + e * w_i));
@@ -319,8 +352,10 @@ export function sigmaProtocolVerify(
   // Convert response bytes back to bigints
   const sigma = response.map((r) => bytesToNumberLE(r));
 
-  // Recompute the challenge e
-  const { e } = sigmaProtocolFiatShamir(dst, typeName, stmt, commitment, k);
+  // Recompute the challenge e. Pass σ so the derived β transcript matches Move verify
+  // (aptos-core #19711). This unbatched verifier does not use β, but callers of
+  // `sigmaProtocolFiatShamir` that do batched verification must bind σ.
+  const { e } = sigmaProtocolFiatShamir(dst, typeName, stmt, commitment, k, response);
 
   // Compute psi(sigma) - evaluating the homomorphism on the response
   const psiSigma = psi(stmt, sigma);
