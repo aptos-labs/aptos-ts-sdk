@@ -412,6 +412,11 @@ export type FunctionABI = {
   parameters: Array<TypeTag>;
 };
 
+export type ScriptABI = FunctionABI & {
+  /** Number of leading signer parameters supplied by transaction authentication. */
+  signers: number;
+};
+
 /**
  * Interface for an Entry function's ABI, enabling type checking and input conversion for ABI-based transaction submissions.
  * @group Implementation
