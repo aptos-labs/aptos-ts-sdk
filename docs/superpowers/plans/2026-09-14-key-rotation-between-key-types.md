@@ -254,7 +254,7 @@ git push -u origin greg/key-rotation-example-b7f7
 In a persistent terminal, start localnet and wait until `http://127.0.0.1:8070/` reports ready:
 
 ```bash
-TMPDIR=/tmp ENABLE_KEYLESS_DEFAULT=1 npx aptos node run-localnet --force-restart --assume-yes --with-indexer-api
+TMPDIR=/tmp ENABLE_KEYLESS_DEFAULT=1 npx --yes --package=@aptos-labs/aptos-cli aptos node run-localnet --force-restart --assume-yes --with-indexer-api
 ```
 
 In another terminal, run:
