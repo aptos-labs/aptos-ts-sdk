@@ -39,7 +39,7 @@ pnpm exec typedoc src/index.ts --options typedoc.json --out "$DOCS_DIR/@aptos-la
 INDEX_FILE="$DOCS_DIR/index.md";
 
 # Get line of the SDK if the version is already there
-LINE=$(sed -n "/.*$npm_package_version.*/{=;q;}" $INDEX_FILE);
+LINE=$(sed -n "/.*$npm_package_version.*/{=;q;}" "$INDEX_FILE");
 
 # If it already exists, we can skip adding it to the file
 if [ -n "$LINE" ]; then
