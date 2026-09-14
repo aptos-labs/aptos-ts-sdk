@@ -26,3 +26,7 @@ overrides:
   js-yaml@^4: ^4.3.2
   undici@^7: ^7.29.1
   esbuild: ^0.28.2
+  # Metro (via expo / confidential-asset-bindings) still depends on image-size@^1,
+  # which is archived at 1.2.1 and vulnerable to CVE-2025-71329 / CVE-2025-71330.
+  # Force the 1.x-compatible drop-in that contains the infinite-loop DoS fixes.
+  image-size: npm:image-size-next@1.2.2
