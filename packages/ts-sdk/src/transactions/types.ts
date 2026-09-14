@@ -339,7 +339,7 @@ export type InputMultiSigDataWithRemoteABI = {
 export type InputScriptData = {
   bytecode: HexInput;
   typeArguments?: Array<TypeArgument>;
-  functionArguments: Array<ScriptFunctionArgumentTypes>;
+  functionArguments: Array<ScriptFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
 };
 
 /**

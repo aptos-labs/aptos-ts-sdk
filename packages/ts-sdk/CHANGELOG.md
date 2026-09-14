@@ -7,6 +7,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 ## Added
 
 - Add the public `parseScriptAbi` helper for extracting signer counts, type parameters, and caller-supplied parameter types from compiled Move script bytecode.
+- Parse compiled script ABIs automatically when script payloads contain plain JSON-compatible
+  arguments, reusing ABI conversion while preserving existing BCS-wrapper and `Serialized` inputs.
 
 ## Changed
 

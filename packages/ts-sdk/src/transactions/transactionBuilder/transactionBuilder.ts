@@ -8,6 +8,7 @@
  */
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3.js";
 import { AptosConfig } from "../../api/aptosConfig.js";
+import { Serialized } from "../../bcs/index.js";
 import { MAX_U64_BIG_INT } from "../../bcs/consts.js";
 import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core/index.js";
 import {
@@ -77,8 +78,11 @@ import {
   InputViewFunctionDataWithRemoteABI,
   InputViewFunctionDataWithABI,
   FunctionABI,
+  ScriptFunctionArgumentTypes,
+  SimpleEntryFunctionArgumentTypes,
 } from "../types.js";
 import { convertArgument, fetchEntryFunctionAbi, fetchViewFunctionAbi, standardizeTypeTags } from "./remoteAbi.js";
+import { parseScriptAbi } from "./scriptAbi.js";
 import { memoizeAsync } from "../../utils/memoize.js";
 import { isScriptDataInput } from "./helpers.js";
 import { SimpleTransaction } from "../instances/simpleTransaction.js";
@@ -351,13 +355,46 @@ export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWi
  * @group Implementation
  * @category Transactions
  */
-function generateTransactionPayloadScript(args: InputScriptData) {
+function isScriptFunctionArgument(
+  arg: ScriptFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes | EntryFunctionArgumentTypes,
+): arg is ScriptFunctionArgumentTypes {
+  return (
+    typeof arg === "object" &&
+    arg !== null &&
+    "serializeForScriptFunction" in arg &&
+    typeof arg.serializeForScriptFunction === "function"
+  );
+}
+
+function generateTransactionPayloadScript(args: InputScriptData): TransactionPayloadScript {
+  const typeArguments = standardizeTypeTags(args.typeArguments);
+
+  if (args.functionArguments.every(isScriptFunctionArgument)) {
+    return new TransactionPayloadScript(
+      new Script(Hex.fromHexInput(args.bytecode).toUint8Array(), typeArguments, args.functionArguments),
+    );
+  }
+
+  const abi = parseScriptAbi(args.bytecode);
+  if (typeArguments.length !== abi.typeParameters.length) {
+    throw new Error(
+      `Type argument count mismatch, expected ${abi.typeParameters.length}, received ${typeArguments.length}`,
+    );
+  }
+  if (args.functionArguments.length !== abi.parameters.length) {
+    throw new Error(
+      `Script function argument count mismatch, expected ${abi.parameters.length}, received ${args.functionArguments.length}`,
+    );
+  }
+
+  const functionArguments = args.functionArguments.map((arg, index): ScriptFunctionArgumentTypes => {
+    if (isScriptFunctionArgument(arg)) return arg;
+    const converted = convertArgument("script", abi, arg, index, typeArguments);
+    return isScriptFunctionArgument(converted) ? converted : new Serialized(converted.bcsToBytes());
+  });
+
   return new TransactionPayloadScript(
-    new Script(
-      Hex.fromHexInput(args.bytecode).toUint8Array(),
-      standardizeTypeTags(args.typeArguments),
-      args.functionArguments,
-    ),
+    new Script(Hex.fromHexInput(args.bytecode).toUint8Array(), typeArguments, functionArguments),
   );
 }
 
