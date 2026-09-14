@@ -224,6 +224,31 @@ describe("Tests for the Serializable class", () => {
     });
   });
 
+  it("treats null the same as undefined for every MoveOption factory method", () => {
+    const nullOptionValues = [
+      MoveOption.U8(null),
+      MoveOption.U16(null),
+      MoveOption.U32(null),
+      MoveOption.U64(null),
+      MoveOption.U128(null),
+      MoveOption.U256(null),
+      MoveOption.Bool(null),
+      MoveOption.I8(null),
+      MoveOption.I16(null),
+      MoveOption.I32(null),
+      MoveOption.I64(null),
+      MoveOption.I128(null),
+      MoveOption.I256(null),
+      MoveOption.MoveString(null),
+      MoveOption.Address(null),
+    ];
+
+    nullOptionValues.forEach((option) => {
+      expect(option.isSome()).toBe(false);
+      expect(option.bcsToBytes()).toEqual(new Uint8Array([0]));
+    });
+  });
+
   it("throws an error when trying to unwrap an option with no value, before and after serialization", () => {
     function testSerdeAndUnwrap<T extends Serializable & EntryFunctionArgument>(
       optionConstructor: () => MoveOption<T>,
@@ -621,10 +646,10 @@ describe("Tests for the Serializable class", () => {
       expect(option.unwrap().equals(AccountAddress.ONE)).toBe(true);
     });
 
-    it("creates a MoveOption.Address with undefined correctly", () => {
+    it("creates an empty MoveOption.Address from undefined, null, or no argument", () => {
       expect(MoveOption.Address(undefined).isSome()).toBe(false);
-      expect(MoveOption.Address().isSome()).toBe(false);
       expect(MoveOption.Address(null).isSome()).toBe(false);
+      expect(MoveOption.Address().isSome()).toBe(false);
     });
 
     it("serializes MoveOption.Address identically to a manually constructed MoveOption", () => {
