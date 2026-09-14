@@ -4,6 +4,15 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Added
+
+- Add `MoveOption.Address` factory method for creating a `MoveOption<AccountAddress>` from an `AccountAddressInput`, so `address` is now covered by the `MoveOption` primitive factory methods alongside `U8`–`U256`, `I8`–`I256`, `Bool`, and `MoveString`.
+- Add `MoveVector.Address` factory method for creating a `MoveVector<AccountAddress>` from an array of `AccountAddressInput`, matching the new `MoveOption.Address` for consistency.
+
+## Fixed
+
+- Document `null` as an accepted argument in the JSDoc for every `MoveOption` primitive factory method. All of them already accepted `value?: T | null` and treated `null` as an empty option, but the docs only mentioned `undefined`. Behavior is unchanged; a regression test now covers the `null` case for all 15 factories.
+
 ## Changed
 
 - Convert the repository to a pnpm/Turbo monorepo, relocating `@aptos-labs/ts-sdk` and `@aptos-labs/confidential-asset` under `packages/`, centralizing dependency installation and task orchestration, and reserving the `packages/payments-sdk` convention for a future payments SDK.
