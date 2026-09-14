@@ -19,6 +19,9 @@ import {
   type HexInput,
   type PaginationArgs,
   type TransactionResponse,
+  type WriteSetChange,
+  type WriteSetChangeDeleteTableItem,
+  type WriteSetChangeWriteTableItem,
   WaitForTransactionOptions,
   CommittedTransactionResponse,
   Block,
@@ -27,6 +30,7 @@ import { DEFAULT_INDEXER_SYNC_TIMEOUT_SEC, DEFAULT_TXN_TIMEOUT_SEC, ProcessorTyp
 import { sleep } from "../utils/helpers.js";
 import { memoizeAsync } from "../utils/memoize.js";
 import { getIndexerLastSuccessVersion, getProcessorStatus } from "./general.js";
+import { getTableItemsData, getTableItemsMetadata } from "./table.js";
 
 /**
  * Retrieve a list of transactions based on the specified options.
@@ -403,6 +407,102 @@ export class FailedTransactionError extends Error {
     super(message);
     this.transaction = transaction;
   }
+}
+
+function isWriteTableItemChange(change: WriteSetChange): change is WriteSetChangeWriteTableItem {
+  return change.type === "write_table_item";
+}
+
+function isDeleteTableItemChange(change: WriteSetChange): change is WriteSetChangeDeleteTableItem {
+  return change.type === "delete_table_item";
+}
+
+function isTableItemChange(
+  change: WriteSetChange,
+): change is WriteSetChangeWriteTableItem | WriteSetChangeDeleteTableItem {
+  return isWriteTableItemChange(change) || isDeleteTableItemChange(change);
+}
+
+/**
+ * Populates missing decoded data on a committed transaction's table item changes.
+ *
+ * Fullnodes generally return `null` for table item `data` because decoding requires
+ * table metadata. This function retrieves the decoded rows and metadata from the
+ * indexer, matches them by write-set change index, and mutates the supplied
+ * transaction with the available decoded data.
+ *
+ * Already-decoded changes are preserved. If the indexer has no matching row or
+ * metadata for a change, that change is left unchanged.
+ *
+ * @param args - The arguments for enriching the transaction.
+ * @param args.aptosConfig - The configuration for the Aptos indexer.
+ * @param args.transaction - The committed transaction to enrich.
+ * @returns The supplied transaction with available table item data populated.
+ * @group Implementation
+ */
+export async function enrichTransactionWithTableItemData(args: {
+  aptosConfig: AptosConfig;
+  transaction: CommittedTransactionResponse;
+}): Promise<CommittedTransactionResponse> {
+  const { aptosConfig, transaction } = args;
+  const missingTableItemChanges = transaction.changes
+    .filter(isTableItemChange)
+    .filter((change) => change.data === null || change.data === undefined);
+
+  if (missingTableItemChanges.length === 0) {
+    return transaction;
+  }
+
+  const handles = [...new Set(missingTableItemChanges.map((change) => change.handle))];
+  const [tableItems, tableMetadata] = await Promise.all([
+    getTableItemsData({
+      aptosConfig,
+      options: {
+        where: {
+          transaction_version: { _eq: transaction.version },
+        },
+      },
+    }),
+    getTableItemsMetadata({
+      aptosConfig,
+      options: {
+        where: {
+          handle: { _in: handles },
+        },
+      },
+    }),
+  ]);
+
+  const itemsByChangeIndex = new Map(tableItems.map((item) => [Number(item.write_set_change_index), item] as const));
+  const metadataByHandle = new Map(tableMetadata.map((metadata) => [metadata.handle, metadata] as const));
+
+  transaction.changes.forEach((change, changeIndex) => {
+    if (!isTableItemChange(change) || (change.data !== null && change.data !== undefined)) {
+      return;
+    }
+
+    const item = itemsByChangeIndex.get(changeIndex);
+    const metadata = metadataByHandle.get(change.handle);
+    if (item === undefined || metadata === undefined) {
+      return;
+    }
+
+    if (isWriteTableItemChange(change)) {
+      change.data = {
+        key: item.decoded_key,
+        key_type: metadata.key_type,
+        value: item.decoded_value,
+        value_type: metadata.value_type,
+      };
+    } else {
+      change.data = {
+        key: item.decoded_key,
+        key_type: metadata.key_type,
+      };
+    }
+  });
+
+  return transaction;
 }
 
 /**
