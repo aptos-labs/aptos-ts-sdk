@@ -3,6 +3,7 @@
 
 import { AptosConfig } from "./aptosConfig.js";
 import {
+  enrichTransactionWithTableItemData,
   getGasPriceEstimation,
   getTransactionByHash,
   getTransactionByVersion,
@@ -270,6 +271,44 @@ export class Transaction {
    */
   async getTransactionByHash(args: { transactionHash: HexInput }): Promise<TransactionResponse> {
     return getTransactionByHash({
+      aptosConfig: this.config,
+      ...args,
+    });
+  }
+
+  /**
+   * Populates missing decoded data on write and delete table-item changes in a
+   * committed transaction response.
+   *
+   * Fullnodes generally return `null` for table item `data`. This method queries
+   * the indexer for the decoded rows and table metadata, then mutates and returns
+   * the supplied transaction. Already-decoded changes are preserved.
+   *
+   * @param args - The arguments for enriching the transaction.
+   * @param args.transaction - The committed transaction response to enrich.
+   * @returns The supplied transaction with available table item data populated.
+   *
+   * @example
+   * ```typescript
+   * import { Aptos, AptosConfig, Network, isUserTransactionResponse } from "@aptos-labs/ts-sdk";
+   *
+   * const aptos = new Aptos(new AptosConfig({ network: Network.MAINNET }));
+   *
+   * async function runExample() {
+   *   const transaction = await aptos.getTransactionByVersion({ ledgerVersion: 563060087 });
+   *   if (isUserTransactionResponse(transaction)) {
+   *     await aptos.enrichTransactionWithTableItemData({ transaction });
+   *     console.log(transaction.changes);
+   *   }
+   * }
+   * runExample();
+   * ```
+   * @group Transaction
+   */
+  async enrichTransactionWithTableItemData<T extends CommittedTransactionResponse>(args: {
+    transaction: T;
+  }): Promise<T> {
+    return enrichTransactionWithTableItemData({
       aptosConfig: this.config,
       ...args,
     });
