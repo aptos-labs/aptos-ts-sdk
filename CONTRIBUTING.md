@@ -31,7 +31,7 @@ Changes to the project are proposed through pull requests. The general pull requ
 2. If you have changed APIs, update the documentation. Make sure the documentation builds.
 3. Ensure all formatting applies with `pnpm fmt`.
 4. Ensure all tests and lints pass on each and every commit that is part of your pull request using `pnpm test && pnpm lint`.
-5. Update `CHANGELOG.md` with your changes.
+5. Update `packages/ts-sdk/CHANGELOG.md` or `packages/confidential-asset/CHANGELOG.md`, as appropriate.
 6. Submit your pull request.
 
 ### Testing
@@ -160,8 +160,8 @@ the Cursor rule `.cursor/rules/release-ts-sdk.mdc`). To do it manually, follow t
 
 Two packages release independently, each with its own version, changelog, and tag prefix:
 
-- `@aptos-labs/ts-sdk` (repo root) — tags `ts-sdk-vX.Y.Z`
-- `@aptos-labs/confidential-asset` (`confidential-asset/`) — tags `confidential-asset-vX.Y.Z`
+- `@aptos-labs/ts-sdk` (`packages/ts-sdk/`) — tags `ts-sdk-vX.Y.Z`
+- `@aptos-labs/confidential-asset` (`packages/confidential-asset/`) — tags `confidential-asset-vX.Y.Z`
 
 ### 1. Prepare the release PR
 
@@ -170,8 +170,8 @@ First make sure the target changelog's `# Unreleased` section lists the changes 
 
 ```bash
 git checkout -b release/ts-sdk-v7.3.0
-# Bumps package.json, stamps the changelog with today's date, and (ts-sdk only)
-# syncs src/version.ts + regenerates docs:
+# Bumps packages/ts-sdk/package.json, stamps packages/ts-sdk/CHANGELOG.md,
+# syncs packages/ts-sdk/src/version.ts, and regenerates root docs:
 node scripts/prepareRelease.mjs --package ts-sdk --bump minor   # or --bump major|patch
 pnpm check
 pnpm check-version    # ts-sdk only
@@ -180,10 +180,11 @@ git push -u origin release/ts-sdk-v7.3.0
 gh pr create --fill
 ```
 
-For `confidential-asset`, pass `--package confidential-asset` (it has no `src/version.ts` or docs,
-so only its `package.json` and `CHANGELOG.md` change). For a **major** release, also add an upgrade
-guide (`upgrade-guides/UPGRADE_GUIDE_X.Y.Z.md`) and reference it in the changelog. Get the PR
-approved and merge it into `main`.
+For `confidential-asset`, pass `--package confidential-asset` (it has no version source file or docs,
+so only `packages/confidential-asset/package.json` and `packages/confidential-asset/CHANGELOG.md`
+change). For a **major** release, also add an upgrade guide
+(`upgrade-guides/UPGRADE_GUIDE_X.Y.Z.md`) and reference it in the changelog. Get the PR approved and
+merge it into `main`.
 
 ### 2. Tag and release
 
@@ -196,9 +197,9 @@ git push origin ts-sdk-v7.3.0
 gh release create ts-sdk-v7.3.0 --title "ts-sdk v7.3.0" --notes "<changelog section>"
 ```
 
-Publishing the GitHub Release triggers `publish.yaml`, which verifies the tag version matches
-`package.json`, then publishes to NPM with provenance. The publish waits for a one-click approval on
-the protected `npm-publish` environment.
+Publishing the GitHub Release triggers `publish.yaml`, which verifies the tag version matches the
+target package's `package.json`, then publishes to NPM with provenance. The publish waits for a
+one-click approval on the protected `npm-publish` environment.
 
 ### One-time setup (repo admin)
 

@@ -13,8 +13,8 @@ importers:
   .:
     dependencies:
       '@aptos-labs/ts-sdk':
-        specifier: link:../..
-        version: link:../..
+        specifier: link:../../packages/ts-sdk
+        version: link:../../packages/ts-sdk
       npm-run-all2:
         specifier: 8.0.4
         version: 8.0.4

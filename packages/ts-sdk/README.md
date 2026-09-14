@@ -13,7 +13,7 @@ For comprehensive guides, tutorials, and API reference, visit [aptos.dev](https:
 - **[Quickstart Guide](https://aptos.dev/en/build/sdks/ts-sdk/quickstart)** - Get up and running quickly
 - **[SDK Tutorials](https://aptos.dev/en/build/sdks/ts-sdk)** - Step-by-step tutorials
 - **[API Reference](https://aptos-labs.github.io/aptos-ts-sdk/)** - Complete API documentation
-- **[Examples](./examples/README.md)** - Code examples and sample applications
+- **[Examples](../../examples/README.md)** - Code examples and sample applications
 
 ## Installation
 

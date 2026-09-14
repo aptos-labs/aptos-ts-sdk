@@ -7,6 +7,13 @@ runs:
   steps:
     - uses: ./.github/actions/setup-node-pnpm
 
-    # Run package install, build, license checks, and tree-shaking verification
-    - run: pnpm install --frozen-lockfile && pnpm build && pnpm check-license && pnpm test:tree-shaking
+    # Install once at the repository root.
+    - run: pnpm install --frozen-lockfile
+      shell: bash
+
+    # Build the SDK, check its package metadata, and verify tree-shaking.
+    - run: |
+        pnpm turbo run build --filter=@aptos-labs/ts-sdk
+        pnpm turbo run check-license --filter=@aptos-labs/ts-sdk
+        pnpm turbo run test:tree-shaking --filter=@aptos-labs/ts-sdk
       shell: bash

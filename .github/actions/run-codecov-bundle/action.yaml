@@ -1,6 +1,6 @@
 name: "Bundle analysis and Codecov upload"
 description: |
-  Install dependencies, build the SDK, and upload bundle stats for `dist/`
+  Install dependencies, build the SDK, and upload bundle stats for `packages/ts-sdk/dist/`
   to Codecov via @codecov/bundle-analyzer. The SDK is tsc-built (no bundler),
   so the standalone analyzer is the appropriate fit.
 
@@ -17,7 +17,7 @@ runs:
     - run: pnpm install --frozen-lockfile
       shell: bash
     - name: Build SDK
-      run: pnpm build
+      run: pnpm turbo run build --filter=@aptos-labs/ts-sdk
       shell: bash
     - name: Upload bundle stats to Codecov
       env:
@@ -27,7 +27,7 @@ runs:
           echo "::notice::CODECOV_TOKEN is unavailable (expected on Dependabot and fork PRs); skipping bundle upload."
           exit 0
         fi
-        npx --yes @codecov/bundle-analyzer@2.0.1 ./dist \
+        npx --yes @codecov/bundle-analyzer@2.0.1 ./packages/ts-sdk/dist \
           --bundle-name=@aptos-labs/ts-sdk \
           --upload-token="${CODECOV_TOKEN}" \
           || echo "::warning::Codecov bundle upload failed; not failing the build."

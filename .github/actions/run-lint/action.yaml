@@ -7,6 +7,8 @@ runs:
   steps:
     - uses: ./.github/actions/setup-node-pnpm
 
-    # Run Biome linter
-    - run: pnpm install --frozen-lockfile && pnpm lint
+    # Install once at the repository root, then lint every workspace package.
+    - run: pnpm install --frozen-lockfile
+      shell: bash
+    - run: pnpm turbo run lint
       shell: bash

@@ -27,7 +27,7 @@ runs:
         max_attempts: 3
         timeout_minutes: 25
         # This runs all the tests, both unit and e2e.
-        command: pnpm run test
+        command: pnpm turbo run test --filter=@aptos-labs/ts-sdk
 
     - name: Print local testnet logs on failure
       shell: bash

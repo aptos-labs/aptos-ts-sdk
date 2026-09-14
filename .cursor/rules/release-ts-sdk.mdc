@@ -10,8 +10,8 @@ All mechanical work is delegated to @scripts/prepareRelease.mjs; publishing is d
 (@.github/workflows/publish.yaml) on GitHub Release — never publish by hand.
 
 Packages (independent versions):
-- `@aptos-labs/ts-sdk` (root) — tag prefix `ts-sdk-v`
-- `@aptos-labs/confidential-asset` (`confidential-asset/`) — tag prefix `confidential-asset-v`
+- `@aptos-labs/ts-sdk` (`packages/ts-sdk/`) — tag prefix `ts-sdk-v`
+- `@aptos-labs/confidential-asset` (`packages/confidential-asset/`) — tag prefix `confidential-asset-v`
 
 ## Phase 1 — release PR
 1. Confirm package + bump type (`major`/`minor`/`patch`) with the maintainer.
@@ -19,6 +19,8 @@ Packages (independent versions):
 3. `git checkout -b release/<pkg>-v<newVersion>`
 4. `node scripts/prepareRelease.mjs --package <pkg> --bump <type>`
 5. `pnpm check` (and `pnpm check-version` for ts-sdk); review `git diff`.
+   Confirm the target `packages/<pkg>/package.json` and `packages/<pkg>/CHANGELOG.md` changed;
+   ts-sdk releases also update `packages/ts-sdk/src/version.ts` and root `docs/`.
 6. `git commit -am "chore: release <pkg> v<newVersion>"`, push, `gh pr create --fill`.
 7. Ask the maintainer to review + merge, then re-run for Phase 2.
 
