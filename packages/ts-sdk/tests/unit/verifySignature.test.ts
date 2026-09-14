@@ -14,8 +14,8 @@ import {
   Secp256k1PrivateKey,
   Secp256k1PublicKey,
   SigningSchemeInput,
+  verifySignature,
 } from "../../src/index.js";
-import { verifySignature } from "../../src/core/crypto/verifySignature.js";
 import { ed25519, secp256k1TestObject, singleSignerED25519 } from "./helper.js";
 
 describe("verifySignature", () => {
