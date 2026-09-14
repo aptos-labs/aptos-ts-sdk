@@ -213,6 +213,7 @@ describe("api/FungibleAsset", () => {
       fungibleAssetMetadataAddress: metadata,
       recipient,
       amount: 100n,
+      withFeePayer: true,
     });
 
     expect(result).toBe("TXN");
@@ -222,6 +223,7 @@ describe("api/FungibleAsset", () => {
       fungibleAssetMetadataAddress: metadata,
       recipient,
       amount: 100n,
+      withFeePayer: true,
     });
     // This wrapper is a pure transaction builder — no waitForIndexerOnVersion
     // call is expected.
@@ -267,6 +269,7 @@ describe("api/FungibleAsset", () => {
       fromStore,
       toStore,
       amount: 7,
+      withFeePayer: true,
     });
 
     expect(result).toBe("TXN2");
@@ -276,6 +279,7 @@ describe("api/FungibleAsset", () => {
       fromStore,
       toStore,
       amount: 7,
+      withFeePayer: true,
     });
   });
 });
