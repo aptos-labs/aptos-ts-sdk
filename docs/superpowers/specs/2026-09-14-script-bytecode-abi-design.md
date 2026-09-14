@@ -79,30 +79,36 @@ no corresponding transaction argument `TypeTag`.
 
 The script branch of `generateTransactionPayload` will:
 
-1. Parse the ABI from `bytecode`.
-2. Standardize and validate `typeArguments` against the parsed generic count.
-3. Validate the caller-provided argument count against the parsed non-signer parameters.
-4. Pass any existing value with `serializeForScriptFunction` through unchanged, preserving current
+1. Detect whether at least one function argument lacks `serializeForScriptFunction`. If every
+   argument is already a script wrapper (including an empty argument list), construct the payload
+   through the existing path without parsing its bytecode.
+2. When conversion is needed, parse the ABI from `bytecode`.
+3. Standardize and validate `typeArguments` against the parsed generic count.
+4. Validate the caller-provided argument count against the parsed non-signer parameters.
+5. Pass any existing value with `serializeForScriptFunction` through unchanged, preserving current
    BCS wrapper and `Serialized` behavior.
-5. Convert each remaining plain value with the existing `convertArgument` logic and its corresponding
+6. Convert each remaining plain value with the existing `convertArgument` logic and its corresponding
    parsed `TypeTag`.
-6. Use the converted script-capable wrapper directly. If conversion returns an entry-only wrapper,
+7. Use the converted script-capable wrapper directly. If conversion returns an entry-only wrapper,
    encode its raw BCS bytes as `Serialized`.
-7. Construct the existing `Script` and `TransactionPayloadScript` classes unchanged.
+8. Construct the existing `Script` and `TransactionPayloadScript` classes unchanged.
 
 Multisig script payloads use the same conversion path before being wrapped in
 `TransactionPayloadMultiSig`.
 
 ## Errors
 
-Malformed or unsupported bytecode will fail before payload construction with an error identifying
-the invalid header, table, signature token, or reference. Type-argument and function-argument count
-errors will use the existing transaction builder wording where possible. Plain custom struct or enum
-objects will continue to fail with guidance to provide `Serialized` BCS bytes.
+When ABI parsing is requested directly or triggered by a plain argument, malformed or unsupported
+bytecode will fail before payload construction with an error identifying the invalid header, table,
+signature token, or reference. Type-argument and function-argument count errors will use the existing
+transaction builder wording where possible. Plain custom struct or enum objects will continue to
+fail with guidance to provide `Serialized` BCS bytes.
 
 ## Compatibility
 
-- Existing wrapper inputs are passed through without conversion or additional type checks.
+- Wrapper-only and empty-argument payloads follow the current no-parse path.
+- Existing wrapper inputs in mixed payloads are passed through without conversion or additional type
+  checks.
 - Script payload serialization classes and transaction wire formats do not change.
 - The parser uses `Uint8Array`, `DataView`, and existing SDK types only.
 - No dependency is added, avoiding WASM initialization and bundle-size/runtime compatibility costs.
