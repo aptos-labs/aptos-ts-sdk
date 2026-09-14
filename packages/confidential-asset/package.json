@@ -1,7 +1,6 @@
 {
   "name": "@aptos-labs/confidential-asset",
   "description": "Aptos Confidential Assets SDK",
-  "packageManager": "pnpm@11.26.0",
   "license": "SEE LICENSE IN LICENSE",
   "engines": {
     "node": ">=22.0.0"
@@ -42,7 +41,7 @@
     "test": "vitest run",
     "test:browser": "vitest run --config vitest.browser.config.mts",
     "e2e-test": "vitest run tests/e2e",
-    "check-license": "sh ../scripts/checkLicense.sh .",
+    "check-license": "sh ../../scripts/checkLicense.sh .",
     "publish-zeta": "pnpm build && npm publish --tag zeta"
   },
   "peerDependencies": {
@@ -55,7 +54,7 @@
     "@noble/hashes": "^2.4.0"
   },
   "devDependencies": {
-    "@aptos-labs/ts-sdk": "^7.3.0",
+    "@aptos-labs/ts-sdk": "workspace:^7.3.0",
     "@biomejs/biome": "2.5.12",
     "@types/node": "^22.20.1",
     "@vitest/browser": "^4.1.11",

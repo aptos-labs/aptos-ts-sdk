@@ -8,7 +8,7 @@ import {
   parseArgs,
   setPackageVersion,
   stampChangelog,
-} from "../../scripts/prepareRelease.mjs";
+} from "../../../../scripts/prepareRelease.mjs";
 
 describe("isPlainSemver", () => {
   it("accepts plain X.Y.Z", () => expect(isPlainSemver("7.3.0")).toBe(true));

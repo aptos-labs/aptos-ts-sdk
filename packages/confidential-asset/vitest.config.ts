@@ -9,11 +9,11 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
-    setupFiles: [path.resolve(__dirname, "../tests/setupDotenv.ts")],
+    setupFiles: [path.resolve(__dirname, "../ts-sdk/tests/setupDotenv.ts")],
     // NOTE: We typically test confidential assets after making changes to the
     // Aptos framework, which require a manual localnet re-deployment. So this
     // automatic deployment before every test is disabled, as a result.
-    globalSetup: process.env.SKIP_SETUP ? [] : [path.resolve(__dirname, "../tests/preTest.ts")],
+    globalSetup: process.env.SKIP_SETUP ? [] : [path.resolve(__dirname, "../ts-sdk/tests/preTest.ts")],
     include: ["tests/**/*.test.mts"],
     exclude: ["tests/units/api/**"],
     coverage: {

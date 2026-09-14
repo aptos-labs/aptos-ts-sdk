@@ -1,159 +1,33 @@
 {
-  "name": "@aptos-labs/ts-sdk",
-  "description": "Aptos TypeScript SDK",
+  "name": "@aptos-labs/aptos-ts-sdk-monorepo",
+  "private": true,
   "packageManager": "pnpm@11.26.0",
-  "license": "SEE LICENSE IN LICENSE",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/aptos-labs/aptos-ts-sdk.git"
-  },
   "engines": {
     "node": ">=22.0.0"
   },
-  "bugs": {
-    "url": "https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose"
-  },
-  "homepage": "https://aptos-labs.github.io/aptos-ts-sdk/",
-  "type": "module",
-  "sideEffects": [
-    "**/keylessRegistration.js"
-  ],
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    },
-    "./account": {
-      "types": "./dist/functions/account.d.ts",
-      "default": "./dist/functions/account.js"
-    },
-    "./abstraction": {
-      "types": "./dist/functions/abstraction.d.ts",
-      "default": "./dist/functions/abstraction.js"
-    },
-    "./ans": {
-      "types": "./dist/functions/ans.d.ts",
-      "default": "./dist/functions/ans.js"
-    },
-    "./coin": {
-      "types": "./dist/functions/coin.d.ts",
-      "default": "./dist/functions/coin.js"
-    },
-    "./digitalAsset": {
-      "types": "./dist/functions/digitalAsset.d.ts",
-      "default": "./dist/functions/digitalAsset.js"
-    },
-    "./faucet": {
-      "types": "./dist/functions/faucet.d.ts",
-      "default": "./dist/functions/faucet.js"
-    },
-    "./fungibleAsset": {
-      "types": "./dist/functions/fungibleAsset.d.ts",
-      "default": "./dist/functions/fungibleAsset.js"
-    },
-    "./general": {
-      "types": "./dist/functions/general.d.ts",
-      "default": "./dist/functions/general.js"
-    },
-    "./keyless": {
-      "types": "./dist/functions/keyless.d.ts",
-      "default": "./dist/functions/keyless.js"
-    },
-    "./object": {
-      "types": "./dist/functions/object.d.ts",
-      "default": "./dist/functions/object.js"
-    },
-    "./staking": {
-      "types": "./dist/functions/staking.d.ts",
-      "default": "./dist/functions/staking.js"
-    },
-    "./table": {
-      "types": "./dist/functions/table.d.ts",
-      "default": "./dist/functions/table.js"
-    },
-    "./transaction": {
-      "types": "./dist/functions/transaction.d.ts",
-      "default": "./dist/functions/transaction.js"
-    },
-    "./view": {
-      "types": "./dist/functions/view.d.ts",
-      "default": "./dist/functions/view.js"
-    },
-    "./crypto": {
-      "types": "./dist/core/crypto/index.d.ts",
-      "default": "./dist/core/crypto/index.js"
-    },
-    "./bcs": {
-      "types": "./dist/bcs/index.d.ts",
-      "default": "./dist/bcs/index.js"
-    },
-    "./cli": {
-      "types": "./dist/cli/index.d.ts",
-      "default": "./dist/cli/index.js"
-    },
-    "./package.json": "./package.json"
-  },
-  "files": [
-    "dist",
-    "src",
-    "LICENSE"
-  ],
   "scripts": {
-    "build:clean": "rm -rf dist",
-    "build": "pnpm build:clean && tsc -p tsconfig.build.json",
-    "prepublishOnly": "pnpm run build && pnpm run check-license",
-    "_fmt": "biome format",
-    "fmt": "biome format --write",
+    "build": "turbo run build",
+    "_fmt": "turbo run _fmt",
+    "fmt": "turbo run fmt",
     "format": "pnpm fmt",
-    "lint": "biome lint",
-    "check": "biome check",
-    "test": "vitest run",
-    "test:tree-shaking": "node tests/bundle-size/check-tree-shaking.mjs",
-    "test:coverage": "vitest run --coverage",
-    "unit-test": "vitest run --config vitest.config.unit.ts",
-    "test:coverage:unit": "vitest run --coverage --config vitest.config.unit.ts",
-    "e2e-test": "vitest run tests/e2e",
-    "e2e-encrypted": "vitest run tests/e2e/transaction/encryptedTransaction.test.ts --config vitest.config.e2e-devnet.ts",
-    "indexer-codegen": "graphql-codegen --config ./src/types/codegen.yaml && pnpm fmt",
-    "doc": "scripts/generateDocs.sh",
-    "check-version": "scripts/checkVersion.sh",
-    "check-license": "sh scripts/checkLicense.sh . && sh scripts/checkLicense.sh confidential-asset",
-    "update-version": "scripts/updateVersion.sh && pnpm doc",
-    "spec": "pnpm build && pnpm _spec",
-    "_spec": "cucumber-js -p default"
-  },
-  "dependencies": {
-    "@aptos-labs/aptos-cli": "^3.0.0",
-    "@aptos-labs/aptos-client": "^4.1.0",
-    "@noble/ciphers": "2.4.0",
-    "@noble/curves": "2.4.0",
-    "@noble/hashes": "2.4.0",
-    "@scure/bip32": "^2.4.0",
-    "@scure/bip39": "^2.4.0",
-    "eventemitter3": "^5.0.4",
-    "jwt-decode": "^4.0.0",
-    "poseidon-lite": "^0.3.0"
+    "lint": "turbo run lint",
+    "check": "turbo run check",
+    "test:repo": "node --test scripts/tests/monorepo-layout.test.mjs",
+    "test": "pnpm test:repo && turbo run test --concurrency=1",
+    "test:tree-shaking": "turbo run test:tree-shaking --filter=@aptos-labs/ts-sdk",
+    "test:coverage": "turbo run test:coverage --filter=@aptos-labs/ts-sdk",
+    "unit-test": "turbo run unit-test --filter=@aptos-labs/ts-sdk",
+    "test:coverage:unit": "turbo run test:coverage:unit --filter=@aptos-labs/ts-sdk",
+    "e2e-test": "turbo run e2e-test --concurrency=1",
+    "e2e-encrypted": "turbo run e2e-encrypted --filter=@aptos-labs/ts-sdk",
+    "indexer-codegen": "turbo run indexer-codegen --filter=@aptos-labs/ts-sdk",
+    "doc": "turbo run doc --filter=@aptos-labs/ts-sdk",
+    "check-version": "turbo run check-version --filter=@aptos-labs/ts-sdk",
+    "check-license": "turbo run check-license",
+    "update-version": "turbo run update-version --filter=@aptos-labs/ts-sdk",
+    "spec": "turbo run spec --filter=@aptos-labs/ts-sdk"
   },
   "devDependencies": {
-    "@babel/traverse": "^7.29.8",
-    "@biomejs/biome": "2.5.12",
-    "@cucumber/cucumber": "^12.9.0",
-    "@graphql-codegen/cli": "^6.3.1",
-    "@graphql-codegen/import-types-preset": "^4.0.1",
-    "@graphql-codegen/typescript": "^5.0.10",
-    "@graphql-codegen/typescript-graphql-request": "^7.1.0",
-    "@graphql-codegen/typescript-operations": "^5.1.0",
-    "@types/node": "^22.20.1",
-    "@typescript/native": "npm:typescript@^7.0.2",
-    "@vitest/coverage-v8": "^4.1.11",
-    "graphql": "^16.14.2",
-    "graphql-request": "^7.4.0",
-    "tree-kill": "^1.2.2",
-    "typedoc": "^0.28.20",
-    "typedoc-plugin-missing-exports": "^4.1.4",
-    "typescript": "npm:@typescript/typescript6@^6.0.2",
-    "vite": "^7.3.6",
-    "vitest": "^4.1.11"
-  },
-  "version": "7.3.1"
+    "turbo": "^2.10.12"
+  }
 }
