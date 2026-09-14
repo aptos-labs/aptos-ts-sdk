@@ -19,7 +19,10 @@
 
 import { describe, expect, it } from "vitest";
 import { ristretto255 } from "@noble/curves/ed25519.js";
-import { numberToBytesLE } from "@noble/curves/utils.js";
+import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/utils.js";
+import { sha512 } from "@noble/hashes/sha2.js";
+import { concatBytes, utf8ToBytes } from "@noble/hashes/utils.js";
+import { FixedBytes, Serializer, U64 } from "@aptos-labs/ts-sdk";
 import { H_RISTRETTO, TwistedEd25519PrivateKey } from "../../src/crypto/twistedEd25519.js";
 import {
   APTOS_FRAMEWORK_ADDRESS,
@@ -28,7 +31,7 @@ import {
   type SigmaProtocolStatement,
 } from "../../src/crypto/sigmaProtocol.js";
 import { proveRegistration, verifyRegistration } from "../../src/crypto/sigmaProtocolRegistration.js";
-import { utf8ToBytes } from "@noble/hashes/utils.js";
+import { ed25519modN } from "../../src/utils.js";
 
 const TYPE_NAME = "0x1::sigma_protocol_fiat_shamir::TestProtocol";
 
@@ -49,6 +52,45 @@ function baseStatement(): SigmaProtocolStatement {
     compressedPoints: [G.toBytes(), H.toBytes()],
     scalars: [],
   };
+}
+
+/**
+ * Independently reconstruct Move's Fiat-Shamir seed:
+ * SHA2-512(BCS{ DomainSeparator::V1, type_name, k, stmt_X, stmt_x, proof_A }).
+ * Used to pin that empty σ still appends BCS `0x00`, not the pre-#19711 `seed || 0x01`.
+ */
+function fiatShamirSeed(
+  dst: DomainSeparator,
+  typeName: string,
+  k: number,
+  stmt: SigmaProtocolStatement,
+  compressedA: Uint8Array[],
+): Uint8Array {
+  const serializer = new Serializer();
+  serializer.serializeU32AsUleb128(0); // DomainSeparator::V1
+  serializer.serialize(new FixedBytes(dst.contractAddress));
+  serializer.serializeU8(dst.chainId);
+  serializer.serializeBytes(dst.protocolId);
+  serializer.serializeBytes(dst.sessionId);
+  serializer.serializeBytes(utf8ToBytes(typeName));
+  serializer.serialize(new U64(k));
+  serializer.serializeU32AsUleb128(stmt.compressedPoints.length);
+  for (const p of stmt.compressedPoints) {
+    serializer.serializeBytes(p);
+  }
+  serializer.serializeU32AsUleb128(stmt.scalars.length);
+  for (const s of stmt.scalars) {
+    serializer.serializeBytes(s);
+  }
+  serializer.serializeU32AsUleb128(compressedA.length);
+  for (const a of compressedA) {
+    serializer.serializeBytes(a);
+  }
+  return sha512(serializer.toUint8Array());
+}
+
+function scalarFromUniform64(hash: Uint8Array): bigint {
+  return ed25519modN(bytesToNumberLE(hash));
 }
 
 describe("sigmaProtocolFiatShamir transcript binding (aptos-core #19711)", () => {
@@ -74,6 +116,13 @@ describe("sigmaProtocolFiatShamir transcript binding (aptos-core #19711)", () =>
 
     expect(empty.e).toBe(nonempty.e);
     expect(empty.betas[1]).not.toBe(nonempty.betas[1]);
+
+    const seed = fiatShamirSeed(dst, TYPE_NAME, k, stmt, compressedA);
+    const betaWithEmptyBcs = scalarFromUniform64(sha512(concatBytes(seed, new Uint8Array([0x01, 0x00]))));
+    const betaWithoutBcs = scalarFromUniform64(sha512(concatBytes(seed, new Uint8Array([0x01]))));
+    expect(empty.betas[1]).toBe(betaWithEmptyBcs);
+    expect(empty.betas[1]).not.toBe(betaWithoutBcs);
+    expect(empty.e).toBe(scalarFromUniform64(sha512(concatBytes(seed, new Uint8Array([0x00])))));
   });
 
   it("changing A changes both e and β", () => {

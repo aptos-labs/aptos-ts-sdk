@@ -186,15 +186,16 @@ function scalarFromUniform64Bytes(hash: Uint8Array): bigint {
  * The prover passes an empty `sigmas` vector (Move `prove` does the same) because it only
  * needs `e`. The verifier MUST pass the proof's response scalars.
  *
- * @param dst
+ * @param dst - Domain separator for Fiat-Shamir
  * @param typeName - The fully qualified Move type name of the phantom marker type `P` in `Statement<P>`.
  *   E.g., `"0x1::sigma_protocol_registration::Registration"`. Must match `type_info::type_name<P>()` on-chain.
- *
- * Returns `{ e, betas }` where `e` is the challenge scalar and `betas = [1, beta, beta^2, ...]`.
- * @param stmt
- * @param compressedA
- * @param k
- * @param sigmas - Prover response scalars. Empty during prove; the proof response during verify.
+ * @param stmt - Public statement (points and optional scalars)
+ * @param compressedA - Compressed proof commitments A
+ * @param k - Witness dimension
+ * @param sigmas - Prover response scalars. Pass `[]` during prove (Move `prove` does the same);
+ *   pass the proof response during verify. Required so batched `β` cannot be derived without an
+ *   explicit σ transcript (aptos-core #19711).
+ * @returns `{ e, betas }` where `e` is the challenge scalar and `betas = [1, beta, beta^2, ...]`.
  */
 export function sigmaProtocolFiatShamir(
   dst: DomainSeparator,
@@ -202,7 +203,7 @@ export function sigmaProtocolFiatShamir(
   stmt: SigmaProtocolStatement,
   compressedA: Uint8Array[],
   k: number,
-  sigmas: Uint8Array[] = [],
+  sigmas: Uint8Array[],
 ): { e: bigint; betas: bigint[] } {
   const m = compressedA.length;
   if (m === 0) throw new Error("Proof commitment must not be empty");

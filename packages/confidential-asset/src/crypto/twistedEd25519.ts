@@ -48,24 +48,27 @@ export class TwistedEd25519PublicKey {
    */
   private readonly key: Hex;
 
+  private static isIdentityBytes(bytes: Uint8Array): boolean {
+    return bytes.length === TwistedEd25519PublicKey.LENGTH && bytes.every((b) => b === 0);
+  }
+
   /**
    * True iff `hexInput` is the canonical Ristretto255 identity encoding (32 zero bytes).
    *
    * The identity point is a valid curve point but a degenerate Twisted ElGamal encryption
    * key: D = r·𝒪 = 𝒪, so ciphertexts are not bound to any decryption key and the
-   * auditor-binding term in the transfer proof collapses. On-chain
-   * `new_pubkey_from_bytes` rejects this encoding (confidential-asset v1.1.2).
+   * auditor-binding term in the transfer proof collapses. On-chain confidential-asset
+   * entrypoints abort with `E_EK_IS_IDENTITY` for this encoding (v1.1.2).
    */
   static isIdentity(hexInput: HexInput): boolean {
-    const bytes = Hex.fromHexInput(hexInput).toUint8Array();
-    return bytes.length === TwistedEd25519PublicKey.LENGTH && bytes.every((b) => b === 0);
+    return TwistedEd25519PublicKey.isIdentityBytes(Hex.fromHexInput(hexInput).toUint8Array());
   }
 
   /**
    * Create a new PublicKey instance from a Uint8Array or String.
    *
    * Rejects the identity point and non-canonical Ristretto255 encodings, matching
-   * on-chain `ristretto255_twisted_elgamal::new_pubkey_from_bytes`.
+   * the on-chain `E_EK_IS_IDENTITY` policy (confidential-asset v1.1.2).
    *
    * @param hexInput A HexInput (string or Uint8Array)
    */
@@ -76,7 +79,7 @@ export class TwistedEd25519PublicKey {
       throw new Error(`PublicKey length should be ${TwistedEd25519PublicKey.LENGTH}`);
     }
     // Identity is a valid Ristretto encoding, so check it before decompression.
-    if (TwistedEd25519PublicKey.isIdentity(bytes)) {
+    if (TwistedEd25519PublicKey.isIdentityBytes(bytes)) {
       throw new Error("Encryption key must not be the identity point");
     }
     try {

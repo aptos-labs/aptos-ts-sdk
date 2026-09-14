@@ -4,10 +4,10 @@
 /**
  * Client-side rejection of degenerate Twisted ElGamal encryption keys.
  *
- * On-chain `new_pubkey_from_bytes` (aptos-core confidential-asset v1.1.2) returns
- * None for the identity point and for non-canonical Ristretto encodings. Encrypting
- * under the identity collapses D = r · 𝒪 = 𝒪, which makes auditor ciphertexts
- * undecryptable and degenerates the auditor-binding term in the transfer proof.
+ * On-chain confidential-asset entrypoints abort with `E_EK_IS_IDENTITY` for the
+ * identity point (v1.1.2). Encrypting under the identity collapses D = r · 𝒪 = 𝒪,
+ * which makes auditor ciphertexts undecryptable and degenerates the auditor-binding
+ * term in the transfer proof.
  */
 
 import { describe, expect, it } from "vitest";
