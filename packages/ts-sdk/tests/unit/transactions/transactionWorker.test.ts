@@ -110,4 +110,30 @@ describe("TransactionWorker", () => {
       await producerPromise;
     }
   });
+
+  it("handles errors thrown by submission event listeners", async () => {
+    const { worker, submissionLoopWaiting, finishSubmissionLoop } = prepareWorker();
+    const pendingTransaction = deferred<PendingTransactionResponse>();
+    const listenerError = new Error("listener failed");
+    const transactionSent = vi.fn(() => {
+      throw listenerError;
+    });
+    vi.mocked(signAndSubmitTransaction).mockReturnValue(pendingTransaction.promise);
+
+    worker.on(TransactionWorkerEventsEnum.TransactionSent, transactionSent);
+    const producerPromise = worker.submitNextTransaction();
+
+    await submissionLoopWaiting.promise;
+    pendingTransaction.resolve({ hash: "0x1" } as PendingTransactionResponse);
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 0);
+    });
+
+    try {
+      expect(transactionSent).toHaveBeenCalledOnce();
+    } finally {
+      finishSubmissionLoop.resolve();
+      await producerPromise;
+    }
+  });
 });
