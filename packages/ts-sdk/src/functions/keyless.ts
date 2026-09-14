@@ -9,6 +9,7 @@
 // Standalone functions
 export {
   getPepper,
+  getPepperAndAddress,
   getProof,
   deriveKeylessAccount,
   updateFederatedKeylessJwkSetTransaction,

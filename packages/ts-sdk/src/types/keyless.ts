@@ -30,12 +30,12 @@ export type ProverResponse = {
  * @category Types
  */
 export type PepperFetchRequest = {
-  jwt_b64: number;
+  jwt_b64: string;
   epk: string;
   exp_date_secs: number;
   epk_blinder: string;
   uid_key: string;
-  derivation_path: string;
+  derivation_path?: string;
 };
 
 /**

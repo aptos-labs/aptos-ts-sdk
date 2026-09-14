@@ -11,7 +11,7 @@
 import { jwtDecode, JwtPayload } from "jwt-decode";
 import { AptosConfig } from "../api/aptosConfig.js";
 import { postAptosPepperService, postAptosProvingService } from "../client/index.js";
-import { AccountAddressInput } from "../core/accountAddress.js";
+import { AccountAddress, AccountAddressInput } from "../core/accountAddress.js";
 import { Hex } from "../core/hex.js";
 import { EphemeralSignature } from "../core/crypto/ephemeral.js";
 import {
@@ -43,6 +43,35 @@ import { InputGenerateTransactionOptions, SimpleTransaction } from "../transacti
 import { KeylessError, KeylessErrorType } from "../errors/index.js";
 import { FIREBASE_AUTH_ISS_PATTERN } from "../utils/const.js";
 
+async function fetchPepper(args: {
+  aptosConfig: AptosConfig;
+  jwt: string;
+  ephemeralPublicKey: HexInput;
+  expiryDateSecs: number;
+  blinder: HexInput;
+  uidKey: string;
+  derivationPath?: string;
+  originMethod: string;
+}): Promise<PepperFetchResponse> {
+  const { aptosConfig, jwt, ephemeralPublicKey, expiryDateSecs, blinder, uidKey, derivationPath, originMethod } = args;
+  const body: PepperFetchRequest = {
+    jwt_b64: jwt,
+    epk: Hex.fromHexInput(ephemeralPublicKey).toStringWithoutPrefix(),
+    exp_date_secs: expiryDateSecs,
+    epk_blinder: Hex.fromHexInput(blinder).toStringWithoutPrefix(),
+    uid_key: uidKey,
+    derivation_path: derivationPath,
+  };
+  const { data } = await postAptosPepperService<PepperFetchRequest, PepperFetchResponse>({
+    aptosConfig,
+    path: "fetch",
+    body,
+    originMethod,
+    overrides: { WITH_CREDENTIALS: false },
+  });
+  return data;
+}
+
 /**
  * Retrieves a pepper value based on the provided configuration and authentication details.
  *
@@ -64,22 +93,55 @@ export async function getPepper(args: {
 }): Promise<Uint8Array> {
   const { aptosConfig, jwt, ephemeralKeyPair, uidKey = "sub", derivationPath } = args;
 
-  const body = {
-    jwt_b64: jwt,
-    epk: ephemeralKeyPair.getPublicKey().bcsToHex().toStringWithoutPrefix(),
-    exp_date_secs: ephemeralKeyPair.expiryDateSecs,
-    epk_blinder: Hex.fromHexInput(ephemeralKeyPair.blinder).toStringWithoutPrefix(),
-    uid_key: uidKey,
-    derivation_path: derivationPath,
-  };
-  const { data } = await postAptosPepperService<PepperFetchRequest, PepperFetchResponse>({
+  const data = await fetchPepper({
     aptosConfig,
-    path: "fetch",
-    body,
+    jwt,
+    ephemeralPublicKey: ephemeralKeyPair.getPublicKey().bcsToBytes(),
+    expiryDateSecs: ephemeralKeyPair.expiryDateSecs,
+    blinder: ephemeralKeyPair.blinder,
+    uidKey,
+    derivationPath,
     originMethod: "getPepper",
-    overrides: { WITH_CREDENTIALS: false },
   });
   return Hex.fromHexInput(data.pepper).toUint8Array();
+}
+
+/**
+ * Retrieves pepper bytes and the initial Keyless account address from public
+ * ephemeral key components.
+ *
+ * The ephemeral public key must be BCS-serialized. The returned address is the
+ * initial address derived by the pepper service; it does not account for later
+ * authentication-key rotation. This lookup does not prove possession of the
+ * ephemeral private key. Off-chain authentication must additionally verify a
+ * signature over a fresh, replay-protected challenge.
+ *
+ * @group Implementation
+ */
+export async function getPepperAndAddress(args: {
+  aptosConfig: AptosConfig;
+  jwt: string;
+  ephemeralPublicKey: HexInput;
+  expiryDateSecs: number;
+  blinder: HexInput;
+  uidKey?: string;
+  derivationPath?: string;
+}): Promise<{ pepper: Uint8Array; address: AccountAddress }> {
+  const { aptosConfig, jwt, ephemeralPublicKey, expiryDateSecs, blinder, uidKey = "sub", derivationPath } = args;
+  const data = await fetchPepper({
+    aptosConfig,
+    jwt,
+    ephemeralPublicKey,
+    expiryDateSecs,
+    blinder,
+    uidKey,
+    derivationPath,
+    originMethod: "getPepperAndAddress",
+  });
+  return {
+    pepper: Hex.fromHexInput(data.pepper).toUint8Array(),
+    address: AccountAddress.from(data.address),
+  };
 }
 
 /**
