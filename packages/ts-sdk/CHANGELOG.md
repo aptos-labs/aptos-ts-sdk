@@ -7,6 +7,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 ## Fixed
 
 - Emit transaction submission success and failure events as soon as each submission settles instead of waiting for the worker's processing phase.
+- **E2E reliability**: Keyless localnet tests now rotate across the JWT pool on prover `429`s and reuse derived accounts for overlapping cases, staying under the prover's 10-request/300s per-token limit.
 
 ## Changed
 
