@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Fixed
+
+- Keyless e2e tests reuse a derived account for default-parameter cases and spread JWT selection across the test pool so they stay under the hosted prover's per-token rate limit (10 proofs / 300s).
+
 ## Changed
 
 - Allow `aptos.transaction.build.simple()` to accept an `Account` directly as its sender, and update the simple build-simulate-sign workflow to omit the optional simulation public key.
