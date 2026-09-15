@@ -4,6 +4,11 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Fixed
+
+- Emit transaction submission success and failure events as soon as each submission settles instead of waiting for the worker's processing phase.
+- **E2E reliability**: Keyless localnet tests now rotate across the JWT pool on prover `429`s and reuse derived accounts for overlapping cases, staying under the prover's 10-request/300s per-token limit.
+
 ## Changed
 
 - Convert the repository to a pnpm/Turbo monorepo, relocating `@aptos-labs/ts-sdk` and `@aptos-labs/confidential-asset` under `packages/`, centralizing dependency installation and task orchestration, and reserving the `packages/payments-sdk` convention for a future payments SDK.
