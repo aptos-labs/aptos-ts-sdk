@@ -94,7 +94,7 @@ import { rotateAuthKey, rotateAuthKeyUnverified } from "../internal/account.js";
  *
  *   // Send a transaction from Alice's account to Bob's account
  *   const txn = await aptos.transaction.build.simple({
- *     sender: alice.accountAddress,
+ *     sender: alice,
  *     data: {
  *       // All transactions on Aptos are implemented via smart contracts.
  *       function: "0x1::aptos_account::transfer",
