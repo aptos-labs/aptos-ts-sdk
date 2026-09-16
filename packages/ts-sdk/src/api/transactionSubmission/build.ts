@@ -1,12 +1,17 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import type { Account } from "../../account/index.js";
 import { AccountAddressInput } from "../../core/index.js";
 import { generateTransaction } from "../../internal/transactionSubmission.js";
 import { InputGenerateTransactionPayloadData, InputGenerateTransactionOptions } from "../../transactions/index.js";
 import { MultiAgentTransaction } from "../../transactions/instances/multiAgentTransaction.js";
 import { SimpleTransaction } from "../../transactions/instances/simpleTransaction.js";
 import { AptosConfig } from "../aptosConfig.js";
+
+function accountAddressInput(input: Account | AccountAddressInput): AccountAddressInput {
+  return typeof input === "object" && "accountAddress" in input ? input.accountAddress : input;
+}
 
 /**
  * A class to handle all `Build` transaction operations.
@@ -53,7 +58,7 @@ export class Build {
    *
    * This function allows you to create a transaction with specified sender and data.
    *
-   * @param args.sender - The sender account address.
+   * @param args.sender - The sender account or account address.
    * @param args.data - The transaction data.
    * @param args.options - Optional transaction configurations.
    * @param args.withFeePayer - Whether there is a fee payer for the transaction.
@@ -62,15 +67,16 @@ export class Build {
    *
    * @example
    * ```typescript
-   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * import { Account, Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
    *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
+   * const sender = Account.generate();
    *
    * async function runExample() {
    *   // Build a simple transaction
-   *   const transaction = await aptos.transaction.simple({
-   *     sender: "0x1", // replace with a real sender account address
+   *   const transaction = await aptos.transaction.build.simple({
+   *     sender,
    *     data: {
    *       function: "0x1::aptos_account::transfer",
    *       functionArguments: ["0x2", 100], // replace with a real destination account address
@@ -88,12 +94,16 @@ export class Build {
    * @group Implementation
    */
   async simple(args: {
-    sender: AccountAddressInput;
+    sender: Account | AccountAddressInput;
     data: InputGenerateTransactionPayloadData;
     options?: InputGenerateTransactionOptions;
     withFeePayer?: boolean;
   }): Promise<SimpleTransaction> {
-    return generateTransaction({ aptosConfig: this.config, ...args });
+    return generateTransaction({
+      aptosConfig: this.config,
+      ...args,
+      sender: accountAddressInput(args.sender),
+    });
   }
 
   /**

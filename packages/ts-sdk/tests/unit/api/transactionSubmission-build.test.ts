@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi, type MockedFunction } from "vites
 import { Build } from "../../../src/api/transactionSubmission/build.js";
 import { AptosConfig } from "../../../src/api/aptosConfig.js";
 import { Network } from "../../../src/utils/apiEndpoints.js";
+import { Account } from "../../../src/account/Account.js";
 import { AccountAddress } from "../../../src/core/index.js";
 import { SimpleTransaction } from "../../../src/transactions/instances/simpleTransaction.js";
 import { MultiAgentTransaction } from "../../../src/transactions/instances/multiAgentTransaction.js";
@@ -48,6 +49,24 @@ describe("api/transactionSubmission.Build", () => {
       data,
       options: { maxGasAmount: 500 },
       withFeePayer: true,
+    });
+  });
+
+  it("simple accepts an Account and derives its address", async () => {
+    const txn = {} as SimpleTransaction;
+    mockGenerate.mockResolvedValue(txn);
+    const account = Account.generate();
+
+    const result = await build.simple({
+      sender: account,
+      data,
+    });
+
+    expect(result).toBe(txn);
+    expect(mockGenerate).toHaveBeenCalledWith({
+      aptosConfig: config,
+      sender: account.accountAddress,
+      data,
     });
   });
 

@@ -8,6 +8,7 @@ import { Account } from "../../../src/account/Account.js";
 import { SimpleTransaction } from "../../../src/transactions/instances/simpleTransaction.js";
 
 vi.mock("../../../src/internal/transaction.js", () => ({
+  enrichTransactionWithTableItemData: vi.fn(),
   getTransactions: vi.fn(),
   getTransactionByVersion: vi.fn(),
   getTransactionByHash: vi.fn(),
@@ -30,6 +31,7 @@ vi.mock("../../../src/internal/account.js", () => ({
 
 import { Transaction } from "../../../src/api/transaction.js";
 import {
+  enrichTransactionWithTableItemData,
   getTransactions,
   getTransactionByVersion,
   getTransactionByHash,
@@ -95,6 +97,17 @@ describe("api/Transaction wrappers", () => {
     (getTransactionByHash as MockedFunction<typeof getTransactionByHash>).mockResolvedValue({} as never);
     await api.getTransactionByHash({ transactionHash: "0xabc" });
     expect(getTransactionByHash).toHaveBeenCalledWith({ aptosConfig: config, transactionHash: "0xabc" });
+  });
+
+  it("enrichTransactionWithTableItemData forwards aptosConfig", async () => {
+    const transaction = {} as never;
+    (enrichTransactionWithTableItemData as MockedFunction<typeof enrichTransactionWithTableItemData>).mockResolvedValue(
+      transaction,
+    );
+
+    await api.enrichTransactionWithTableItemData({ transaction });
+
+    expect(enrichTransactionWithTableItemData).toHaveBeenCalledWith({ aptosConfig: config, transaction });
   });
 
   it("isPendingTransaction forwards aptosConfig", async () => {
