@@ -158,6 +158,35 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
   }
 
   /**
+   * Emits the submission result as soon as the pending transaction settles.
+   * @private
+   */
+  private trackTransactionSubmission(
+    pendingTransaction: Promise<PendingTransactionResponse>,
+    sequenceNumber: bigint,
+  ): void {
+    const notification = pendingTransaction.then(
+      (transaction) => {
+        this.addToTransactionHistory(this.sentTransactions, [transaction.hash, sequenceNumber, null]);
+        this.emit(TransactionWorkerEventsEnum.TransactionSent, {
+          message: `transaction hash ${transaction.hash} has been committed to chain`,
+          transactionHash: transaction.hash,
+        });
+      },
+      (error) => {
+        this.addToTransactionHistory(this.sentTransactions, ["rejected", sequenceNumber, error]);
+        this.emit(TransactionWorkerEventsEnum.TransactionSendFailed, {
+          message: `failed to commit transaction ${this.sentTransactions.length} with error ${error}`,
+          error,
+        });
+      },
+    );
+    // Event listeners are user-provided and must not create an unhandled rejection
+    // in this detached notification chain.
+    notification.catch(() => {});
+  }
+
+  /**
    * Initializes a new instance of the class, providing a framework for receiving payloads to be processed.
    *
    * @param aptosConfig - A configuration object for Aptos.
@@ -196,6 +225,8 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    * This function continues to submit transactions until there are no more to process.
    *
    * @throws {Error} Throws an error if the transaction submission fails.
+   * @event TransactionWorkerEventsEnum.TransactionSent - Emitted when a transaction is sent to the chain.
+   * @event TransactionWorkerEventsEnum.TransactionSendFailed - Emitted when a transaction fails to send.
    * @group Implementation
    * @category Transactions
    */
@@ -211,6 +242,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
           transaction,
           signer: this.account,
         });
+        this.trackTransactionSubmission(pendingTransaction, sequenceNumber);
         await this.outstandingTransactions.enqueue([pendingTransaction, sequenceNumber]);
       }
     } catch (error: any) {
@@ -222,14 +254,11 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
   }
 
   /**
-   * Reads the outstanding transaction queue and submits the transactions to the chain.
-   * This function processes each transaction, checking their status and emitting events based on whether they were successfully
-   * sent or failed.
+   * Reads the outstanding transaction queue and checks each successfully submitted transaction's execution status.
    *
    * @throws {Error} Throws an error if the process execution fails.
-   * @event TransactionWorkerEventsEnum.TransactionSent - Emitted when a transaction has been successfully committed to the chain.
-   * @event TransactionWorkerEventsEnum.TransactionSendFailed - Emitted when a transaction fails to commit, along with the error
-   * reason.
+   * @event TransactionWorkerEventsEnum.TransactionExecuted - Emitted when a transaction executes successfully.
+   * @event TransactionWorkerEventsEnum.TransactionExecutionFailed - Emitted when a transaction fails during execution.
    * @event TransactionWorkerEventsEnum.ExecutionFinish - Emitted when the execution of transactions is complete.
    * @group Implementation
    * @category Transactions
@@ -257,25 +286,8 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
           const sentTransaction = sentTransactions[i];
           sequenceNumber = sequenceNumbers[i];
           if (sentTransaction.status === promiseFulfilledStatus) {
-            // transaction sent to chain
-            this.addToTransactionHistory(this.sentTransactions, [sentTransaction.value.hash, sequenceNumber, null]);
             // check sent transaction execution
-            this.emit(TransactionWorkerEventsEnum.TransactionSent, {
-              message: `transaction hash ${sentTransaction.value.hash} has been committed to chain`,
-              transactionHash: sentTransaction.value.hash,
-            });
             await this.checkTransaction(sentTransaction, sequenceNumber);
-          } else {
-            // send transaction failed
-            this.addToTransactionHistory(this.sentTransactions, [
-              sentTransaction.status,
-              sequenceNumber,
-              sentTransaction.reason,
-            ]);
-            this.emit(TransactionWorkerEventsEnum.TransactionSendFailed, {
-              message: `failed to commit transaction ${this.sentTransactions.length} with error ${sentTransaction.reason}`,
-              error: sentTransaction.reason,
-            });
           }
         }
         this.emit(TransactionWorkerEventsEnum.ExecutionFinish, {
