@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Added
+
+- Add `enrichTransactionWithTableItemData` to populate missing decoded data on write and delete table-item changes using the indexer, including sync and pagination for large write sets. Type the fullnode's nullable table-item `data` response accurately.
+
 ## Fixed
 
 - Emit transaction submission success and failure events as soon as each submission settles instead of waiting for the worker's processing phase.
