@@ -9,6 +9,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add the public `parseScriptAbi` helper for extracting signer counts, type parameters, and caller-supplied parameter types from compiled Move script bytecode.
 - Parse compiled script ABIs automatically when script payloads contain plain JSON-compatible
   arguments, reusing ABI conversion while preserving existing BCS-wrapper and `Serialized` inputs.
+## Fixed
+
+- Emit transaction submission success and failure events as soon as each submission settles instead of waiting for the worker's processing phase.
+- **E2E reliability**: Keyless localnet tests now rotate across the JWT pool on prover `429`s and reuse derived accounts for overlapping cases, staying under the prover's 10-request/300s per-token limit.
 
 ## Changed
 
