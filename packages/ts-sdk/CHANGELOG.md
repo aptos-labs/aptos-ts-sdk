@@ -8,8 +8,14 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Add sponsored transaction generation to all convenience transaction builders through the standard `withFeePayer` option.
 
+## Fixed
+
+- Emit transaction submission success and failure events as soon as each submission settles instead of waiting for the worker's processing phase.
+- **E2E reliability**: Keyless localnet tests now rotate across the JWT pool on prover `429`s and reuse derived accounts for overlapping cases, staying under the prover's 10-request/300s per-token limit.
+
 ## Changed
 
+- Expand the TypeScript key-rotation example into a repeatable, self-verifying Ed25519 → MultiEd25519 → fixed Ed25519 flow.
 - Convert the repository to a pnpm/Turbo monorepo, relocating `@aptos-labs/ts-sdk` and `@aptos-labs/confidential-asset` under `packages/`, centralizing dependency installation and task orchestration, and reserving the `packages/payments-sdk` convention for a future payments SDK.
 - Complete the monorepo migration validation: cover root tooling with Biome, run structural checks in required CI, avoid cached validation results, report repository-relative coverage paths, and correct package metadata and test documentation.
 - Update dependencies within current majors: `@noble/{ciphers,curves,hashes}` and `@scure/{bip32,bip39}` to `2.4.0` (noble 2.4 security hardening), Vitest/`@vitest/coverage-v8` to `4.1.11` (path-traversal advisory), Biome to `2.5.12`, and pnpm to `11.26.0`. Refresh pnpm overrides (`js-yaml` `4.3.2`, `postcss` `8.5.28`, `markdown-it` `14.3.1`) to patched releases. Pin `pnpm/action-setup` to v6.1.0 (latest older than 3 days).
