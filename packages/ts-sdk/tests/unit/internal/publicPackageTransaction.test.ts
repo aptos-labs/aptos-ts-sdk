@@ -4,6 +4,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createMockClient } from "../../helpers/mockClient.js";
 import { Account } from "../../../src/account/Account.js";
+import { AccountAddress } from "../../../src/core/accountAddress.js";
 import { publicPackageTransaction } from "../../../src/internal/transactionSubmission.js";
 import { SimpleTransaction } from "../../../src/transactions/instances/simpleTransaction.js";
 import { TransactionPayloadEntryFunction } from "../../../src/transactions/instances/transactionPayload.js";
@@ -28,10 +29,12 @@ describe("internal/transactionSubmission.publicPackageTransaction", () => {
       account: sender.accountAddress,
       metadataBytes: "0x01",
       moduleBytecode: ["0x02", "0x03"],
+      withFeePayer: true,
       options: { gasUnitPrice: 100 },
     });
 
     expect(txn).toBeInstanceOf(SimpleTransaction);
+    expect(txn.feePayerAddress?.equals(AccountAddress.ZERO)).toBe(true);
     expect(txn.rawTransaction.payload).toBeInstanceOf(TransactionPayloadEntryFunction);
     const entry = (txn.rawTransaction.payload as TransactionPayloadEntryFunction).entryFunction;
     expect(entry.module_name.name.identifier).toBe("code");

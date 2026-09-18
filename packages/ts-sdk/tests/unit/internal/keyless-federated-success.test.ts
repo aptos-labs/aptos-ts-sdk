@@ -45,12 +45,14 @@ describe("updateFederatedKeylessJwkSetTransaction — success path", () => {
       sender,
       iss: "https://example.com",
       jwksUrl: "https://example.com/jwks.json",
+      withFeePayer: true,
     });
 
     expect(result).toBe(txn);
     const call = mockGenerateTransaction.mock.calls[0][0];
     expect(call.aptosConfig).toBe(aptosConfig);
     expect(call.sender?.toString()).toBe(sender.accountAddress.toString());
+    expect(call).toEqual(expect.objectContaining({ withFeePayer: true }));
     expect(call.data.function).toBe("0x1::jwks::update_federated_jwk_set");
     expect(call.data.functionArguments[0]).toBe("https://example.com");
     expect(call.data.functionArguments[1].values.map((v: { value: string }) => v.value)).toEqual(["kid-1"]);
