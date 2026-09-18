@@ -6,6 +6,7 @@ import { Serializable, Serializer, serializeEntryFunctionBytesCompat } from "../
 import { Deserializable, Deserializer } from "../deserializer.js";
 import { AnyNumber, HexInput, ScriptTransactionArgumentVariants } from "../../types/index.js";
 import { Hex } from "../../core/hex.js";
+import { AccountAddress, AccountAddressInput } from "../../core/accountAddress.js";
 import { EntryFunctionArgument, TransactionArgument } from "../../transactions/instances/transactionArgument.js";
 import { TEXT_ENCODER } from "../../utils/const.js";
 
@@ -377,6 +378,23 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
   }
 
   /**
+   * Factory method to generate a MoveVector<AccountAddress> from an array of `AccountAddressInput` values.
+   *
+   * @param values - The values used to fill the MoveVector.
+   * @returns A MoveVector<AccountAddress> with the inner values.
+   *
+   * @example
+   * ```typescript
+   * const v = MoveVector.Address(["0x1", "0x2"]);
+   * ```
+   * @group Implementation
+   * @category BCS
+   */
+  static Address(values: Array<AccountAddressInput>): MoveVector<AccountAddress> {
+    return new MoveVector<AccountAddress>(values.map((v) => AccountAddress.from(v)));
+  }
+
+  /**
    * Serializes the current object using the provided serializer.
    * This function will serialize the value if it is present.
    *
@@ -575,13 +593,14 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   }
 
   /**
-   * Factory method to generate a MoveOption<U8> from a `number` or `undefined`.
+   * Factory method to generate a MoveOption<U8> from a `number`, `undefined`, or `null`.
    *
    * @example
    * MoveOption.U8(1).isSome() === true;
    * MoveOption.U8().isSome() === false;
    * MoveOption.U8(undefined).isSome() === false;
-   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * MoveOption.U8(null).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined or null
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<U8> with an inner value `value`
    * @group Implementation
@@ -592,13 +611,14 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   }
 
   /**
-   * Factory method to generate a MoveOption<U16> from a `number` or `undefined`.
+   * Factory method to generate a MoveOption<U16> from a `number`, `undefined`, or `null`.
    *
    * @example
    * MoveOption.U16(1).isSome() === true;
    * MoveOption.U16().isSome() === false;
    * MoveOption.U16(undefined).isSome() === false;
-   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * MoveOption.U16(null).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined or null
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<U16> with an inner value `value`
    * @group Implementation
@@ -609,13 +629,14 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   }
 
   /**
-   * Factory method to generate a MoveOption<U32> from a `number` or `undefined`.
+   * Factory method to generate a MoveOption<U32> from a `number`, `undefined`, or `null`.
    *
    * @example
    * MoveOption.U32(1).isSome() === true;
    * MoveOption.U32().isSome() === false;
    * MoveOption.U32(undefined).isSome() === false;
-   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * MoveOption.U32(null).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined or null
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<U32> with an inner value `value`
    * @group Implementation
@@ -626,13 +647,14 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   }
 
   /**
-   * Factory method to generate a MoveOption<U64> from a `number` or a `bigint` or `undefined`.
+   * Factory method to generate a MoveOption<U64> from a `number`, `bigint`, `undefined`, or `null`.
    *
    * @example
    * MoveOption.U64(1).isSome() === true;
    * MoveOption.U64().isSome() === false;
    * MoveOption.U64(undefined).isSome() === false;
-   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * MoveOption.U64(null).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined or null
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<U64> with an inner value `value`
    * @group Implementation
@@ -643,13 +665,14 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   }
 
   /**
-   * Factory method to generate a MoveOption<U128> from a `number` or a `bigint` or `undefined`.
+   * Factory method to generate a MoveOption<U128> from a `number`, `bigint`, `undefined`, or `null`.
    *
    * @example
    * MoveOption.U128(1).isSome() === true;
    * MoveOption.U128().isSome() === false;
    * MoveOption.U128(undefined).isSome() === false;
-   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * MoveOption.U128(null).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined or null
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<U128> with an inner value `value`
    * @group Implementation
@@ -660,13 +683,14 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   }
 
   /**
-   * Factory method to generate a MoveOption<U256> from a `number` or a `bigint` or `undefined`.
+   * Factory method to generate a MoveOption<U256> from a `number`, `bigint`, `undefined`, or `null`.
    *
    * @example
    * MoveOption.U256(1).isSome() === true;
    * MoveOption.U256().isSome() === false;
    * MoveOption.U256(undefined).isSome() === false;
-   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * MoveOption.U256(null).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined or null
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<U256> with an inner value `value`
    * @group Implementation
@@ -677,13 +701,14 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   }
 
   /**
-   * Factory method to generate a MoveOption<Bool> from a `boolean` or `undefined`.
+   * Factory method to generate a MoveOption<Bool> from a `boolean`, `undefined`, or `null`.
    *
    * @example
    * MoveOption.Bool(true).isSome() === true;
    * MoveOption.Bool().isSome() === false;
    * MoveOption.Bool(undefined).isSome() === false;
-   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * MoveOption.Bool(null).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined or null
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<Bool> with an inner value `value`
    * @group Implementation
@@ -694,13 +719,14 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   }
 
   /**
-   * Factory method to generate a MoveOption<I8> from a `number` or `undefined`.
+   * Factory method to generate a MoveOption<I8> from a `number`, `undefined`, or `null`.
    *
    * @example
    * MoveOption.I8(1).isSome() === true;
    * MoveOption.I8().isSome() === false;
    * MoveOption.I8(undefined).isSome() === false;
-   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * MoveOption.I8(null).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined or null
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<I8> with an inner value `value`
    * @group Implementation
@@ -711,13 +737,14 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   }
 
   /**
-   * Factory method to generate a MoveOption<I16> from a `number` or `undefined`.
+   * Factory method to generate a MoveOption<I16> from a `number`, `undefined`, or `null`.
    *
    * @example
    * MoveOption.I16(1).isSome() === true;
    * MoveOption.I16().isSome() === false;
    * MoveOption.I16(undefined).isSome() === false;
-   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * MoveOption.I16(null).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined or null
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<I16> with an inner value `value`
    * @group Implementation
@@ -728,13 +755,14 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   }
 
   /**
-   * Factory method to generate a MoveOption<I32> from a `number` or `undefined`.
+   * Factory method to generate a MoveOption<I32> from a `number`, `undefined`, or `null`.
    *
    * @example
    * MoveOption.I32(1).isSome() === true;
    * MoveOption.I32().isSome() === false;
    * MoveOption.I32(undefined).isSome() === false;
-   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * MoveOption.I32(null).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined or null
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<I32> with an inner value `value`
    * @group Implementation
@@ -745,13 +773,14 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   }
 
   /**
-   * Factory method to generate a MoveOption<I64> from a `number` or a `bigint` or `undefined`.
+   * Factory method to generate a MoveOption<I64> from a `number`, `bigint`, `undefined`, or `null`.
    *
    * @example
    * MoveOption.I64(1).isSome() === true;
    * MoveOption.I64().isSome() === false;
    * MoveOption.I64(undefined).isSome() === false;
-   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * MoveOption.I64(null).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined or null
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<I64> with an inner value `value`
    * @group Implementation
@@ -762,13 +791,14 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   }
 
   /**
-   * Factory method to generate a MoveOption<I128> from a `number` or a `bigint` or `undefined`.
+   * Factory method to generate a MoveOption<I128> from a `number`, `bigint`, `undefined`, or `null`.
    *
    * @example
    * MoveOption.I128(1).isSome() === true;
    * MoveOption.I128().isSome() === false;
    * MoveOption.I128(undefined).isSome() === false;
-   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * MoveOption.I128(null).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined or null
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<I128> with an inner value `value`
    * @group Implementation
@@ -779,13 +809,14 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   }
 
   /**
-   * Factory method to generate a MoveOption<I256> from a `number` or a `bigint` or `undefined`.
+   * Factory method to generate a MoveOption<I256> from a `number`, `bigint`, `undefined`, or `null`.
    *
    * @example
    * MoveOption.I256(1).isSome() === true;
    * MoveOption.I256().isSome() === false;
    * MoveOption.I256(undefined).isSome() === false;
-   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * MoveOption.I256(null).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined or null
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<I256> with an inner value `value`
    * @group Implementation
@@ -796,14 +827,15 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   }
 
   /**
-   * Factory method to generate a MoveOption<MoveString> from a `string` or `undefined`.
+   * Factory method to generate a MoveOption<MoveString> from a `string`, `undefined`, or `null`.
    *
    * @example
    * MoveOption.MoveString("hello").isSome() === true;
    * MoveOption.MoveString("").isSome() === true;
    * MoveOption.MoveString().isSome() === false;
    * MoveOption.MoveString(undefined).isSome() === false;
-   * @param value the value used to fill the MoveOption. If `value` is undefined
+   * MoveOption.MoveString(null).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined or null
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<MoveString> with an inner value `value`
    * @group Implementation
@@ -811,6 +843,26 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    */
   static MoveString(value?: string | null): MoveOption<MoveString> {
     return new MoveOption<MoveString>(value !== null && value !== undefined ? new MoveString(value) : undefined);
+  }
+
+  /**
+   * Factory method to generate a MoveOption<AccountAddress> from an `AccountAddressInput`, `undefined`, or `null`.
+   *
+   * @example
+   * MoveOption.Address("0x1").isSome() === true;
+   * MoveOption.Address().isSome() === false;
+   * MoveOption.Address(undefined).isSome() === false;
+   * MoveOption.Address(null).isSome() === false;
+   * @param value the value used to fill the MoveOption. If `value` is undefined or null
+   * the resulting MoveOption's .isSome() method will return false.
+   * @returns a MoveOption<AccountAddress> with an inner value `value`
+   * @group Implementation
+   * @category BCS
+   */
+  static Address(value?: AccountAddressInput | null): MoveOption<AccountAddress> {
+    return new MoveOption<AccountAddress>(
+      value !== null && value !== undefined ? AccountAddress.from(value) : undefined,
+    );
   }
 
   static deserialize<U extends Serializable & EntryFunctionArgument>(

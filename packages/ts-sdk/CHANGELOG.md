@@ -8,6 +8,13 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Add SLH-DSA-SHA2-128s as a supported signature scheme.
 - Export its primitives from `@aptos-labs/ts-sdk/slh-dsa-sha2-128s` so `@noble/post-quantum` remains optional and is loaded only by SLH code paths.
+- Add `MoveOption.Address` factory method for creating a `MoveOption<AccountAddress>` from an `AccountAddressInput`, so `address` is now covered by the `MoveOption` primitive factory methods alongside `U8`–`U256`, `I8`–`I256`, `Bool`, and `MoveString`.
+- Add `MoveVector.Address` factory method for creating a `MoveVector<AccountAddress>` from an array of `AccountAddressInput`, matching the new `MoveOption.Address` for consistency.
+
+## Fixed
+
+- Document `null` as an accepted argument in the JSDoc for every `MoveOption` primitive factory method. All of them already accepted `value?: T | null` and treated `null` as an empty option, but the docs only mentioned `undefined`. Behavior is unchanged; a regression test now covers the `null` case for all 15 factories.
+- Add backward-compatible `getPepperAndAddress` Keyless APIs that accept BCS-serialized ephemeral public data and return both pepper bytes and the initial account address for off-chain flows; existing `getPepper` behavior remains unchanged.
 - Add the public `parseScriptAbi` helper for extracting signer counts, type parameters, and caller-supplied parameter types from compiled Move script bytecode.
 - Parse compiled script ABIs automatically when script payloads contain plain JSON-compatible
   arguments, reusing ABI conversion while preserving existing BCS-wrapper and `Serialized` inputs.

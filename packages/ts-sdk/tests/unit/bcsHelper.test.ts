@@ -183,6 +183,7 @@ describe("Tests for the Serializable class", () => {
       MoveOption.U256(undefined),
       MoveOption.Bool(undefined),
       MoveOption.MoveString(undefined),
+      MoveOption.Address(undefined),
     ];
     const noneBytes = noneOptionValues.map((_) => new Uint8Array([0]));
 
@@ -213,12 +214,38 @@ describe("Tests for the Serializable class", () => {
       () => MoveOption.deserialize(deserializer, U256),
       () => MoveOption.deserialize(deserializer, Bool),
       () => MoveOption.deserialize(deserializer, MoveString),
+      () => MoveOption.deserialize(deserializer, AccountAddress),
     ];
 
     noneOptionValues.forEach((_, i) => {
       const value = noneOptionValues[i];
       const deserializedValue = deserializationFunctions[i]();
       expect(deserializedValue.isSome()).toEqual(value.isSome());
+    });
+  });
+
+  it("treats null the same as undefined for every MoveOption factory method", () => {
+    const nullOptionValues = [
+      MoveOption.U8(null),
+      MoveOption.U16(null),
+      MoveOption.U32(null),
+      MoveOption.U64(null),
+      MoveOption.U128(null),
+      MoveOption.U256(null),
+      MoveOption.Bool(null),
+      MoveOption.I8(null),
+      MoveOption.I16(null),
+      MoveOption.I32(null),
+      MoveOption.I64(null),
+      MoveOption.I128(null),
+      MoveOption.I256(null),
+      MoveOption.MoveString(null),
+      MoveOption.Address(null),
+    ];
+
+    nullOptionValues.forEach((option) => {
+      expect(option.isSome()).toBe(false);
+      expect(option.bcsToBytes()).toEqual(new Uint8Array([0]));
     });
   });
 
@@ -243,6 +270,7 @@ describe("Tests for the Serializable class", () => {
     testSerdeAndUnwrap(MoveOption.U256, U256);
     testSerdeAndUnwrap(MoveOption.Bool, Bool);
     testSerdeAndUnwrap(MoveOption.MoveString, MoveString);
+    testSerdeAndUnwrap(MoveOption.Address, AccountAddress);
   });
 
   it("serializes and deserializes a Vector of MoveOption types correctly", () => {
@@ -589,6 +617,103 @@ describe("Tests for the Serializable class", () => {
       expect(() => MoveVector.U8({} as any)).toThrow();
       expect(() => MoveVector.U8(["01", "02", "03"] as any)).toThrow();
       expect(() => MoveVector.U8([BigInt(1)] as any)).toThrow();
+    });
+  });
+
+  describe("MoveOption.Address factory method tests", () => {
+    it("creates a MoveOption.Address with a value correctly", () => {
+      const option = MoveOption.Address("0x1");
+      expect(option.isSome()).toBe(true);
+      expect(option.unwrap().equals(AccountAddress.ONE)).toBe(true);
+    });
+
+    it("creates a MoveOption.Address with a long-form address correctly", () => {
+      const longAddr = "0x0000000000000000000000000000000000000000000000000000000000000001";
+      const option = MoveOption.Address(longAddr);
+      expect(option.isSome()).toBe(true);
+      expect(option.unwrap().equals(AccountAddress.ONE)).toBe(true);
+    });
+
+    it("creates a MoveOption.Address from an AccountAddress correctly", () => {
+      const option = MoveOption.Address(AccountAddress.ONE);
+      expect(option.isSome()).toBe(true);
+      expect(option.unwrap().equals(AccountAddress.ONE)).toBe(true);
+    });
+
+    it("creates a MoveOption.Address from a Uint8Array correctly", () => {
+      const option = MoveOption.Address(AccountAddress.ONE.toUint8Array());
+      expect(option.isSome()).toBe(true);
+      expect(option.unwrap().equals(AccountAddress.ONE)).toBe(true);
+    });
+
+    it("creates an empty MoveOption.Address from undefined, null, or no argument", () => {
+      expect(MoveOption.Address(undefined).isSome()).toBe(false);
+      expect(MoveOption.Address(null).isSome()).toBe(false);
+      expect(MoveOption.Address().isSome()).toBe(false);
+    });
+
+    it("serializes MoveOption.Address identically to a manually constructed MoveOption", () => {
+      expect(MoveOption.Address("0x1").bcsToBytes()).toEqual(new MoveOption(AccountAddress.ONE).bcsToBytes());
+    });
+
+    it("serializes and deserializes MoveOption.Address correctly", () => {
+      const option = MoveOption.Address("0x1");
+      const deserializer = new Deserializer(option.bcsToBytes());
+      const deserialized = MoveOption.deserialize(deserializer, AccountAddress);
+      expect(deserialized.isSome()).toBe(true);
+      expect(deserialized.unwrap().equals(AccountAddress.ONE)).toBe(true);
+    });
+
+    it("serializes and deserializes MoveOption.Address(undefined) correctly", () => {
+      const bytes = MoveOption.Address(undefined).bcsToBytes();
+      expect(bytes).toEqual(new Uint8Array([0]));
+      const deserialized = MoveOption.deserialize(new Deserializer(bytes), AccountAddress);
+      expect(deserialized.isSome()).toBe(false);
+    });
+
+    it("throws when given an invalid address", () => {
+      expect(() => MoveOption.Address("0xgg")).toThrow();
+    });
+  });
+
+  describe("MoveVector.Address factory method tests", () => {
+    it("creates a MoveVector.Address correctly", () => {
+      const vec = MoveVector.Address(["0x1", "0x2"]);
+      expect(vec.values.length).toBe(2);
+      expect(vec.values[0].equals(AccountAddress.ONE)).toBe(true);
+      expect(vec.values[1].equals(AccountAddress.TWO)).toBe(true);
+    });
+
+    it("creates a MoveVector.Address from AccountAddress instances", () => {
+      const vec = MoveVector.Address([AccountAddress.ONE, AccountAddress.TWO]);
+      expect(vec.values.length).toBe(2);
+      expect(vec.values[0].equals(AccountAddress.ONE)).toBe(true);
+      expect(vec.values[1].equals(AccountAddress.TWO)).toBe(true);
+    });
+
+    it("creates an empty MoveVector.Address", () => {
+      const vec = MoveVector.Address([]);
+      expect(vec.values.length).toBe(0);
+      expect(vec.bcsToBytes()).toEqual(new Uint8Array([0]));
+    });
+
+    it("serializes MoveVector.Address identically to a manually constructed MoveVector", () => {
+      expect(MoveVector.Address(["0x1", "0x2"]).bcsToBytes()).toEqual(
+        new MoveVector([AccountAddress.ONE, AccountAddress.TWO]).bcsToBytes(),
+      );
+    });
+
+    it("serializes and deserializes MoveVector.Address correctly", () => {
+      const vec = MoveVector.Address(["0x1", "0x2"]);
+      const deserializer = new Deserializer(vec.bcsToBytes());
+      const deserialized = MoveVector.deserialize(deserializer, AccountAddress);
+      expect(deserialized.values.length).toBe(2);
+      expect(deserialized.values[0].equals(AccountAddress.ONE)).toBe(true);
+      expect(deserialized.values[1].equals(AccountAddress.TWO)).toBe(true);
+    });
+
+    it("throws when given an invalid address", () => {
+      expect(() => MoveVector.Address(["0xgg"])).toThrow();
     });
   });
 });

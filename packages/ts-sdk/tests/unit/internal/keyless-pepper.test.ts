@@ -4,9 +4,10 @@
 import { describe, expect, it } from "vitest";
 import { createMockClient, expectRequest } from "../../helpers/mockClient.js";
 import { Network } from "../../../src/utils/apiEndpoints.js";
-import { getPepper, getPepperBase } from "../../../src/internal/keyless.js";
+import { getPepper, getPepperAndAddress, getPepperBase } from "../../../src/internal/keyless.js";
 import { EPHEMERAL_KEY_PAIR, keylessTestObject } from "../helper.js";
 import { Hex } from "../../../src/core/hex.js";
+import { AccountAddress } from "../../../src/core/accountAddress.js";
 
 describe("internal/keyless pepper services", () => {
   const mockOpts = {
@@ -19,7 +20,7 @@ describe("internal/keyless pepper services", () => {
     const mock = createMockClient(mockOpts);
     mock.setResponder((req) => {
       if (req.url?.includes("pepper") && req.method === "POST") {
-        return { data: { pepper: keylessTestObject.pepper } };
+        return { data: { pepper: keylessTestObject.pepper, address: AccountAddress.ONE.toString() } };
       }
       return { data: {} };
     });
@@ -37,6 +38,39 @@ describe("internal/keyless pepper services", () => {
       jwt_b64: keylessTestObject.JWT,
       uid_key: "sub",
       exp_date_secs: EPHEMERAL_KEY_PAIR.expiryDateSecs,
+    });
+    expectRequest(pepperReq!, { method: "POST", urlIncludes: "fetch" });
+  });
+
+  it("getPepperAndAddress accepts public EPK components and returns the complete response", async () => {
+    const mock = createMockClient(mockOpts);
+    const address = AccountAddress.ONE;
+    mock.setResponder((req) => {
+      if (req.url?.includes("pepper") && req.method === "POST") {
+        return { data: { pepper: keylessTestObject.pepper, address: address.toString() } };
+      }
+      return { data: {} };
+    });
+
+    const result = await getPepperAndAddress({
+      aptosConfig: mock.config,
+      jwt: keylessTestObject.JWT,
+      ephemeralPublicKey: EPHEMERAL_KEY_PAIR.getPublicKey().bcsToHex().toString(),
+      expiryDateSecs: EPHEMERAL_KEY_PAIR.expiryDateSecs,
+      blinder: EPHEMERAL_KEY_PAIR.blinder,
+      derivationPath: "m/44'/637'/0'/0'/0'",
+    });
+
+    expect(Hex.fromHexInput(result.pepper).toString()).toBe(keylessTestObject.pepper);
+    expect(result.address).toEqual(address);
+    const pepperReq = mock.requests.find((request) => request.url?.includes("pepper"));
+    expect(pepperReq?.body).toEqual({
+      jwt_b64: keylessTestObject.JWT,
+      epk: EPHEMERAL_KEY_PAIR.getPublicKey().bcsToHex().toStringWithoutPrefix(),
+      exp_date_secs: EPHEMERAL_KEY_PAIR.expiryDateSecs,
+      epk_blinder: Hex.fromHexInput(EPHEMERAL_KEY_PAIR.blinder).toStringWithoutPrefix(),
+      uid_key: "sub",
+      derivation_path: "m/44'/637'/0'/0'/0'",
     });
     expectRequest(pepperReq!, { method: "POST", urlIncludes: "fetch" });
   });
