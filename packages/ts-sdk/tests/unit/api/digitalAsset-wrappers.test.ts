@@ -211,9 +211,14 @@ describe("api/DigitalAsset", () => {
 
   it("createCollectionTransaction forwards sender + options", async () => {
     const options = { description: "desc", name: COLLECTION, uri: "https://x" };
-    const result = await api.createCollectionTransaction({ sender, options });
+    const result = await api.createCollectionTransaction({ sender, options, withFeePayer: true });
     expect(result).toBe(SENTINEL);
-    expect(createCollectionTransaction).toHaveBeenCalledWith({ aptosConfig: config, sender, options });
+    expect(createCollectionTransaction).toHaveBeenCalledWith({
+      aptosConfig: config,
+      sender,
+      options,
+      withFeePayer: true,
+    });
   });
 
   it("mintDigitalAssetTransaction forwards args", async () => {
@@ -223,9 +228,10 @@ describe("api/DigitalAsset", () => {
       description: "d",
       name: "n",
       uri: "u",
+      withFeePayer: true,
     });
     expect(mintDigitalAssetTransaction).toHaveBeenCalledWith(
-      expect.objectContaining({ aptosConfig: config, sender, collection: COLLECTION }),
+      expect.objectContaining({ aptosConfig: config, sender, collection: COLLECTION, withFeePayer: true }),
     );
   });
 
@@ -235,6 +241,7 @@ describe("api/DigitalAsset", () => {
       sender,
       digitalAssetAddress: TOKEN,
       recipient: recipient.accountAddress,
+      withFeePayer: true,
     });
     expect(transferDigitalAssetTransaction).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -242,6 +249,7 @@ describe("api/DigitalAsset", () => {
         sender,
         digitalAssetAddress: TOKEN,
         recipient: recipient.accountAddress,
+        withFeePayer: true,
       }),
     );
   });
@@ -254,28 +262,31 @@ describe("api/DigitalAsset", () => {
       name: "n",
       uri: "u",
       recipient: CREATOR,
+      withFeePayer: true,
     });
-    expect(mintSoulBoundTransaction).toHaveBeenCalledWith(expect.objectContaining({ aptosConfig: config, sender }));
+    expect(mintSoulBoundTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({ aptosConfig: config, sender, withFeePayer: true }),
+    );
   });
 
   it("burnDigitalAssetTransaction forwards args", async () => {
-    await api.burnDigitalAssetTransaction({ sender, digitalAssetAddress: TOKEN });
+    await api.burnDigitalAssetTransaction({ sender, digitalAssetAddress: TOKEN, withFeePayer: true });
     expect(burnDigitalAssetTransaction).toHaveBeenCalledWith(
-      expect.objectContaining({ aptosConfig: config, sender, digitalAssetAddress: TOKEN }),
+      expect.objectContaining({ aptosConfig: config, sender, digitalAssetAddress: TOKEN, withFeePayer: true }),
     );
   });
 
   it("freezeDigitalAssetTransaferTransaction forwards args (typo preserved in API)", async () => {
-    await api.freezeDigitalAssetTransaferTransaction({ sender, digitalAssetAddress: TOKEN });
+    await api.freezeDigitalAssetTransaferTransaction({ sender, digitalAssetAddress: TOKEN, withFeePayer: true });
     expect(freezeDigitalAssetTransferTransaction).toHaveBeenCalledWith(
-      expect.objectContaining({ aptosConfig: config, sender, digitalAssetAddress: TOKEN }),
+      expect.objectContaining({ aptosConfig: config, sender, digitalAssetAddress: TOKEN, withFeePayer: true }),
     );
   });
 
   it("unfreezeDigitalAssetTransaferTransaction forwards args", async () => {
-    await api.unfreezeDigitalAssetTransaferTransaction({ sender, digitalAssetAddress: TOKEN });
+    await api.unfreezeDigitalAssetTransaferTransaction({ sender, digitalAssetAddress: TOKEN, withFeePayer: true });
     expect(unfreezeDigitalAssetTransferTransaction).toHaveBeenCalledWith(
-      expect.objectContaining({ aptosConfig: config, sender }),
+      expect.objectContaining({ aptosConfig: config, sender, withFeePayer: true }),
     );
   });
 
@@ -284,23 +295,34 @@ describe("api/DigitalAsset", () => {
       sender,
       digitalAssetAddress: TOKEN,
       description: "new",
+      withFeePayer: true,
     });
     expect(setDigitalAssetDescriptionTransaction).toHaveBeenCalledWith(
-      expect.objectContaining({ aptosConfig: config, description: "new" }),
+      expect.objectContaining({ aptosConfig: config, description: "new", withFeePayer: true }),
     );
   });
 
   it("setDigitalAssetNameTransaction forwards args", async () => {
-    await api.setDigitalAssetNameTransaction({ sender, digitalAssetAddress: TOKEN, name: "new" });
+    await api.setDigitalAssetNameTransaction({
+      sender,
+      digitalAssetAddress: TOKEN,
+      name: "new",
+      withFeePayer: true,
+    });
     expect(setDigitalAssetNameTransaction).toHaveBeenCalledWith(
-      expect.objectContaining({ aptosConfig: config, name: "new" }),
+      expect.objectContaining({ aptosConfig: config, name: "new", withFeePayer: true }),
     );
   });
 
   it("setDigitalAssetURITransaction forwards args", async () => {
-    await api.setDigitalAssetURITransaction({ sender, digitalAssetAddress: TOKEN, uri: "https://new" });
+    await api.setDigitalAssetURITransaction({
+      sender,
+      digitalAssetAddress: TOKEN,
+      uri: "https://new",
+      withFeePayer: true,
+    });
     expect(setDigitalAssetURITransaction).toHaveBeenCalledWith(
-      expect.objectContaining({ aptosConfig: config, uri: "https://new" }),
+      expect.objectContaining({ aptosConfig: config, uri: "https://new", withFeePayer: true }),
     );
   });
 
@@ -311,9 +333,10 @@ describe("api/DigitalAsset", () => {
       propertyKey: "k",
       propertyType: "STRING",
       propertyValue: "v",
+      withFeePayer: true,
     });
     expect(addDigitalAssetPropertyTransaction).toHaveBeenCalledWith(
-      expect.objectContaining({ aptosConfig: config, propertyKey: "k" }),
+      expect.objectContaining({ aptosConfig: config, propertyKey: "k", withFeePayer: true }),
     );
   });
 
@@ -322,9 +345,10 @@ describe("api/DigitalAsset", () => {
       sender,
       digitalAssetAddress: TOKEN,
       propertyKey: "k",
+      withFeePayer: true,
     });
     expect(removeDigitalAssetPropertyTransaction).toHaveBeenCalledWith(
-      expect.objectContaining({ aptosConfig: config, propertyKey: "k" }),
+      expect.objectContaining({ aptosConfig: config, propertyKey: "k", withFeePayer: true }),
     );
   });
 
@@ -335,9 +359,10 @@ describe("api/DigitalAsset", () => {
       propertyKey: "k",
       propertyType: "STRING",
       propertyValue: "v2",
+      withFeePayer: true,
     });
     expect(updateDigitalAssetPropertyTransaction).toHaveBeenCalledWith(
-      expect.objectContaining({ aptosConfig: config, propertyValue: "v2" }),
+      expect.objectContaining({ aptosConfig: config, propertyValue: "v2", withFeePayer: true }),
     );
   });
 
@@ -348,9 +373,10 @@ describe("api/DigitalAsset", () => {
       propertyKey: "k",
       propertyType: "u64",
       propertyValue: 1,
+      withFeePayer: true,
     });
     expect(addDigitalAssetTypedPropertyTransaction).toHaveBeenCalledWith(
-      expect.objectContaining({ aptosConfig: config, propertyType: "u64" }),
+      expect.objectContaining({ aptosConfig: config, propertyType: "u64", withFeePayer: true }),
     );
   });
 
@@ -361,9 +387,10 @@ describe("api/DigitalAsset", () => {
       propertyKey: "k",
       propertyType: "u64",
       propertyValue: 2,
+      withFeePayer: true,
     });
     expect(updateDigitalAssetTypedPropertyTransaction).toHaveBeenCalledWith(
-      expect.objectContaining({ aptosConfig: config, propertyValue: 2 }),
+      expect.objectContaining({ aptosConfig: config, propertyValue: 2, withFeePayer: true }),
     );
   });
 });

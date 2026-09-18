@@ -39,7 +39,10 @@ const APTOS_NETWORK: Network =
   (aptosNetworkEnv && NetworkToNetworkName[aptosNetworkEnv as keyof typeof NetworkToNetworkName]) || Network.DEVNET;
 
 // Set up the client
-const config = new AptosConfig({ network: APTOS_NETWORK });
+const config = new AptosConfig({
+  network: APTOS_NETWORK,
+  transactionGenerationConfig: { defaultMaxGasAmount: 100_000 },
+});
 const aptos = new Aptos(config);
 
 // Generate 3 accounts that will be the owners of the multisig account.
@@ -150,8 +153,8 @@ const createMultiSigTransferTransaction = async () => {
     aptosConfig: config,
   });
 
-  // Generate a raw transaction with the multisig address as the sender,
-  // the provided entry function payload, and 0x0 as the fee payer address.
+  // Before creating an on-chain proposal, build the proposed entry function directly with the multisig account as sender.
+  // `withFeePayer` leaves the fee payer as 0x0 so no real account needs to pay for this simulation.
   const transactionToSimulate = await aptos.transaction.build.simple({
     sender: multisigAddress,
     data: {
@@ -161,7 +164,8 @@ const createMultiSigTransferTransaction = async () => {
     withFeePayer: true,
   });
 
-  // Simulate the transaction, skipping the public/auth key check for both the sender and the fee payer.
+  // Omitting both public keys uses NoAccountAuthenticator for the sender and fee payer, skipping authentication-key
+  // validation during simulation. No multisig proposal needs to exist on-chain.
   const [simulateMultisigTx] = await aptos.transaction.simulate.simple({
     transaction: transactionToSimulate,
   });

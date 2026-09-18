@@ -213,6 +213,7 @@ export async function getOwnerAddress(args: {
  * @param transferable - Whether the name can be transferred to another owner.
  * @param toAddress - The address that will be set as the owner_address of the name.
  * @param targetAddress - The address that this name will resolve to.
+ * @param withFeePayer - Whether to build a fee-payer transaction.
  * @group Implementation
  */
 export interface RegisterNameParameters {
@@ -226,6 +227,7 @@ export interface RegisterNameParameters {
   transferable?: boolean;
   toAddress?: AccountAddressInput;
   targetAddress?: AccountAddressInput;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }
 
@@ -240,6 +242,7 @@ export interface RegisterNameParameters {
  * @param args.sender - The account details of the sender initiating the registration.
  * @param args.targetAddress - The target address for the registration, which is the address the name will resolve to.
  * @param args.toAddress - The address that will be set as the owner_address in records, defaults to sender if not provided.
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param args.options - Additional options for the registration process.
  * @param args.transferable - Indicates whether the registered name is transferable to another account.
  *
@@ -253,7 +256,7 @@ export interface RegisterNameParameters {
 export async function registerName(
   args: RegisterNameParameters,
 ): Promise<{ transaction: SimpleTransaction; data: InputEntryFunctionData }> {
-  const { aptosConfig, expiration, name, sender, targetAddress, toAddress, options, transferable } = args;
+  const { aptosConfig, expiration, name, sender, targetAddress, toAddress, withFeePayer, options, transferable } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
 
@@ -288,6 +291,7 @@ export async function registerName(
       aptosConfig,
       sender: AccountAddress.from(sender).toString(),
       data,
+      withFeePayer,
       options,
     });
 
@@ -331,6 +335,7 @@ export async function registerName(
     aptosConfig,
     sender: AccountAddress.from(sender).toString(),
     data,
+    withFeePayer,
     options,
   });
 
@@ -411,6 +416,7 @@ export async function getPrimaryName(args: {
  * @param args.aptosConfig - The Aptos configuration object.
  * @param args.sender - The account that is sending the transaction.
  * @param args.name - The name to set as the primary name. If omitted, the function will clear the primary name.
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param args.options - Optional transaction generation options.
  * @returns A transaction object representing the operation.
  * @group Implementation
@@ -419,9 +425,10 @@ export async function setPrimaryName(args: {
   aptosConfig: AptosConfig;
   sender: AccountAddressInput;
   name?: string;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<{ transaction: SimpleTransaction; data: InputEntryFunctionData }> {
-  const { aptosConfig, sender, name, options } = args;
+  const { aptosConfig, sender, name, withFeePayer, options } = args;
   const routerAddress = getRouterAddress(aptosConfig);
 
   if (!name) {
@@ -434,6 +441,7 @@ export async function setPrimaryName(args: {
       aptosConfig,
       sender: AccountAddress.from(sender).toString(),
       data,
+      withFeePayer,
       options,
     });
 
@@ -454,6 +462,7 @@ export async function setPrimaryName(args: {
     aptosConfig,
     sender: AccountAddress.from(sender).toString(),
     data,
+    withFeePayer,
     options,
   });
 
@@ -503,6 +512,7 @@ export async function getTargetAddress(args: {
  * @param args.sender - The account that is sending the transaction.
  * @param args.name - The name of the domain or subdomain to be set.
  * @param args.address - The address to be associated with the domain or subdomain.
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param args.options - Optional parameters for generating the transaction.
  *
  * @returns A transaction object representing the set target address operation.
@@ -513,9 +523,10 @@ export async function setTargetAddress(args: {
   sender: AccountAddressInput;
   name: string;
   address: AccountAddressInput;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<{ transaction: SimpleTransaction; data: InputEntryFunctionData }> {
-  const { aptosConfig, sender, name, address, options } = args;
+  const { aptosConfig, sender, name, address, withFeePayer, options } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
 
@@ -528,6 +539,7 @@ export async function setTargetAddress(args: {
     aptosConfig,
     sender: AccountAddress.from(sender).toString(),
     data,
+    withFeePayer,
     options,
   });
 
@@ -545,6 +557,7 @@ export async function setTargetAddress(args: {
  * @param args.aptosConfig - The configuration settings for the Aptos network.
  * @param args.sender - The account that is sending the transaction.
  * @param args.name - The name of the domain or subdomain to clear the target address for.
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param args.options - Optional parameters for generating the transaction.
  *
  * @returns A transaction object representing the clear target address operation.
@@ -554,9 +567,10 @@ export async function clearTargetAddress(args: {
   aptosConfig: AptosConfig;
   sender: AccountAddressInput;
   name: string;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<{ transaction: SimpleTransaction; data: InputEntryFunctionData }> {
-  const { aptosConfig, sender, name, options } = args;
+  const { aptosConfig, sender, name, withFeePayer, options } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
 
@@ -569,6 +583,7 @@ export async function clearTargetAddress(args: {
     aptosConfig,
     sender: AccountAddress.from(sender).toString(),
     data,
+    withFeePayer,
     options,
   });
 
@@ -920,6 +935,7 @@ export async function getANSGracePeriod(args: { aptosConfig: AptosConfig }): Pro
  * @param args.sender - The account that is sending the renewal transaction.
  * @param args.name - The name of the domain to renew.
  * @param args.years - The number of years to renew the domain for. Currently, only 1 year renewals are supported. (optional, default is 1)
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param args.options - Additional options for generating the transaction. (optional)
  * @throws Error if the name contains a subdomain or if the years parameter is not equal to 1.
  * @group Implementation
@@ -929,9 +945,10 @@ export async function renewDomain(args: {
   sender: AccountAddressInput;
   name: string;
   years?: 1;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<{ transaction: SimpleTransaction; data: InputEntryFunctionData }> {
-  const { aptosConfig, sender, name, years = 1, options } = args;
+  const { aptosConfig, sender, name, years = 1, withFeePayer, options } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const renewalDuration = years * 31536000;
   const { domainName, subdomainName } = isValidANSName(name);
@@ -953,6 +970,7 @@ export async function renewDomain(args: {
     aptosConfig,
     sender: AccountAddress.from(sender).toString(),
     data,
+    withFeePayer,
     options,
   });
 

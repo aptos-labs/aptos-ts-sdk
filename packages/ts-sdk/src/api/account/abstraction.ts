@@ -29,19 +29,22 @@ export class AccountAbstraction {
    *
    * @param args.accountAddress - The account to add the authentication function to.
    * @param args.authenticationFunction - The authentication function info to add.
+   * @param args.withFeePayer - Whether the transaction should use a fee payer.
    * @param args.options - The options for the transaction.
    * @returns A transaction to add the authentication function to the account.
    */
   public async addAuthenticationFunctionTransaction(args: {
     accountAddress: AccountAddressInput;
     authenticationFunction: MoveFunctionId;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }) {
-    const { accountAddress, authenticationFunction, options } = args;
+    const { accountAddress, authenticationFunction, withFeePayer, options } = args;
     return addAuthenticationFunctionTransaction({
       aptosConfig: this.config,
       authenticationFunction,
       sender: accountAddress,
+      withFeePayer,
       options,
     });
   }
@@ -62,19 +65,22 @@ export class AccountAbstraction {
    *
    * @param args.accountAddress - The account to remove the authentication function from.
    * @param args.authenticationFunction - The authentication function info to remove.
+   * @param args.withFeePayer - Whether the transaction should use a fee payer.
    * @param args.options - The options for the transaction.
    * @returns A transaction to remove the authentication function from the account.
    */
   public async removeAuthenticationFunctionTransaction(args: {
     accountAddress: AccountAddressInput;
     authenticationFunction: MoveFunctionId;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }) {
-    const { accountAddress, authenticationFunction, options } = args;
+    const { accountAddress, authenticationFunction, withFeePayer, options } = args;
     return removeAuthenticationFunctionTransaction({
       aptosConfig: this.config,
       sender: accountAddress,
       authenticationFunction,
+      withFeePayer,
       options,
     });
   }
@@ -93,15 +99,22 @@ export class AccountAbstraction {
    * ```
    *
    * @param args.accountAddress - The account to remove the authenticator from.
+   * @param args.withFeePayer - Whether the transaction should use a fee payer.
    * @param args.options - The options for the transaction.
    * @returns A transaction to remove the authenticator from the account.
    */
   public async removeDispatchableAuthenticatorTransaction(args: {
     accountAddress: AccountAddressInput;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }) {
-    const { accountAddress, options } = args;
-    return removeDispatchableAuthenticatorTransaction({ aptosConfig: this.config, sender: accountAddress, options });
+    const { accountAddress, withFeePayer, options } = args;
+    return removeDispatchableAuthenticatorTransaction({
+      aptosConfig: this.config,
+      sender: accountAddress,
+      withFeePayer,
+      options,
+    });
   }
 
   /**
@@ -196,6 +209,7 @@ export class AccountAbstraction {
    *
    * @param args.accountAddress - The account to enable account abstraction for.
    * @param args.authenticationFunction - The authentication function info to use.
+   * @param args.withFeePayer - Whether the transaction should use a fee payer.
    * @param args.options - The options for the transaction.
    * @returns A transaction to enable account abstraction for the account.
    */
@@ -218,22 +232,25 @@ export class AccountAbstraction {
    *
    * @param args.accountAddress - The account to disable account abstraction for.
    * @param args.authenticationFunction - The authentication function info to remove.
+   * @param args.withFeePayer - Whether the transaction should use a fee payer.
    * @param args.options - The options for the transaction.
    * @returns A transaction to disable account abstraction for the account.
    */
   public disableAccountAbstractionTransaction = async (args: {
     accountAddress: AccountAddressInput;
     authenticationFunction?: MoveFunctionId;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }) => {
-    const { accountAddress, authenticationFunction, options } = args;
+    const { accountAddress, authenticationFunction, withFeePayer, options } = args;
     if (authenticationFunction) {
       return this.removeAuthenticationFunctionTransaction({
         accountAddress,
         authenticationFunction,
+        withFeePayer,
         options,
       });
     }
-    return this.removeDispatchableAuthenticatorTransaction({ accountAddress, options });
+    return this.removeDispatchableAuthenticatorTransaction({ accountAddress, withFeePayer, options });
   };
 }

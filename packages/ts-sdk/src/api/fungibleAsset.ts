@@ -281,6 +281,7 @@ export class FungibleAsset {
    * this would be the USDT address.
    * @param args.recipient - The recipient account address.
    * @param args.amount - The number of assets to transfer.
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    * @param args.options - Optional parameters for generating the transaction.
    *
    * @returns A SimpleTransaction that can be simulated or submitted to the chain.
@@ -312,6 +313,7 @@ export class FungibleAsset {
     fungibleAssetMetadataAddress: AccountAddressInput;
     recipient: AccountAddressInput;
     amount: AnyNumber;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     return transferFungibleAsset({ aptosConfig: this.config, ...args });
@@ -326,6 +328,7 @@ export class FungibleAsset {
    * @param args.fromStore - The fungible store address initiating the transfer.
    * @param args.toStore - The fungible store address receiving the asset.
    * @param args.amount - The number of assets to transfer. Must be a positive number.
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    * @param args.options - Optional parameters for generating the transaction.
    *
    * @returns A SimpleTransaction that can be simulated or submitted to the chain.
@@ -364,6 +367,7 @@ export class FungibleAsset {
     fromStore: AccountAddressInput;
     toStore: AccountAddressInput;
     amount: AnyNumber;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     return transferFungibleAssetBetweenStores({ aptosConfig: this.config, ...args });

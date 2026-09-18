@@ -39,21 +39,25 @@ describe("internal/ans transaction wrappers", () => {
         aptosConfig,
         sender: sender.accountAddress,
         name: "bob.alice",
+        withFeePayer: true,
       });
 
       expect(result.transaction).toBe("SENTINEL_TXN");
       expect(result.data.function).toMatch(/::router::set_primary_name$/);
       expect(result.data.functionArguments).toEqual(["alice", "bob"]);
+      expect(mockedGenerateTransaction.mock.calls[0][0].withFeePayer).toBe(true);
     });
 
     it("calls router::clear_primary_name with no args when name is omitted", async () => {
       const result = await setPrimaryName({
         aptosConfig,
         sender: sender.accountAddress,
+        withFeePayer: true,
       });
 
       expect(result.data.function).toMatch(/::router::clear_primary_name$/);
       expect(result.data.functionArguments).toEqual([]);
+      expect(mockedGenerateTransaction.mock.calls[0][0].withFeePayer).toBe(true);
     });
 
     it("forwards options through to generateTransaction", async () => {
@@ -71,10 +75,12 @@ describe("internal/ans transaction wrappers", () => {
         sender: sender.accountAddress,
         name: "bob.alice",
         address: target.accountAddress,
+        withFeePayer: true,
       });
 
       expect(result.data.function).toMatch(/::router::set_target_addr$/);
       expect(result.data.functionArguments).toEqual(["alice", "bob", target.accountAddress]);
+      expect(mockedGenerateTransaction.mock.calls[0][0].withFeePayer).toBe(true);
     });
 
     it("passes [domainName, undefined, address] for a bare domain", async () => {
@@ -95,10 +101,12 @@ describe("internal/ans transaction wrappers", () => {
         aptosConfig,
         sender: sender.accountAddress,
         name: "bob.alice",
+        withFeePayer: true,
       });
 
       expect(result.data.function).toMatch(/::router::clear_target_addr$/);
       expect(result.data.functionArguments).toEqual(["alice", "bob"]);
+      expect(mockedGenerateTransaction.mock.calls[0][0].withFeePayer).toBe(true);
     });
 
     it("passes [domainName, null] (explicit null, not undefined) for a bare domain", async () => {
@@ -119,11 +127,13 @@ describe("internal/ans transaction wrappers", () => {
         aptosConfig,
         sender: sender.accountAddress,
         name: "alice",
+        withFeePayer: true,
       });
 
       expect(result.data.function).toMatch(/::router::renew_domain$/);
       // 1 year = 31_536_000 seconds.
       expect(result.data.functionArguments).toEqual(["alice", 31_536_000]);
+      expect(mockedGenerateTransaction.mock.calls[0][0].withFeePayer).toBe(true);
     });
 
     it("rejects renewals for subdomains", async () => {
