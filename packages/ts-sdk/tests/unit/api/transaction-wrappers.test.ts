@@ -137,6 +137,7 @@ describe("api/Transaction wrappers", () => {
       account,
       metadataBytes: "0x01",
       moduleBytecode: ["0x02"],
+      withFeePayer: true,
     });
     expect(publicPackageTransaction).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -144,6 +145,7 @@ describe("api/Transaction wrappers", () => {
         account,
         metadataBytes: "0x01",
         moduleBytecode: ["0x02"],
+        withFeePayer: true,
       }),
     );
   });
@@ -151,15 +153,25 @@ describe("api/Transaction wrappers", () => {
   it("rotateAuthKey forwards args", async () => {
     const fromAccount = Account.generate();
     const toAccount = Account.generate();
-    await api.rotateAuthKey({ fromAccount, toAccount });
-    expect(rotateAuthKey).toHaveBeenCalledWith({ aptosConfig: config, fromAccount, toAccount });
+    await api.rotateAuthKey({ fromAccount, toAccount, withFeePayer: true });
+    expect(rotateAuthKey).toHaveBeenCalledWith({
+      aptosConfig: config,
+      fromAccount,
+      toAccount,
+      withFeePayer: true,
+    });
   });
 
   it("rotateAuthKeyUnverified forwards args", async () => {
     const fromAccount = Account.generate();
     const toNewPublicKey = Account.generate().publicKey;
-    await api.rotateAuthKeyUnverified({ fromAccount, toNewPublicKey });
-    expect(rotateAuthKeyUnverified).toHaveBeenCalledWith({ aptosConfig: config, fromAccount, toNewPublicKey });
+    await api.rotateAuthKeyUnverified({ fromAccount, toNewPublicKey, withFeePayer: true });
+    expect(rotateAuthKeyUnverified).toHaveBeenCalledWith({
+      aptosConfig: config,
+      fromAccount,
+      toNewPublicKey,
+      withFeePayer: true,
+    });
   });
 
   it("signAndSubmitTransaction forwards signer + transaction", async () => {

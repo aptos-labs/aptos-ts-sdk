@@ -66,6 +66,7 @@ describe("api/Coin", () => {
       recipient: recipient.accountAddress,
       amount: 1234n,
       coinType: "0xcafe::custom::Coin",
+      withFeePayer: true,
     });
 
     expect(result).toBe("TXN");
@@ -75,6 +76,7 @@ describe("api/Coin", () => {
       recipient: recipient.accountAddress,
       amount: 1234n,
       coinType: "0xcafe::custom::Coin",
+      withFeePayer: true,
     });
   });
 });

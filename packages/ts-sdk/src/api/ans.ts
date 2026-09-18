@@ -158,6 +158,7 @@ export class ANS {
    * @param args.sender - The account initiating the transaction.
    * @param args.name - A string representing the domain or subdomain name (e.g., "test.aptos").
    * @param args.address - The AccountAddressInput of the address to set the domain or subdomain to.
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    * @param args.options - Optional settings for generating the transaction.
    *
    * @returns An object containing the transaction and the InputEntryFunctionData
@@ -191,6 +192,7 @@ export class ANS {
     sender: AccountAddressInput;
     name: string;
     address: AccountAddressInput;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<{ transaction: SimpleTransaction; data: InputEntryFunctionData }> {
     return setTargetAddress({ aptosConfig: this.config, ...args });
@@ -203,6 +205,7 @@ export class ANS {
    * @param args - The arguments for clearing the target address.
    * @param args.sender - The account initiating the transaction.
    * @param args.name - A string representing the domain or subdomain name (e.g., "test.aptos").
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    * @param args.options - Optional settings for generating the transaction.
    *
    * @returns An object containing the transaction and the InputEntryFunctionData
@@ -233,6 +236,7 @@ export class ANS {
   async clearTargetAddress(args: {
     sender: AccountAddressInput;
     name: string;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<{ transaction: SimpleTransaction; data: InputEntryFunctionData }> {
     return clearTargetAddress({ aptosConfig: this.config, ...args });
@@ -273,6 +277,7 @@ export class ANS {
    * @param args - The arguments for setting the primary name.
    * @param args.sender - The sender account.
    * @param args.name - A string representing the name to set as primary (e.g., "test.aptos").
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    * @param args.options - Optional transaction options.
    *
    * @returns An object containing the transaction and the InputEntryFunctionData
@@ -299,6 +304,7 @@ export class ANS {
   async setPrimaryName(args: {
     sender: AccountAddressInput;
     name?: string;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<{ transaction: SimpleTransaction; data: InputEntryFunctionData }> {
     return setPrimaryName({ aptosConfig: this.config, ...args });
@@ -324,6 +330,7 @@ export class ANS {
    * be used.
    * @param args.toAddress optional - The address to send the domain name to. If not provided, the transaction will be sent to the
    * router.
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    *
    * @returns An object containing the transaction and the InputEntryFunctionData
    *
@@ -365,6 +372,7 @@ export class ANS {
    * @param args.sender - The sender account, which must be the domain owner.
    * @param args.name - A string representing the domain to renew. Subdomains cannot be renewed.
    * @param args.years - The number of years to renew the name. Currently, only one year is permitted.
+   * @param args.withFeePayer - Whether to build a fee-payer transaction.
    * @param args.options - Optional transaction options.
    *
    * @returns An object containing the transaction and the InputEntryFunctionData
@@ -393,6 +401,7 @@ export class ANS {
     sender: AccountAddressInput;
     name: string;
     years?: 1;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<{ transaction: SimpleTransaction; data: InputEntryFunctionData }> {
     return renewDomain({ aptosConfig: this.config, ...args });
