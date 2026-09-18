@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 7.4.0 (2026-09-18)
+
 ## Added
 
 - Add `MoveOption.Address` factory method for creating a `MoveOption<AccountAddress>` from an `AccountAddressInput`, so `address` is now covered by the `MoveOption` primitive factory methods alongside `U8`–`U256`, `I8`–`I256`, `Bool`, and `MoveString`.
