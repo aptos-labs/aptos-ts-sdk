@@ -67,7 +67,7 @@ const example = async () => {
 
   // Transfer between users
   const txn = await aptos.transaction.build.simple({
-    sender: alice.accountAddress,
+    sender: alice,
     data: {
       function: "0x1::aptos_account::transfer",
       functionArguments: [bob.accountAddress, TRANSFER_AMOUNT],

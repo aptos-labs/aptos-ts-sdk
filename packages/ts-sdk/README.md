@@ -214,7 +214,7 @@ async function example() {
     // 1. Build
     console.log("\n=== 1. Building the transaction ===\n");
     const transaction = await aptos.transaction.build.simple({
-        sender: alice.accountAddress,
+        sender: alice,
         data: {
         // All transactions on Aptos are implemented via smart contracts.
         function: "0x1::aptos_account::transfer",
@@ -226,7 +226,6 @@ async function example() {
     // 2. Simulate (Optional)
     console.log("\n === 2. Simulating Response (Optional) === \n")
     const [userTransactionResponse] = await aptos.transaction.simulate.simple({
-        signerPublicKey: alice.publicKey,
         transaction,
     });
     console.log(userTransactionResponse)

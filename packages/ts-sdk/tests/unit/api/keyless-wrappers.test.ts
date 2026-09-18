@@ -161,6 +161,7 @@ describe("api/Keyless wrappers", () => {
       sender,
       iss: keylessTestObject.iss,
       jwksUrl: "https://issuer.example/.well-known/jwks.json",
+      withFeePayer: true,
     });
 
     expect(result).toBe(txn);
@@ -169,6 +170,7 @@ describe("api/Keyless wrappers", () => {
       sender,
       iss: keylessTestObject.iss,
       jwksUrl: "https://issuer.example/.well-known/jwks.json",
+      withFeePayer: true,
     });
   });
 });

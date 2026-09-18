@@ -362,14 +362,28 @@ export interface JWKS {
   keys: MoveJWK[];
 }
 
+/**
+ * Builds a transaction that updates the federated keyless JWK set for an issuer.
+ *
+ * @param args - The arguments for updating the JWK set.
+ * @param args.aptosConfig - The configuration settings for the Aptos client.
+ * @param args.sender - The account that will install the JWK set.
+ * @param args.iss - The issuer claim of the federated OIDC provider.
+ * @param args.jwksUrl - The optional URL from which to fetch the JWK set.
+ * @param args.withFeePayer - Whether to build a sponsored transaction.
+ * @param args.options - Optional settings for generating the transaction.
+ * @returns A transaction that updates the federated JWK set.
+ * @group Implementation
+ */
 export async function updateFederatedKeylessJwkSetTransaction(args: {
   aptosConfig: AptosConfig;
   sender: Account;
   iss: string;
   jwksUrl?: string;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, sender, iss, options } = args;
+  const { aptosConfig, sender, iss, withFeePayer, options } = args;
 
   let { jwksUrl } = args;
 
@@ -433,6 +447,7 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
   return generateTransaction({
     aptosConfig,
     sender: sender.accountAddress,
+    withFeePayer,
     data: {
       function: "0x1::jwks::update_federated_jwk_set",
       functionArguments: [

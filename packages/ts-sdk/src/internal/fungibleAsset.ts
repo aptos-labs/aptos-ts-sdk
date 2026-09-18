@@ -170,6 +170,7 @@ const faTransferAbi: EntryFunctionABI = {
  * @param args.fungibleAssetMetadataAddress - The address of the fungible asset's metadata.
  * @param args.recipient - The address of the account receiving the asset.
  * @param args.amount - The amount of the fungible asset to transfer.
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param args.options - Optional settings for generating the transaction.
  * @group Implementation
  */
@@ -179,9 +180,10 @@ export async function transferFungibleAsset(args: {
   fungibleAssetMetadataAddress: AccountAddressInput;
   recipient: AccountAddressInput;
   amount: AnyNumber;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, sender, fungibleAssetMetadataAddress, recipient, amount, options } = args;
+  const { aptosConfig, sender, fungibleAssetMetadataAddress, recipient, amount, withFeePayer, options } = args;
   return generateTransaction({
     aptosConfig,
     sender: sender.accountAddress,
@@ -191,6 +193,7 @@ export async function transferFungibleAsset(args: {
       functionArguments: [fungibleAssetMetadataAddress, recipient, amount],
       abi: faTransferAbi,
     },
+    withFeePayer,
     options,
   });
 }
@@ -205,6 +208,7 @@ export async function transferFungibleAsset(args: {
  * @param args.fromStore - The address of the fungible store initiating the transfer.
  * @param args.toStore - The address of the fungible store receiving the asset.
  * @param args.amount - The amount of the fungible asset to transfer. Must be a positive number.
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param args.options - Optional settings for generating the transaction.
  * @returns A SimpleTransaction that can be submitted to the blockchain.
  * @throws Error if the transaction generation fails or if the input parameters are invalid.
@@ -216,9 +220,10 @@ export async function transferFungibleAssetBetweenStores(args: {
   fromStore: AccountAddressInput;
   toStore: AccountAddressInput;
   amount: AnyNumber;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, sender, fromStore, toStore, amount, options } = args;
+  const { aptosConfig, sender, fromStore, toStore, amount, withFeePayer, options } = args;
   return generateTransaction({
     aptosConfig,
     sender: sender.accountAddress,
@@ -228,6 +233,7 @@ export async function transferFungibleAssetBetweenStores(args: {
       functionArguments: [fromStore, toStore, amount],
       abi: faTransferAbi,
     },
+    withFeePayer,
     options,
   });
 }

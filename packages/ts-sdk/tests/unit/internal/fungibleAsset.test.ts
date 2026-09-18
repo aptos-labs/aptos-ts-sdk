@@ -87,6 +87,7 @@ describe("internal/fungibleAsset", () => {
         fungibleAssetMetadataAddress: metadata,
         recipient: recipient.accountAddress,
         amount: 100n,
+        withFeePayer: true,
       });
 
       const call = mockedGenerateTransaction.mock.calls[0][0];
@@ -107,6 +108,7 @@ describe("internal/fungibleAsset", () => {
       expect(data.abi.parameters[0]).toBeInstanceOf(TypeTagStruct);
       expect(data.abi.parameters[1]).toBeInstanceOf(TypeTagAddress);
       expect(data.abi.parameters[2]).toBeInstanceOf(TypeTagU64);
+      expect(mockedGenerateTransaction).toHaveBeenLastCalledWith(expect.objectContaining({ withFeePayer: true }));
     });
 
     it("transferFungibleAssetBetweenStores: targets dispatchable_fungible_asset::transfer with the FungibleStore generic", async () => {
@@ -119,6 +121,7 @@ describe("internal/fungibleAsset", () => {
         fromStore,
         toStore,
         amount: 5n,
+        withFeePayer: true,
       });
 
       const data = mockedGenerateTransaction.mock.calls[0][0].data as {
@@ -129,6 +132,7 @@ describe("internal/fungibleAsset", () => {
       expect(data.function).toBe("0x1::dispatchable_fungible_asset::transfer");
       expect(data.typeArguments).toEqual(["0x1::fungible_asset::FungibleStore"]);
       expect(data.functionArguments).toEqual([fromStore, toStore, 5n]);
+      expect(mockedGenerateTransaction).toHaveBeenLastCalledWith(expect.objectContaining({ withFeePayer: true }));
     });
 
     it("both transfers share the same faTransferAbi reference (no duplicated ABI shape)", async () => {

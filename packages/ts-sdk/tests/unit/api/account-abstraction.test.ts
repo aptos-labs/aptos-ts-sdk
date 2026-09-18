@@ -58,6 +58,7 @@ describe("api/account/AccountAbstraction", () => {
     const result = await abstraction.addAuthenticationFunctionTransaction({
       accountAddress: sender.accountAddress,
       authenticationFunction: AUTH_FN,
+      withFeePayer: true,
     });
 
     expect(result).toBe("ADD_TXN");
@@ -65,8 +66,22 @@ describe("api/account/AccountAbstraction", () => {
       aptosConfig: config,
       authenticationFunction: AUTH_FN,
       sender: sender.accountAddress,
+      withFeePayer: true,
       options: undefined,
     });
+  });
+
+  it("enableAccountAbstractionTransaction forwards the fee-payer setting", async () => {
+    const abstraction = new AccountAbstraction(config);
+
+    const result = await abstraction.enableAccountAbstractionTransaction({
+      accountAddress: sender.accountAddress,
+      authenticationFunction: AUTH_FN,
+      withFeePayer: true,
+    });
+
+    expect(result).toBe("ADD_TXN");
+    expect(mockedAdd).toHaveBeenCalledWith(expect.objectContaining({ withFeePayer: true }));
   });
 
   it("getAuthenticationFunction returns undefined when the on-chain vec is empty", async () => {
@@ -148,6 +163,7 @@ describe("api/account/AccountAbstraction", () => {
     const result = await abstraction.disableAccountAbstractionTransaction({
       accountAddress: sender.accountAddress,
       authenticationFunction: AUTH_FN,
+      withFeePayer: true,
     });
 
     expect(result).toBe("REMOVE_TXN");
@@ -155,6 +171,7 @@ describe("api/account/AccountAbstraction", () => {
       aptosConfig: config,
       sender: sender.accountAddress,
       authenticationFunction: AUTH_FN,
+      withFeePayer: true,
       options: undefined,
     });
     expect(mockedRemoveDispatchable).not.toHaveBeenCalled();
@@ -165,12 +182,14 @@ describe("api/account/AccountAbstraction", () => {
 
     const result = await abstraction.disableAccountAbstractionTransaction({
       accountAddress: sender.accountAddress,
+      withFeePayer: true,
     });
 
     expect(result).toBe("REMOVE_AUTH_TXN");
     expect(mockedRemoveDispatchable).toHaveBeenCalledWith({
       aptosConfig: config,
       sender: sender.accountAddress,
+      withFeePayer: true,
       options: undefined,
     });
   });
