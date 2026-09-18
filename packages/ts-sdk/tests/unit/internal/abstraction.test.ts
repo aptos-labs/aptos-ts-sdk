@@ -35,8 +35,10 @@ describe("internal/abstraction (auth-function wrappers)", () => {
         aptosConfig,
         sender: sender.accountAddress,
         authenticationFunction: "0xcafe::auth_mod::my_auth_fn",
+        withFeePayer: true,
       });
 
+      expect(mockedGenerateTransaction.mock.calls[0][0]).toEqual(expect.objectContaining({ withFeePayer: true }));
       const data = mockedGenerateTransaction.mock.calls[0][0].data as {
         function: string;
         functionArguments: unknown[];
@@ -67,8 +69,10 @@ describe("internal/abstraction (auth-function wrappers)", () => {
         aptosConfig,
         sender: sender.accountAddress,
         authenticationFunction: "0x1::built_in::any_authenticator",
+        withFeePayer: true,
       });
 
+      expect(mockedGenerateTransaction.mock.calls[0][0]).toEqual(expect.objectContaining({ withFeePayer: true }));
       const data = mockedGenerateTransaction.mock.calls[0][0].data as {
         function: string;
         functionArguments: unknown[];
@@ -84,8 +88,10 @@ describe("internal/abstraction (auth-function wrappers)", () => {
       await removeDispatchableAuthenticatorTransaction({
         aptosConfig,
         sender: sender.accountAddress,
+        withFeePayer: true,
       });
 
+      expect(mockedGenerateTransaction.mock.calls[0][0]).toEqual(expect.objectContaining({ withFeePayer: true }));
       const data = mockedGenerateTransaction.mock.calls[0][0].data as {
         function: string;
         functionArguments: unknown[];

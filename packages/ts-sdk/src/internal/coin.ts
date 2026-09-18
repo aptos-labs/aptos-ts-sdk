@@ -22,6 +22,7 @@ const coinTransferAbi: EntryFunctionABI = {
  * @param args.recipient - The address of the account receiving the coins.
  * @param args.amount - The amount of coins to transfer.
  * @param args.coinType - (Optional) The type of coin to transfer, defaults to Aptos Coin if not specified.
+ * @param args.withFeePayer - Whether to build a fee-payer transaction.
  * @param args.options - (Optional) Options for generating the transaction.
  * @group Implementation
  */
@@ -31,9 +32,10 @@ export async function transferCoinTransaction(args: {
   recipient: AccountAddressInput;
   amount: AnyNumber;
   coinType?: MoveStructId;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, sender, recipient, amount, coinType, options } = args;
+  const { aptosConfig, sender, recipient, amount, coinType, withFeePayer, options } = args;
   const coinStructType = coinType ?? APTOS_COIN;
   return generateTransaction({
     aptosConfig,
@@ -44,6 +46,7 @@ export async function transferCoinTransaction(args: {
       functionArguments: [recipient, amount],
       abi: coinTransferAbi,
     },
+    withFeePayer,
     options,
   });
 }

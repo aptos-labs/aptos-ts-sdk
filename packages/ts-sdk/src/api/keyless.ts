@@ -245,6 +245,8 @@ export class Keyless {
    * @param args.sender The account that will install the JWKs
    * @param args.iss the iss claim of the federated OIDC provider.
    * @param args.jwksUrl the URL to find the corresponding JWKs. For supported IDP providers this parameter in not necessary.
+   * @param args.withFeePayer Whether to build a sponsored transaction.
+   * @param args.options Optional settings for generating the transaction.
    *
    * @returns The pending transaction that results from submission.
    * @group Keyless
@@ -253,6 +255,7 @@ export class Keyless {
     sender: Account;
     iss: string;
     jwksUrl?: string;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     return updateFederatedKeylessJwkSetTransaction({ aptosConfig: this.config, ...args });

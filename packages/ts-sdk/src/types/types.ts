@@ -1041,7 +1041,7 @@ export type WriteSetChangeDeleteTableItem = {
   state_key_hash: string;
   handle: string;
   key: string;
-  data?: DeletedTableData;
+  data?: DeletedTableData | null;
 };
 
 /**
@@ -1073,7 +1073,7 @@ export type WriteSetChangeWriteTableItem = {
   handle: string;
   key: string;
   value: string;
-  data?: DecodedTableData;
+  data?: DecodedTableData | null;
 };
 
 /**

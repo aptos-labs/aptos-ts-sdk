@@ -39,6 +39,7 @@ describe("internal/account rotateAuthKey*", () => {
       aptosConfig: mock.config,
       fromAccount,
       toNewPrivateKey: toKey,
+      withFeePayer: true,
     });
 
     expect(txn).toBeInstanceOf(SimpleTransaction);
@@ -46,6 +47,7 @@ describe("internal/account rotateAuthKey*", () => {
       expect.objectContaining({
         aptosConfig: mock.config,
         sender: fromAccount.accountAddress,
+        withFeePayer: true,
         data: expect.objectContaining({
           function: "0x1::account::rotate_authentication_key",
         }),
@@ -74,10 +76,12 @@ describe("internal/account rotateAuthKey*", () => {
       aptosConfig: mock.config,
       fromAccount,
       toAccount,
+      withFeePayer: true,
     });
 
     expect(mockedGenerateTransaction).toHaveBeenCalledWith(
       expect.objectContaining({
+        withFeePayer: true,
         data: expect.objectContaining({ function: "0x1::account::rotate_authentication_key" }),
       }),
     );
@@ -98,10 +102,12 @@ describe("internal/account rotateAuthKey*", () => {
       aptosConfig: mock.config,
       fromAccount,
       toAccount,
+      withFeePayer: true,
     });
 
     expect(mockedGenerateTransaction).toHaveBeenCalledWith(
       expect.objectContaining({
+        withFeePayer: true,
         data: expect.objectContaining({ function: "0x1::account::rotate_authentication_key" }),
       }),
     );
@@ -126,10 +132,12 @@ describe("internal/account rotateAuthKey*", () => {
       aptosConfig: mock.config,
       fromAccount,
       toNewPublicKey,
+      withFeePayer: true,
     });
 
     expect(mockedGenerateTransaction).toHaveBeenCalledWith(
       expect.objectContaining({
+        withFeePayer: true,
         data: expect.objectContaining({
           function: "0x1::account::rotate_authentication_key_from_public_key",
         }),

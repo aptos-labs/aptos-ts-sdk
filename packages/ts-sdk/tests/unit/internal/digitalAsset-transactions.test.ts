@@ -29,6 +29,7 @@ import {
   mintDigitalAssetTransaction,
   mintSoulBoundTransaction,
   addDigitalAssetPropertyTransaction,
+  addDigitalAssetTypedPropertyTransaction,
   removeDigitalAssetPropertyTransaction,
   updateDigitalAssetPropertyTransaction,
   updateDigitalAssetTypedPropertyTransaction,
@@ -57,6 +58,7 @@ describe("internal/digitalAsset transaction wrappers", () => {
         sender,
         digitalAssetAddress: digitalAsset,
         recipient,
+        withFeePayer: true,
       });
 
       const data = mockedGenerateTransaction.mock.calls[0][0].data as {
@@ -69,6 +71,7 @@ describe("internal/digitalAsset transaction wrappers", () => {
       // Both addresses are normalized through AccountAddress.from in the wrapper.
       expect(data.functionArguments[0].toString()).toBe(digitalAsset.toString());
       expect(data.functionArguments[1].toString()).toBe(recipient.toString());
+      expect(mockedGenerateTransaction).toHaveBeenLastCalledWith(expect.objectContaining({ withFeePayer: true }));
     });
 
     it("honors a custom digitalAssetType", async () => {
@@ -92,6 +95,7 @@ describe("internal/digitalAsset transaction wrappers", () => {
         aptosConfig,
         creator: sender,
         digitalAssetAddress: digitalAsset,
+        withFeePayer: true,
       });
 
       const data = mockedGenerateTransaction.mock.calls[0][0].data as {
@@ -100,6 +104,7 @@ describe("internal/digitalAsset transaction wrappers", () => {
       };
       expect(data.function).toContain("burn");
       expect(data.functionArguments).toHaveLength(1);
+      expect(mockedGenerateTransaction).toHaveBeenLastCalledWith(expect.objectContaining({ withFeePayer: true }));
     });
   });
 
@@ -109,10 +114,12 @@ describe("internal/digitalAsset transaction wrappers", () => {
         aptosConfig,
         creator: sender,
         digitalAssetAddress: digitalAsset,
+        withFeePayer: true,
       });
 
       const data = mockedGenerateTransaction.mock.calls[0][0].data as { function: string };
       expect(data.function).toContain("freeze_transfer");
+      expect(mockedGenerateTransaction).toHaveBeenLastCalledWith(expect.objectContaining({ withFeePayer: true }));
     });
 
     it("unfreezeDigitalAssetTransferTransaction targets the unfreeze entry", async () => {
@@ -120,10 +127,12 @@ describe("internal/digitalAsset transaction wrappers", () => {
         aptosConfig,
         creator: sender,
         digitalAssetAddress: digitalAsset,
+        withFeePayer: true,
       });
 
       const data = mockedGenerateTransaction.mock.calls[0][0].data as { function: string };
       expect(data.function).toContain("unfreeze_transfer");
+      expect(mockedGenerateTransaction).toHaveBeenLastCalledWith(expect.objectContaining({ withFeePayer: true }));
     });
   });
 
@@ -134,10 +143,12 @@ describe("internal/digitalAsset transaction wrappers", () => {
         creator: sender,
         digitalAssetAddress: digitalAsset,
         description: "new description",
+        withFeePayer: true,
       });
 
       const data = mockedGenerateTransaction.mock.calls[0][0].data as { functionArguments: unknown[] };
       expect(data.functionArguments).toHaveLength(2);
+      expect(mockedGenerateTransaction).toHaveBeenLastCalledWith(expect.objectContaining({ withFeePayer: true }));
     });
 
     it("setDigitalAssetNameTransaction passes the asset + new name", async () => {
@@ -146,10 +157,12 @@ describe("internal/digitalAsset transaction wrappers", () => {
         creator: sender,
         digitalAssetAddress: digitalAsset,
         name: "Renamed",
+        withFeePayer: true,
       });
 
       const data = mockedGenerateTransaction.mock.calls[0][0].data as { functionArguments: unknown[] };
       expect(data.functionArguments).toHaveLength(2);
+      expect(mockedGenerateTransaction).toHaveBeenLastCalledWith(expect.objectContaining({ withFeePayer: true }));
     });
 
     it("setDigitalAssetURITransaction passes the asset + new URI", async () => {
@@ -158,10 +171,12 @@ describe("internal/digitalAsset transaction wrappers", () => {
         creator: sender,
         digitalAssetAddress: digitalAsset,
         uri: "https://example.com/new",
+        withFeePayer: true,
       });
 
       const data = mockedGenerateTransaction.mock.calls[0][0].data as { functionArguments: unknown[] };
       expect(data.functionArguments).toHaveLength(2);
+      expect(mockedGenerateTransaction).toHaveBeenLastCalledWith(expect.objectContaining({ withFeePayer: true }));
     });
   });
 
@@ -173,9 +188,11 @@ describe("internal/digitalAsset transaction wrappers", () => {
         name: "c",
         description: "d",
         uri: "u",
+        withFeePayer: true,
       });
       const data = mockedGenerateTransaction.mock.calls[0][0].data as { function: string };
       expect(data.function).toContain("create_collection");
+      expect(mockedGenerateTransaction).toHaveBeenLastCalledWith(expect.objectContaining({ withFeePayer: true }));
     });
 
     it("mintDigitalAssetTransaction forwards collection + metadata", async () => {
@@ -186,9 +203,11 @@ describe("internal/digitalAsset transaction wrappers", () => {
         description: "d",
         name: "n",
         uri: "u",
+        withFeePayer: true,
       });
       const data = mockedGenerateTransaction.mock.calls[0][0].data as { function: string };
       expect(data.function).toContain("mint");
+      expect(mockedGenerateTransaction).toHaveBeenLastCalledWith(expect.objectContaining({ withFeePayer: true }));
     });
 
     it("mintSoulBoundTransaction includes the recipient address", async () => {
@@ -200,9 +219,11 @@ describe("internal/digitalAsset transaction wrappers", () => {
         name: "n",
         uri: "u",
         recipient,
+        withFeePayer: true,
       });
       const data = mockedGenerateTransaction.mock.calls[0][0].data as { functionArguments: unknown[] };
       expect(data.functionArguments.length).toBeGreaterThanOrEqual(2);
+      expect(mockedGenerateTransaction).toHaveBeenLastCalledWith(expect.objectContaining({ withFeePayer: true }));
     });
   });
 
@@ -215,8 +236,22 @@ describe("internal/digitalAsset transaction wrappers", () => {
         propertyKey: "k",
         propertyType: "STRING",
         propertyValue: "v",
+        withFeePayer: true,
       });
-      expect(mockedGenerateTransaction).toHaveBeenCalled();
+      expect(mockedGenerateTransaction).toHaveBeenLastCalledWith(expect.objectContaining({ withFeePayer: true }));
+    });
+
+    it("addDigitalAssetTypedPropertyTransaction forwards fee-payer mode", async () => {
+      await addDigitalAssetTypedPropertyTransaction({
+        aptosConfig,
+        creator: sender,
+        digitalAssetAddress: digitalAsset,
+        propertyKey: "level",
+        propertyType: "U64",
+        propertyValue: 1,
+        withFeePayer: true,
+      });
+      expect(mockedGenerateTransaction).toHaveBeenLastCalledWith(expect.objectContaining({ withFeePayer: true }));
     });
 
     it("removeDigitalAssetPropertyTransaction forwards the property key", async () => {
@@ -225,8 +260,9 @@ describe("internal/digitalAsset transaction wrappers", () => {
         creator: sender,
         digitalAssetAddress: digitalAsset,
         propertyKey: "k",
+        withFeePayer: true,
       });
-      expect(mockedGenerateTransaction).toHaveBeenCalled();
+      expect(mockedGenerateTransaction).toHaveBeenLastCalledWith(expect.objectContaining({ withFeePayer: true }));
     });
 
     it("updateDigitalAssetPropertyTransaction forwards updated value", async () => {
@@ -237,8 +273,9 @@ describe("internal/digitalAsset transaction wrappers", () => {
         propertyKey: "k",
         propertyType: "STRING",
         propertyValue: "v2",
+        withFeePayer: true,
       });
-      expect(mockedGenerateTransaction).toHaveBeenCalled();
+      expect(mockedGenerateTransaction).toHaveBeenLastCalledWith(expect.objectContaining({ withFeePayer: true }));
     });
 
     it("updateDigitalAssetTypedPropertyTransaction targets update_typed_property with type args", async () => {
@@ -250,6 +287,7 @@ describe("internal/digitalAsset transaction wrappers", () => {
         propertyType: "U64",
         propertyValue: 42,
         digitalAssetType: "0x4::token::Token",
+        withFeePayer: true,
       });
 
       expect(mockedGenerateTransaction).toHaveBeenCalledWith(
@@ -260,6 +298,7 @@ describe("internal/digitalAsset transaction wrappers", () => {
             typeArguments: ["0x4::token::Token", "u64"],
             functionArguments: [digitalAsset, expect.anything(), 42],
           }),
+          withFeePayer: true,
         }),
       );
     });

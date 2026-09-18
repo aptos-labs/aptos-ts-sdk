@@ -63,14 +63,14 @@ describe("ANS api wrappers delegate to internal/ans with the bound config", () =
 
   it("setTargetAddress", async () => {
     expectDelegation(internal.setTargetAddress, "TXN");
-    const args = { sender: "0x1", name: "a", address: "0x2" } as const;
+    const args = { sender: "0x1", name: "a", address: "0x2", withFeePayer: true } as const;
     expect(await ans.setTargetAddress(args)).toBe("TXN");
     expect(internal.setTargetAddress).toHaveBeenCalledWith({ aptosConfig: config, ...args });
   });
 
   it("clearTargetAddress", async () => {
     expectDelegation(internal.clearTargetAddress, "TXN");
-    const args = { sender: "0x1", name: "a" } as const;
+    const args = { sender: "0x1", name: "a", withFeePayer: true } as const;
     expect(await ans.clearTargetAddress(args)).toBe("TXN");
     expect(internal.clearTargetAddress).toHaveBeenCalledWith({ aptosConfig: config, ...args });
   });
@@ -83,21 +83,21 @@ describe("ANS api wrappers delegate to internal/ans with the bound config", () =
 
   it("setPrimaryName", async () => {
     expectDelegation(internal.setPrimaryName, "TXN");
-    const args = { sender: "0x1", name: "a" } as const;
+    const args = { sender: "0x1", name: "a", withFeePayer: true } as const;
     expect(await ans.setPrimaryName(args)).toBe("TXN");
     expect(internal.setPrimaryName).toHaveBeenCalledWith({ aptosConfig: config, ...args });
   });
 
   it("registerName", async () => {
     expectDelegation(internal.registerName, "TXN");
-    const args = { sender: "0x1", name: "a", expiration: { policy: "domain" } } as const;
+    const args = { sender: "0x1", name: "a", expiration: { policy: "domain" }, withFeePayer: true } as const;
     expect(await ans.registerName(args as any)).toBe("TXN");
     expect(internal.registerName).toHaveBeenCalledWith({ aptosConfig: config, ...args });
   });
 
   it("renewDomain", async () => {
     expectDelegation(internal.renewDomain, "TXN");
-    const args = { sender: "0x1", name: "a" } as const;
+    const args = { sender: "0x1", name: "a", withFeePayer: true } as const;
     expect(await ans.renewDomain(args)).toBe("TXN");
     expect(internal.renewDomain).toHaveBeenCalledWith({ aptosConfig: config, ...args });
   });

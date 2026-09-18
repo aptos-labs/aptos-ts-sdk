@@ -33,6 +33,7 @@
     "swap": "tsx swap.ts",
     "multikey_transfer": "tsx multikey_transfer.ts",
     "multi_ed25519_transfer": "tsx multi_ed25519_transfer.ts",
+    "rotate_key": "tsx rotate_key.ts",
     "simple_digital_asset": "tsx simple_digital_asset.ts",
     "multisig_v2": "tsx multisig_v2.ts",
     "transaction_with_predefined_abi": "tsx transaction_with_predefined_abi.ts",

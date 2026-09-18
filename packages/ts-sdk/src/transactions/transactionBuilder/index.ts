@@ -6,3 +6,4 @@ export * from "./transactionBuilder.js";
 export * from "./remoteAbi.js";
 export * from "./signingMessage.js";
 export * from "./structEnumParser.js";
+export * from "./scriptAbi.js";

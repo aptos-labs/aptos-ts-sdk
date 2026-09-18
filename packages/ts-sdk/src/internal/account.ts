@@ -1022,6 +1022,8 @@ function rotateAuthKeyAbi(): EntryFunctionABI {
  * @param args.fromAccount - The account from which the authentication key will be rotated.
  * @param args.toAccount - (Optional) The target account to rotate to. Required if not using toNewPrivateKey.
  * @param args.toNewPrivateKey - (Optional) The new private key to rotate to. Required if not using toAccount.
+ * @param args.withFeePayer - Whether to build a sponsored transaction.
+ * @param args.options - Optional settings for generating the transaction.
  *
  * @remarks
  * This function supports three modes of rotation:
@@ -1037,15 +1039,17 @@ export async function rotateAuthKey(
   args: {
     aptosConfig: AptosConfig;
     fromAccount: Account;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   } & ({ toAccount: Ed25519Account | MultiEd25519Account } | { toNewPrivateKey: Ed25519PrivateKey }),
 ): Promise<SimpleTransaction> {
-  const { aptosConfig, fromAccount, options } = args;
+  const { aptosConfig, fromAccount, withFeePayer, options } = args;
   if ("toNewPrivateKey" in args) {
     return rotateAuthKeyWithChallenge({
       aptosConfig,
       fromAccount,
       toNewPrivateKey: args.toNewPrivateKey,
+      withFeePayer,
       options,
     });
   }
@@ -1055,22 +1059,42 @@ export async function rotateAuthKey(
         aptosConfig,
         fromAccount,
         toNewPrivateKey: args.toAccount.privateKey,
+        withFeePayer,
         options,
       });
     }
-    return rotateAuthKeyWithChallenge({ aptosConfig, fromAccount, toAccount: args.toAccount, options });
+    return rotateAuthKeyWithChallenge({
+      aptosConfig,
+      fromAccount,
+      toAccount: args.toAccount,
+      withFeePayer,
+      options,
+    });
   }
   throw new Error("Invalid arguments");
 }
 
+/**
+ * Builds a challenge-based authentication-key rotation transaction.
+ *
+ * @param args - The arguments for the challenge-based rotation.
+ * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.fromAccount - The account whose authentication key will be rotated.
+ * @param args.toAccount - The optional target multi-signature account.
+ * @param args.toNewPrivateKey - The optional target private key.
+ * @param args.withFeePayer - Whether to build a sponsored transaction.
+ * @param args.options - Optional settings for generating the transaction.
+ * @returns A transaction that rotates the authentication key.
+ */
 async function rotateAuthKeyWithChallenge(
   args: {
     aptosConfig: AptosConfig;
     fromAccount: Account;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   } & ({ toNewPrivateKey: Ed25519PrivateKey } | { toAccount: MultiEd25519Account }),
 ): Promise<SimpleTransaction> {
-  const { aptosConfig, fromAccount, options } = args;
+  const { aptosConfig, fromAccount, withFeePayer, options } = args;
   const accountInfo = await getInfo({
     aptosConfig,
     accountAddress: fromAccount.accountAddress,
@@ -1099,6 +1123,7 @@ async function rotateAuthKeyWithChallenge(
   return generateTransaction({
     aptosConfig,
     sender: fromAccount.accountAddress,
+    withFeePayer,
     data: {
       function: "0x1::account::rotate_authentication_key",
       functionArguments: [
@@ -1133,6 +1158,8 @@ function rotateAuthKeyUnverifiedAbi(): EntryFunctionABI {
  * @param args.aptosConfig - The configuration settings for the Aptos network.
  * @param args.fromAccount - The account from which the authentication key will be rotated.
  * @param args.toNewPublicKey - The new public key to rotate to.
+ * @param args.withFeePayer - Whether to build a sponsored transaction.
+ * @param args.options - Optional settings for generating the transaction.
  * @returns A simple transaction object that can be submitted to the network.
  * @throws Error if the rotation fails or verification fails.
  *
@@ -1142,13 +1169,15 @@ export async function rotateAuthKeyUnverified(args: {
   aptosConfig: AptosConfig;
   fromAccount: Account;
   toNewPublicKey: AccountPublicKey;
+  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, fromAccount, toNewPublicKey, options } = args;
+  const { aptosConfig, fromAccount, toNewPublicKey, withFeePayer, options } = args;
 
   return generateTransaction({
     aptosConfig,
     sender: fromAccount.accountAddress,
+    withFeePayer,
     data: {
       function: "0x1::account::rotate_authentication_key_from_public_key",
       functionArguments: [
