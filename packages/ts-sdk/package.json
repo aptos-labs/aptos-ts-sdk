@@ -16,7 +16,8 @@
   "homepage": "https://aptos-labs.github.io/aptos-ts-sdk/",
   "type": "module",
   "sideEffects": [
-    "**/keylessRegistration.js"
+    "**/keylessRegistration.js",
+    "**/slhDsaSha2128s.js"
   ],
   "exports": {
     ".": {
@@ -58,6 +59,10 @@
     "./keyless": {
       "types": "./dist/functions/keyless.d.ts",
       "default": "./dist/functions/keyless.js"
+    },
+    "./slh-dsa-sha2-128s": {
+      "types": "./dist/slh-dsa-sha2-128s.d.ts",
+      "default": "./dist/slh-dsa-sha2-128s.js"
     },
     "./object": {
       "types": "./dist/functions/object.d.ts",
@@ -133,6 +138,9 @@
     "eventemitter3": "^5.0.4",
     "jwt-decode": "^4.0.0",
     "poseidon-lite": "^0.3.0"
+  },
+  "optionalDependencies": {
+    "@noble/post-quantum": "^0.5.2"
   },
   "devDependencies": {
     "@babel/traverse": "^7.29.8",
