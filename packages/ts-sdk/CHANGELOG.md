@@ -4,14 +4,12 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 7.4.0 (2026-09-18)
+
 ## Added
 
 - Add `MoveOption.Address` factory method for creating a `MoveOption<AccountAddress>` from an `AccountAddressInput`, so `address` is now covered by the `MoveOption` primitive factory methods alongside `U8`–`U256`, `I8`–`I256`, `Bool`, and `MoveString`.
 - Add `MoveVector.Address` factory method for creating a `MoveVector<AccountAddress>` from an array of `AccountAddressInput`, matching the new `MoveOption.Address` for consistency.
-
-## Fixed
-
-- Document `null` as an accepted argument in the JSDoc for every `MoveOption` primitive factory method. All of them already accepted `value?: T | null` and treated `null` as an empty option, but the docs only mentioned `undefined`. Behavior is unchanged; a regression test now covers the `null` case for all 15 factories.
 - Add backward-compatible `getPepperAndAddress` Keyless APIs that accept BCS-serialized ephemeral public data and return both pepper bytes and the initial account address for off-chain flows; existing `getPepper` behavior remains unchanged.
 - Add the public `parseScriptAbi` helper for extracting signer counts, type parameters, and caller-supplied parameter types from compiled Move script bytecode.
 - Parse compiled script ABIs automatically when script payloads contain plain JSON-compatible
@@ -19,15 +17,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add sponsored transaction generation to all convenience transaction builders through the standard `withFeePayer` option.
 - Add `enrichTransactionWithTableItemData` to populate missing decoded data on write and delete table-item changes using the indexer, including sync and pagination for large write sets. Type the fullnode's nullable table-item `data` response accurately.
 
-## Fixed
-
-- Emit transaction submission success and failure events as soon as each submission settles instead of waiting for the worker's processing phase.
-- **E2E reliability**: Keyless localnet tests now rotate across the JWT pool on prover `429`s and reuse derived accounts for overlapping cases, staying under the prover's 10-request/300s per-token limit.
-
 ## Changed
 
-- Fix the `multisig_v2` example's devnet fee validation and document how to simulate a would-be multisig proposal
-  without creating it on-chain first.
 - Allow `aptos.transaction.build.simple()` to accept an `Account` directly as its sender, and update the simple build-simulate-sign workflow to omit the optional simulation public key.
 - Expand the TypeScript key-rotation example into a repeatable, self-verifying Ed25519 → MultiEd25519 → fixed Ed25519 flow.
 - Convert the repository to a pnpm/Turbo monorepo, relocating `@aptos-labs/ts-sdk` and `@aptos-labs/confidential-asset` under `packages/`, centralizing dependency installation and task orchestration, and reserving the `packages/payments-sdk` convention for a future payments SDK.
@@ -36,6 +27,11 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Fixed
 
+- Document `null` as an accepted argument in the JSDoc for every `MoveOption` primitive factory method. All of them already accepted `value?: T | null` and treated `null` as an empty option, but the docs only mentioned `undefined`. Behavior is unchanged; a regression test now covers the `null` case for all 15 factories.
+- Emit transaction submission success and failure events as soon as each submission settles instead of waiting for the worker's processing phase.
+- **E2E reliability**: Keyless localnet tests now rotate across the JWT pool on prover `429`s and reuse derived accounts for overlapping cases, staying under the prover's 10-request/300s per-token limit.
+- Fix the `multisig_v2` example's devnet fee validation and document how to simulate a would-be multisig proposal
+  without creating it on-chain first.
 - Recursively instantiate generic script parameter types before plain-argument conversion, preserving direct `U8Vector` encoding for `vector<T>` instantiated with `u8` and `Serialized` encoding for non-native instantiations.
 - Structurally consume complete compiled-script bodies (including v8+ access specifiers and all v1-v10 instruction encodings), validate ABI-relevant references and Move identifiers, and reject truncated or trailing malformed bytecode.
 - Harden script ABI parsing with exact u64 closure-mask ULEB limits, u8 local-index bounds, byte-level ASCII identifier validation, and the version 5 metadata-table gate.
