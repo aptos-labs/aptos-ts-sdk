@@ -6,6 +6,9 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Added
 
+- Add the public `parseScriptAbi` helper for extracting signer counts, type parameters, and caller-supplied parameter types from compiled Move script bytecode.
+- Parse compiled script ABIs automatically when script payloads contain plain JSON-compatible
+  arguments, reusing ABI conversion while preserving existing BCS-wrapper and `Serialized` inputs.
 - Add sponsored transaction generation to all convenience transaction builders through the standard `withFeePayer` option.
 - Add `enrichTransactionWithTableItemData` to populate missing decoded data on write and delete table-item changes using the indexer, including sync and pagination for large write sets. Type the fullnode's nullable table-item `data` response accurately.
 
@@ -21,6 +24,13 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Convert the repository to a pnpm/Turbo monorepo, relocating `@aptos-labs/ts-sdk` and `@aptos-labs/confidential-asset` under `packages/`, centralizing dependency installation and task orchestration, and reserving the `packages/payments-sdk` convention for a future payments SDK.
 - Complete the monorepo migration validation: cover root tooling with Biome, run structural checks in required CI, avoid cached validation results, report repository-relative coverage paths, and correct package metadata and test documentation.
 - Update dependencies within current majors: `@noble/{ciphers,curves,hashes}` and `@scure/{bip32,bip39}` to `2.4.0` (noble 2.4 security hardening), Vitest/`@vitest/coverage-v8` to `4.1.11` (path-traversal advisory), Biome to `2.5.12`, and pnpm to `11.26.0`. Refresh pnpm overrides (`js-yaml` `4.3.2`, `postcss` `8.5.28`, `markdown-it` `14.3.1`) to patched releases. Pin `pnpm/action-setup` to v6.1.0 (latest older than 3 days).
+
+## Fixed
+
+- Recursively instantiate generic script parameter types before plain-argument conversion, preserving direct `U8Vector` encoding for `vector<T>` instantiated with `u8` and `Serialized` encoding for non-native instantiations.
+- Structurally consume complete compiled-script bodies (including v8+ access specifiers and all v1-v10 instruction encodings), validate ABI-relevant references and Move identifiers, and reject truncated or trailing malformed bytecode.
+- Harden script ABI parsing with exact u64 closure-mask ULEB limits, u8 local-index bounds, byte-level ASCII identifier validation, and the version 5 metadata-table gate.
+- Report script-specific `Serialized` BCS guidance when plain custom struct or enum arguments cannot be converted offline.
 
 # 7.3.1 (2026-08-13)
 
