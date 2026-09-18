@@ -3,6 +3,7 @@
 
 import { AptosConfig } from "./aptosConfig.js";
 import {
+  enrichTransactionWithTableItemData,
   getGasPriceEstimation,
   getTransactionByHash,
   getTransactionByVersion,
@@ -94,7 +95,7 @@ import { rotateAuthKey, rotateAuthKeyUnverified } from "../internal/account.js";
  *
  *   // Send a transaction from Alice's account to Bob's account
  *   const txn = await aptos.transaction.build.simple({
- *     sender: alice.accountAddress,
+ *     sender: alice,
  *     data: {
  *       // All transactions on Aptos are implemented via smart contracts.
  *       function: "0x1::aptos_account::transfer",
@@ -276,6 +277,44 @@ export class Transaction {
   }
 
   /**
+   * Populates missing decoded data on write and delete table-item changes in a
+   * committed transaction response.
+   *
+   * Fullnodes generally return `null` for table item `data`. This method queries
+   * the indexer for the decoded rows and table metadata, then mutates and returns
+   * the supplied transaction. Already-decoded changes are preserved.
+   *
+   * @param args - The arguments for enriching the transaction.
+   * @param args.transaction - The committed transaction response to enrich.
+   * @returns The supplied transaction with available table item data populated.
+   *
+   * @example
+   * ```typescript
+   * import { Aptos, AptosConfig, Network, isUserTransactionResponse } from "@aptos-labs/ts-sdk";
+   *
+   * const aptos = new Aptos(new AptosConfig({ network: Network.MAINNET }));
+   *
+   * async function runExample() {
+   *   const transaction = await aptos.getTransactionByVersion({ ledgerVersion: 563060087 });
+   *   if (isUserTransactionResponse(transaction)) {
+   *     await aptos.enrichTransactionWithTableItemData({ transaction });
+   *     console.log(transaction.changes);
+   *   }
+   * }
+   * runExample();
+   * ```
+   * @group Transaction
+   */
+  async enrichTransactionWithTableItemData<T extends CommittedTransactionResponse>(args: {
+    transaction: T;
+  }): Promise<T> {
+    return enrichTransactionWithTableItemData({
+      aptosConfig: this.config,
+      ...args,
+    });
+  }
+
+  /**
    * Defines if the specified transaction is currently in a pending state.
    * This function helps you determine the status of a transaction using its hash.
    *
@@ -438,6 +477,7 @@ export class Transaction {
    * @param args.account The publisher account.
    * @param args.metadataBytes The package metadata bytes.
    * @param args.moduleBytecode An array of the bytecode of each module in the package in compiler output order.
+   * @param args.withFeePayer Whether to build a sponsored transaction.
    * @param args.options Optional settings for generating the transaction.
    *
    * @returns A SimpleTransaction that can be simulated or submitted to the chain.
@@ -471,6 +511,7 @@ export class Transaction {
     account: AccountAddressInput;
     metadataBytes: HexInput;
     moduleBytecode: Array<HexInput>;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     return publicPackageTransaction({ aptosConfig: this.config, ...args });
@@ -484,6 +525,8 @@ export class Transaction {
    * @param args.fromAccount - The account from which the authentication key will be rotated.
    * @param args.toAccount - (Optional) The target account to rotate to. Required if not using toNewPrivateKey.
    * @param args.toNewPrivateKey - (Optional) The new private key to rotate to. Required if not using toAccount.
+   * @param args.withFeePayer - Whether to build a sponsored transaction.
+   * @param args.options - Optional settings for generating the transaction.
    *
    * @remarks
    * This function supports three modes of rotation:
@@ -515,6 +558,7 @@ export class Transaction {
   async rotateAuthKey(
     args: {
       fromAccount: Account;
+      withFeePayer?: boolean;
       options?: InputGenerateTransactionOptions;
     } & ({ toAccount: Ed25519Account | MultiEd25519Account } | { toNewPrivateKey: Ed25519PrivateKey }),
   ): Promise<SimpleTransaction> {
@@ -531,6 +575,8 @@ export class Transaction {
    * @param args - The arguments for rotating the authentication key.
    * @param args.fromAccount - The account from which the authentication key will be rotated.
    * @param args.toNewPublicKey - The new public key to rotate to.
+   * @param args.withFeePayer - Whether to build a sponsored transaction.
+   * @param args.options - Optional settings for generating the transaction.
    *
    * @returns A simple transaction object that can be submitted to the network.
    *
@@ -552,6 +598,7 @@ export class Transaction {
    */
   async rotateAuthKeyUnverified(args: {
     fromAccount: Account;
+    withFeePayer?: boolean;
     options?: InputGenerateTransactionOptions;
     toNewPublicKey: AccountPublicKey;
   }): Promise<SimpleTransaction> {

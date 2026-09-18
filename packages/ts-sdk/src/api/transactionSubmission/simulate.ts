@@ -53,7 +53,8 @@ export class Simulate {
    * authenticators to skip authentication-key validation, so the proposal does not need to exist on-chain.
    *
    * @param args - The parameters for simulating the transaction.
-   * @param args.signerPublicKey - The public key of the signer for the transaction (optional).
+   * @param args.signerPublicKey - Optional public key used to validate the signer's authentication key.
+   * Omit it to simulate with the sender address already embedded in the transaction.
    * @param args.transaction - The raw transaction data to simulate.
    * @param args.feePayerPublicKey - The public key of the fee payer (optional).
    * @param args.options - Additional options for simulating the transaction (optional).
@@ -82,7 +83,7 @@ export class Simulate {
    *
    *     // 1. Build the transaction to preview the impact of it
    *     const transaction = await aptos.transaction.build.simple({
-   *         sender: sender.accountAddress,
+   *         sender,
    *         data: {
    *             // All transactions on Aptos are implemented via smart contracts.
    *             function: "0x1::aptos_account::transfer",
@@ -92,7 +93,6 @@ export class Simulate {
    *
    *     // 2. Simulate to see what would happen if we execute this transaction
    *     const [userTransactionResponse] = await aptos.transaction.simulate.simple({
-   *         signerPublicKey: sender.publicKey,
    *         transaction,
    *     });
    *     console.log(userTransactionResponse);

@@ -4,10 +4,22 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Added
+
+- Add sponsored transaction generation to all convenience transaction builders through the standard `withFeePayer` option.
+- Add `enrichTransactionWithTableItemData` to populate missing decoded data on write and delete table-item changes using the indexer, including sync and pagination for large write sets. Type the fullnode's nullable table-item `data` response accurately.
+
+## Fixed
+
+- Emit transaction submission success and failure events as soon as each submission settles instead of waiting for the worker's processing phase.
+- **E2E reliability**: Keyless localnet tests now rotate across the JWT pool on prover `429`s and reuse derived accounts for overlapping cases, staying under the prover's 10-request/300s per-token limit.
+
 ## Changed
 
 - Fix the `multisig_v2` example's devnet fee validation and document how to simulate a would-be multisig proposal
   without creating it on-chain first.
+- Allow `aptos.transaction.build.simple()` to accept an `Account` directly as its sender, and update the simple build-simulate-sign workflow to omit the optional simulation public key.
+- Expand the TypeScript key-rotation example into a repeatable, self-verifying Ed25519 → MultiEd25519 → fixed Ed25519 flow.
 - Convert the repository to a pnpm/Turbo monorepo, relocating `@aptos-labs/ts-sdk` and `@aptos-labs/confidential-asset` under `packages/`, centralizing dependency installation and task orchestration, and reserving the `packages/payments-sdk` convention for a future payments SDK.
 - Complete the monorepo migration validation: cover root tooling with Biome, run structural checks in required CI, avoid cached validation results, report repository-relative coverage paths, and correct package metadata and test documentation.
 - Update dependencies within current majors: `@noble/{ciphers,curves,hashes}` and `@scure/{bip32,bip39}` to `2.4.0` (noble 2.4 security hardening), Vitest/`@vitest/coverage-v8` to `4.1.11` (path-traversal advisory), Biome to `2.5.12`, and pnpm to `11.26.0`. Refresh pnpm overrides (`js-yaml` `4.3.2`, `postcss` `8.5.28`, `markdown-it` `14.3.1`) to patched releases. Pin `pnpm/action-setup` to v6.1.0 (latest older than 3 days).

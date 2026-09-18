@@ -1,18 +1,68 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi, beforeEach, type MockedFunction } from "vitest";
+
+vi.mock("../../../src/internal/transactionSubmission.js", () => ({
+  generateTransaction: vi.fn(),
+}));
+vi.mock("../../../src/internal/view.js", () => ({
+  view: vi.fn(),
+}));
+
 import {
   isValidANSSegment,
   isValidANSName,
   getANSExpirationStatus,
+  registerName,
   VALIDATION_RULES_DESCRIPTION,
 } from "../../../src/internal/ans.js";
 import { ExpirationStatus, SubdomainExpirationPolicy, type RawANSName } from "../../../src/types/index.js";
 import { Network } from "../../../src/utils/apiEndpoints.js";
 import { AptosConfig } from "../../../src/api/aptosConfig.js";
+import { AccountAddress } from "../../../src/core/index.js";
+import { generateTransaction } from "../../../src/internal/transactionSubmission.js";
+import { view } from "../../../src/internal/view.js";
 
 const aptosConfig = new AptosConfig({ network: Network.LOCAL });
+const mockedGenerateTransaction = generateTransaction as MockedFunction<typeof generateTransaction>;
+const mockedView = view as MockedFunction<typeof view>;
+
+describe("internal/ans registerName transactions", () => {
+  beforeEach(() => {
+    mockedGenerateTransaction.mockReset();
+    mockedGenerateTransaction.mockResolvedValue("SENTINEL_TXN" as never);
+    mockedView.mockReset();
+    mockedView.mockResolvedValue([Math.round((Date.now() + 31_536_000_000) / 1000)] as never);
+  });
+
+  it("forwards withFeePayer when registering a domain", async () => {
+    await registerName({
+      aptosConfig,
+      sender: AccountAddress.ONE,
+      name: "alice",
+      expiration: { policy: "domain" },
+      withFeePayer: true,
+    });
+
+    expect(mockedGenerateTransaction.mock.calls[0][0].withFeePayer).toBe(true);
+  });
+
+  it("forwards withFeePayer when registering a subdomain", async () => {
+    await registerName({
+      aptosConfig,
+      sender: AccountAddress.ONE,
+      name: "bob.alice",
+      expiration: {
+        policy: "subdomain:independent",
+        expirationDate: Date.now() + 1_000,
+      },
+      withFeePayer: true,
+    });
+
+    expect(mockedGenerateTransaction.mock.calls[0][0].withFeePayer).toBe(true);
+  });
+});
 
 describe("internal/ans pure helpers", () => {
   describe("isValidANSSegment", () => {

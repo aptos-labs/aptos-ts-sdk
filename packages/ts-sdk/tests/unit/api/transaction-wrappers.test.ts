@@ -8,6 +8,7 @@ import { Account } from "../../../src/account/Account.js";
 import { SimpleTransaction } from "../../../src/transactions/instances/simpleTransaction.js";
 
 vi.mock("../../../src/internal/transaction.js", () => ({
+  enrichTransactionWithTableItemData: vi.fn(),
   getTransactions: vi.fn(),
   getTransactionByVersion: vi.fn(),
   getTransactionByHash: vi.fn(),
@@ -30,6 +31,7 @@ vi.mock("../../../src/internal/account.js", () => ({
 
 import { Transaction } from "../../../src/api/transaction.js";
 import {
+  enrichTransactionWithTableItemData,
   getTransactions,
   getTransactionByVersion,
   getTransactionByHash,
@@ -97,6 +99,17 @@ describe("api/Transaction wrappers", () => {
     expect(getTransactionByHash).toHaveBeenCalledWith({ aptosConfig: config, transactionHash: "0xabc" });
   });
 
+  it("enrichTransactionWithTableItemData forwards aptosConfig", async () => {
+    const transaction = {} as never;
+    (enrichTransactionWithTableItemData as MockedFunction<typeof enrichTransactionWithTableItemData>).mockResolvedValue(
+      transaction,
+    );
+
+    await api.enrichTransactionWithTableItemData({ transaction });
+
+    expect(enrichTransactionWithTableItemData).toHaveBeenCalledWith({ aptosConfig: config, transaction });
+  });
+
   it("isPendingTransaction forwards aptosConfig", async () => {
     (isTransactionPending as MockedFunction<typeof isTransactionPending>).mockResolvedValue(true);
     expect(await api.isPendingTransaction({ transactionHash: "0x1" })).toBe(true);
@@ -124,6 +137,7 @@ describe("api/Transaction wrappers", () => {
       account,
       metadataBytes: "0x01",
       moduleBytecode: ["0x02"],
+      withFeePayer: true,
     });
     expect(publicPackageTransaction).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -131,6 +145,7 @@ describe("api/Transaction wrappers", () => {
         account,
         metadataBytes: "0x01",
         moduleBytecode: ["0x02"],
+        withFeePayer: true,
       }),
     );
   });
@@ -138,15 +153,25 @@ describe("api/Transaction wrappers", () => {
   it("rotateAuthKey forwards args", async () => {
     const fromAccount = Account.generate();
     const toAccount = Account.generate();
-    await api.rotateAuthKey({ fromAccount, toAccount });
-    expect(rotateAuthKey).toHaveBeenCalledWith({ aptosConfig: config, fromAccount, toAccount });
+    await api.rotateAuthKey({ fromAccount, toAccount, withFeePayer: true });
+    expect(rotateAuthKey).toHaveBeenCalledWith({
+      aptosConfig: config,
+      fromAccount,
+      toAccount,
+      withFeePayer: true,
+    });
   });
 
   it("rotateAuthKeyUnverified forwards args", async () => {
     const fromAccount = Account.generate();
     const toNewPublicKey = Account.generate().publicKey;
-    await api.rotateAuthKeyUnverified({ fromAccount, toNewPublicKey });
-    expect(rotateAuthKeyUnverified).toHaveBeenCalledWith({ aptosConfig: config, fromAccount, toNewPublicKey });
+    await api.rotateAuthKeyUnverified({ fromAccount, toNewPublicKey, withFeePayer: true });
+    expect(rotateAuthKeyUnverified).toHaveBeenCalledWith({
+      aptosConfig: config,
+      fromAccount,
+      toNewPublicKey,
+      withFeePayer: true,
+    });
   });
 
   it("signAndSubmitTransaction forwards signer + transaction", async () => {
