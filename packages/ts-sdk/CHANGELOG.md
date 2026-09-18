@@ -12,6 +12,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 ## Fixed
 
 - Document `null` as an accepted argument in the JSDoc for every `MoveOption` primitive factory method. All of them already accepted `value?: T | null` and treated `null` as an empty option, but the docs only mentioned `undefined`. Behavior is unchanged; a regression test now covers the `null` case for all 15 factories.
+- Add backward-compatible `getPepperAndAddress` Keyless APIs that accept BCS-serialized ephemeral public data and return both pepper bytes and the initial account address for off-chain flows; existing `getPepper` behavior remains unchanged.
 - Add the public `parseScriptAbi` helper for extracting signer counts, type parameters, and caller-supplied parameter types from compiled Move script bytecode.
 - Parse compiled script ABIs automatically when script payloads contain plain JSON-compatible
   arguments, reusing ABI conversion while preserving existing BCS-wrapper and `Serialized` inputs.
