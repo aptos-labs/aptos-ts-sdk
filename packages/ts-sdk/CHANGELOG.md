@@ -6,6 +6,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Added
 
+- Add backward-compatible `getPepperAndAddress` Keyless APIs that accept BCS-serialized ephemeral public data and return both pepper bytes and the initial account address for off-chain flows; existing `getPepper` behavior remains unchanged.
 - Add the public `parseScriptAbi` helper for extracting signer counts, type parameters, and caller-supplied parameter types from compiled Move script bytecode.
 - Parse compiled script ABIs automatically when script payloads contain plain JSON-compatible
   arguments, reusing ABI conversion while preserving existing BCS-wrapper and `Serialized` inputs.

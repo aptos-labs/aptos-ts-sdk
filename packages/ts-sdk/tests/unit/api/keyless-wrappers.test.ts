@@ -10,6 +10,7 @@ import { AccountAddress } from "../../../src/core/index.js";
 
 vi.mock("../../../src/internal/keyless.js", () => ({
   getPepper: vi.fn(),
+  getPepperAndAddress: vi.fn(),
   getPepperBase: vi.fn(),
   getProof: vi.fn(),
   deriveKeylessAccount: vi.fn(),
@@ -19,6 +20,7 @@ vi.mock("../../../src/internal/keyless.js", () => ({
 import {
   deriveKeylessAccount,
   getPepper,
+  getPepperAndAddress,
   getPepperBase,
   getProof,
   updateFederatedKeylessJwkSetTransaction,
@@ -26,6 +28,7 @@ import {
 
 const mocks = {
   getPepper: getPepper as MockedFunction<typeof getPepper>,
+  getPepperAndAddress: getPepperAndAddress as MockedFunction<typeof getPepperAndAddress>,
   getPepperBase: getPepperBase as MockedFunction<typeof getPepperBase>,
   getProof: getProof as MockedFunction<typeof getProof>,
   deriveKeylessAccount: deriveKeylessAccount as MockedFunction<typeof deriveKeylessAccount>,
@@ -57,6 +60,33 @@ describe("api/Keyless wrappers", () => {
       aptosConfig: config,
       jwt: keylessTestObject.JWT,
       ephemeralKeyPair: EPHEMERAL_KEY_PAIR,
+      derivationPath: "m/44'/637'/0'/0'/0'",
+    });
+  });
+
+  it("getPepperAndAddress forwards public EPK components to the internal implementation", async () => {
+    const pepper = new Uint8Array(31).fill(5);
+    const address = AccountAddress.ONE;
+    mocks.getPepperAndAddress.mockResolvedValue({ pepper, address });
+    const ephemeralPublicKey = EPHEMERAL_KEY_PAIR.getPublicKey().bcsToHex().toString();
+
+    const result = await keyless.getPepperAndAddress({
+      jwt: keylessTestObject.JWT,
+      ephemeralPublicKey,
+      expiryDateSecs: EPHEMERAL_KEY_PAIR.expiryDateSecs,
+      blinder: EPHEMERAL_KEY_PAIR.blinder,
+      uidKey: "email",
+      derivationPath: "m/44'/637'/0'/0'/0'",
+    });
+
+    expect(result).toEqual({ pepper, address });
+    expect(mocks.getPepperAndAddress).toHaveBeenCalledWith({
+      aptosConfig: config,
+      jwt: keylessTestObject.JWT,
+      ephemeralPublicKey,
+      expiryDateSecs: EPHEMERAL_KEY_PAIR.expiryDateSecs,
+      blinder: EPHEMERAL_KEY_PAIR.blinder,
+      uidKey: "email",
       derivationPath: "m/44'/637'/0'/0'/0'",
     });
   });
