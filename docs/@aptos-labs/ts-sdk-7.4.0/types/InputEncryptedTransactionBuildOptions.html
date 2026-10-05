@@ -15,7 +15,7 @@
 </div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">type</span> <span class="tsd-kind-type-alias">InputEncryptedTransactionBuildOptions</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#claimedentryfunction">claimedEntryFunction</a><span class="tsd-signature-symbol">?:</span> <a href="../classes/ClaimedEntryFunction.html" class="tsd-signature-type tsd-kind-class">ClaimedEntryFunction</a> <span class="tsd-signature-symbol">|</span> <a href="InputClaimedEntryFunction.html" class="tsd-signature-type tsd-kind-type-alias">InputClaimedEntryFunction</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#encrypted">encrypted</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#feepayerauthenticationkey">feePayerAuthenticationKey</a><span class="tsd-signature-symbol">?:</span> <a href="../classes/AuthenticationKey.html" class="tsd-signature-type tsd-kind-class">AuthenticationKey</a> <span class="tsd-signature-symbol">|</span> <a href="HexInput.html" class="tsd-signature-type tsd-kind-type-alias">HexInput</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#secondarysignerauthenticationkeys">secondarySignerAuthenticationKeys</a><span class="tsd-signature-symbol">?:</span> (<br/>        <a href="../classes/AuthenticationKey.html" class="tsd-signature-type tsd-kind-class">AuthenticationKey</a><br/>        <span class="tsd-signature-symbol">|</span> <a href="HexInput.html" class="tsd-signature-type tsd-kind-type-alias">HexInput</a><br/>        <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span><br/>    )<span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#senderauthenticationkey">senderAuthenticationKey</a><span class="tsd-signature-symbol">?:</span> <a href="../classes/AuthenticationKey.html" class="tsd-signature-type tsd-kind-class">AuthenticationKey</a> <span class="tsd-signature-symbol">|</span> <a href="HexInput.html" class="tsd-signature-type tsd-kind-type-alias">HexInput</a><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/d8e94a8cc250fa0df0f038074c2572f15c4b610b/packages/ts-sdk/src/transactions/types.ts#L178">packages/ts-sdk/src/transactions/types.ts:178</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/2d47bfdb2068e3a6eff6ec44bbf323abe9cac404/packages/ts-sdk/src/transactions/types.ts#L178">packages/ts-sdk/src/transactions/types.ts:178</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -40,7 +40,7 @@ payload is <code>TransactionInnerPayload</code> with a multisig address in <code
 Ignored for plain encrypted single-signer transactions (none of the above).</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/d8e94a8cc250fa0df0f038074c2572f15c4b610b/packages/ts-sdk/src/transactions/types.ts#L211">packages/ts-sdk/src/transactions/types.ts:211</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/2d47bfdb2068e3a6eff6ec44bbf323abe9cac404/packages/ts-sdk/src/transactions/types.ts#L211">packages/ts-sdk/src/transactions/types.ts:211</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="encrypted"><code class="tsd-tag">Optional</code><span>encrypted</span><a href="#encrypted" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">encrypted</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -48,7 +48,7 @@ Ignored for plain encrypted single-signer transactions (none of the above).</p>
 Requires the node to support encrypted transactions (encryption key present in ledger info).</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/d8e94a8cc250fa0df0f038074c2572f15c4b610b/packages/ts-sdk/src/transactions/types.ts#L183">packages/ts-sdk/src/transactions/types.ts:183</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/2d47bfdb2068e3a6eff6ec44bbf323abe9cac404/packages/ts-sdk/src/transactions/types.ts#L183">packages/ts-sdk/src/transactions/types.ts:183</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="feepayerauthenticationkey"><code class="tsd-tag">Optional</code><span>fee<wbr/>Payer<wbr/>Authentication<wbr/>Key</span><a href="#feepayerauthenticationkey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">feePayerAuthenticationKey</span><span class="tsd-signature-symbol">?:</span> <a href="../classes/AuthenticationKey.html" class="tsd-signature-type tsd-kind-class">AuthenticationKey</a> <span class="tsd-signature-symbol">|</span> <a href="HexInput.html" class="tsd-signature-type tsd-kind-type-alias">HexInput</a></div>
@@ -58,7 +58,7 @@ is a <strong>non-zero</strong> sponsor — omitted values are fetched from chain
 secondaries). Accepts <code>AuthenticationKey</code> or a raw 32-byte hex string / <code>Uint8Array</code>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/d8e94a8cc250fa0df0f038074c2572f15c4b610b/packages/ts-sdk/src/transactions/types.ts#L205">packages/ts-sdk/src/transactions/types.ts:205</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/2d47bfdb2068e3a6eff6ec44bbf323abe9cac404/packages/ts-sdk/src/transactions/types.ts#L205">packages/ts-sdk/src/transactions/types.ts:205</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="secondarysignerauthenticationkeys"><code class="tsd-tag">Optional</code><span>secondary<wbr/>Signer<wbr/>Authentication<wbr/>Keys</span><a href="#secondarysignerauthenticationkeys" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">secondarySignerAuthenticationKeys</span><span class="tsd-signature-symbol">?:</span> (<a href="../classes/AuthenticationKey.html" class="tsd-signature-type tsd-kind-class">AuthenticationKey</a> <span class="tsd-signature-symbol">|</span> <a href="HexInput.html" class="tsd-signature-type tsd-kind-type-alias">HexInput</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span>)<span class="tsd-signature-symbol">[]</span></div>
@@ -68,7 +68,7 @@ omitted) will be fetched from chain and cached. Accepts <code>AuthenticationKey<
 <code>Uint8Array</code>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/d8e94a8cc250fa0df0f038074c2572f15c4b610b/packages/ts-sdk/src/transactions/types.ts#L198">packages/ts-sdk/src/transactions/types.ts:198</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/2d47bfdb2068e3a6eff6ec44bbf323abe9cac404/packages/ts-sdk/src/transactions/types.ts#L198">packages/ts-sdk/src/transactions/types.ts:198</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="senderauthenticationkey"><code class="tsd-tag">Optional</code><span>sender<wbr/>Authentication<wbr/>Key</span><a href="#senderauthenticationkey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">senderAuthenticationKey</span><span class="tsd-signature-symbol">?:</span> <a href="../classes/AuthenticationKey.html" class="tsd-signature-type tsd-kind-class">AuthenticationKey</a> <span class="tsd-signature-symbol">|</span> <a href="HexInput.html" class="tsd-signature-type tsd-kind-type-alias">HexInput</a></div>
@@ -79,7 +79,7 @@ lookup (useful right after a key rotation). Accepts an <code>AuthenticationKey</
 <code>PayloadAssociatedData::V1.signer_auth_keys</code>).</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/d8e94a8cc250fa0df0f038074c2572f15c4b610b/packages/ts-sdk/src/transactions/types.ts#L191">packages/ts-sdk/src/transactions/types.ts:191</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/2d47bfdb2068e3a6eff6ec44bbf323abe9cac404/packages/ts-sdk/src/transactions/types.ts#L191">packages/ts-sdk/src/transactions/types.ts:191</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
