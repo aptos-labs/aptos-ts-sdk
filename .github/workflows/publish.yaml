@@ -58,9 +58,9 @@ jobs:
       # npmjs.com for each package (repo aptos-labs/aptos-ts-sdk, workflow
       # publish.yaml, environment npm-publish). See CONTRIBUTING.md. No NPM_TOKEN
       # secret is used. If the first release fails auth, verify the pinned pnpm
-      # performs OIDC trusted publishing; otherwise fall back to the npm CLI
-      # (npm i -g npm@latest && npm publish --provenance --access public).
-      - name: Publish to NPM (OIDC trusted publishing + provenance)
+      # performs OIDC trusted publishing. Staged packages require maintainer approval
+      # with 2FA before becoming public.
+      - name: Stage package for NPM (OIDC trusted publishing)
         if: steps.resolve.outputs.publish == 'true'
         working-directory: ${{ steps.resolve.outputs.dir }}
-        run: pnpm publish --provenance --no-git-checks
+        run: pnpm stage publish --provenance --no-git-checks
