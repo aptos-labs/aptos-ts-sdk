@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Fixed
+
+- Point the testnet ANS contract address at the redeployed ANS (`0xb1ae61606dfbe0ea5b5c45ffdb4fb08da0dba18c5125182ff63ab280a450ecf4`). The previous testnet deployment (`0x5f8fd234…497c`) was wiped, so testnet ANS lookups and registrations failed.
+
 # 7.4.0 (2026-10-05)
 
 ## Added
