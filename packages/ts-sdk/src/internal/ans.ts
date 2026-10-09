@@ -141,7 +141,7 @@ export const LOCAL_ANS_ACCOUNT_ADDRESS =
   getEnvVar("ANS_TEST_ACCOUNT_ADDRESS") ?? "0x585fc9f0f0c54183b039ffc770ca282ebd87307916c215a3e692f2f8e4305e82";
 
 const NetworkToAnsContract: Record<Network, string | null> = {
-  [Network.TESTNET]: "0x5f8fd2347449685cf41d4db97926ec3a096eaf381332be4f1318ad4d16a8497c",
+  [Network.TESTNET]: "0xb1ae61606dfbe0ea5b5c45ffdb4fb08da0dba18c5125182ff63ab280a450ecf4",
   [Network.MAINNET]: "0x867ed1f6bf916171b1de3ee92849b8978b7d1b9e0a8cc982a3d19d535dfd9c0c",
   [Network.LOCAL]: LOCAL_ANS_ACCOUNT_ADDRESS,
   [Network.CUSTOM]: null,

@@ -38,6 +38,7 @@ Runtime-specific tests exist in `examples/web-test/` (Playwright), `examples/bun
 - **Examples**: `examples/`
   - `examples/typescript`, `examples/javascript`, and `examples/web-test` use a **linked** SDK (`link:../../packages/ts-sdk`).
 - **Confidential asset SDK**: `packages/confidential-asset/` (separate package + tests, with its own [`CHANGELOG.md`](./packages/confidential-asset/CHANGELOG.md))
+- **Demo projects**: `projects/` (e.g. `gas-station`)
 - **Docs output**: `docs/` (large; includes versioned typedoc output)
 - **Utility scripts**: `scripts/` (`checkVersion.sh`, `updateVersion.sh`, `generateDocs.sh`)
 
