@@ -8,6 +8,16 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Bump the `shell-quote` pnpm override to `^1.12.0` (root plus `examples/javascript` and `examples/typescript` workspaces) to pick up the latest parsing fixes and shell operator support.
 
+# 7.5.0 (2026-10-09)
+
+## Changed
+
+- Consolidate `CLAUDE.md` into `AGENTS.md` and remove `CLAUDE.md`, so `AGENTS.md` is the single source of AI agent guidance for the repository (Claude Code reads `AGENTS.md` natively as of v2.1.277).
+
+## Fixed
+
+- Point the testnet ANS contract address at the redeployed ANS (`0xb1ae61606dfbe0ea5b5c45ffdb4fb08da0dba18c5125182ff63ab280a450ecf4`). The previous testnet deployment (`0x5f8fd234…497c`) was wiped, so testnet ANS lookups and registrations failed.
+
 # 7.4.0 (2026-10-05)
 
 ## Added
