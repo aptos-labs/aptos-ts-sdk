@@ -15,7 +15,7 @@ allowBuilds:
   esbuild: true
 
 overrides:
-  shell-quote@^1: ^1.10.0
+  shell-quote@^1: ^1.12.0
   ws@^8: ^8.21.3
   linkify-it: ^5.0.2
   brace-expansion@^5: 5.0.9

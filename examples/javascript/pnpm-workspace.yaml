@@ -10,4 +10,4 @@ minimumReleaseAgeExclude:
 
 overrides:
   picomatch@^4: ^4.0.7
-  shell-quote@^1: ^1.10.0
+  shell-quote@^1: ^1.12.0
