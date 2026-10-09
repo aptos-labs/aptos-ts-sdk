@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 7.5.0 (2026-10-09)
+
 ## Changed
 
 - Consolidate `CLAUDE.md` into `AGENTS.md` and remove `CLAUDE.md`, so `AGENTS.md` is the single source of AI agent guidance for the repository (Claude Code reads `AGENTS.md` natively as of v2.1.277).
