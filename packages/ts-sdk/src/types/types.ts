@@ -167,11 +167,14 @@ export enum AccountAuthenticatorVariant {
 /**
  * Variants of private keys that can comply with the AIP-80 standard.
  * {@link https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md}
+ *
+ * Note: This must match the AIP-80 strings defined in the Rust `aptos-crypto` crate.
  */
 export enum PrivateKeyVariants {
   Ed25519 = "ed25519",
   Secp256k1 = "secp256k1",
   Secp256r1 = "secp256r1",
+  SlhDsaSha2128s = "slh-dsa-sha2-128s",
 }
 
 /**
@@ -185,7 +188,6 @@ export enum AnyPublicKeyVariant {
   FederatedKeyless = 4,
   /**
    * Post-quantum signature scheme (SLH-DSA-SHA2-128s).
-   * Note: Full implementation not yet available in this SDK.
    */
   SlhDsaSha2_128s = 5,
 }
@@ -219,7 +221,6 @@ export enum AnySignatureVariant {
   Keyless = 3,
   /**
    * Post-quantum signature scheme (SLH-DSA-SHA2-128s).
-   * Note: Full implementation not yet available in this SDK.
    */
   SlhDsaSha2_128s = 4,
 }
@@ -1816,6 +1817,10 @@ export enum SigningSchemeInput {
    * For Secp256k1Ecdsa
    */
   Secp256k1Ecdsa = 2,
+  /**
+   * For SlhDsaSha2128s
+   */
+  SlhDsaSha2128s = 3,
 }
 
 /**
@@ -1870,4 +1875,12 @@ export type GenerateAccountWithSingleSignerSecp256k1Key = {
   legacy?: false;
 };
 
-export type GenerateAccount = GenerateAccountWithEd25519 | GenerateAccountWithSingleSignerSecp256k1Key;
+export type GenerateAccountWithSingleSignerSlhDsaSha2128sKey = {
+  scheme: SigningSchemeInput.SlhDsaSha2128s;
+  legacy?: false;
+};
+
+export type GenerateAccount =
+  | GenerateAccountWithEd25519
+  | GenerateAccountWithSingleSignerSecp256k1Key
+  | GenerateAccountWithSingleSignerSlhDsaSha2128sKey;
