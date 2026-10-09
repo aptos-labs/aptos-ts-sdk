@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Changed
+
+- Bump the `shell-quote` pnpm override to `^1.12.0` (root plus `examples/javascript` and `examples/typescript` workspaces) to pick up the latest parsing fixes and shell operator support.
+
 # 7.5.0 (2026-10-09)
 
 ## Changed

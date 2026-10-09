@@ -8,7 +8,7 @@ overrides:
   form-data@^4: ^4.0.6
   picomatch@^4: ^4.0.7
   qs@^6: ^6.16.0
-  shell-quote@^1: ^1.10.0
+  shell-quote@^1: ^1.12.0
 
 importers:
 
@@ -561,8 +561,8 @@ packages:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
 
-  shell-quote@1.10.0:
-    resolution: {integrity: sha512-w1aiOKwKuRgtwAReIIj89puqg+I7GvX4IbLrvmhXbzQsj1+Zwi4VO3+fa6ZF91TWSjIxoEkKnMeHcLEODK5ZXA==}
+  shell-quote@1.12.0:
+    resolution: {integrity: sha512-PcByqNyT/38F2kDNi006HAMRJaULuBzq/FOsw3qdZvX/GA9W/jamDaRskgHjubHiftXK5sIFxLNkvrXUwcof6Q==}
     engines: {node: '>= 0.4'}
 
   side-channel-list@1.0.1:
@@ -954,7 +954,7 @@ snapshots:
       picomatch: 4.0.7
       pidtree: 0.6.1
       read-package-json-fast: 4.0.0
-      shell-quote: 1.10.0
+      shell-quote: 1.12.0
       which: 5.0.0
 
   object-inspect@1.13.4: {}
@@ -987,7 +987,7 @@ snapshots:
 
   shebang-regex@3.0.0: {}
 
-  shell-quote@1.10.0: {}
+  shell-quote@1.12.0: {}
 
   side-channel-list@1.0.1:
     dependencies:
