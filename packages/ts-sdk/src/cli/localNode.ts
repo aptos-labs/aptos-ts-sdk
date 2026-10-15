@@ -1,11 +1,14 @@
 import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
-import { appendFileSync } from "node:fs";
+import { appendFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import kill from "tree-kill";
 import { platform } from "node:os";
 
 import { sleep } from "../utils/helpers.js";
 import { sanitizeCliArgs } from "./spawnArgs.js";
+import { GROTH16_VERIFICATION_KEY } from "./keylessGroth16VerificationKey.js";
 
 /**
  * Represents a local node for running a localnet environment.
@@ -24,6 +27,13 @@ export class LocalNode {
   process: ChildProcessWithoutNullStreams | null = null;
 
   extraArgs: string[] = [];
+
+  /**
+   * Path to a temporary file containing the bundled Groth16 verification key.
+   * Passed to the Aptos CLI via `INSTALL_KEYLESS_GROTH16_VK_FROM_PATH` so the
+   * localnet can configure keyless at genesis without calling out to devnet.
+   */
+  private groth16VkPath: string | undefined;
 
   constructor(args?: { showStdout?: boolean; extraArgs?: string[] }) {
     this.showStdout = args?.showStdout ?? true;
@@ -60,6 +70,23 @@ export class LocalNode {
         }
       });
     });
+  }
+
+  /**
+   * Writes the bundled Groth16 verification key to a temp file and returns its path.
+   * The file is created once per LocalNode instance and reused across restarts.
+   *
+   * @returns {string} The absolute path to the verification key JSON file.
+   * @group Implementation
+   * @category CLI
+   */
+  private getGroth16VkPath(): string {
+    if (!this.groth16VkPath) {
+      const tempDir = mkdtempSync(join(tmpdir(), "aptos-localnet-vk-"));
+      this.groth16VkPath = join(tempDir, "groth16_vk.json");
+      writeFileSync(this.groth16VkPath, JSON.stringify(GROTH16_VERIFICATION_KEY, null, 2));
+    }
+    return this.groth16VkPath;
   }
 
   /**
@@ -107,7 +134,14 @@ export class LocalNode {
 
     const currentPlatform = platform();
     const spawnConfig = {
-      env: { ...process.env, ENABLE_KEYLESS_DEFAULT: "1" },
+      env: {
+        ...process.env,
+        // Use the bundled verification key instead of fetching from devnet.
+        // The Aptos CLI unconditionally fetches devnet when ENABLE_KEYLESS_DEFAULT=1,
+        // which fails in environments without egress to api.devnet.aptoslabs.com.
+        ENABLE_KEYLESS_DEFAULT: undefined,
+        INSTALL_KEYLESS_GROTH16_VK_FROM_PATH: this.getGroth16VkPath(),
+      },
       ...(currentPlatform === "win32" && { shell: true }),
     };
 

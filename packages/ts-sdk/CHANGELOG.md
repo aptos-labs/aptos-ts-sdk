@@ -8,6 +8,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Bump the `shell-quote` pnpm override to `^1.12.0` (root plus `examples/javascript` and `examples/typescript` workspaces) to pick up the latest parsing fixes and shell operator support.
 
+## Fixed
+
+- Make `LocalNode` localnet startup resilient to environments that cannot reach `api.devnet.aptoslabs.com`. It now bundles the devnet Groth16 verification key and passes it to the Aptos CLI via `INSTALL_KEYLESS_GROTH16_VK_FROM_PATH`, instead of relying on `ENABLE_KEYLESS_DEFAULT=1` to fetch the key from devnet on every startup. This fixes the `Failed to parse JSON` panic that prevented the localnet from starting on runners with restricted devnet egress.
+
 # 7.5.0 (2026-10-09)
 
 ## Changed
