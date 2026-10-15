@@ -136,7 +136,7 @@ permissions:
   contents: read
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    runs-on: 4cpu-gh-ubuntu24-x64
     environment: npm-publish        # required-reviewer gate
     steps:
       - uses: actions/checkout@<pinned>

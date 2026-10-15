@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   upload-coverage:
-    runs-on: ubuntu-latest
+    runs-on: 4cpu-gh-ubuntu24-x64
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # pin@v7.0.1
         with:
@@ -21,7 +21,7 @@ jobs:
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
 
   upload-bundle:
-    runs-on: ubuntu-latest
+    runs-on: 4cpu-gh-ubuntu24-x64
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # pin@v7.0.1
         with:
