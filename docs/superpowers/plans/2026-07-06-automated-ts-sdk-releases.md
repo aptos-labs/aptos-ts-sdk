@@ -504,7 +504,7 @@ permissions:
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    runs-on: 4cpu-gh-ubuntu24-x64
     environment: npm-publish
     permissions:
       id-token: write # OIDC trusted publishing + provenance
