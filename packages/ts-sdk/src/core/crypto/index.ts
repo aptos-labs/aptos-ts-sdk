@@ -13,6 +13,7 @@ export * from "./secp256r1.js";
 export * from "./signature.js";
 export * from "./singleKey.js";
 export * from "./types.js";
+export * from "./verifySignature.js";
 export * from "./encryption/index.js";
 export * from "./hdKey.js";
 // NOTE: deserializationUtils is NOT re-exported here because it imports keyless types.
