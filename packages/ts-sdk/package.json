@@ -152,7 +152,7 @@
     "typedoc": "^0.28.20",
     "typedoc-plugin-missing-exports": "^4.1.4",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
-    "vite": "^7.3.6",
+    "vite": "^7.3.7",
     "vitest": "^4.1.11"
   },
   "version": "7.5.0"
