@@ -9,6 +9,7 @@ import { AuthenticationKey } from "../authenticationKey.js";
 import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "./ed25519.js";
 import { AccountPublicKey, PublicKey } from "./publicKey.js";
 import { Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1.js";
+import type { SlhDsaSha2128sPrivateKey } from "./slhDsaSha2128s.js";
 import { Signature } from "./signature.js";
 import { AptosConfig } from "../../api/aptosConfig.js";
 import { Secp256r1PublicKey, WebAuthnSignature } from "./secp256r1.js";
@@ -19,7 +20,7 @@ import {
   getSignatureDeserializer,
 } from "./anyKeyRegistry.js";
 
-export type PrivateKeyInput = Ed25519PrivateKey | Secp256k1PrivateKey;
+export type PrivateKeyInput = Ed25519PrivateKey | Secp256k1PrivateKey | SlhDsaSha2128sPrivateKey;
 
 /**
  * Represents any public key supported by Aptos.
@@ -211,7 +212,7 @@ export class AnyPublicKey extends AccountPublicKey {
         }
         throw new Error(
           `Unknown variant index for AnyPublicKey: ${variantIndex}. ` +
-            "If this is a keyless key, ensure keyless support is imported.",
+            "Ensure the corresponding optional signature-scheme module is imported.",
         );
       }
     }
@@ -353,7 +354,7 @@ export class AnySignature extends Signature {
         }
         throw new Error(
           `Unknown variant index for AnySignature: ${variantIndex}. ` +
-            "If this is a keyless signature, ensure keyless support is imported.",
+            "Ensure the corresponding optional signature-scheme module is imported.",
         );
       }
     }

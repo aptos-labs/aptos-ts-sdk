@@ -4,6 +4,11 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Added
+
+- Add SLH-DSA-SHA2-128s as a supported signature scheme.
+- Export its primitives from `@aptos-labs/ts-sdk/slh-dsa-sha2-128s` so `@noble/post-quantum` remains optional and is loaded only by SLH code paths.
+
 ## Changed
 
 - Bump the `shell-quote` pnpm override to `^1.12.0` (root plus `examples/javascript` and `examples/typescript` workspaces) to pick up the latest parsing fixes and shell operator support.
