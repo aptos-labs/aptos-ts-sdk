@@ -7,6 +7,7 @@ import kill from "tree-kill";
 import { platform } from "node:os";
 
 import { sleep } from "../utils/helpers.js";
+import { assertAptosCliAvailable } from "./aptosCli.js";
 import { sanitizeCliArgs } from "./spawnArgs.js";
 import { GROTH16_VERIFICATION_KEY } from "./keylessGroth16VerificationKey.js";
 
@@ -116,6 +117,7 @@ export class LocalNode {
    * @category CLI
    */
   start(): void {
+    assertAptosCliAvailable();
     // Reject shell-metacharacter-bearing extras up front and pass the scrubbed
     // copy to `spawn`. On Windows we have to spawn with `shell: true` (npx is a
     // .cmd shim and Node refuses to spawn .cmd/.bat without the shell since

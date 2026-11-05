@@ -3,6 +3,7 @@ import { platform } from "node:os";
 
 import { AccountAddress } from "../core/index.js";
 import { Network } from "../utils/index.js";
+import { assertAptosCliAvailable } from "./aptosCli.js";
 import { sanitizeCliArgs } from "./spawnArgs.js";
 
 /**
@@ -356,6 +357,7 @@ export class Move {
    */
 
   private async runCommand(args: Array<string>, showStdout: boolean = true): Promise<{ result?: any; output: string }> {
+    assertAptosCliAvailable();
     // Reject shell-metacharacter-bearing args up front and pass the scrubbed
     // copy to `spawn`. On Windows we have to spawn with `shell: true` (npx is a
     // .cmd shim and Node refuses to spawn .cmd/.bat without the shell since

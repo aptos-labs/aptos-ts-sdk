@@ -6,6 +6,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Changed
 
+- Make `@aptos-labs/aptos-cli` an optional peer dependency (`^3.0.0`) of `@aptos-labs/ts-sdk` instead of a runtime dependency. It is only used by the `@aptos-labs/ts-sdk/cli` subpath (`LocalNode`, `Move`), so browser and server apps that never import `/cli` no longer install the CLI wrapper and `commander` transitively. To keep using `/cli`, install it explicitly (e.g. `npm install --save-dev @aptos-labs/aptos-cli`, `pnpm add -D @aptos-labs/aptos-cli`, or `yarn add -D @aptos-labs/aptos-cli`); when it is missing, `LocalNode.start()` and every `Move` command now throw a clear, actionable error instead of letting `npx aptos` resolve the unrelated, deprecated `aptos` package. Also move `tree-kill` (imported by `LocalNode`) from `devDependencies` to `dependencies`, since it is a runtime import of the published `/cli` subpath and was previously unavailable to consumers importing it.
 - Bump the `shell-quote` pnpm override to `^1.12.0` (root plus `examples/javascript` and `examples/typescript` workspaces) to pick up the latest parsing fixes and shell operator support.
 
 ## Fixed
