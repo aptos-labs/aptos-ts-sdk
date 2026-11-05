@@ -10,6 +10,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Fixed
 
+- Reject a set continuation bit on the fifth byte in `Deserializer.deserializeUleb128AsU32`, so non-canonical ULEB128 encodings such as `[0xff, 0xff, 0xff, 0xff, 0x8f]` and `[0x80, 0x80, 0x80, 0x80, 0x80]` no longer decode to a u32.
 - Make `LocalNode` localnet startup resilient to environments that cannot reach `api.devnet.aptoslabs.com`. It now bundles the devnet Groth16 verification key and passes it to the Aptos CLI via `INSTALL_KEYLESS_GROTH16_VK_FROM_PATH`, instead of relying on `ENABLE_KEYLESS_DEFAULT=1` to fetch the key from devnet on every startup. This fixes the `Failed to parse JSON` panic that prevented the localnet from starting on runners with restricted devnet egress.
 
 # 7.5.0 (2026-10-09)
