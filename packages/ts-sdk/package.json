@@ -122,8 +122,15 @@
     "spec": "pnpm build && pnpm _spec",
     "_spec": "cucumber-js -p default"
   },
+  "peerDependencies": {
+    "@aptos-labs/aptos-cli": "^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@aptos-labs/aptos-cli": {
+      "optional": true
+    }
+  },
   "dependencies": {
-    "@aptos-labs/aptos-cli": "^3.0.0",
     "@aptos-labs/aptos-client": "^4.1.0",
     "@noble/ciphers": "2.4.0",
     "@noble/curves": "2.4.0",
@@ -132,9 +139,11 @@
     "@scure/bip39": "^2.4.0",
     "eventemitter3": "^5.0.4",
     "jwt-decode": "^4.0.0",
-    "poseidon-lite": "^0.3.0"
+    "poseidon-lite": "^0.3.0",
+    "tree-kill": "^1.2.2"
   },
   "devDependencies": {
+    "@aptos-labs/aptos-cli": "^3.0.0",
     "@babel/traverse": "^7.29.8",
     "@biomejs/biome": "2.5.12",
     "@cucumber/cucumber": "^12.9.0",
@@ -148,7 +157,6 @@
     "@vitest/coverage-v8": "^4.1.11",
     "graphql": "^16.14.2",
     "graphql-request": "^7.4.0",
-    "tree-kill": "^1.2.2",
     "typedoc": "^0.28.20",
     "typedoc-plugin-missing-exports": "^4.1.4",
     "typescript": "npm:@typescript/typescript6@^6.0.2",

@@ -99,9 +99,6 @@ importers:
 
   packages/ts-sdk:
     dependencies:
-      '@aptos-labs/aptos-cli':
-        specifier: ^3.0.0
-        version: 3.0.0
       '@aptos-labs/aptos-client':
         specifier: ^4.1.0
         version: 4.1.0
@@ -129,7 +126,13 @@ importers:
       poseidon-lite:
         specifier: ^0.3.0
         version: 0.3.0
+      tree-kill:
+        specifier: ^1.2.2
+        version: 1.2.2
     devDependencies:
+      '@aptos-labs/aptos-cli':
+        specifier: ^3.0.0
+        version: 3.0.0
       '@babel/traverse':
         specifier: ^7.29.8
         version: 7.29.8(supports-color@8.1.1)
@@ -169,9 +172,6 @@ importers:
       graphql-request:
         specifier: ^7.4.0
         version: 7.4.0(graphql@16.14.2)
-      tree-kill:
-        specifier: ^1.2.2
-        version: 1.2.2
       typedoc:
         specifier: ^0.28.20
         version: 0.28.20(@typescript/typescript6@6.0.2)
