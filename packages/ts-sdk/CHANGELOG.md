@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## Added
+
+- Type `MoveStructType` as an ABI-friendly struct (`type`, `fields`, optional `genericTypeParams` and `abilities`) instead of an empty placeholder, and accept `{ vec: MoveValue[] }` values and struct field maps on `MoveValue`.
+
 ## Changed
 
 - Bump the `shell-quote` pnpm override to `^1.12.0` (root plus `examples/javascript` and `examples/typescript` workspaces) to pick up the latest parsing fixes and shell operator support.

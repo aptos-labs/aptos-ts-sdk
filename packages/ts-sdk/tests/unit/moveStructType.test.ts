@@ -3,7 +3,7 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-env jest */
-import { MoveStructType, MoveAbility, MoveFunctionGenericTypeParam } from "../../src/types/types";
+import { MoveStructType, MoveAbility, MoveFunctionGenericTypeParam } from "../../src/types/types.js";
 
 test("should create a basic Move struct type", () => {
   const basicStruct: MoveStructType = {
@@ -78,9 +78,7 @@ test("should handle complex struct type with nested fields", () => {
 
   expect(complexStruct.type).toBe("0x1::account::Account");
   expect(complexStruct.fields.authentication_key).toBe("vector<u8>");
-  expect((complexStruct.fields.rotation_capability_offer as MoveStructType).type).toBe(
-    "0x1::account::CapabilityOffer",
-  );
+  expect((complexStruct.fields.rotation_capability_offer as MoveStructType).type).toBe("0x1::account::CapabilityOffer");
   expect((complexStruct.fields.rotation_capability_offer as MoveStructType).fields.for).toBe("address");
 });
 
