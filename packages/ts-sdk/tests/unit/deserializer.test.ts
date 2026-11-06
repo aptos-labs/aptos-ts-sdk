@@ -116,6 +116,22 @@ describe("BCS Deserializer", () => {
     }).toThrow("Overflow while parsing uleb128-encoded uint32 value");
   });
 
+  it("throws when deserializing a non-canonical uleb128 whose fifth byte keeps the continuation bit set", () => {
+    // Fifth byte 0x8f signals a sixth byte that a u32 cannot hold. The value it
+    // accumulates to (4294967295) has a canonical encoding ending in 0x0f, so
+    // accepting this would let two byte strings decode to the same u32.
+    expect(() => {
+      const deserializer = new Deserializer(new Uint8Array([0xff, 0xff, 0xff, 0xff, 0x8f]));
+      deserializer.deserializeUleb128AsU32();
+    }).toThrow("Malformed uleb128 encoding for uint32 value");
+
+    // Five continuation-flagged zero bytes is a non-canonical encoding of 0.
+    expect(() => {
+      const deserializer = new Deserializer(new Uint8Array([0x80, 0x80, 0x80, 0x80, 0x80]));
+      deserializer.deserializeUleb128AsU32();
+    }).toThrow("Malformed uleb128 encoding for uint32 value");
+  });
+
   it("throws when deserializing against buffer that has been drained", () => {
     expect(() => {
       const deserializer = new Deserializer(
