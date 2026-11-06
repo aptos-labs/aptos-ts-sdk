@@ -516,7 +516,7 @@ export class Deserializer {
    * This function is used for interpreting lengths of variable-length sequences and tags of enum values in BCS encoding.
    *
    * @throws {Error} Throws an error if the parsed value exceeds the maximum uint32 number.
-   * @throws {Error} Throws an error if the uleb128 encoding is malformed (too many bytes).
+   * @throws {Error} Throws an error if the uleb128 encoding is malformed (too many bytes) or not minimal.
    * @returns {number} The deserialized uint32 value.
    * @group Implementation
    * @category BCS
@@ -542,6 +542,11 @@ export class Deserializer {
       }
 
       if ((byte & 0x80) === 0) {
+        // A zero final byte after a continuation byte adds no bits, so the same
+        // value has a shorter encoding. The reference BCS reader rejects this.
+        if (byte === 0 && bytesRead > 1) {
+          throw new Error("Non-canonical uleb128 encoding for uint32 value");
+        }
         break;
       }
 
@@ -550,7 +555,7 @@ export class Deserializer {
 
     // If we read MAX_ULEB128_BYTES and the last byte still had its continuation
     // bit set, another byte is signaled that a u32 cannot hold, so the encoding
-    // is malformed. This also rejects non-canonical zero-padded encodings.
+    // is malformed.
     if (bytesRead === MAX_ULEB128_BYTES && (lastByte & 0x80) !== 0) {
       throw new Error("Malformed uleb128 encoding for uint32 value");
     }
