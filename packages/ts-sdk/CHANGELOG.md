@@ -15,6 +15,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Fixed
 
+- Round `convertAmountFromHumanReadableToOnChain` to a whole number of smallest units. It returned `value * 10 ** decimal` as is, so floating-point error gave non-integer amounts for many ordinary values (`1.1` with 8 decimals gave `110000000.00000001`, about one in seven two-decimal amounts), which `U64` and other integer arguments then reject.
 - Reject a set continuation bit on the fifth byte in `Deserializer.deserializeUleb128AsU32`, so non-canonical ULEB128 encodings such as `[0xff, 0xff, 0xff, 0xff, 0x8f]` and `[0x80, 0x80, 0x80, 0x80, 0x80]` no longer decode to a u32.
 - Make `LocalNode` localnet startup resilient to environments that cannot reach `api.devnet.aptoslabs.com`. It now bundles the devnet Groth16 verification key and passes it to the Aptos CLI via `INSTALL_KEYLESS_GROTH16_VK_FROM_PATH`, instead of relying on `ENABLE_KEYLESS_DEFAULT=1` to fetch the key from devnet on every startup. This fixes the `Failed to parse JSON` panic that prevented the localnet from starting on runners with restricted devnet egress.
 
