@@ -1,6 +1,10 @@
 packages:
   - "packages/*"
 
+# pnpm 12 otherwise prepends an environment document to pnpm-lock.yaml that
+# GitHub's dependency graph currently reads as an empty project graph.
+pmOnFail: ignore
+
 autoInstallPeers: true
 strictPeerDependencies: false
 
