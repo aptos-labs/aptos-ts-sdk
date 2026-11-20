@@ -24,4 +24,4 @@ runs:
       run: echo "SAFE_CHAIN_MINIMUM_PACKAGE_AGE_EXCLUSIONS=@aptos-labs/* baseline-browser-mapping caniuse-lite" >> "${GITHUB_ENV}"
 
     - name: Setup AikidoSec Safe Chain
-      uses: aptos-labs/actions/aikidosec-safe-chain@fdd3a3a628c840d5c35086a87e9cc3141b635505 # pin@main
+      uses: aptos-labs/actions/aikidosec-safe-chain@a4b79b914b919a798ff102ae39e2a5e9d67dd946 # pin@main (safe-chain 1.5.20)
