@@ -1,3 +1,5 @@
+pmOnFail: ignore
+
 autoInstallPeers: true
 strictPeerDependencies: false
 
