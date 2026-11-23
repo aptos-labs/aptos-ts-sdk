@@ -43,6 +43,10 @@ overrides:
   brace-expansion@^2: ^2.1.4
   js-yaml@^3: ^3.15.2
   undici@^7: ^7.29.1
+  # caniuse-lite 1.0.30001827 was published 2026-11-22 and is still inside
+  # Safe Chain's 48-hour minimum package age, so CI installs 403 on its
+  # tarball. Pin the previous release until it ages out, then drop this.
+  caniuse-lite: 1.0.30001826
   # Metro (via expo / confidential-asset-bindings) still depends on image-size@^1,
   # which is archived at 1.2.1 and vulnerable to CVE-2025-71329 / CVE-2025-71330.
   # Force the 1.x-compatible drop-in that contains the infinite-loop DoS fixes.
