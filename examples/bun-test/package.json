@@ -17,5 +17,8 @@
   "devDependencies": {
     "@types/bun": "^1.4.5",
     "typescript": "^7.0.2"
+  },
+  "overrides": {
+    "caniuse-lite": "1.0.30001826"
   }
 }
