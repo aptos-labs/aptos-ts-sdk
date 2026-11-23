@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@aptos-labs/ts-sdk':
         specifier: file:../../packages/ts-sdk
-        version: file:../../packages/ts-sdk
+        version: file:../../packages/ts-sdk(@aptos-labs/aptos-cli@3.0.0)
     devDependencies:
       typescript:
         specifier: ^7.0.2
@@ -32,6 +32,11 @@ packages:
   '@aptos-labs/ts-sdk@file:../../packages/ts-sdk':
     resolution: {directory: ../../packages/ts-sdk, type: directory}
     engines: {node: '>=22.0.0'}
+    peerDependencies:
+      '@aptos-labs/aptos-cli': ^3.0.0
+    peerDependenciesMeta:
+      '@aptos-labs/aptos-cli':
+        optional: true
 
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
@@ -274,6 +279,10 @@ packages:
     resolution: {integrity: sha512-yEFYrVhod+hdNyx7g5Bnkkb0G6si8HJurOoOEgC8B/O0uXLHlaey/65KRv6cuWBNhBgHKAROVpc7QyYqE5gFng==}
     engines: {node: '>=20'}
 
+  tree-kill@1.2.2:
+    resolution: {integrity: sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==}
+    hasBin: true
+
   type-fest@5.8.0:
     resolution: {integrity: sha512-YGYEVz3Fm5iy/AybuA0oyNFq7H4CgQNfRp/qfe8nurE1kuCeNm3/vfm9X4Mtl+qLyaKJUh5xrFZwogr41SMjYA==}
     engines: {node: '>=20'}
@@ -292,14 +301,14 @@ snapshots:
   '@aptos-labs/aptos-cli@3.0.0':
     dependencies:
       commander: 14.0.3
+    optional: true
 
   '@aptos-labs/aptos-client@4.1.0':
     dependencies:
       got: 15.1.0
 
-  '@aptos-labs/ts-sdk@file:../../packages/ts-sdk':
+  '@aptos-labs/ts-sdk@file:../../packages/ts-sdk(@aptos-labs/aptos-cli@3.0.0)':
     dependencies:
-      '@aptos-labs/aptos-cli': 3.0.0
       '@aptos-labs/aptos-client': 4.1.0
       '@noble/ciphers': 2.4.0
       '@noble/curves': 2.4.0
@@ -309,6 +318,9 @@ snapshots:
       eventemitter3: 5.0.4
       jwt-decode: 4.0.0
       poseidon-lite: 0.3.0
+      tree-kill: 1.2.2
+    optionalDependencies:
+      '@aptos-labs/aptos-cli': 3.0.0
 
   '@keyv/serialize@1.1.1': {}
 
@@ -414,7 +426,8 @@ snapshots:
 
   chunk-data@0.1.0: {}
 
-  commander@14.0.3: {}
+  commander@14.0.3:
+    optional: true
 
   decompress-response@10.0.0:
     dependencies:
@@ -476,6 +489,8 @@ snapshots:
       lowercase-keys: 3.0.0
 
   tagged-tag@1.0.0: {}
+
+  tree-kill@1.2.2: {}
 
   type-fest@5.8.0:
     dependencies:
