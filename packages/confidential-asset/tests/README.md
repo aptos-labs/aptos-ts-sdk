@@ -43,6 +43,7 @@ pnpm jest path/to/test/file.test.ts
 ```
 
 ### !important
+
 `./tests/units/api` - is not for CI or e2e testing. Use these test only when you want to test specific behaviour of each operation.
 
 ## Test Coverage

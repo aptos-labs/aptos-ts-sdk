@@ -3,6 +3,7 @@
 ## WASM Dependencies
 
 This package uses a unified WebAssembly module for cryptographic operations:
+
 - **Discrete log solver**: TBSGS-k32 algorithm for decryption (~512 KiB table)
 - **Range proofs**: Bulletproofs for range proof generation/verification
 
@@ -11,16 +12,19 @@ This package uses a unified WebAssembly module for cryptographic operations:
 The WASM binary is **not bundled** with the SDK. Instead, it is loaded dynamically at runtime when needed. This is intentional:
 
 **Why not bundle the WASM?**
+
 - The `.wasm` binary is large (~774 KiB for the unified module)
 - Bundling would bloat every app using the SDK, even if they never use confidential assets
 - WASM binaries don't tree-shake - you'd pay the full size cost even if the feature is unused
 
 **What the npm dependency provides:**
+
 - TypeScript type definitions
 - JavaScript glue code (thin wrappers that call into WASM)
 - These are small and get bundled normally with the SDK
 
 **What gets loaded at runtime:**
+
 - The actual `.wasm` binary file
 - Loaded via `fetch()` + `WebAssembly.instantiate()` only when `initializeWasm()`, `initializeSolver()`, or range proof functions are called
 - **Single initialization**: Both discrete log and range proof functionality share the same WASM module, so it only needs to be loaded once
@@ -54,6 +58,7 @@ For convenience, the SDK auto-initializes when you call any function that needs 
 If you want to use locally-built WASM bindings (e.g., for development or testing changes):
 
 1. Clone and build the WASM bindings:
+
    ```bash
    cd ~/repos
    git clone https://github.com/aptos-labs/confidential-asset-wasm-bindings
@@ -62,11 +67,13 @@ If you want to use locally-built WASM bindings (e.g., for development or testing
    ```
 
 2. Update `package.json` to use the local path:
+
    ```json
    "@aptos-labs/confidential-asset-wasm-bindings": "file:../../confidential-asset-wasm-bindings/aptos-confidential-asset-wasm-bindings"
    ```
 
 3. Install dependencies:
+
    ```bash
    # Use --force if you've made some local changes to the DL algorithm; otherwise the version remains the same and this does nothing
    pnpm install
@@ -82,12 +89,14 @@ To test against a modified `aptos-core` repo:
 
 First, run a local node from your modified `aptos-core` branch.
 (You may need to delete `~/.aptos/testnet` or else it will error. Proceed with caution; not sure what sensitive stuff you may have there.)
+
 ```
 ulimit -n unlimited
 cargo run -p aptos -- node run-localnet --with-indexer-api --test-dir=~/.aptos/testnet --assume-yes --force-restart
 ```
 
 Second, run the SDK test of your choosing; e.g.:
+
 ```
 pnpm test tests/e2e/confidentialAsset.test.mts
 
@@ -99,6 +108,7 @@ pnpm test tests/e2e/confidentialAsset.test.mts -t "rotate Alice" --runInBand
 ```
 
 Or, run all tests:
+
 ```
 pnpm test
 ```
