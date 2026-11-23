@@ -154,14 +154,14 @@
     "@graphql-codegen/typescript-operations": "^5.1.0",
     "@types/node": "^22.20.1",
     "@typescript/native": "npm:typescript@^7.0.2",
-    "@vitest/coverage-v8": "^4.1.11",
+    "@vitest/coverage-v8": "^4.1.12",
     "graphql": "^16.14.2",
     "graphql-request": "^7.4.0",
     "typedoc": "^0.28.20",
     "typedoc-plugin-missing-exports": "^4.1.4",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "vite": "^7.3.7",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.12"
   },
   "version": "7.5.0"
 }
