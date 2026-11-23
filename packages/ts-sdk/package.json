@@ -147,21 +147,21 @@
     "@babel/traverse": "^7.29.8",
     "@biomejs/biome": "2.5.12",
     "@cucumber/cucumber": "^12.9.0",
-    "@graphql-codegen/cli": "^6.3.1",
-    "@graphql-codegen/import-types-preset": "^4.0.1",
-    "@graphql-codegen/typescript": "^5.0.10",
-    "@graphql-codegen/typescript-graphql-request": "^7.1.0",
-    "@graphql-codegen/typescript-operations": "^5.1.0",
+    "@graphql-codegen/cli": "^8.0.0",
+    "@graphql-codegen/import-types-preset": "^5.0.0",
+    "@graphql-codegen/typescript": "^7.0.0",
+    "@graphql-codegen/typescript-graphql-request": "^8.0.0",
+    "@graphql-codegen/typescript-operations": "^7.0.0",
     "@types/node": "^22.20.1",
     "@typescript/native": "npm:typescript@^7.0.2",
-    "@vitest/coverage-v8": "^4.1.11",
+    "@vitest/coverage-v8": "^4.1.12",
     "graphql": "^16.14.2",
     "graphql-request": "^7.4.0",
     "typedoc": "^0.28.20",
     "typedoc-plugin-missing-exports": "^4.1.4",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "vite": "^7.3.7",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.12"
   },
   "version": "7.5.0"
 }

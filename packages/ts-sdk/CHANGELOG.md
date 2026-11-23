@@ -15,6 +15,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Fixed
 
+- Update dependencies to clear `pnpm audit` advisories: Vitest/`@vitest/*` to `^4.1.12`, GraphQL codegen (`@graphql-codegen/*`) to the `8.x`/`7.x`/`5.x` lines on `@graphql-tools/utils` `>=12.0.2`, and pnpm overrides for `brace-expansion` (`5.0.13`), `node-forge` (`^1.4.3`), `glob@^13` (`^14.0.2`), and `minimatch@^10` (`^11.0.1`). One advisory remains with no compatible fix: `minimatch` `10.2.6` under `typedoc` (GHSA-g3hv-75wg-m249) — the latest stable TypeDoc uses `Minimatch#matchOne`, removed in `minimatch` 11, and has no release on `minimatch >=11`; it is pinned via a scoped `typedoc>minimatch` override and only matches repo-controlled doc entry-point globs.
 - Reject a set continuation bit on the fifth byte in `Deserializer.deserializeUleb128AsU32`, so non-canonical ULEB128 encodings such as `[0xff, 0xff, 0xff, 0xff, 0x8f]` and `[0x80, 0x80, 0x80, 0x80, 0x80]` no longer decode to a u32.
 - Make `LocalNode` localnet startup resilient to environments that cannot reach `api.devnet.aptoslabs.com`. It now bundles the devnet Groth16 verification key and passes it to the Aptos CLI via `INSTALL_KEYLESS_GROTH16_VK_FROM_PATH`, instead of relying on `ENABLE_KEYLESS_DEFAULT=1` to fetch the key from devnet on every startup. This fixes the `Failed to parse JSON` panic that prevented the localnet from starting on runners with restricted devnet egress.
 

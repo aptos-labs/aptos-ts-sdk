@@ -22,7 +22,8 @@ overrides:
   shell-quote@^1: ^1.12.0
   ws@^8: ^8.21.3
   linkify-it: ^5.0.2
-  brace-expansion@^5: 5.0.9
+  brace-expansion@^5: 5.0.13
+  node-forge@^1: ^1.4.3
   markdown-it: ^14.3.1
   js-yaml@^4: ^4.3.2
   immutable: ^5.1.9
@@ -32,7 +33,13 @@ overrides:
   "@babel/core": ^7.29.7
   "@aptos-labs/aptos-client": ^4.1.0
   glob@^10: ^10.5.0
+  glob@^13: ^14.0.2
   minimatch@^9: ^9.0.9
+  minimatch@^10: ^11.0.1
+  # typedoc 0.28 (latest stable) uses Minimatch#matchOne/set, removed in
+  # minimatch 11, and has no release on minimatch >=11 yet. Keep it on the
+  # 10.x line it supports; its globs are repo-controlled doc entry points.
+  "typedoc>minimatch": ^10.2.5
   file-type: 21.3.4
   yauzl: 3.4.0
   uuid: ^14.0.2
