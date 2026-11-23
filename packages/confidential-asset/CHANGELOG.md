@@ -8,6 +8,7 @@ For changes to the main Aptos TypeScript SDK (`@aptos-labs/ts-sdk`), see its [CH
 
 ## Changed
 
+- Update dependencies to their latest versions, including major upgrades: Vitest/`@vitest/*` `4` → `5`, Vite `7` → `8`, Biome `2.5.12` → `2.6.8`, Playwright `1.63` → `1.65`, and `@aptos-labs/aptos-cli` `3.0.0` → `3.0.1`. Held back for the same reasons as `@aptos-labs/ts-sdk`: `graphql` stays on `16` (`^16.15.0`) because `graphql-request@7.4.0` peers `graphql` `14 - 16`, and `@types/node` stays on `22` (`^22.20.5`) to match the supported/CI Node 22 runtime.
 - Integrate the relocated package into the pnpm/Turbo workspace, including repository metadata, CI, release, publishing, coverage, and documentation paths.
 - Complete migration CI coverage by validating the package's production build and packaged license and by preventing cached formatting, lint, check, and license results.
 - Update dependencies within current majors: `@noble/{ciphers,curves,hashes}` to `^2.4.0`, Vitest/`@vitest/*` to `^4.1.11`, Playwright to `^1.63.0`, Biome to `2.5.12`, and pnpm to `11.26.0`. Refresh pnpm overrides (`js-yaml` `3.15.2`/`4.3.2`, `postcss` `8.5.28`, `undici` `7.29.1`, `uuid` `14.0.2`, `picomatch` `4.0.7`, `@xmldom/xmldom` `0.8.15`, `file-type` `21.3.4`) to patched releases.
@@ -32,7 +33,7 @@ For changes to the main Aptos TypeScript SDK (`@aptos-labs/ts-sdk`), see its [CH
 
 - **Confidential-asset decryption-key derivation now uses a domain-separated signing message.** The plaintext `TwistedEd25519PrivateKey.decryptionKeyDerivationMessage` constant has been **removed**. Callers must now use `TwistedEd25519PrivateKey.getDecryptionKeySigningMessage(network)`, which returns the 32-byte signing message `sha3_256("APTOS_CONFIDENTIAL_ASSETS::DK_DERIVATION::" || network)`. `network` is any `Network` value from `@aptos-labs/ts-sdk` (e.g. `Network.MAINNET`); the underlying enum string is what gets hashed. The previous plaintext message lacked any domain separation (no protocol tag, no chain binding, no envelope), so any other signing surface producing an Ed25519 signature over those exact bytes would recover the decryption key. New `TwistedEd25519PrivateKey.DK_DERIVATION_DOMAIN_PREFIX` constant exported alongside.
 
-  **Migration.** Any pre-existing decryption keys derived under the old plaintext message will not be reproducible by this SDK after upgrade; users holding balances under such keys must rotate to a new key derived under the new scheme via `ConfidentialAssetTransactionBuilder.rotateEncryptionKey` *before* upgrading the SDK in their toolchain. Pseudocode:
+  **Migration.** Any pre-existing decryption keys derived under the old plaintext message will not be reproducible by this SDK after upgrade; users holding balances under such keys must rotate to a new key derived under the new scheme via `ConfidentialAssetTransactionBuilder.rotateEncryptionKey` _before_ upgrading the SDK in their toolchain. Pseudocode:
 
   ```ts
   // OLD (removed):

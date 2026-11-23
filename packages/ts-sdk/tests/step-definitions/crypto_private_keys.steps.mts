@@ -1,5 +1,5 @@
 import { Given, Then, When } from "@cucumber/cucumber";
-import { Ed25519PrivateKey, Hex, PrivateKey, PrivateKeyVariants, Secp256k1PrivateKey } from "../../src";
+import { Ed25519PrivateKey, Hex, PrivateKey, PrivateKeyVariants, Secp256k1PrivateKey } from "../../src/index.js";
 import assert from "node:assert";
 
 Given(

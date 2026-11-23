@@ -32,7 +32,7 @@
     "spec": "turbo run spec --filter=@aptos-labs/ts-sdk"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.12",
-    "turbo": "^2.10.12"
+    "@biomejs/biome": "2.6.8",
+    "turbo": "^2.11.13"
   }
 }

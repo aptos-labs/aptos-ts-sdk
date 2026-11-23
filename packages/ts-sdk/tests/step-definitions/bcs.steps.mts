@@ -12,7 +12,7 @@ import {
   Serializer,
   MoveVector,
   MoveString,
-} from "../../src";
+} from "../../src/index.js";
 import { Given, Then, When } from "@cucumber/cucumber";
 import assert from "node:assert";
 
