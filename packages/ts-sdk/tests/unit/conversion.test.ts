@@ -15,7 +15,7 @@ describe("conversion", () => {
     expect(result).toBe(50050000000);
   });
 
-  test("it converts float amount from human readable format to on chain format", () => {
+  test("it converts float amount 500.598 from human readable format to on chain format", () => {
     const value = 500.598;
     const decimals = 8;
     const result = convertAmountFromHumanReadableToOnChain(value, decimals);
@@ -36,7 +36,7 @@ describe("conversion", () => {
     expect(result).toBe(500.5);
   });
 
-  test("it converts float amount from on chain format to human readable format ", () => {
+  test("it converts float amount 50059800000 from on chain format to human readable format ", () => {
     const value = 50059800000;
     const decimals = 8;
     const result = convertAmountFromOnChainToHumanReadable(value, decimals);

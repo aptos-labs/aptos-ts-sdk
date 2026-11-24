@@ -1,3 +1,5 @@
+pmOnFail: ignore
+
 # 48 hours; matches Aikido Safe Chain's default minimum package age.
 minimumReleaseAge: 2880
 minimumReleaseAgeExclude:

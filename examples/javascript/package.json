@@ -4,7 +4,7 @@
   "description": "",
   "main": "simple_transfer.js",
   "type": "module",
-  "packageManager": "pnpm@11.26.0",
+  "packageManager": "pnpm@12.23.0",
   "license": "SEE LICENSE IN LICENSE",
   "engines": {
     "node": ">=22.0.0"
@@ -18,6 +18,6 @@
   "author": "",
   "dependencies": {
     "@aptos-labs/ts-sdk": "link:../../packages/ts-sdk",
-    "npm-run-all2": "8.0.4"
+    "npm-run-all2": "9.1.0"
   }
 }

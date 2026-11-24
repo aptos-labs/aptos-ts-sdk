@@ -1,6 +1,10 @@
 packages:
   - "packages/*"
 
+# pnpm 12 otherwise prepends an environment document to pnpm-lock.yaml that
+# GitHub's dependency graph currently reads as an empty project graph.
+pmOnFail: ignore
+
 autoInstallPeers: true
 strictPeerDependencies: false
 
@@ -15,6 +19,16 @@ allowBuilds:
   esbuild: true
 
 overrides:
+  # ZeroPath flagged whatwg-url-minimum@0.2.0 (via expo, pulled in by
+  # @aptos-labs/confidential-asset-bindings) for lost build provenance /
+  # different-repository build compared with 0.1.2. Keep the provenance-present
+  # 0.1.2 that main used until a flagged-free 0.2.x (or bindings bump) lands.
+  whatwg-url-minimum: 0.1.2
+  # caniuse-lite publishes roughly daily and is excluded from minimumReleaseAge
+  # above, but CI's safe-chain direct-download age check blocks tarballs younger
+  # than 48 hours regardless of that exclusion. Pin the last release older than
+  # 48 hours at update time; bump or drop this pin on the next dependency update.
+  caniuse-lite: 1.0.30001826
   shell-quote@^1: ^1.12.0
   ws@^8: ^8.21.3
   linkify-it: ^5.0.2

@@ -28,7 +28,7 @@ test("root validation scripts cover tooling before package tasks", async () => {
     }
   }
 
-  assert.equal(packageJson.devDependencies["@biomejs/biome"], "2.5.12");
+  assert.equal(packageJson.devDependencies["@biomejs/biome"], "2.6.8");
 });
 
 test("root config defines the private Turbo workspace", async () => {

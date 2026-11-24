@@ -189,7 +189,7 @@ describe("AccountAddress static special addresses", () => {
 
 // These tests show that fromString only parses addresses with a leading 0x and only
 // SHORT if it is a special address.
-describe("AccountAddress fromString", () => {
+describe("AccountAddress fromStringStrict", () => {
   it("parses special address: 0x0", () => {
     expect(AccountAddress.fromStringStrict(ADDRESS_ZERO.longWith0x).toString()).toBe(ADDRESS_ZERO.shortWith0x);
     expect(() => AccountAddress.fromStringStrict(ADDRESS_ZERO.longWithout0x)).toThrow();
