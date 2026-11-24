@@ -5,6 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
+  whatwg-url-minimum: 0.1.2
   caniuse-lite: 1.0.30001826
   shell-quote@^1: ^1.12.0
   ws@^8: ^8.21.3
@@ -4358,8 +4359,8 @@ packages:
     resolution: {integrity: sha512-sXcNcHOC51uPGF0P/D4NVtrkjSU2fNsm9iog4ZvZJsL3rjoDAzXZhkm2MWt1y+PUdggKAYVoMAIYcs78wJ51Cw==}
     engines: {node: '>=20'}
 
-  whatwg-url-minimum@0.2.0:
-    resolution: {integrity: sha512-BtjXU1caNcCFfETP2DhqSeVPfRDl2MTUitI107RE34rJXjR/izfUtR5IoTFOK1WqjNLXbbeqaCH/mQAOLjpc8g==}
+  whatwg-url-minimum@0.1.2:
+    resolution: {integrity: sha512-XPEm0XFQWNVG292lII1PrRRJl3sItrs7CettZ4ncYxuDVpLyy+NwlGyut2hXI0JswcJUxeCH+CyOJK0ZzAXD6A==}
 
   which@2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}
@@ -7349,7 +7350,7 @@ snapshots:
       react: 19.3.1
       react-native: 0.88.1(@babel/core@7.29.13(supports-color@8.1.1))(react@19.3.1)(supports-color@8.1.1)
       react-refresh: 0.14.2
-      whatwg-url-minimum: 0.2.0
+      whatwg-url-minimum: 0.1.2
     transitivePeerDependencies:
       - '@babel/core'
       - bufferutil
@@ -9031,7 +9032,7 @@ snapshots:
 
   whatwg-mimetype@5.0.0: {}
 
-  whatwg-url-minimum@0.2.0: {}
+  whatwg-url-minimum@0.1.2: {}
 
   which@2.0.2:
     dependencies:
