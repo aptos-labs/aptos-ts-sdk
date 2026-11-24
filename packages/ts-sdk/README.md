@@ -179,79 +179,78 @@ const account = Account.fromDerivationPath({ path, mnemonic });
  * Don't forget to install @aptos-labs/ts-sdk before running this example!
  */
 
-import {
-    Account,
-    Aptos,
-    AptosConfig,
-    Network,
-} from "@aptos-labs/ts-sdk";
+import { Account, Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 
 async function example() {
-    console.log("This example will create two accounts (Alice and Bob) and send a transaction transferring APT to Bob's account.");
+  console.log(
+    "This example will create two accounts (Alice and Bob) and send a transaction transferring APT to Bob's account.",
+  );
 
-    // 0. Setup the client and test accounts
-    const config = new AptosConfig({ network: Network.TESTNET });
-    const aptos = new Aptos(config);
+  // 0. Setup the client and test accounts
+  const config = new AptosConfig({ network: Network.TESTNET });
+  const aptos = new Aptos(config);
 
-    let alice = Account.generate();
-    let bob = Account.generate();
+  let alice = Account.generate();
+  let bob = Account.generate();
 
-    console.log("=== Addresses ===\n");
-    console.log(`Alice's address is: ${alice.accountAddress}`);
-    console.log(`Bob's address is: ${bob.accountAddress}`);
+  console.log("=== Addresses ===\n");
+  console.log(`Alice's address is: ${alice.accountAddress}`);
+  console.log(`Bob's address is: ${bob.accountAddress}`);
 
-    console.log("\n=== Funding accounts ===\n");
-    await aptos.faucet.fundAccount({
-        accountAddress: alice.accountAddress,
-        amount: 100_000_000,
-    });
-    await aptos.faucet.fundAccount({
-        accountAddress: bob.accountAddress,
-        amount: 100,
-    });
-    console.log("Funded Alice and Bob's accounts!")
+  console.log("\n=== Funding accounts ===\n");
+  await aptos.faucet.fundAccount({
+    accountAddress: alice.accountAddress,
+    amount: 100_000_000,
+  });
+  await aptos.faucet.fundAccount({
+    accountAddress: bob.accountAddress,
+    amount: 100,
+  });
+  console.log("Funded Alice and Bob's accounts!");
 
-    // 1. Build
-    console.log("\n=== 1. Building the transaction ===\n");
-    const transaction = await aptos.transaction.build.simple({
-        sender: alice,
-        data: {
-        // All transactions on Aptos are implemented via smart contracts.
-        function: "0x1::aptos_account::transfer",
-        functionArguments: [bob.accountAddress, 100],
-        },
-    });
-    console.log("Built the transaction!")
+  // 1. Build
+  console.log("\n=== 1. Building the transaction ===\n");
+  const transaction = await aptos.transaction.build.simple({
+    sender: alice,
+    data: {
+      // All transactions on Aptos are implemented via smart contracts.
+      function: "0x1::aptos_account::transfer",
+      functionArguments: [bob.accountAddress, 100],
+    },
+  });
+  console.log("Built the transaction!");
 
-    // 2. Simulate (Optional)
-    console.log("\n === 2. Simulating Response (Optional) === \n")
-    const [userTransactionResponse] = await aptos.transaction.simulate.simple({
-        transaction,
-    });
-    console.log(userTransactionResponse)
+  // 2. Simulate (Optional)
+  console.log("\n === 2. Simulating Response (Optional) === \n");
+  const [userTransactionResponse] = await aptos.transaction.simulate.simple({
+    transaction,
+  });
+  console.log(userTransactionResponse);
 
-    // 3. Sign
-    console.log("\n=== 3. Signing transaction ===\n");
-    const senderAuthenticator = aptos.transaction.sign({
-        signer: alice,
-        transaction,
-    });
-    console.log("Signed the transaction!")
+  // 3. Sign
+  console.log("\n=== 3. Signing transaction ===\n");
+  const senderAuthenticator = aptos.transaction.sign({
+    signer: alice,
+    transaction,
+  });
+  console.log("Signed the transaction!");
 
-    // 4. Submit
-    console.log("\n=== 4. Submitting transaction ===\n");
-    const submittedTransaction = await aptos.transaction.submit.simple({
-        transaction,
-        senderAuthenticator,
-    });
+  // 4. Submit
+  console.log("\n=== 4. Submitting transaction ===\n");
+  const submittedTransaction = await aptos.transaction.submit.simple({
+    transaction,
+    senderAuthenticator,
+  });
 
-    console.log(`Submitted transaction hash: ${submittedTransaction.hash}`);
+  console.log(`Submitted transaction hash: ${submittedTransaction.hash}`);
 
-    // 5. Wait for results
-    console.log("\n=== 5. Waiting for result of transaction ===\n");
-    const executedTransaction = await aptos.transaction.waitForTransaction({ transactionHash: submittedTransaction.hash });
-    console.log(executedTransaction)
-};
+  // 5. Wait for results
+  console.log("\n=== 5. Waiting for result of transaction ===\n");
+  const executedTransaction = await aptos.transaction.waitForTransaction({
+    transactionHash: submittedTransaction.hash,
+  });
+  console.log(executedTransaction);
+}
 
 example();
 ```
@@ -263,14 +262,7 @@ example();
 The SDK supports passing public copy structs and enums as transaction arguments. You must encode them using the `StructEnumArgumentParser` before passing to transaction building functions:
 
 ```ts
-import {
-  Aptos,
-  AptosConfig,
-  Network,
-  StructEnumArgumentParser,
-  parseTypeTag,
-  TypeTagStruct
-} from "@aptos-labs/ts-sdk";
+import { Aptos, AptosConfig, Network, StructEnumArgumentParser, parseTypeTag, TypeTagStruct } from "@aptos-labs/ts-sdk";
 
 const config = new AptosConfig({ network: Network.TESTNET });
 const aptos = new Aptos(config);
@@ -292,7 +284,7 @@ const transaction = await aptos.transaction.build.simple({
 const lineType = parseTypeTag("0x1::shapes::Line") as TypeTagStruct;
 const lineArg = await parser.encodeStructArgument(lineType, {
   start: { x: "0", y: "0" },
-  end: { x: "10", y: "10" }
+  end: { x: "10", y: "10" },
 });
 
 const transaction2 = await aptos.transaction.build.simple({
@@ -318,7 +310,7 @@ const transaction3 = await aptos.transaction.build.simple({
 // Example 4: Enum with fields
 const accountTypeTag = parseTypeTag("0x1::game::AccountType") as TypeTagStruct;
 const accountTypeArg = await parser.encodeEnumArgument(accountTypeTag, {
-  Premium: { "0": "100" }
+  Premium: { "0": "100" },
 });
 
 const transaction4 = await aptos.transaction.build.simple({
@@ -331,6 +323,7 @@ const transaction4 = await aptos.transaction.build.simple({
 ```
 
 **Features:**
+
 - Support for nested structs/enums (up to 7 levels deep)
 - Generic type parameter substitution (T0, T1, etc.)
 - All Move primitive types (bool, u8-u256, i8-i256, address)
