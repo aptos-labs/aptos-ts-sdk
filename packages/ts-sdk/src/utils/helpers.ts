@@ -205,13 +205,18 @@ export function base64UrlToBytes(base64Url: string): Uint8Array {
  * human-readable amount format: 500
  * on chain amount format when decimal is 8: 50000000000
  *
+ * The result is rounded to the nearest smallest unit: `value * 10 ** decimal` is not exact in
+ * floating point for most decimal fractions (`1.1 * 10 ** 8` is `110000000.00000001`), and a
+ * value with more fractional digits than `decimal` has no exact on-chain amount.
+ *
  * @param value The value in human-readable format
  * @param decimal The token decimal
  * @returns The value in the smallest units
  * @group Implementation
  * @category Utils
  */
-export const convertAmountFromHumanReadableToOnChain = (value: number, decimal: number) => value * 10 ** decimal;
+export const convertAmountFromHumanReadableToOnChain = (value: number, decimal: number) =>
+  Math.round(value * 10 ** decimal);
 
 /**
  * Amount is represented in the smallest unit format on chain, this function converts
