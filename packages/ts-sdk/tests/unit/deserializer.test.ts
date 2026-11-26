@@ -132,6 +132,52 @@ describe("BCS Deserializer", () => {
     }).toThrow("Malformed uleb128 encoding for uint32 value");
   });
 
+  it("throws when deserializing a uleb128 that is not minimal", () => {
+    // Each input ends in a zero byte after a continuation byte, so the same
+    // value has a shorter encoding. Rust `bcs` rejects all of them.
+    const nonMinimal = [
+      [0x80, 0x00], // 0
+      [0x81, 0x00], // 1
+      [0xff, 0x00], // 127
+      [0x81, 0x80, 0x00], // 1
+      [0xff, 0xff, 0x00], // 16383
+      [0x80, 0x80, 0x80, 0x80, 0x00], // 0
+      [0xff, 0xff, 0xff, 0xff, 0x00], // 268435455
+    ];
+    for (const bytes of nonMinimal) {
+      const deserializer = new Deserializer(new Uint8Array(bytes));
+      expect(() => deserializer.deserializeUleb128AsU32()).toThrow("Non-canonical uleb128 encoding for uint32 value");
+    }
+  });
+
+  it("accepts minimal uleb128 encodings at each byte length", () => {
+    const cases: Array<[number[], number]> = [
+      [[0x00], 0],
+      [[0x7f], 127],
+      [[0x80, 0x01], 128],
+      [[0xff, 0x7f], 16383],
+      [[0x80, 0x80, 0x01], 16384],
+      [[0x80, 0x80, 0x80, 0x01], 2097152],
+      [[0x80, 0x80, 0x80, 0x80, 0x01], 268435456],
+      [[0xff, 0xff, 0xff, 0xff, 0x0f], 4294967295],
+    ];
+    for (const [bytes, expected] of cases) {
+      const deserializer = new Deserializer(new Uint8Array(bytes));
+      expect(deserializer.deserializeUleb128AsU32()).toEqual(expected);
+      expect(deserializer.remaining()).toEqual(0);
+
+      const serializer = new Serializer();
+      serializer.serializeU32AsUleb128(expected);
+      expect(Array.from(serializer.toUint8Array())).toEqual(bytes);
+    }
+  });
+
+  it("rejects a non-minimal length prefix when deserializing bytes", () => {
+    // [0x81, 0x00] is a two-byte encoding of length 1.
+    const deserializer = new Deserializer(new Uint8Array([0x81, 0x00, 0x2a]));
+    expect(() => deserializer.deserializeBytes()).toThrow("Non-canonical uleb128 encoding for uint32 value");
+  });
+
   it("throws when deserializing against buffer that has been drained", () => {
     expect(() => {
       const deserializer = new Deserializer(
